@@ -13,19 +13,6 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-
-    $('div#main_app').addClass('border-box-sizing ui-widget');
-    $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
-    $('#new_notebook').button().click(function (e) {
-        window.open($('body').data('baseProjectUrl')+'new');
-    });
-
-    IPython.read_only = $('body').data('readOnly') === 'True';
-    IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
-
-    IPython.notebook_list.load_list();
-
     IPython.page.show();
 
 });

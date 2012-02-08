@@ -99,7 +99,6 @@ $(document).ready(function () {
         // hide various elements from read-only view
         $('div#pager').remove();
         $('div#pager_splitter').remove();
-        $('span#login_widget').removeClass('hidden');
 
         // set the notebook name field as not modifiable
         $('#notebook_name').attr('disabled','disabled')

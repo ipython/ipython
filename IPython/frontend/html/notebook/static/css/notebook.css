@@ -78,6 +78,14 @@ span#notebook_name {
     font-size: 85%;
 }
 
+
+div#main_app {
+    /* Initially hidden to prevent FLOUC */
+    display: none;
+    width: 100%;
+    position: relative;
+}
+
 span#quick_help_area {
     position: static;
     padding: 5px 0px;

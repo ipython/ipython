@@ -5,44 +5,15 @@
  * Author: IPython Development Team
  */
 
-
-body {
-    background-color: white;
-    /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
-    overflow: auto;
+#main_app {
+    width: 920px;
+    margin: auto;
 }
 
-#left_panel {
-}
-
-#drop_zone {
-    height: 200px;
-    width: 200px
-}
-
-#content_panel {
-    width: 600px;
-}
-
-#content_toolbar {
+#notebooks_toolbar {
     padding: 5px;
     height: 25px;
     line-height: 25px;
-}
-
-#header_border {
-    width: 100%;
-    height: 2px;
-}
-
-#app_hbox {
-    width: 100%;
 }
 
 #drag_info {

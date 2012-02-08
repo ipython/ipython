@@ -1,27 +1,26 @@
-{% extends layout.html %}
+{% extends page.html %}
 
-{% block title %}
-IPython Dashboard
-{% end %}
+{% block title %}IPython Dashboard{% end %}
 
 {% block stylesheet %}
     <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
 {% end %}
 
-{% block meta %}
-    <meta name="read_only" content="{{read_only}}"/>
-{% end %}
 
 {% block params %}
 data-project={{project}}
 data-base-project-url={{base_project_url}}
 data-base-kernel-url={{base_kernel_url}}
+data-read-only={{read_only}}
 {% end %}
 
-{% block content_panel %}
+{% block site %}
+
+<div id="main_app">
+
     {% if logged_in or not read_only %}
 
-    <div id="content_toolbar">
+    <div id="notebooks_toolbar">
         <span id="drag_info">Drag files onto the list to import
         notebooks.</span>
 
@@ -35,6 +34,9 @@ data-base-kernel-url={{base_kernel_url}}
     <div id="notebook_list">
         <div id="project_name"><h2>{{project}}</h2></div>
     </div>
+
+</div>
+
 {% end %}
 
 {% block script %}

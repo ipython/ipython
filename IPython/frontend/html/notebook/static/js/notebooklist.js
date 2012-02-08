@@ -21,7 +21,6 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.style = function () {
-        this.element.addClass('ui-widget ui-widget-content');
         $('div#project_name').addClass('ui-widget ui-widget-header');
     };
 

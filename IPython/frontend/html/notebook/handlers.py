@@ -211,6 +211,7 @@ class LoginHandler(AuthenticatedHandler):
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
+                base_project_url=self.application.ipython_app.base_project_url,
                 message=message
         )
 
@@ -246,6 +247,7 @@ class LogoutHandler(AuthenticatedHandler):
                     read_only=self.read_only,
                     logged_in=self.logged_in,
                     login_available=self.login_available,
+                    base_project_url=self.application.ipython_app.base_project_url,
                     message=message)
 
 

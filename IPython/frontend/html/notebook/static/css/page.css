@@ -14,7 +14,7 @@ body {
     right: 0px;
     top: 0px;
     bottom: 0px;
-    overflow: hidden;
+    overflow: visible;
 }
 
 
@@ -41,11 +41,9 @@ span#ipython_notebook h1 img {
     color: black;
 }
 
-div#main_app {
-    /* Initially hidden to prevent FLOUC */
+#site {
+    width: 100%
     display: none;
-    width: 100%;
-    position: relative;
 }
 
 /* We set the fonts by hand here to override the values in the theme */
@@ -63,11 +61,17 @@ div#main_app {
     font-size: 77%;
 }
 
+input.ui-button {
+    padding: 0.3em 0.9em;
+}
+
 span#login_widget {
     float: right;
 }
 
-/* generic class for hidden objects */
-.hidden {
-    display: none;
+.border-box-sizing {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
 }
+

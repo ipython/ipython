@@ -12,19 +12,11 @@
 
 $(document).ready(function () {
 
-    $('div#header').addClass('border-box-sizing');
-    $('div#header_border').addClass('border-box-sizing ui-widget ui-widget-content');
-
+    IPython.page = new IPython.Page();
+    $('input#login_submit').button();
     $('div#main_app').addClass('border-box-sizing ui-widget');
-    $('div#app_hbox').addClass('hbox');
-
-    $('div#left_panel').addClass('box-flex');
-    $('div#right_panel').addClass('box-flex');
-    $('input#signin').button();
-
-    // These have display: none in the css file and are made visible here to prevent FLOUC.
-    $('div#header').css('display','block');
-    $('div#main_app').css('display','block');
+    IPython.page.show();
+    $('input#password_input').focus();
 
 });
 

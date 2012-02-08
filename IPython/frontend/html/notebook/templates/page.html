@@ -8,8 +8,8 @@
 
     <link rel="stylesheet" href="{{static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/boilerplate.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/layout.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/base.css") }}" type="text/css"/>
+    <link rel="stylesheet" href="{{static_url("css/fbm.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("css/page.css") }}" type="text/css"/>
     {% block stylesheet %}
     {% end %}
 
@@ -21,7 +21,7 @@
 <body {% block params %}{% end %}>
 
 <div id="header">
-    <span id="ipython_notebook"><h1><img src='{{static_url("ipynblogo.png") }}' alt='IPython Notebook'/></h1></span>
+    <span id="ipython_notebook"><h1><a href={{base_project_url}} alt='dashboard'><img src='{{static_url("ipynblogo.png") }}' alt='IPython Notebook'/></a></h1></span>
 
     {% block login_widget %}
 
@@ -39,43 +39,15 @@
     {% end %}
 </div>
 
-<div id="header_border"></div>
-
-<div id="main_app">
-
-    <div id="app_hbox">
-
-    <div id="left_panel">
-    {% block left_panel %}
-    {% end %}
-    </div>
-
-    <div id="content_panel">
-        {% if message %}
-
-          {% for key in message %}
-            <div class="message {{key}}">
-               {{message[key]}}
-            </div>
-          {% end %}
-        {% end %}
-
-        {% block content_panel %}
-        {% end %}
-    </div>
-    <div id="right_panel">
-    {% block right_panel %}
-    {% end %}
-    </div>
-
-    </div>
-
+<div id="site">
+{% block site %}
+{% end %}
 </div>
 
 <script src="{{static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("js/loginmain.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("js/page.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% block script %}
