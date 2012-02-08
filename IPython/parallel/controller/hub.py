@@ -457,7 +457,7 @@ class Hub(SessionFactory):
     def dispatch_monitor_traffic(self, msg):
         """all ME and Task queue messages come through here, as well as
         IOPub traffic."""
-        self.log.debug("monitor traffic: %r", msg[:2])
+        self.log.debug("monitor traffic: %r", msg[0])
         switch = msg[0]
         try:
             idents, msg = self.session.feed_identities(msg[1:])
