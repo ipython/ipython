@@ -223,6 +223,14 @@ class TestClient(ClusterTestCase):
         for rec in found:
             self.assertEquals(set(rec.keys()), set(['msg_id', 'submitted', 'completed']))
     
+    def test_db_query_default_keys(self):
+        """default db_query excludes buffers"""
+        found = self.client.db_query({'msg_id': {'$ne' : ''}})
+        for rec in found:
+            keys = set(rec.keys())
+            self.assertFalse('buffers' in keys, "'buffers' should not be in: %s" % keys)
+            self.assertFalse('result_buffers' in keys, "'result_buffers' should not be in: %s" % keys)
+    
     def test_db_query_msg_id(self):
         """ensure msg_id is always in db queries"""
         found = self.client.db_query({'msg_id': {'$ne' : ''}},keys=['submitted', 'completed'])

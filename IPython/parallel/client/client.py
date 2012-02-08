@@ -1308,7 +1308,11 @@ class Client(HasTraits):
         verbose : bool
                 Whether to return lengths only, or lists of ids for each element
         """
-        engine_ids = self._build_targets(targets)[1]
+        if targets == 'all':
+            # allow 'all' to be evaluated on the engine
+            engine_ids = None
+        else:
+            engine_ids = self._build_targets(targets)[1]
         content = dict(targets=engine_ids, verbose=verbose)
         self.session.send(self._query_socket, "queue_request", content=content)
         idents,msg = self.session.recv(self._query_socket, 0)
