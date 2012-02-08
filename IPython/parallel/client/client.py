@@ -726,6 +726,10 @@ class Client(HasTraits):
             if self.debug:
                 pprint(msg)
             parent = msg['parent_header']
+            # ignore IOPub messages with no parent.
+            # Caused by print statements or warnings from before the first execution.
+            if not parent:
+                continue
             msg_id = parent['msg_id']
             content = msg['content']
             header = msg['header']
