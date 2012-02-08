@@ -10,30 +10,30 @@
     margin: 30px auto 0px auto;
 }
 
-#notebooks_toolbar {
+.list_toolbar {
     padding: 5px;
     height: 25px;
     line-height: 25px;
 }
 
-#drag_info {
+.toolbar_info {
     float: left;
 }
 
-#notebooks_buttons {
+.toolbar_buttons {
     float: right;
 }
 
-#project_name {
+.list_header {
     height: 25px;
     line-height: 25px;
-    padding: 3px;
+    padding: 3px 5px;
 }
 
-.notebook_item {
+.list_item {
     height: 25px;
     line-height: 25px;
-    padding: 3px;
+    padding: 3px 5px;
 }
 
 .notebook_item a {

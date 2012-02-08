@@ -23,9 +23,11 @@ $(document).ready(function () {
 
     IPython.read_only = $('body').data('readOnly') === 'True';
     IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
+    IPython.cluster_list = new IPython.ClusterList('div#cluster_list');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
 
     IPython.notebook_list.load_list();
+    IPython.cluster_list.load_list();
 
     IPython.page.show();
 

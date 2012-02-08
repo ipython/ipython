@@ -21,7 +21,14 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.style = function () {
-        $('div#project_name').addClass('ui-widget ui-widget-header');
+        $('#notebook_toolbar').addClass('list_toolbar');
+        $('#drag_info').addClass('toolbar_info');
+        $('#notebook_buttons').addClass('toolbar_buttons');
+        $('div#project_name').addClass('list_header ui-widget ui-widget-header');
+        $('#refresh_notebook_list').button({
+            icons : {primary: 'ui-icon-arrowrefresh-1-s'},
+            text : false
+        });
     };
 
 
@@ -30,6 +37,9 @@ var IPython = (function (IPython) {
             return;
         }
         var that = this;
+        $('#refresh_notebook_list').click(function () {
+            that.load_list();
+        });
         this.element.bind('dragover', function () {
             return false;
         });
@@ -61,7 +71,13 @@ var IPython = (function (IPython) {
     };
 
 
+    NotebookList.prototype.clear_list = function () {
+        this.element.children('.list_item').remove();
+    }
+
+
     NotebookList.prototype.load_list = function () {
+        this.clear_list();
         var settings = {
             processData : false,
             cache : false,
@@ -92,7 +108,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.new_notebook_item = function (index) {
         var item = $('<div/>');
-        item.addClass('notebook_item ui-widget ui-widget-content ui-helper-clearfix');
+        item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         item.css('border-top-style','none');
         var item_name = $('<span/>').addClass('item_name');
 
@@ -156,7 +172,7 @@ var IPython = (function (IPython) {
                 var that = $(this);
                 // We use the nbname and notebook_id from the parent notebook_item element's
                 // data because the outer scopes values change as we iterate through the loop.
-                var parent_item = that.parents('div.notebook_item');
+                var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var notebook_id = parent_item.data('notebook_id');
                 var dialog = $('<div/>');
