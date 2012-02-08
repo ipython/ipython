@@ -181,6 +181,8 @@ class TaskScheduler(SessionFactory):
 
     def start(self):
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
+        self.client_stream.on_recv(self.dispatch_submission, copy=False)
+
         self._notification_handlers = dict(
             registration_notification = self._register_engine,
             unregistration_notification = self._unregister_engine
@@ -237,8 +239,7 @@ class TaskScheduler(SessionFactory):
         self.completed[uid] = set()
         self.failed[uid] = set()
         self.pending[uid] = {}
-        if len(self.targets) == 1:
-            self.resume_receiving()
+
         # rescan the graph:
         self.update_graph(None)
 
@@ -246,7 +247,7 @@ class TaskScheduler(SessionFactory):
         """Existing engine with ident `uid` became unavailable."""
         if len(self.targets) == 1:
             # this was our only engine
-            self.stop_receiving()
+            pass
 
         # handle any potentially finished tasks:
         self.engine_stream.flush()
@@ -435,6 +436,11 @@ class TaskScheduler(SessionFactory):
 
     def maybe_run(self, msg_id, raw_msg, targets, after, follow, timeout):
         """check location dependencies, and run if they are met."""
+        self.log.debug("Attempting to assign task %s", msg_id)
+        if not self.targets:
+            # no engines, definitely can't run
+            return False
+        
         blacklist = self.blacklist.setdefault(msg_id, set())
         if follow or targets or blacklist or self.hwm:
             # we need a can_run filter
