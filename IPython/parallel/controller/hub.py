@@ -430,7 +430,7 @@ class Hub(SessionFactory):
         """turn any valid targets argument into a list of integer ids"""
         if targets is None:
             # default to all
-            targets = self.ids
+            return self.ids
 
         if isinstance(targets, (int,str,unicode)):
             # only one target specified
