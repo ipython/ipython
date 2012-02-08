@@ -298,7 +298,13 @@ class TaskScheduler(SessionFactory):
                 raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
             except:
                 content = error.wrap_exception()
-            msg = self.session.msg('apply_reply', content, parent=parent, subheader={'status':'error'})
+            # build fake header
+            header = dict(
+                status='error',
+                engine=engine,
+                date=datetime.now(),
+            )
+            msg = self.session.msg('apply_reply', content, parent=parent, subheader=header)
             raw_reply = map(zmq.Message, self.session.serialize(msg, ident=idents))
             # and dispatch it
             self.dispatch_result(raw_reply)
