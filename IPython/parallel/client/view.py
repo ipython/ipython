@@ -408,8 +408,8 @@ class DirectView(View):
         
         If `local=True`, then the package will also be imported locally.
         
-        If `quiet=True`, then no message concerning the success of import will be
-        reported.
+        If `quiet=True`, no output will be produced when attempting remote 
+        imports. 
         
         Note that remote-only (`local=False`) imports have not been implemented.
         
