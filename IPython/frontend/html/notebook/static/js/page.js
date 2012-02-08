@@ -33,9 +33,24 @@ var IPython = (function (IPython) {
     Page.prototype.show = function () {
         // The header and site divs start out hidden to prevent FLOUC.
         // Main scripts should call this method after styling everything.
+        this.show_header();
+        this.show_site();
+    };
+
+
+    Page.prototype.show_header = function () {
+        // The header and site divs start out hidden to prevent FLOUC.
+        // Main scripts should call this method after styling everything.
         $('div#header').css('display','block');
+    };
+
+
+    Page.prototype.show_site = function () {
+        // The header and site divs start out hidden to prevent FLOUC.
+        // Main scripts should call this method after styling everything.
         $('div#site').css('display','block');
     };
+
 
     IPython.Page = Page;
 

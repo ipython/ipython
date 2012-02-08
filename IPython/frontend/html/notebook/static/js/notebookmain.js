@@ -11,75 +11,17 @@
 
 
 $(document).ready(function () {
-    if (window.MathJax){ 
-        // MathJax loaded
-        MathJax.Hub.Config({
-            tex2jax: {
-                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
-            },
-            displayAlign: 'left', // Change this to 'center' to center equations.
-            "HTML-CSS": {
-                styles: {'.MathJax_Display': {"margin": 0}}
-            }
-        });
-    }else if (window.mathjax_url != ""){
-        // Don't have MathJax, but should. Show dialog.
-        var dialog = $('<div></div>')
-            .append(
-                $("<p></p>").addClass('dialog').html(
-                    "Math/LaTeX rendering will be disabled."
-                )
-            ).append(
-                $("<p></p>").addClass('dialog').html(
-                    "If you have administrative access to the notebook server and" +
-                    " a working internet connection, you can install a local copy" +
-                    " of MathJax for offline use with the following command on the server" +
-                    " at a Python or IPython prompt:"
-                )
-            ).append(
-                $("<pre></pre>").addClass('dialog').html(
-                    ">>> from IPython.external import mathjax; mathjax.install_mathjax()"
-                )
-            ).append(
-                $("<p></p>").addClass('dialog').html(
-                    "This will try to install MathJax into the IPython source directory."
-                )
-            ).append(
-                $("<p></p>").addClass('dialog').html(
-                    "If IPython is installed to a location that requires" +
-                    " administrative privileges to write, you will need to make this call as" +
-                    " an administrator, via 'sudo'."
-                )
-            ).append(
-                $("<p></p>").addClass('dialog').html(
-                    "When you start the notebook server, you can instruct it to disable MathJax support altogether:"
-                )
-            ).append(
-                $("<pre></pre>").addClass('dialog').html(
-                    "$ ipython notebook --no-mathjax"
-                )
-            ).append(
-                $("<p></p>").addClass('dialog').html(
-                    "which will prevent this dialog from appearing."
-                )
-            ).dialog({
-                title: "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
-                width: "70%",
-                modal: true,
-            })
-    }else{
-        // No MathJax, but none expected. No dialog.
-    }
 
+    IPython.init_mathjax();
 
-    IPython.markdown_converter = new Markdown.Converter();
-    IPython.read_only = $('meta[name=read_only]').attr("content") == 'True';
-
-    $('div#header').addClass('border-box-sizing');
-    $('div#main_app').addClass('border-box-sizing ui-widget ui-widget-content');
+    IPython.read_only = $('body').data('readOnly') === 'True';
+    $('div#main_app').addClass('border-box-sizing ui-widget');
     $('div#notebook_panel').addClass('border-box-sizing ui-widget');
+    // The header's bottom border is provided by the menu bar so we remove it.
+    $('div#header').css('border-bottom-style','none');
 
+    IPython.page = new IPython.Page();
+    IPython.markdown_converter = new Markdown.Converter();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
@@ -92,9 +34,6 @@ $(document).ready(function () {
 
     IPython.layout_manager.do_resize();
 
-    // These have display: none in the css file and are made visible here to prevent FLOUC.
-    $('div#header').css('display','block');
-
     if(IPython.read_only){
         // hide various elements from read-only view
         $('div#pager').remove();
@@ -104,9 +43,7 @@ $(document).ready(function () {
         $('#notebook_name').attr('disabled','disabled')
     }
 
-    $('div#menubar').css('display','block');
-    $('div#toolbar').css('display','block');
-    $('div#main_app').css('display','block');
+    IPython.page.show();
 
     IPython.layout_manager.do_resize();
     $([IPython.events]).on('notebook_loaded.Notebook', function () {

@@ -93,6 +93,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.new_notebook_item = function (index) {
         var item = $('<div/>');
         item.addClass('notebook_item ui-widget ui-widget-content ui-helper-clearfix');
+        item.css('border-top-style','none');
         var item_name = $('<span/>').addClass('item_name');
 
         item.append(item_name);

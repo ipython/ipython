@@ -22,7 +22,11 @@ var IPython = (function (IPython) {
 
 
     ToolBar.prototype.style = function () {
-        this.element.addClass('border-box-sizing');
+        this.element.addClass('border-box-sizing').
+            addClass('ui-widget ui-widget-content').
+            css('border-top-style','none').
+            css('border-left-style','none').
+            css('border-right-style','none');
         this.element.find('#cell_type').addClass('ui-widget ui-widget-content');
         this.element.find('#save_b').button({
             icons : {primary: 'ui-icon-disk'},

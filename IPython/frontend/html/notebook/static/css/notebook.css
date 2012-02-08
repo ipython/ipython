@@ -6,14 +6,6 @@
 
 
 body {
-    background-color: white;
-    /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
     overflow: hidden;
 }
 
@@ -29,11 +21,6 @@ span#notebook_name {
     padding: 3px;
     border: none;
     font-size: 146.5%;
-}
-
-#menubar {
-    /* Initially hidden to prevent FLOUC */
-    display: none;
 }
 
 .ui-menubar-item .ui-button .ui-button-text {
@@ -69,8 +56,6 @@ span#notebook_name {
 }
 
 #toolbar {
-    /* Initially hidden to prevent FLOUC */
-    display: none;
     padding: 3px 15px;
 }
 
@@ -80,8 +65,6 @@ span#notebook_name {
 
 
 div#main_app {
-    /* Initially hidden to prevent FLOUC */
-    display: none;
     width: 100%;
     position: relative;
 }
