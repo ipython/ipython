@@ -7,7 +7,7 @@
 
 #main_app {
     width: 920px;
-    margin: auto;
+    margin: 30px auto 0px auto;
 }
 
 #notebooks_toolbar {
@@ -50,4 +50,8 @@
 
 .highlight_text {
     color: blue;
+}
+
+.ui-tabs .ui-tabs-nav li a {
+    padding: .3em .5em;
 }

@@ -14,6 +14,7 @@ $(document).ready(function () {
 
     IPython.page = new IPython.Page();
 
+    $('div#tabs').tabs();
     $('div#main_app').addClass('border-box-sizing ui-widget');
     $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
     $('#new_notebook').button().click(function (e) {

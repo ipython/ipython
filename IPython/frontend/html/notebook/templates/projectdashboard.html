@@ -21,22 +21,31 @@ data-read-only={{read_only}}
 
 <div id="main_app">
 
-    {% if logged_in or not read_only %}
+<div id="tabs">
+    <ul>
+        <li><a href="#tab1">Notebooks</a></li>
+        <li><a href="#tab2">Clusters</a></li>
+    </ul>
 
-    <div id="notebooks_toolbar">
-        <span id="drag_info">Drag files onto the list to import
-        notebooks.</span>
+    <div id="tab1">
+        {% if logged_in or not read_only %}
+        <div id="notebooks_toolbar">
+            <span id="drag_info">Drag files onto the list to import
+            notebooks.</span>
 
-        <span id="notebooks_buttons">
-          <button id="new_notebook">New Notebook</button>
-        </span>
+            <span id="notebooks_buttons">
+              <button id="new_notebook">New Notebook</button>
+            </span>
+        </div>
+        {% end %}
+
+        <div id="notebook_list">
+            <div id="project_name"><h2>{{project}}</h2></div>
+        </div>
     </div>
-
-    {% end %}
-
-    <div id="notebook_list">
-        <div id="project_name"><h2>{{project}}</h2></div>
+    <div id="tab2">
     </div>
+</div>
 
 </div>
 
