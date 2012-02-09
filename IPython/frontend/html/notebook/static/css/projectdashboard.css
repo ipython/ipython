@@ -10,6 +10,14 @@
     margin: 30px auto 0px auto;
 }
 
+#tabs {
+    border-style: none;
+}
+
+#tab1, #tab2 {
+    padding: 1em 0em;
+}
+
 .list_toolbar {
     padding: 5px;
     height: 25px;
