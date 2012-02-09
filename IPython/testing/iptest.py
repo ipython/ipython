@@ -42,6 +42,8 @@ import warnings
 from IPython.testing import nosepatch
 # Now, proceed to import nose itself
 import nose.plugins.builtin
+from nose.plugins.xunit import Xunit
+from nose import SkipTest
 from nose.core import TestProgram
 
 # Our own imports
@@ -52,7 +54,7 @@ from IPython.utils.sysinfo import sys_info
 
 from IPython.testing import globalipapp
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
-from IPython.external.decorators import KnownFailure
+from IPython.external.decorators import KnownFailure, knownfailureif
 
 pjoin = path.join
 
@@ -78,6 +80,27 @@ warnings.filterwarnings('ignore', 'the sha module is deprecated',
 # Wx on Fedora11 spits these out
 warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
                         UserWarning)
+
+# ------------------------------------------------------------------------------
+# Monkeypatch Xunit to count known failures as skipped.
+# ------------------------------------------------------------------------------
+if not hasattr(Xunit, 'orig_addError'):
+    try:
+        knownfailureif(True)(lambda: None)()
+    except Exception as e:
+        KnownFailureTest = type(e)
+
+
+    def addError(self, test, err, capt=None):
+        if issubclass(err[0], KnownFailureTest):
+            err = (SkipTest,) + err[1:]
+        return self.orig_addError(test, err, capt)
+
+    #xunit.Xunit = Xunit
+
+
+    Xunit.orig_addError = Xunit.addError
+    Xunit.addError = addError
 
 #-----------------------------------------------------------------------------
 # Logic for skipping doctests
