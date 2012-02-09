@@ -84,20 +84,16 @@ warnings.filterwarnings('ignore', 'wxPython/wxWidgets release number mismatch',
 # ------------------------------------------------------------------------------
 # Monkeypatch Xunit to count known failures as skipped.
 # ------------------------------------------------------------------------------
-if not hasattr(Xunit, 'orig_addError'):
+def monkeypatch_xunit():
     try:
         knownfailureif(True)(lambda: None)()
     except Exception as e:
         KnownFailureTest = type(e)
 
-
     def addError(self, test, err, capt=None):
         if issubclass(err[0], KnownFailureTest):
             err = (SkipTest,) + err[1:]
         return self.orig_addError(test, err, capt)
-
-    #xunit.Xunit = Xunit
-
 
     Xunit.orig_addError = Xunit.addError
     Xunit.addError = addError
@@ -410,6 +406,9 @@ def run_iptest():
     `iptest all`.  It simply calls nose with appropriate command line flags
     and accepts all of the standard nose arguments.
     """
+    # Apply our monkeypatch to Xunit
+    if not hasattr(Xunit, 'orig_addError'):
+        monkeypatch_xunit()
 
     warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
