@@ -563,14 +563,15 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_output = function (json) {
+    CodeCell.prototype.append_output = function (json, dynamic) {
+        // If dynamic is true, javascript output will be eval'd.
         this.expand();
         if (json.output_type === 'pyout') {
-            this.append_pyout(json);
+            this.append_pyout(json, dynamic);
         } else if (json.output_type === 'pyerr') {
             this.append_pyerr(json);
         } else if (json.output_type === 'display_data') {
-            this.append_display_data(json);
+            this.append_display_data(json, dynamic);
         } else if (json.output_type === 'stream') {
             this.append_stream(json);
         };
@@ -585,11 +586,11 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_pyout = function (json) {
+    CodeCell.prototype.append_pyout = function (json, dynamic) {
         n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
-        this.append_mime_type(json, toinsert);
+        this.append_mime_type(json, toinsert, dynamic);
         this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
@@ -641,9 +642,9 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_display_data = function (json) {
+    CodeCell.prototype.append_display_data = function (json, dynamic) {
         var toinsert = this.create_output_area();
-        this.append_mime_type(json, toinsert);
+        this.append_mime_type(json, toinsert, dynamic);
         this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
@@ -652,8 +653,10 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_mime_type = function (json, element) {
-        if (json.html !== undefined) {
+    CodeCell.prototype.append_mime_type = function (json, element, dynamic) {
+        if (json.javascript !== undefined && dynamic) {
+            this.append_javascript(json.javascript, element, dynamic);
+        } else if (json.html !== undefined) {
             this.append_html(json.html, element);
         } else if (json.latex !== undefined) {
             this.append_latex(json.latex, element);
@@ -674,6 +677,14 @@ var IPython = (function (IPython) {
         toinsert.append(html);
         element.append(toinsert);
     };
+
+
+    CodeCell.prototype.append_javascript = function (js, e) {
+        // We just eval the JS code, element appears in the local scope.
+        var element = $("<div/>").addClass("box_flex1 output_subarea");
+        e.append(element);
+        eval(js);
+    }
 
 
     CodeCell.prototype.append_text = function (data, element, extra_class) {
@@ -834,7 +845,8 @@ var IPython = (function (IPython) {
             };
             var len = data.outputs.length;
             for (var i=0; i<len; i++) {
-                this.append_output(data.outputs[i]);
+                // append with dynamic=false.
+                this.append_output(data.outputs[i], false);
             };
             if (data.collapsed !== undefined) {
                 if (data.collapsed) {

@@ -993,7 +993,6 @@ var IPython = (function (IPython) {
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
                 $([IPython.events]).trigger('status_busy.Kernel');
-                IPython.kernel_status_widget.status_busy();
             } else if (content.execution_state === 'idle') {
                 $([IPython.events]).trigger('status_idle.Kernel');
             } else if (content.execution_state === 'dead') {
@@ -1044,7 +1043,8 @@ var IPython = (function (IPython) {
             json.evalue = content.evalue;
             json.traceback = content.traceback;
         };
-        cell.append_output(json);
+        // append with dynamic=true
+        cell.append_output(json, true);
         this.dirty = true;
     };
 
