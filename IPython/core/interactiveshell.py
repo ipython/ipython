@@ -2005,14 +2005,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if next_input:
             self.set_next_input(next_input)
 
-        args = arg_s.split(' ',1)
-        magic_name = args[0]
+        magic_name, _, magic_args = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
 
-        try:
-            magic_args = args[1]
-        except IndexError:
-            magic_args = ''
         fn = getattr(self,'magic_'+magic_name,None)
         if fn is None:
             error("Magic function `%s` not found." % magic_name)
