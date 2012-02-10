@@ -77,6 +77,7 @@ class ClusterManager(LoggingConfigurable):
             'launcher': launcher,
             'n': n
         }
+        return self.profile_info(profile)
 
     def stop_cluster(self, profile):
         """Stop a cluster for a given profile."""
@@ -84,6 +85,7 @@ class ClusterManager(LoggingConfigurable):
             raise web.HTTPError(409, u'cluster not running')
         launcher = self.profiles.pop(profile)['launcher']
         launcher.stop()
+        return self.profile_info(profile)
 
     def stop_all_clusters(self):
         for p in self.profiles.values():

@@ -38,6 +38,8 @@
     padding: 3px 5px;
 }
 
+
+
 .list_item {
     height: 25px;
     line-height: 25px;
@@ -46,6 +48,23 @@
 
 .notebook_item a {
     text-decoration: none;
+}
+
+.profile_col {
+}
+
+.status_col {
+    float: right;
+    width: 325px;
+}
+
+.engines_col {
+    float: right;
+    width: 325px;
+}
+
+.action_col {
+    float: right;
 }
 
 .item_buttons {

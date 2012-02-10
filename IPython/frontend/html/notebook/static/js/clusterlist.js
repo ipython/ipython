@@ -24,7 +24,11 @@ var IPython = (function (IPython) {
         $('#cluster_toolbar').addClass('list_toolbar');
         $('#cluster_list_info').addClass('toolbar_info');
         $('#cluster_buttons').addClass('toolbar_buttons');
-        $('div#cluster_header').addClass('list_header ui-widget ui-widget-header');
+        $('div#cluster_header').addClass('list_header ui-widget ui-widget-header ui-helper-clearfix');
+        $('div#cluster_header').children().eq(0).addClass('profile_col');
+        $('div#cluster_header').children().eq(1).addClass('action_col');
+        $('div#cluster_header').children().eq(2).addClass('engines_col');
+        $('div#cluster_header').children().eq(3).addClass('status_col');
         $('#refresh_cluster_list').button({
             icons : {primary: 'ui-icon-arrowrefresh-1-s'},
             text : false
@@ -58,17 +62,13 @@ var IPython = (function (IPython) {
     }
 
     ClusterList.prototype.load_list_success = function (data, status, xhr) {
-        console.log(data);
         this.clear_list();
         var len = data.length;
         for (var i=0; i<len; i++) {
             var item_div = $('<div/>');
-            item_div.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-            item_div.css('border-top-style','none');
             var item = new ClusterItem(item_div);
             item.update_state(data[i]);
             item_div.data('item', item);
-            console.log('appending item', item);
             this.element.append(item_div);
         };
     };
@@ -77,8 +77,14 @@ var IPython = (function (IPython) {
     var ClusterItem = function (element) {
         this.element = $(element);
         this.data = null;
+        this.style();
     };
 
+
+    ClusterItem.prototype.style = function () {
+        this.element.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
+        this.element.css('border-top-style','none');
+    }
 
     ClusterItem.prototype.update_state = function (data) {
         this.data = data;
@@ -92,29 +98,78 @@ var IPython = (function (IPython) {
 
 
     ClusterItem.prototype.state_stopped = function () {
-        var item_name = $('<span/>').addClass('item_name').text(this.data.profile);
-        var item_buttons = $('<span/>').addClass('item_buttons');
+        var that = this;
+        this.element.empty();
+        var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
+        var status_col = $('<span/>').addClass('status_col').html('stopped');
+        var engines_col = $('<span/>').addClass('engines_col');
+        var label = $('<label/>').addClass('engine_num_label').html('# of engines:');
+        var input = $('<input/>').attr('type','text').
+                attr('size',3).addClass('engine_num_input');
+        engines_col.append(label).append(input);
+        var action_col = $('<span/>').addClass('action_col');
         var start_button = $('<button>Start</button>').button();
-        item_buttons.append(start_button);
-        this.element.append(item_name).append(item_buttons);
+        action_col.append(start_button);
+        this.element.append(profile_col).
+            append(action_col).
+            append(engines_col).
+            append(status_col);
         start_button.click(function (e) {
-            console.log('start');
+            var n = that.element.find('.engine_num_input').val();
+            console.log(n);
+            if (!/^\d+$/.test(n)) {
+                status_col.html('invalid engine #');
+            } else {
+                console.log('ajax...');
+                var settings = {
+                    cache : false,
+                    data : {n:n},
+                    type : "POST",
+                    dataType : "json",
+                    success : function (data, status, xhr) {
+                        that.update_state(data);
+                    },
+                    error : function (data, status, xhr) {
+                        status_col.html("error starting cluster")
+                    }
+                };
+                status_col.html('starting');
+                var url = $('body').data('baseProjectUrl') + 'clusters/' + that.data.profile + '/start';
+                $.ajax(url, settings);
+            };
         });
-    }
-
-
-    ClusterItem.prototype.start_success = function () {
-        
     };
 
+
     ClusterItem.prototype.state_running = function () {
-        var item_name = $('<span/>').addClass('item_name').text(this.data.profile);
-        var item_buttons = $('<span/>').addClass('item_buttons');
+        this.element.empty();
+        var that = this;
+        var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
+        var status_col = $('<span/>').addClass('status_col').html('running');
+        var engines_col = $('<span/>').addClass('engines_col').html(this.data.n);
+        var action_col = $('<span/>').addClass('action_col');
         var stop_button = $('<button>Stop</button>').button();
-        item_buttons.append(start_button);
-        this.element.append(item_name).append(item_buttons);
-        start_button.click(function (e) {
-            console.log('stop');
+        action_col.append(stop_button);
+        this.element.append(profile_col).
+            append(action_col).
+            append(engines_col).
+            append(status_col);
+        stop_button.click(function (e) {
+            var settings = {
+                cache : false,
+                type : "POST",
+                dataType : "json",
+                success : function (data, status, xhr) {
+                    that.update_state(data);
+                },
+                error : function (data, status, xhr) {
+                    console.log('error',data);
+                    status_col.html("error stopping cluster")
+                }
+            };
+            status_col.html('stopping')
+            var url = $('body').data('baseProjectUrl') + 'clusters/' + that.data.profile + '/stop';
+            $.ajax(url, settings);
         });
     };
 

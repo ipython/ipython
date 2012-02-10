@@ -691,10 +691,10 @@ class ClusterActionHandler(AuthenticatedHandler):
         cm = self.application.cluster_manager
         if action == 'start':
             n = int(self.get_argument('n', default=4))
-            cm.start_cluster(profile, n)
+            data = cm.start_cluster(profile, n)
         if action == 'stop':
-            cm.stop_cluster(profile)
-        self.finish()
+            data = cm.stop_cluster(profile)
+        self.finish(jsonapi.dumps(data))
 
 
 #-----------------------------------------------------------------------------
