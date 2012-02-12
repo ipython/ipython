@@ -72,7 +72,7 @@ def load_ipython_extension(ip):
     if not _loaded:
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
 
-        for cls in (object, tuple, list, set, frozenset, dict, str):
+        for cls in (object, set, frozenset, str):
             plaintext_formatter.for_type(cls, print_basic_unicode)
 
         plaintext_formatter.for_type_by_name(
@@ -87,6 +87,8 @@ def load_ipython_extension(ip):
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
         )
+        for cls in (list, tuple, dict, int, long, float):
+            png_formatter.for_type(cls, print_png)
 
         latex_formatter = ip.display_formatter.formatters['text/latex']
         latex_formatter.for_type_by_name(
@@ -95,5 +97,7 @@ def load_ipython_extension(ip):
         latex_formatter.for_type_by_name(
             'sympy.matrices.matrices', 'Matrix', print_latex
         )
-        _loaded = True
+        for cls in (list, tuple, dict, int, long, float):
+            latex_formatter.for_type(cls, print_latex)
 
+        _loaded = True
