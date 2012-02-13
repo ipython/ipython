@@ -407,7 +407,7 @@ def run_iptest():
     and accepts all of the standard nose arguments.
     """
     # Apply our monkeypatch to Xunit
-    if not hasattr(Xunit, 'orig_addError'):
+    if '--with-xunit' in sys.argv and not hasattr(Xunit, 'orig_addError'):
         monkeypatch_xunit()
 
     warnings.filterwarnings('ignore',
