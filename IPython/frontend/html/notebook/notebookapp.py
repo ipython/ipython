@@ -282,7 +282,20 @@ class NotebookApp(BaseIPythonApplication):
     )
     
     open_browser = Bool(True, config=True,
-                        help="Whether to open in a browser after starting.")
+                        help="""Whether to open in a browser after starting.
+                        The specific browser used is platform dependent and
+                        determined by the python standard library `webbrowser`
+                        module, which allows setting of the BROWSER
+                        environment variable to override it. As a one-time
+                        change, you can start the notebook using:
+
+                            BROWSER=firefox ipython notebook
+
+                        To make the change more permanent, modify your
+                        ~/.bashrc you can include a line like the following:
+
+                            export BROWSER=firefox
+                        """)
     
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
