@@ -291,11 +291,11 @@ class NotebookApp(BaseIPythonApplication):
                         """)
 
     browser = Unicode(u'', config=True,
-                      help="""Specify which browser to use when opening the
-                      notebook. If not specified, the default browser will be
-                      determined by the `webbrowser` standard library module,
-                      which allows setting of the BROWSER environment variable
-                      to override it.
+                      help="""Specify what command to use to invoke a web
+                      browser when opening the notebook. If not specified, the
+                      default browser will be determined by the `webbrowser`
+                      standard library module, which allows setting of the
+                      BROWSER environment variable to override it.
                       """)
     
     read_only = Bool(False, config=True,
@@ -441,7 +441,7 @@ class NotebookApp(BaseIPythonApplication):
 
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
-            if len(self.browser) == 0:
+            if self.browser:
                 browser = webbrowser.get()
             else:
                 browser = webbrowser.get(self.browser)
