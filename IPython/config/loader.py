@@ -676,3 +676,27 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
             sub_parser.load_config(self.extra_args)
             self.config._merge(sub_parser.config)
             self.extra_args = sub_parser.extra_args
+
+
+def load_pyconfig_files(config_files, path):
+    """Load multiple Python config files, merging each of them in turn.
+
+    Parameters
+    ==========
+    config_files : list of str
+        List of config files names to load and merge into the config.
+    path : unicode
+        The full path to the location of the config files.
+    """
+    config = Config()
+    for cf in config_files:
+        loader = PyFileConfigLoader(cf, path=path)
+        try:
+            next_config = loader.load_config()
+        except ConfigFileNotFound:
+            pass
+        except:
+            raise
+        else:
+            config._merge(next_config)
+    return config

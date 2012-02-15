@@ -1167,12 +1167,12 @@ class IPClusterLauncher(LocalProcessLauncher):
         ['--clean-logs=True', '--log-to-file', '--log-level=%i'%logging.INFO], config=True,
         help="Command line arguments to pass to ipcluster.")
     ipcluster_subcommand = Unicode('start')
-    ipcluster_profile = Unicode('default')
-    ipcluster_n = Integer(2)
+    profile = Unicode('default')
+    n = Integer(2)
 
     def find_args(self):
         return self.ipcluster_cmd + [self.ipcluster_subcommand] + \
-            ['--n=%i'%self.ipcluster_n, '--profile=%s'%self.ipcluster_profile] + \
+            ['--n=%i'%self.n, '--profile=%s'%self.profile] + \
             self.ipcluster_args
 
     def start(self):

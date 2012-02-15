@@ -116,11 +116,9 @@ var IPython = (function (IPython) {
             append(status_col);
         start_button.click(function (e) {
             var n = that.element.find('.engine_num_input').val();
-            console.log(n);
-            if (!/^\d+$/.test(n)) {
+            if (!/^\d+$/.test(n) && n.length>0) {
                 status_col.html('invalid engine #');
             } else {
-                console.log('ajax...');
                 var settings = {
                     cache : false,
                     data : {n:n},

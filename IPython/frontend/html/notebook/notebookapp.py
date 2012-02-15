@@ -406,6 +406,7 @@ class NotebookApp(BaseIPythonApplication):
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
         self.notebook_manager.list_notebooks()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
+        self.cluster_manager.update_profiles()
 
     def init_logging(self):
         super(NotebookApp, self).init_logging()
