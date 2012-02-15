@@ -15,6 +15,7 @@ from __future__ import print_function
 # Stdlib imports
 import atexit
 import datetime
+from io import open as io_open
 import os
 import re
 try:
@@ -808,7 +809,7 @@ def magic_history(self, parameter_s = ''):
                 print('Aborting.')
                 return
             print("Overwriting file.")
-        outfile = open(outfname,'w')
+        outfile = io_open(outfname, 'w', encoding='utf-8')
         close_at_end = True
 
     print_nums = 'n' in opts
@@ -851,10 +852,10 @@ def magic_history(self, parameter_s = ''):
         multiline = "\n" in inline
         line_sep = '\n' if multiline else ' '
         if print_nums:
-            print('%s:%s' % (_format_lineno(session, lineno).rjust(width),
-                    line_sep),  file=outfile, end='')
+            print(u'%s:%s' % (_format_lineno(session, lineno).rjust(width),
+                    line_sep),  file=outfile, end=u'')
         if pyprompts:
-            print(">>> ", end="", file=outfile)
+            print(u">>> ", end=u"", file=outfile)
             if multiline:
                 inline = "\n... ".join(inline.splitlines()) + "\n..."
         print(inline, file=outfile)
