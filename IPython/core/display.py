@@ -407,9 +407,7 @@ class Javascript(DisplayObject):
         for l in self.lib:
             r += lib_t1 % l
         r += self.data
-        if self.lib:
-            for i in range(len(self.lib)):
-                r+= lib_t2
+        r += lib_t2*len(self.lib)
         return r
 
 
