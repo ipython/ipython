@@ -344,11 +344,73 @@ class JSON(DisplayObject):
     def _repr_json_(self):
         return self.data
 
+css_t = """$("head").append($("<link/>").attr({
+  rel:  "stylesheet",
+  type: "text/css",
+  href: "%s"
+}));
+"""
+
+lib_t1 = """$.getScript("%s", function () {
+"""
+lib_t2 = """});
+"""
 
 class Javascript(DisplayObject):
 
+    def __init__(self, data=None, url=None, filename=None, lib=None, css=None):
+        """Create a Javascript display object given raw data.
+
+        When this object is returned by an expression or passed to the
+        display function, it will result in the data being displayed
+        in the frontend. If the data is a URL, the data will first be
+        downloaded and then displayed. 
+
+        Parameters
+        ----------
+        data : unicode, str or bytes
+            The Javascript source code or a URL to download it from.
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
+        lib : list or str
+            A sequence of Javascript library URLs to load asynchronously before
+            running the source code. The full URLs of the libraries should
+            be given. A single Javascript library URL can also be given as a
+            string.
+        css: : list or str
+            A sequence of css files to load before running the source code.
+            The full URLs of the css files should be give. A single css URL
+            can also be given as a string.
+        """
+        if isinstance(lib, basestring):
+            lib = [lib]
+        elif lib is None:
+            lib = []
+        if isinstance(css, basestring):
+            css = [css]
+        elif css is None:
+            css = []
+        if not isinstance(lib, (list,tuple)):
+            raise TypeError('expected sequence, got: %r' % lib)
+        if not isinstance(css, (list,tuple)):
+            raise TypeError('expected sequence, got: %r' % css)
+        self.lib = lib
+        self.css = css
+        super(Javascript, self).__init__(data=data, url=url, filename=filename)
+
     def _repr_javascript_(self):
-        return self.data
+        r = ''
+        for c in self.css:
+            r += css_t % c
+        for l in self.lib:
+            r += lib_t1 % l
+        r += self.data
+        if self.lib:
+            for i in range(len(self.lib)):
+                r+= lib_t2
+        return r
 
 
 class Image(DisplayObject):
