@@ -10,6 +10,8 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
+
     var utils = IPython.utils;
 
     var CodeCell = function (notebook) {
@@ -22,8 +24,6 @@ var IPython = (function (IPython) {
         this.tooltip_timeout = null;
         this.clear_out_timeout = null;
         IPython.Cell.apply(this, arguments);
-        var that = this;
-        this.ccc = new IPython.Completer(function(ed, callback){that.requestCompletion(ed, callback)});
     };
 
 
@@ -41,16 +41,18 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this),
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
-        var that = this;
-        ccm = this.code_mirror;
-        ccc = this.ccc;
         input.append(input_area);
         var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
         this.element = cell;
         this.collapse();
+
+        // construct a completer
+        // And give it the function to call to get the completion list
+        var that = this;
+        this.completer = new IPython.Completer(this.code_mirror,function(callback){that.requestCompletion(callback)});
     };
 
     //TODO, try to diminish the number of parameters.
@@ -79,8 +81,8 @@ var IPython = (function (IPython) {
         // note that we are comparing and setting the time to wait at each key press.
         // a better wqy might be to generate a new function on each time change and
         // assign it to CodeCell.prototype.request_tooltip_after_time
-        tooltip_wait_time = this.notebook.time_before_tooltip;
-        tooltip_on_tab    = this.notebook.tooltip_on_tab;
+        var tooltip_wait_time = this.notebook.time_before_tooltip;
+        var tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
@@ -134,8 +136,7 @@ var IPython = (function (IPython) {
                 return true;
             } else {
                 event.stop();
-                this.ccc.startCompletionFor(this.code_mirror);
-
+                this.completer.startCompletion();
                 return true;
             };
         } else if (event.keyCode === 8 && event.type == 'keydown') {
@@ -263,11 +264,10 @@ var IPython = (function (IPython) {
     };
 
     // As you type completer
-    CodeCell.prototype.requestCompletion= function(ed,callback)
+    CodeCell.prototype.requestCompletion= function(callback)
     {
         this._compcallback = callback;
-        this._editor = ed;
-        var cur = ed.getCursor();
+        var cur = this.code_mirror.getCursor();
         var pre_cursor = this.code_mirror.getRange({line:cur.line,ch:0},cur);
         pre_cursor.trim();
         // Autocomplete the current line.
@@ -281,11 +281,15 @@ var IPython = (function (IPython) {
         // let's build a function that wrap all that stuff into what is needed for the
         // new completer:
         //
-        var cur = this._editor.getCursor();
-        res = CodeMirror.contextHint(this._editor);
-        for( i=0; i< matches.length ; i++)
+        var cur = this.code_mirror.getCursor();
+        var res = CodeMirror.contextHint(this.code_mirror);
+        
+        // append the introspection result, in order, at
+        // at the beginning of the table and compute the replacement rance
+        // from current cursor positon and matched_text length.
+        for(var i= matches.length-1; i>=0 ;--i)
         {
-            res.push(
+            res.unshift(
                 {
                     str  : matches[i],
                     type : "introspection",
@@ -295,7 +299,6 @@ var IPython = (function (IPython) {
             )
         }
         this._compcallback(res);
-
     };
 
 
@@ -343,7 +346,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_pyout = function (json, dynamic) {
-        n = json.prompt_number || ' ';
+        var n = json.prompt_number || ' ';
         var toinsert = this.create_output_area();
         toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         this.append_mime_type(json, toinsert, dynamic);

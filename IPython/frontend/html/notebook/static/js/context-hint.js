@@ -1,6 +1,7 @@
 // highly adapted for codemiror jshint
 
 (function () {
+  "use strict";
   function forEach(arr, f) {
     for (var i = 0, e = arr.length; i < e; ++i) f(arr[i]);
   }
@@ -57,7 +58,7 @@
 
     // append to arry if not already 
     // (here we do it )
-    for( c in candidates )
+    for( var c in candidates )
     {
         if(candidates[c].length >= 1){
         maybeAdd(candidates[c]);}
