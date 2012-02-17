@@ -21,15 +21,7 @@ var IPython = (function(IPython ) {
     "use strict";
 
     // easyier key mapping
-    var key = { tab:9,
-                esc:27,
-                backspace:8,
-                space:32,
-                shift:16,
-                enter:13,
-                upArrow:38, // check with keyDown..
-                downArrow :40 // check with keyUp
-    };
+    var key = IPython.utils.keycodes;
     
     // what is the common start of all completions
     function sharedStart(B){
