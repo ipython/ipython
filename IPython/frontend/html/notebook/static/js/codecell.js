@@ -13,6 +13,7 @@ var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
+    var key   = IPython.utils.keycodes;
 
     var CodeCell = function (notebook) {
         this.code_mirror = null;
@@ -101,7 +102,7 @@ var IPython = (function (IPython) {
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
             that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
-        } else if (event.which === 38) {
+        } else if (event.which === key.upArrow) {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_top()) {
@@ -110,7 +111,7 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
-        } else if (event.which === 40) {
+        } else if (event.which === key.downArrow) {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_bottom()) {
@@ -119,7 +120,7 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
-        } else if (event.keyCode === 9 && event.type == 'keydown') {
+        } else if (event.keyCode === key.tab && event.type == 'keydown') {
             // Tab completion.
             var cur = editor.getCursor();
             //Do not trim here because of tooltip
@@ -139,7 +140,7 @@ var IPython = (function (IPython) {
                 this.completer.startCompletion();
                 return true;
             };
-        } else if (event.keyCode === 8 && event.type == 'keydown') {
+        } else if (event.keyCode === key.backspace && event.type == 'keydown') {
             // If backspace and the line ends with 4 spaces, remove them.
             var cur = editor.getCursor();
             var line = editor.getLine(cur.line);
@@ -157,7 +158,7 @@ var IPython = (function (IPython) {
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
-            if (this.is_completing && event.keyCode !== 9) {
+            if (this.is_completing && event.keyCode !== key.tab) {
                 var ed_cur = editor.getCursor();
                 var cc_cur = this.completion_cursor;
                 if (ed_cur.line !== cc_cur.line || ed_cur.ch !== cc_cur.ch) {
