@@ -35,7 +35,7 @@ var IPython = (function(IPython ) {
     function sharedStart(B){
             if(B.length == 1){return B[0]}
             var A = new Array()
-            for(i=0; i< B.length; i++)
+            for(var i=0; i< B.length; i++)
             {
                A.push(B[i].str); 
             }
@@ -47,6 +47,7 @@ var IPython = (function(IPython ) {
                 while(s && tem2.indexOf(tem1) == -1){
                     tem1 = tem1.substring(0, --s);
                 }
+                if (tem1 == "" ){return null;}
                 return { str  : tem1,
                          type : "computed",
                          from : B[0].from,
@@ -57,19 +58,18 @@ var IPython = (function(IPython ) {
         }
 
     // user to nsert the given completion
-    var Completer = function(getHints) {
-
+    var Completer = function(editor,getHints) {
+        this.editor = editor;
         this.hintfunc = getHints;
         // if last caractere before cursor is not in this, we stop completing
         this.reg = /[A-Za-z.]/;
     }
 
-    Completer.prototype.startCompletionFor = function(ed)
+    Completer.prototype.startCompletion = function()
     {
         // call for a 'first' completion, that will set the editor and do some 
         // special behaviour like autopicking if only one completion availlable
         //
-        this.editor = ed;
         if (this.editor.somethingSelected()) return;
         this.done = false;
         // use to get focus back on opera
@@ -101,7 +101,7 @@ var IPython = (function(IPython ) {
         // lets assume for now only one source
         //
         var that = this;
-        this.hintfunc(this.editor,function(result){that._resume_completion(result)});
+        this.hintfunc(function(result){that._resume_completion(result)});
     }
     Completer.prototype._resume_completion = function(results)
     {
@@ -135,7 +135,9 @@ var IPython = (function(IPython ) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id','complete');
 
-        this.sel = $('<select/>').attr('multiple','true');
+        this.sel = $('<select/>')
+                .attr('multiple','true')
+                .attr('size',Math.min(10,this.raw_result.length));
         var pos = this.editor.cursorCoords();
 
         // TODO: I propose to remove enough horizontal pixel
@@ -205,7 +207,13 @@ var IPython = (function(IPython ) {
       else if (code == key.space || code == key.backspace) {this.close(); this.editor.focus();}
       else if (code == key.tab){
             //all the fastforwarding operation, 
-            this.insert(sharedStart(this.raw_result));
+            //Check that shared start is not null which can append with prefixed completion
+            // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
+            // to erase py
+            var sh = sharedStart(this.raw_result)
+            if(sh){
+                this.insert(sh);
+            }
             this.close(); 
             CodeMirror.e_stop(event);
             this.editor.focus();
