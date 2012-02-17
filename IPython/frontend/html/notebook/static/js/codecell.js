@@ -264,6 +264,8 @@ var IPython = (function (IPython) {
     };
 
     // As you type completer
+    // this should be called by the completer, that in return will
+    // be reclled by finish_completing
     CodeCell.prototype.requestCompletion= function(callback)
     {
         this._compcallback = callback;
@@ -274,9 +276,14 @@ var IPython = (function (IPython) {
         var line = this.code_mirror.getLine(cur.line);
         this.is_completing = true;
         this.completion_cursor = cur;
+        // one could fork here and directly call finish completing
+        // if kernel is busy
         IPython.notebook.complete_cell(this, line, cur.ch);
     }
 
+    // called when completion came back from the kernel. this will inspect the
+    // curent cell for (more) completion merge the resuults with the ones
+    // comming from the kernel and forward it to the completer
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
         // let's build a function that wrap all that stuff into what is needed for the
         // new completer:
