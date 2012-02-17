@@ -18,7 +18,6 @@ var IPython = (function (IPython) {
     var CodeCell = function (notebook) {
         this.code_mirror = null;
         this.input_prompt_number = null;
-        this.is_completing = false;
         this.completion_cursor = null;
         this.outputs = [];
         this.collapsed = false;
@@ -158,14 +157,6 @@ var IPython = (function (IPython) {
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to
             // use those to disable tab completion.
-            if (this.is_completing && event.keyCode !== key.tab) {
-                var ed_cur = editor.getCursor();
-                var cc_cur = this.completion_cursor;
-                if (ed_cur.line !== cc_cur.line || ed_cur.ch !== cc_cur.ch) {
-                    this.is_completing = false;
-                    this.completion_cursor = null;
-                };
-            };
             return false;
         };
         return false;
@@ -275,8 +266,6 @@ var IPython = (function (IPython) {
         pre_cursor.trim();
         // Autocomplete the current line.
         var line = this.code_mirror.getLine(cur.line);
-        this.is_completing = true;
-        this.completion_cursor = cur;
         // one could fork here and directly call finish completing
         // if kernel is busy
         IPython.notebook.complete_cell(this, line, cur.ch);
