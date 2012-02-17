@@ -47,7 +47,7 @@ var IPython = (function(IPython ) {
                 while(s && tem2.indexOf(tem1) == -1){
                     tem1 = tem1.substring(0, --s);
                 }
-                if (tem1 == "" ){return null;}
+                if (tem1 == ""  || tem2.indexOf(tem1) != 0){return null;}
                 return { str  : tem1,
                          type : "computed",
                          from : B[0].from,
@@ -210,7 +210,7 @@ var IPython = (function(IPython ) {
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
             // to erase py
-            var sh = sharedStart(this.raw_result)
+            var sh = sharedStart(this.raw_result);
             if(sh){
                 this.insert(sh);
             }
