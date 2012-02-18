@@ -236,10 +236,24 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip = get_ipython()
         ip.user_ns['f'] = u'Ca\xf1o'
         self.assertEqual(ip.var_expand(u'echo $f'), u'echo Ca\xf1o')
+        self.assertEqual(ip.var_expand(u'echo {f}'), u'echo Ca\xf1o')
+        self.assertEqual(ip.var_expand(u'echo {f[:-1]}'), u'echo Ca\xf1')
+        self.assertEqual(ip.var_expand(u'echo {1*2}'), u'echo 2')
 
         ip.user_ns['f'] = b'Ca\xc3\xb1o'
         # This should not raise any exception:
         ip.var_expand(u'echo $f')
+    
+    def test_bad_var_expand(self):
+        """var_expand on invalid formats shouldn't raise"""
+        ip = get_ipython()
+        
+        # SyntaxError
+        self.assertEqual(ip.var_expand(u"{'a':5}"), u"{'a':5}")
+        # NameError
+        self.assertEqual(ip.var_expand(u"{asdf}"), u"{asdf}")
+        # ZeroDivisionError
+        self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
 
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
