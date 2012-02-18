@@ -512,7 +512,6 @@ class IPClusterStart(IPClusterEngines):
     def init_launchers(self):
         self.controller_launcher = self.build_launcher(self.controller_launcher_class, 'Controller')
         self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
-        self.controller_launcher.on_stop(self.stop_launchers)
     
     def engines_stopped(self, r):
         """prevent parent.engines_stopped from stopping everything on engine shutdown"""
@@ -520,6 +519,7 @@ class IPClusterStart(IPClusterEngines):
     
     def start_controller(self):
         self.log.info("Starting Controller with %s", self.controller_launcher_class)
+        self.controller_launcher.on_stop(self.stop_launchers)
         self.controller_launcher.start()
 
     def stop_controller(self):

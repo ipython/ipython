@@ -24,7 +24,7 @@ from zmq.eventloop import ioloop
 from IPython.config.configurable import LoggingConfigurable
 from IPython.config.loader import load_pyconfig_files
 from IPython.utils.traitlets import Dict, Instance, CFloat
-from IPython.parallel.apps.ipclusterapp import find_launcher_class
+from IPython.parallel.apps.ipclusterapp import IPClusterStart
 from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.path import get_ipython_dir
@@ -34,6 +34,22 @@ from IPython.utils.sysinfo import num_cpus
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
+
+class DummyIPClusterStart(IPClusterStart):
+    """Dummy subclass to skip init steps that conflict with global app.
+    
+    Instantiating and initializing this class should result in fully configured
+    launchers, but no other side effects or state.
+    """
+
+    def init_signal(self):
+        pass
+    def init_logging(self):
+        pass
+    def reinit_logging(self):
+        pass
+
 
 class ClusterManager(LoggingConfigurable):
 
@@ -47,22 +63,12 @@ class ClusterManager(LoggingConfigurable):
         from zmq.eventloop.ioloop import IOLoop
         return IOLoop.instance()
 
-    def load_cluster_config(self, profile_dir):
-        config_files = ['ipcontroller_config.py', 'ipengine_config.py', 'ipcluster_config.py']
-        config = load_pyconfig_files(config_files, profile_dir)
-        return config
-
     def build_launchers(self, profile_dir):
-        config = self.load_cluster_config(profile_dir)
-        cont_clsname = config.IPClusterStart.get('controller_launcher_class','Local')
-        cont_class = find_launcher_class(cont_clsname,'Controller')
-        cl = cont_class(work_dir=u'.',config=config, profile_dir=profile_dir)
-
-        engine_clsname = config.IPClusterEngines.get('engine_launcher_class','Local')
-        engine_class = find_launcher_class(engine_clsname,'EngineSet')
-        esl = engine_class(work_dir=u'.',config=config, profile_dir=profile_dir)
-        n = config.IPClusterEngines.get('n', num_cpus())
-        n = getattr(esl, 'engine_count', n)
+        starter = DummyIPClusterStart(log=self.log)
+        starter.initialize(['--profile-dir', profile_dir])
+        cl = starter.controller_launcher
+        esl = starter.engine_launcher
+        n = starter.n
         return cl, esl, n
 
     def get_profile_dir(self, name, path):
