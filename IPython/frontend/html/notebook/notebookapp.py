@@ -208,6 +208,7 @@ aliases.update({
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
+    'browser': 'NotebookApp.browser',
 })
 
 # remove ipkernel flags that are singletons, and don't make sense in
@@ -280,9 +281,22 @@ class NotebookApp(BaseIPythonApplication):
                       The string should be of the form type:salt:hashed-password.
                       """
     )
-    
+
     open_browser = Bool(True, config=True,
-                        help="Whether to open in a browser after starting.")
+                        help="""Whether to open in a browser after starting.
+                        The specific browser used is platform dependent and
+                        determined by the python standard library `webbrowser`
+                        module, unless it is overridden using the --browser
+                        (NotebookApp.browser) configuration option.
+                        """)
+
+    browser = Unicode(u'', config=True,
+                      help="""Specify what command to use to invoke a web
+                      browser when opening the notebook. If not specified, the
+                      default browser will be determined by the `webbrowser`
+                      standard library module, which allows setting of the
+                      BROWSER environment variable to override it.
+                      """)
     
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
@@ -427,7 +441,11 @@ class NotebookApp(BaseIPythonApplication):
 
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
-            b = lambda : webbrowser.open("%s://%s:%i%s" % (proto, ip, self.port,
+            if self.browser:
+                browser = webbrowser.get()
+            else:
+                browser = webbrowser.get(self.browser)
+            b = lambda : browser.open("%s://%s:%i%s" % (proto, ip, self.port,
                                                            self.base_project_url),
                                          new=2)
             threading.Thread(target=b).start()
