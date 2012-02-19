@@ -186,15 +186,15 @@ python-profiler package from non-free.""")
     def extract_input_lines(self, range_str, raw=False):
         """Return as a string a set of input history slices.
 
-        Inputs:
+        Parameters
+        ----------
+        range_str : string
+            The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
+            since this function is for use by magic functions which get their
+            arguments as strings. The number before the / is the session
+            number: ~n goes n back from the current session.
 
-          - range_str: the set of slices is given as a string, like
-          "~5/6-~4/2 4:8 9", since this function is for use by magic functions
-          which get their arguments as strings. The number before the / is the
-          session number: ~n goes n back from the current session.
-
-        Optional inputs:
-
+        Optional Parameters:
           - raw(False): by default, the processed input is used.  If this is
           true, the raw input history is used instead.
 
@@ -454,29 +454,29 @@ Currently the magic system has the following functions:\n"""
 
         1 -> active, but do not apply if there are no arguments on the line.
 
-        In this mode, you get:
+        In this mode, you get::
 
-        In [1]: callable
-        Out[1]: <built-in function callable>
+          In [1]: callable
+          Out[1]: <built-in function callable>
 
-        In [2]: callable 'hello'
-        ------> callable('hello')
-        Out[2]: False
+          In [2]: callable 'hello'
+          ------> callable('hello')
+          Out[2]: False
 
         2 -> Active always.  Even if no arguments are present, the callable
-        object is called:
+        object is called::
 
-        In [2]: float
-        ------> float()
-        Out[2]: 0.0
+          In [2]: float
+          ------> float()
+          Out[2]: 0.0
 
         Note that even with autocall off, you can still use '/' at the start of
         a line to treat the first argument on the command line as a function
-        and add parentheses to it:
+        and add parentheses to it::
 
-        In [8]: /str 43
-        ------> str(43)
-        Out[8]: '43'
+          In [8]: /str 43
+          ------> str(43)
+          Out[8]: '43'
 
         # all-random (note for auto-testing)
         """
@@ -676,22 +676,24 @@ Currently the magic system has the following functions:\n"""
           search with -s or exclude them with -e (these options can be given
           more than once).
 
-        Examples:
+        Examples
+        --------
+        ::
 
-        %psearch a*            -> objects beginning with an a
-        %psearch -e builtin a* -> objects NOT in the builtin space starting in a
-        %psearch a* function   -> all functions beginning with an a
-        %psearch re.e*         -> objects beginning with an e in module re
-        %psearch r*.e*         -> objects that start with e in modules starting in r
-        %psearch r*.* string   -> all strings in modules beginning with r
+          %psearch a*            -> objects beginning with an a
+          %psearch -e builtin a* -> objects NOT in the builtin space starting in a
+          %psearch a* function   -> all functions beginning with an a
+          %psearch re.e*         -> objects beginning with an e in module re
+          %psearch r*.e*         -> objects that start with e in modules starting in r
+          %psearch r*.* string   -> all strings in modules beginning with r
 
-        Case sensitive search:
+        Case sensitive search::
 
-        %psearch -c a*         list all object beginning with lower case a
+          %psearch -c a*         list all object beginning with lower case a
 
-        Show objects beginning with a single _:
+        Show objects beginning with a single _::
 
-        %psearch -a _*         list objects beginning with a single underscore"""
+          %psearch -a _*         list objects beginning with a single underscore"""
         try:
             parameter_s.encode('ascii')
         except UnicodeEncodeError:
@@ -772,7 +774,7 @@ Currently the magic system has the following functions:\n"""
         """Print all interactive variables, with some minimal formatting.
 
         If any arguments are given, only variables whose type matches one of
-        these are printed.  For example:
+        these are printed.  For example::
 
           %who function str
 
@@ -780,12 +782,14 @@ Currently the magic system has the following functions:\n"""
         variables.  To find the proper type names, simply use type(var) at a
         command line to see how python prints type names.  For example:
 
+        ::
+
           In [1]: type('hello')\\
           Out[1]: <type 'str'>
 
         indicates that the type name for strings is 'str'.
 
-        %who always excludes executed names loaded through your configuration
+        ``%who`` always excludes executed names loaded through your configuration
         file and things which are internal to IPython.
 
         This is deliberate, as typically you may load many modules and the
@@ -984,29 +988,31 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        magic_reset_selective
+        magic_reset_selective : invoked as ``%reset_selective``
 
         Examples
         --------
-        In [6]: a = 1
+        ::
 
-        In [7]: a
-        Out[7]: 1
+          In [6]: a = 1
 
-        In [8]: 'a' in _ip.user_ns
-        Out[8]: True
+          In [7]: a
+          Out[7]: 1
 
-        In [9]: %reset -f
+          In [8]: 'a' in _ip.user_ns
+          Out[8]: True
 
-        In [1]: 'a' in _ip.user_ns
-        Out[1]: False
+          In [9]: %reset -f
 
-        In [2]: %reset -f in
-        Flushing input history
+          In [1]: 'a' in _ip.user_ns
+          Out[1]: False
 
-        In [3]: %reset -f dhist in 
-        Flushing directory history
-        Flushing input history
+          In [2]: %reset -f in
+          Flushing input history
+
+          In [3]: %reset -f dhist in
+          Flushing directory history
+          Flushing input history
 
         Notes
         -----
@@ -1095,44 +1101,44 @@ Currently the magic system has the following functions:\n"""
 
         See Also
         --------
-        magic_reset
+        magic_reset : invoked as ``%reset``
 
         Examples
         --------
 
         We first fully reset the namespace so your output looks identical to
         this example for pedagogical reasons; in practice you do not need a
-        full reset.
+        full reset::
 
-        In [1]: %reset -f
+          In [1]: %reset -f
 
         Now, with a clean namespace we can make a few variables and use
-        %reset_selective to only delete names that match our regexp:
+        ``%reset_selective`` to only delete names that match our regexp::
 
-        In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
+          In [2]: a=1; b=2; c=3; b1m=4; b2m=5; b3m=6; b4m=7; b2s=8
 
-        In [3]: who_ls
-        Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
+          In [3]: who_ls
+          Out[3]: ['a', 'b', 'b1m', 'b2m', 'b2s', 'b3m', 'b4m', 'c']
 
-        In [4]: %reset_selective -f b[2-3]m
+          In [4]: %reset_selective -f b[2-3]m
 
-        In [5]: who_ls
-        Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [5]: who_ls
+          Out[5]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [6]: %reset_selective -f d
+          In [6]: %reset_selective -f d
 
-        In [7]: who_ls
-        Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
+          In [7]: who_ls
+          Out[7]: ['a', 'b', 'b1m', 'b2s', 'b4m', 'c']
 
-        In [8]: %reset_selective -f c
+          In [8]: %reset_selective -f c
 
-        In [9]: who_ls
-        Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
+          In [9]: who_ls
+          Out[9]: ['a', 'b', 'b1m', 'b2s', 'b4m']
 
-        In [10]: %reset_selective -f b
+          In [10]: %reset_selective -f b
 
-        In [11]: who_ls
-        Out[11]: ['a']
+          In [11]: who_ls
+          Out[11]: ['a']
 
         Notes
         -----
@@ -1213,14 +1219,14 @@ Currently the magic system has the following functions:\n"""
           Python code.
 
           Since this marker is always the same, filtering only the output from
-          a log is very easy, using for example a simple awk call:
+          a log is very easy, using for example a simple awk call::
 
             awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
 
           -r: log 'raw' input.  Normally, IPython's logs contain the processed
           input, so that user lines are logged in their final form, converted
           into valid Python.  For example, %Exit is logged as
-          '_ip.magic("Exit").  If the -r flag is given, all input is logged
+          _ip.magic("Exit").  If the -r flag is given, all input is logged
           exactly as typed, with no transformations applied.
 
           -t: put timestamps before each input line logged (these are put in
@@ -1606,7 +1612,7 @@ Currently the magic system has the following functions:\n"""
         must be an integer indicating how many times you want the script to
         run.  The final timing report will include total and per run results.
 
-        For example (testing the script uniq_stable.py):
+        For example (testing the script uniq_stable.py)::
 
             In [1]: run -t uniq_stable
 
@@ -1630,7 +1636,7 @@ Currently the magic system has the following functions:\n"""
 
         with a breakpoint set on line 1 of your file.  You can change the line
         number for this automatic breakpoint to be <N> by using the -bN option
-        (where N must be an integer).  For example:
+        (where N must be an integer).  For example::
 
           %run -d -b40 myscript
 
@@ -1667,7 +1673,7 @@ Currently the magic system has the following functions:\n"""
         the -m option for the python interpreter. Use this option last if you
         want to combine with other %run options. Unlike the python interpreter
         only source modules are allowed no .pyc or .pyo files.
-        For example:
+        For example::
 
             %run -m example
 
@@ -1905,7 +1911,9 @@ Currently the magic system has the following functions:\n"""
         Default: 3
 
 
-        Examples:
+        Examples
+        --------
+        ::
 
           In [1]: %timeit pass
           10000000 loops, best of 3: 53.3 ns per loop
@@ -2027,7 +2035,9 @@ Currently the magic system has the following functions:\n"""
         2.3, the timeit module offers more control and sophistication, so this
         could be rewritten to use it (patches welcome).
 
-        Some examples:
+        Examples
+        --------
+        ::
 
           In [1]: time 2**128
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
@@ -2135,7 +2145,7 @@ Currently the magic system has the following functions:\n"""
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
 
-        For example, if your history contains (%hist prints it):
+        For example, if your history contains (%hist prints it)::
 
           44: x=1
           45: y=3
@@ -2145,7 +2155,7 @@ Currently the magic system has the following functions:\n"""
           49: print 'x',x,'y',y
 
         you can create a macro with lines 44 through 47 (included) and line 49
-        called my_macro with:
+        called my_macro with::
 
           In [55]: %macro my_macro 44-47 49
 
@@ -2160,9 +2170,9 @@ Currently the magic system has the following functions:\n"""
         but IPython's display system checks for macros and executes them as
         code instead of printing them when you type their name.
 
-        You can view a macro's contents by explicitly printing it with:
+        You can view a macro's contents by explicitly printing it with::
 
-          'print macro_name'.
+          print macro_name
 
         """
         opts,args = self.parse_options(parameter_s,'r',mode='list')
@@ -2500,49 +2510,50 @@ Currently the magic system has the following functions:\n"""
         Note that %edit is also available through the alias %ed.
 
         This is an example of creating a simple function inside the editor and
-        then modifying it. First, start up the editor:
+        then modifying it. First, start up the editor::
 
-        In [1]: ed
-        Editing... done. Executing edited code...
-        Out[1]: 'def foo():n    print "foo() was defined in an editing session"n'
+          In [1]: ed
+          Editing... done. Executing edited code...
+          Out[1]: 'def foo():\\n    print "foo() was defined in an editing
+          session"\\n'
 
-        We can then call the function foo():
+        We can then call the function foo()::
 
-        In [2]: foo()
-        foo() was defined in an editing session
+          In [2]: foo()
+          foo() was defined in an editing session
 
         Now we edit foo.  IPython automatically loads the editor with the
-        (temporary) file where foo() was previously defined:
+        (temporary) file where foo() was previously defined::
 
-        In [3]: ed foo
-        Editing... done. Executing edited code...
+          In [3]: ed foo
+          Editing... done. Executing edited code...
 
-        And if we call foo() again we get the modified version:
+        And if we call foo() again we get the modified version::
 
-        In [4]: foo()
-        foo() has now been changed!
+          In [4]: foo()
+          foo() has now been changed!
 
         Here is an example of how to edit a code snippet successive
-        times. First we call the editor:
+        times. First we call the editor::
 
-        In [5]: ed
-        Editing... done. Executing edited code...
-        hello
-        Out[5]: "print 'hello'n"
+          In [5]: ed
+          Editing... done. Executing edited code...
+          hello
+          Out[5]: "print 'hello'\\n"
 
-        Now we call it again with the previous output (stored in _):
+        Now we call it again with the previous output (stored in _)::
 
-        In [6]: ed _
-        Editing... done. Executing edited code...
-        hello world
-        Out[6]: "print 'hello world'n"
+          In [6]: ed _
+          Editing... done. Executing edited code...
+          hello world
+          Out[6]: "print 'hello world'\\n"
 
-        Now we call it with the output #8 (stored in _8, also as Out[8]):
+        Now we call it with the output #8 (stored in _8, also as Out[8])::
 
-        In [7]: ed _8
-        Editing... done. Executing edited code...
-        hello again
-        Out[7]: "print 'hello again'n"
+          In [7]: ed _8
+          Editing... done. Executing edited code...
+          hello again
+          Out[7]: "print 'hello again'\\n"
 
 
         Changing the default editor hook:
@@ -2713,14 +2724,14 @@ Defaulting color scheme to 'NoColor'"""
         alias can not be executed until 'del foo' removes the Python variable.
 
         You can use the %l specifier in an alias definition to represent the
-        whole line when the alias is called.  For example:
+        whole line when the alias is called.  For example::
 
           In [2]: alias bracket echo "Input in brackets: <%l>"
           In [3]: bracket hello world
           Input in brackets: <hello world>
 
         You can also define aliases with parameters using %s specifiers (one
-        per parameter):
+        per parameter)::
 
           In [1]: alias parts echo first %s second %s
           In [2]: %parts A B
@@ -2737,14 +2748,15 @@ Defaulting color scheme to 'NoColor'"""
         the semantic rules, see PEP-215:
         http://www.python.org/peps/pep-0215.html.  This is the library used by
         IPython for variable expansion.  If you want to access a true shell
-        variable, an extra $ is necessary to prevent its expansion by IPython:
+        variable, an extra $ is necessary to prevent its expansion by
+        IPython::
 
-        In [6]: alias show echo
-        In [7]: PATH='A Python string'
-        In [8]: show $PATH
-        A Python string
-        In [9]: show $$PATH
-        /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
+          In [6]: alias show echo
+          In [7]: PATH='A Python string'
+          In [8]: show $PATH
+          A Python string
+          In [9]: show $$PATH
+          /usr/local/lf9560/bin:/usr/local/intel/compiler70/ia32/bin:...
 
         You can use the alias facility to acess all of $PATH.  See the %rehash
         and %rehashx functions, which automatically create aliases for the
@@ -3122,9 +3134,7 @@ Defaulting color scheme to 'NoColor'"""
         space-separated string.  These are convenient, respectively, either
         for sequential processing or to be passed to a shell command.
 
-        For example:
-
-        # all-random
+        For example::
 
             # Capture into variable a
             In [1]: sc a=ls *py
@@ -3156,7 +3166,7 @@ Defaulting color scheme to 'NoColor'"""
 
         Similarly, the lists returned by the -l option are also special, in
         the sense that you can equally invoke the .s attribute on them to
-        automatically get a whitespace-separated string from their contents:
+        automatically get a whitespace-separated string from their contents::
 
             In [7]: sc -l b=ls *py
 
@@ -3167,7 +3177,7 @@ Defaulting color scheme to 'NoColor'"""
             Out[9]: 'setup.py win32_manual_post_install.py'
 
         In summary, both the lists and strings used for output capture have
-        the following special attributes:
+        the following special attributes::
 
             .l (or .list) : value as list.
             .n (or .nlstr): value as newline-separated string.
@@ -3210,11 +3220,16 @@ Defaulting color scheme to 'NoColor'"""
         Notes:
 
         1) If an input line begins with '!!', then %sx is automatically
-        invoked.  That is, while:
+        invoked.  That is, while::
+
           !ls
-        causes ipython to simply issue system('ls'), typing
+
+        causes ipython to simply issue system('ls'), typing::
+
           !!ls
-        is a shorthand equivalent to:
+
+        is a shorthand equivalent to::
+
           %sx ls
 
         2) %sx differs from %sc in that %sx automatically splits into a list,
@@ -3224,6 +3239,7 @@ Defaulting color scheme to 'NoColor'"""
         typing.
 
         3) Just like %sc -l, this is a list with special attributes:
+        ::
 
           .l (or .list) : value as list.
           .n (or .nlstr): value as newline-separated string.
@@ -3245,8 +3261,10 @@ Defaulting color scheme to 'NoColor'"""
         %bookmark -d <name>    - remove bookmark
         %bookmark -r           - remove all bookmarks
 
-        You can later on access a bookmarked folder with:
+        You can later on access a bookmarked folder with::
+
           %cd -b <name>
+
         or simply '%cd <name>' if there is no directory called <name> AND
         there is such a bookmark defined.
 
@@ -3691,7 +3709,8 @@ Defaulting color scheme to 'NoColor'"""
                 PromptManager
                 DisplayFormatter
 
-        To view what is configurable on a given class, just pass the class name::
+        To view what is configurable on a given class, just pass the class
+        name::
 
             In [2]: %config IPCompleter
             IPCompleter options
