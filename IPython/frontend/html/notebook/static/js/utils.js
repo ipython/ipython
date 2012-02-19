@@ -97,6 +97,8 @@ IPython.utils = (function (IPython) {
                 tab      :  9,
                 enter    : 13,
                 shift    : 16,
+                ctrl     : 17,
+                control  : 17,
                 esc      : 27,
                 space    : 32,
                 pgUp     : 33,
