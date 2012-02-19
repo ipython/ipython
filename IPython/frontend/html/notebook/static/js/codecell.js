@@ -91,7 +91,7 @@ var IPython = (function (IPython) {
         };
 
 
-        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
+        if (event.keyCode === key.enter && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         } else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {

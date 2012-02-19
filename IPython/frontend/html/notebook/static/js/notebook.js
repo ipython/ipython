@@ -12,6 +12,7 @@
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
+    var key   = IPython.utils.keycodes;
 
     var Notebook = function (selector) {
         this.read_only = IPython.read_only;
@@ -73,27 +74,27 @@ var IPython = (function (IPython) {
                 that.save_notebook();
                 event.preventDefault();
                 return false;
-            } else if (event.which === 27) {
+            } else if (event.which === key.esc) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
                 event.preventDefault();
             }
-            if (event.which === 38 && !event.shiftKey) {
+            if (event.which === key.upArrow && !event.shiftKey) {
                 var cell = that.get_selected_cell();
                 if (cell.at_top()) {
                     event.preventDefault();
                     that.select_prev();
                 };
-            } else if (event.which === 40 && !event.shiftKey) {
+            } else if (event.which === key.downArrow && !event.shiftKey) {
                 var cell = that.get_selected_cell();
                 if (cell.at_bottom()) {
                     event.preventDefault();
                     that.select_next();
                 };
-            } else if (event.which === 13 && event.shiftKey) {
+            } else if (event.which === key.enter && event.shiftKey) {
                 that.execute_selected_cell();
                 return false;
-            } else if (event.which === 13 && event.ctrlKey) {
+            } else if (event.which === key.enter && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
             } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {
