@@ -1282,7 +1282,7 @@ var IPython = (function (IPython) {
         this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
-            msg = "This notebook has been converted from an older " +
+            var msg = "This notebook has been converted from an older " +
             "notebook format (v"+data.orig_nbformat+") to the current notebook " +
             "format (v"+data.nbformat+"). The next time you save this notebook, the " +
             "newer notebook format will be used and older verions of IPython " +
