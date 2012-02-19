@@ -17,6 +17,7 @@
 // $([IPython.events]).on('event.Namespace',function () {});
 
 var IPython = (function (IPython) {
+    "use strict";
 
     var utils = IPython.utils;
 
