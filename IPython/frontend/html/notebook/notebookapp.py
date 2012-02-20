@@ -442,9 +442,9 @@ class NotebookApp(BaseIPythonApplication):
         if self.open_browser:
             ip = self.ip or '127.0.0.1'
             if self.browser:
-                browser = webbrowser.get()
-            else:
                 browser = webbrowser.get(self.browser)
+            else:
+                browser = webbrowser.get()
             b = lambda : browser.open("%s://%s:%i%s" % (proto, ip, self.port,
                                                            self.base_project_url),
                                          new=2)
