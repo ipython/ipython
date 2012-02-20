@@ -19,6 +19,7 @@ from __future__ import print_function
 import os
 import sys
 import ctypes
+import msvcrt
 
 from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
@@ -121,10 +122,10 @@ def system(cmd):
     utility is meant to be used extensively in IPython, where any return value
     would trigger :func:`sys.displayhook` calls.
     """
-    with AvoidUNCPath() as path:
-        if path is not None:
-            cmd = '"pushd %s &&"%s' % (path, cmd)
-        return process_handler(cmd, _system_body)
+    # The controller provides interactivity with both
+    # stdin and stdout
+    import _process_win32_controller
+    _process_win32_controller.system(cmd)
 
 
 def getoutput(cmd):
