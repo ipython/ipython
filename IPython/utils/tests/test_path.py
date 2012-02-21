@@ -150,7 +150,8 @@ def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
     env["HOME"] = HOME_TEST_DIR
     home_dir = path.get_home_dir(True)
-    nt.assert_equal(home_dir, env["HOME"])
+    # get_home_dir expands symlinks
+    nt.assert_equal(home_dir, os.path.realpath(env["HOME"]))
 
 
 @with_environment
