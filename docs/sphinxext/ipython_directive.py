@@ -62,6 +62,7 @@ import os
 import re
 import sys
 import tempfile
+import ast
 
 # To keep compatibility with various python versions
 try:
