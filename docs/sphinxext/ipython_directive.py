@@ -300,6 +300,10 @@ class EmbeddedSphinxShell(object):
                      decorator.startswith('@savefig')
 
         input_lines = input.split('\n')
+        if len(input_lines) > 1:
+            if input_lines[-1] != "":
+                input_lines.append('') # make sure there's a blank line
+                                       # so splitter buffer gets reset
 
         continuation = '   %s:'%''.join(['.']*(len(str(lineno))+2))
         Nc = len(continuation)
@@ -314,7 +318,7 @@ class EmbeddedSphinxShell(object):
         for i, line in enumerate(input_lines):
             if line.endswith(';'):
                 is_semicolon = True
-            if is_semicolon or is_suppress:
+            if is_suppress:
                 store_history = False
 
             if i==0:
@@ -336,18 +340,18 @@ class EmbeddedSphinxShell(object):
             if not is_suppress:
                 ret.append(formatted_line)
 
-        if not is_suppress:
-            if len(rest.strip()):
-                if is_verbatim:
-                    # the "rest" is the standard output of the
-                    # input, which needs to be added in
-                    # verbatim mode
-                    ret.append(rest)
+        if not is_suppress and len(rest.strip()) and is_verbatim:
+            # the "rest" is the standard output of the
+            # input, which needs to be added in
+            # verbatim mode
+            ret.append(rest)
 
         self.cout.seek(0)
         output = self.cout.read()
         if not is_suppress and not is_semicolon:
             ret.append(output)
+        elif is_semicolon: # get spacing right
+            ret.append('')
 
         self.cout.truncate(0)
         return (ret, input_lines, output, is_doctest, image_file,
