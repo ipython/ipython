@@ -496,8 +496,6 @@ class EmbeddedSphinxShell(object):
                 except Exception: # on a multiline
                     multiline = True
                     multiline_start = lineno
-                    if line_stripped.startswith('def '):
-                        is_function = True
             else: # still on a multiline
                 modified = u'%s %s' % (continuation, line)
                 output.append(modified)
