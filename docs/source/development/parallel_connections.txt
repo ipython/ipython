@@ -27,7 +27,7 @@ connection.
 
     All the connections involved in connecting one client to one engine.
 
-The Controller consists of 1-4 processes. Central to the cluster is the **Hub**, which monitors
+The Controller consists of 1-5 processes. Central to the cluster is the **Hub**, which monitors
 engine state, execution traffic, and handles registration and notification. The Hub includes a
 Heartbeat Monitor for keeping track of engines that are alive. Outside the Hub are 4
 **Schedulers**. These devices are very small pure-C MonitoredQueue processes (or optionally
