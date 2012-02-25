@@ -96,11 +96,7 @@ def pycmd2argv(cmd):
         return [cmd]
     else:
         if sys.platform == 'win32':
-            # The -u option here turns on unbuffered output, which is required
-            # on Win32 to prevent wierd conflict and problems with Twisted.
-            # Also, use sys.executable to make sure we are picking up the
-            # right python exe.
-            return [sys.executable, '-u', cmd]
+            return [sys.executable, cmd]
         else:
             return [sys.executable, cmd]
 
