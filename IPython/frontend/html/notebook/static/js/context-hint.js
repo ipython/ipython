@@ -36,28 +36,39 @@
     }
 
     // find all 'words' of current cell
-    function getAllTokens(editor)
+    var getAllTokens = function(editor)
     {
         var found = [];
-        // get all text remove and split it before dot and at space
-        // keep the dot for completing token that also start with dot
-        var candidates = editor.getValue()
-                .replace(/[.]/g," .")
-                .replace(/[ ]/g,"\n")
-                .split('\n'); 
-        // append to arry if not already (the function)
+
+        // add to found if not already in it
         function maybeAdd(str) {
             if (!arrayContains(found, str)) found.push(str);
         }
-        // append to arry if not already 
-        // (here we do it )
-        for( var c in candidates )
+
+        // loop through all token on all lines
+        var  lineCount = editor.lineCount();
+        // loop on line
+        for( var l=0; l< lineCount ; l++)
         {
-            if(candidates[c].length >= 1){
-            maybeAdd(candidates[c]);}
+            var line = editor.getLine(l);
+            //loop on char
+            for( var c = 1 ; c < line.length ; c++)
+            {
+                var tk = editor.getTokenAt({line:l,ch:c});
+                // if token has a class, it has geat chances of beeing
+                // of interest. Add it to the list of possible completions.
+                // we could skip token of ClassName 'comment'
+                // or 'number' and 'operator'
+                if(tk.className != null){
+                    maybeAdd(tk.string);
+                }
+                // jump to char after end of current token
+                c = tk.end;
+            }
         }
         return found;
     }
+
 
     function getCompletions(token,editor) 
     {
