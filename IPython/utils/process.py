@@ -95,10 +95,8 @@ def pycmd2argv(cmd):
     if ext in ['.exe', '.com', '.bat']:
         return [cmd]
     else:
-        if sys.platform == 'win32':
-            return [sys.executable, cmd]
-        else:
-            return [sys.executable, cmd]
+        return [sys.executable, cmd]
+
 
 def abbrev_cwd():
     """ Return abbreviated version of cwd, e.g. d:mydir """
