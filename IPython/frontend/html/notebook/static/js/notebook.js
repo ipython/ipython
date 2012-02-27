@@ -932,8 +932,10 @@ var IPython = (function (IPython) {
         // console.log(reply);
         var cell = this.cell_for_msg(reply.parent_header.msg_id);
         if (msg_type === "execute_reply") {
-            cell.set_input_prompt(content.execution_count);
-            cell.element.removeClass("running");
+            if (cell != null) {
+                cell.set_input_prompt(content.execution_count);
+                cell.element.removeClass("running");
+            }    
             this.dirty = true;
         } else if (msg_type === "complete_reply") {
             cell.finish_completing(content.matched_text, content.matches);
@@ -985,6 +987,16 @@ var IPython = (function (IPython) {
             // message not from this notebook, but should be attached to a cell
             // console.log("Received IOPub message not caused by one of my cells");
             // console.log(reply);
+            if (msg_type == "display_data") {
+                var json = {};
+                json.output_type = msg_type;
+                json = this.convert_mime_types(json, content.data);
+                eval(json.javascript);
+            } else {
+                console.log("Received IOPub message not caused by one of my cells");
+                console.log(reply);
+            }
+
             return;
         }
         var output_types = ['stream','display_data','pyout','pyerr'];
