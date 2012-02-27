@@ -2675,7 +2675,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
         ns = self.user_ns.copy()
         ns.update(sys._getframe(depth+1).f_locals)
         ns.pop('self', None)
-        return formatter.format(cmd, **ns)
+        try:
+            cmd = formatter.format(cmd, **ns)
+        except Exception:
+            # if formatter couldn't format, just let it go untransformed
+            pass
+        return cmd
 
     def mktempfile(self, data=None, prefix='ipython_edit_'):
         """Make a new tempfile and return its filename.
