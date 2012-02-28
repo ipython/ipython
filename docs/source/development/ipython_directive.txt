@@ -417,11 +417,3 @@ ipython_promptout
     The string to represent the IPython prompt in the generated ReST. The
     default is 'Out [%d]:'. This expects that the line numbers are used
     in the prompt.
-
-.. _ipython_literal:
-
-Sphinx source for this tutorial
-===============================
-
-.. literalinclude:: ipython_directive.rst
-
