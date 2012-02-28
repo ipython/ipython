@@ -6915,7 +6915,7 @@
 
 	* Changed @exit to @abort to reflect the fact that it's pretty
 	brutal (a sys.exit()). The difference between @abort and Ctrl-D
-	becomes significant only when IPyhton is embedded: in that case,
+	becomes significant only when IPython is embedded: in that case,
 	C-D closes IPython only, but @abort kills the enclosing program
 	too (unless it had called IPython inside a try catching
 	SystemExit).
@@ -7038,7 +7038,7 @@
 
 2001-12-04  Fernando Perez  <fperez@colorado.edu>
 
-	* Fixed namespace problems. Now builtin/IPyhton/user names get
+	* Fixed namespace problems. Now builtin/IPython/user names get
 	properly reported in their namespace. Internal namespace handling
 	is finally getting decent (not perfect yet, but much better than
 	the ad-hoc mess we had).
