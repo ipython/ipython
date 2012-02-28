@@ -106,7 +106,7 @@ def get_py_filename(name, force_win32=None):
     if os.path.isfile(name):
         return name
     else:
-        raise IOError,'File `%s` not found.' % name
+        raise IOError,'File `%r` not found.' % name
 
 
 def filefind(filename, path_dirs=None):

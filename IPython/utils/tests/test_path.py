@@ -406,3 +406,10 @@ def test_get_py_filename():
             else:
                 nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
+                
+def test_unicode_in_filename():
+    try:
+        # these calls should not throw unicode encode exceptions
+        path.get_py_filename(u'fooéè.py',  force_win32=False)
+    except IOError as ex:
+        str(ex)
