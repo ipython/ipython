@@ -71,7 +71,7 @@ class RichIPythonWidget(IPythonWidget):
         """
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
-            prompt_number = content.get('execution_count',0)
+            prompt_number = content.get('execution_count', 0)
             data = content['data']
             if data.has_key('image/svg+xml'):
                 self.log.debug("pyout: %s", msg.get('content', ''))
