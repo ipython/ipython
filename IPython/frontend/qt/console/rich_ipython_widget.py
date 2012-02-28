@@ -231,6 +231,10 @@ class RichIPythonWidget(IPythonWidget):
             try:
                 svg = str(self._name_to_svg_map[match.group("name")])
             except KeyError:
+                QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
+                    'Cannot convert a PNG to SVG.  To fix this, add this to your ipython config:\n'
+                    'c.InlineBackendConfig.figure_format = \'svg\'',
+                                          QtGui.QMessageBox.Ok)
                 return "<b>Cannot convert a PNG to SVG.  </b>To fix this, add this to your config: <span>c.InlineBackendConfig.figure_format = 'svg'</span>"
 
             # Not currently checking path, because it's tricky to find a
