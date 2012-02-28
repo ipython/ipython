@@ -231,7 +231,7 @@ class RichIPythonWidget(IPythonWidget):
             try:
                 svg = str(self._name_to_svg_map[match.group("name")])
             except KeyError:
-                return "<b>Couldn't find image %s</b>" % match.group("name")
+                return "<b>Cannot convert a PNG to SVG.  </b>To fix this, add this to your config: <span>c.InlineBackendConfig.figure_format = 'svg'</span>"
 
             # Not currently checking path, because it's tricky to find a
             # cross-browser way to embed external SVG images (e.g., via
