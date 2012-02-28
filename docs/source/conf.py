@@ -43,6 +43,7 @@ extensions = [
     'sphinx.ext.doctest',
     'inheritance_diagram',
     'ipython_console_highlighting',
+    'ipython_directive',
     'numpydoc',  # to preprocess docstrings
     'github',  # for easy GitHub links
 ]
