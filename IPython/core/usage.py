@@ -424,6 +424,24 @@ The keybindings themselves are:
 - ``C--``: decrease font size.
 - ``C-M-Space``: toggle full screen. (Command-Control-Space on Mac OS X)
 
+Working with tabs and windows
+=============================
+
+The IPython graphical console also allow convenient shortcut to create/move
+tabs and windows attached to different kernels.
+
+- ``C-t`` : create a new tab with a fresh kernel
+- ``C-n`` : create a new window with a fresh kernel
+- ``C-S-t`` : create a new tab attached to the same kernel, but not owning it.
+- ``C-S-n`` : create a new window attached to the same kernel, but not owning it.
+- ``M-d`` : separate a tab from it's current window* into a new window
+- ``M-r`` : merge the last tab you (try to) detatach to the curent window
+
+Note that if a window contain only one frontend, separating it make no sens,
+but will remember the frontend as beeing the one to be pull the next time you
+try a merge
+
+
 The IPython pager
 =================
 

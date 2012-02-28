@@ -13,7 +13,12 @@ Authors:
 * Thomas Kluyver
 
 """
-
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011, IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -22,6 +27,7 @@ Authors:
 import sys
 import re
 import webbrowser
+import weakref
 from threading import Thread
 
 # System library imports
@@ -45,13 +51,15 @@ class MainWindow(QtGui.QMainWindow):
 
     def __init__(self, app,
                     confirm_exit=True,
-                    new_frontend_factory=None, slave_frontend_factory=None,
+                    new_frontend_factory=None,
+                    slave_frontend_factory=None,
+                    windows_manager=None,
                 ):
         """ Create a tabbed MainWindow for managing IPython FrontendWidgets
-        
+
         Parameters
         ----------
-        
+
         app : reference to QApplication parent
         confirm_exit : bool, optional
             Whether we should prompt on close of tabs
@@ -59,14 +67,22 @@ class MainWindow(QtGui.QMainWindow):
             A callable that returns a new IPythonWidget instance, attached to
             its own running kernel.
         slave_frontend_factory : callable
-            A callable that takes an existing IPythonWidget, and  returns a new 
+            A callable that takes an existing IPythonWidget, and  returns a new
             IPythonWidget instance, attached to the same kernel.
         """
+        #TODO same signature as window manager, but handle no windows_manager
+        #app is used only for app.icon
+
 
         super(MainWindow, self).__init__()
         self._kernel_counter = 0
         self._app = app
+        self._title = 'IPython'
         self.confirm_exit = confirm_exit
+        self._windows_manager = windows_manager
+
+        self.setWindowIcon(self._app.icon)
+
         self.new_frontend_factory = new_frontend_factory
         self.slave_frontend_factory = slave_frontend_factory
 
@@ -74,7 +90,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.setDocumentMode(True)
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
-
+        self.tab_widget.currentChanged.connect(self.update_win_title)
         self.setCentralWidget(self.tab_widget)
         # hide tab bar at first, since we have no tabs:
         self.tab_widget.tabBar().setVisible(False)
@@ -93,29 +109,46 @@ class MainWindow(QtGui.QMainWindow):
         """
         if self.tab_widget.count() <= 1:
             self.tab_widget.tabBar().setVisible(False)
+            self.prev_tab_act.setEnabled(False)
+            self.next_tab_act.setEnabled(False)
         else:
             self.tab_widget.tabBar().setVisible(True)
+            self.prev_tab_act.setEnabled(True)
+            self.next_tab_act.setEnabled(True)
         if self.tab_widget.count()==0 :
             self.close()
 
     @property
     def next_kernel_id(self):
-        """constantly increasing counter for kernel IDs"""
-        c = self._kernel_counter
-        self._kernel_counter += 1
-        return c
+        """constantly increasing counter for kernel IDs
+
+        use ``self._windows_manager``'s counter if is set, otherwise
+        use it's own
+        """
+        if self._windows_manager:
+            return self._windows_manager.next_kernel_id
+        else :
+            c = self._kernel_counter
+            self._kernel_counter += 1
+            return c
 
     @property
     def active_frontend(self):
+        """@property, return the current widet"""
         return self.tab_widget.currentWidget()
-    
+
+    def setTitle(self, title):
+        """ set prefix to use in window title"""
+        self._title = title
+        self.update_win_title()
+
     def create_tab_with_new_frontend(self):
         """create a new frontend and attach it to a new tab"""
         widget = self.new_frontend_factory()
         self.add_tab_with_frontend(widget)
-    
+
     def create_tab_with_current_kernel(self):
-        """create a new frontend attached to the same kernel as the current tab"""
+        """create a new frontend attached to the same kernel """
         current_widget = self.tab_widget.currentWidget()
         current_widget_index = self.tab_widget.indexOf(current_widget)
         current_widget_name = self.tab_widget.tabText(current_widget_index)
@@ -125,17 +158,17 @@ class MainWindow(QtGui.QMainWindow):
             name = current_widget_name
         else:
             name = '(%s) slave' % current_widget_name
-        self.add_tab_with_frontend(widget,name=name)
+        self.add_tab_with_frontend(widget, name=name)
 
-    def close_tab(self,current_tab):
+    def close_tab(self, current_tab):
         """ Called when you need to try to close a tab.
 
         It takes the number of the tab to be closed as argument, or a referece
-        to the wiget insite this tab
+        to the wiget inside this tab
         """
 
-        # let's be sure "tab" and "closing widget are respectivey the index of the tab to close
-        # and a reference to the trontend to close
+        # let's be sure "tab" and "closing widget are respectivey the index of
+        # the tab to close and a reference to the frontend to close
         if type(current_tab) is not int :
             current_tab = self.tab_widget.indexOf(current_tab)
         closing_widget=self.tab_widget.widget(current_tab)
@@ -152,7 +185,7 @@ class MainWindow(QtGui.QMainWindow):
         slave_tabs = self.find_slave_widgets(closing_widget)
 
         keepkernel = None #Use the prompt by default
-        if hasattr(closing_widget,'_keep_kernel_on_exit'): #set by exit magic
+        if hasattr(closing_widget, '_keep_kernel_on_exit'): #set by exit magic
             keepkernel = closing_widget._keep_kernel_on_exit
             # If signal sent by exit magic (_keep_kernel_on_exit, exist and not None)
             # we set local slave tabs._hidden to True to avoid prompting for kernel
@@ -204,7 +237,7 @@ class MainWindow(QtGui.QMainWindow):
                     if reply == 1: # close All
                         for slave in slave_tabs:
                             background(slave.kernel_manager.stop_channels)
-                            self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
+                            self._remove_tab_of_widget(slave)
                         closing_widget.execute("exit")
                         self.tab_widget.removeTab(current_tab)
                         background(kernel_manager.stop_channels)
@@ -231,10 +264,28 @@ class MainWindow(QtGui.QMainWindow):
             if kernel_manager and kernel_manager.channels_running:
                 for slave in slave_tabs:
                     background(slave.kernel_manager.stop_channels)
-                    self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
+                    self._remove_tab_of_widget(slave)
                 kernel_manager.shutdown_kernel()
                 background(kernel_manager.stop_channels)
-        
+
+        self.update_tab_bar_visibility()
+
+    def _remove_tab_of_widget(self,frontend):
+        """ chose wethe to call remove method from self or windows_manager
+        to avoid recursion
+        """
+        if self._windows_manager:
+            self._windows_manager.remove_tab_of_widget(frontend)
+        else :
+            self.remove_tab_of_widget(frontend)
+
+
+    def remove_tab_of_widget(self,frontend):
+        """ Remove tab of given widget if exist
+        """
+        tab_index = self.tab_widget.indexOf(frontend)
+        if(tab_index) >=0 :
+            self.tab_widget.removeTab(tab_index)
         self.update_tab_bar_visibility()
 
     def add_tab_with_frontend(self,frontend,name=None):
@@ -249,30 +300,66 @@ class MainWindow(QtGui.QMainWindow):
         frontend.exit_requested.connect(self.close_tab)
 
     def next_tab(self):
-        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1))
+        mod = self.tab_widget.count()
+        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()+1)%mod)
 
     def prev_tab(self):
-        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1))
+        mod = self.tab_widget.count()
+        self.tab_widget.setCurrentIndex((self.tab_widget.currentIndex()-1)%mod)
+
+    def update_win_title(self) :
+        """update some window gui element
+        
+        -Title to contain current connexion file name
+        -Title to have 'Python' or 'IPython' prefix
+        -Window icon
+        -The all magic menu to be in sync with current frontend
+
+        Because of the last, it does trigger a kernel request in a callback
+        """
+        frontend = self.active_frontend
+        if frontend:
+            cfile = frontend.kernel_manager.connection_file
+            shownName = QtCore.QFileInfo(cfile).fileName()
+            pth = QtCore.QFileInfo(cfile).filePath()
+            #semm not to work on mac for thr proxy icon
+            self.setWindowFilePath(pth)
+            self.setWindowTitle('%s - %s'%(self._title,shownName))
+            self.update_all_magic_menu()
+        self.setWindowIcon(self._app.icon)
 
     def make_frontend_visible(self,frontend):
         widget_index=self.tab_widget.indexOf(frontend)
         if widget_index > 0 :
             self.tab_widget.setCurrentIndex(widget_index)
 
-    def find_master_tab(self,tab,as_list=False):
-        """
-        Try to return the frontend that own the kernel attached to the given widget/tab.
+    def find_master_tab(self,tab,as_list=False,acrossWindows=True):
+        """Return the frontend that own the kernel attached `tab`.
 
-            Only find frontend owed by the current application. Selection
-            based on port of the kernel, might be inacurate if several kernel
-            on different ip use same port number.
+           Only find frontends owned by the current application. Selection
+           based on connection file of the kernel. It also tries to find
+           master widget across windows if many.
 
-            This fonction does the conversion tabNumber/widget if needed.
-            Might return None if no master widget (non local kernel)
-            Will crash IPython if more than 1 masterWidget
+           Parameters:
+           ------------
+           tab : int/QWidget
+               QWidget - widget whose kernel is used to search for master
+               int - tab index of curent windows, autoconverted to reference
+                     of QWidget in the given tab
 
-            When asList set to True, always return a list of widget(s) owning
-            the kernel. The list might be empty or containing several Widget.
+           acrossWindows : bool (default True)
+               Try to find the master widget across all the windows owned by
+               the current application, or only current windows.
+               ( `windows_manager` should be set at construction)
+
+           asList : bool (default False)
+               Return the result in the form of a list (ee below)
+
+           Returns:
+           --------
+               asList = False : Reference to master widget, None (assert at most 1 master widget)
+               or
+               asList = True : List with 0,1 or more widget references
         """
 
         #convert from/to int/richIpythonWidget if needed
@@ -281,10 +368,18 @@ class MainWindow(QtGui.QMainWindow):
         km=tab.kernel_manager
 
         #build list of all widgets
-        widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
+        if not self._windows_manager or not acrossWindows:
+            widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
+        else:
+            widget_listnested = [
+                [win.tab_widget.widget(i) for i in range(win.tab_widget.count())]
+                for win in self._windows_manager.windows ]
+            widget_list = [num for sublist in widget_listnested for num in sublist]
 
-        # widget that are candidate to be the owner of the kernel does have all the same port of the curent widget
-        # And should have a _may_close attribute
+        # widget that are candidate to be the owner of the kernel does have the
+        # same connexion file of the curent widget And should have a _may_close
+        # attribute
+
         filtered_widget_list = [ widget for widget in widget_list if
                                 widget.kernel_manager.connection_file == km.connection_file and
                                 hasattr(widget,'_may_close') ]
@@ -298,13 +393,25 @@ class MainWindow(QtGui.QMainWindow):
 
         return master_widget[0]
 
-    def find_slave_widgets(self,tab):
-        """return all the frontends that do not own the kernel attached to the given widget/tab.
+    def find_slave_widgets(self,tab,acrossWindows=True):
+        """return all the frontends that do not own the kernel attached `tab`.
 
-            Only find frontends owned by the current application. Selection
-            based on connection file of the kernel.
+           Only find frontends owned by the current application. Selection
+           based on connection file of the kernel. It also tries to find slave
+           widget across windows if many.
 
-            This function does the conversion tabNumber/widget if needed.
+           Parameters:
+           ------------
+           tab : int/QWidget
+               QWidget - widget whose kernel is used to search for slave
+               int - tab index of curent windows, autoconverted to reference
+                     of QWidget in the given tab
+
+           acrossWindows : bool (default True)
+               Try to find the slaves widget across all the windows owned by
+               the current application, or only current windows.(
+               `windows_manager` should be set at construction)
+
         """
         #convert from/to int/richIpythonWidget if needed
         if isinstance(tab, int):
@@ -312,16 +419,26 @@ class MainWindow(QtGui.QMainWindow):
         km=tab.kernel_manager
 
         #build list of all widgets
-        widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
+        if not self._windows_manager or not acrossWindows:
+            tab_w = self.tab_widget
+            widget_list = [tab_w.widget(i) for i in range(tab_w.count())]
+        else:
+            widget_list_nested = [
+                [w.tab_widget.widget(i) for i in range(w.tab_widget.count())]
+                for w in self._windows_manager.windows
+                ]
+            widget_list = [num for sub in widget_list_nested for num in sub]
 
-        # widget that are candidate not to be the owner of the kernel does have all the same port of the curent widget
+
+        # widget that are candidate not to be the owner of the kernel does have
+        # all the same port of the curent widget
+
         filtered_widget_list = ( widget for widget in widget_list if
                                 widget.kernel_manager.connection_file == km.connection_file)
         # Get a list of all widget owning the same kernel and removed it from
         # the previous cadidate. (better using sets ?)
         master_widget_list = self.find_master_tab(tab, as_list=True)
         slave_list = [widget for widget in filtered_widget_list if widget not in master_widget_list]
-
         return slave_list
 
     # Populate the menu bar with common actions and shortcuts
@@ -339,8 +456,17 @@ class MainWindow(QtGui.QMainWindow):
 
         if defer_shortcut:
             action.setShortcutContext(QtCore.Qt.WidgetShortcut)
-    
+
+    #-----------------------------------------------------------------------------
+    # initialisation of menus
+    #-----------------------------------------------------------------------------
+
     def init_menu_bar(self):
+        """Initialize the menuBar of current window
+
+        magic menu need to be finished of initializing/updated separately and
+        later, see `init_magic_menu` docstring
+        """
         #create menu in the order they should appear in the menu bar
         self.init_file_menu()
         self.init_edit_menu()
@@ -349,10 +475,27 @@ class MainWindow(QtGui.QMainWindow):
         self.init_magic_menu()
         self.init_window_menu()
         self.init_help_menu()
-    
+
     def init_file_menu(self):
         self.file_menu = self.menuBar().addMenu("&File")
-        
+
+        if self._windows_manager :
+            # if got a windows_manager which handle multi windows, propose
+            # thoses actions
+            self.new_kernel_win_act = QtGui.QAction(
+                "New &Window with New kernel",
+                self,
+                shortcut="Ctrl+N",
+                triggered=self._windows_manager.create_window_with_new_frontend)
+            self.add_menu_action(self.file_menu, self.new_kernel_win_act)
+
+            self.slave_kernel_win_act = QtGui.QAction(
+                    "New Window with S&ame kernel",
+                self,
+                shortcut="Ctrl+Shift+N",
+                triggered=self._windows_manager.create_window_with_current_kernel)
+            self.add_menu_action(self.file_menu, self.slave_kernel_win_act)
+
         self.new_kernel_tab_act = QtGui.QAction("New Tab with &New kernel",
             self,
             shortcut="Ctrl+T",
@@ -364,7 +507,7 @@ class MainWindow(QtGui.QMainWindow):
             shortcut="Ctrl+Shift+T",
             triggered=self.create_tab_with_current_kernel)
         self.add_menu_action(self.file_menu, self.slave_kernel_tab_act)
-        
+
         self.file_menu.addSeparator()
 
         self.close_action=QtGui.QAction("&Close Tab",
@@ -382,7 +525,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.file_menu, self.export_action, True)
 
         self.file_menu.addSeparator()
-        
+
         printkey = QtGui.QKeySequence(QtGui.QKeySequence.Print)
         if printkey.matches("Ctrl+P") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -393,7 +536,7 @@ class MainWindow(QtGui.QMainWindow):
             shortcut=printkey,
             triggered=self.print_action_active_frontend)
         self.add_menu_action(self.file_menu, self.print_action, True)
-        
+
         if sys.platform != 'darwin':
             # OSX always has Quit in the Application menu, only add it
             # to the File menu elsewhere.
@@ -407,10 +550,10 @@ class MainWindow(QtGui.QMainWindow):
             )
             self.add_menu_action(self.file_menu, self.quit_action)
 
-    
+
     def init_edit_menu(self):
         self.edit_menu = self.menuBar().addMenu("&Edit")
-        
+
         self.undo_action = QtGui.QAction("&Undo",
             self,
             shortcut=QtGui.QKeySequence.Undo,
@@ -457,7 +600,7 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.edit_menu, self.paste_action, True)
 
         self.edit_menu.addSeparator()
-        
+
         selectall = QtGui.QKeySequence(QtGui.QKeySequence.SelectAll)
         if selectall.matches("Ctrl+A") and sys.platform != 'darwin':
             # Only override the default if there is a collision.
@@ -470,7 +613,7 @@ class MainWindow(QtGui.QMainWindow):
             )
         self.add_menu_action(self.edit_menu, self.select_all_action, True)
 
-    
+
     def init_view_menu(self):
         self.view_menu = self.menuBar().addMenu("&View")
 
@@ -482,7 +625,7 @@ class MainWindow(QtGui.QMainWindow):
                 statusTip="Toggle visibility of menubar",
                 triggered=self.toggle_menu_bar)
             self.add_menu_action(self.view_menu, self.toggle_menu_bar_act)
-        
+
         fs_key = "Ctrl+Meta+F" if sys.platform == 'darwin' else "F11"
         self.full_screen_act = QtGui.QAction("&Full Screen",
             self,
@@ -522,11 +665,11 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="Clear the console",
             triggered=self.clear_magic_active_frontend)
         self.add_menu_action(self.view_menu, self.clear_action)
-    
+
     def init_kernel_menu(self):
         self.kernel_menu = self.menuBar().addMenu("&Kernel")
         # Qt on OSX maps Ctrl to Cmd, and Meta to Ctrl
-        # keep the signal shortcuts to ctrl, rather than 
+        # keep the signal shortcuts to ctrl, rather than
         # platform-default like we do elsewhere.
 
         ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
@@ -574,8 +717,9 @@ class MainWindow(QtGui.QMainWindow):
         """
         # need to level nested function  to be sure to past magic
         # on active frontend **at run time**.
+        wr = weakref.ref(self)
         def inner_dynamic_magic():
-            self.active_frontend.execute(magic)
+            wr().active_frontend.execute(magic)
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
@@ -605,35 +749,40 @@ class MainWindow(QtGui.QMainWindow):
             else:
                 pmagic = '%s%s'%('%',magic)
             xaction = QtGui.QAction(pmagic,
-                self,
+                alm_magic_menu,
                 triggered=self._make_dynamic_magic(pmagic)
                 )
             alm_magic_menu.addAction(xaction)
+        alm_magic_menu.addAction(self.pop)
 
     def update_all_magic_menu(self):
-        """ Update the list on magic in the "All Magics..." Menu
+        """ Update the list of magics in the "All Magics..." Menu
 
         Request the kernel with the list of availlable magic and populate the
         menu with the list received back
 
+        see `populate_all_magic_menu` for lower level control
         """
         # first define a callback which will get the list of all magic and put it in the menu.
         self.active_frontend._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
 
     def init_magic_menu(self):
+        """Initialize the magic menu in the menu bar
+
+        The all magic menu containig the list of magic availlable in curent
+        frontend have to be populated later by trigering it's `pop` action when
+        a frontend widget is availlable, and trigerring menu update is also
+        user responsability
+        
+        see `update_all_magic_menu`
+        """
+
         self.magic_menu = self.menuBar().addMenu("&Magic")
         self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
 
-        # This action should usually not appear as it will be cleared when menu
-        # is updated at first kernel response. Though, it is necessary when
-        # connecting through X-forwarding, as in this case, the menu is not
-        # auto updated, SO DO NOT DELETE.
-        self.pop = QtGui.QAction("&Update All Magic Menu ",
-            self, triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
-        # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immedialy, but it's assured to works
-        self.pop.trigger()
+        self.pop = QtGui.QAction("&Update this menu ",
+            self._app, triggered=self.update_all_magic_menu)
+        self.all_magic_menu.addAction(self.pop)
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
@@ -706,7 +855,23 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="Select next tab",
             triggered=self.next_tab)
         self.add_menu_action(self.window_menu, self.next_tab_act)
-    
+
+        if self._windows_manager:
+            self.window_menu.addSeparator()
+
+            self.reattach_act = QtGui.QAction("Me&rge Frontend",
+                self,
+                shortcut="Alt+R",
+                triggered=self._windows_manager.reattach_frontend)
+            self.add_menu_action(self.window_menu, self.reattach_act)
+
+            self.detach_act = QtGui.QAction("Separate Fronten&d",
+                self,
+                shortcut="Alt+D",
+                triggered=self._windows_manager.detach_frontend)
+            self.add_menu_action(self.window_menu, self.detach_act)
+
+
     def init_help_menu(self):
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
@@ -715,7 +880,7 @@ class MainWindow(QtGui.QMainWindow):
         # this search field fonctionality
 
         self.help_menu = self.menuBar().addMenu("&Help")
-        
+
 
         # Help Menu
 
@@ -863,27 +1028,28 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     # QWidget interface
     #---------------------------------------------------------------------------
-
     def closeEvent(self, event):
         """ Forward the close event to every tabs contained by the windows
         """
         if self.tab_widget.count() == 0:
             # no tabs, just close
+            if self._windows_manager:
+                self._windows_manager.closing_windows(self)
             event.accept()
             return
         # Do Not loop on the widget count as it change while closing
         title = self.window().windowTitle()
         cancel = QtGui.QMessageBox.Cancel
         okay = QtGui.QMessageBox.Ok
-        
+        closeall = QtGui.QPushButton("&Quit", self)
+        closeall.setShortcut('Q')
+
         if self.confirm_exit:
             if self.tab_widget.count() > 1:
                 msg = "Close all tabs, stop all kernels, and Quit?"
             else:
                 msg = "Close console, stop kernel, and Quit?"
             info = "Kernels not started here (e.g. notebooks) will be left alone."
-            closeall = QtGui.QPushButton("&Quit", self)
-            closeall.setShortcut('Q')
             box = QtGui.QMessageBox(QtGui.QMessageBox.Question,
                                     title, msg)
             box.setInformativeText(info)
@@ -894,17 +1060,24 @@ class MainWindow(QtGui.QMainWindow):
             pixmap = QtGui.QPixmap(self._app.icon.pixmap(QtCore.QSize(64,64)))
             box.setIconPixmap(pixmap)
             reply = box.exec_()
+            #if non standard button, should convert
+            if reply not in {okay, cancel}:
+                reply = box.clickedButton();
         else:
             reply = okay
-        
+
         if reply == cancel:
             event.ignore()
             return
-        if reply == okay:
+        if reply == okay or reply == closeall:
             while self.tab_widget.count() >= 1:
                 # prevent further confirmations:
                 widget = self.active_frontend
                 widget._confirm_exit = False
                 self.close_tab(widget)
+            if self._windows_manager:
+                self._windows_manager.closing_windows(self)
             event.accept()
-
+        else:
+            # we should never comme here as user should have clicked on a button
+            assert(False)
