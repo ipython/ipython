@@ -76,4 +76,5 @@ class Test_magic_run_completer(unittest.TestCase):
                 open(filename, 'w').close()
 
             s = set( module_completion('import foo') )
-            self.assertFalse( s.intersection(invalid_module_names) )
+            intersection = s.intersection(invalid_module_names)
+            self.assertFalse(intersection, intersection)

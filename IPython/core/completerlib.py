@@ -80,10 +80,15 @@ def module_list(path):
     pjoin = os.path.join
     basename = os.path.basename
 
+    def is_importable_file(path):
+        """Returns True if the provided path is a valid importable module"""
+        name, extension = os.path.splitext( path )
+        return import_re.match(path) and py3compat.isidentifier(name)
+
     # Now find actual path matches for packages or modules
     folder_list = [p for p in folder_list
                    if isfile(pjoin(path, p,'__init__.py'))
-                   or import_re.match(p) ]
+                   or is_importable_file(p) ]
 
     return [basename(p).split('.')[0] for p in folder_list]
 
