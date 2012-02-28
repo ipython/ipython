@@ -214,7 +214,7 @@ class IPythonWidget(FrontendWidget):
         self.log.debug("pyout: %s", msg.get('content', ''))
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
-            prompt_number = content['execution_count']
+            prompt_number = content.get('execution_count',0)
             data = content['data']
             if data.has_key('text/html'):
                 self._append_plain_text(self.output_sep, True)
