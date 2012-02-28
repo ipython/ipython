@@ -322,7 +322,7 @@ Multiline editing
 
 The graphical console is capable of true multiline editing, but it also tries
 to behave intuitively like a terminal when possible.  If you are used to
-IPyhton's old terminal behavior, you should find the transition painless, and
+IPython's old terminal behavior, you should find the transition painless, and
 once you learn a few basic keybindings it will be a much more efficient
 environment.
 
