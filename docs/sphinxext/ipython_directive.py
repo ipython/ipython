@@ -314,13 +314,10 @@ class EmbeddedSphinxShell(object):
 
         ret = []
         is_semicolon = False
-        store_history = True
 
         for i, line in enumerate(input_lines):
             if line.endswith(';'):
                 is_semicolon = True
-            if is_suppress:
-                store_history = False
 
             if i==0:
                 # process the first input line
@@ -329,12 +326,12 @@ class EmbeddedSphinxShell(object):
                     self.IP.execution_count += 1 # increment it anyway
                 else:
                     # only submit the line in non-verbatim mode
-                    self.process_input_line(line, store_history=store_history)
+                    self.process_input_line(line, store_history=True)
                 formatted_line = '%s %s'%(input_prompt, line)
             else:
                 # process a continuation line
                 if not is_verbatim:
-                    self.process_input_line(line, store_history=store_history)
+                    self.process_input_line(line, store_history=True)
 
                 formatted_line = '%s %s'%(continuation, line)
 
