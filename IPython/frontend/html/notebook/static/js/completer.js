@@ -1,35 +1,22 @@
 // function completer.
 //
-// completer should be a class that take an editor instance, and a list of
-// function to call to get the list of completion.
-//
-// the function that send back the list of completion should received the
-// editor handle as sole argument, and should return a json object with the
-// following structure
-
-// {list: clist,     # list of n string containing the completions
-//  type : rp,       # list of n string containingtype/ origin of the completion 
-//                   # (will be set as the class of the <option> to be able to style
-//                   # them according to the origin of the completion)
-//  from: {line: cur.line, ch: token.start}, 
-//    to: {line: cur.line, ch: token.end}
-//  };
+// completer should be a class that take an cell instance
 //
 
 var IPython = (function(IPython ) {
-    // that will prevent us froom missspelling
+    // that will prevent us from misspelling
     "use strict";
 
     // easyier key mapping
     var key = IPython.utils.keycodes;
-    
+
     // what is the common start of all completions
     function sharedStart(B){
             if(B.length == 1){return B[0]}
             var A = new Array()
             for(var i=0; i< B.length; i++)
             {
-               A.push(B[i].str); 
+               A.push(B[i].str);
             }
             if(A.length > 1 ){
                 var tem1, tem2, s, A = A.slice(0).sort();
@@ -53,15 +40,12 @@ var IPython = (function(IPython ) {
     var Completer = function(cell) {
         this.cell = cell;
         this.editor = cell.code_mirror;
-        console.log(this.editor);
         // if last caractere before cursor is not in this, we stop completing
         this.reg = /[A-Za-z.]/;
     }
 
     Completer.prototype.kernelCompletionRequest = function(){
         var cur = this.editor.getCursor();
-        var pre_cursor = this.editor.getRange({line:cur.line,ch:0},cur);
-        pre_cursor.trim();
         // Autocomplete the current line.
         var line = this.editor.getLine(cur.line);
         // one could fork here and directly call finish completing
@@ -69,33 +53,10 @@ var IPython = (function(IPython ) {
         IPython.notebook.complete_cell(this.cell, line, cur.ch);
     }
 
-    Completer.prototype.finish_completing =function (matched_text, matches) {
-        // let's build a function that wrap all that stuff into what is needed for the
-        // new completer:
-        //
-        var cur = this.editor.getCursor();
-        var res = CodeMirror.contextHint(this.editor);
-        
-        // append the introspection result, in order, at
-        // at the beginning of the table and compute the replacement rance
-        // from current cursor positon and matched_text length.
-        for(var i= matches.length-1; i>=0 ;--i)
-        {
-            res.unshift(
-                {
-                    str  : matches[i],
-                    type : "introspection",
-                    from : {line: cur.line, ch: cur.ch-matched_text.length},
-                    to   : {line: cur.line, ch: cur.ch}
-                }
-            )
-        }
-        this._resume_completion(res);
-    }; 
 
     Completer.prototype.startCompletion = function()
     {
-        // call for a 'first' completion, that will set the editor and do some 
+        // call for a 'first' completion, that will set the editor and do some
         // special behaviour like autopicking if only one completion availlable
         //
         if (this.editor.somethingSelected()) return;
@@ -106,17 +67,17 @@ var IPython = (function(IPython ) {
 
     Completer.prototype.carryOnCompletion = function(ff)
     {
-        // pass true as parameter if you want the commpleter to autopick 
+        // pass true as parameter if you want the commpleter to autopick
         // when only one completion
-        // as this function is auto;atically reinvoked at each keystroke with 
+        // as this function is automatically reinvoked at each keystroke with
         // ff = false
         var cur = this.editor.getCursor();
         var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-1},cur);
 
-        // we nned to check that we are still on a word boundary
+        // we need to check that we are still on a word boundary
         // because while typing the completer is still reinvoking itself
         if(!this.reg.test(pre_cursor)){ this.close(); return;}
-       
+
         this.autopick = false;
         if( ff != 'undefined' && ff==true)
         {
@@ -125,20 +86,37 @@ var IPython = (function(IPython ) {
         // We want a single cursor position.
         if (this.editor.somethingSelected()) return;
 
-        // there we will need to gather the results for all the function (and merge them ?)
-        // lets assume for now only one source
-        //
-        var that = this;
+        //one kernel completion came back, finish_completing will be called with the results
         this.kernelCompletionRequest();
     }
-    Completer.prototype._resume_completion = function(results)
-    {
+
+    Completer.prototype.finish_completing =function (matched_text, matches) {
+        // let's build a function that wrap all that stuff into what is needed for the
+        // new completer:
+        //
+        var cur = this.editor.getCursor();
+        var results = CodeMirror.contextHint(this.editor);
+
+        // append the introspection result, in order, at
+        // at the beginning of the table and compute the replacement rance
+        // from current cursor positon and matched_text length.
+        for(var i= matches.length-1; i>=0 ;--i)
+        {
+            results.unshift(
+                {
+                    str  : matches[i],
+                    type : "introspection",
+                    from : {line: cur.line, ch: cur.ch-matched_text.length},
+                    to   : {line: cur.line, ch: cur.ch}
+                }
+            )
+        }
+
+        // one the 2 sources results have been merge, deal with it
         this.raw_result = results;
 
         // if empty result return
         if (!this.raw_result || !this.raw_result.length) return;
-
-
 
         // When there is only one completion, use it directly.
         if (this.autopick == true && this.raw_result.length == 1)
@@ -149,7 +127,7 @@ var IPython = (function(IPython ) {
 
         if (this.raw_result.length == 1)
         {
-        // test if first and only completion totally matches 
+        // test if first and only completion totally matches
         // what is typed, in this case dismiss
         var str = this.raw_result[0].str
         var cur = this.editor.getCursor();
@@ -182,7 +160,6 @@ var IPython = (function(IPython ) {
         this.sel.keydown(function(event){that.keydown(event)});
 
         this.build_gui_list(this.raw_result);
-        var that=this; 
         //CodeMirror.connect(that.sel, "dblclick", function(){that.pick()});
 
         this.sel.focus();
@@ -205,7 +182,7 @@ var IPython = (function(IPython ) {
             this.sel.append(opt);
         }
         this.sel.children().first().attr('selected','true');
-        
+
         //sel.size = Math.min(10, completions.length);
         // Hack to hide the scrollbar.
         //if (completions.length <= 10)
@@ -225,7 +202,7 @@ var IPython = (function(IPython ) {
         setTimeout(function(){that.editor.focus();}, 50);
         }
 
-                
+
     Completer.prototype.keydown = function(event) {
       var code = event.keyCode;
       // Enter
@@ -234,7 +211,7 @@ var IPython = (function(IPython ) {
       else if (code == key.esc ) {CodeMirror.e_stop(event); this.close(); this.editor.focus();}
       else if (code == key.space || code == key.backspace) {this.close(); this.editor.focus();}
       else if (code == key.tab){
-            //all the fastforwarding operation, 
+            //all the fastforwarding operation,
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
             // to erase py
@@ -242,7 +219,7 @@ var IPython = (function(IPython ) {
             if(sh){
                 this.insert(sh);
             }
-            this.close(); 
+            this.close();
             CodeMirror.e_stop(event);
             this.editor.focus();
             //reinvoke self
@@ -250,7 +227,7 @@ var IPython = (function(IPython ) {
             setTimeout(function(){that.carryOnCompletion();}, 50);
       }
       else if (code == key.upArrow || code == key.downArrow) {
-        // need to do that to be able to move the arrow 
+        // need to do that to be able to move the arrow
         // when on the first or last line ofo a code cell
         event.stopPropagation();
       }
