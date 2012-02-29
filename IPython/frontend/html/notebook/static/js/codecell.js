@@ -50,9 +50,7 @@ var IPython = (function (IPython) {
         this.collapse();
 
         // construct a completer
-        // And give it the function to call to get the completion list
-        var that = this;
-        this.completer = new IPython.Completer(that);
+        this.completer = new IPython.Completer(this);
     };
 
     //TODO, try to diminish the number of parameters.
@@ -255,22 +253,6 @@ var IPython = (function (IPython) {
         // setTimeout(that.remove_and_cancel_tooltip, 5000);
     };
 
-    // As you type completer
-    // this should be called by the completer, that in return will
-    // be reclled by finish_completing
-    CodeCell.prototype.requestCompletion= function(callback)
-    {
-        console.log('requestiong through cell');
-        this._compcallback = callback;
-        var cur = this.code_mirror.getCursor();
-        var pre_cursor = this.code_mirror.getRange({line:cur.line,ch:0},cur);
-        pre_cursor.trim();
-        // Autocomplete the current line.
-        var line = this.code_mirror.getLine(cur.line);
-        // one could fork here and directly call finish completing
-        // if kernel is busy
-        IPython.notebook.complete_cell(this, line, cur.ch);
-    }
 
     // called when completion came back from the kernel. this will inspect the
     // curent cell for (more) completion merge the resuults with the ones
