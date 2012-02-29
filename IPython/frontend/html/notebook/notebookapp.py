@@ -343,7 +343,30 @@ class NotebookApp(BaseIPythonApplication):
             return static_url_prefix+u"mathjax/MathJax.js"
         else:
             self.log.info("Using MathJax from CDN")
-            return u"http://cdn.mathjax.org/mathjax/latest/MathJax.js"
+            hostname = "cdn.mathjax.org"
+            try:
+                # resolve mathjax cdn alias to cloudfront, because Amazon's SSL certificate
+                # only works on *.cloudfront.net
+                true_host, aliases, IPs = socket.gethostbyname_ex(hostname)
+                # I've run this on a few machines, and some put the right answer in true_host,
+                # while others gave it in the aliases list, so we check both.
+                aliases.insert(0, true_host)
+            except Exception:
+                self.log.warn("Couldn't determine MathJax CDN info")
+            else:
+                for alias in aliases:
+                    parts = alias.split('.')
+                    # want static foo.cloudfront.net, not dynamic foo.lax3.cloudfront.net
+                    if len(parts) == 3 and alias.endswith(".cloudfront.net"):
+                        hostname = alias
+                        break
+            
+            if not hostname.endswith(".cloudfront.net"):
+                self.log.error("Couldn't resolve CloudFront host, required for HTTPS MathJax.")
+                self.log.error("Loading from https://cdn.mathjax.org will probably fail due to invalid certificate.")
+                self.log.error("For unsecured HTTP access to MathJax use config:")
+                self.log.error("NotebookApp.mathjax_url='http://cdn.mathjax.org/mathjax/latest/MathJax.js'")
+            return u"https://%s/mathjax/latest/MathJax.js" % hostname
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
