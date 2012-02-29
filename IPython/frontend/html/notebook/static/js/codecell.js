@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
         // construct a completer
         // And give it the function to call to get the completion list
         var that = this;
-        this.completer = new IPython.Completer(this.code_mirror,function(callback){that.requestCompletion(callback)});
+        this.completer = new IPython.Completer(that);
     };
 
     //TODO, try to diminish the number of parameters.
@@ -260,6 +260,7 @@ var IPython = (function (IPython) {
     // be reclled by finish_completing
     CodeCell.prototype.requestCompletion= function(callback)
     {
+        console.log('requestiong through cell');
         this._compcallback = callback;
         var cur = this.code_mirror.getCursor();
         var pre_cursor = this.code_mirror.getRange({line:cur.line,ch:0},cur);
@@ -275,28 +276,8 @@ var IPython = (function (IPython) {
     // curent cell for (more) completion merge the resuults with the ones
     // comming from the kernel and forward it to the completer
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
-        // let's build a function that wrap all that stuff into what is needed for the
-        // new completer:
-        //
-        var cur = this.code_mirror.getCursor();
-        var res = CodeMirror.contextHint(this.code_mirror);
-        
-        // append the introspection result, in order, at
-        // at the beginning of the table and compute the replacement rance
-        // from current cursor positon and matched_text length.
-        for(var i= matches.length-1; i>=0 ;--i)
-        {
-            res.unshift(
-                {
-                    str  : matches[i],
-                    type : "introspection",
-                    from : {line: cur.line, ch: cur.ch-matched_text.length},
-                    to   : {line: cur.line, ch: cur.ch}
-                }
-            )
-        }
-        this._compcallback(res);
-    };
+        this.completer.finish_completing(matched_text,matches);
+    }
 
 
     CodeCell.prototype.select = function () {
