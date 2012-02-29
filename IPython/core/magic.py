@@ -1741,7 +1741,7 @@ Currently the magic system has the following functions:\n"""
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
         
-        prog_ns['execfile'] = 'py3compat.execfile'
+        prog_ns['execfile'] = py3compat.execfile
         
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
