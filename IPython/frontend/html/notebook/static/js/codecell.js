@@ -18,7 +18,6 @@ var IPython = (function (IPython) {
     var CodeCell = function (notebook) {
         this.code_mirror = null;
         this.input_prompt_number = null;
-        this.completion_cursor = null;
         this.outputs = [];
         this.collapsed = false;
         this.tooltip_timeout = null;
@@ -254,9 +253,7 @@ var IPython = (function (IPython) {
     };
 
 
-    // called when completion came back from the kernel. this will inspect the
-    // curent cell for (more) completion merge the resuults with the ones
-    // comming from the kernel and forward it to the completer
+    // called when completion came back from the kernel. just forward
     CodeCell.prototype.finish_completing = function (matched_text, matches) {
         this.completer.finish_completing(matched_text,matches);
     }

@@ -1,7 +1,6 @@
 // function completer.
 //
 // completer should be a class that take an cell instance
-//
 
 var IPython = (function(IPython ) {
     // that will prevent us from misspelling
@@ -45,11 +44,9 @@ var IPython = (function(IPython ) {
     }
 
     Completer.prototype.kernelCompletionRequest = function(){
-        var cur = this.editor.getCursor();
-        // Autocomplete the current line.
+        var cur  = this.editor.getCursor();
         var line = this.editor.getLine(cur.line);
-        // one could fork here and directly call finish completing
-        // if kernel is busy
+        // one could fork here and directly call finish completing if kernel is busy
         IPython.notebook.complete_cell(this.cell, line, cur.ch);
     }
 
@@ -65,12 +62,11 @@ var IPython = (function(IPython ) {
         this.carryOnCompletion(true);
     }
 
-    Completer.prototype.carryOnCompletion = function(ff)
-    {
-        // pass true as parameter if you want the commpleter to autopick
-        // when only one completion
-        // as this function is automatically reinvoked at each keystroke with
-        // ff = false
+    Completer.prototype.carryOnCompletion = function(ff) {
+        // Pass true as parameter if you want the commpleter to autopick when
+        // only one completion. This function is automatically reinvoked at
+        // each keystroke with ff = false
+
         var cur = this.editor.getCursor();
         var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-1},cur);
 
@@ -80,9 +76,8 @@ var IPython = (function(IPython ) {
 
         this.autopick = false;
         if( ff != 'undefined' && ff==true)
-        {
-            this.autopick=true;
-        }
+        { this.autopick=true; }
+
         // We want a single cursor position.
         if (this.editor.somethingSelected()) return;
 
@@ -91,25 +86,23 @@ var IPython = (function(IPython ) {
     }
 
     Completer.prototype.finish_completing =function (matched_text, matches) {
-        // let's build a function that wrap all that stuff into what is needed for the
-        // new completer:
-        //
+        // let's build a function that wrap all that stuff into what is needed
+        // for the new completer:
+
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
 
-        // append the introspection result, in order, at
-        // at the beginning of the table and compute the replacement rance
-        // from current cursor positon and matched_text length.
+        // append the introspection result, in order, at at the beginning of
+        // the table and compute the replacement range from current cursor
+        // positon and matched_text length.
         for(var i= matches.length-1; i>=0 ;--i)
         {
             results.unshift(
-                {
-                    str  : matches[i],
+                {   str  : matches[i],
                     type : "introspection",
                     from : {line: cur.line, ch: cur.ch-matched_text.length},
                     to   : {line: cur.line, ch: cur.ch}
-                }
-            )
+                })
         }
 
         // one the 2 sources results have been merge, deal with it
@@ -127,15 +120,13 @@ var IPython = (function(IPython ) {
 
         if (this.raw_result.length == 1)
         {
-        // test if first and only completion totally matches
-        // what is typed, in this case dismiss
-        var str = this.raw_result[0].str
-        var cur = this.editor.getCursor();
-        var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-str.length},cur);
-        if(pre_cursor == str){
-            this.close();
-            return ;
-            }
+            // test if first and only completion totally matches
+            // what is typed, in this case dismiss
+            var str = this.raw_result[0].str
+            var cur = this.editor.getCursor();
+            var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-str.length},cur);
+            if(pre_cursor == str)
+                { this.close(); return ; }
         }
 
         this.complete = $('<div/>').addClass('completions');
@@ -160,12 +151,10 @@ var IPython = (function(IPython ) {
         this.sel.keydown(function(event){that.keydown(event)});
 
         this.build_gui_list(this.raw_result);
-        //CodeMirror.connect(that.sel, "dblclick", function(){that.pick()});
 
         this.sel.focus();
         // Opera sometimes ignores focusing a freshly created node
         if (window.opera) setTimeout(function(){if (!this.done) this.sel.focus();}, 100);
-        // why do we return true ?
         return true;
     }
 
@@ -182,11 +171,6 @@ var IPython = (function(IPython ) {
             this.sel.append(opt);
         }
         this.sel.children().first().attr('selected','true');
-
-        //sel.size = Math.min(10, completions.length);
-        // Hack to hide the scrollbar.
-        //if (completions.length <= 10)
-        //this.complete.style.width = (this.sel.clientWidth - 1) + "px";
     }
 
     Completer.prototype.close = function() {
