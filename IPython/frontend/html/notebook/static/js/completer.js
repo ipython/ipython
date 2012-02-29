@@ -49,13 +49,49 @@ var IPython = (function(IPython ) {
             return null;
         }
 
-    // user to nsert the given completion
-    var Completer = function(editor,getHints) {
-        this.editor = editor;
-        this.hintfunc = getHints;
+
+    var Completer = function(cell) {
+        this.cell = cell;
+        this.editor = cell.code_mirror;
+        console.log(this.editor);
         // if last caractere before cursor is not in this, we stop completing
         this.reg = /[A-Za-z.]/;
     }
+
+    Completer.prototype.kernelCompletionRequest = function(){
+        var cur = this.editor.getCursor();
+        var pre_cursor = this.editor.getRange({line:cur.line,ch:0},cur);
+        pre_cursor.trim();
+        // Autocomplete the current line.
+        var line = this.editor.getLine(cur.line);
+        // one could fork here and directly call finish completing
+        // if kernel is busy
+        IPython.notebook.complete_cell(this.cell, line, cur.ch);
+    }
+
+    Completer.prototype.finish_completing =function (matched_text, matches) {
+        // let's build a function that wrap all that stuff into what is needed for the
+        // new completer:
+        //
+        var cur = this.editor.getCursor();
+        var res = CodeMirror.contextHint(this.editor);
+        
+        // append the introspection result, in order, at
+        // at the beginning of the table and compute the replacement rance
+        // from current cursor positon and matched_text length.
+        for(var i= matches.length-1; i>=0 ;--i)
+        {
+            res.unshift(
+                {
+                    str  : matches[i],
+                    type : "introspection",
+                    from : {line: cur.line, ch: cur.ch-matched_text.length},
+                    to   : {line: cur.line, ch: cur.ch}
+                }
+            )
+        }
+        this._resume_completion(res);
+    }; 
 
     Completer.prototype.startCompletion = function()
     {
@@ -93,7 +129,7 @@ var IPython = (function(IPython ) {
         // lets assume for now only one source
         //
         var that = this;
-        this.hintfunc(function(result){that._resume_completion(result)});
+        this.kernelCompletionRequest();
     }
     Completer.prototype._resume_completion = function(results)
     {
