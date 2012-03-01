@@ -490,4 +490,18 @@ class TestView(ClusterTestCase):
         result = v.apply_sync(rf, 5)
         expected = [ 5*id for id in self.client.ids ]
         self.assertEquals(result, expected)
+    
+    def test_eval_reference(self):
+        v = self.client[self.client.ids[0]]
+        v['g'] = range(5)
+        rg = pmod.Reference('g[0]')
+        echo = lambda x:x
+        self.assertEquals(v.apply_sync(echo, rg), 0)
+    
+    def test_reference_nameerror(self):
+        v = self.client[self.client.ids[0]]
+        r = pmod.Reference('elvis_has_left')
+        echo = lambda x:x
+        self.assertRaisesRemote(NameError, v.apply_sync, echo, r)
+
 
