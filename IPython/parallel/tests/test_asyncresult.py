@@ -23,7 +23,7 @@ from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 
 def setup():
-    add_engines(2)
+    add_engines(2, total=True)
 
 def wait(n):
     import time

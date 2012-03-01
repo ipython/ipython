@@ -32,18 +32,18 @@ from IPython.parallel import LoadBalancedView, DirectView
 from clienttest import ClusterTestCase, segfault, wait, add_engines
 
 def setup():
-    add_engines(4)
+    add_engines(4, total=True)
 
 class TestClient(ClusterTestCase):
     
     def test_ids(self):
         n = len(self.client.ids)
-        self.add_engines(3)
-        self.assertEquals(len(self.client.ids), n+3)
+        self.add_engines(2)
+        self.assertEquals(len(self.client.ids), n+2)
     
     def test_view_indexing(self):
         """test index access for views"""
-        self.add_engines(2)
+        self.minimum_engines(4)
         targets = self.client._build_targets('all')[-1]
         v = self.client[:]
         self.assertEquals(v.targets, targets)
@@ -98,7 +98,7 @@ class TestClient(ClusterTestCase):
         ref = [ double(x) for x in seq ]
         
         # add some engines, which should be used
-        self.add_engines(2)
+        self.add_engines(1)
         n1 = len(self.client.ids)
         
         # simple apply
@@ -131,7 +131,7 @@ class TestClient(ClusterTestCase):
     
     def test_clear(self):
         """test clear behavior"""
-        # self.add_engines(2)
+        self.minimum_engines(2)
         v = self.client[:]
         v.block=True
         v.push(dict(a=5))
@@ -142,13 +142,11 @@ class TestClient(ClusterTestCase):
         self.assertRaisesRemote(NameError, self.client[id0].get, 'a')
         self.client.clear(block=True)
         for i in self.client.ids:
-            # print i
             self.assertRaisesRemote(NameError, self.client[i].get, 'a')
     
     def test_get_result(self):
         """test getting results from the Hub."""
         c = clientmod.Client(profile='iptest')
-        # self.add_engines(1)
         t = c.ids[-1]
         ar = c[t].apply_async(wait, 1)
         # give the monitor time to notice the message
@@ -162,7 +160,6 @@ class TestClient(ClusterTestCase):
     
     def test_ids_list(self):
         """test client.ids"""
-        # self.add_engines(2)
         ids = self.client.ids
         self.assertEquals(ids, self.client._ids)
         self.assertFalse(ids is self.client._ids)
@@ -170,7 +167,6 @@ class TestClient(ClusterTestCase):
         self.assertNotEquals(ids, self.client._ids)
     
     def test_queue_status(self):
-        # self.addEngine(4)
         ids = self.client.ids
         id0 = ids[0]
         qs = self.client.queue_status(targets=id0)
@@ -187,7 +183,6 @@ class TestClient(ClusterTestCase):
             self.assertEquals(sorted(qs.keys()), ['completed', 'queue', 'tasks'])
 
     def test_shutdown(self):
-        # self.addEngine(4)
         ids = self.client.ids
         id0 = ids[0]
         self.client.shutdown(id0, block=True)
