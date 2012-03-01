@@ -61,6 +61,9 @@ def module_list(path):
     Return the list containing the names of the modules available in the given
     folder.
     """
+    # sys.path has the cwd as an empty string, but isdir/listdir need it as '.'
+    if path == '':
+        path = '.'
 
     if os.path.isdir(path):
         folder_list = os.listdir(path)
