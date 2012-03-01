@@ -408,6 +408,11 @@ def test_get_py_filename():
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
                 
 def test_unicode_in_filename():
+    """When a file doesn't exist, the exception raised should be safe to call
+    str() on - i.e. in Python 2 it must only have ASCII characters.
+    
+    https://github.com/ipython/ipython/issues/875
+    """
     try:
         # these calls should not throw unicode encode exceptions
         path.get_py_filename(u'fooéè.py',  force_win32=False)
