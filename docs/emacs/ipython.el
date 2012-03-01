@@ -133,7 +133,6 @@
 ;;      - look into init priority issues with `py-python-command' (if it's set
 ;;        via custom)
 
-
 ;;; Code
 (require 'cl)
 (require 'shell)
@@ -159,7 +158,6 @@
 (defvar ipython-backup-of-py-python-command nil
   "HACK")
 
-
 (defvar ipython-de-input-prompt-regexp "\\(?:
 In \\[[0-9]+\\]: *.*
 ----+> \\(.*
@@ -173,6 +171,8 @@ the second for a 'normal' command, and the third for a multiline command.")
 (defvar ipython-de-output-prompt-regexp "^Out\\[[0-9]+\\]: "
   "A regular expression to match the output prompt of IPython.")
 
+(defvaralias 'python-python-command-args 'py-python-command-args)
+(defvaralias  'inferior-python-mode-map 'py-shell-map)
 
 (if (not (executable-find ipython-command))
     (message (format "Can't find executable %s - ipython.el *NOT* activated!!!"
@@ -197,10 +197,11 @@ the second for a 'normal' command, and the third for a multiline command.")
       (define-key py-shell-map "\t" 'ipython-complete)
       ;;XXX this is really just a cheap hack, it only completes symbols in the
       ;;interactive session -- useful nonetheless.
-      (define-key py-mode-map [(meta tab)] 'ipython-complete)
-
-      )
+    (define-key py-mode-map [(meta tab)] 'ipython-complete))
+  (if (boundp 'py-shell-hook)
+      ;; only python-mode.el has that hook
     (add-hook 'py-shell-hook 'ipython-shell-hook)
+    (add-hook 'inferior-python-mode-hook 'ipython-shell-hook))
     ;; Regular expression that describes tracebacks for IPython in context and
     ;; verbose mode.
 
@@ -217,14 +218,13 @@ the second for a 'normal' command, and the third for a multiline command.")
     (setq py-traceback-line-re
           "\\(^[^\t >].+?\\.py\\).*\n   +[0-9]+[^\00]*?\n-+> \\([0-9]+\\)+")
 
-
     ;; Recognize the ipython pdb, whose prompt is 'ipdb>' or  'ipydb>'
     ;;instead of '(Pdb)'
     (setq py-pdbtrack-input-prompt "\n[(<]*[Ii]?[Pp]y?db[>)]+ ")
     (setq pydb-pydbtrack-input-prompt "\n[(]*ipydb[>)]+ ")
 
     (setq py-shell-input-prompt-1-regexp "^In \\[[0-9]+\\]: *"
-          py-shell-input-prompt-2-regexp "^   [.][.][.]+: *" )
+        py-shell-input-prompt-2-regexp "^   [.][.][.]+: *")
     ;; select a suitable color-scheme
     (unless (delq nil
                   (mapcar (lambda (x) (eq (string-match "^--colors*" x) 0))
@@ -286,7 +286,6 @@ buffer already exists."
 looks like it came from a normal interactive python session, so that it can
 be used in doctests. Example:
 
-
     In [1]: import sys
 
     In [2]: sys.stdout.write 'Hi!\n'
@@ -327,6 +326,8 @@ gets converted to:
   "print(';'.join(get_ipython().complete('%s', '%s')[1])) #PYTHON-MODE SILENT\n"
   "The string send to ipython to query for all possible completions")
 
+(setq ipython-completion-command-string
+      "print(';'.join(get_ipython().complete('%s', '%s')[1])) #PYTHON-MODE SILENT\n")
 
 ;; xemacs doesn't have `comint-preoutput-filter-functions' so we'll try the
 ;; following wonderful hack to work around this case
@@ -432,7 +433,7 @@ in the current *Python* session."
              (with-output-to-temp-buffer "*IPython Completions*"
                (display-completion-list (all-completions pattern completion-table)))
              (message "Making completion list...%s" "done")))))
-)
+  )
 
 ;;; if python-mode's keybinding for the tab key wins then py-shell-complete is called
 ;;; instead of ipython-complete which result in hanging emacs since there is no shell
@@ -440,7 +441,6 @@ in the current *Python* session."
 (defadvice py-shell-complete
   (around avoid-py-shell-complete activate)
   (ipython-complete))
-
 
 ;;; autoindent support: patch sent in by Jin Liu <m.liu.jin@gmail.com>,
 ;;; originally written by doxgen@newsmth.net

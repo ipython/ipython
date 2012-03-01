@@ -11,3 +11,6 @@ build
 *.egg-info
 *~
 *.bak
+commit.txt
+*.diff
+*.patch
