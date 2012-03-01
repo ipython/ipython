@@ -54,10 +54,8 @@ class Reference(CannedObject):
     def getObject(self, g=None):
         if g is None:
             g = globals()
-        try:
-            return g[self.name]
-        except KeyError:
-            raise NameError("name %r is not defined"%self.name)
+        
+        return eval(self.name, g)
 
 
 class CannedFunction(CannedObject):
