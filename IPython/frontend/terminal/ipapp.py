@@ -67,13 +67,16 @@ ipython --log-level=DEBUG  # set logging to DEBUG
 ipython --profile=foo      # start with profile foo
 
 ipython qtconsole          # start the qtconsole GUI application
-ipython qtconsole -h       # show the help string for the qtconsole subcmd
+ipython help qtconsole     # show the help for the qtconsole subcmd
 
 ipython console            # start the terminal-based console application
-ipython console -h         # show the help string for the console subcmd
+ipython help console       # show the help for the console subcmd
+
+ipython notebook           # start the IPython notebook
+ipython help notebook      # show the help for the notebook subcmd
 
 ipython profile create foo # create profile foo w/ default config files
-ipython profile -h         # show the help string for the profile subcmd
+ipython help profile       # show the help for the profile subcmd
 """
 
 #-----------------------------------------------------------------------------
