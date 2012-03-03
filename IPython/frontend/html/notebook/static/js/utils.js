@@ -12,6 +12,7 @@
 IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
+    "use strict";
 
     var uuid = function () {
         // http://www.ietf.org/rfc/rfc4122.txt
@@ -40,7 +41,7 @@ IPython.utils = (function (IPython) {
 
 
     //Map from terminal commands to CSS classes
-    ansi_colormap = {
+    var ansi_colormap = {
         "30":"ansiblack", "31":"ansired",
         "32":"ansigreen", "33":"ansiyellow",
         "34":"ansiblue", "35":"ansipurple","36":"ansicyan", 
@@ -74,7 +75,7 @@ IPython.utils = (function (IPython) {
     }
 
 
-    grow = function(element) {
+    var grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
         // autogrow handler is not called.
         var dom = element.get(0);

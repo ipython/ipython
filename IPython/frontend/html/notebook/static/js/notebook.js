@@ -10,6 +10,7 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
 
     var utils = IPython.utils;
 
@@ -386,7 +387,7 @@ var IPython = (function (IPython) {
         var cell_id = this.msg_cell_map[msg_id];
         var result = null;
         this.get_cell_elements().filter(function (index) {
-            cell = $(this).data("cell");
+            var cell = $(this).data("cell");
             if (cell.cell_id === cell_id) {
                 result = cell;
             };
@@ -399,7 +400,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.select = function (index) {
         if (index !== undefined && index >= 0 && index < this.ncells()) {
-            sindex = this.get_selected_index()
+            var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
             };
@@ -925,7 +926,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.handle_shell_reply = function (e) {
-        reply = $.parseJSON(e.data);
+        var reply = $.parseJSON(e.data);
         var header = reply.header;
         var content = reply.content;
         var msg_type = header.msg_type;
@@ -976,7 +977,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.handle_iopub_reply = function (e) {
-        reply = $.parseJSON(e.data);
+        var reply = $.parseJSON(e.data);
         var content = reply.content;
         // console.log(reply);
         var msg_type = reply.header.msg_type;
@@ -1081,7 +1082,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_selected_cell = function (options) {
         // add_new: should a new cell be added if we are at the end of the nb
         // terminal: execute in terminal mode, which stays in the current cell
-        default_options = {terminal: false, add_new: true};
+        var default_options = {terminal: false, add_new: true};
         $.extend(default_options, options);
         var that = this;
         var cell = that.get_selected_cell();
@@ -1207,11 +1208,11 @@ var IPython = (function (IPython) {
     Notebook.prototype.toJSON = function () {
         var cells = this.get_cells();
         var ncells = cells.length;
-        cell_array = new Array(ncells);
+        var cell_array = new Array(ncells);
         for (var i=0; i<ncells; i++) {
             cell_array[i] = cells[i].toJSON();
         };
-        data = {
+        var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{cells:cell_array}],
             metadata : this.metadata
@@ -1281,7 +1282,7 @@ var IPython = (function (IPython) {
         this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
-            msg = "This notebook has been converted from an older " +
+            var msg = "This notebook has been converted from an older " +
             "notebook format (v"+data.orig_nbformat+") to the current notebook " +
             "format (v"+data.nbformat+"). The next time you save this notebook, the " +
             "newer notebook format will be used and older verions of IPython " +

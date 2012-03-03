@@ -10,6 +10,7 @@
 //============================================================================
 
 var IPython = (function (IPython) {
+    "use strict";
 
     var utils = IPython.utils;
 
@@ -124,11 +125,11 @@ var IPython = (function (IPython) {
         console.log("Starting WS:", ws_url);
         this.shell_channel = new this.WebSocket(ws_url + "/shell");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
-        send_cookie = function(){
+        var send_cookie = function(){
             this.send(document.cookie);
         };
         var already_called_onclose = false; // only alert once
-        ws_closed_early = function(evt){
+        var ws_closed_early = function(evt){
             if (already_called_onclose){
                 return;
             }
@@ -137,7 +138,7 @@ var IPython = (function (IPython) {
                 that._websocket_closed(ws_url, true);
             }
         };
-        ws_closed_late = function(evt){
+        var ws_closed_late = function(evt){
             if (already_called_onclose){
                 return;
             }
