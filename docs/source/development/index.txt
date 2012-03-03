@@ -23,3 +23,4 @@ IPython developer's guide
    ipython_qt.txt
    ipythonzmq.txt
    notebook_todo.txt
+   ipython_directive.txt
