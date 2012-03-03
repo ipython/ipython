@@ -80,6 +80,13 @@ class ClusterTestCase(BaseZMQTestCase):
         self.engines.extend(add_engines(n))
         if block:
             self.wait_on_engines()
+
+    def minimum_engines(self, n=1, block=True):
+        """add engines until there are at least n connected"""
+        self.engines.extend(add_engines(n, total=True))
+        if block:
+            self.wait_on_engines()
+            
     
     def wait_on_engines(self, timeout=5):
         """wait for our engines to connect."""

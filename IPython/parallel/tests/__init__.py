@@ -55,7 +55,7 @@ def setup():
     
     cp = TestProcessLauncher()
     cp.cmd_and_args = ipcontroller_cmd_argv + \
-                ['--profile=iptest', '--log-level=50']
+                ['--profile=iptest', '--log-level=50', '--ping=250']
     cp.start()
     launchers.append(cp)
     tic = time.time()
@@ -68,9 +68,18 @@ def setup():
         time.sleep(0.1)
     add_engines(1)
 
-def add_engines(n=1, profile='iptest'):
+def add_engines(n=1, profile='iptest', total=False):
+    """add a number of engines to a given profile.
+    
+    If total is True, then already running engines are counted, and only
+    the additional engines necessary (if any) are started.
+    """
     rc = Client(profile=profile)
     base = len(rc)
+    
+    if total:
+        n = max(n - base, 0)
+    
     eps = []
     for i in range(n):
         ep = TestProcessLauncher()
