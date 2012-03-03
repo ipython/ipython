@@ -14,10 +14,14 @@ Inputhook management for GUI event loop integration.
 # Imports
 #-----------------------------------------------------------------------------
 
-import ctypes
+try:
+    import ctypes
+except ImportError:
+    ctypes = None
 import os
 import sys
-import warnings
+
+from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
 # Constants
@@ -98,6 +102,9 @@ class InputHookManager(object):
     """
     
     def __init__(self):
+        if ctypes is None:
+            warn("IPython GUI event loop requires ctypes, %gui will not be available\n")
+            return
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
         self._apps = {}
         self._reset()
