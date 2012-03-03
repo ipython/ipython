@@ -26,6 +26,32 @@ import signal
 import sys
 import uuid
 
+# If run on Windows, install an exception hook which pops up a
+# message box. Pythonw.exe hides the console, so without this
+# the application silently fails to load.
+#
+# We always install this handler, because the expectation is for
+# qtconsole to bring up a GUI even if called from the console.
+# The old handler is called, so the exception is printed as well.
+# If desired, check for pythonw with an additional condition
+# (sys.executable.lower().find('pythonw.exe') >= 0).
+if os.name == 'nt':
+    old_excepthook = sys.excepthook
+
+    def gui_excepthook(exctype, value, tb):
+        try:
+            import ctypes, traceback
+            MB_ICONERROR = 0x00000010L
+            title = u'Error starting IPython QtConsole'
+            msg = u''.join(traceback.format_exception(exctype, value, tb))
+            ctypes.windll.user32.MessageBoxW(0, msg, title, MB_ICONERROR)
+        finally:
+            # Also call the old exception hook to let it do
+            # its thing too.
+            old_excepthook(exctype, value, tb)
+
+    sys.excepthook = gui_excepthook
+
 # System library imports
 from IPython.external.qt import QtCore, QtGui
 
