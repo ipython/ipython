@@ -30,7 +30,7 @@ from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase, crash, wait, skip_without
 
 def setup():
-    add_engines(3)
+    add_engines(3, total=True)
 
 class TestLoadBalancedView(ClusterTestCase):
 
@@ -120,7 +120,6 @@ class TestLoadBalancedView(ClusterTestCase):
         self.assertRaises(error.TaskAborted, ar3.get)
 
     def test_retries(self):
-        add_engines(3)
         view = self.view
         view.timeout = 1 # prevent hang if this doesn't behave
         def fail():
@@ -138,8 +137,7 @@ class TestLoadBalancedView(ClusterTestCase):
             self.assertRaisesRemote(error.InvalidDependency, view.apply_sync, lambda : 1)
 
     def test_impossible_dependency(self):
-        if len(self.client) < 2:
-            add_engines(2)
+        self.minimum_engines(2)
         view = self.client.load_balanced_view()
         ar1 = view.apply_async(lambda : 1)
         ar1.get()

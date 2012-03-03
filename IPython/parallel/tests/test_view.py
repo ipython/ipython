@@ -37,7 +37,7 @@ from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase, crash, wait, skip_without
 
 def setup():
-    add_engines(3)
+    add_engines(3, total=True)
 
 class TestView(ClusterTestCase):
     
@@ -296,7 +296,7 @@ class TestView(ClusterTestCase):
     def test_abort_all(self):
         """view.abort() aborts all outstanding tasks"""
         view = self.client[-1]
-        ars = [ view.apply_async(time.sleep, 1) for i in range(10) ]
+        ars = [ view.apply_async(time.sleep, 0.25) for i in range(10) ]
         view.abort()
         view.wait(timeout=5)
         for ar in ars[5:]:
