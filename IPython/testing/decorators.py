@@ -245,7 +245,7 @@ def skipif(skip_condition, msg=None):
 
     return skip_decorator
 
-# A version with the condition set to true, common case just to attacha message
+# A version with the condition set to true, common case just to attach a message
 # to a skip decorator
 def skip(msg=None):
     """Decorator factory - mark a test function for skipping from test suite.
