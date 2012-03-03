@@ -72,11 +72,11 @@ ipython help qtconsole     # show the help for the qtconsole subcmd
 ipython console            # start the terminal-based console application
 ipython help console       # show the help for the console subcmd
 
-ipython profile create foo # create profile foo w/ default config files
-ipython help profile       # show the help for the profile subcmd
-
 ipython notebook           # start the IPython notebook
 ipython help notebook      # show the help for the notebook subcmd
+
+ipython profile create foo # create profile foo w/ default config files
+ipython help profile       # show the help for the profile subcmd
 """
 
 #-----------------------------------------------------------------------------
