@@ -1,5 +1,8 @@
 # Standard library imports.
-import ctypes
+try:
+    import ctypes
+except:
+    ctypes = None
 import os
 import platform
 import time
@@ -54,6 +57,8 @@ class ParentPollerWindows(Thread):
         """
         assert(interrupt_handle or parent_handle)
         super(ParentPollerWindows, self).__init__()
+        if ctypes is None:
+            raise ImportError("ParentPollerWindows requires ctypes")
         self.daemon = True
         self.interrupt_handle = interrupt_handle
         self.parent_handle = parent_handle

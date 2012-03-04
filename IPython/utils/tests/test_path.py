@@ -150,7 +150,8 @@ def test_get_home_dir_3():
     """get_home_dir() uses $HOME if set"""
     env["HOME"] = HOME_TEST_DIR
     home_dir = path.get_home_dir(True)
-    nt.assert_equal(home_dir, env["HOME"])
+    # get_home_dir expands symlinks
+    nt.assert_equal(home_dir, os.path.realpath(env["HOME"]))
 
 
 @with_environment
@@ -405,3 +406,15 @@ def test_get_py_filename():
             else:
                 nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)
+                
+def test_unicode_in_filename():
+    """When a file doesn't exist, the exception raised should be safe to call
+    str() on - i.e. in Python 2 it must only have ASCII characters.
+    
+    https://github.com/ipython/ipython/issues/875
+    """
+    try:
+        # these calls should not throw unicode encode exceptions
+        path.get_py_filename(u'fooéè.py',  force_win32=False)
+    except IOError as ex:
+        str(ex)

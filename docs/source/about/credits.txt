@@ -243,7 +243,7 @@ let us know if we have omitted your name by accident:
 
 * John Hunter <jdhunter-AT-nitace.bsd.uchicago.edu> Matplotlib
   author, helped with all the development of support for matplotlib
-  in IPyhton, including making necessary changes to matplotlib itself.
+  in IPython, including making necessary changes to matplotlib itself.
 
 * Matthew Arnison <maffew-AT-cat.org.au> Bug reports, '%run -d' idea.
 

@@ -37,7 +37,7 @@ from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase, crash, wait, skip_without
 
 def setup():
-    add_engines(3)
+    add_engines(3, total=True)
 
 class TestView(ClusterTestCase):
     
@@ -296,7 +296,7 @@ class TestView(ClusterTestCase):
     def test_abort_all(self):
         """view.abort() aborts all outstanding tasks"""
         view = self.client[-1]
-        ars = [ view.apply_async(time.sleep, 1) for i in range(10) ]
+        ars = [ view.apply_async(time.sleep, 0.25) for i in range(10) ]
         view.abort()
         view.wait(timeout=5)
         for ar in ars[5:]:
@@ -490,4 +490,18 @@ class TestView(ClusterTestCase):
         result = v.apply_sync(rf, 5)
         expected = [ 5*id for id in self.client.ids ]
         self.assertEquals(result, expected)
+    
+    def test_eval_reference(self):
+        v = self.client[self.client.ids[0]]
+        v['g'] = range(5)
+        rg = pmod.Reference('g[0]')
+        echo = lambda x:x
+        self.assertEquals(v.apply_sync(echo, rg), 0)
+    
+    def test_reference_nameerror(self):
+        v = self.client[self.client.ids[0]]
+        r = pmod.Reference('elvis_has_left')
+        echo = lambda x:x
+        self.assertRaisesRemote(NameError, v.apply_sync, echo, r)
+
 

@@ -296,6 +296,21 @@ var IPython = (function (IPython) {
     HeadingCell.prototype = new TextCell();
 
 
+    HeadingCell.prototype.fromJSON = function (data) {
+        if (data.level != undefined){
+            this.level = data.level;
+        }
+        IPython.TextCell.prototype.fromJSON.apply(this, arguments);
+    };
+
+
+    HeadingCell.prototype.toJSON = function () {
+        var data = IPython.TextCell.prototype.toJSON.apply(this);
+        data.level = this.get_level();
+        return data;
+    };
+
+
     HeadingCell.prototype.set_level = function (level) {
         this.level = level;
         if (this.rendered) {

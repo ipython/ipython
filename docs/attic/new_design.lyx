@@ -925,7 +925,7 @@ This section is meant as a working draft for discussions on the possibility
  user community.
 \layout Standard
 
-While IPyhton is (and will remain) a python shell first, it does offer a
+While IPython is (and will remain) a python shell first, it does offer a
  fair amount of system access functionality:
 \layout Standard
 

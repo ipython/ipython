@@ -404,6 +404,10 @@ class Application(SingletonConfigurable):
     def parse_command_line(self, argv=None):
         """Parse the command line arguments."""
         argv = sys.argv[1:] if argv is None else argv
+        
+        if argv and argv[0] == 'help':
+            # turn `ipython help notebook` into `ipython notebook -h`
+            argv = argv[1:] + ['-h']
 
         if self.subcommands and len(argv) > 0:
             # we have subcommands, and one may have been specified

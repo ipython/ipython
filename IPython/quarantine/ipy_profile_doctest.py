@@ -37,7 +37,7 @@ def main():
     # python as possible
     o.pprint = False
     
-    # Use plain exceptions, to also resemble normal pyhton.
+    # Use plain exceptions, to also resemble normal python.
     o.xmode = 'plain'
 
     # Store the activity flag in the metadata bag from the running shell
