@@ -585,7 +585,7 @@ class Hub(SessionFactory):
         self.log.info("queue::client %r submitted request %r to %s", client_id, msg_id, eid)
         # Unicode in records
         record['engine_uuid'] = queue_id.decode('ascii')
-        record['client_uuid'] = client_id.decode('ascii')
+        record['client_uuid'] = msg['header']['session']
         record['queue'] = 'mux'
 
         try:
@@ -677,7 +677,7 @@ class Hub(SessionFactory):
             return
         record = init_record(msg)
 
-        record['client_uuid'] = client_id.decode('ascii')
+        record['client_uuid'] = msg['header']['session']
         record['queue'] = 'task'
         header = msg['header']
         msg_id = header['msg_id']
@@ -1205,6 +1205,7 @@ class Hub(SessionFactory):
                 self.db.add_record(msg_id, init_record(msg))
             except Exception:
                 self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
+                return finish(error.wrap_exception())
 
         finish(dict(status='ok', resubmitted=resubmitted))
         
