@@ -315,6 +315,7 @@ option.introspection {
 
 .tooltip {
     /*transition when "expand"ing tooltip */
+    font-size: 14px;
     -webkit-transition-property: height;
     -webkit-transition-duration: 1s;
     -moz-transition-property: height;
@@ -329,10 +330,29 @@ option.introspection {
     -moz-animation: fadeIn 200ms;
     animation: fadeIn 200ms;
     vertical-align: middle;
-    background: #FDFDD8;
+
+    background-image: linear-gradient(bottom, rgb(215,215,215) 13%, rgb(210,210,210) 39%, rgb(227,227,227) 56%, rgb(247,247,247) 91%);
+    background-image: -o-linear-gradient(bottom, rgb(215,215,215) 13%, rgb(210,210,210) 39%, rgb(227,227,227) 56%, rgb(247,247,247) 91%);
+    background-image: -ms-linear-gradient(bottom, rgb(215,215,215) 13%, rgb(210,210,210) 39%, rgb(227,227,227) 56%, rgb(247,247,247) 91%);
+    background-image: -moz-linear-gradient(bottom, rgb(215,215,215) 13%, rgb(210,210,210) 39%, rgb(227,227,227) 56%, rgb(247,247,247) 91%);
+    background-image: -webkit-linear-gradient(bottom, rgb(215,215,215) 13%, rgb(210,210,210) 39%, rgb(227,227,227) 56%, rgb(247,247,247) 91%);
+
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0.13, rgb(215,215,215)),
+        color-stop(0.39, rgb(210,210,210)),
+        color-stop(0.56, rgb(227,227,227)),
+        color-stop(0.91, rgb(247,247,247))
+    );
+
+    color: #000;
+    border-color: #BBB;
     outline: none;
     padding: 3px;
     margin: 0px;
+    padding-left:7px;
     font-family: monospace;
     min-height:50px;
 }

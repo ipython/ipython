@@ -16,6 +16,10 @@ var IPython = (function (IPython) {
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
         this.text    = $('<pre/>')
+        this.text.html('something');
+        this.tooltip.css('left',50+'px');
+        this.tooltip.css('top',50+'px');
+        this.tooltip.append(this.text);
     };
 
 
