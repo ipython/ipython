@@ -50,7 +50,7 @@ class EngineFactory(RegistrationFactory):
         help="""The location (an IP address) of the controller.  This is
         used for disambiguating URLs, to determine whether
         loopback should be used to connect or the public address.""")
-    timeout=CFloat(2,config=True,
+    timeout=CFloat(5, config=True,
         help="""The time (in seconds) to wait for the Controller to respond
         to registration requests before giving up.""")
     sshserver=Unicode(config=True,
@@ -61,10 +61,11 @@ class EngineFactory(RegistrationFactory):
         help="""Whether to use paramiko instead of openssh for tunnels.""")
 
     # not configurable:
-    user_ns=Dict()
-    id=Integer(allow_none=True)
-    registrar=Instance('zmq.eventloop.zmqstream.ZMQStream')
-    kernel=Instance(Kernel)
+    connection_info = Dict()
+    user_ns = Dict()
+    id = Integer(allow_none=True)
+    registrar = Instance('zmq.eventloop.zmqstream.ZMQStream')
+    kernel = Instance(Kernel)
 
     bident = CBytes()
     ident = Unicode()
@@ -96,7 +97,7 @@ class EngineFactory(RegistrationFactory):
         def connect(s, url):
             url = disambiguate_url(url, self.location)
             if self.using_ssh:
-                self.log.debug("Tunneling connection to %s via %s"%(url, self.sshserver))
+                self.log.debug("Tunneling connection to %s via %s", url, self.sshserver)
                 return tunnel.tunnel_connection(s, url, self.sshserver,
                             keyfile=self.sshkey, paramiko=self.paramiko,
                             password=password,
@@ -108,12 +109,12 @@ class EngineFactory(RegistrationFactory):
             """like connect, but don't complete the connection (for use by heartbeat)"""
             url = disambiguate_url(url, self.location)
             if self.using_ssh:
-                self.log.debug("Tunneling connection to %s via %s"%(url, self.sshserver))
+                self.log.debug("Tunneling connection to %s via %s", url, self.sshserver)
                 url,tunnelobj = tunnel.open_tunnel(url, self.sshserver,
                             keyfile=self.sshkey, paramiko=self.paramiko,
                             password=password,
                 )
-            return url
+            return str(url)
         return connect, maybe_tunnel
 
     def register(self):
@@ -131,7 +132,7 @@ class EngineFactory(RegistrationFactory):
         content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
         self.registrar.on_recv(lambda msg: self.complete_registration(msg, connect, maybe_tunnel))
         # print (self.session.key)
-        self.session.send(self.registrar, "registration_request",content=content)
+        self.session.send(self.registrar, "registration_request", content=content)
 
     def complete_registration(self, msg, connect, maybe_tunnel):
         # print msg
@@ -140,50 +141,39 @@ class EngineFactory(RegistrationFactory):
         loop = self.loop
         identity = self.bident
         idents,msg = self.session.feed_identities(msg)
-        msg = Message(self.session.unserialize(msg))
-
-        if msg.content.status == 'ok':
-            self.id = int(msg.content.id)
+        msg = self.session.unserialize(msg)
+        content = msg['content']
+        info = self.connection_info
+        
+        if content['status'] == 'ok':
+            self.id = int(content['id'])
 
             # launch heartbeat
-            hb_addrs = msg.content.heartbeat
-
             # possibly forward hb ports with tunnels
-            hb_addrs = [ maybe_tunnel(addr) for addr in hb_addrs ]
-            heart = Heart(*map(str, hb_addrs), heart_id=identity)
+            hb_ping = maybe_tunnel(info['hb_ping'])
+            hb_pong = maybe_tunnel(info['hb_pong'])
+
+            heart = Heart(hb_ping, hb_pong, heart_id=identity)
             heart.start()
 
-            # create Shell Streams (MUX, Task, etc.):
-            queue_addr = msg.content.mux
-            shell_addrs = [ str(queue_addr) ]
-            task_addr = msg.content.task
-            if task_addr:
-                shell_addrs.append(str(task_addr))
+            # create Shell Connections (MUX, Task, etc.):
+            shell_addrs = map(str, [info['mux'], info['task']])
 
-            # Uncomment this to go back to two-socket model
-            # shell_streams = []
-            # for addr in shell_addrs:
-            #     stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
-            #     stream.setsockopt(zmq.IDENTITY, identity)
-            #     stream.connect(disambiguate_url(addr, self.location))
-            #     shell_streams.append(stream)
-
-            # Now use only one shell stream for mux and tasks
+            # Use only one shell stream for mux and tasks
             stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             stream.setsockopt(zmq.IDENTITY, identity)
             shell_streams = [stream]
             for addr in shell_addrs:
                 connect(stream, addr)
-            # end single stream-socket
 
             # control stream:
-            control_addr = str(msg.content.control)
+            control_addr = str(info['control'])
             control_stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
             connect(control_stream, control_addr)
 
             # create iopub stream:
-            iopub_addr = msg.content.iopub
+            iopub_addr = info['iopub']
             iopub_socket = ctx.socket(zmq.PUB)
             iopub_socket.setsockopt(zmq.IDENTITY, identity)
             connect(iopub_socket, iopub_addr)

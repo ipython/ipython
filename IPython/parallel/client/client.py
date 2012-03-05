@@ -217,7 +217,9 @@ class Client(HasTraits):
     Parameters
     ----------
 
-    url_or_file : bytes or unicode; zmq url or path to ipcontroller-client.json
+    url_file : str/unicode; path to ipcontroller-client.json
+        This JSON file should contain all the information needed to connect to a cluster,
+        and is likely the only argument needed.
         Connection information for the Hub's registration.  If a json connector
         file is given, then likely no further configuration is necessary.
         [Default: use profile]
@@ -239,14 +241,6 @@ class Client(HasTraits):
         If specified, this will be relayed to the Session for configuration
     username : str
         set username for the session object
-    packer : str (import_string) or callable
-        Can be either the simple keyword 'json' or 'pickle', or an import_string to a
-        function to serialize messages. Must support same input as
-        JSON, and output must be bytes.
-        You can pass a callable directly as `pack`
-    unpacker : str (import_string) or callable
-        The inverse of packer.  Only necessary if packer is specified as *not* one
-        of 'json' or 'pickle'.
 
     #-------------- ssh related args ----------------
     # These are args for configuring the ssh tunnel to be used
@@ -270,17 +264,6 @@ class Client(HasTraits):
     paramiko : bool
         flag for whether to use paramiko instead of shell ssh for tunneling.
         [default: True on win32, False else]
-
-    ------- exec authentication args -------
-    If even localhost is untrusted, you can have some protection against
-    unauthorized execution by signing messages with HMAC digests.
-    Messages are still sent as cleartext, so if someone can snoop your
-    loopback traffic this will not protect your privacy, but will prevent
-    unauthorized execution.
-
-    exec_key : str
-        an authentication key or file containing a key
-        default: None
 
 
     Attributes
@@ -378,8 +361,8 @@ class Client(HasTraits):
         # don't raise on positional args
         return HasTraits.__new__(self, **kw)
 
-    def __init__(self, url_or_file=None, profile=None, profile_dir=None, ipython_dir=None,
-            context=None, debug=False, exec_key=None,
+    def __init__(self, url_file=None, profile=None, profile_dir=None, ipython_dir=None,
+            context=None, debug=False,
             sshserver=None, sshkey=None, password=None, paramiko=None,
             timeout=10, **extra_args
             ):
@@ -391,38 +374,38 @@ class Client(HasTraits):
             context = zmq.Context.instance()
         self._context = context
         self._stop_spinning = Event()
+        
+        if 'url_or_file' in extra_args:
+            url_file = extra_args['url_or_file']
+            warnings.warn("url_or_file arg no longer supported, use url_file", DeprecationWarning)
+        
+        if url_file and util.is_url(url_file):
+            raise ValueError("single urls cannot be specified, url-files must be used.")
 
         self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
+        
         if self._cd is not None:
-            if url_or_file is None:
-                url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
-        if url_or_file is None:
+            if url_file is None:
+                url_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
+        if url_file is None:
             raise ValueError(
                 "I can't find enough information to connect to a hub!"
-                " Please specify at least one of url_or_file or profile."
+                " Please specify at least one of url_file or profile."
             )
-
-        if not util.is_url(url_or_file):
-            # it's not a url, try for a file
-            if not os.path.exists(url_or_file):
-                if self._cd:
-                    url_or_file = os.path.join(self._cd.security_dir, url_or_file)
-                if not os.path.exists(url_or_file):
-                    raise IOError("Connection file not found: %r" % url_or_file)
-            with open(url_or_file) as f:
-                cfg = json.loads(f.read())
-        else:
-            cfg = {'url':url_or_file}
+        
+        with open(url_file) as f:
+            cfg = json.load(f)
+        
+        self._task_scheme = cfg['task_scheme']
 
         # sync defaults from args, json:
         if sshserver:
             cfg['ssh'] = sshserver
-        if exec_key:
-            cfg['exec_key'] = exec_key
-        exec_key = cfg['exec_key']
+
         location = cfg.setdefault('location', None)
-        cfg['url'] = util.disambiguate_url(cfg['url'], location)
-        url = cfg['url']
+        for key in ('control', 'task', 'mux', 'notification', 'registration'):
+            cfg[key] = util.disambiguate_url(cfg[key], location)
+        url = cfg['registration']
         proto,addr,port = util.split_url(url)
         if location is not None and addr == '127.0.0.1':
             # location specified, and connection is expected to be local
@@ -457,12 +440,10 @@ class Client(HasTraits):
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
 
         # configure and construct the session
-        if exec_key is not None:
-            if os.path.isfile(exec_key):
-                extra_args['keyfile'] = exec_key
-            else:
-                exec_key = cast_bytes(exec_key)
-                extra_args['key'] = exec_key
+        extra_args['packer'] = cfg['pack']
+        extra_args['unpacker'] = cfg['unpack']
+        extra_args['key'] = cfg['exec_key']
+        
         self.session = Session(**extra_args)
 
         self._query_socket = self._context.socket(zmq.DEALER)
@@ -583,7 +564,7 @@ class Client(HasTraits):
         self._connected=True
 
         def connect_socket(s, url):
-            url = util.disambiguate_url(url, self._config['location'])
+            # url = util.disambiguate_url(url, self._config['location'])
             if self._ssh:
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
@@ -600,30 +581,28 @@ class Client(HasTraits):
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
-        msg = Message(msg)
-        content = msg.content
-        self._config['registration'] = dict(content)
-        if content.status == 'ok':
-            ident = self.session.bsession
-            if content.mux:
-                self._mux_socket = self._context.socket(zmq.DEALER)
-                connect_socket(self._mux_socket, content.mux)
-            if content.task:
-                self._task_scheme, task_addr = content.task
-                self._task_socket = self._context.socket(zmq.DEALER)
-                connect_socket(self._task_socket, task_addr)
-            if content.notification:
-                self._notification_socket = self._context.socket(zmq.SUB)
-                connect_socket(self._notification_socket, content.notification)
-                self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
-            if content.control:
-                self._control_socket = self._context.socket(zmq.DEALER)
-                connect_socket(self._control_socket, content.control)
-            if content.iopub:
-                self._iopub_socket = self._context.socket(zmq.SUB)
-                self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
-                connect_socket(self._iopub_socket, content.iopub)
-            self._update_engines(dict(content.engines))
+        content = msg['content']
+        # self._config['registration'] = dict(content)
+        cfg = self._config
+        if content['status'] == 'ok':
+            self._mux_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._mux_socket, cfg['mux'])
+
+            self._task_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._task_socket, cfg['task'])
+
+            self._notification_socket = self._context.socket(zmq.SUB)
+            self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
+            connect_socket(self._notification_socket, cfg['notification'])
+
+            self._control_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._control_socket, cfg['control'])
+
+            self._iopub_socket = self._context.socket(zmq.SUB)
+            self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
+            connect_socket(self._iopub_socket, cfg['iopub'])
+
+            self._update_engines(dict(content['engines']))
         else:
             self._connected = False
             raise Exception("Failed to connect!")

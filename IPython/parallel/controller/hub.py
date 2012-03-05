@@ -239,30 +239,61 @@ class HubFactory(RegistrationFactory):
         ctx = self.context
         loop = self.loop
 
+        try:
+            scheme = self.config.TaskScheduler.scheme_name
+        except AttributeError:
+            from .scheduler import TaskScheduler
+            scheme = TaskScheduler.scheme_name.get_default_value()
+        
+        # build connection dicts
+        engine = self.engine_info = {
+            'registration'  : engine_iface % self.regport,
+            'control'       : engine_iface % self.control[1],
+            'mux'           : engine_iface % self.mux[1],
+            'hb_ping'       : engine_iface % self.hb[0],
+            'hb_pong'       : engine_iface % self.hb[1],
+            'task'          : engine_iface % self.task[1],
+            'iopub'         : engine_iface % self.iopub[1],
+            }
+
+        client = self.client_info = {
+            'registration'  : client_iface % self.regport,
+            'control'       : client_iface % self.control[0],
+            'mux'           : client_iface % self.mux[0],
+            'task'          : client_iface % self.task[0],
+            'task_scheme'   : scheme,
+            'iopub'         : client_iface % self.iopub[0],
+            'notification'  : client_iface % self.notifier_port,
+            }
+        
+        self.log.debug("Hub engine addrs: %s", self.engine_info)
+        self.log.debug("Hub client addrs: %s", self.client_info)
+        
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
-        q.bind(client_iface % self.regport)
+        q.bind(client['registration'])
         self.log.info("Hub listening on %s for registration.", client_iface % self.regport)
         if self.client_ip != self.engine_ip:
-            q.bind(engine_iface % self.regport)
+            q.bind(engine['registration'])
             self.log.info("Hub listening on %s for registration.", engine_iface % self.regport)
 
         ### Engine connections ###
 
         # heartbeat
         hpub = ctx.socket(zmq.PUB)
-        hpub.bind(engine_iface % self.hb[0])
+        hpub.bind(engine['hb_ping'])
         hrep = ctx.socket(zmq.ROUTER)
-        hrep.bind(engine_iface % self.hb[1])
+        hrep.bind(engine['hb_pong'])
         self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
                                 pongstream=ZMQStream(hrep,loop)
                             )
 
         ### Client connections ###
+        
         # Notifier socket
         n = ZMQStream(ctx.socket(zmq.PUB), loop)
-        n.bind(client_iface%self.notifier_port)
+        n.bind(client['notification'])
 
         ### build and launch the queues ###
 
@@ -279,35 +310,10 @@ class HubFactory(RegistrationFactory):
         self.db = import_item(str(db_class))(session=self.session.session,
                                             config=self.config, log=self.log)
         time.sleep(.25)
-        try:
-            scheme = self.config.TaskScheduler.scheme_name
-        except AttributeError:
-            from .scheduler import TaskScheduler
-            scheme = TaskScheduler.scheme_name.get_default_value()
-        # build connection dicts
-        self.engine_info = {
-            'control' : engine_iface%self.control[1],
-            'mux': engine_iface%self.mux[1],
-            'heartbeat': (engine_iface%self.hb[0], engine_iface%self.hb[1]),
-            'task' : engine_iface%self.task[1],
-            'iopub' : engine_iface%self.iopub[1],
-            # 'monitor' : engine_iface%self.mon_port,
-            }
-
-        self.client_info = {
-            'control' : client_iface%self.control[0],
-            'mux': client_iface%self.mux[0],
-            'task' : (scheme, client_iface%self.task[0]),
-            'iopub' : client_iface%self.iopub[0],
-            'notification': client_iface%self.notifier_port
-            }
-        self.log.debug("Hub engine addrs: %s", self.engine_info)
-        self.log.debug("Hub client addrs: %s", self.client_info)
 
         # resubmit stream
         r = ZMQStream(ctx.socket(zmq.DEALER), loop)
-        url = util.disambiguate_url(self.client_info['task'][-1])
-        r.setsockopt(zmq.IDENTITY, self.session.bsession)
+        url = util.disambiguate_url(self.client_info['task'])
         r.connect(url)
 
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
@@ -384,8 +390,8 @@ class Hub(SessionFactory):
 
         # validate connection dicts:
         for k,v in self.client_info.iteritems():
-            if k == 'task':
-                util.validate_url_container(v[1])
+            if k == 'task_scheme':
+                continue
             else:
                 util.validate_url_container(v)
         # util.validate_url_container(self.client_info)
@@ -865,7 +871,6 @@ class Hub(SessionFactory):
         """Reply with connection addresses for clients."""
         self.log.info("client::client %r connected", client_id)
         content = dict(status='ok')
-        content.update(self.client_info)
         jsonable = {}
         for k,v in self.keytable.iteritems():
             if v not in self.dead_engines:
@@ -891,7 +896,6 @@ class Hub(SessionFactory):
         self.log.debug("registration::register_engine(%i, %r, %r, %r)", eid, queue, reg, heart)
 
         content = dict(id=eid,status='ok')
-        content.update(self.engine_info)
         # check if requesting available IDs:
         if queue in self.by_ident:
             try:

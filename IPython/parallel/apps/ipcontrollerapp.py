@@ -209,7 +209,7 @@ class IPControllerApp(BaseParallelApplication):
     def save_connection_dict(self, fname, cdict):
         """save a connection dict to json file."""
         c = self.config
-        url = cdict['url']
+        url = cdict['registration']
         location = cdict['location']
         if not location:
             try:
@@ -314,15 +314,21 @@ class IPControllerApp(BaseParallelApplication):
         if self.write_connection_files:
             # save to new json config files
             f = self.factory
-            cdict = {'exec_key' : f.session.key.decode('ascii'),
-                    'ssh' : self.ssh_server,
-                    'url' : "%s://%s:%s"%(f.client_transport, f.client_ip, f.regport),
-                    'location' : self.location
-                    }
+            base = {
+                'exec_key'  : f.session.key.decode('ascii'),
+                'location'  : self.location,
+                'pack'      : f.session.packer,
+                'unpack'    : f.session.unpacker,
+            }
+            
+            cdict = {'ssh' : self.ssh_server}
+            cdict.update(f.client_info)
+            cdict.update(base)
             self.save_connection_dict(self.client_json_file, cdict)
-            edict = cdict
-            edict['url']="%s://%s:%s"%((f.client_transport, f.client_ip, f.regport))
-            edict['ssh'] = self.engine_ssh_server
+            
+            edict = {'ssh' : self.engine_ssh_server}
+            edict.update(f.engine_info)
+            edict.update(base)
             self.save_connection_dict(self.engine_json_file, edict)
 
     def init_schedulers(self):
@@ -379,7 +385,7 @@ class IPControllerApp(BaseParallelApplication):
 
         else:
             self.log.info("task::using Python %s Task scheduler"%scheme)
-            sargs = (hub.client_info['task'][1], hub.engine_info['task'],
+            sargs = (hub.client_info['task'], hub.engine_info['task'],
                                 monitor_url, disambiguate_url(hub.client_info['notification']))
             kwargs = dict(logname='scheduler', loglevel=self.log_level,
                             log_url = self.log_url, config=dict(self.config))
