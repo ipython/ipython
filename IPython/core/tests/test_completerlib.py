@@ -69,12 +69,15 @@ class Test_magic_run_completer(unittest.TestCase):
     def test_import_invalid_module(self):
         """Testing of issue https://github.com/ipython/ipython/issues/1107"""
         invalid_module_names = set(['foo-bar', 'foo:bar', '10foo'])
+        valid_module_names = set(['foobar'])
         with TemporaryDirectory() as tmpdir:
             sys.path.insert( 0, tmpdir )
-            for name in invalid_module_names:
+            for name in invalid_module_names | valid_module_names:
                 filename = os.path.join(tmpdir, name + '.py')
                 open(filename, 'w').close()
 
             s = set( module_completion('import foo') )
             intersection = s.intersection(invalid_module_names)
             self.assertFalse(intersection, intersection)
+            
+            assert valid_module_names.issubset(s), valid_module_names.intersection(s)
