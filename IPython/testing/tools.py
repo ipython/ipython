@@ -217,16 +217,12 @@ def ipexec(fname, options=None):
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
     #print >> sys.stderr, 'FULL CMD:', full_cmd # dbg
     out = getoutputerror(full_cmd)
-    # `import readline` causes 'ESC[?1034h' to be the first output sometimes,
-    # so strip that off the front of the first line if it is found
+    # `import readline` causes 'ESC[?1034h' to be output sometimes,
+    # so strip that out before doing comparisons
     if out:
-        first = out[0]
-        m = re.match(r'\x1b\[[^h]+h', first)
-        if m:
-            # strip initial readline escape
-            out = list(out)
-            out[0] = first[len(m.group()):]
-            out = tuple(out)
+        out,err = out
+        out = re.sub(r'\x1b\[[^h]+h', '', out)
+        out = out,err
     return out
 
 
