@@ -18,6 +18,8 @@ Authors:
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
+import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -107,17 +109,16 @@ class EngineConnector(HasTraits):
     """A simple object for accessing the various zmq connections of an object.
     Attributes are:
     id (int): engine ID
-    uuid (str): uuid (unused?)
-    queue (str): identity of queue's DEALER socket
-    registration (str): identity of registration DEALER socket
-    heartbeat (str): identity of heartbeat DEALER socket
+    uuid (unicode): engine UUID
+    pending: set of msg_ids
+    stallback: DelayedCallback for stalled registration
     """
-    id=Integer(0)
-    queue=CBytes()
-    control=CBytes()
-    registration=CBytes()
-    heartbeat=CBytes()
-    pending=Set()
+    
+    id = Integer(0)
+    uuid = Unicode()
+    pending = Set()
+    stallback = Instance(ioloop.DelayedCallback)
+
 
 _db_shortcuts = {
     'sqlitedb' : 'IPython.parallel.controller.sqlitedb.SQLiteDB',
@@ -349,6 +350,9 @@ class Hub(SessionFactory):
     client_info: dict of zmq connection information for engines to connect
                 to the queues.
     """
+    
+    engine_state_file = Unicode()
+    
     # internal data structures:
     ids=Set() # engine IDs
     keytable=Dict()
@@ -430,7 +434,7 @@ class Hub(SessionFactory):
         self.resubmit.on_recv(lambda msg: None, copy=False)
 
         self.log.info("hub::created hub")
-
+    
     @property
     def _next_id(self):
         """gemerate a new ID.
@@ -445,7 +449,7 @@ class Hub(SessionFactory):
         # while newid in self.ids or newid in incoming:
         #     newid += 1
         # return newid
-
+    
     #-----------------------------------------------------------------------------
     # message validation
     #-----------------------------------------------------------------------------
@@ -561,11 +565,11 @@ class Hub(SessionFactory):
         triggers unregistration"""
         self.log.debug("heartbeat::handle_heart_failure(%r)", heart)
         eid = self.hearts.get(heart, None)
-        queue = self.engines[eid].queue
+        uuid = self.engines[eid].uuid
         if eid is None or self.keytable[eid] in self.dead_engines:
             self.log.info("heartbeat::ignoring heart failure %r (not an engine or already dead)", heart)
         else:
-            self.unregister_engine(heart, dict(content=dict(id=eid, queue=queue)))
+            self.unregister_engine(heart, dict(content=dict(id=eid, queue=uuid)))
 
     #----------------------- MUX Queue Traffic ------------------------------
 
@@ -873,7 +877,7 @@ class Hub(SessionFactory):
         jsonable = {}
         for k,v in self.keytable.iteritems():
             if v not in self.dead_engines:
-                jsonable[str(k)] = v.decode('ascii')
+                jsonable[str(k)] = v
         content['engines'] = jsonable
         self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
 
@@ -881,47 +885,37 @@ class Hub(SessionFactory):
         """Register a new engine."""
         content = msg['content']
         try:
-            queue = cast_bytes(content['queue'])
+            uuid = content['uuid']
         except KeyError:
             self.log.error("registration::queue not specified", exc_info=True)
             return
-        heart = content.get('heartbeat', None)
-        if heart:
-            heart = cast_bytes(heart)
-        """register a new engine, and create the socket(s) necessary"""
-        eid = self._next_id
-        # print (eid, queue, reg, heart)
 
-        self.log.debug("registration::register_engine(%i, %r, %r, %r)", eid, queue, reg, heart)
+        eid = self._next_id
+
+        self.log.debug("registration::register_engine(%i, %r)", eid, uuid)
 
         content = dict(id=eid,status='ok')
         # check if requesting available IDs:
-        if queue in self.by_ident:
+        if uuid in self.by_ident:
             try:
-                raise KeyError("queue_id %r in use" % queue)
+                raise KeyError("uuid %r in use" % uuid)
             except:
                 content = error.wrap_exception()
-                self.log.error("queue_id %r in use", queue, exc_info=True)
-        elif heart in self.hearts: # need to check unique hearts?
-            try:
-                raise KeyError("heart_id %r in use" % heart)
-            except:
-                self.log.error("heart_id %r in use", heart, exc_info=True)
-                content = error.wrap_exception()
+                self.log.error("uuid %r in use", uuid, exc_info=True)
         else:
-            for h, pack in self.incoming_registrations.iteritems():
-                if heart == h:
+            for h, ec in self.incoming_registrations.iteritems():
+                if uuid == h:
                     try:
-                        raise KeyError("heart_id %r in use" % heart)
+                        raise KeyError("heart_id %r in use" % uuid)
                     except:
-                        self.log.error("heart_id %r in use", heart, exc_info=True)
+                        self.log.error("heart_id %r in use", uuid, exc_info=True)
                         content = error.wrap_exception()
                     break
-                elif queue == pack[1]:
+                elif uuid == ec.uuid:
                     try:
-                        raise KeyError("queue_id %r in use" % queue)
+                        raise KeyError("uuid %r in use" % uuid)
                     except:
-                        self.log.error("queue_id %r in use", queue, exc_info=True)
+                        self.log.error("uuid %r in use", uuid, exc_info=True)
                         content = error.wrap_exception()
                     break
 
@@ -929,18 +923,21 @@ class Hub(SessionFactory):
                 content=content,
                 ident=reg)
 
+        heart = util.asbytes(uuid)
+
         if content['status'] == 'ok':
             if heart in self.heartmonitor.hearts:
                 # already beating
-                self.incoming_registrations[heart] = (eid,queue,reg[0],None)
+                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid)
                 self.finish_registration(heart)
             else:
                 purge = lambda : self._purge_stalled_registration(heart)
                 dc = ioloop.DelayedCallback(purge, self.registration_timeout, self.loop)
                 dc.start()
-                self.incoming_registrations[heart] = (eid,queue,reg[0],dc)
+                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid,stallback=dc)
         else:
             self.log.error("registration::registration %i failed: %r", eid, content['evalue'])
+        
         return eid
 
     def unregister_engine(self, ident, msg):
@@ -953,7 +950,7 @@ class Hub(SessionFactory):
         self.log.info("registration::unregister_engine(%r)", eid)
         # print (eid)
         uuid = self.keytable[eid]
-        content=dict(id=eid, queue=uuid.decode('ascii'))
+        content=dict(id=eid, uuid=uuid)
         self.dead_engines.add(uuid)
         # self.ids.remove(eid)
         # uuid = self.keytable.pop(eid)
@@ -966,6 +963,8 @@ class Hub(SessionFactory):
         dc = ioloop.DelayedCallback(handleit, self.registration_timeout, self.loop)
         dc.start()
         ############## TODO: HANDLE IT ################
+        
+        self._save_engine_state()
 
         if self.notifier:
             self.session.send(self.notifier, "unregistration_notification", content=content)
@@ -1004,34 +1003,95 @@ class Hub(SessionFactory):
         """Second half of engine registration, called after our HeartMonitor
         has received a beat from the Engine's Heart."""
         try:
-            (eid,queue,reg,purge) = self.incoming_registrations.pop(heart)
+            ec = self.incoming_registrations.pop(heart)
         except KeyError:
             self.log.error("registration::tried to finish nonexistant registration", exc_info=True)
             return
-        self.log.info("registration::finished registering engine %i:%r", eid, queue)
-        if purge is not None:
-            purge.stop()
-        control = queue
+        self.log.info("registration::finished registering engine %i:%s", ec.id, ec.uuid)
+        if ec.stallback is not None:
+            ec.stallback.stop()
+        eid = ec.id
         self.ids.add(eid)
-        self.keytable[eid] = queue
-        self.engines[eid] = EngineConnector(id=eid, queue=queue, registration=reg,
-                                    control=control, heartbeat=heart)
-        self.by_ident[queue] = eid
+        self.keytable[eid] = ec.uuid
+        self.engines[eid] = ec
+        self.by_ident[ec.uuid] = ec.id
         self.queues[eid] = list()
         self.tasks[eid] = list()
         self.completed[eid] = list()
         self.hearts[heart] = eid
-        content = dict(id=eid, queue=self.engines[eid].queue.decode('ascii'))
+        content = dict(id=eid, uuid=self.engines[eid].uuid)
         if self.notifier:
             self.session.send(self.notifier, "registration_notification", content=content)
         self.log.info("engine::Engine Connected: %i", eid)
+        
+        self._save_engine_state()
 
     def _purge_stalled_registration(self, heart):
         if heart in self.incoming_registrations:
-            eid = self.incoming_registrations.pop(heart)[0]
-            self.log.info("registration::purging stalled registration: %i", eid)
+            ec = self.incoming_registrations.pop(heart)
+            self.log.info("registration::purging stalled registration: %i", ec.id)
         else:
             pass
+
+    #-------------------------------------------------------------------------
+    # Engine State
+    #-------------------------------------------------------------------------
+
+
+    def _cleanup_engine_state_file(self):
+        """cleanup engine state mapping"""
+        
+        if os.path.exists(self.engine_state_file):
+            self.log.debug("cleaning up engine state: %s", self.engine_state_file)
+            try:
+                os.remove(self.engine_state_file)
+            except IOError:
+                self.log.error("Couldn't cleanup file: %s", self.engine_state_file, exc_info=True)
+
+
+    def _save_engine_state(self):
+        """save engine mapping to JSON file"""
+        if not self.engine_state_file:
+            return
+        self.log.debug("save engine state to %s" % self.engine_state_file)
+        state = {}
+        engines = {}
+        for eid, ec in self.engines.iteritems():
+            if ec.uuid not in self.dead_engines:
+                engines[eid] = ec.uuid
+        
+        state['engines'] = engines
+        
+        state['next_id'] = self._idcounter
+        
+        with open(self.engine_state_file, 'w') as f:
+            json.dump(state, f)
+
+
+    def _load_engine_state(self):
+        """load engine mapping from JSON file"""
+        if not os.path.exists(self.engine_state_file):
+            return
+        
+        self.log.info("loading engine state from %s" % self.engine_state_file)
+        
+        with open(self.engine_state_file) as f:
+            state = json.load(f)
+        
+        save_notifier = self.notifier
+        self.notifier = None
+        for eid, uuid in state['engines'].iteritems():
+            heart = uuid.encode('ascii')
+            # start with this heart as current and beating:
+            self.heartmonitor.responses.add(heart)
+            self.heartmonitor.hearts.add(heart)
+            
+            self.incoming_registrations[heart] = EngineConnector(id=int(eid), uuid=uuid)
+            self.finish_registration(heart)
+        
+        self.notifier = save_notifier
+        
+        self._idcounter = state['next_id']
 
     #-------------------------------------------------------------------------
     # Client Requests
@@ -1134,7 +1194,7 @@ class Hub(SessionFactory):
                         except:
                             reply = error.wrap_exception()
                         break
-                    uid = self.engines[eid].queue
+                    uid = self.engines[eid].uuid
                     try:
                         self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
                     except Exception:

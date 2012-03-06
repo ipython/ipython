@@ -116,7 +116,10 @@ flags.update({
                     select one of the true db backends.
                     """),
     'reuse' : ({'IPControllerApp' : {'reuse_files' : True}},
-                    'reuse existing json connection files')
+                    'reuse existing json connection files'),
+    'restore' : ({'IPControllerApp' : {'restore_engines' : True, 'reuse_files' : True}},
+                    'Attempt to restore engines from a JSON file.  '
+                    'For use when resuming a crashed controller'),
 })
 
 flags.update(session_flags)
@@ -154,6 +157,10 @@ class IPControllerApp(BaseParallelApplication):
     reuse_files = Bool(False, config=True,
         help="""Whether to reuse existing json connection files.
         If False, connection files will be removed on a clean exit.
+        """
+    )
+    restore_engines = Bool(False, config=True,
+        help="""Reload engine state from JSON file
         """
     )
     ssh_server = Unicode(u'', config=True,
@@ -343,17 +350,24 @@ class IPControllerApp(BaseParallelApplication):
             edict.update(base)
             self.save_connection_dict(self.engine_json_file, edict)
 
+        fname = "engines%s.json" % self.cluster_id
+        self.factory.hub.engine_state_file = os.path.join(self.profile_dir.log_dir, fname)
+        if self.restore_engines:
+            self.factory.hub._load_engine_state()
+
     def init_schedulers(self):
         children = self.children
         mq = import_item(str(self.mq_class))
         
         f = self.factory
+        ident = f.session.bsession
         # disambiguate url, in case of *
         monitor_url = disambiguate_url(f.monitor_url)
         # maybe_inproc = 'inproc://monitor' if self.use_threads else monitor_url
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, b'N/A',b'iopub')
         q.bind_in(f.client_url('iopub'))
+        q.setsockopt_in(zmq.IDENTITY, ident+"_iopub")
         q.bind_out(f.engine_url('iopub'))
         q.setsockopt_out(zmq.SUBSCRIBE, b'')
         q.connect_mon(monitor_url)
@@ -363,8 +377,9 @@ class IPControllerApp(BaseParallelApplication):
         # Multiplexer Queue (in a Process)
         q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'in', b'out')
         q.bind_in(f.client_url('mux'))
-        q.setsockopt_in(zmq.IDENTITY, b'mux')
+        q.setsockopt_in(zmq.IDENTITY, b'mux_in')
         q.bind_out(f.engine_url('mux'))
+        q.setsockopt_out(zmq.IDENTITY, b'mux_out')
         q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
@@ -372,8 +387,9 @@ class IPControllerApp(BaseParallelApplication):
         # Control Queue (in a Process)
         q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'incontrol', b'outcontrol')
         q.bind_in(f.client_url('control'))
-        q.setsockopt_in(zmq.IDENTITY, b'control')
+        q.setsockopt_in(zmq.IDENTITY, b'control_in')
         q.bind_out(f.engine_url('control'))
+        q.setsockopt_out(zmq.IDENTITY, b'control_out')
         q.connect_mon(monitor_url)
         q.daemon=True
         children.append(q)
@@ -387,8 +403,9 @@ class IPControllerApp(BaseParallelApplication):
             q = mq(zmq.ROUTER, zmq.DEALER, zmq.PUB, b'intask', b'outtask')
             # q.setsockopt_out(zmq.HWM, hub.hwm)
             q.bind_in(f.client_url('task'))
-            q.setsockopt_in(zmq.IDENTITY, b'task')
+            q.setsockopt_in(zmq.IDENTITY, b'task_in')
             q.bind_out(f.engine_url('task'))
+            q.setsockopt_out(zmq.IDENTITY, b'task_out')
             q.connect_mon(monitor_url)
             q.daemon=True
             children.append(q)
@@ -398,7 +415,9 @@ class IPControllerApp(BaseParallelApplication):
         else:
             self.log.info("task::using Python %s Task scheduler"%scheme)
             sargs = (f.client_url('task'), f.engine_url('task'),
-                                monitor_url, disambiguate_url(f.client_url('notification')))
+                    monitor_url, disambiguate_url(f.client_url('notification')),
+                    disambiguate_url(f.client_url('registration')),
+            )
             kwargs = dict(logname='scheduler', loglevel=self.log_level,
                             log_url = self.log_url, config=dict(self.config))
             if 'Process' in self.mq_class:

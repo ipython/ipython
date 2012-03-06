@@ -129,7 +129,7 @@ class EngineFactory(RegistrationFactory):
         self.registrar = zmqstream.ZMQStream(reg, self.loop)
 
 
-        content = dict(queue=self.ident, heartbeat=self.ident, control=self.ident)
+        content = dict(uuid=self.ident)
         self.registrar.on_recv(lambda msg: self.complete_registration(msg, connect, maybe_tunnel))
         # print (self.session.key)
         self.session.send(self.registrar, "registration_request", content=content)

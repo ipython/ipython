@@ -508,8 +508,9 @@ class Client(HasTraits):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
         for k,v in engines.iteritems():
             eid = int(k)
+            if eid not in self._engines:
+                self._ids.append(eid)
             self._engines[eid] = v
-            self._ids.append(eid)
         self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
                         self._task_scheme == 'pure' and self._task_socket:
@@ -652,7 +653,7 @@ class Client(HasTraits):
         """Register a new engine, and update our connection info."""
         content = msg['content']
         eid = content['id']
-        d = {eid : content['queue']}
+        d = {eid : content['uuid']}
         self._update_engines(d)
 
     def _unregister_engine(self, msg):
