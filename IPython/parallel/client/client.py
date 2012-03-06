@@ -403,10 +403,17 @@ class Client(HasTraits):
             cfg['ssh'] = sshserver
 
         location = cfg.setdefault('location', None)
-        for key in ('control', 'task', 'mux', 'notification', 'registration'):
-            cfg[key] = util.disambiguate_url(cfg[key], location)
+        
+        proto,addr = cfg['interface'].split('://')
+        addr = util.disambiguate_ip_address(addr)
+        cfg['interface'] = "%s://%s" % (proto, addr)
+        
+        # turn interface,port into full urls:
+        for key in ('control', 'task', 'mux', 'iopub', 'notification', 'registration'):
+            cfg[key] = cfg['interface'] + ':%i' % cfg[key]
+        
         url = cfg['registration']
-        proto,addr,port = util.split_url(url)
+        
         if location is not None and addr == '127.0.0.1':
             # location specified, and connection is expected to be local
             if location not in LOCAL_IPS and not sshserver:
@@ -431,7 +438,7 @@ class Client(HasTraits):
         self._ssh = bool(sshserver or sshkey or password)
         if self._ssh and sshserver is None:
             # default to ssh via localhost
-            sshserver = url.split('://')[1].split(':')[0]
+            sshserver = addr
         if self._ssh and password is None:
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
@@ -449,9 +456,9 @@ class Client(HasTraits):
         self._query_socket = self._context.socket(zmq.DEALER)
 
         if self._ssh:
-            tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
+            tunnel.tunnel_connection(self._query_socket, cfg['registration'], sshserver, **ssh_kwargs)
         else:
-            self._query_socket.connect(url)
+            self._query_socket.connect(cfg['registration'])
 
         self.session.debug = self.debug
 

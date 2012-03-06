@@ -45,7 +45,7 @@ from IPython.zmq.session import (
 from IPython.config.configurable import Configurable
 
 from IPython.parallel.engine.engine import EngineFactory
-from IPython.parallel.util import disambiguate_url
+from IPython.parallel.util import disambiguate_ip_address
 
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import cast_bytes
@@ -225,14 +225,15 @@ class IPEngineApp(BaseParallelApplication):
         
         location = config.EngineFactory.location
         
-        for key in ('registration', 'hb_ping', 'hb_pong', 'mux', 'task', 'control'):
-            d[key] = disambiguate_url(d[key], location)
+        proto, ip = d['interface'].split('://')
+        ip = disambiguate_ip_address(ip)
+        d['interface'] = '%s://%s' % (proto, ip)
         
         # DO NOT allow override of basic URLs, serialization, or exec_key
         # JSON file takes top priority there
-        config.Session.key = asbytes(d['exec_key'])
+        config.Session.key = cast_bytes(d['exec_key'])
         
-        config.EngineFactory.url = d['registration']
+        config.EngineFactory.url = d['interface'] + ':%i' % d['registration']
         
         config.Session.packer = d['pack']
         config.Session.unpacker = d['unpack']

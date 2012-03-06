@@ -131,29 +131,29 @@ class HubFactory(RegistrationFactory):
 
     # port-pairs for monitoredqueues:
     hb = Tuple(Integer,Integer,config=True,
-        help="""DEALER/SUB Port pair for Engine heartbeats""")
+        help="""PUB/ROUTER Port pair for Engine heartbeats""")
     def _hb_default(self):
         return tuple(util.select_random_ports(2))
 
     mux = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for MUX queue""")
+        help="""Client/Engine Port pair for MUX queue""")
 
     def _mux_default(self):
         return tuple(util.select_random_ports(2))
 
     task = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for Task queue""")
+        help="""Client/Engine Port pair for Task queue""")
     def _task_default(self):
         return tuple(util.select_random_ports(2))
 
     control = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for Control queue""")
+        help="""Client/Engine Port pair for Control queue""")
 
     def _control_default(self):
         return tuple(util.select_random_ports(2))
 
     iopub = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for IOPub relay""")
+        help="""Client/Engine Port pair for IOPub relay""")
 
     def _iopub_default(self):
         return tuple(util.select_random_ports(2))
@@ -231,10 +231,16 @@ class HubFactory(RegistrationFactory):
         self.heartmonitor.start()
         self.log.info("Heartmonitor started")
 
+    def client_url(self, channel):
+        """return full zmq url for a named client channel"""
+        return "%s://%s:%i" % (self.client_transport, self.client_ip, self.client_info[channel])
+    
+    def engine_url(self, channel):
+        """return full zmq url for a named engine channel"""
+        return "%s://%s:%i" % (self.engine_transport, self.engine_ip, self.engine_info[channel])
+    
     def init_hub(self):
-        """construct"""
-        client_iface = "%s://%s:" % (self.client_transport, self.client_ip) + "%i"
-        engine_iface = "%s://%s:" % (self.engine_transport, self.engine_ip) + "%i"
+        """construct Hub object"""
 
         ctx = self.context
         loop = self.loop
@@ -247,23 +253,25 @@ class HubFactory(RegistrationFactory):
         
         # build connection dicts
         engine = self.engine_info = {
-            'registration'  : engine_iface % self.regport,
-            'control'       : engine_iface % self.control[1],
-            'mux'           : engine_iface % self.mux[1],
-            'hb_ping'       : engine_iface % self.hb[0],
-            'hb_pong'       : engine_iface % self.hb[1],
-            'task'          : engine_iface % self.task[1],
-            'iopub'         : engine_iface % self.iopub[1],
+            'interface'     : "%s://%s" % (self.engine_transport, self.engine_ip),
+            'registration'  : self.regport,
+            'control'       : self.control[1],
+            'mux'           : self.mux[1],
+            'hb_ping'       : self.hb[0],
+            'hb_pong'       : self.hb[1],
+            'task'          : self.task[1],
+            'iopub'         : self.iopub[1],
             }
 
         client = self.client_info = {
-            'registration'  : client_iface % self.regport,
-            'control'       : client_iface % self.control[0],
-            'mux'           : client_iface % self.mux[0],
-            'task'          : client_iface % self.task[0],
+            'interface'     : "%s://%s" % (self.client_transport, self.client_ip),
+            'registration'  : self.regport,
+            'control'       : self.control[0],
+            'mux'           : self.mux[0],
+            'task'          : self.task[0],
             'task_scheme'   : scheme,
-            'iopub'         : client_iface % self.iopub[0],
-            'notification'  : client_iface % self.notifier_port,
+            'iopub'         : self.iopub[0],
+            'notification'  : self.notifier_port,
             }
         
         self.log.debug("Hub engine addrs: %s", self.engine_info)
@@ -271,19 +279,19 @@ class HubFactory(RegistrationFactory):
         
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
-        q.bind(client['registration'])
-        self.log.info("Hub listening on %s for registration.", client_iface % self.regport)
+        q.bind(self.client_url('registration'))
+        self.log.info("Hub listening on %s for registration.", self.client_url('registration'))
         if self.client_ip != self.engine_ip:
-            q.bind(engine['registration'])
-            self.log.info("Hub listening on %s for registration.", engine_iface % self.regport)
+            q.bind(self.engine_url('registration'))
+            self.log.info("Hub listening on %s for registration.", self.engine_url('registration'))
 
         ### Engine connections ###
 
         # heartbeat
         hpub = ctx.socket(zmq.PUB)
-        hpub.bind(engine['hb_ping'])
+        hpub.bind(self.engine_url('hb_ping'))
         hrep = ctx.socket(zmq.ROUTER)
-        hrep.bind(engine['hb_pong'])
+        hrep.bind(self.engine_url('hb_pong'))
         self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
                                 pongstream=ZMQStream(hrep,loop)
@@ -293,7 +301,7 @@ class HubFactory(RegistrationFactory):
         
         # Notifier socket
         n = ZMQStream(ctx.socket(zmq.PUB), loop)
-        n.bind(client['notification'])
+        n.bind(self.client_url('notification'))
 
         ### build and launch the queues ###
 
@@ -313,7 +321,7 @@ class HubFactory(RegistrationFactory):
 
         # resubmit stream
         r = ZMQStream(ctx.socket(zmq.DEALER), loop)
-        url = util.disambiguate_url(self.client_info['task'])
+        url = util.disambiguate_url(self.client_url('task'))
         r.connect(url)
 
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
@@ -387,15 +395,6 @@ class Hub(SessionFactory):
 
         super(Hub, self).__init__(**kwargs)
         self.registration_timeout = max(5000, 2*self.heartmonitor.period)
-
-        # validate connection dicts:
-        for k,v in self.client_info.iteritems():
-            if k == 'task_scheme':
-                continue
-            else:
-                util.validate_url_container(v)
-        # util.validate_url_container(self.client_info)
-        util.validate_url_container(self.engine_info)
 
         # register our callbacks
         self.query.on_recv(self.dispatch_query)

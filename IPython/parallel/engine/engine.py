@@ -145,19 +145,23 @@ class EngineFactory(RegistrationFactory):
         content = msg['content']
         info = self.connection_info
         
+        def url(key):
+            """get zmq url for given channel"""
+            return str(info["interface"] + ":%i" % info[key])
+        
         if content['status'] == 'ok':
             self.id = int(content['id'])
 
             # launch heartbeat
             # possibly forward hb ports with tunnels
-            hb_ping = maybe_tunnel(info['hb_ping'])
-            hb_pong = maybe_tunnel(info['hb_pong'])
+            hb_ping = maybe_tunnel(url('hb_ping'))
+            hb_pong = maybe_tunnel(url('hb_pong'))
 
             heart = Heart(hb_ping, hb_pong, heart_id=identity)
             heart.start()
 
             # create Shell Connections (MUX, Task, etc.):
-            shell_addrs = map(str, [info['mux'], info['task']])
+            shell_addrs = url('mux'), url('task')
 
             # Use only one shell stream for mux and tasks
             stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
@@ -167,13 +171,13 @@ class EngineFactory(RegistrationFactory):
                 connect(stream, addr)
 
             # control stream:
-            control_addr = str(info['control'])
+            control_addr = url('control')
             control_stream = zmqstream.ZMQStream(ctx.socket(zmq.ROUTER), loop)
             control_stream.setsockopt(zmq.IDENTITY, identity)
             connect(control_stream, control_addr)
 
             # create iopub stream:
-            iopub_addr = info['iopub']
+            iopub_addr = url('iopub')
             iopub_socket = ctx.socket(zmq.PUB)
             iopub_socket.setsockopt(zmq.IDENTITY, identity)
             connect(iopub_socket, iopub_addr)
