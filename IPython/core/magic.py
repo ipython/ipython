@@ -1564,7 +1564,7 @@ Currently the magic system has the following functions:\n"""
         """Run the named file inside IPython as a program.
 
         Usage:\\
-          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
+          %run [-n[<n>] -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
@@ -1590,7 +1590,10 @@ Currently the magic system has the following functions:\n"""
         -n: __name__ is NOT set to '__main__', but to the running file's name
         without extension (as python does under import).  This allows running
         scripts and reloading the definitions in them without calling code
-        protected by an ' if __name__ == "__main__" ' clause.
+        protected by an ' if __name__ == "__main__" ' clause.  
+        
+        -c: Supply an optional string to set __name__ to a custom value.  This
+        will only be set if -n is not supplied
 
         -i: run the file in IPython's namespace instead of an empty one. This
         is useful if you are experimenting with code written in a text editor
@@ -1682,7 +1685,7 @@ Currently the magic system has the following functions:\n"""
         """
 
         # get arguments and set sys.argv for program to be run.
-        opts, arg_lst = self.parse_options(parameter_s, 'nidtN:b:pD:l:rs:T:em:',
+        opts, arg_lst = self.parse_options(parameter_s, 'nc:idtN:b:pD:l:rs:T:em:',
                                            mode='list', list_all=1)
         if "m" in opts:
             modulename = opts["m"][0]
@@ -1734,6 +1737,8 @@ Currently the magic system has the following functions:\n"""
             # Run in a fresh, empty namespace
             if 'n' in opts:
                 name = os.path.splitext(os.path.basename(filename))[0]
+            elif 'c' in opts:
+                name = opts['c'][0]
             else:
                 name = '__main__'
 
