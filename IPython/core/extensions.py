@@ -19,6 +19,8 @@ Authors:
 
 import os
 import sys
+from urllib import urlretrieve
+from urlparse import urlparse
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance
@@ -123,3 +125,22 @@ class ExtensionManager(Configurable):
     def _call_unload_ipython_extension(self, mod):
         if hasattr(mod, 'unload_ipython_extension'):
             return mod.unload_ipython_extension(self.shell)
+    
+    def install_extension(self, url, filename=None):
+        """Download and install an IPython extension. 
+        
+        If filename is given, the file will be so named (inside the extension
+        directory). Otherwise, the name from the URL will be used. The file must
+        have a .py or .zip extension; otherwise, a ValueError will be raised.
+        """
+        # Ensure the extension directory exists
+        if not os.path.isdir(self.ipython_extension_dir):
+            os.makedirs(self.ipython_extension_dir, mode = 0777)
+        
+        if filename is None:
+            filename = urlparse(url).path.split('/')[-1]
+        if os.path.splitext(filename)[1] not in ('.py', '.zip'):
+            raise ValueError("The file must have a .py or .zip extension", filename)
+        
+        filename = os.path.join(self.ipython_extension_dir, filename)
+        return urlretrieve(url, filename)
