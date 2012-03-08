@@ -165,12 +165,14 @@ var IPython = (function (IPython) {
         // get the event.
         if (this.tooltip_timeout != null){
             clearTimeout(this.tooltip_timeout);
-            $('#tooltip').remove();
+            $('#tooltip').addClass('hidden');
             this.tooltip_timeout = null;
         }
     }
 
     CodeCell.prototype.finish_tooltip = function (reply) {
+        IPython.tooltip.show(reply,this.code_mirror.cursorCoords());
+        return;
         // Extract call tip data; the priority is call, init, main.
         defstring = reply.call_def;
         if (defstring == null) { defstring = reply.init_definition; }
