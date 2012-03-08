@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 from base64 import encodestring
 
@@ -49,7 +51,7 @@ ws.cells.append(new_code_cell(
 ))
 
 ws.cells.append(new_code_cell(
-    input='print a',
+    input=u'print "ünîcødé"',
     prompt_number=3,
     collapsed=False,
     outputs=[new_output(
@@ -91,7 +93,7 @@ nb0 = new_notebook(
     metadata=md
 )
 
-nb0_py = """# -*- coding: utf-8 -*-
+nb0_py = u"""# -*- coding: utf-8 -*-
 # <nbformat>%i</nbformat>
 
 # <htmlcell>
@@ -120,7 +122,7 @@ a = numpy.random.rand(100)
 
 # <codecell>
 
-print a
+print "ünîcødé"
 
 """ % nbformat
 
