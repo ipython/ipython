@@ -17,6 +17,9 @@ from ..nbpy import reads, writes, read, write
 from .nbexamples import nb0, nb0_py
 
 
+def open_utf8(fname, mode):
+    return io.open(fname, mode=mode, encoding='utf-8')
+
 class NBFormatTestCase(TestCase):
 
     # override with appropriate values in subclasses
@@ -47,14 +50,14 @@ class NBFormatTestCase(TestCase):
         self.assertNBEquals(self.mod.reads(s),nb0)
 
     def test_write_file(self):
-        with io.open(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
+        with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
             self.mod.write(nb0, f)
     
     def test_read_file(self):
-        with io.open(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
+        with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'w') as f:
             self.mod.write(nb0, f)
         
-        with io.open(pjoin(self.wd, "nb0.%s" % self.ext), 'r') as f:
+        with open_utf8(pjoin(self.wd, "nb0.%s" % self.ext), 'r') as f:
             nb = self.mod.read(f)
         
 
