@@ -25,9 +25,12 @@ import shutil
 import sys
 import tempfile
 
+from unittest import TestCase
+
 import nose.tools as nt
 from nose import SkipTest
 
+from IPython.core.profileapp import list_profiles_in, list_bundled_profiles
 from IPython.core.profiledir import ProfileDir
 
 from IPython.testing import decorators as dec
@@ -79,35 +82,35 @@ def win32_without_pywin32():
     return False
     
 
-@dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
-def test_startup_py():
-    # create profile dir
-    pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
-    # write startup python file
-    with open(os.path.join(pd.startup_dir, '00-start.py'), 'w') as f:
-        f.write('zzz=123\n')
-    # write simple test file, to check that the startup file was run
-    fname = os.path.join(TMP_TEST_DIR, 'test.py')
-    with open(fname, 'w') as f:
-        f.write(py3compat.doctest_refactor_print('print zzz\n'))
-    # validate output
-    tt.ipexec_validate(fname, '123', '', 
-        options=['--ipython-dir', IP_TEST_DIR, '--profile', 'test'])
+class ProfileDirTest(TestCase):
+    def setUp(self):
+        # create profile dir
+        self.pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
+        self.options = ['--ipython-dir', IP_TEST_DIR, '--profile', 'test']
+        self.fname = os.path.join(TMP_TEST_DIR, 'test.py')
+        
+    def tearDown(self):
+        shutil.rmtree(self.pd.location)
 
-@dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
-def test_startup_ipy():
-    # create profile dir
-    pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
-    # write startup ipython file
-    with open(os.path.join(pd.startup_dir, '00-start.ipy'), 'w') as f:
-        f.write('%profile\n')
-    # write empty script, because we don't need anything to happen
-    # after the startup file is run
-    fname = os.path.join(TMP_TEST_DIR, 'test.py')
-    with open(fname, 'w') as f:
-        f.write('')
-    # validate output
-    tt.ipexec_validate(fname, 'test', '', 
-        options=['--ipython-dir', IP_TEST_DIR, '--profile', 'test'])
-    
-    
+    def init(self, startup_file, startup, test):
+        # write startup python file
+        with open(os.path.join(self.pd.startup_dir, startup_file), 'w') as f:
+            f.write(startup)
+        # write simple test file, to check that the startup file was run
+        with open(self.fname, 'w') as f:
+            f.write(py3compat.doctest_refactor_print(test))
+
+    def validate(self, output):
+        # validate output
+        tt.ipexec_validate(self.fname, output, '', options=self.options)
+
+    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
+    def test_startup_py(self):
+        self.init('00-start.py', 'zzz=123\n', 
+                  py3compat.doctest_refactor_print('print zzz\n'))
+        self.validate('123')
+
+    @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
+    def test_startup_ipy(self):
+        self.init('00-start.ipy', '%profile\n', '')
+        self.validate('test')
