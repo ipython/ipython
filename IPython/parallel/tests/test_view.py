@@ -234,6 +234,19 @@ class TestView(ClusterTestCase):
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
     
+    @skip_without('numpy')
+    def test_apply_numpy(self):
+        """view.apply(f, ndarray)"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        
+        A = numpy.random.random((100,100))
+        view = self.client[-1]
+        for dt in [ 'int32', 'uint8', 'float32', 'float64' ]:
+            B = A.astype(dt)
+            C = view.apply_sync(lambda x:x, B)
+            assert_array_equal(B,C)
+    
     def test_map(self):
         view = self.client[:]
         def f(x):
