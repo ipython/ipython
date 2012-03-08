@@ -15,11 +15,64 @@ var IPython = (function (IPython) {
 
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
-        this.text    = $('<pre/>')
-        this.text.html('something');
+        this.text    = $('<div/>')
+          .addClass('smalltooltip');
         this.tooltip.css('left',50+'px');
         this.tooltip.css('top',50+'px');
-        this.tooltip.append(this.text);
+        
+        var tooltip = this.tooltip;
+        var text = this.text;
+
+        var expandspan=$('<span/>').text('Expand')
+            .addClass('ui-icon')
+            .addClass('ui-icon-plus');
+        var expandlink=$('<a/>').attr('href',"#")
+              .addClass("ui-corner-all") //rounded corner
+              .attr('role',"button")
+              .attr('id','expanbutton')
+              .append(expandspan)
+              .click(function(){
+                  text.removeClass('smalltooltip');
+                  text.addClass('bigtooltip');
+                  $('#expanbutton').remove();
+                  //setTimeout(function(){that.code_mirror.focus();}, 50);
+              });
+
+        var morelink=$('<a/>').attr('href',"#");
+            morelink.attr('role',"button");
+            morelink.addClass('ui-button');
+            //morelink.addClass("ui-corner-all"); //rounded corner
+            //morelink.addClass('ui-state-default');
+        var morespan=$('<span/>').text('Open in Pager');
+            morespan.addClass('ui-icon');
+            morespan.addClass('ui-icon-arrowstop-l-n');
+        morelink.append(morespan);
+        morelink.click(function(){
+            var msg_id = IPython.notebook.kernel.execute(name+"?");
+            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
+            that.remove_and_cancel_tooltip();
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+        });
+
+        var closelink=$('<a/>').attr('href',"#");
+            closelink.attr('role',"button");
+            closelink.addClass('ui-button');
+            //closelink.addClass("ui-corner-all"); //rounded corner
+            //closelink.adClass('ui-state-default'); // grey background and blue cross
+        var closespan=$('<span/>').text('Close');
+            closespan.addClass('ui-icon');
+            closespan.addClass('ui-icon-close');
+        closelink.append(closespan);
+        closelink.click(function(){
+            that.remove_and_cancel_tooltip();
+            setTimeout(function(){that.code_mirror.focus();}, 50);
+            });
+        //construct the tooltip
+        tooltip.append(closelink);
+        tooltip.append(expandlink);
+        tooltip.append(morelink);
+
+        tooltip.append(this.text);
     };
 
 
@@ -39,9 +92,32 @@ var IPython = (function (IPython) {
             this.tooltip_timeout = null;
         }
     }
-    Tooltip.prototype.show = function()
+    Tooltip.prototype.show = function(reply,pos)
     {
-	this.tooltip.removeClass('hidden');
+        this.tooltip.css('left',pos.x+'px');
+        this.tooltip.css('top',pos.yBot+'px');
+    	this.tooltip.removeClass('hidden');
+
+        // build docstring
+        defstring = reply.call_def;
+        if (defstring == null) { defstring = reply.init_definition; }
+        if (defstring == null) { defstring = reply.definition; }
+
+        docstring = reply.call_docstring;
+        if (docstring == null) { docstring = reply.init_docstring; }
+        if (docstring == null) { docstring = reply.docstring; }
+        if (docstring == null) { docstring = "<empty docstring>"; }
+
+        this.text.children().remove();
+
+        var pre=$('<pre/>').html(utils.fixConsole(docstring));
+        if(defstring){
+            var defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
+            this.text.append(defstring_html);
+        }
+        this.text.append(pre)
+
+
     }	
 
     Tooltip.prototype.showInPager = function(){

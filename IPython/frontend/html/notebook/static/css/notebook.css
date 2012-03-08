@@ -307,14 +307,19 @@ option.introspection {
 }
 
 /*properties of tooltip before "expand"*/
-.smalltooltip {
+.smalltooltip{
     text-overflow: ellipsis;
     overflow: hidden;
-    height:15%;
+    height:20px;
 }
-
+.tooltip div
+{
+    height: 200px;
+    overflow : auto;
+}
 .tooltip {
     /*transition when "expand"ing tooltip */
+    overflow : hidden;
     font-size: 14px;
     -webkit-transition-property: height;
     -webkit-transition-duration: 1s;
@@ -355,6 +360,7 @@ option.introspection {
     padding-left:7px;
     font-family: monospace;
     min-height:50px;
+    max-height : 70%;
 }
 
 /*fixed part of the completion*/
