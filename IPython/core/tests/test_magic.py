@@ -9,6 +9,8 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
+import sys
+from StringIO import StringIO
 
 import nose.tools as nt
 
@@ -231,6 +233,23 @@ def test_reset_in_length():
 
 def test_time():
     _ip.magic('time None')
+
+def test_tb_syntaxerror():
+    """test %tb after a SyntaxError"""
+    ip = get_ipython()
+    ip.run_cell("for")
+    
+    # trap and validate stdout
+    save_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+        ip.run_cell("%tb")
+        out = sys.stdout.getvalue()
+    finally:
+        sys.stdout = save_stdout
+    # trim output, and only check the last line
+    last_line = out.rstrip().splitlines()[-1].strip()
+    nt.assert_equals(last_line, "SyntaxError: invalid syntax")
 
 
 @py3compat.doctest_refactor_print

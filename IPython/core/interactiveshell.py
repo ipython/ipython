@@ -1626,6 +1626,39 @@ class InteractiveShell(SingletonConfigurable, Magic):
       """
       self.showtraceback((etype,value,tb),tb_offset=0)
 
+    def _get_exc_info(self, exc_tuple=None):
+        """get exc_info from a given tuple, sys.exc_info() or sys.last_type etc.
+        
+        Ensures sys.last_type,value,traceback hold the exc_info we found,
+        from whichever source.
+        
+        raises ValueError if none of these contain any information
+        """
+        if exc_tuple is None:
+            etype, value, tb = sys.exc_info()
+        else:
+            etype, value, tb = exc_tuple
+
+        if etype is None:
+            if hasattr(sys, 'last_type'):
+                etype, value, tb = sys.last_type, sys.last_value, \
+                                   sys.last_traceback
+        
+        if etype is None:
+            raise ValueError("No exception to find")
+        
+        # Now store the exception info in sys.last_type etc.
+        # WARNING: these variables are somewhat deprecated and not
+        # necessarily safe to use in a threaded environment, but tools
+        # like pdb depend on their existence, so let's set them.  If we
+        # find problems in the field, we'll need to revisit their use.
+        sys.last_type = etype
+        sys.last_value = value
+        sys.last_traceback = tb
+        
+        return etype, value, tb
+    
+
     def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
                       exception_only=False):
         """Display the exception that just occurred.
@@ -1640,18 +1673,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         simply call this method."""
 
         try:
-            if exc_tuple is None:
-                etype, value, tb = sys.exc_info()
-            else:
-                etype, value, tb = exc_tuple
-
-            if etype is None:
-                if hasattr(sys, 'last_type'):
-                    etype, value, tb = sys.last_type, sys.last_value, \
-                                       sys.last_traceback
-                else:
-                    self.write_err('No traceback available to show.\n')
-                    return
+            try:
+                etype, value, tb = self._get_exc_info(exc_tuple)
+            except ValueError:
+                self.write_err('No traceback available to show.\n')
+                return
 
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
@@ -1660,13 +1686,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
             else:
-                # WARNING: these variables are somewhat deprecated and not
-                # necessarily safe to use in a threaded environment, but tools
-                # like pdb depend on their existence, so let's set them.  If we
-                # find problems in the field, we'll need to revisit their use.
-                sys.last_type = etype
-                sys.last_value = value
-                sys.last_traceback = tb
                 if etype in self.custom_exceptions:
                     stb = self.CustomTB(etype, value, tb, tb_offset)
                 else:
@@ -1708,12 +1727,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         of what was there before (because Python's parser always uses
         "<string>" when reading from a string).
         """
-        etype, value, last_traceback = sys.exc_info()
-
-        # See note about these variables in showtraceback() above
-        sys.last_type = etype
-        sys.last_value = value
-        sys.last_traceback = last_traceback
+        etype, value, last_traceback = self._get_exc_info()
 
         if filename and etype is SyntaxError:
             try:
