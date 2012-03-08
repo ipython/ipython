@@ -312,6 +312,11 @@ class PrintNotebookHandler(AuthenticatedHandler):
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
 
+class ShutdownHandler(AuthenticatedHandler):
+    def get(self):
+        self.render('shutdown.html', logged_in=False, login_available=False)
+        self.application.ipython_app.ioloop.stop()
+
 #-----------------------------------------------------------------------------
 # Kernel handlers
 #-----------------------------------------------------------------------------

@@ -49,8 +49,12 @@ body {
     float: left;
 }
 
-#notebooks_buttons {
+#notebooks_buttons, #control_buttons {
     float: right;
+}
+
+#control_toolbar {
+    padding-top: 0.5em;
 }
 
 #project_name {

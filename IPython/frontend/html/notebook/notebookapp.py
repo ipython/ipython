@@ -49,7 +49,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
-    RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler
+    RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler, ShutdownHandler
 )
 from .notebookmanager import NotebookManager
 
@@ -107,6 +107,7 @@ class NotebookWebApplication(web.Application):
             (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
+            (r"/shutdown", ShutdownHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
@@ -472,8 +473,10 @@ class NotebookApp(BaseIPythonApplication):
                                                            self.base_project_url),
                                          new=2)
             threading.Thread(target=b).start()
+            
+        self.ioloop = ioloop.IOLoop.instance()
         try:
-            ioloop.IOLoop.instance().start()
+            self.ioloop.start()
         except KeyboardInterrupt:
             info("Interrupted...")
         finally:
