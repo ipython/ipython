@@ -82,8 +82,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         if (not cell) or cell.isspace():
             return
 
-        if cell.strip() == 'exit':
-            # explicitly handle 'exit' command
+        if cell.strip().rstrip('( )') in ('exit', 'quit'):
+            # explicitly handle 'exit' or 'quit' command
             return self.ask_exit()
 
         self._executing = True
