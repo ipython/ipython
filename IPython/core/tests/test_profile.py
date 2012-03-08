@@ -82,7 +82,7 @@ def win32_without_pywin32():
     return False
     
 
-class ProfileDirTest(TestCase):
+class ProfileStartupTest(TestCase):
     def setUp(self):
         # create profile dir
         self.pd = ProfileDir.create_profile_dir_by_name(IP_TEST_DIR, 'test')
@@ -90,6 +90,8 @@ class ProfileDirTest(TestCase):
         self.fname = os.path.join(TMP_TEST_DIR, 'test.py')
         
     def tearDown(self):
+        # We must remove this profile right away so its presence doesn't
+        # confuse other tests.
         shutil.rmtree(self.pd.location)
 
     def init(self, startup_file, startup, test):
@@ -101,7 +103,6 @@ class ProfileDirTest(TestCase):
             f.write(py3compat.doctest_refactor_print(test))
 
     def validate(self, output):
-        # validate output
         tt.ipexec_validate(self.fname, output, '', options=self.options)
 
     @dec.skipif(win32_without_pywin32(), "Test requires pywin32 on Windows")
@@ -114,3 +115,19 @@ class ProfileDirTest(TestCase):
     def test_startup_ipy(self):
         self.init('00-start.ipy', '%profile\n', '')
         self.validate('test')
+
+    
+def test_list_profiles_in():
+    # No need to remove these directories and files, as they will get nuked in
+    # the module-level teardown.
+    prof_file = tempfile.NamedTemporaryFile(prefix='profile_', dir=IP_TEST_DIR)
+    prof_dir = tempfile.mkdtemp(prefix='profile_', dir=IP_TEST_DIR)
+    # Now, check that the profile listing doesn't get confused by files named
+    # profile_X
+    prof_name = os.path.split(prof_dir)[1].split('profile_')[1]
+    profiles = list_profiles_in(IP_TEST_DIR)
+    nt.assert_equals(profiles, [prof_name])
+    
+
+#def test_list_bundled_profiles():
+
