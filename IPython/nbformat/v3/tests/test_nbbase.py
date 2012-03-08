@@ -112,6 +112,13 @@ class TestNotebook(TestCase):
         self.assertEquals(nb.worksheets,worksheets)
         self.assertEquals(nb.nbformat,nbformat)
 
+    def test_notebook_name(self):
+        worksheets = [new_worksheet(),new_worksheet()]
+        nb = new_notebook(name='foo',worksheets=worksheets)
+        self.assertEquals(nb.metadata.name,u'foo')
+        self.assertEquals(nb.worksheets,worksheets)
+        self.assertEquals(nb.nbformat,nbformat)
+
 class TestMetadata(TestCase):
 
     def test_empty_metadata(self):

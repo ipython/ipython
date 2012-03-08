@@ -146,7 +146,7 @@ def new_worksheet(name=None, cells=None):
     return ws
 
 
-def new_notebook(metadata=None, worksheets=None):
+def new_notebook(name=None, metadata=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = nbformat
@@ -158,6 +158,8 @@ def new_notebook(metadata=None, worksheets=None):
         nb.metadata = new_metadata()
     else:
         nb.metadata = NotebookNode(metadata)
+    if name is not None:
+        nb.metadata.name = unicode(name)
     return nb
 
 
