@@ -1,3 +1,4 @@
+# coding: utf-8
 """Tests for profile-related functions.
 
 Currently only the startup-dir functionality is tested, but more tests should
@@ -120,18 +121,31 @@ class ProfileStartupTest(TestCase):
 def test_list_profiles_in():
     # No need to remove these directories and files, as they will get nuked in
     # the module-level teardown.
-    prof_file = tempfile.NamedTemporaryFile(prefix='profile_', dir=IP_TEST_DIR)
-    prof_dir = tempfile.mkdtemp(prefix='profile_', dir=IP_TEST_DIR)
-    # Now, check that the profile listing doesn't get confused by files named
-    # profile_X
-    prof_name = os.path.split(prof_dir)[1].split('profile_')[1]
-    profiles = list_profiles_in(IP_TEST_DIR)
-    nt.assert_equals(profiles, [prof_name])
+    td = tempfile.mkdtemp(dir=TMP_TEST_DIR)
+    td = py3compat.str_to_unicode(td)
+    for name in ('profile_foo', u'profile_ünicode', 'profile_hello', 
+                 'not_a_profile'):
+        os.mkdir(os.path.join(td, name))
+    with open(os.path.join(td, 'profile_file'), 'w') as f:
+        f.write("I am not a profile directory")
+    profiles = list_profiles_in(td)
     
+    # unicode normalization can turn u'ünicode' into u'u\0308nicode',
+    # so only check for *nicode, and that creating a ProfileDir from the
+    # name remains valid
+    found_unicode = False
+    for p in list(profiles):
+        if p.endswith('nicode'):
+            pd = ProfileDir.find_profile_dir_by_name(td, p)
+            profiles.remove(p)
+            found_unicode = True
+            break
+    nt.assert_true(found_unicode)
+    nt.assert_equals(set(profiles), set(['foo', 'hello']))
+
 
 def test_list_bundled_profiles():
     # This variable will need to be updated when a new profile gets bundled
     bundled_true = [u'cluster', u'math', u'pysh', u'python3', u'sympy']
     bundled = sorted(list_bundled_profiles())
     nt.assert_equals(bundled, bundled_true)
-
