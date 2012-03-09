@@ -12,12 +12,15 @@
 // Todo : 
 // use codemirror highlight example to 
 // highlight the introspection request and introspect on mouse hove ...
+//
+//
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
+	var that = this;
 	
 	// contain the button in the upper right corner
         this.buttons = $('<div/>')
@@ -41,7 +44,7 @@ var IPython = (function (IPython) {
               .click(function(){
                   text.removeClass('smalltooltip');
                   text.addClass('bigtooltip');
-                  $('#expanbutton').remove();
+                  $('#expanbutton').addClass('hidden');
                   //setTimeout(function(){that.code_mirror.focus();}, 50);
               })
             .append(
@@ -74,7 +77,7 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-            tooltip.addClass('hide');
+		that.hide();
             });
         
 	//construct the tooltip
@@ -92,7 +95,17 @@ var IPython = (function (IPython) {
         this.tooltip.append(this.text);
     };
 
-
+    // deal with all the logic of hiding the tooltip
+    // and reset it's status
+    Tooltip.prototype.hide = function()
+    {
+	this.tooltip.addClass('hide');
+	$('#expanbutton').removeClass('hidden');
+	this.text.removeClass('bigtooltip');
+	this.text.addClass('smalltooltip');
+	// keep scroll top to be sure to always see the first line
+	this.text.scrollTop(0);
+    }
 
     //TODO, try to diminish the number of parameters.
     Tooltip.prototype.request_tooltip_after_time = function (pre_cursor,time){
@@ -103,12 +116,13 @@ var IPython = (function (IPython) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
+	this.hide();
         if (this.tooltip_timeout != null){
             clearTimeout(this.tooltip_timeout);
-            $('#tooltip').remove();
             this.tooltip_timeout = null;
         }
     }
+
     Tooltip.prototype.show = function(reply,pos)
     {
         this.tooltip.css('left',pos.x-30+'px');
@@ -133,7 +147,9 @@ var IPython = (function (IPython) {
             var defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
             this.text.append(defstring_html);
         }
-        this.text.append(pre)
+        this.text.append(pre);
+	// keep scroll top to be sure to always see the first line
+	this.text.scrollTop(0);
 
 
     }	
@@ -144,60 +160,6 @@ var IPython = (function (IPython) {
         that.remove_and_cancel_tooltip();
         setTimeout(function(){that.code_mirror.focus();}, 50);
     }
-
-    Tooltip.prototype.finish_tooltip = function (reply) {
-
-        var expandlink=$('<a/>').attr('href',"#");
-            expandlink.addClass("ui-corner-all"); //rounded corner
-            expandlink.attr('role',"button");
-
-        var expandspan=$('<span/>').text('Expand');
-            expandspan.addClass('ui-icon');
-            expandspan.addClass('ui-icon-plus');
-
-        expandlink.append(expandspan);
-        expandlink.attr('id','expanbutton');
-        expandlink.click(function(){
-            tooltip.removeClass('smalltooltip');
-            tooltip.addClass('bigtooltip');
-            $('#expanbutton').remove();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-        });
-
-        var morelink=$('<a/>').attr('href',"#");
-            morelink.attr('role',"button");
-            morelink.addClass('ui-button');
-        var morespan=$('<span/>').text('Open in Pager');
-            morespan.addClass('ui-icon');
-            morespan.addClass('ui-icon-arrowstop-l-n');
-        morelink.append(morespan);
-        morelink.click(function(){
-            this.showInPager();
-        });
-
-
-        var closelink=$('<a/>').attr('href',"#");
-            closelink.attr('role',"button");
-            closelink.addClass('ui-button');
-
-        var closespan=$('<span/>').text('Close');
-            closespan.addClass('ui-icon');
-            closespan.addClass('ui-icon-close');
-        closelink.append(closespan);
-        closelink.click(function(){
-            that.remove_and_cancel_tooltip();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-            });
-        //construct the tooltip
-        tooltip.append(closelink);
-        tooltip.append(expandlink);
-        tooltip.append(morelink);
-        
-        var pos = this.code_mirror.cursorCoords();
-        tooltip.css('left',pos.x+'px');
-        tooltip.css('top',pos.yBot+'px');
-
-    };
 
 
     IPython.Tooltip = Tooltip;
