@@ -18,18 +18,23 @@ var IPython = (function (IPython) {
 
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
+	
+	// contain the button in the upper right corner
         this.buttons = $('<div/>')
               .addClass('tooltipbuttons');
+	
+	// will contain the docstring 
         this.text    = $('<div/>')
           .addClass('tooltiptext')
           .addClass('smalltooltip');
-        this.tooltip.css('left',50+'px');
-        this.tooltip.css('top',50+'px');
         
         var tooltip = this.tooltip;
         var text = this.text;
 
-        var expandspan=$('<span/>').text('Expand')
+	// build the buttons menu on the upper right
+        
+	// expand the tooltip to see more
+	var expandspan=$('<span/>').text('Expand')
             .addClass('ui-icon')
             .addClass('ui-icon-plus');
         var expandlink=$('<a/>').attr('href',"#")
@@ -44,11 +49,10 @@ var IPython = (function (IPython) {
                   //setTimeout(function(){that.code_mirror.focus();}, 50);
               });
 
+	// open in pager
         var morelink=$('<a/>').attr('href',"#");
             morelink.attr('role',"button");
             morelink.addClass('ui-button');
-            //morelink.addClass("ui-corner-all"); //rounded corner
-            //morelink.addClass('ui-state-default');
         var morespan=$('<span/>').text('Open in Pager');
             morespan.addClass('ui-icon');
             morespan.addClass('ui-icon-arrowstop-l-n');
@@ -60,11 +64,10 @@ var IPython = (function (IPython) {
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
+	// close the tooltip
         var closelink=$('<a/>').attr('href',"#");
             closelink.attr('role',"button");
             closelink.addClass('ui-button');
-            //closelink.addClass("ui-corner-all"); //rounded corner
-            //closelink.adClass('ui-state-default'); // grey background and blue cross
         var closespan=$('<span/>').text('Close');
             closespan.addClass('ui-icon');
             closespan.addClass('ui-icon-close');
@@ -72,14 +75,18 @@ var IPython = (function (IPython) {
         closelink.click(function(){
             tooltip.addClass('hide');
             });
-        //construct the tooltip
+        
+	//construct the tooltip
+	// add in the reverse order you want them to appear
         this.buttons.append(closelink);
         this.buttons.append(expandlink);
         this.buttons.append(morelink);
-
+	
+	// we need a phony element to make the small arrow
+	// of the tooltip in css
+	// we could try to move the arrow later
         arrow = $('<div/>').addClass('pretooltiparrow');
         this.tooltip.append(arrow);
-        this.tooltip.append(this.buttons);
         this.tooltip.append(this.buttons);
         this.tooltip.append(this.text);
     };
