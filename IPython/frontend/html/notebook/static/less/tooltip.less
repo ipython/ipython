@@ -35,10 +35,10 @@
     to {opacity:0;}
 }
 
-@keyframes fadeOut {
-    from {opacity:1;}
-    to {opacity:0;}
-}
+//@keyframes fadeOut {
+//    from {opacity:1;}
+//    to {opacity:0;}
+//}
 
 @-moz-keyframes fadeIn {
     from {opacity:0;}
@@ -50,10 +50,10 @@
     to {opacity:1;}
 }
 
-@keyframes fadeIn {
-    from {opacity:0;}
-    to {opacity:1;}
-}
+//@keyframes fadeIn {
+//    from {opacity:0;}
+//    to {opacity:1;}
+//}
 
 .linearGradient(@stop1:0, @color1:#ccc, @stop2:33%, @color2:#ddd, @stop3:66%, @color3:#ccc, @stop4:100%, @color4:#ddd){ 
   background-color:@color4;
@@ -80,26 +80,25 @@
 
 /*properties of tooltip after "expand"*/
 .bigtooltip {
-    height:30%;
+    overflow: auto;
+    height: 200px;
 }
 
 /*properties of tooltip before "expand"*/
 .smalltooltip{
     text-overflow: ellipsis;
     overflow: hidden;
-    height:20px;
+    height:80px;
 }
 .tooltipbuttons
 {
     position: absolute;
+    padding-right : 15px;
     top : 0px;
     right:0px;
 }
 .tooltiptext
 {
-    height: 200px;
-    overflow : auto;
-    padding-right: -10px; 
 }
 
 .tooltip {
@@ -136,7 +135,6 @@
     padding-left:7px;
     font-family: monospace;
     min-height:50px;
-    max-height : 70%;
     position: absolute;
 }
 

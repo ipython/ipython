@@ -34,28 +34,29 @@ var IPython = (function (IPython) {
 	// build the buttons menu on the upper right
         
 	// expand the tooltip to see more
-	var expandspan=$('<span/>').text('Expand')
-            .addClass('ui-icon')
-            .addClass('ui-icon-plus');
         var expandlink=$('<a/>').attr('href',"#")
               .addClass("ui-corner-all") //rounded corner
               .attr('role',"button")
               .attr('id','expanbutton')
-              .append(expandspan)
               .click(function(){
                   text.removeClass('smalltooltip');
                   text.addClass('bigtooltip');
                   $('#expanbutton').remove();
                   //setTimeout(function(){that.code_mirror.focus();}, 50);
-              });
+              })
+            .append(
+	 	$('<span/>').text('Expand')
+            	.addClass('ui-icon')
+            	.addClass('ui-icon-plus')
+		);
 
 	// open in pager
-        var morelink=$('<a/>').attr('href',"#");
-            morelink.attr('role',"button");
-            morelink.addClass('ui-button');
-        var morespan=$('<span/>').text('Open in Pager');
-            morespan.addClass('ui-icon');
-            morespan.addClass('ui-icon-arrowstop-l-n');
+        var morelink=$('<a/>').attr('href',"#")
+            .attr('role',"button")
+            .addClass('ui-button');
+        var morespan=$('<span/>').text('Open in Pager')
+            .addClass('ui-icon')
+            .addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
         morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
