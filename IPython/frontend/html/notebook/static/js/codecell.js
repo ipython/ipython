@@ -84,7 +84,7 @@ var IPython = (function (IPython) {
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
         if(event.type === 'keydown' ) {
-            that.remove_and_cancel_tooltip();
+            IPython.tooltip.remove_and_cancel_tooltip();
         };
 
 
@@ -159,16 +159,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.remove_and_cancel_tooltip = function() {
-        // note that we don't handle closing directly inside the calltip
-        // as in the completer, because it is not focusable, so won't
-        // get the event.
-        if (this.tooltip_timeout != null){
-            clearTimeout(this.tooltip_timeout);
-            $('#tooltip').addClass('hidden');
-            this.tooltip_timeout = null;
-        }
-    }
 
     CodeCell.prototype.finish_tooltip = function (reply) {
         IPython.tooltip.show(reply,this.code_mirror.cursorCoords());
@@ -218,7 +208,7 @@ var IPython = (function (IPython) {
         morelink.click(function(){
             var msg_id = IPython.notebook.kernel.execute(name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-            that.remove_and_cancel_tooltip();
+            IPython.tooltip.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
@@ -232,7 +222,7 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-            that.remove_and_cancel_tooltip();
+            IPython.tooltip.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
             });
         //construct the tooltip
