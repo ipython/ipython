@@ -22,6 +22,7 @@ var IPython = (function (IPython) {
 
 
     MenuBar.prototype.style = function () {
+        this.element.addClass('border-box-sizing');
         $('ul#menus').menubar({
             select : function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we

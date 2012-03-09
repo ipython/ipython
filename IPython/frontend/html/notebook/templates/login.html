@@ -1,26 +1,42 @@
-{% extends layout.html %}
+{% extends page.html %}
 
-{% block content_panel %}
+{% block stylesheet %}
 
-    {% if login_available %}
-
-    <form action="/login?next={{url_escape(next)}}" method="post">
-        Password: <input type="password" name="password" id="focus">
-        <input type="submit" value="Sign in" id="signin">
-    </form>
-
-    {% end %}
+<link rel="stylesheet" href="{{static_url("css/login.css") }}" type="text/css"/>
 
 {% end %}
+
 
 {% block login_widget %}
 {% end %}
 
+
+{% block site %}
+
+<div id="main_app">
+
+    {% if login_available %}
+    <form action="/login?next={{url_escape(next)}}" method="post">
+        Password: <input type="password" name="password" id="password_input">
+        <input type="submit" value="Log in" id="login_submit">
+    </form>
+    {% end %}
+
+    {% if message %}
+      {% for key in message %}
+        <div class="message {{key}}">
+           {{message[key]}}
+        </div>
+      {% end %}
+    {% end %}
+
+<div/>
+
+{% end %}
+
+
 {% block script %}
-<script type="text/javascript">
-  $(document).ready(function() {
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
-    $('#focus').focus();
-  });
-</script>
+
+<script src="{{static_url("js/loginmain.js") }}" type="text/javascript" charset="utf-8"></script>
+
 {% end %}
