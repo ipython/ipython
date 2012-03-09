@@ -125,8 +125,8 @@ var IPython = (function (IPython) {
 
     Tooltip.prototype.show = function(reply,pos)
     {
-        this.tooltip.css('left',pos.x-30+'px');
-        this.tooltip.css('top',(pos.yBot+10)+'px');
+        this.tooltip.animate({'left' : pos.x-30+'px'});
+        this.tooltip.animate({'top' :(pos.yBot+10)+'px'});
     	this.tooltip.removeClass('hidden')
     	this.tooltip.removeClass('hide');
 
