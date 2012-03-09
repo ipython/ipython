@@ -64,10 +64,10 @@
   right: 0px;
 }
 .tooltip {
-  -webkit-transition: all 0.2s ease;
-  -moz-transition: all 0.2s ease;
-  -ms-transition: all 0.2s ease;
-  -o-transition: all 0.2s ease;
+  -webkit-transition: all 0.8s ease;
+  -moz-transition: all 0.8s ease;
+  -ms-transition: all 0.8s ease;
+  -o-transition: all 0.8s ease;
   /*transition when "expand"ing tooltip */
 
   -webkit-transition-property: height;
@@ -81,12 +81,12 @@
   box-shadow: 3px 3px 5px #999;
   /*fade-in animation when inserted*/
 
-  -webkit-animation: fadeOut 200ms;
-  -moz-animation: fadeOut 200ms;
-  animation: fadeOut 200ms;
-  -webkit-animation: fadeIn 200ms;
-  -moz-animation: fadeIn 200ms;
-  animation: fadeIn 200ms;
+  -webkit-animation: fadeOut 800ms;
+  -moz-animation: fadeOut 800ms;
+  animation: fadeOut 800ms;
+  -webkit-animation: fadeIn 800ms;
+  -moz-animation: fadeIn 800ms;
+  animation: fadeIn 800ms;
   vertical-align: middle;
   background-color: #f7f7f7;
   background-image: -webkit-linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
@@ -131,8 +131,8 @@
   -o-transform: rotate(45deg);
 }
 .tooltip.hide {
-  -webkit-animation: fadeOut 200ms;
-  -moz-animation: fadeOut 200ms;
-  animation: fadeOut 200ms;
+  -webkit-animation: fadeOut 800ms;
+  -moz-animation: fadeOut 800ms;
+  animation: fadeOut 800ms;
   opacity: 0;
 }
