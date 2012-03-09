@@ -92,6 +92,29 @@ ipython profile list -h    # show the help string for the list subcommand
 #-----------------------------------------------------------------------------
 
 
+def list_profiles_in(path):
+    """list profiles in a given root directory"""
+    files = os.listdir(path)
+    profiles = []
+    for f in files:
+        full_path = os.path.join(path, f)
+        if os.path.isdir(full_path) and f.startswith('profile_'):
+            profiles.append(f.split('_',1)[-1])
+    return profiles
+
+
+def list_bundled_profiles():
+    """list profiles that are bundled with IPython."""
+    path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
+    files = os.listdir(path)
+    profiles = []
+    for profile in files:
+        full_path = os.path.join(path, profile)
+        if os.path.isdir(full_path):
+            profiles.append(profile)
+    return profiles
+
+
 class ProfileList(Application):
     name = u'ipython-profile'
     description = list_help
@@ -115,35 +138,15 @@ class ProfileList(Application):
         the environment variable IPYTHON_DIR.
         """
     )
-    
-    def _list_profiles_in(self, path):
-        """list profiles in a given root directory"""
-        files = os.listdir(path)
-        profiles = []
-        for f in files:
-            full_path = os.path.join(path, f)
-            if os.path.isdir(full_path) and f.startswith('profile_'):
-                profiles.append(f.split('_',1)[-1])
-        return profiles
-    
-    def _list_bundled_profiles(self):
-        """list profiles in a given root directory"""
-        path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
-        files = os.listdir(path)
-        profiles = []
-        for profile in files:
-            full_path = os.path.join(path, profile)
-            if os.path.isdir(full_path):
-                profiles.append(profile)
-        return profiles
-    
+
+
     def _print_profiles(self, profiles):
         """print list of profiles, indented."""
         for profile in profiles:
             print '    %s' % profile
-    
+
     def list_profile_dirs(self):
-        profiles = self._list_bundled_profiles()
+        profiles = list_bundled_profiles()
         if profiles:
             print
             print "Available profiles in IPython:"
@@ -153,13 +156,13 @@ class ProfileList(Application):
             print "    into your IPython directory (%s)," % self.ipython_dir
             print "    where you can customize it."
         
-        profiles = self._list_profiles_in(self.ipython_dir)
+        profiles = list_profiles_in(self.ipython_dir)
         if profiles:
             print
             print "Available profiles in %s:" % self.ipython_dir
             self._print_profiles(profiles)
         
-        profiles = self._list_profiles_in(os.getcwdu())
+        profiles = list_profiles_in(os.getcwdu())
         if profiles:
             print
             print "Available profiles in current directory (%s):" % os.getcwdu()

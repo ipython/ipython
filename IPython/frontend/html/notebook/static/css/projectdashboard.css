@@ -5,68 +5,66 @@
  * Author: IPython Development Team
  */
 
-
-body {
-    background-color: white;
-    /* This makes sure that the body covers the entire window and needs to
-       be in a different element than the display: box in wrapper below */
-    position: absolute;
-    left: 0px;
-    right: 0px;
-    top: 0px;
-    bottom: 0px;
-    overflow: auto;
+#main_app {
+    width: 920px;
+    margin: 30px auto 0px auto;
 }
 
-#left_panel {
+#tabs {
+    border-style: none;
 }
 
-#drop_zone {
-    height: 200px;
-    width: 200px
+#tab1, #tab2 {
+    padding: 1em 0em;
 }
 
-#content_panel {
-    width: 600px;
-}
-
-#content_toolbar {
+.list_toolbar {
     padding: 5px;
     height: 25px;
     line-height: 25px;
 }
 
-#header_border {
-    width: 100%;
-    height: 2px;
-}
-
-#app_hbox {
-    width: 100%;
-}
-
-#drag_info {
+.toolbar_info {
     float: left;
 }
 
-#notebooks_buttons {
+.toolbar_buttons {
     float: right;
 }
 
-#project_name {
+.list_header {
     height: 25px;
     line-height: 25px;
-    padding: 3px;
+    padding: 3px 5px;
 }
 
-.notebook_item {
+
+
+.list_item {
     height: 25px;
     line-height: 25px;
-    padding: 3px;
+    padding: 3px 5px;
 }
 
 .notebook_item a {
     text-decoration: none;
+}
+
+.profile_col {
+}
+
+.status_col {
+    float: right;
+    width: 325px;
+}
+
+.engines_col {
+    float: right;
+    width: 325px;
+}
+
+.action_col {
+    float: right;
 }
 
 .item_buttons {
@@ -79,4 +77,8 @@ body {
 
 .highlight_text {
     color: blue;
+}
+
+.ui-tabs .ui-tabs-nav li a {
+    padding: .3em .5em;
 }

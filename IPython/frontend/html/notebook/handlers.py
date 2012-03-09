@@ -211,6 +211,7 @@ class LoginHandler(AuthenticatedHandler):
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
+                base_project_url=self.application.ipython_app.base_project_url,
                 message=message
         )
 
@@ -246,6 +247,7 @@ class LogoutHandler(AuthenticatedHandler):
                     read_only=self.read_only,
                     logged_in=self.logged_in,
                     login_available=self.login_available,
+                    base_project_url=self.application.ipython_app.base_project_url,
                     message=message)
 
 
@@ -587,7 +589,6 @@ class NotebookRootHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        
         nbm = self.application.notebook_manager
         files = nbm.list_notebooks()
         self.finish(jsonapi.dumps(files))
@@ -660,6 +661,44 @@ class NotebookCopyHandler(AuthenticatedHandler):
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
         )
+
+
+#-----------------------------------------------------------------------------
+# Cluster handlers
+#-----------------------------------------------------------------------------
+
+
+class MainClusterHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def get(self):
+        cm = self.application.cluster_manager
+        self.finish(jsonapi.dumps(cm.list_profiles()))
+
+
+class ClusterProfileHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def get(self, profile):
+        cm = self.application.cluster_manager
+        self.finish(jsonapi.dumps(cm.profile_info(profile)))
+
+
+class ClusterActionHandler(AuthenticatedHandler):
+
+    @web.authenticated
+    def post(self, profile, action):
+        cm = self.application.cluster_manager
+        if action == 'start':
+            n = self.get_argument('n',default=None)
+            if n is None:
+                data = cm.start_cluster(profile)
+            else:
+                data = cm.start_cluster(profile,int(n))
+        if action == 'stop':
+            data = cm.stop_cluster(profile)
+        self.finish(jsonapi.dumps(data))
+
 
 #-----------------------------------------------------------------------------
 # RST web service handlers

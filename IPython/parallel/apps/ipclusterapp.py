@@ -106,8 +106,35 @@ NO_CLUSTER = 12
 
 
 #-----------------------------------------------------------------------------
+# Utilities
+#-----------------------------------------------------------------------------
+
+def find_launcher_class(clsname, kind):
+    """Return a launcher for a given clsname and kind.
+
+    Parameters
+    ==========
+    clsname : str
+        The full name of the launcher class, either with or without the
+        module path, or an abbreviation (MPI, SSH, SGE, PBS, LSF,
+        WindowsHPC).
+    kind : str
+        Either 'EngineSet' or 'Controller'.
+    """
+    if '.' not in clsname:
+        # not a module, presume it's the raw name in apps.launcher
+        if kind and kind not in clsname:
+            # doesn't match necessary full class name, assume it's
+            # just 'PBS' or 'MPI' prefix:
+            clsname = clsname + kind + 'Launcher'
+        clsname = 'IPython.parallel.apps.launcher.'+clsname
+    klass = import_item(clsname)
+    return klass
+
+#-----------------------------------------------------------------------------
 # Main application
 #-----------------------------------------------------------------------------
+
 start_help = """Start an IPython cluster for parallel computing
 
 Start an ipython cluster by its profile name or cluster
@@ -303,15 +330,8 @@ class IPClusterEngines(BaseParallelApplication):
 
     def build_launcher(self, clsname, kind=None):
         """import and instantiate a Launcher based on importstring"""
-        if '.' not in clsname:
-            # not a module, presume it's the raw name in apps.launcher
-            if kind and kind not in clsname:
-                # doesn't match necessary full class name, assume it's
-                # just 'PBS' or 'MPI' prefix:
-                clsname = clsname + kind + 'Launcher'
-            clsname = 'IPython.parallel.apps.launcher.'+clsname
         try:
-            klass = import_item(clsname)
+            klass = find_launcher_class(clsname, kind)
         except (ImportError, KeyError):
             self.log.fatal("Could not import launcher class: %r"%clsname)
             self.exit(1)
@@ -492,7 +512,6 @@ class IPClusterStart(IPClusterEngines):
     def init_launchers(self):
         self.controller_launcher = self.build_launcher(self.controller_launcher_class, 'Controller')
         self.engine_launcher = self.build_launcher(self.engine_launcher_class, 'EngineSet')
-        self.controller_launcher.on_stop(self.stop_launchers)
     
     def engines_stopped(self, r):
         """prevent parent.engines_stopped from stopping everything on engine shutdown"""
@@ -500,6 +519,7 @@ class IPClusterStart(IPClusterEngines):
     
     def start_controller(self):
         self.log.info("Starting Controller with %s", self.controller_launcher_class)
+        self.controller_launcher.on_stop(self.stop_launchers)
         self.controller_launcher.start()
 
     def stop_controller(self):

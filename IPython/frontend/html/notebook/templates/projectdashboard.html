@@ -1,43 +1,77 @@
-{% extends layout.html %}
+{% extends page.html %}
 
-{% block title %}
-IPython Dashboard
-{% end %}
+{% block title %}IPython Dashboard{% end %}
 
 {% block stylesheet %}
     <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
 {% end %}
 
-{% block meta %}
-    <meta name="read_only" content="{{read_only}}"/>
-{% end %}
 
 {% block params %}
+
 data-project={{project}}
 data-base-project-url={{base_project_url}}
 data-base-kernel-url={{base_kernel_url}}
+data-read-only={{read_only}}
+
 {% end %}
 
-{% block content_panel %}
-    {% if logged_in or not read_only %}
 
-    <div id="content_toolbar">
-        <span id="drag_info">Drag files onto the list to import
-        notebooks.</span>
+{% block site %}
 
-        <span id="notebooks_buttons">
-          <button id="new_notebook">New Notebook</button>
-        </span>
+<div id="main_app">
+
+<div id="tabs">
+    <ul>
+        <li><a href="#tab1">Notebooks</a></li>
+        <li><a href="#tab2">Clusters</a></li>
+    </ul>
+
+    <div id="tab1">
+        {% if logged_in or not read_only %}
+        <div id="notebook_toolbar">
+            <span id="drag_info">Drag files onto the list to import
+            notebooks.</span>
+
+            <span id="notebook_buttons">
+                <button id="refresh_notebook_list" title="Refresh notebook list">Refresh</button>
+                <button id="new_notebook" title="Create new notebook">New Notebook</button>
+            </span>
+        </div>
+        {% end %}
+
+        <div id="notebook_list">
+            <div id="project_name"><h2>{{project}}</h2></div>
+        </div>
     </div>
+    <div id="tab2">
 
-    {% end %}
+        <div id="cluster_toolbar">
+            <span id="cluster_list_info">IPython parallel computing clusters</span>
 
-    <div id="notebook_list">
-        <div id="project_name"><h2>{{project}}</h2></div>
+            <span id="cluster_buttons">
+                <button id="refresh_cluster_list" title="Refresh cluster list">Refresh</button>
+            </span>
+        </div>
+
+        <div id="cluster_list">
+            <div id="cluster_header">
+                <span>profile</span>
+                <span>action</span>
+                <span title="Enter the number of engines to start or empty for default"># of engines</span>
+                <span>status</span>
+            </div>
+        </div>
+
     </div>
+</div>
+
+</div>
+
 {% end %}
 
 {% block script %}
     <script src="{{static_url("js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>
 {% end %}

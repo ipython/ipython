@@ -1,10 +1,4 @@
 
-.border-box-sizing {
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-}
-
 /* Flexible box model classes */
 /* Taken from Alex Russell http://infrequently.org/2009/08/css-3-progress/ */
  
@@ -100,31 +94,4 @@
 	-webkit-box-pack: center;
 	-moz-box-pack: center;
 	box-pack: center;
-}
-
-.message {
-    border-width: 1px;
-    border-style: solid;
-    text-align: center;
-    padding: 0.5em;
-    margin: 0.5em 0;
-}
-
-.message.error {
-    background-color: #FFD3D1;
-    border-color: red;
-}
-
-.message.warning {
-    background-color: #FFD09E;
-    border-color: orange;
-}
-
-.message.info {
-    background-color: #CBFFBA;
-    border-color: green;
-}
-
-#content_panel {
-    margin: 0.5em;
 }
