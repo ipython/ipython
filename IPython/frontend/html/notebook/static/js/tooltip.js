@@ -9,13 +9,19 @@
 // Tooltip
 //============================================================================
 
+// Todo : 
+// use codemirror highlight example to 
+// highlight the introspection request and introspect on mouse hove ...
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
+        this.buttons = $('<div/>')
+              .addClass('tooltipbuttons');
         this.text    = $('<div/>')
+          .addClass('tooltiptext')
           .addClass('smalltooltip');
         this.tooltip.css('left',50+'px');
         this.tooltip.css('top',50+'px');
@@ -64,15 +70,18 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-            that.remove_and_cancel_tooltip();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
+            tooltip.addClass('hide');
             });
         //construct the tooltip
-        tooltip.append(closelink);
-        tooltip.append(expandlink);
-        tooltip.append(morelink);
+        this.buttons.append(closelink);
+        this.buttons.append(expandlink);
+        this.buttons.append(morelink);
 
-        tooltip.append(this.text);
+        arrow = $('<div/>').addClass('pretooltiparrow');
+        this.tooltip.append(arrow);
+        this.tooltip.append(this.buttons);
+        this.tooltip.append(this.buttons);
+        this.tooltip.append(this.text);
     };
 
 
@@ -94,9 +103,10 @@ var IPython = (function (IPython) {
     }
     Tooltip.prototype.show = function(reply,pos)
     {
-        this.tooltip.css('left',pos.x+'px');
-        this.tooltip.css('top',pos.yBot+'px');
-    	this.tooltip.removeClass('hidden');
+        this.tooltip.css('left',pos.x-30+'px');
+        this.tooltip.css('top',(pos.yBot+10)+'px');
+    	this.tooltip.removeClass('hidden')
+    	this.tooltip.removeClass('hide');
 
         // build docstring
         defstring = reply.call_def;
