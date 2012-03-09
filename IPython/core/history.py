@@ -717,12 +717,13 @@ def _format_lineno(session, line):
 def magic_history(self, parameter_s = ''):
     """Print input history (_i<n> variables), with most recent last.
 
-    %history       -> prints all history from this session
+    %history [-o -p -t -n] [-f filename] [range | -g pattern | -l number]
 
     By default, input history is printed without line numbers so it can be
     directly pasted into an editor. Use -n to show them.
 
-    Ranges of history can be indicated using the syntax:
+    By default, all input history from the current session is displayed.
+    Ranges of history can be indicated using the syntax: 
     4      : Line 4, current session
     4-6    : Lines 4-6, current session
     243/1-5: Lines 1-5, session 243
