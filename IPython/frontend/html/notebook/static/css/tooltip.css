@@ -108,7 +108,7 @@
 }
 .pretooltiparrow {
   left: 0px;
-  margin-left: -25px;
+  margin-left: 0px;
   top: -16px;
   width: 70px;
   height: 16px;
@@ -118,10 +118,10 @@
 .pretooltiparrow:before {
   background-color: #f7f7f7;
   border: thin silver solid ;
-  z-index: 10;
+  z-index: 11;
   content: "";
   position: absolute;
-  left: 40px;
+  left: 15px;
   top: 10px;
   width: 25px;
   height: 25px;
