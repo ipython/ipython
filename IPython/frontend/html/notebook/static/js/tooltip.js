@@ -20,13 +20,14 @@ var IPython = (function (IPython) {
 
     var Tooltip = function (notebook) {
         this.tooltip = $('#tooltip');
-	var that = this;
-	
-	// contain the button in the upper right corner
+        var that = this;
+        this._hidden = true;
+
+        // contain the button in the upper right corner
         this.buttons = $('<div/>')
               .addClass('tooltipbuttons');
-	
-	// will contain the docstring 
+
+        // will contain the docstring 
         this.text    = $('<div/>')
           .addClass('tooltiptext')
           .addClass('smalltooltip');
@@ -99,12 +100,13 @@ var IPython = (function (IPython) {
     // and reset it's status
     Tooltip.prototype.hide = function()
     {
-	this.tooltip.addClass('hide');
-	$('#expanbutton').removeClass('hidden');
-	this.text.removeClass('bigtooltip');
-	this.text.addClass('smalltooltip');
-	// keep scroll top to be sure to always see the first line
-	this.text.scrollTop(0);
+         this.tooltip.addClass('hide');
+         $('#expanbutton').removeClass('hidden');
+         this.text.removeClass('bigtooltip');
+         this.text.addClass('smalltooltip');
+         // keep scroll top to be sure to always see the first line
+         this.text.scrollTop(0);
+         this._hidden = true;
     }
 
     //TODO, try to diminish the number of parameters.
@@ -125,10 +127,19 @@ var IPython = (function (IPython) {
 
     Tooltip.prototype.show = function(reply,pos)
     {
-        this.tooltip.animate({'left' : pos.x-30+'px'});
-        this.tooltip.animate({'top' :(pos.yBot+10)+'px'});
-    	this.tooltip.removeClass('hidden')
-    	this.tooltip.removeClass('hide');
+        // move the bubble if it is not hidden
+        // otherwise fade it
+        if( this._hidden == false)
+        {
+            this.tooltip.animate({'left' : pos.x-30+'px','top' :(pos.yBot+10)+'px'});
+        } else 
+        {
+            this.tooltip.css({'left' : pos.x-30+'px'});
+            this.tooltip.css({'top' :(pos.yBot+10)+'px'});
+        }
+        this.tooltip.removeClass('hidden')
+        this.tooltip.removeClass('hide');
+        this._hidden = false;
 
         // build docstring
         defstring = reply.call_def;
