@@ -645,20 +645,7 @@ def launch_kernel(*args, **kwargs):
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               *args, **kwargs)
 
-def caller_module_and_locals():
-    """Returns (module, locals) of the caller"""
-    caller = sys._getframe(1).f_back
-    global_ns = caller.f_globals
-    module = sys.modules[global_ns['__name__']]
-    return (module, caller.f_locals)
-
-def embed_kernel(module=None, local_ns=None):
-    """Call this to embed an IPython kernel at the current point in your program. """
-    (caller_module, caller_locals) = caller_module_and_locals()
-    if module is None:
-        module = caller_module
-    if local_ns is None:
-        local_ns = caller_locals
+def embed_kernel(module, local_ns):
     app = IPKernelApp.instance(user_module=module, user_ns=local_ns)
     app.initialize([])
     app.start()

@@ -44,11 +44,6 @@ from .config.loader import Config
 from .core import release
 from .core.application import Application
 from .frontend.terminal.embed import embed
-try:
-    from .zmq.ipkernel import embed_kernel
-except ImportError:
-    def embed_kernel(*args, **kwargs):
-        raise ImportError("IPython.embed_kernel requires pyzmq >= 2.1.4")
 
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
@@ -61,3 +56,21 @@ for author, email in release.authors.itervalues():
     __author__ += author + ' <' + email + '>\n'
 __license__  = release.license
 __version__  = release.version
+
+def caller_module_and_locals():
+    """Returns (module, locals) of the caller"""
+    caller = sys._getframe(2)
+    global_ns = caller.f_globals
+    module = sys.modules[global_ns['__name__']]
+    return (module, caller.f_locals)
+
+def embed_kernel(module=None, local_ns=None):
+    """Call this to embed an IPython kernel at the current point in your program. """
+    (caller_module, caller_locals) = caller_module_and_locals()
+    if module is None:
+        module = caller_module
+    if local_ns is None:
+        local_ns = caller_locals
+    # Only import .zmq when we really need it
+    from .zmq.ipkernel import embed_kernel as real_embed_kernel
+    real_embed_kernel(module, local_ns)
