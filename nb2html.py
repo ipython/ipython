@@ -24,8 +24,8 @@ def unknown_cell(cell):
     """Default converter for cells of unknown type.
     """
 
-    return [rst_directive('.. warning:: Unknown cell'),
-            repr(cell)]
+    return rst_directive('.. warning:: Unknown cell') + \
+      [repr(cell)]
 
 def markdown_cell(cell):
     """convert a markdown cell to rst
@@ -34,8 +34,11 @@ def markdown_cell(cell):
     return [cell.source]
 
 
-def rst_directive(directive, text):
-    return [directive, '', indent(text), '']
+def rst_directive(directive, text=''):
+    out = [directive, '']
+    if text:
+        out.extend([indent(text), ''])
+    return out
 
 def code_cell(cell):
     """Convert a code cell to rst
@@ -49,7 +52,7 @@ def code_cell(cell):
     lines.extend(rst_directive('.. code:: python', cell.input))
     
     for output in cell.outputs:
-        conv = converters[output.output_type]
+        conv = converters.get(output.output_type, unknown_cell)
         lines.extend(conv(output))
 
     return lines
