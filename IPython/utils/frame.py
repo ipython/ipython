@@ -85,10 +85,16 @@ def debugx(expr,pre_msg=''):
 # deactivate it by uncommenting the following line, which makes it a no-op
 #def debugx(expr,pre_msg=''): pass
 
-def caller_module_and_locals():
-    """Returns (module, locals) of the caller"""
-    caller = sys._getframe(2)
-    global_ns = caller.f_globals
+def extract_module_locals(depth=0):
+    """Returns (module, locals) of the funciton `depth` frames away from the caller"""
+    f = sys._getframe(depth + 1)
+    global_ns = f.f_globals
     module = sys.modules[global_ns['__name__']]
-    return (module, caller.f_locals)
+    return (module, f.f_locals)
+
+def extract_module_locals_above():
+    """Returns (module, locals) of the funciton calling the caller.
+    Like extract_module_locals() with a specified depth of 1."""
+    # we're one frame away from the target, the function we call would be two frames away
+    return extract_module_locals(1 + 1)
 
