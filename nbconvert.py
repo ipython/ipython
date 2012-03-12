@@ -151,7 +151,7 @@ def rst2simplehtml(fname):
     # simplest html I could find.  This should help in making it easier to
     # paste into the blogspot html window, though I'm still having problems
     # with linebreaks there...
-    cmd_template = ("rst2html.py --link-stylesheet --no-xml-declaration "
+    cmd_template = ("rst2html --link-stylesheet --no-xml-declaration "
                     "--no-generator --no-datestamp --no-source-link "
                     "--no-toc-backlinks --no-section-numbering "
                     "--strip-comments ")
