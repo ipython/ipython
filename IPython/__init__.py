@@ -49,6 +49,7 @@ from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
 from .utils.sysinfo import sys_info
+from .utils.frame import caller_module_and_locals
 
 # Release data
 __author__ = ''
@@ -56,13 +57,6 @@ for author, email in release.authors.itervalues():
     __author__ += author + ' <' + email + '>\n'
 __license__  = release.license
 __version__  = release.version
-
-def caller_module_and_locals():
-    """Returns (module, locals) of the caller"""
-    caller = sys._getframe(2)
-    global_ns = caller.f_globals
-    module = sys.modules[global_ns['__name__']]
-    return (module, caller.f_locals)
 
 def embed_kernel(module=None, local_ns=None):
     """Call this to embed an IPython kernel at the current point in your program. """

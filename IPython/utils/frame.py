@@ -85,3 +85,10 @@ def debugx(expr,pre_msg=''):
 # deactivate it by uncommenting the following line, which makes it a no-op
 #def debugx(expr,pre_msg=''): pass
 
+def caller_module_and_locals():
+    """Returns (module, locals) of the caller"""
+    caller = sys._getframe(2)
+    global_ns = caller.f_globals
+    module = sys.modules[global_ns['__name__']]
+    return (module, caller.f_locals)
+
