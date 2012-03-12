@@ -27,6 +27,14 @@ def unknown_cell(cell):
     return rst_directive('.. warning:: Unknown cell') + \
       [repr(cell)]
 
+def heading_cell(cell):
+    """convert a heading cell to rst
+
+    Returns list."""
+    heading_level = {1:'=', 2:'-', 3:'`', 4:'\'', 5:'.',6:'~'}
+    marker = heading_level[cell.level]
+    return ['{0}\n{1}\n'.format(cell.source, marker*len(cell.source))]
+
 def markdown_cell(cell):
     """convert a markdown cell to rst
 
@@ -97,7 +105,8 @@ def out_pyout(output):
     return lines
 
 
-converters = dict(code = code_cell,
+converters = dict(heading = heading_cell,
+                  code = code_cell,
                   markdown = markdown_cell,
                   pyout = out_pyout,
                   display_data = out_display,
@@ -165,13 +174,13 @@ def rst2simplehtml(fname):
     # This may only work if there's a real title defined so we get a 'div class'
     # tag, I haven't really tried.
     for line in walker:
-        if line.startswith('<div class'):
+        if line.startswith('<body>'):
             break
 
     newfname = os.path.splitext(fname)[0] + '.html'
     with open(newfname, 'w') as f:
         for line in walker:
-            if line.startswith('</div>'):
+            if line.startswith('</body>'):
                 break
             f.write(line)
             f.write('\n')
