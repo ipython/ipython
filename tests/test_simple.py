@@ -12,7 +12,7 @@ def clean_dir():
 
 @nt.with_setup(clean_dir, clean_dir)
 def test_simple():
-    fname = 'test.ipynb'
+    fname = 'tests/test.ipynb'
     c = ConverterRST(fname)
     f = c.render()
     nt.assert_true('rst' in f, 'changed file extension to rst')
