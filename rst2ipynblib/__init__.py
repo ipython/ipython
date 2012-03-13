@@ -1,8 +1,3 @@
-# $Id$
-# Author: David Goodger
-# Maintainer: docutils-develop@lists.sourceforge.net
-# Copyright: This module has been placed in the public domain.
-
 """
 Simple ipython notebook document tree Writer.
 
@@ -17,15 +12,6 @@ import os.path
 import time
 import re
 import urllib
-try: # check for the Python Imaging Library
-    import PIL
-except ImportError:
-    try:  # sometimes PIL modules are put in PYTHONPATH's root
-        import Image
-        class PIL(object): pass  # dummy wrapper
-        PIL.Image = Image
-    except ImportError:
-        PIL = None
 import docutils
 from docutils import frontend, nodes, utils, writers, languages, io
 from docutils.error_reporting import SafeString
@@ -56,11 +42,6 @@ class Writer(writers.Writer):
             setattr(self, attr, getattr(visitor, attr))
         self.output = '{}'.format(nbformat.writes(visitor.nb,'ipynb'))
 
-    def assemble_parts(self):
-        writers.Writer.assemble_parts(self)
-        for part in self.visitor_attributes:
-            self.parts[part] = ''.join(getattr(self, part))
-
 
 class IPYNBTranslator(nodes.NodeVisitor):
 
@@ -87,23 +68,18 @@ class IPYNBTranslator(nodes.NodeVisitor):
 
     def visit_Text(self, node):
         self.default_visit(node)
-        #text = node.astext()
-        #self.body.append(text)
 
     def depart_Text(self, node):
         self.default_depart(node) 
 
     def visit_block_quote(self, node):
         self.default_visit(node)
-    #    self.body.append(self.starttag(node, 'blockquote'))
 
     def depart_block_quote(self, node):
         self.default_depart(node)
-    #    self.body.append('</blockquote>\n')
 
     def visit_document(self, node):
         self.default_visit(node)
-        pass
 
     def depart_document(self, node):
         self.default_depart(node)    
