@@ -62,6 +62,9 @@ class IPYNBTranslator(nodes.NodeVisitor):
 
     def astext(self):
         return '{}'.format(nbformat.writes(self.nb,'ipynb'))
+
+    def is_ref_error_paragraph(self, p):
+        return p == "Unknown interpreted text role \"ref\"."
     
     def add_cell(self, cell):
         self.nb.worksheets[0].cells.append(cell)
@@ -98,8 +101,18 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_depart(node) 
     
     def visit_paragraph(self, node):
-        p = nbformat.new_text_cell('markdown', source=node.astext())
-        self.add_cell(p)
+        text = node.astext()
+        # For every ref directive a paragraph contains
+        # docutils will generate a paragraph complaining
+        # "Unknown interpreted text role \"ref\"."
+        # this is because ref is a sphinx directive
+        # that does not exist in docutils
+        # looking for a better way to handle this
+        # for now filtering such pargraphs from the output 
+
+        if not self.is_ref_error_paragraph(text):
+            p = nbformat.new_text_cell('markdown', source=text)
+            self.add_cell(p)
 
     def depart_paragraph(self, node):
         self.default_depart(node) 
@@ -202,9 +215,10 @@ class IPYNBTranslator(nodes.NodeVisitor):
     def default_visit(self, node):
         node_class = node.__class__.__name__
         #print '*default_visit', node_class
-        if node_class in ['title','paragraph','literal_block']:
-            #print node.astext()
-            pass
+        #if node_class in ['reference','paragraph','literal_block','title']:
+        if node_class in []:
+            print '*default_visit', node_class
+            print node.astext()
 
     def default_depart(self, node):
         #print '*default depart', node.__class__.__name__
