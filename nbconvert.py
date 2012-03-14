@@ -13,7 +13,7 @@ called nb_figure_NN.png.
 import os
 import subprocess
 import sys
-import argparse
+from IPython.external import argparse
 from IPython.nbformat import current as nbformat
 from IPython.utils.text import indent
 
