@@ -15,7 +15,7 @@ import subprocess
 import sys
 
 from IPython.nbformat import current as nbformat
-from IPython.utils.text import wrap_paragraphs, indent
+from IPython.utils.text import indent
 
 
 # Cell converters
