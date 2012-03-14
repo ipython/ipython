@@ -140,6 +140,12 @@ class ConverterRST(Converter):
         Returns list."""
         return [cell.source]
 
+    def render_plaintext(self, cell):
+        """convert plain text to rst
+
+        Returns list."""
+        return [cell.source]
+
     def render_pyout(self, output):
         """convert pyout part of a code cell to rst
 
