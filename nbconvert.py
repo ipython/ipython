@@ -142,6 +142,7 @@ class ConverterRST(Converter):
 
         lines = ['Out[%s]:' % output.prompt_number, '']
 
+        # output is a dictionary like object with type as a key
         if 'latex' in output:
             lines.extend(rst_directive('.. math::', output.latex))
 
@@ -233,8 +234,8 @@ def rst2simplehtml(fname):
 
 def main(fname):
     """Convert a notebook to html in one step"""
-    newfname = nb2rst(fname)
-    #rst2simplehtml(newfname)
+    converter = ConverterRST(fname)
+    converter.render()
 
 
 if __name__ == '__main__':

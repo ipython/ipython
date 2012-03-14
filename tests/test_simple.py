@@ -1,8 +1,12 @@
-from nbconvert import ConverterRST
+from nbconvert import ConverterRST, main
 import nose.tools as nt
 
 import os
 import glob
+
+fname = 'tests/test.ipynb'
+out_fname = 'tests/test.rst'
+
 
 def clean_dir():
     "Remove .rst files created during conversion"
@@ -12,8 +16,15 @@ def clean_dir():
 
 @nt.with_setup(clean_dir, clean_dir)
 def test_simple():
-    fname = 'tests/test.ipynb'
     c = ConverterRST(fname)
     f = c.render()
     nt.assert_true('rst' in f, 'changed file extension to rst')
 
+
+@nt.with_setup(clean_dir, clean_dir)
+def test_main():
+    """
+    Test main entry point
+    """
+    main(fname)
+    nt.assert_true(os.path.exists(out_fname))
