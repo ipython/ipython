@@ -55,9 +55,8 @@ def test_render_heading():
         nt.assert_true(isinstance(rst_list, list))  # render should return a list
         rst_str = "".join(rst_list)
         # Confirm rst content
-        heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
         chk_str = "Test for heading type H{0}\n{1}\n".format(
-             level, heading_level[level] * 24)
+             level, c.heading_level[level] * 24)
         nt.assert_equal(rst_str, chk_str)
 
 

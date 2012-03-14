@@ -109,13 +109,13 @@ class Converter(object):
 class ConverterRST(Converter):
     extension = 'rst'
     figures_counter = 0
+    heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
 
     def render_heading(self, cell):
         """convert a heading cell to rst
 
         Returns list."""
-        heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
-        marker = heading_level[cell.level]
+        marker = self.heading_level[cell.level]
         return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
     def render_code(self, cell):
