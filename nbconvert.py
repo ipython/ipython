@@ -35,8 +35,6 @@ def rst_directive(directive, text=''):
     return out
 
 # Converters for parts of a cell.
-figures_counter = 1
-
 
 class ConversionException(Exception):
     pass
@@ -47,6 +45,7 @@ class Converter(object):
 
     def __init__(self, fname):
         self.fname = fname
+        self.dirpath = os.path.dirname(fname)
 
     @property
     def extension(self):
@@ -108,6 +107,7 @@ class Converter(object):
 
 class ConverterRST(Converter):
     extension = 'rst'
+    figures_counter = 0
 
     def render_heading(self, cell):
         """convert a heading cell to rst
@@ -131,7 +131,7 @@ class ConverterRST(Converter):
         for output in cell.outputs:
             conv_fn = self.dispatch(output.output_type)
             lines.extend(conv_fn(output))
-
+        
         return lines
 
     def render_markdown(self, cell):
@@ -161,16 +161,15 @@ class ConverterRST(Converter):
 
         Returns list.
         """
-        global figures_counter
-
         lines = []
 
         if 'png' in output:
-            fname = 'nb_figure_%s.png' % figures_counter
-            with open(fname, 'w') as f:
+            fname = 'nb_figure_%s.png' % self.figures_counter
+            fullname = os.path.join(self.dirpath, fname)
+            with open(fullname, 'w') as f:
                 f.write(output.png.decode('base64'))
 
-            figures_counter += 1
+            self.figures_counter += 1
             lines.append('.. image:: %s' % fname)
             lines.append('')
 
