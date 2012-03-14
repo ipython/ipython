@@ -114,6 +114,9 @@ def new_code_cell(input=None, prompt_number=None, outputs=None,
 def new_text_cell(cell_type, source=None, rendered=None):
     """Create a new text cell."""
     cell = NotebookNode()
+    # handle short-lived plaintext name for raw cells
+    if cell_type == 'plaintext':
+        cell_type = 'raw'
     if source is not None:
         cell.source = unicode(source)
     if rendered is not None:
