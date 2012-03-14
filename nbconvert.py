@@ -13,7 +13,7 @@ called nb_figure_NN.png.
 import os
 import subprocess
 import sys
-
+import argparse
 from IPython.nbformat import current as nbformat
 from IPython.utils.text import indent
 
@@ -36,6 +36,7 @@ def rst_directive(directive, text=''):
 
 # Converters for parts of a cell.
 
+
 class ConversionException(Exception):
     pass
 
@@ -43,9 +44,9 @@ class ConversionException(Exception):
 class Converter(object):
     default_encoding = 'utf-8'
 
-    def __init__(self, fname):
-        self.fname = fname
-        self.dirpath = os.path.dirname(fname)
+    def __init__(self, infile):
+        self.infile = infile
+        self.dirpath = os.path.dirname(infile)
 
     @property
     def extension(self):
@@ -66,25 +67,25 @@ class Converter(object):
         return '\n'.join(lines)
 
     def render(self):
-        "read, convert, and save self.fname"
+        "read, convert, and save self.infile"
         self.read()
         self.output = self.convert()
         return self.save()
 
     def read(self):
         "read and parse notebook into NotebookNode called self.nb"
-        with open(self.fname) as f:
+        with open(self.infile) as f:
             self.nb = nbformat.read(f, 'json')
 
-    def save(self, fname=None, encoding=None):
+    def save(self, infile=None, encoding=None):
         "read and parse notebook into self.nb"
-        if fname is None:
-            fname = os.path.splitext(self.fname)[0] + '.' + self.extension
+        if infile is None:
+            infile = os.path.splitext(self.infile)[0] + '.' + self.extension
         if encoding is None:
             encoding = self.default_encoding
-        with open(fname, 'w') as f:
+        with open(infile, 'w') as f:
             f.write(self.output.encode(encoding))
-        return fname
+        return infile
 
     def render_heading(self, cell):
         raise NotImplementedError
@@ -170,13 +171,13 @@ class ConverterRST(Converter):
         lines = []
 
         if 'png' in output:
-            fname = 'nb_figure_%s.png' % self.figures_counter
-            fullname = os.path.join(self.dirpath, fname)
+            infile = 'nb_figure_%s.png' % self.figures_counter
+            fullname = os.path.join(self.dirpath, infile)
             with open(fullname, 'w') as f:
                 f.write(output.png.decode('base64'))
 
             self.figures_counter += 1
-            lines.append('.. image:: %s' % fname)
+            lines.append('.. image:: %s' % infile)
             lines.append('')
 
         return lines
@@ -194,7 +195,7 @@ class ConverterRST(Converter):
         return lines
 
 
-def rst2simplehtml(fname):
+def rst2simplehtml(infile):
     """Convert a rst file to simplified html suitable for blogger.
 
     This just runs rst2html with certain parameters to produce really simple
@@ -211,7 +212,7 @@ def rst2simplehtml(fname):
                     "--no-toc-backlinks --no-section-numbering "
                     "--strip-comments ")
 
-    cmd = "%s %s" % (cmd_template, fname)
+    cmd = "%s %s" % (cmd_template, infile)
     proc = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE,
@@ -232,7 +233,7 @@ def rst2simplehtml(fname):
         if line.startswith('<body>'):
             break
 
-    newfname = os.path.splitext(fname)[0] + '.html'
+    newfname = os.path.splitext(infile)[0] + '.html'
     with open(newfname, 'w') as f:
         for line in walker:
             if line.startswith('</body>'):
@@ -243,11 +244,27 @@ def rst2simplehtml(fname):
     return newfname
 
 
-def main(fname):
+def main(infile, format='rst'):
     """Convert a notebook to html in one step"""
-    converter = ConverterRST(fname)
-    converter.render()
+    if format == 'rst':
+        converter = ConverterRST(infile)
+        converter.render()
+    elif format == 'html':
+        #Currently, conversion to html is a 2 step process, nb->rst->html
+        converter = ConverterRST(infile)
+        rstfname = converter.render()
+        rst2simplehtml(rstfname)
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    parser = argparse.ArgumentParser(description='nbconvert: Convert IPython notebooks to other formats')
+
+    # TODO: consider passing file like object around, rather than filenames
+    # would allow us to process stdin, or even http streams
+    #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+
+    #Require a filename as a positional argument
+    parser.add_argument('infile', nargs=1)
+    parser.add_argument('-f', '--format', default='rst')
+    args = parser.parse_args()
+    main(infile=args.infile[0], format=args.format)
