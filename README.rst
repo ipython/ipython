@@ -16,6 +16,14 @@ notebooks and standard formats:
 
 As these tools mature, these utilities will be merged into IPython
 
+Requirements
+============
+The latest development version of doctest is required. This can be installed via
+::
+
+    $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.gz
+    $ pip install -U docutils.gz
+
 Running Tests
 =============
 ::
