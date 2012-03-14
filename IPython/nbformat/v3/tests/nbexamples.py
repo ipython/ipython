@@ -33,7 +33,7 @@ ws.cells.append(new_text_cell(
 ))
 
 ws.cells.append(new_text_cell(
-    u'plaintext',
+    u'raw',
     source='A random array',
 ))
 
@@ -106,7 +106,7 @@ import numpy
 
 # A random array
 
-# <plaintextcell>
+# <rawcell>
 
 # A random array
 

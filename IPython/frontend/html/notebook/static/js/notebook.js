@@ -140,8 +140,8 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 84 && that.control_key_active) {
-                // To Plaintext = t
-                that.to_plaintext();
+                // To Raw = t
+                that.to_raw();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 49 && that.control_key_active) {
@@ -523,8 +523,8 @@ var IPython = (function (IPython) {
                 cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
                 cell = new IPython.HTMLCell(this);
-            } else if (type === 'plaintext') {
-                cell = new IPython.PlaintextCell(this);
+            } else if (type === 'raw') {
+                cell = new IPython.RawCell(this);
             } else if (type === 'heading') {
                 cell = new IPython.HeadingCell(this);
             };
@@ -557,8 +557,8 @@ var IPython = (function (IPython) {
                 cell = new IPython.MarkdownCell(this);
             } else if (type === 'html') {
                 cell = new IPython.HTMLCell(this);
-            } else if (type === 'plaintext') {
-                cell = new IPython.PlaintextCell(this);
+            } else if (type === 'raw') {
+                cell = new IPython.RawCell(this);
             } else if (type === 'heading') {
                 cell = new IPython.HeadingCell(this);
             };
@@ -640,14 +640,14 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.to_plaintext = function (index) {
+    Notebook.prototype.to_raw = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             var target_cell = null;
-            if (!(source_cell instanceof IPython.PlaintextCell)) {
-                target_cell = this.insert_cell_below('plaintext',i);
+            if (!(source_cell instanceof IPython.RawCell)) {
+                target_cell = this.insert_cell_below('raw',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';

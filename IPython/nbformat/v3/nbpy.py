@@ -68,11 +68,11 @@ class PyReader(NotebookReader):
                 state = u'markdowncell'
                 cell_lines = []
                 kwargs = {}
-            elif line.startswith(u'# <plaintextcell>'):
+            elif line.startswith(u'# <rawcell>'):
                 cell = self.new_cell(state, cell_lines, **kwargs)
                 if cell is not None:
                     cells.append(cell)
-                state = u'plaintextcell'
+                state = u'rawcell'
                 cell_lines = []
                 kwargs = {}
             elif line.startswith(u'# <headingcell'):
@@ -113,10 +113,10 @@ class PyReader(NotebookReader):
             text = self._remove_comments(lines)
             if text:
                 return new_text_cell(u'markdown',source=text)
-        elif state == u'plaintextcell':
+        elif state == u'rawcell':
             text = self._remove_comments(lines)
             if text:
-                return new_text_cell(u'plaintext',source=text)
+                return new_text_cell(u'raw',source=text)
         elif state == u'headingcell':
             text = self._remove_comments(lines)
             level = kwargs.get('level',1)
@@ -172,10 +172,10 @@ class PyWriter(NotebookWriter):
                         lines.extend([u'# <markdowncell>',u''])
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
-                elif cell.cell_type == u'plaintext':
+                elif cell.cell_type == u'raw':
                     input = cell.get(u'source')
                     if input is not None:
-                        lines.extend([u'# <plaintextcell>',u''])
+                        lines.extend([u'# <rawcell>',u''])
                         lines.extend([u'# ' + line for line in input.splitlines()])
                         lines.append(u'')
                 elif cell.cell_type == u'heading':
