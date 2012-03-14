@@ -11,8 +11,16 @@ import functools
 
 import nose
 
-base = os.path.dirname(os.path.abspath(__file__))
-os.chdir(base)
+from pageobject.driver import port, driver
+
+
+def get_ipython_binary():
+    from IPython.utils.path import get_ipython_module_path
+    from IPython.utils.process import pycmd2argv
+    argv = pycmd2argv(
+        get_ipython_module_path('IPython.frontend.terminal.ipapp'))
+
+    return argv
 
 def log(m):
     print m
@@ -33,14 +41,14 @@ def verify_server_running(port, status):
             status[0] = 'up'
             return
 
-def launch(timeout=3, port=10987, flags=''):
+def launch(timeout=5, port=10987, flags=''):
     log('Firing up IPython notebook...')
 
     ipython_cmd = '''
-        ipython notebook --no-browser --port=%(port)d --user="testuser"
-                         --ipython-dir="." --profile="default" %(flags)s
-                         ''' % {'port': port, 'flags': flags}
-    p = subprocess.Popen(shlex.split(ipython_cmd))
+        notebook --no-browser --port=%(port)d --user="testuser"
+                 --ipython-dir="." --profile="default" %(flags)s
+                  ''' % {'port': port, 'flags': flags}
+    p = subprocess.Popen(get_ipython_binary() + shlex.split(ipython_cmd))
 
     status = ['down']
     t = Thread(target=verify_server_running, args=(port, status))
@@ -58,14 +66,20 @@ def launch(timeout=3, port=10987, flags=''):
     return p
 
 def run_nose(verbose=False):
-    args = ['', '--exe', '-w', './notebook']
+    args = ['', '--exe', '-w', './pageobject']
     if verbose:
         args.extend(['-v', '-s'])
 
-    nose.run('notebook', argv=args)
+    nose.run('pageobject', argv=args)
+
+
+base = os.path.dirname(os.path.abspath(__file__))
+os.chdir(base)
 
 clean_notebooks()
 
-p = launch()
+p = launch(port=port)
 run_nose(verbose=True)
 p.terminate()
+
+driver().quit()
