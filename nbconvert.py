@@ -265,6 +265,7 @@ if __name__ == '__main__':
 
     #Require a filename as a positional argument
     parser.add_argument('infile', nargs=1)
-    parser.add_argument('-f', '--format', default='rst')
+    parser.add_argument('-f', '--format', default='rst',
+                        help='Output format. Supported formats: rst (default), html.')
     args = parser.parse_args()
     main(infile=args.infile[0], format=args.format)
