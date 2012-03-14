@@ -6,8 +6,8 @@ import glob
 
 def clean_dir():
     "Remove .rst files created during conversion"
-    map(os.remove, glob.glob("*.rst"))
-    map(os.remove, glob.glob("*.png"))
+    map(os.remove, glob.glob("./tests/*.rst"))
+    map(os.remove, glob.glob("./tests/*.png"))
 
 
 @nt.with_setup(clean_dir, clean_dir)
