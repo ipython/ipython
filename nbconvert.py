@@ -37,11 +37,14 @@ def rst_directive(directive, text=''):
 # Converters for parts of a cell.
 figures_counter = 1
 
+
 class ConversionException(Exception):
     pass
 
+
 class Converter(object):
     default_encoding = 'utf-8'
+
     def __init__(self, fname):
         self.fname = fname
 
@@ -50,10 +53,10 @@ class Converter(object):
         raise ConversionException("""extension must be defined in Converter
                 subclass""")
 
-    def dispatch(self,cell_type):
+    def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
         """
-        return getattr(self, 'render_'+cell_type, unknown_cell)
+        return getattr(self, 'render_' + cell_type, unknown_cell)
 
     def convert(self):
         lines = []
@@ -74,7 +77,7 @@ class Converter(object):
         with open(self.fname) as f:
             self.nb = nbformat.read(f, 'json')
 
-    def save(self,fname=None, encoding=None):
+    def save(self, fname=None, encoding=None):
         "read and parse notebook into self.nb"
         if fname is None:
             fname = os.path.splitext(self.fname)[0] + '.' + self.extension
@@ -84,35 +87,37 @@ class Converter(object):
             f.write(self.output.encode(encoding))
         return fname
 
-    def render_heading(self,cell):
-         raise NotImplementedError
+    def render_heading(self, cell):
+        raise NotImplementedError
 
-    def render_code(self,cell):
-         raise NotImplementedError
+    def render_code(self, cell):
+        raise NotImplementedError
 
-    def render_markdown(self,cell):
-         raise NotImplementedError
+    def render_markdown(self, cell):
+        raise NotImplementedError
 
-    def render_pyout(self,cell):
-         raise NotImplementedError
+    def render_pyout(self, cell):
+        raise NotImplementedError
 
-    def render_display_data(self,cell):
-         raise NotImplementedError
+    def render_display_data(self, cell):
+        raise NotImplementedError
 
-    def render_stream(self,cell):
-         raise NotImplementedError
+    def render_stream(self, cell):
+        raise NotImplementedError
+
 
 class ConverterRST(Converter):
     extension = 'rst'
-    def render_heading(self,cell):
+
+    def render_heading(self, cell):
         """convert a heading cell to rst
 
         Returns list."""
-        heading_level = {1:'=', 2:'-', 3:'`', 4:'\'', 5:'.',6:'~'}
+        heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
         marker = heading_level[cell.level]
-        return ['{0}\n{1}\n'.format(cell.source, marker*len(cell.source))]
+        return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
-    def render_code(self,cell):
+    def render_code(self, cell):
         """Convert a code cell to rst
 
         Returns list."""
@@ -129,13 +134,13 @@ class ConverterRST(Converter):
 
         return lines
 
-    def render_markdown(self,cell):
+    def render_markdown(self, cell):
         """convert a markdown cell to rst
 
         Returns list."""
         return [cell.source]
 
-    def render_pyout(self,output):
+    def render_pyout(self, output):
         """convert pyout part of a code cell to rst
 
         Returns list."""
@@ -151,7 +156,7 @@ class ConverterRST(Converter):
 
         return lines
 
-    def render_display_data(self,output):
+    def render_display_data(self, output):
         """convert display data from the output of a code cell to rst.
 
         Returns list.
@@ -171,7 +176,7 @@ class ConverterRST(Converter):
 
         return lines
 
-    def render_stream(self,output):
+    def render_stream(self, output):
         """convert stream part of a code cell to rst
 
         Returns list."""
@@ -182,6 +187,7 @@ class ConverterRST(Converter):
             lines.extend(rst_directive('.. parsed-literal::', output.text))
 
         return lines
+
 
 def rst2simplehtml(fname):
     """Convert a rst file to simplified html suitable for blogger.
@@ -228,7 +234,7 @@ def rst2simplehtml(fname):
                 break
             f.write(line)
             f.write('\n')
-            
+
     return newfname
 
 
