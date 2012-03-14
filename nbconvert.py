@@ -86,13 +86,20 @@ class Converter(object):
 
     def render_heading(self,cell):
          raise NotImplementedError
+
     def render_code(self,cell):
          raise NotImplementedError
+
     def render_markdown(self,cell):
          raise NotImplementedError
+
     def render_pyout(self,cell):
          raise NotImplementedError
+
     def render_display_data(self,cell):
+         raise NotImplementedError
+
+    def render_stream(self,cell):
          raise NotImplementedError
 
 class ConverterRST(Converter):
@@ -134,7 +141,7 @@ class ConverterRST(Converter):
         Returns list."""
 
         lines = ['Out[%s]:' % output.prompt_number, '']
-        
+
         if 'latex' in output:
             lines.extend(rst_directive('.. math::', output.latex))
 
@@ -160,7 +167,19 @@ class ConverterRST(Converter):
             figures_counter += 1
             lines.append('.. image:: %s' % fname)
             lines.append('')
-        
+
+        return lines
+
+    def render_stream(self,output):
+        """convert stream part of a code cell to rst
+
+        Returns list."""
+
+        lines = []
+
+        if 'text' in output:
+            lines.extend(rst_directive('.. parsed-literal::', output.text))
+
         return lines
 
 def rst2simplehtml(fname):
