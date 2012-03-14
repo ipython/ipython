@@ -231,11 +231,25 @@ class RichIPythonWidget(IPythonWidget):
             try:
                 svg = str(self._name_to_svg_map[match.group("name")])
             except KeyError:
-                QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
-                    'Cannot convert a PNG to SVG.  To fix this, add this to your ipython config:\n'
-                    'c.InlineBackendConfig.figure_format = \'svg\'',
-                                          QtGui.QMessageBox.Ok)
-                return "<b>Cannot convert a PNG to SVG.  </b>To fix this, add this to your config: <span>c.InlineBackendConfig.figure_format = 'svg'</span>"
+
+                # Determine whether this is a new export by checking whether
+                # we've attempted to export this svg previously.  If so, then
+                # reset the flag that determines whether the warning has been
+                # displayed or not.
+                if match.group("name") in getattr(self, '_svgs_processed', set()):
+                    self._svg_warning_displayed = False
+
+                # Display this warning exactly once per export attempt.
+                if not getattr(self, '_svg_warning_displayed', False):
+                    QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
+                        'Cannot convert a PNG to SVG.  To fix this, add this to your ipython config:\n\n'
+                        '\tc.InlineBackendConfig.figure_format = \'svg\'\n\n'
+                        'And regenerate the figures.',
+                                              QtGui.QMessageBox.Ok)
+                    self._svg_warning_displayed = True
+                    self._svgs_processed = set()
+                self._svgs_processed.add(match.group("name"))
+                return "<b>Cannot convert a PNG to SVG.  </b>To fix this, add this to your config: <span>c.InlineBackendConfig.figure_format = 'svg'</span> and regenerate the figures."
 
             # Not currently checking path, because it's tricky to find a
             # cross-browser way to embed external SVG images (e.g., via
