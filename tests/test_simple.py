@@ -48,7 +48,7 @@ def test_render_heading():
         # Render to rst
         c = ConverterRST('')
         rst_list = c.render_heading(cell_nb)
-        nt.assert_is_instance(rst_list,list) # render should return a list
+        nt.assert_true(isinstance(rst_list,list)) # render should return a list
         rst_str = "".join(rst_list)
         # Confirm rst content
         heading_level = {1:'=', 2:'-', 3:'`', 4:'\'', 5:'.',6:'~'}
