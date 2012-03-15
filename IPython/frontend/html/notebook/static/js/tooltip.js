@@ -46,7 +46,7 @@ var IPython = (function (IPython) {
                   text.removeClass('smalltooltip');
                   text.addClass('bigtooltip');
                   $('#expanbutton').addClass('hidden');
-                  //setTimeout(function(){that.code_mirror.focus();}, 50);
+                  that._cmfocus();
               })
             .append(
         $('<span/>').text('Expand')
@@ -63,10 +63,10 @@ var IPython = (function (IPython) {
             .addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
         morelink.click(function(){
-            var msg_id = IPython.notebook.kernel.execute(name+"?");
+            var msg_id = IPython.notebook.kernel.execute(that.name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
             that.remove_and_cancel_tooltip();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
+            that._cmfocus();
         });
 
         // close the tooltip
@@ -125,10 +125,19 @@ var IPython = (function (IPython) {
         }
     }
 
-    Tooltip.prototype.show = function(reply,pos)
+    Tooltip.prototype.request = function(cell,text)
+    {
+            IPython.notebook.request_tool_tip(cell, text);
+    }
+
+    Tooltip.prototype.show = function(reply, codecell)
     {
         // move the bubble if it is not hidden
         // otherwise fade it
+        var editor = codecell.code_mirror;
+        this.name = reply.name;
+        this.code_mirror = editor;
+        var pos = editor.cursorCoords();
         var xinit = pos.x;
         var xinter = xinit/1000*600;
         var posarrowleft = xinit - xinter;
@@ -176,6 +185,12 @@ var IPython = (function (IPython) {
         IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
         that.remove_and_cancel_tooltip();
         setTimeout(function(){that.code_mirror.focus();}, 50);
+    }
+
+    Tooltip.prototype._cmfocus = function()
+    {
+        var cm = this.code_mirror;
+        setTimeout(function(){cm.focus();}, 50);
     }
 
 

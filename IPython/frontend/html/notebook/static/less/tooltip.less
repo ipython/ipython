@@ -26,6 +26,16 @@
 @borderwidth : 1px;
 @textColor : #000;
 
+// smoth height adaptation
+.smoothheight(@t:1s) {
+    -webkit-transition-property: height;
+    -webkit-transition-duration: 1s;
+    -moz-transition-property: height;
+    -moz-transition-duration: 1s;
+    transition-property: height;
+    transition-duration: 1s;
+}
+
 @-moz-keyframes fadeOut {
     from {opacity:1;}
     to {opacity:0;}
@@ -83,10 +93,12 @@
 .bigtooltip {
     overflow: auto;
     height: 200px;
+    .smoothheight();
 }
 
 /*properties of tooltip before "expand"*/
 .smalltooltip{
+    .smoothheight();
     text-overflow: ellipsis;
     overflow: hidden;
     height:80px;
@@ -103,17 +115,6 @@
 }
 
 .tooltip {
-    -webkit-transition: all 0.8s ease;
-    -moz-transition:    all 0.8s ease;
-    -ms-transition:     all 0.8s ease;
-    -o-transition:      all 0.8s ease;
-    /*transition when "expand"ing tooltip */
-    -webkit-transition-property: height;
-    -webkit-transition-duration: 1s;
-    -moz-transition-property: height;
-    -moz-transition-duration: 1s;
-    transition-property: height;
-    transition-duration: 1s;
     max-width:700px;
     border-radius: 10px 10px 10px 10px;
     box-shadow: 3px 3px 5px #999;
@@ -174,5 +175,4 @@
     -moz-animation: fadeOut 800ms;
     animation: fadeOut 800ms;
     opacity : 0;
-
 }
