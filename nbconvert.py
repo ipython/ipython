@@ -16,7 +16,7 @@ import sys
 from IPython.external import argparse
 from IPython.nbformat import current as nbformat
 from IPython.utils.text import indent
-
+from decorators import DocInherit
 
 # Cell converters
 
@@ -88,21 +88,46 @@ class Converter(object):
         return infile
 
     def render_heading(self, cell):
+        """convert a heading cell
+
+        Returns list."""
         raise NotImplementedError
 
     def render_code(self, cell):
+        """Convert a code cell
+
+        Returns list."""
         raise NotImplementedError
 
     def render_markdown(self, cell):
+        """convert a markdown cell
+
+        Returns list."""
         raise NotImplementedError
 
     def render_pyout(self, cell):
+        """convert pyout part of a code cell
+
+        Returns list."""
         raise NotImplementedError
 
     def render_display_data(self, cell):
+        """convert display data from the output of a code cell
+
+        Returns list.
+        """
         raise NotImplementedError
 
     def render_stream(self, cell):
+        """convert stream part of a code cell
+
+        Returns list."""
+        raise NotImplementedError
+
+    def render_plaintext(self, cell):
+        """convert plain text
+
+        Returns list."""
         raise NotImplementedError
 
 
@@ -111,18 +136,13 @@ class ConverterRST(Converter):
     figures_counter = 0
     heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
 
+    @DocInherit
     def render_heading(self, cell):
-        """convert a heading cell to rst
-
-        Returns list."""
         marker = self.heading_level[cell.level]
         return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
+    @DocInherit
     def render_code(self, cell):
-        """Convert a code cell to rst
-
-        Returns list."""
-
         if not cell.input:
             return []
 
@@ -132,26 +152,19 @@ class ConverterRST(Converter):
         for output in cell.outputs:
             conv_fn = self.dispatch(output.output_type)
             lines.extend(conv_fn(output))
-        
+
         return lines
 
+    @DocInherit
     def render_markdown(self, cell):
-        """convert a markdown cell to rst
-
-        Returns list."""
         return [cell.source]
 
+    @DocInherit
     def render_plaintext(self, cell):
-        """convert plain text to rst
-
-        Returns list."""
         return [cell.source]
 
+    @DocInherit
     def render_pyout(self, output):
-        """convert pyout part of a code cell to rst
-
-        Returns list."""
-
         lines = ['Out[%s]:' % output.prompt_number, '']
 
         # output is a dictionary like object with type as a key
@@ -163,11 +176,8 @@ class ConverterRST(Converter):
 
         return lines
 
+    @DocInherit
     def render_display_data(self, output):
-        """convert display data from the output of a code cell to rst.
-
-        Returns list.
-        """
         lines = []
 
         if 'png' in output:
@@ -182,11 +192,8 @@ class ConverterRST(Converter):
 
         return lines
 
+    @DocInherit
     def render_stream(self, output):
-        """convert stream part of a code cell to rst
-
-        Returns list."""
-
         lines = []
 
         if 'text' in output:
