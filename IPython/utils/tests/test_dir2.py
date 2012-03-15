@@ -16,7 +16,7 @@ class SubClass(Base):
 class SubClass_with_trait_names(Base):
     y = 2 
     def trait_names(self):
-        return 't'
+        return ['t', 'umbrella']
        
 
 def test_base():
@@ -35,7 +35,7 @@ def test_SubClass():
     
 def test_SubClass_with_trait_names():
     res = dir2(SubClass_with_trait_names()) 
-    assert res[-5:] == ['t', 'trait_names', 'x', 'y', 'z'], res
+    assert res[-6:] == ['t', 'trait_names', 'umbrella', 'x', 'y', 'z'], res
     assert res.count('x') == 1, res.count('x')     
 
 
