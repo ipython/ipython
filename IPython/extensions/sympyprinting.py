@@ -30,7 +30,6 @@ try:
 except ImportError:
     pass
 
-
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
 #-----------------------------------------------------------------------------
@@ -55,14 +54,32 @@ def print_png(o):
     png = latex_to_png(s)
     return png
 
+def can_print_latex(o):
+    """
+    Return True if type o can be printed with LaTeX.
+
+    If o is a container type, this is True if and only if every element of o
+    can be printed with LaTeX.
+    """
+    import sympy
+    if isinstance(o, (list, tuple)):
+        return all(can_print_latex(i) for i in o)
+    elif isinstance(o, dict):
+        return all((isinstance(i, basestring) or can_print_latex(i)) and can_print_latex(o[i]) for i in o)
+    elif isinstance(o,(sympy.Basic, sympy.matrices.Matrix, int, long, float)):
+        return True
+    return False
 
 def print_latex(o):
-    """A function to generate the latex representation of sympy expressions."""
-    s = latex(o, mode='plain')
-    s = s.replace('\\dag','\\dagger')
-    s = s.strip('$')
-    return '$$%s$$' % s
-
+    """A function to generate the latex representation of sympy
+    expressions."""
+    if can_print_latex(o):
+        s = latex(o, mode='plain')
+        s = s.replace('\\dag','\\dagger')
+        s = s.strip('$')
+        return '$$%s$$' % s
+    # Fallback to the string printer
+    return None
 
 _loaded = False
 
@@ -73,6 +90,8 @@ def load_ipython_extension(ip):
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
 
         for cls in (object, set, frozenset, str):
+            # set and frozen set are currently broken with SymPy's latex()
+            # function. See http://code.google.com/p/sympy/issues/detail?id=3062.
             plaintext_formatter.for_type(cls, print_basic_unicode)
 
         plaintext_formatter.for_type_by_name(
@@ -97,7 +116,9 @@ def load_ipython_extension(ip):
         latex_formatter.for_type_by_name(
             'sympy.matrices.matrices', 'Matrix', print_latex
         )
-        for cls in (list, tuple, dict, int, long, float):
+
+        for cls in (list, tuple):
+            # Use LaTeX only if every element is printable by latex
             latex_formatter.for_type(cls, print_latex)
 
         _loaded = True
