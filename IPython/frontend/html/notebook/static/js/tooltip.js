@@ -128,7 +128,7 @@ var IPython = (function (IPython) {
     Tooltip.prototype.pending = function(cell,text)
     {
         var that = this;
-        this.timeout = setTimeout(function(){that.request(cell, text)} , IPython.notebook.time_before_tooltip);
+        this.tooltip_timeout = setTimeout(function(){that.request(cell, text)} , IPython.notebook.time_before_tooltip);
     }
     Tooltip.prototype.request = function(cell,text)
     {
@@ -179,11 +179,11 @@ var IPython = (function (IPython) {
             this.text.append(defstring_html);
         }
         this.text.append(pre);
-	// keep scroll top to be sure to always see the first line
-	this.text.scrollTop(0);
+        // keep scroll top to be sure to always see the first line
+        this.text.scrollTop(0);
 
 
-    }	
+    }
 
     Tooltip.prototype.showInPager = function(){
         var msg_id = IPython.notebook.kernel.execute(name+"?");

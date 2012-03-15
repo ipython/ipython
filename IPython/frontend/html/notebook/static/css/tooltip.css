@@ -11,6 +11,11 @@
  * 
  * it it's a less file, don't forget to recompile it 
  */
+/*
+ * We'll try to get something prety, so we
+ * have some strange ccs to have the scroll bar on
+ * the left of the left with fix button on the top right of the tooltip
+ */
 @-moz-keyframes fadeOut {
   from {
     opacity: 1;
@@ -74,6 +79,11 @@
   padding-right: 15px;
   top: 0px;
   right: 0px;
+}
+.tooltiptext {
+  /*avoid the button to overlap on some docstring*/
+
+  padding-right: 30px;
 }
 .tooltip {
   max-width: 700px;
