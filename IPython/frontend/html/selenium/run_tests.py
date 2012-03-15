@@ -11,7 +11,7 @@ import functools
 
 import nose
 
-from pageobject.driver import port, driver
+from pageobject import port, driver
 
 
 def get_ipython_binary():

@@ -1,3 +1,4 @@
 profile_default/history.sqlite
 profile_default/startup/
-
+profile_default/security/
+*.ipynb

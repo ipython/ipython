@@ -1,3 +1,10 @@
 {
-    "port": 10987
+    "port": 10987,
+    "locators": {
+        "notebook": "ipython_notebook",
+        "dashboard.new_notebook": "new_notebook",
+        "dashboard.notebook_name": "notebook_name",
+        "notebook.save_status": "save_status",
+        "notebook.name": "notebook_name"
+    }
 }
