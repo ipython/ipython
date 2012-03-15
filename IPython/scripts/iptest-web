@@ -11,6 +11,11 @@ import functools
 
 import nose
 
+base = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                    '../frontend/html/selenium')
+os.chdir(base)
+
+sys.path.insert(0, base)
 from pageobject import port, driver
 
 
@@ -72,9 +77,6 @@ def run_nose(verbose=False):
 
     nose.run('pageobject', argv=args)
 
-
-base = os.path.dirname(os.path.abspath(__file__))
-os.chdir(base)
 
 clean_notebooks()
 
