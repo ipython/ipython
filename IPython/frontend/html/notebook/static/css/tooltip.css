@@ -97,7 +97,7 @@
   background-image: linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
   overflow: visible;
   color: #000000;
-  border-color: #bbbbbb;
+  border: #bbbbbb 1px solid;
   outline: none;
   padding: 3px;
   margin: 0px;
@@ -108,16 +108,16 @@
 }
 .pretooltiparrow {
   left: 0px;
-  margin-left: 0px;
+  margin: 0px;
   top: -16px;
-  width: 70px;
+  width: 40px;
   height: 16px;
   overflow: hidden;
   position: absolute;
 }
 .pretooltiparrow:before {
   background-color: #f7f7f7;
-  border: thin silver solid ;
+  border: 1px #bbbbbb solid;
   z-index: 11;
   content: "";
   position: absolute;

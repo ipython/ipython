@@ -23,6 +23,7 @@
 @c3 : rgb(227,227,227);
 @c4 : rgb(247,247,247);
 @bordercolor : #BBB;
+@borderwidth : 1px;
 @textColor : #000;
 
 @-moz-keyframes fadeOut {
@@ -102,10 +103,10 @@
 }
 
 .tooltip {
-  -webkit-transition: all 0.8s ease;
-  -moz-transition:    all 0.8s ease;
-  -ms-transition:     all 0.8s ease;
-  -o-transition:      all 0.8s ease;
+    -webkit-transition: all 0.8s ease;
+    -moz-transition:    all 0.8s ease;
+    -ms-transition:     all 0.8s ease;
+    -o-transition:      all 0.8s ease;
     /*transition when "expand"ing tooltip */
     -webkit-transition-property: height;
     -webkit-transition-duration: 1s;
@@ -128,7 +129,7 @@
     .linearGradient(13%,@c1, 39%, @c2 , 56%,@c3, 91% , @c4) ;
     overflow : visible;
     color: @textColor;
-    border-color: @bordercolor;
+    border: @bordercolor @borderwidth solid;
     outline: none;
     padding: 3px;
     margin: 0px;
@@ -141,9 +142,9 @@
 
 .pretooltiparrow {
   left: 0px;
-  margin-left: 0px;
+  margin: 0px;
   top: -16px;
-  width: 70px;
+  width: 40px;
   height: 16px;
   overflow: hidden;
   position: absolute;
@@ -151,7 +152,7 @@
 }
 .pretooltiparrow:before {
   background-color : @c4;
-  border : thin silver solid ; 
+  border : @borderwidth @bordercolor solid; 
   z-index:11;
   content: "";
   position: absolute;
