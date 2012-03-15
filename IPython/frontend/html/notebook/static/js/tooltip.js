@@ -49,12 +49,12 @@ var IPython = (function (IPython) {
                   //setTimeout(function(){that.code_mirror.focus();}, 50);
               })
             .append(
-	 	$('<span/>').text('Expand')
-            	.addClass('ui-icon')
-            	.addClass('ui-icon-plus')
-		);
+        $('<span/>').text('Expand')
+            .addClass('ui-icon')
+            .addClass('ui-icon-plus')
+        );
 
-	// open in pager
+        // open in pager
         var morelink=$('<a/>').attr('href',"#")
             .attr('role',"button")
             .addClass('ui-button');
@@ -69,7 +69,7 @@ var IPython = (function (IPython) {
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
 
-	// close the tooltip
+        // close the tooltip
         var closelink=$('<a/>').attr('href',"#");
             closelink.attr('role',"button");
             closelink.addClass('ui-button');
@@ -78,21 +78,21 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-		that.hide();
+        that.hide();
             });
         
-	//construct the tooltip
-	// add in the reverse order you want them to appear
+        //construct the tooltip
+        // add in the reverse order you want them to appear
         this.buttons.append(closelink);
         this.buttons.append(expandlink);
         this.buttons.append(morelink);
-	
-	// we need a phony element to make the small arrow
-	// of the tooltip in css
-	// we could try to move the arrow later
-        arrow = $('<div/>').addClass('pretooltiparrow');
-        this.tooltip.append(arrow);
+
+        // we need a phony element to make the small arrow
+        // of the tooltip in css
+        // we could try to move the arrow later
+        this.arrow = $('<div/>').addClass('pretooltiparrow');
         this.tooltip.append(this.buttons);
+        this.tooltip.append(this.arrow);
         this.tooltip.append(this.text);
     };
 
@@ -129,14 +129,20 @@ var IPython = (function (IPython) {
     {
         // move the bubble if it is not hidden
         // otherwise fade it
+        var xinit = pos.x;
+        var xinter = xinit/1000*600;
+        var posarrowleft = xinit - xinter;
+        
+
         if( this._hidden == false)
         {
-            this.tooltip.animate({'left' : pos.x-30+'px','top' :(pos.yBot+10)+'px'});
+            this.tooltip.animate({'left' : xinter-30+'px','top' :(pos.yBot+10)+'px'});
         } else 
         {
-            this.tooltip.css({'left' : pos.x-30+'px'});
+            this.tooltip.css({'left' : xinter-30+'px'});
             this.tooltip.css({'top' :(pos.yBot+10)+'px'});
         }
+        this.arrow.animate({'left' : posarrowleft+'px'});
         this.tooltip.removeClass('hidden')
         this.tooltip.removeClass('hide');
         this._hidden = false;
