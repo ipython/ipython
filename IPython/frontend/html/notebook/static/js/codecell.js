@@ -42,6 +42,7 @@ var IPython = (function (IPython) {
             readOnly: this.read_only,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
+        cm = this.code_mirror
         input.append(input_area);
         var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
@@ -60,7 +61,7 @@ var IPython = (function (IPython) {
         } else {
             // Will set a timer to request tooltip in `time`
             that.tooltip_timeout = setTimeout(function(){
-                    IPython.notebook.request_tool_tip(that, pre_cursor)
+                    IPython.tooltip.request(that, pre_cursor)
                 },time);
         }
     };
@@ -76,7 +77,7 @@ var IPython = (function (IPython) {
         }
         
         // note that we are comparing and setting the time to wait at each key press.
-        // a better wqy might be to generate a new function on each time change and
+        // a better way might be to generate a new function on each time change and
         // assign it to CodeCell.prototype.request_tooltip_after_time
         var tooltip_wait_time = this.notebook.time_before_tooltip;
         var tooltip_on_tab    = this.notebook.tooltip_on_tab;
@@ -159,89 +160,8 @@ var IPython = (function (IPython) {
         return false;
     };
 
-
     CodeCell.prototype.finish_tooltip = function (reply) {
-        IPython.tooltip.show(reply,this.code_mirror.cursorCoords());
-        return;
-        // Extract call tip data; the priority is call, init, main.
-        defstring = reply.call_def;
-        if (defstring == null) { defstring = reply.init_definition; }
-        if (defstring == null) { defstring = reply.definition; }
-
-        docstring = reply.call_docstring;
-        if (docstring == null) { docstring = reply.init_docstring; }
-        if (docstring == null) { docstring = reply.docstring; }
-        if (docstring == null) { docstring = "<empty docstring>"; }
-
-        name=reply.name;
-
-        var that = this;
-        var tooltip = $('<div/>').attr('id', 'tooltip').addClass('tooltip');
-        // remove to have the tooltip not Limited in X and Y
-        tooltip.addClass('smalltooltip');
-        var pre=$('<pre/>').html(utils.fixConsole(docstring));
-        var expandlink=$('<a/>').attr('href',"#");
-            expandlink.addClass("ui-corner-all"); //rounded corner
-            expandlink.attr('role',"button");
-            //expandlink.addClass('ui-button');
-            //expandlink.addClass('ui-state-default');
-        var expandspan=$('<span/>').text('Expand');
-            expandspan.addClass('ui-icon');
-            expandspan.addClass('ui-icon-plus');
-        expandlink.append(expandspan);
-        expandlink.attr('id','expanbutton');
-        expandlink.click(function(){
-            tooltip.removeClass('smalltooltip');
-            tooltip.addClass('bigtooltip');
-            $('#expanbutton').remove();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-        });
-        var morelink=$('<a/>').attr('href',"#");
-            morelink.attr('role',"button");
-            morelink.addClass('ui-button');
-            //morelink.addClass("ui-corner-all"); //rounded corner
-            //morelink.addClass('ui-state-default');
-        var morespan=$('<span/>').text('Open in Pager');
-            morespan.addClass('ui-icon');
-            morespan.addClass('ui-icon-arrowstop-l-n');
-        morelink.append(morespan);
-        morelink.click(function(){
-            var msg_id = IPython.notebook.kernel.execute(name+"?");
-            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-            IPython.tooltip.remove_and_cancel_tooltip();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-        });
-
-        var closelink=$('<a/>').attr('href',"#");
-            closelink.attr('role',"button");
-            closelink.addClass('ui-button');
-            //closelink.addClass("ui-corner-all"); //rounded corner
-            //closelink.adClass('ui-state-default'); // grey background and blue cross
-        var closespan=$('<span/>').text('Close');
-            closespan.addClass('ui-icon');
-            closespan.addClass('ui-icon-close');
-        closelink.append(closespan);
-        closelink.click(function(){
-            IPython.tooltip.remove_and_cancel_tooltip();
-            setTimeout(function(){that.code_mirror.focus();}, 50);
-            });
-        //construct the tooltip
-        tooltip.append(closelink);
-        tooltip.append(expandlink);
-        tooltip.append(morelink);
-        if(defstring){
-            defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
-            tooltip.append(defstring_html);
-        }
-        tooltip.append(pre);
-        var pos = this.code_mirror.cursorCoords();
-        tooltip.css('left',pos.x+'px');
-        tooltip.css('top',pos.yBot+'px');
-        $('body').append(tooltip);
-
-        // issues with cross-closing if multiple tooltip in less than 5sec
-        // keep it comented for now
-        // setTimeout(that.remove_and_cancel_tooltip, 5000);
+        IPython.tooltip.show(reply, this);
     };
 
 
