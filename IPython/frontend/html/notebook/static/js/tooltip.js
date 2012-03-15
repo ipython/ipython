@@ -118,13 +118,18 @@ var IPython = (function (IPython) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-	this.hide();
+        this.hide();
         if (this.tooltip_timeout != null){
             clearTimeout(this.tooltip_timeout);
             this.tooltip_timeout = null;
         }
     }
-
+    
+    Tooltip.prototype.pending = function(cell,text)
+    {
+        var that = this;
+        this.timeout = setTimeout(function(){that.request(cell, text)} , IPython.notebook.time_before_tooltip);
+    }
     Tooltip.prototype.request = function(cell,text)
     {
             IPython.notebook.request_tool_tip(cell, text);
