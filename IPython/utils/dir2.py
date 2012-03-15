@@ -44,49 +44,39 @@ def dir2(obj):
     have such bugs).
     """
 
+    # If the object has the __all__ attribute, return the given list
+    try:
+        return getattr(obj, '__all__')
+    except AttributeError: # Easier To Ask Forgiveness
+        pass
+
     # Start building the attribute list via dir(), and then complete it
     # with a few extra special-purpose calls.
-    words = dir(obj)
+    
+    words = set(dir(obj))
 
     if hasattr(obj,'__class__'):
-        words.append('__class__')
-        words.extend(get_class_members(obj.__class__))
+        words.add('__class__')
+        #words.extend(get_class_members(obj.__class__))
+        words |= set(get_class_members(obj.__class__))
     #if '__base__' in words: 1/0
 
-    # Some libraries (such as traits) may introduce duplicates, we want to
-    # track and clean this up if it happens
-    may_have_dupes = False
-
-    # this is the 'dir' function for objects with Enthought's traits
-    if hasattr(obj, 'trait_names'):
+    # for objects with Enthought's traits, add trait_names() list
+    # for PyCrust-style, add _getAttributeNames() magic method list
+    for attr in ('trait_names', '_getAttributeNames'):
         try:
-            words.extend(obj.trait_names())
-            may_have_dupes = True
+            func = getattr(obj, attr)
+            if callable:
+                words |= set(func())
+        except AttributeError:
+            # getattr catch
+            pass        
         except TypeError:
             # This will happen if `obj` is a class and not an instance.
             pass
-        except AttributeError:
-            # `obj` lied to hasatter (e.g. Pyro), ignore
-            pass
 
-    # Support for PyCrust-style _getAttributeNames magic method.
-    if hasattr(obj, '_getAttributeNames'):
-        try:
-            words.extend(obj._getAttributeNames())
-            may_have_dupes = True
-        except TypeError:
-            # `obj` is a class and not an instance.  Ignore
-            # this error.
-            pass
-        except AttributeError:
-            # `obj` lied to hasatter (e.g. Pyro), ignore
-            pass
-
-    if may_have_dupes:
-        # eliminate possible duplicates, as some traits may also
-        # appear as normal attributes in the dir() call.
-        words = list(set(words))
-        words.sort()
+    words = list(set(words))
+    words.sort()
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
