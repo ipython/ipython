@@ -59,8 +59,10 @@ var IPython = (function (IPython) {
         if (pre_cursor === "" || pre_cursor === "(" ) {
             // don't do anything if line beggin with '(' or is empty
         } else {
-            // Will set a timer to request tooltip in `time`
-            IPython.tooltip.pending(that, pre_cursor)
+            if(time ==0)
+            { IPython.tooltip.request(that, pre_cursor) }
+            else
+            { IPython.tooltip.pending(that, pre_cursor) }
         }
     };
 
