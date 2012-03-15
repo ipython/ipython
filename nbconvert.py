@@ -56,14 +56,17 @@ class Converter(object):
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
         """
+        # XXX: unknown_cell here is RST specific - make it generic
         return getattr(self, 'render_' + cell_type, unknown_cell)
 
     def convert(self):
         lines = []
+        lines.extend(self.optional_header())
         for cell in self.nb.worksheets[0].cells:
             conv_fn = self.dispatch(cell.cell_type)
             lines.extend(conv_fn(cell))
             lines.append('')
+        lines.extend(self.optional_footer())
         return '\n'.join(lines)
 
     def render(self):
@@ -86,6 +89,12 @@ class Converter(object):
         with open(infile, 'w') as f:
             f.write(self.output.encode(encoding))
         return infile
+
+    def optional_header():
+        pass
+
+    def optional_footer():
+        pass
 
     def render_heading(self, cell):
         """convert a heading cell
@@ -201,6 +210,99 @@ class ConverterRST(Converter):
 
         return lines
 
+class ConverterQuickHTML(Converter):
+    extension = 'html'
+    figures_counter = 0
+
+    def optional_header(self):
+        # XXX: inject the IPython standard CSS into here
+        s = """<html>
+        <head>
+        </head>
+
+        <body>
+        """
+        return s.splitlines()
+
+    def optional_footer(self):
+        s = """</body>
+        </html>
+        """
+        return s.splitlines()
+
+    @DocInherit
+    def render_heading(self, cell):
+        marker = cell.level
+        return ['<h{1}>\n  {0}\n</h{1}>'.format(cell.source, marker)]
+
+    @DocInherit
+    def render_code(self, cell):
+        if not cell.input:
+            return []
+
+        lines = ['<table>']
+        lines.append('<tr><td><tt>In [<b>%s</b>]:</tt></td><td><tt>' % cell.prompt_number)
+        lines.append("<br>\n".join(cell.input.splitlines()))
+        lines.append('</tt></td></tr>')
+
+        for output in cell.outputs:
+            lines.append('<tr><td></td><td>')
+            conv_fn = self.dispatch(output.output_type)
+            lines.extend(conv_fn(output))
+            lines.append('</td></tr>')
+        
+        lines.append('</table>')
+        return lines
+
+    @DocInherit
+    def render_markdown(self, cell):
+        return ["<pre>"+cell.source+"</pre>"]
+
+    @DocInherit
+    def render_plaintext(self, cell):
+        return ["<pre>"+cell.source+"</pre>"]
+
+    @DocInherit
+    def render_pyout(self, output):
+        lines = ['<tr><td><tt>Out[<b>%s</b>]:</tt></td></tr>' % output.prompt_number, '<td>']
+
+        # output is a dictionary like object with type as a key
+        if 'latex' in output:
+            lines.append("<pre>")
+            lines.extend(indent(output.latex))
+            lines.append("</pre>")
+
+        if 'text' in output:
+            lines.append("<pre>")
+            lines.extend(indent(output.text))
+            lines.append("</pre>")
+
+        return lines
+
+    @DocInherit
+    def render_display_data(self, output):
+        lines = []
+
+        if 'png' in output:
+            infile = 'nb_figure_%s.png' % self.figures_counter
+            fullname = os.path.join(self.dirpath, infile)
+            with open(fullname, 'w') as f:
+                f.write(output.png.decode('base64'))
+
+            self.figures_counter += 1
+            lines.append('<img src="%s">' % infile)
+            lines.append('')
+
+        return lines
+
+    @DocInherit
+    def render_stream(self, output):
+        lines = []
+
+        if 'text' in output:
+            lines.append(output.text)
+
+        return lines
 
 def rst2simplehtml(infile):
     """Convert a rst file to simplified html suitable for blogger.
@@ -261,6 +363,9 @@ def main(infile, format='rst'):
         converter = ConverterRST(infile)
         rstfname = converter.render()
         rst2simplehtml(rstfname)
+    elif format == 'quick-html':
+        converter = ConverterQuickHTML(infile)
+        rstfname = converter.render()
 
 
 if __name__ == '__main__':
