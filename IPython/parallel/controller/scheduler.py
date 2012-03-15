@@ -512,7 +512,7 @@ class TaskScheduler(SessionFactory):
                         return False
                 if job.targets:
                     # check blacklist+targets for impossibility
-                    job.targets.difference_update(blacklist)
+                    job.targets.difference_update(job.blacklist)
                     if not job.targets or not job.targets.intersection(self.targets):
                         self.depending[msg_id] = job
                         self.fail_unreachable(msg_id)

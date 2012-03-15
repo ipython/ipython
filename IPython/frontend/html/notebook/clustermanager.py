@@ -172,4 +172,4 @@ class ClusterManager(LoggingConfigurable):
 
     def stop_all_clusters(self):
         for p in self.profiles.keys():
-            self.stop_cluster(profile)
+            self.stop_cluster(p)
