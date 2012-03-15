@@ -60,9 +60,7 @@ var IPython = (function (IPython) {
             // don't do anything if line beggin with '(' or is empty
         } else {
             // Will set a timer to request tooltip in `time`
-            that.tooltip_timeout = setTimeout(function(){
-                    IPython.tooltip.request(that, pre_cursor)
-                },time);
+            IPython.tooltip.pending(that, pre_cursor)
         }
     };
 
