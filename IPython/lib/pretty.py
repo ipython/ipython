@@ -347,7 +347,11 @@ class RepresentationPrinter(PrettyPrinter):
                         return printer(obj, self, cycle)
             # Finally look for special method names.
             if hasattr(obj_class, '_repr_pretty_'):
-                return obj_class._repr_pretty_(obj, self, cycle)
+                # Some objects automatically create any requested
+                # attribute. Try to ignore most of them by checking for
+                # callability.
+                if callable(obj_class._repr_pretty_):
+                    return obj_class._repr_pretty_(obj, self, cycle)
             return _default_pprint(obj, self, cycle)
         finally:
             self.end_group()
