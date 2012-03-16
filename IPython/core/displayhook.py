@@ -252,7 +252,11 @@ class DisplayHook(Configurable):
             try:
                 del self.shell.user_ns[key]
             except: pass
-        self.shell.user_ns['_oh'].clear()
+        # In some embedded circumstances, the user_ns doesn't have the
+        # '_oh' key set up.
+        oh = self.shell.user_ns.get('_oh', None)
+        if oh is not None:
+            oh.clear()
 
         # Release our own references to objects:
         self._, self.__, self.___ = '', '', ''
