@@ -91,8 +91,7 @@ class ClusterManager(LoggingConfigurable):
 
     def list_profiles(self):
         self.update_profiles()
-        result = [self.profile_info(p) for p in self.profiles.keys()]
-        result.sort()
+        result = [self.profile_info(p) for p in sorted(self.profiles.keys())]
         return result
 
     def check_profile(self, profile):
