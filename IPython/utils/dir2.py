@@ -19,7 +19,7 @@
 
 def get_class_members(cls):
     ret = dir(cls)
-    if hasattr(cls,'__bases__'):
+    if hasattr(cls, '__bases__'):
         try:
             bases = cls.__bases__
         except AttributeError:
@@ -46,39 +46,43 @@ def dir2(obj):
 
     # If the object has the __all__ attribute, return the given list
     try:
-        return getattr(obj, '__all__')
-    except AttributeError: # Easier To Ask Forgiveness
+        words = getattr(obj, '__all__')
+        if isinstance(words, list):
+            pass
+        elif isinstance(words, tuple) or isinstance(words, set):
+            words = list(words)
+        else:
+            raise TypeError('__all__ has returned %s; should be a list, tuple or set' % type(words))
+
+        words = [w for w in words if isinstance(w, basestring)]
+        return sorted(words)
+
+    except (AttributeError, TypeError): # Easier To Ask Forgiveness
         pass
 
     # Start building the attribute list via dir(), and then complete it
     # with a few extra special-purpose calls.
-    
+
     words = set(dir(obj))
 
-    if hasattr(obj,'__class__'):
-        words.add('__class__')
-        #words.extend(get_class_members(obj.__class__))
+    if hasattr(obj, '__class__'):
+        #words.add('__class__')
         words |= set(get_class_members(obj.__class__))
-    #if '__base__' in words: 1/0
+
 
     # for objects with Enthought's traits, add trait_names() list
     # for PyCrust-style, add _getAttributeNames() magic method list
     for attr in ('trait_names', '_getAttributeNames'):
         try:
             func = getattr(obj, attr)
-            if callable:
+            if callable(func):
                 words |= set(func())
-        except AttributeError:
-            # getattr catch
-            pass        
-        except TypeError:
-            # This will happen if `obj` is a class and not an instance.
+        except (AttributeError, TypeError):
+            # AttribtueError: getattr catch; TypeError: obj is class not instance
             pass
-
-    words = list(set(words))
-    words.sort()
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
-    return [w for w in words if isinstance(w, basestring)]
 
+    words = [w for w in words if isinstance(w, basestring)]
+    return sorted(words)
