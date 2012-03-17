@@ -42,7 +42,6 @@ var IPython = (function (IPython) {
             readOnly: this.read_only,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
-        cm = this.code_mirror
         input.append(input_area);
         var output = $('<div></div>').addClass('output vbox');
         cell.append(input).append(output);
