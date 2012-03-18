@@ -57,6 +57,7 @@ class IPYNBTranslator(nodes.NodeVisitor):
         # Make sure that the pops correspond to the pushes:
         self.context = []
         self.body = []
+        self.section_level = 0
         ws = nbformat.new_worksheet()
         self.nb = nbformat.new_notebook(worksheets=[ws])
 
@@ -94,7 +95,9 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_depart(node) 
 
     def visit_title(self, node):
-        h = nbformat.new_heading_cell(source=node.astext())
+        #make sure we have a valid heading level between 1 and 6
+        heading_level = min(self.section_level, 5) + 1
+        h = nbformat.new_heading_cell(source=node.astext(),level=heading_level)
         self.add_cell(h)
 
     def depart_title(self, node):
@@ -118,9 +121,11 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_depart(node) 
 
     def visit_section(self, node):
+        self.section_level += 1
         self.default_visit(node)
 
     def depart_section(self, node):
+        self.section_level -= 1
         self.default_depart(node)
 
     def visit_emphasis(self, node):
@@ -155,7 +160,7 @@ class IPYNBTranslator(nodes.NodeVisitor):
 
     def visit_literal_block(self, node):
         raw_text = node.astext()
-        #only include lines that begin with <<<<
+        #only include lines that begin with >>> 
         #we want the example code and not the example output
         processed_text = '\n'.join([line.split('>>>')[1][1:] for line in raw_text.split('\n') if line.startswith('>>>')]) 
         c = nbformat.new_code_cell(input=processed_text)
