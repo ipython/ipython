@@ -23,6 +23,14 @@ var IPython = (function (IPython) {
         var that = this;
         this._hidden = true;
 
+        // variable for consecutive call
+        this._old_cell = null ;
+        this._old_request = null ;
+        this._consecutive_conter = 0;
+
+        // 'sticky ?'
+        this._sticky = false;
+
         // contain the button in the upper right corner
         this.buttons = $('<div/>')
               .addClass('tooltipbuttons');
@@ -33,7 +41,6 @@ var IPython = (function (IPython) {
           .addClass('smalltooltip');
         
         var tooltip = this.tooltip;
-        var text = this.text;
 
 	// build the buttons menu on the upper right
         
@@ -42,12 +49,7 @@ var IPython = (function (IPython) {
               .addClass("ui-corner-all") //rounded corner
               .attr('role',"button")
               .attr('id','expanbutton')
-              .click(function(){
-                  text.removeClass('smalltooltip');
-                  text.addClass('bigtooltip');
-                  $('#expanbutton').addClass('hidden');
-                  that._cmfocus();
-              })
+              .click(function(){that.expand()})
             .append(
         $('<span/>').text('Expand')
             .addClass('ui-icon')
@@ -63,10 +65,7 @@ var IPython = (function (IPython) {
             .addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
         morelink.click(function(){
-            var msg_id = IPython.notebook.kernel.execute(that.name+"?");
-            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-            that.remove_and_cancel_tooltip();
-            that._cmfocus();
+            that.showInPager();
         });
 
         // close the tooltip
@@ -96,6 +95,22 @@ var IPython = (function (IPython) {
         this.tooltip.append(this.text);
     };
 
+    Tooltip.prototype.showInPager = function()
+    {
+            var msg_id = IPython.notebook.kernel.execute(that.name+"?");
+            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
+            this.remove_and_cancel_tooltip();
+            this._cmfocus();
+    }
+
+
+    Tooltip.prototype.expand = function(){
+        this.text.removeClass('smalltooltip');
+        this.text.addClass('bigtooltip');
+        $('#expanbutton').addClass('hidden');
+        this._cmfocus();
+    }
+
     // deal with all the logic of hiding the tooltip
     // and reset it's status
     Tooltip.prototype.hide = function()
@@ -114,11 +129,21 @@ var IPython = (function (IPython) {
     };
 
 
-    Tooltip.prototype.remove_and_cancel_tooltip = function() {
+    Tooltip.prototype.remove_and_cancel_tooltip = function(force) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        this.hide();
+        if(this._sticky == false || force == true)
+        {
+            this.hide();
+        }
+        this.cancel_pending();
+        this._old_cell = null ;
+        this._old_request = null ;
+        this._consecutive_conter = 0;
+    }
+
+    Tooltip.prototype.cancel_pending = function(){
         if (this.tooltip_timeout != null){
             clearTimeout(this.tooltip_timeout);
             this.tooltip_timeout = null;
@@ -128,11 +153,76 @@ var IPython = (function (IPython) {
     Tooltip.prototype.pending = function(cell,text)
     {
         var that = this;
-        this.tooltip_timeout = setTimeout(function(){that.request(cell, text)} , IPython.notebook.time_before_tooltip);
+        this.tooltip_timeout = setTimeout(function(){that.request(cell)} , IPython.notebook.time_before_tooltip);
     }
-    Tooltip.prototype.request = function(cell,text)
+    Tooltip.prototype.request = function(cell)
     {
-            IPython.notebook.request_tool_tip(cell, text);
+        this.cancel_pending();
+        var editor = cell.code_mirror;
+        this.code_mirror = editor;
+        var cursor = editor.getCursor();
+        var text = editor.getRange({line:cursor.line,ch:0},cursor).trim();
+
+        if( this._old_cell == cell && this._old_request == text && this._hidden == false)
+        {
+            this._consecutive_conter = this._consecutive_conter +1;
+        } else {
+            this._old_cell = cell ;
+            this._old_request = text ;
+            this._consecutive_conter =0;
+            this.cancel_stick();
+        }
+
+        if( this._consecutive_conter == 1 )
+        {
+            this.expand()
+            return;
+        }
+        else if( this._consecutive_conter ==  2)
+        {
+            this.stick();
+            return;
+        }
+        else if( this._consecutive_conter ==  3)
+        {
+            console.log('should open in pager');
+            this._old_cell = null ;
+            this._cancel_stick 
+            this._old_request = null ;
+            this._consecutive_conter = 0;
+            this.showInPager();
+            this._cmfocus();
+            return;
+        }
+        else if( this._consecutive_conter ==  4)
+        {
+
+        }
+
+        if (text === "" || text === "(" ) {
+            return;
+            // don't do anything if line beggin with '(' or is empty
+        }
+        IPython.notebook.request_tool_tip(cell, text);
+    }
+    Tooltip.prototype.cancel_stick = function()
+    {
+            clearTimeout(this._stick_timeout);
+            this._sticky = false;
+    }
+
+    Tooltip.prototype.stick = function() 
+    {
+        console.log('tooltip will stick for at least 10 sec');
+        var that = this; 
+        this._sticky = true;
+        this._stick_timeout = setTimeout( function(){
+            that._sticky = false;
+            console.log('tooltip will not stick anymore');
+            }, 10*1000
+        );
+
+
     }
 
     Tooltip.prototype.show = function(reply, codecell)
@@ -142,9 +232,15 @@ var IPython = (function (IPython) {
         var editor = codecell.code_mirror;
         this.name = reply.name;
         this.code_mirror = editor;
+
+        // do some math to have the tooltip arrow on more or less on left or right
+        // width of the editor
+        var w= $(this.code_mirror.getScrollerElement()).width();
+        // ofset of the editor
+        var o= $(this.code_mirror.getScrollerElement()).offset();
         var pos = editor.cursorCoords();
         var xinit = pos.x;
-        var xinter = xinit/1000*600;
+        var xinter = o.left + (xinit-o.left)/w*(w-450);
         var posarrowleft = xinit - xinter;
         
 
@@ -185,11 +281,11 @@ var IPython = (function (IPython) {
 
     }
 
-    Tooltip.prototype.showInPager = function(){
-        var msg_id = IPython.notebook.kernel.execute(name+"?");
+    Tooltip.prototype.showInPager = function(text){
+        var msg_id = IPython.notebook.kernel.execute(this.name+"?");
         IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-        that.remove_and_cancel_tooltip();
-        setTimeout(function(){that.code_mirror.focus();}, 50);
+        this.remove_and_cancel_tooltip(true);
+        this._cmfocus();
     }
 
     Tooltip.prototype._cmfocus = function()
