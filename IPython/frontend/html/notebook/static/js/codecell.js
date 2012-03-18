@@ -20,7 +20,6 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.outputs = [];
         this.collapsed = false;
-        this.tooltip_timeout = null;
         this.clear_out_timeout = null;
         IPython.Cell.apply(this, arguments);
     };
@@ -52,19 +51,6 @@ var IPython = (function (IPython) {
         this.completer = new IPython.Completer(this);
     };
 
-    //TODO, try to diminish the number of parameters.
-    CodeCell.prototype.request_tooltip_after_time = function (pre_cursor,time){
-        var that = this;
-        if (pre_cursor === "" || pre_cursor === "(" ) {
-            // don't do anything if line beggin with '(' or is empty
-        } else {
-            if(time ==0)
-            { IPython.tooltip.request(that, pre_cursor) }
-            else
-            { IPython.tooltip.pending(that, pre_cursor) }
-        }
-    };
-
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
         // This method gets called in CodeMirror's onKeyDown/onKeyPress
         // handlers and is used to provide custom key handling. Its return
@@ -75,15 +61,11 @@ var IPython = (function (IPython) {
             return false;
         }
         
-        // note that we are comparing and setting the time to wait at each key press.
-        // a better way might be to generate a new function on each time change and
-        // assign it to CodeCell.prototype.request_tooltip_after_time
-        var tooltip_wait_time = this.notebook.time_before_tooltip;
         var tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
-        // they are sent, and remove tooltip if any
-        if(event.type === 'keydown' ) {
+        // they are sent, and remove tooltip if any, except for tab again
+        if(event.type === 'keydown' && event.which != key.tab ) {
             IPython.tooltip.remove_and_cancel_tooltip();
         };
 
@@ -91,13 +73,11 @@ var IPython = (function (IPython) {
         if (event.keyCode === key.enter && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
-            // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
+        } else if (event.which === 40 && event.type === 'keypress' && this.notebook.time_before_tooltip >= 0) {
+            // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
-            var cursor = editor.getCursor();
-            var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
-            that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
+            IPython.tooltip.pending(that);
         } else if (event.which === key.upArrow) {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
@@ -126,7 +106,7 @@ var IPython = (function (IPython) {
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
-                that.request_tooltip_after_time(pre_cursor,0);
+                IPython.tooltip.request(that);
                 // Prevent the event from bubbling up.
                 event.stop();
                 // Prevent CodeMirror from handling the tab.
