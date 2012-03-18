@@ -21,11 +21,12 @@ from docutils.math.latex2mathml import parse_latex_math
 from docutils.math.math2html import math2html
 from IPython.nbformat import current as nbformat
 
+
 class Writer(writers.Writer):
 
     supported = ('ipynb')
     """Formats this writer supports."""
-    
+
     visitor_attributes = ()
 
     def get_transforms(self):
@@ -40,7 +41,7 @@ class Writer(writers.Writer):
         self.document.walkabout(visitor)
         for attr in self.visitor_attributes:
             setattr(self, attr, getattr(visitor, attr))
-        self.output = '{}'.format(nbformat.writes(visitor.nb,'ipynb'))
+        self.output = '{}'.format(nbformat.writes(visitor.nb, 'ipynb'))
 
 
 class IPYNBTranslator(nodes.NodeVisitor):
@@ -62,11 +63,11 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.nb = nbformat.new_notebook(worksheets=[ws])
 
     def astext(self):
-        return '{}'.format(nbformat.writes(self.nb,'ipynb'))
+        return '{}'.format(nbformat.writes(self.nb, 'ipynb'))
 
     def is_ref_error_paragraph(self, p):
         return p == "Unknown interpreted text role \"ref\"."
-    
+
     def add_cell(self, cell):
         self.nb.worksheets[0].cells.append(cell)
 
@@ -74,7 +75,7 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_visit(node)
 
     def depart_Text(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_block_quote(self, node):
         self.default_visit(node)
@@ -86,23 +87,24 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_visit(node)
 
     def depart_document(self, node):
-        self.default_depart(node)    
+        self.default_depart(node)
 
     def visit_admonition(self, node):
         self.default_visit(node)
 
     def depart_admonition(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_title(self, node):
         #make sure we have a valid heading level between 1 and 6
         heading_level = min(self.section_level, 5) + 1
-        h = nbformat.new_heading_cell(source=node.astext(),level=heading_level)
+        h = nbformat.new_heading_cell(source=node.astext(),
+                                      level=heading_level)
         self.add_cell(h)
 
     def depart_title(self, node):
-        self.default_depart(node) 
-    
+        self.default_depart(node)
+
     def visit_paragraph(self, node):
         text = node.astext()
         # For every ref directive a paragraph contains
@@ -111,14 +113,14 @@ class IPYNBTranslator(nodes.NodeVisitor):
         # this is because ref is a sphinx directive
         # that does not exist in docutils
         # looking for a better way to handle this
-        # for now filtering such pargraphs from the output 
+        # for now filtering such pargraphs from the output
 
         if not self.is_ref_error_paragraph(text):
             p = nbformat.new_text_cell('markdown', source=text)
             self.add_cell(p)
 
     def depart_paragraph(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_section(self, node):
         self.section_level += 1
@@ -132,54 +134,56 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.default_visit(node)
 
     def depart_emphasis(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_bullet_list(self, node):
         self.default_visit(node)
 
     def depart_bullet_list(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_list_item(self, node):
-        self.default_visit(node) 
+        self.default_visit(node)
 
     def depart_list_item(self, node):
         self.default_depart(node)
 
     def visit_reference(self, node):
         self.default_visit(node)
-  
+
     def depart_reference(self, node):
-        self.default_depart(node)  
+        self.default_depart(node)
 
     def visit_target(self, node):
         self.default_visit(node)
 
     def depart_target(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_literal_block(self, node):
         raw_text = node.astext()
-        #only include lines that begin with >>> 
+        #only include lines that begin with >>>
         #we want the example code and not the example output
-        processed_text = '\n'.join([line.split('>>>')[1][1:] for line in raw_text.split('\n') if line.startswith('>>>')]) 
+        processed_text = '\n'.join([line.split('>>>')[1][1:]
+                                    for line in raw_text.split('\n')
+                                    if line.startswith('>>>')])
         c = nbformat.new_code_cell(input=processed_text)
         self.add_cell(c)
 
     def depart_literal_block(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_inline(self, node):
         self.default_visit(node)
 
     def depart_inline(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_image(self, node):
         self.default_visit(node)
 
     def depart_image(self, node):
-        self.default_depart(node) 
+        self.default_depart(node)
 
     def visit_topic(self, node):
         self.default_visit(node)
