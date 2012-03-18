@@ -77,7 +77,7 @@ var IPython = (function (IPython) {
             closespan.addClass('ui-icon-close');
         closelink.append(closespan);
         closelink.click(function(){
-        that.hide();
+        that.remove_and_cancel_tooltip(true);
             });
         
         //construct the tooltip
