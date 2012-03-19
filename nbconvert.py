@@ -90,11 +90,11 @@ class Converter(object):
             f.write(self.output.encode(encoding))
         return infile
 
-    def optional_header():
-        pass
+    def optional_header(self):
+        return []
 
-    def optional_footer():
-        pass
+    def optional_footer(self):
+        return []
 
     def render_heading(self, cell):
         """convert a heading cell
