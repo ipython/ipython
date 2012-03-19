@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-"""A really simple notebook to rst/html exporter.
+"""Convert IPython notebooks to other formats, such as ReST, and HTML.
 
-Usage
-
-  ./nb2html.py file.ipynb
+Example:
+  ./nbconvert.py --format html file.ipynb
 
 Produces 'file.rst' and 'file.html', along with auto-generated figure files
-called nb_figure_NN.png.
-
+called nb_figure_NN.png. To avoid the two-step process, ipynb -> rst -> html,
+use '--format quick-html' which will do ipynb -> html, but won't look as
+pretty.
 """
 
 import os
@@ -190,6 +190,9 @@ class ConverterRST(Converter):
         lines = []
 
         if 'png' in output:
+            # XXX: make the figures notebooks specific (i.e. self.infile) so
+            # that multiple notebook conversions don't clobber each other's
+            # figures
             infile = 'nb_figure_%s.png' % self.figures_counter
             fullname = os.path.join(self.dirpath, infile)
             with open(fullname, 'w') as f:
@@ -352,9 +355,13 @@ def rst2simplehtml(infile):
 
     return newfname
 
+known_formats = "rst (default), html, quick-html"
 
 def main(infile, format='rst'):
     """Convert a notebook to html in one step"""
+    # XXX: this is just quick and dirty for now. When adding a new format,
+    # make sure to add it to the `known_formats` string above, which gets
+    # printed in in the catch-all else, as well as in the help
     if format == 'rst':
         converter = ConverterRST(infile)
         converter.render()
@@ -366,11 +373,15 @@ def main(infile, format='rst'):
     elif format == 'quick-html':
         converter = ConverterQuickHTML(infile)
         rstfname = converter.render()
+    else:
+        raise SystemExit("Unknown format '%s', " % format +
+                "known formats are: " + known_formats)
+
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='nbconvert: Convert IPython notebooks to other formats')
-
+    parser = argparse.ArgumentParser(description=__doc__,
+            formatter_class=argparse.RawTextHelpFormatter)
     # TODO: consider passing file like object around, rather than filenames
     # would allow us to process stdin, or even http streams
     #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
@@ -378,6 +389,7 @@ if __name__ == '__main__':
     #Require a filename as a positional argument
     parser.add_argument('infile', nargs=1)
     parser.add_argument('-f', '--format', default='rst',
-                        help='Output format. Supported formats: rst (default), html.')
+                        help='Output format. Supported formats: \n' +
+                        known_formats)
     args = parser.parse_args()
     main(infile=args.infile[0], format=args.format)
