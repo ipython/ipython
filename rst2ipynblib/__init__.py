@@ -41,7 +41,7 @@ class Writer(writers.Writer):
         self.document.walkabout(visitor)
         for attr in self.visitor_attributes:
             setattr(self, attr, getattr(visitor, attr))
-        self.output = '{}'.format(nbformat.writes(visitor.nb, 'ipynb'))
+        self.output = '{0}'.format(nbformat.writes(visitor.nb, 'ipynb'))
 
 
 class IPYNBTranslator(nodes.NodeVisitor):
@@ -63,7 +63,7 @@ class IPYNBTranslator(nodes.NodeVisitor):
         self.nb = nbformat.new_notebook(worksheets=[ws])
 
     def astext(self):
-        return '{}'.format(nbformat.writes(self.nb, 'ipynb'))
+        return '{0}'.format(nbformat.writes(self.nb, 'ipynb'))
 
     def is_ref_error_paragraph(self, p):
         return p == "Unknown interpreted text role \"ref\"."
