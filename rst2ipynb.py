@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 A minimal front end to the Docutils Publisher, producing an ipython notebook.
 """
