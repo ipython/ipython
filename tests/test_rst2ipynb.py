@@ -1,11 +1,12 @@
 import os
 import errno
+import os.path
 import subprocess
 import nose.tools as nt
 
-test_rst_fname = 'tests/tutorial.rst.ref'
-ref_ipynb_fname = 'tests/tutorial.ipynb.ref'
-test_generate_ipynb_fname = 'tests/tutorial.ipynb'
+test_rst_fname = os.path.join('tests', 'tutorial.rst.ref')
+ref_ipynb_fname = os.path.join('tests', 'tutorial.ipynb.ref')
+test_generate_ipynb_fname = os.path.join('tests', 'tutorial.ipynb')
 
 
 def clean_dir():
