@@ -22,5 +22,7 @@ def clean_dir():
 def test_command_line():
     with open(ref_ipynb_fname, 'rb') as f:
         ref_output = f.read()
-    output = subprocess.check_output(['./rst2ipynb.py', test_rst_fname])
+    proc = subprocess.Popen(['./rst2ipynb.py', test_rst_fname],
+                            stdout=subprocess.PIPE)
+    output = proc.communicate()[0]
     nt.assert_equal(ref_output, output)
