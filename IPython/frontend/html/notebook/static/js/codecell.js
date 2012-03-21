@@ -643,13 +643,9 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.append_display_data = function (json, dynamic) {
-        if (dynamic && json.javascript) {
-            this.append_mime_type(json, null, dynamic);
-        } else {
-            var toinsert = this.create_output_area();
-            this.append_mime_type(json, toinsert, dynamic);
-            this.element.find('div.output').append(toinsert);
-        } 
+        var toinsert = this.create_output_area();
+        this.append_mime_type(json, toinsert, dynamic);
+        this.element.find('div.output').append(toinsert);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
             this.typeset();
@@ -683,12 +679,10 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_javascript = function (js, e, dynamic) {
+    CodeCell.prototype.append_javascript = function (js, e) {
         // We just eval the JS code, element appears in the local scope.
-        if (!dynamic) {
-            var element = $("<div/>").addClass("box_flex1 output_subarea");
-            e.append(element);
-        }
+        var element = $("<div/>").addClass("box_flex1 output_subarea");
+        e.append(element);
         eval(js);
     }
 
