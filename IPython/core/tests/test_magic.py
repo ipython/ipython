@@ -9,12 +9,15 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
+import sys
+from StringIO import StringIO
 
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -231,6 +234,23 @@ def test_reset_in_length():
 def test_time():
     _ip.magic('time None')
 
+def test_tb_syntaxerror():
+    """test %tb after a SyntaxError"""
+    ip = get_ipython()
+    ip.run_cell("for")
+    
+    # trap and validate stdout
+    save_stdout = sys.stdout
+    try:
+        sys.stdout = StringIO()
+        ip.run_cell("%tb")
+        out = sys.stdout.getvalue()
+    finally:
+        sys.stdout = save_stdout
+    # trim output, and only check the last line
+    last_line = out.rstrip().splitlines()[-1].strip()
+    nt.assert_equals(last_line, "SyntaxError: invalid syntax")
+
 
 @py3compat.doctest_refactor_print
 def doctest_time():
@@ -394,3 +414,20 @@ def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.magic("prun -q x = '\t'")
     nt.assert_equal(_ip.user_ns['x'], '\t')
+
+def test_extension():
+    tmpdir = TemporaryDirectory()
+    orig_ipython_dir = _ip.ipython_dir
+    try:
+        _ip.ipython_dir = tmpdir.name
+        nt.assert_raises(ImportError, _ip.magic, "load_ext daft_extension")
+        url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
+        _ip.magic("install_ext %s" % url)
+        _ip.user_ns.pop('arq', None)
+        _ip.magic("load_ext daft_extension")
+        tt.assert_equal(_ip.user_ns['arq'], 185)
+        _ip.magic("unload_ext daft_extension")
+        assert 'arq' not in _ip.user_ns
+    finally:
+        _ip.ipython_dir = orig_ipython_dir
+        

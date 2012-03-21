@@ -4,3 +4,15 @@
 
 This document describes in-flight development work.
 
+Redesigned IPython notebook user interface
+------------------------------------------
+
+.. add details
+
+Other new features
+------------------
+
+* **%install_ext**: A new magic function to install an IPython extension from
+  a URL. E.g. ``%install_ext https://bitbucket.org/birkenfeld/ipython-physics/raw/d1310a2ab15d/physics.py``.
+
+

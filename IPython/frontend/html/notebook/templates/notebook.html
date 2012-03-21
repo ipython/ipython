@@ -1,60 +1,49 @@
-<!DOCTYPE HTML>
-<html>
+{% extends page.html %}
 
-<head>
-    <meta charset="utf-8">
+{% block stylesheet %}
 
-    <title>IPython Notebook</title>
+{% if mathjax_url %}
+<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
+{% end %}
+<script type="text/javascript">
+// MathJax disabled, set as null to distingish from *missing* MathJax,
+// where it will be undefined, and should prompt a dialog later.
+window.mathjax_url = "{{mathjax_url}}";
+</script>
 
-    {% if mathjax_url %}
-    <script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
-    {% end %}
-    <script type="text/javascript">
-    // MathJax disabled, set as null to distingish from *missing* MathJax,
-    // where it will be undefined, and should prompt a dialog later.
-    window.mathjax_url = "{{mathjax_url}}";
-    </script>
+<link rel="stylesheet" href="{{ static_url("codemirror/lib/codemirror.css") }}">
+<link rel="stylesheet" href="{{ static_url("codemirror/theme/ipython.css") }}">
 
-    <link rel="stylesheet" href="{{ static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{ static_url("codemirror/lib/codemirror.css") }}">
-    <link rel="stylesheet" href="{{ static_url("codemirror/theme/ipython.css") }}">
+<link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
-    <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
+<link rel="stylesheet" href="{{ static_url("css/notebook.css") }}" type="text/css" />
+<link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
 
-    <link rel="stylesheet" href="{{ static_url("css/boilerplate.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{ static_url("css/layout.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{ static_url("css/base.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{ static_url("css/notebook.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
+{% end %}
 
-    {% comment  In the notebook, the read-only flag is used to determine %}
-    {% comment  whether to hide the side panels and switch off input %}
-    <meta name="read_only" content="{{read_only and not logged_in}}"/>
 
-</head>
+{% block params %}
 
-<body
-    data-project={{project}} data-notebook-id={{notebook_id}}
-    data-base-project-url={{base_project_url}} data-base-kernel-url={{base_kernel_url}}
->
+data-project={{project}}
+data-base-project-url={{base_project_url}}
+data-base-kernel-url={{base_kernel_url}}
+data-read-only={{read_only and not logged_in}}
+data-notebook-id={{notebook_id}}
 
-<div id="header">
-    <span id="ipython_notebook"><h1><a href='..' alt='dashboard'><img src='{{static_url("ipynblogo.png")}}' alt='IPython Notebook'/></a></h1></span>
-    <span id="save_widget">
-        <span id="notebook_name"></span>
-        <span id="save_status"></span>
-    </span>
+{% end %}
 
-    <span id="login_widget">
-      {% comment  This is a temporary workaround to hide the logout button %}
-      {% comment  when appropriate until notebook.html is templated %}
-      {% if logged_in %}
-        <button id="logout">Logout</button>
-      {% elif not logged_in and login_available %}
-        <button id="login">Login</button>
-      {% end %}
-    </span>
-</div>
+
+{% block header %}
+
+<span id="save_widget">
+    <span id="notebook_name"></span>
+    <span id="save_status"></span>
+</span>
+
+{% end %}
+
+
+{% block site %}
 
 <div id="menubar_container">
 <div id="menubar">
@@ -204,8 +193,10 @@
 
 </div>
 
-<script src="{{ static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
+{% end %}
+
+
+{% block script %}
 
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/python/python.js") }}" charset="utf-8"></script>
@@ -221,17 +212,16 @@
 <script src="{{ static_url("prettify/prettify.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
 
-<script src="{{ static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/layoutmanager.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/initmathjax.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/layout.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/quickhelp.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/pager.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/menubar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/toolbar.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -239,6 +229,5 @@
 <script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
-</body>
+{% end %}
 
-</html>

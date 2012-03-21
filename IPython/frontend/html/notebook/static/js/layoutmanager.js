@@ -38,9 +38,9 @@ var IPython = (function (IPython) {
         } else {
             toolbar_height = $('div#toolbar').outerHeight(true);
         }
-        var app_height = h-header_height-menubar_height-toolbar_height-2;  // content height
+        var app_height = h-header_height-menubar_height-toolbar_height;  // content height
 
-        $('div#main_app').height(app_height + 2);  // content+padding+border height
+        $('div#main_app').height(app_height);  // content+padding+border height
 
         var pager_height = IPython.pager.percentage_height*app_height;
         var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
