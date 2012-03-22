@@ -319,9 +319,9 @@ class BaseFormatter(Configurable):
 class PlainTextFormatter(BaseFormatter):
     """The default pretty-printer.
 
-    This uses :mod:`IPython.external.pretty` to compute the format data of
+    This uses :mod:`IPython.lib.pretty` to compute the format data of
     the object. If the object cannot be pretty printed, :func:`repr` is used.
-    See the documentation of :mod:`IPython.external.pretty` for details on
+    See the documentation of :mod:`IPython.lib.pretty` for details on
     how to write pretty printers.  Here is a simple example::
 
         def dtype_pprinter(obj, p, cycle):
@@ -412,7 +412,7 @@ class PlainTextFormatter(BaseFormatter):
                 numpy.set_printoptions(precision=8)
         self.float_format = fmt
 
-    # Use the default pretty printers from IPython.external.pretty.
+    # Use the default pretty printers from IPython.lib.pretty.
     def _singleton_printers_default(self):
         return pretty._singleton_pprinters.copy()
 
