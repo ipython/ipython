@@ -41,9 +41,13 @@ from zmq.log import handlers
 
 # IPython imports
 from IPython.config.application import Application
+from IPython.utils import py3compat
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 from IPython.zmq.log import EnginePUBHandler
+
+if py3compat.PY3:
+    buffer = memoryview
 
 #-----------------------------------------------------------------------------
 # Classes
