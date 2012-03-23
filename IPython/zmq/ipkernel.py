@@ -142,7 +142,7 @@ class Kernel(Configurable):
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
-
+        
         control_msg_types = [ 'clear_request', 'abort_request' ]
         self.control_handlers = {}
         for msg_type in control_msg_types:
@@ -151,7 +151,7 @@ class Kernel(Configurable):
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
-
+        
         try:
             ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
         except Exception:
@@ -170,13 +170,13 @@ class Kernel(Configurable):
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
-        self.log.debug('\n*** MESSAGE TYPE:'+str(msg_type)+'***')
-        self.log.debug('   Content: '+str(msg['content'])+'\n   --->\n   ')
+        self.log.debug('\n*** MESSAGE TYPE:%s***', msg_type)
+        self.log.debug('   Content: %s\n   --->\n   ', msg['content'])
 
         # Find and call actual handler for message
         handler = self.handlers.get(msg_type, None)
         if handler is None:
-            self.log.error("UNKNOWN MESSAGE TYPE:" +str(msg))
+            self.log.error("UNKNOWN MESSAGE TYPE: %s", msg)
         else:
             handler(ident, msg)
 
@@ -267,7 +267,7 @@ class Kernel(Configurable):
             silent = content[u'silent']
         except:
             self.log.error("Got bad msg: ")
-            self.log.error(str(Message(parent)))
+            self.log.error("%s", parent)
             return
 
         shell = self.shell # we'll need this a lot here
@@ -365,7 +365,7 @@ class Kernel(Configurable):
         reply_content = json_clean(reply_content)
         reply_msg = self.session.send(self.shell_socket, u'execute_reply',
                                       reply_content, parent, ident=ident)
-        self.log.debug(str(reply_msg))
+        self.log.debug("%s", reply_msg)
 
         if reply_msg['content']['status'] == u'error':
             self._abort_queue()
@@ -383,7 +383,7 @@ class Kernel(Configurable):
         matches = json_clean(matches)
         completion_msg = self.session.send(self.shell_socket, 'complete_reply',
                                            matches, parent, ident)
-        self.log.debug(str(completion_msg))
+        self.log.debug("%s", completion_msg)
 
     def object_info_request(self, ident, parent):
         content = parent['content']
@@ -394,7 +394,7 @@ class Kernel(Configurable):
         oinfo = json_clean(object_info)
         msg = self.session.send(self.shell_socket, 'object_info_reply',
                                 oinfo, parent, ident)
-        self.log.debug(msg)
+        self.log.debug("%s", msg)
 
     def history_request(self, ident, parent):
         # We need to pull these out, as passing **kwargs doesn't work with
@@ -435,7 +435,7 @@ class Kernel(Configurable):
             content = {}
         msg = self.session.send(self.shell_socket, 'connect_reply',
                                 content, parent, ident)
-        self.log.debug(msg)
+        self.log.debug("%s", msg)
 
     def shutdown_request(self, ident, parent):
         self.shell.exit_now = True
@@ -456,7 +456,7 @@ class Kernel(Configurable):
             msg_id = parent['header']['msg_id']
             # bound = parent['header'].get('bound', False)
         except:
-            self.log.error("Got bad msg: %s"%parent, exc_info=True)
+            self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_stream.send(pyin_msg)
@@ -520,7 +520,7 @@ class Kernel(Configurable):
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
-
+        
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
 
@@ -540,7 +540,7 @@ class Kernel(Configurable):
                 return
 
             self.log.info("Aborting:")
-            self.log.info(str(msg))
+            self.log.info("%s", msg)
             msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
@@ -548,7 +548,7 @@ class Kernel(Configurable):
             # self.reply_socket.send_json(reply_msg)
             reply_msg = self.session.send(stream, reply_type,
                         content={'status' : 'aborted'}, parent=msg, ident=idents)
-            self.log.debug(str(reply_msg))
+            self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.05)
@@ -566,7 +566,7 @@ class Kernel(Configurable):
         content = dict(status='ok')
         reply_msg = self.session.send(stream, 'abort_reply', content=content,
                 parent=parent, ident=ident)
-        self.log.debug(str(reply_msg))
+        self.log.debug("%s", reply_msg)
 
     def clear_request(self, stream, idents, parent):
         """Clear our namespace."""
@@ -593,12 +593,12 @@ class Kernel(Configurable):
                 assert ident is not None, \
                        "Unexpected missing message part."
 
-            self.log.debug("Aborting:\n"+str(Message(msg)))
+            self.log.debug("Aborting:\n%s", msg)
             msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             reply_msg = self.session.send(self.shell_socket, reply_type,
                     {'status' : 'aborted'}, msg, ident=ident)
-            self.log.debug(reply_msg)
+            self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
             time.sleep(0.1)
@@ -631,7 +631,7 @@ class Kernel(Configurable):
             value = reply['content']['value']
         except:
             self.log.error("Got bad raw_input reply: ")
-            self.log.error(str(Message(parent)))
+            self.log.error("%s", parent)
             value = ''
         if value == '\x04':
             # EOF
@@ -688,7 +688,7 @@ class Kernel(Configurable):
         if self._shutdown_message is not None:
             self.session.send(self.shell_socket, self._shutdown_message)
             self.session.send(self.iopub_socket, self._shutdown_message)
-            self.log.debug(str(self._shutdown_message))
+            self.log.debug("%s", self._shutdown_message)
             # A very short sleep to give zmq time to flush its message buffers
             # before Python truly shuts down.
             time.sleep(0.01)
