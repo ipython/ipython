@@ -136,14 +136,22 @@ class Kernel(Configurable):
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'history_request',
-                      'connect_request', 'shutdown_request']
+                      'connect_request', 'shutdown_request',
+                      'apply_request',
+                    ]
         self.handlers = {}
         for msg_type in msg_types:
             self.handlers[msg_type] = getattr(self, msg_type)
 
+        control_msg_types = [ 'clear_request', 'abort_request' ]
+        self.control_handlers = {}
+        for msg_type in control_msg_types:
+            self.control_handlers[msg_type] = getattr(self, msg_type)
+
     def do_one_iteration(self):
         """Do one iteration of the kernel's evaluation loop.
         """
+
         try:
             ident,msg = self.session.recv(self.shell_socket, zmq.NOBLOCK)
         except Exception:
@@ -434,6 +442,139 @@ class Kernel(Configurable):
         self._shutdown_message = self.session.msg(u'shutdown_reply',
                                                   parent['content'], parent)
         sys.exit(0)
+
+    #---------------------------------------------------------------------------
+    # Engine methods
+    #---------------------------------------------------------------------------
+
+    def apply_request(self, stream, ident, parent):
+        # flush previous reply, so this request won't block it
+        stream.flush(zmq.POLLOUT)
+        try:
+            content = parent[u'content']
+            bufs = parent[u'buffers']
+            msg_id = parent['header']['msg_id']
+            # bound = parent['header'].get('bound', False)
+        except:
+            self.log.error("Got bad msg: %s"%parent, exc_info=True)
+            return
+        # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
+        # self.iopub_stream.send(pyin_msg)
+        # self.session.send(self.iopub_stream, u'pyin', {u'code':code},parent=parent)
+        sub = {'dependencies_met' : True, 'engine' : self.ident,
+                'started': datetime.now()}
+        try:
+            # allow for not overriding displayhook
+            if hasattr(sys.displayhook, 'set_parent'):
+                sys.displayhook.set_parent(parent)
+                sys.stdout.set_parent(parent)
+                sys.stderr.set_parent(parent)
+            # exec "f(*args,**kwargs)" in self.user_ns, self.user_ns
+            working = self.user_ns
+            # suffix =
+            prefix = "_"+str(msg_id).replace("-","")+"_"
+
+            f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
+            # if bound:
+            #     bound_ns = Namespace(working)
+            #     args = [bound_ns]+list(args)
+
+            fname = getattr(f, '__name__', 'f')
+
+            fname = prefix+"f"
+            argname = prefix+"args"
+            kwargname = prefix+"kwargs"
+            resultname = prefix+"result"
+
+            ns = { fname : f, argname : args, kwargname : kwargs , resultname : None }
+            # print ns
+            working.update(ns)
+            code = "%s=%s(*%s,**%s)"%(resultname, fname, argname, kwargname)
+            try:
+                exec code in working,working
+                result = working.get(resultname)
+            finally:
+                for key in ns.iterkeys():
+                    working.pop(key)
+            # if bound:
+            #     working.update(bound_ns)
+
+            packed_result,buf = serialize_object(result)
+            result_buf = [packed_result]+buf
+        except:
+            exc_content = self._wrap_exception('apply')
+            # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
+            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
+                                ident=asbytes('%s.pyerr'%self.prefix))
+            reply_content = exc_content
+            result_buf = []
+
+            if exc_content['ename'] == 'UnmetDependency':
+                sub['dependencies_met'] = False
+        else:
+            reply_content = {'status' : 'ok'}
+
+        # put 'ok'/'error' status in header, for scheduler introspection:
+        sub['status'] = reply_content['status']
+
+        # flush i/o
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        reply_msg = self.session.send(stream, u'apply_reply', reply_content,
+                    parent=parent, ident=ident,buffers=result_buf, subheader=sub)
+
+    #---------------------------------------------------------------------------
+    # Control messages
+    #---------------------------------------------------------------------------
+
+    def abort_queues(self):
+        for stream in self.shell_streams:
+            if stream:
+                self.abort_queue(stream)
+
+    def abort_queue(self, stream):
+        while True:
+            idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
+            if msg is None:
+                return
+
+            self.log.info("Aborting:")
+            self.log.info(str(msg))
+            msg_type = msg['header']['msg_type']
+            reply_type = msg_type.split('_')[0] + '_reply'
+            # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
+            # self.reply_socket.send(ident,zmq.SNDMORE)
+            # self.reply_socket.send_json(reply_msg)
+            reply_msg = self.session.send(stream, reply_type,
+                        content={'status' : 'aborted'}, parent=msg, ident=idents)
+            self.log.debug(str(reply_msg))
+            # We need to wait a bit for requests to come in. This can probably
+            # be set shorter for true asynchronous clients.
+            time.sleep(0.05)
+
+    def abort_request(self, stream, ident, parent):
+        """abort a specifig msg by id"""
+        msg_ids = parent['content'].get('msg_ids', None)
+        if isinstance(msg_ids, basestring):
+            msg_ids = [msg_ids]
+        if not msg_ids:
+            self.abort_queues()
+        for mid in msg_ids:
+            self.aborted.add(str(mid))
+
+        content = dict(status='ok')
+        reply_msg = self.session.send(stream, 'abort_reply', content=content,
+                parent=parent, ident=ident)
+        self.log.debug(str(reply_msg))
+
+    def clear_request(self, stream, idents, parent):
+        """Clear our namespace."""
+        self.user_ns = {}
+        msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent,
+                content = dict(status='ok'))
+        self._initial_exec_lines()
+
 
     #---------------------------------------------------------------------------
     # Protected interface
