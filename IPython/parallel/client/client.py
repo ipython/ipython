@@ -628,7 +628,30 @@ class Client(HasTraits):
                 print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
-        self.results[msg_id] = self._unwrap_exception(msg['content'])
+
+        content = msg['content']
+        header = msg['header']
+
+        # construct metadata:
+        md = self.metadata[msg_id]
+        md.update(self._extract_metadata(header, parent, content))
+        # is this redundant?
+        self.metadata[msg_id] = md
+        
+        e_outstanding = self._outstanding_dict[md['engine_uuid']]
+        if msg_id in e_outstanding:
+            e_outstanding.remove(msg_id)
+
+        # construct result:
+        if content['status'] == 'ok':
+            self.results[msg_id] = content
+        elif content['status'] == 'aborted':
+            self.results[msg_id] = error.TaskAborted(msg_id)
+        elif content['status'] == 'resubmitted':
+            # TODO: handle resubmission
+            pass
+        else:
+            self.results[msg_id] = self._unwrap_exception(content)
 
     def _handle_apply_reply(self, msg):
         """Save the reply to an apply_request into our results."""
@@ -1024,7 +1047,7 @@ class Client(HasTraits):
 
         return result
 
-    def send_apply_message(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
+    def send_apply_request(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
                             ident=None):
         """construct and send an apply message via a socket.
 
@@ -1051,6 +1074,41 @@ class Client(HasTraits):
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
                             subheader=subheader, track=track)
+
+        msg_id = msg['header']['msg_id']
+        self.outstanding.add(msg_id)
+        if ident:
+            # possibly routed to a specific engine
+            if isinstance(ident, list):
+                ident = ident[-1]
+            if ident in self._engines.values():
+                # save for later, in case of engine death
+                self._outstanding_dict[ident].add(msg_id)
+        self.history.append(msg_id)
+        self.metadata[msg_id]['submitted'] = datetime.now()
+
+        return msg
+
+    def send_execute_request(self, socket, code, silent=False, subheader=None, ident=None):
+        """construct and send an execute request via a socket.
+
+        """
+
+        assert not self._closed, "cannot use me anymore, I'm closed!"
+        # defaults:
+        subheader = subheader if subheader is not None else {}
+
+        # validate arguments
+        if not isinstance(code, basestring):
+            raise TypeError("code must be text, not %s" % type(code))
+        if not isinstance(subheader, dict):
+            raise TypeError("subheader must be dict, not %s" % type(subheader))
+        
+        content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
+
+
+        msg = self.session.send(socket, "execute_request", content=content, ident=ident,
+                            subheader=subheader)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)

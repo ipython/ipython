@@ -195,7 +195,7 @@ class View(HasTraits):
     @sync_results
     @save_ids
     def _really_apply(self, f, args, kwargs, block=None, **options):
-        """wrapper for client.send_apply_message"""
+        """wrapper for client.send_apply_request"""
         raise NotImplementedError("Implement in subclasses")
 
     def apply(self, f, *args, **kwargs):
@@ -533,7 +533,7 @@ class DirectView(View):
         msg_ids = []
         trackers = []
         for ident in _idents:
-            msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+            msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
                                     ident=ident)
             if track:
                 trackers.append(msg['tracker'])
@@ -546,6 +546,7 @@ class DirectView(View):
             except KeyboardInterrupt:
                 pass
         return ar
+
 
     @spin_after
     def map(self, f, *sequences, **kwargs):
@@ -590,6 +591,8 @@ class DirectView(View):
         pf = ParallelFunction(self, f, block=block, **kwargs)
         return pf.map(*sequences)
 
+    @sync_results
+    @save_ids
     def execute(self, code, targets=None, block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
 
@@ -604,6 +607,23 @@ class DirectView(View):
                 whether or not to wait until done to return
                 default: self.block
         """
+        block = self.block if block is None else block
+        targets = self.targets if targets is None else targets
+
+        _idents = self.client._build_targets(targets)[0]
+        msg_ids = []
+        trackers = []
+        for ident in _idents:
+            msg = self.client.send_execute_request(self._socket, code, ident=ident)
+            msg_ids.append(msg['header']['msg_id'])
+        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=targets)
+        if block:
+            try:
+                ar.get()
+            except KeyboardInterrupt:
+                pass
+        return ar
+        
         return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
 
     def run(self, filename, targets=None, block=None):
@@ -996,7 +1016,7 @@ class LoadBalancedView(View):
         follow = self._render_dependency(follow)
         subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
 
-        msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+        msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
                                 subheader=subheader)
         tracker = None if track is False else msg['tracker']
 
