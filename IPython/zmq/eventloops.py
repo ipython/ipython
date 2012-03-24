@@ -164,7 +164,10 @@ def loop_cocoa(kernel):
     # but still need a Poller for when there are no active windows,
     # during which time mainloop() returns immediately
     poller = zmq.Poller()
-    poller.register(kernel.shell_socket, zmq.POLLIN)
+    if kernel.control_stream:
+        poller.register(kernel.control_stream.socket, zmq.POLLIN)
+    for stream in kernel.shell_streams:
+        poller.register(stream.socket, zmq.POLLIN)
 
     while True:
         try:

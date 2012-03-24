@@ -26,11 +26,13 @@ import uuid
 
 from datetime import datetime
 from signal import (
-        signal, default_int_handler, SIGINT, SIG_IGN
+        signal, getsignal, default_int_handler, SIGINT, SIG_IGN
 )
 
 # System library imports
 import zmq
+from zmq.eventloop import ioloop
+from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
 from IPython.core import pylabtools
@@ -68,13 +70,18 @@ class Kernel(Configurable):
 
     # attribute to override with a GUI
     eventloop = Any(None)
+    def _eventloop_changed(self, name, old, new):
+        """schedule call to eventloop from IOLoop"""
+        loop = ioloop.IOLoop.instance()
+        loop.add_timeout(time.time()+0.1, self.enter_eventloop)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     session = Instance(Session)
     profile_dir = Instance('IPython.core.profiledir.ProfileDir')
-    shell_sockets = List()
-    control_socket = Instance('zmq.Socket')
-    iopub_socket = Instance('zmq.Socket')
+    shell_streams = List()
+    control_stream = Instance(ZMQStream)
+    iopub_stream = Instance(ZMQStream)
+    stdin_socket = Instance(zmq.Socket)
     log = Instance(logging.Logger)
     
     user_module = Instance('types.ModuleType')
@@ -127,13 +134,8 @@ class Kernel(Configurable):
     aborted = Set()
 
 
-
     def __init__(self, **kwargs):
         super(Kernel, self).__init__(**kwargs)
-
-        # Before we even start up the shell, register *first* our exit handlers
-        # so they come before the shell's
-        atexit.register(self._at_shutdown)
 
         # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance(config=self.config,
@@ -142,9 +144,9 @@ class Kernel(Configurable):
             user_ns     = self.user_ns,
         )
         self.shell.displayhook.session = self.session
-        self.shell.displayhook.pub_socket = self.iopub_socket
+        self.shell.displayhook.pub_socket = self.iopub_stream.socket
         self.shell.display_pub.session = self.session
-        self.shell.display_pub.pub_socket = self.iopub_socket
+        self.shell.display_pub.pub_socket = self.iopub_stream.socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -155,135 +157,111 @@ class Kernel(Configurable):
                       'connect_request', 'shutdown_request',
                       'apply_request',
                     ]
-        self.handlers = {}
+        self.shell_handlers = {}
         for msg_type in msg_types:
-            self.handlers[msg_type] = getattr(self, msg_type)
+            self.shell_handlers[msg_type] = getattr(self, msg_type)
         
         control_msg_types = [ 'clear_request', 'abort_request' ]
         self.control_handlers = {}
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
 
-    def do_one_iteration(self):
-        """Do one iteration of the kernel's evaluation loop.
-        """
-        
-        # always flush control socket first
-        while True:
-            if self.control_socket is None:
-                break
-            try:
-                idents,msg = self.session.recv(self.control_socket, zmq.NOBLOCK)
-            except Exception:
-                self.log.warn("Invalid Control Message:", exc_info=True)
-                continue
-            if msg is None:
-                break
-            self.dispatch_message(self.control_socket, idents, msg, self.control_handlers)
-        
-        for socket in self.shell_sockets:
-            try:
-                idents,msg = self.session.recv(socket, zmq.NOBLOCK, copy=False)
-            except Exception:
-                self.log.warn("Invalid Message:", exc_info=True)
-                continue
-            
-            if msg is None:
-                continue
-            
-            self.dispatch_message(socket, idents, msg, self.handlers)
+    def dispatch_control(self, msg):
+        """dispatch control requests"""
+        idents,msg = self.session.feed_identities(msg, copy=False)
+        try:
+            msg = self.session.unserialize(msg, content=True, copy=False)
+        except:
+            self.log.error("Invalid Control Message", exc_info=True)
+            return
 
-    def dispatch_message(self, socket, idents, msg, handlers):
+        self.log.debug("Control received: %s", msg)
+
+        header = msg['header']
+        msg_id = header['msg_id']
+        msg_type = header['msg_type']
+
+        handler = self.control_handlers.get(msg_type, None)
+        if handler is None:
+            self.log.error("UNKNOWN CONTROL MESSAGE TYPE: %r", msg_type)
+        else:
+            handler(self.control_stream, idents, msg)
+    
+    def dispatch_shell(self, stream, msg):
+        """dispatch shell requests"""
+        # flush control requests first
+        if self.control_stream:
+            self.control_stream.flush()
+        
+        idents,msg = self.session.feed_identities(msg, copy=False)
+        try:
+            msg = self.session.unserialize(msg, content=True, copy=False)
+        except:
+            self.log.error("Invalid Message", exc_info=True)
+            return
+
+        header = msg['header']
+        msg_id = header['msg_id']
         msg_type = msg['header']['msg_type']
-        msg_id = msg['header']['msg_id']
-
-        # This assert will raise in versions of zeromq 2.0.7 and lesser.
-        # We now require 2.0.8 or above, so we can uncomment for safety.
-        # print(ident,msg, file=sys.__stdout__)
-        assert idents is not None, "Missing message part."
-
+        
         # Print some info about this message and leave a '--->' marker, so it's
         # easier to trace visually the message chain when debugging.  Each
         # handler prints its message at the end.
         self.log.debug('\n*** MESSAGE TYPE:%s***', msg_type)
         self.log.debug('   Content: %s\n   --->\n   ', msg['content'])
 
-        # check if request has been aborted
         if msg_id in self.aborted:
             self.aborted.remove(msg_id)
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg_type.split('_')[0] + '_reply'
             status = {'status' : 'aborted'}
-            reply_msg = self.session.send(socket, reply_type, subheader=status,
+            reply_msg = self.session.send(stream, reply_type, subheader=status,
                         content=status, parent=msg, ident=idents)
             return
         
-
-        # Find and call actual handler for message
-        handler = handlers.get(msg_type, None)
+        handler = self.shell_handlers.get(msg_type, None)
         if handler is None:
-            self.log.error("UNKNOWN MESSAGE TYPE: %s", msg)
+            self.log.error("UNKNOWN MESSAGE TYPE: %r", msg_type)
         else:
-            handler(socket, idents, msg)
-
-        # Check whether we should exit, in case the incoming message set the
-        # exit flag on
-        if self.shell.exit_now:
-            self.log.debug('\nExiting IPython kernel...')
-            # We do a normal, clean exit, which allows any actions registered
-            # via atexit (such as history saving) to take place.
-            sys.exit(0)
-
+            # ensure default_int_handler during handler call
+            sig = signal(SIGINT, default_int_handler)
+            try:
+                handler(stream, idents, msg)
+            finally:
+                signal(SIGINT, sig)
+    
+    def enter_eventloop(self):
+        """enter eventloop"""
+        self.log.critical("entering eventloop")
+        # restore default_int_handler
+        signal(SIGINT, default_int_handler)
+        self.eventloop(self)
+        self.log.critical("exiting eventloop")
+        # if eventloop exits, IOLoop should stop
+        ioloop.IOLoop.instance().stop()
 
     def start(self):
-        """ Start the kernel main loop.
-        """
-        # a KeyboardInterrupt (SIGINT) can occur on any python statement, so
-        # let's ignore (SIG_IGN) them until we're in a place to handle them properly
-        signal(SIGINT,SIG_IGN)
-        poller = zmq.Poller()
-        for socket in self.shell_sockets:
-            poller.register(socket, zmq.POLLIN)
-        if self.control_socket:
-            poller.register(self.control_socket, zmq.POLLIN)
-        
-        # loop while self.eventloop has not been overridden
-        while self.eventloop is None:
-            try:
-                # scale by extra factor of 10, because there is no
-                # reason for this to be anything less than ~ 0.1s
-                # since it is a real poller and will respond
-                # to events immediately
+        """register dispatchers for streams"""
+        if self.control_stream:
+            self.control_stream.on_recv(self.dispatch_control, copy=False)
 
-                # double nested try/except, to properly catch KeyboardInterrupt
-                # due to pyzmq Issue #130
-                try:
-                    poller.poll(10*1000*self._poll_interval)
-                    # restore raising of KeyboardInterrupt
-                    signal(SIGINT, default_int_handler)
-                    self.do_one_iteration()
-                except:
-                    raise
-                finally:
-                    # prevent raising of KeyboardInterrupt
-                    signal(SIGINT,SIG_IGN)
-            except KeyboardInterrupt:
-                # Ctrl-C shouldn't crash the kernel
-                io.raw_print("KeyboardInterrupt caught in kernel")
-        # stop ignoring sigint, now that we are out of our own loop,
-        # we don't want to prevent future code from handling it
-        signal(SIGINT, default_int_handler)
-        while self.eventloop is not None:
-            try:
-                self.eventloop(self)
-            except KeyboardInterrupt:
-                # Ctrl-C shouldn't crash the kernel
-                io.raw_print("KeyboardInterrupt caught in kernel")
-                continue
-            else:
-                # eventloop exited cleanly, this means we should stop (right?)
-                self.eventloop = None
-                break
+        def make_dispatcher(stream):
+            def dispatcher(msg):
+                return self.dispatch_shell(stream, msg)
+            return dispatcher
+
+        for s in self.shell_streams:
+            s.on_recv(make_dispatcher(s), copy=False)
+    
+    def do_one_iteration(self):
+        """step eventloop just once"""
+        if self.control_stream:
+            self.control_stream.flush()
+        for stream in self.shell_streams:
+            # handle at most one request per iteration
+            stream.flush(zmq.POLLIN, 1)
+            stream.flush(zmq.POLLOUT)
+        self.iopub_stream.flush()
 
 
     def record_ports(self, ports):
@@ -301,12 +279,12 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
 
-        self.session.send(self.iopub_socket, u'pyin', {u'code':code,
+        self.session.send(self.iopub_stream, u'pyin', {u'code':code,
                           u'execution_count': execution_count}, parent=parent)
 
-    def execute_request(self, socket, ident, parent):
+    def execute_request(self, stream, ident, parent):
 
-        self.session.send(self.iopub_socket,
+        self.session.send(self.iopub_stream,
                           u'status',
                           {u'execution_state':u'busy'},
                           parent=parent )
@@ -413,40 +391,40 @@ class Kernel(Configurable):
 
         # Send the reply.
         reply_content = json_clean(reply_content)
-        reply_msg = self.session.send(socket, u'execute_reply',
+        reply_msg = self.session.send(stream, u'execute_reply',
                                       reply_content, parent, ident=ident)
         self.log.debug("%s", reply_msg)
 
         if reply_msg['content']['status'] == u'error':
             self._abort_queues()
 
-        self.session.send(self.iopub_socket,
+        self.session.send(self.iopub_stream,
                           u'status',
                           {u'execution_state':u'idle'},
                           parent=parent )
 
-    def complete_request(self, socket, ident, parent):
+    def complete_request(self, stream, ident, parent):
         txt, matches = self._complete(parent)
         matches = {'matches' : matches,
                    'matched_text' : txt,
                    'status' : 'ok'}
         matches = json_clean(matches)
-        completion_msg = self.session.send(socket, 'complete_reply',
+        completion_msg = self.session.send(stream, 'complete_reply',
                                            matches, parent, ident)
         self.log.debug("%s", completion_msg)
 
-    def object_info_request(self, socket, ident, parent):
+    def object_info_request(self, stream, ident, parent):
         content = parent['content']
         object_info = self.shell.object_inspect(content['oname'],
                         detail_level = content.get('detail_level', 0)
         )
         # Before we send this object over, we scrub it for JSON usage
         oinfo = json_clean(object_info)
-        msg = self.session.send(socket, 'object_info_reply',
+        msg = self.session.send(stream, 'object_info_reply',
                                 oinfo, parent, ident)
         self.log.debug("%s", msg)
 
-    def history_request(self, socket, ident, parent):
+    def history_request(self, stream, ident, parent):
         # We need to pull these out, as passing **kwargs doesn't work with
         # unicode keys before Python 2.6.5.
         hist_access_type = parent['content']['hist_access_type']
@@ -474,30 +452,35 @@ class Kernel(Configurable):
         hist = list(hist)
         content = {'history' : hist}
         content = json_clean(content)
-        msg = self.session.send(socket, 'history_reply',
+        msg = self.session.send(stream, 'history_reply',
                                 content, parent, ident)
         self.log.debug("Sending history reply with %i entries", len(hist))
 
-    def connect_request(self, socket, ident, parent):
+    def connect_request(self, stream, ident, parent):
         if self._recorded_ports is not None:
             content = self._recorded_ports.copy()
         else:
             content = {}
-        msg = self.session.send(socket, 'connect_reply',
+        msg = self.session.send(stream, 'connect_reply',
                                 content, parent, ident)
         self.log.debug("%s", msg)
 
-    def shutdown_request(self, ident, parent):
+    def shutdown_request(self, stream, ident, parent):
         self.shell.exit_now = True
         self._shutdown_message = self.session.msg(u'shutdown_reply',
-                                                  parent['content'], parent)
-        sys.exit(0)
+                                                  parent['content'], parent
+        )
+        # self.session.send(stream, self._shutdown_message, ident=ident)
+
+        self._at_shutdown()
+        # call sys.exit after a short delay
+        ioloop.IOLoop.instance().add_timeout(time.time()+0.05, lambda : sys.exit(0))
 
     #---------------------------------------------------------------------------
     # Engine methods
     #---------------------------------------------------------------------------
 
-    def apply_request(self, socket, ident, parent):
+    def apply_request(self, stream, ident, parent):
         try:
             content = parent[u'content']
             bufs = parent[u'buffers']
@@ -552,7 +535,7 @@ class Kernel(Configurable):
         except:
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.session.send(self.iopub_socket, u'pyerr', exc_content, parent=parent,
+            self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
                                 ident=py3compat.str_to_bytes('%s.pyerr'%self.prefix))
             reply_content = exc_content
             result_buf = []
@@ -569,14 +552,14 @@ class Kernel(Configurable):
         sys.stdout.flush()
         sys.stderr.flush()
         
-        reply_msg = self.session.send(socket, u'apply_reply', reply_content,
+        reply_msg = self.session.send(stream, u'apply_reply', reply_content,
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
 
     #---------------------------------------------------------------------------
     # Control messages
     #---------------------------------------------------------------------------
 
-    def abort_request(self, socket, ident, parent):
+    def abort_request(self, stream, ident, parent):
         """abort a specifig msg by id"""
         msg_ids = parent['content'].get('msg_ids', None)
         if isinstance(msg_ids, basestring):
@@ -587,14 +570,14 @@ class Kernel(Configurable):
             self.aborted.add(str(mid))
 
         content = dict(status='ok')
-        reply_msg = self.session.send(socket, 'abort_reply', content=content,
+        reply_msg = self.session.send(stream, 'abort_reply', content=content,
                 parent=parent, ident=ident)
         self.log.debug("%s", reply_msg)
 
-    def clear_request(self, socket, idents, parent):
+    def clear_request(self, stream, idents, parent):
         """Clear our namespace."""
         self.user_ns = {}
-        msg = self.session.send(socket, 'clear_reply', ident=idents, parent=parent,
+        msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent,
                 content = dict(status='ok'))
         self._initial_exec_lines()
 
@@ -604,13 +587,13 @@ class Kernel(Configurable):
     #---------------------------------------------------------------------------
 
     def _abort_queues(self):
-        for socket in self.shell_sockets:
-            if socket:
-                self._abort_queue(socket)
+        for stream in self.shell_streams:
+            if stream:
+                self._abort_queue(stream)
 
-    def _abort_queue(self, socket):
+    def _abort_queue(self, stream):
         while True:
-            idents,msg = self.session.recv(socket, zmq.NOBLOCK, content=True)
+            idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
             if msg is None:
                 return
 
@@ -619,9 +602,9 @@ class Kernel(Configurable):
             msg_type = msg['header']['msg_type']
             reply_type = msg_type.split('_')[0] + '_reply'
             # reply_msg = self.session.msg(reply_type, {'status' : 'aborted'}, msg)
-            # self.reply_socket.send(ident,zmq.SNDMORE)
-            # self.reply_socket.send_json(reply_msg)
-            reply_msg = self.session.send(socket, reply_type,
+            # self.reply_stream.send(ident,zmq.SNDMORE)
+            # self.reply_stream.send_json(reply_msg)
+            reply_msg = self.session.send(stream, reply_type,
                         content={'status' : 'aborted'}, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -712,12 +695,9 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.session.send(self.shell_socket, self._shutdown_message)
-            self.session.send(self.iopub_socket, self._shutdown_message)
+            self.session.send(self.iopub_stream, self._shutdown_message)
             self.log.debug("%s", self._shutdown_message)
-            # A very short sleep to give zmq time to flush its message buffers
-            # before Python truly shuts down.
-            time.sleep(0.01)
+        [ s.flush(zmq.POLLOUT) for s in self.shell_streams + [self.iopub_stream] ]
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags for the IPKernelApp
@@ -770,10 +750,13 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         self.init_code()
 
     def init_kernel(self):
+        
+        shell_stream = ZMQStream(self.shell_socket)
+        iopub_stream = ZMQStream(self.iopub_socket)
 
         kernel = Kernel(config=self.config, session=self.session,
-                                shell_sockets=[self.shell_socket],
-                                iopub_socket=self.iopub_socket,
+                                shell_streams=[shell_stream],
+                                iopub_stream=iopub_stream,
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
                                 profile_dir=self.profile_dir,

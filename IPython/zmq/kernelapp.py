@@ -15,15 +15,17 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
+# Standard library imports
 import json
 import os
 import sys
+import signal
 
-# System library imports.
+# System library imports
 import zmq
+from zmq.eventloop import ioloop
 
-# IPython imports.
+# IPython imports
 from IPython.core.ultratb import FormattedTB
 from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases, catch_config_error
@@ -267,6 +269,9 @@ class KernelApp(BaseIPythonApplication):
             displayhook_factory = import_item(str(self.displayhook_class))
             sys.displayhook = displayhook_factory(self.session, self.iopub_socket)
 
+    def init_signal(self):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
     def init_kernel(self):
         """Create the Kernel object itself"""
         kernel_factory = import_item(str(self.kernel_class))
@@ -289,6 +294,7 @@ class KernelApp(BaseIPythonApplication):
         # writing connection file must be *after* init_sockets
         self.write_connection_file()
         self.init_io()
+        self.init_signal()
         self.init_kernel()
         # flush stdout/stderr, so that anything written to these streams during
         # initialization do not get associated with the first execution request
@@ -299,8 +305,9 @@ class KernelApp(BaseIPythonApplication):
         self.heartbeat.start()
         if self.poller is not None:
             self.poller.start()
+        self.kernel.start()
         try:
-            self.kernel.start()
+            ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass
 
