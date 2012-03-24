@@ -405,7 +405,10 @@ class Kernel(Configurable):
         self.log.debug("%s", reply_msg)
 
         if reply_msg['content']['status'] == u'error':
-            self._abort_queues()
+            # FIXME: queue_abort on error is disabled
+            # A policy decision must be made
+            pass
+            # self._abort_queues()
 
         self.session.send(self.iopub_stream,
                           u'status',
