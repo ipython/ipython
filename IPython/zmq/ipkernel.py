@@ -185,7 +185,10 @@ class Kernel(Configurable):
         if handler is None:
             self.log.error("UNKNOWN CONTROL MESSAGE TYPE: %r", msg_type)
         else:
-            handler(self.control_stream, idents, msg)
+            try:
+                handler(self.control_stream, idents, msg)
+            except Exception:
+                self.log.error("Exception in control handler:", exc_info=True)
     
     def dispatch_shell(self, stream, msg):
         """dispatch shell requests"""
@@ -227,6 +230,8 @@ class Kernel(Configurable):
             sig = signal(SIGINT, default_int_handler)
             try:
                 handler(stream, idents, msg)
+            except Exception:
+                self.log.error("Exception in message handler:", exc_info=True)
             finally:
                 signal(SIGINT, sig)
     
@@ -363,9 +368,9 @@ class Kernel(Configurable):
         # or not.  If it did, we proceed to evaluate user_variables/expressions
         if reply_content['status'] == 'ok':
             reply_content[u'user_variables'] = \
-                         shell.user_variables(content[u'user_variables'])
+                         shell.user_variables(content.get(u'user_variables', []))
             reply_content[u'user_expressions'] = \
-                         shell.user_expressions(content[u'user_expressions'])
+                         shell.user_expressions(content.get(u'user_expressions', {}))
         else:
             # If there was an error, don't even try to compute variables or
             # expressions
