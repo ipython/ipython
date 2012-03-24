@@ -495,7 +495,6 @@ class Kernel(Configurable):
             content = parent[u'content']
             bufs = parent[u'buffers']
             msg_id = parent['header']['msg_id']
-            # bound = parent['header'].get('bound', False)
         except:
             self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
@@ -510,15 +509,11 @@ class Kernel(Configurable):
                 sys.displayhook.set_parent(parent)
                 sys.stdout.set_parent(parent)
                 sys.stderr.set_parent(parent)
-            # exec "f(*args,**kwargs)" in self.user_ns, self.user_ns
-            working = self.user_ns
-            # suffix =
+            working = self.shell.user_ns
+
             prefix = "_"+str(msg_id).replace("-","")+"_"
 
             f,args,kwargs = unpack_apply_message(bufs, working, copy=False)
-            # if bound:
-            #     bound_ns = Namespace(working)
-            #     args = [bound_ns]+list(args)
 
             fname = getattr(f, '__name__', 'f')
 
@@ -530,15 +525,13 @@ class Kernel(Configurable):
             ns = { fname : f, argname : args, kwargname : kwargs , resultname : None }
             # print ns
             working.update(ns)
-            code = "%s=%s(*%s,**%s)"%(resultname, fname, argname, kwargname)
+            code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
             try:
-                exec code in working,working
+                exec code in self.shell.user_global_ns, self.shell.user_ns
                 result = working.get(resultname)
             finally:
                 for key in ns.iterkeys():
                     working.pop(key)
-            # if bound:
-            #     working.update(bound_ns)
 
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf
@@ -586,16 +579,23 @@ class Kernel(Configurable):
 
     def clear_request(self, stream, idents, parent):
         """Clear our namespace."""
-        self.user_ns = {}
+        self.shell.reset(False)
         msg = self.session.send(stream, 'clear_reply', ident=idents, parent=parent,
                 content = dict(status='ok'))
-        self._initial_exec_lines()
 
 
     #---------------------------------------------------------------------------
     # Protected interface
     #---------------------------------------------------------------------------
 
+
+    def _wrap_exception(self, method=None):
+        # import here, because _wrap_exception is only used in parallel,
+        # and parallel has higher min pyzmq version
+        from IPython.parallel.error import wrap_exception
+        e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method=method)
+        content = wrap_exception(e_info)
+        return content
 
     def _topic(self, topic):
         """prefixed topic for IOPub messages"""
