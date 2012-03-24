@@ -34,8 +34,7 @@ from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url, asbytes
 
 from IPython.zmq.session import Message
-
-from .streamkernel import Kernel
+from IPython.zmq.ipkernel import Kernel
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
@@ -201,7 +200,7 @@ class EngineFactory(RegistrationFactory):
 
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream,
-                    loop=loop, user_ns = self.user_ns, log=self.log)
+                    loop=loop, user_ns=self.user_ns, log=self.log)
             self.kernel.start()
 
 
