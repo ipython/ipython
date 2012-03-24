@@ -284,15 +284,19 @@ class Kernel(Configurable):
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
 
-        self.session.send(self.iopub_stream, u'pyin', {u'code':code,
-                          u'execution_count': execution_count}, parent=parent)
+        self.session.send(self.iopub_stream, u'pyin',
+                            {u'code':code, u'execution_count': execution_count},
+                            parent=parent,
+        )
 
     def execute_request(self, stream, ident, parent):
 
         self.session.send(self.iopub_stream,
                           u'status',
                           {u'execution_state':u'busy'},
-                          parent=parent )
+                          parent=parent,
+                          ident='status',
+                          )
         
         try:
             content = parent[u'content']
