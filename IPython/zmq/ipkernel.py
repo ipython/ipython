@@ -15,7 +15,7 @@ Things to do:
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Standard library imports.
+# Standard library imports
 import __builtin__
 import atexit
 import sys
@@ -28,10 +28,11 @@ from datetime import datetime
 from signal import (
         signal, default_int_handler, SIGINT, SIG_IGN
 )
-# System library imports.
+
+# System library imports
 import zmq
 
-# Local imports.
+# Local imports
 from IPython.core import pylabtools
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
@@ -45,7 +46,7 @@ from IPython.utils import py3compat
 from IPython.utils.frame import extract_module_locals
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
-    Any, Instance, Float, Dict, CaselessStrEnum, List, Set
+    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode
 )
 
 from entry_point import base_launch_kernel
@@ -86,6 +87,14 @@ class Kernel(Configurable):
         if self.shell is not None:
             self.shell.user_ns = new
             self.shell.init_user_ns()
+
+    # identities:
+    int_id = Integer(-1)
+    ident = Unicode()
+
+    def _ident_default(self):
+        return unicode(uuid.uuid4())
+
 
     # Private interface
     
