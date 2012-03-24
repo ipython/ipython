@@ -161,7 +161,7 @@ class Kernel(Configurable):
         for msg_type in msg_types:
             self.shell_handlers[msg_type] = getattr(self, msg_type)
         
-        control_msg_types = [ 'clear_request', 'abort_request' ]
+        control_msg_types = msg_types + [ 'clear_request', 'abort_request' ]
         self.control_handlers = {}
         for msg_type in control_msg_types:
             self.control_handlers[msg_type] = getattr(self, msg_type)
@@ -480,14 +480,17 @@ class Kernel(Configurable):
 
     def shutdown_request(self, stream, ident, parent):
         self.shell.exit_now = True
+        content = dict(status='ok')
+        content.update(parent['content'])
+        self.session.send(stream, u'shutdown_reply', content, parent, ident=ident)
+        # same content, but different msg_id for broadcasting on IOPub
         self._shutdown_message = self.session.msg(u'shutdown_reply',
-                                                  parent['content'], parent
+                                                  content, parent
         )
-        # self.session.send(stream, self._shutdown_message, ident=ident)
 
         self._at_shutdown()
         # call sys.exit after a short delay
-        ioloop.IOLoop.instance().add_timeout(time.time()+0.05, lambda : sys.exit(0))
+        ioloop.IOLoop.instance().add_timeout(time.time()+0.1, lambda : sys.exit(0))
 
     #---------------------------------------------------------------------------
     # Engine methods
@@ -615,6 +618,8 @@ class Kernel(Configurable):
                 self._abort_queue(stream)
 
     def _abort_queue(self, stream):
+        poller = zmq.Poller()
+        poller.register(stream.socket, zmq.POLLIN)
         while True:
             idents,msg = self.session.recv(stream, zmq.NOBLOCK, content=True)
             if msg is None:
@@ -632,7 +637,7 @@ class Kernel(Configurable):
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
             # be set shorter for true asynchronous clients.
-            time.sleep(0.05)
+            poller.poll(50)
 
 
     def _no_raw_input(self):

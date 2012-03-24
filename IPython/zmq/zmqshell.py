@@ -19,7 +19,11 @@ from __future__ import print_function
 import inspect
 import os
 import sys
+import time
 from subprocess import Popen, PIPE
+
+# System library imports
+from zmq.eventloop import ioloop
 
 # Our own
 from IPython.core.interactiveshell import (
@@ -114,6 +118,12 @@ class ZMQInteractiveShell(InteractiveShell):
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
         return ZMQExitAutocall(self)
+    
+    def _exit_now_changed(self, name, old, new):
+        """stop eventloop when exit_now fires"""
+        if new:
+            loop = ioloop.IOLoop.instance()
+            loop.add_timeout(time.time()+0.1, loop.stop)
 
     keepkernel_on_exit = None
 
@@ -154,6 +164,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def ask_exit(self):
         """Engage the exit actions."""
+        self.exit_now = True
         payload = dict(
             source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
             exit=True,
