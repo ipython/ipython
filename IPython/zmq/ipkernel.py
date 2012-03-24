@@ -22,6 +22,9 @@ import sys
 import time
 import traceback
 import logging
+import uuid
+
+from datetime import datetime
 from signal import (
         signal, default_int_handler, SIGINT, SIG_IGN
 )
@@ -47,6 +50,7 @@ from IPython.utils.traitlets import (
 
 from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
+from serialize import serialize_object, unpack_apply_message
 from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
@@ -540,7 +544,7 @@ class Kernel(Configurable):
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_socket, u'pyerr', exc_content, parent=parent,
-                                ident=asbytes('%s.pyerr'%self.prefix))
+                                ident=py3compat.str_to_bytes('%s.pyerr'%self.prefix))
             reply_content = exc_content
             result_buf = []
 
