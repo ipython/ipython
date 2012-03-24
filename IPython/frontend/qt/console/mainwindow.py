@@ -82,7 +82,7 @@ class TabbedConsoleWidget(QtGui.QTabWidget):
         else:
             self.tabBar().setVisible(True)
         if self.count() == 0:
-            self.close()
+            self.parent().close()
 
     def add_tab_with_frontend(self, frontend, name=None):
         """ insert a tab with a given frontend in the tab bar, and give it a
