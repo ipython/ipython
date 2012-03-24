@@ -421,16 +421,16 @@ class TestView(ClusterTestCase):
         sys.stdout = sio
         ip.magic_autopx()
         ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('print b')
+        ip.run_cell('b*=2')
+        ip.run_cell('print (b)')
         ip.run_cell("b/c")
-        ip.run_code(compile('b*=2', '', 'single'))
         ip.magic_autopx()
         sys.stdout = savestdout
         output = sio.getvalue().strip()
         self.assertTrue(output.startswith('%autopx enabled'))
         self.assertTrue(output.endswith('%autopx disabled'))
         self.assertTrue('RemoteError: ZeroDivisionError' in output)
-        ar = v.get_result(-2)
+        ar = v.get_result(-1)
         self.assertEquals(v['a'], 5)
         self.assertEquals(v['b'], 20)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
@@ -446,9 +446,9 @@ class TestView(ClusterTestCase):
         sys.stdout = sio
         ip.magic_autopx()
         ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('print b')
+        ip.run_cell('print (b)')
         ip.run_cell("b/c")
-        ip.run_code(compile('b*=2', '', 'single'))
+        ip.run_cell('b*=2')
         ip.magic_autopx()
         sys.stdout = savestdout
         output = sio.getvalue().strip()
