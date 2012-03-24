@@ -170,7 +170,7 @@ class Kernel(Configurable):
         
         for socket in self.shell_sockets:
             try:
-                idents,msg = self.session.recv(socket, zmq.NOBLOCK)
+                idents,msg = self.session.recv(socket, zmq.NOBLOCK, copy=False)
             except Exception:
                 self.log.warn("Invalid Message:", exc_info=True)
                 continue
