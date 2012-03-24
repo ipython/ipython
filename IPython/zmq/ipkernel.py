@@ -286,7 +286,7 @@ class Kernel(Configurable):
 
         self.session.send(self.iopub_stream, u'pyin',
                             {u'code':code, u'execution_count': execution_count},
-                            parent=parent,
+                            parent=parent, ident=self._topic('pyin')
         )
 
     def execute_request(self, stream, ident, parent):
@@ -295,7 +295,7 @@ class Kernel(Configurable):
                           u'status',
                           {u'execution_state':u'busy'},
                           parent=parent,
-                          ident='status',
+                          ident=self._topic('status'),
                           )
         
         try:
@@ -410,7 +410,8 @@ class Kernel(Configurable):
         self.session.send(self.iopub_stream,
                           u'status',
                           {u'execution_state':u'idle'},
-                          parent=parent )
+                          parent=parent,
+                          ident=self._topic('status'))
 
     def complete_request(self, stream, ident, parent):
         txt, matches = self._complete(parent)
@@ -545,7 +546,7 @@ class Kernel(Configurable):
             exc_content = self._wrap_exception('apply')
             # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
             self.session.send(self.iopub_stream, u'pyerr', exc_content, parent=parent,
-                                ident=py3compat.str_to_bytes('%s.pyerr'%self.prefix))
+                                ident=self._topic('pyerr'))
             reply_content = exc_content
             result_buf = []
 
@@ -595,6 +596,16 @@ class Kernel(Configurable):
     # Protected interface
     #---------------------------------------------------------------------------
 
+
+    def _topic(self, topic):
+        """prefixed topic for IOPub messages"""
+        if self.int_id >= 0:
+            base = "engine.%i" % self.int_id
+        else:
+            base = "kernel.%s" % self.ident
+        
+        return py3compat.cast_bytes("%s.%s" % (base, topic))
+    
     def _abort_queues(self):
         for stream in self.shell_streams:
             if stream:
@@ -704,7 +715,7 @@ class Kernel(Configurable):
         """
         # io.rprint("Kernel at_shutdown") # dbg
         if self._shutdown_message is not None:
-            self.session.send(self.iopub_stream, self._shutdown_message)
+            self.session.send(self.iopub_stream, self._shutdown_message, ident=self._topic('shutdown'))
             self.log.debug("%s", self._shutdown_message)
         [ s.flush(zmq.POLLOUT) for s in self.shell_streams + [self.iopub_stream] ]
 
