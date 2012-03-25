@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Tests for code execution (%run and related), which is particularly tricky.
 
 Because of how %run manages namespaces, and the fact that we are trying here to
