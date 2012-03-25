@@ -620,7 +620,7 @@ def _function_pprint(obj, p, cycle):
 
 def _exception_pprint(obj, p, cycle):
     """Base pprint for all exceptions."""
-    if obj.__class__.__module__ == 'exceptions':
+    if obj.__class__.__module__ in ('exceptions', 'builtins'):
         name = obj.__class__.__name__
     else:
         name = '%s.%s' % (
@@ -628,7 +628,7 @@ def _exception_pprint(obj, p, cycle):
             obj.__class__.__name__
         )
     step = len(name) + 1
-    p.begin_group(step, '(')
+    p.begin_group(step, name + '(')
     for idx, arg in enumerate(getattr(obj, 'args', ())):
         if idx:
             p.text(',')
