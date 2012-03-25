@@ -81,7 +81,23 @@ def dir2(obj):
         except AttributeError:
             # `obj` lied to hasatter (e.g. Pyro), ignore
             pass
-
+    
+    #hack for numpy recarray auto-complete with no numpy import needed
+    #there should be a place for hook to make a custom list of attribute like this
+    if hasattr(obj, '__array_finalize__'):
+        #guarding other numpy arrays which a.colname is not valid
+        if str(type(obj)) == "<class 'numpy.core.records.recarray'>":
+            try:
+                words.extend(obj.dtype.names) 
+                may_have_dupes = True
+            except TypeError:
+                # This will happen if `obj` is a class and not an instance.
+                pass
+            except AttributeError:
+                # `obj` lied to hasatter (e.g. Pyro), ignore
+                # or dtype doesn't have names attribute
+                pass
+    
     if may_have_dupes:
         # eliminate possible duplicates, as some traits may also
         # appear as normal attributes in the dir() call.
@@ -91,4 +107,3 @@ def dir2(obj):
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
     return [w for w in words if isinstance(w, basestring)]
-
