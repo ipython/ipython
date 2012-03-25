@@ -239,7 +239,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
         view = self.client[:]
         a = numpy.arange(64)
-        view.scatter('a', a)
+        view.scatter('a', a, block=True)
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
     
@@ -325,7 +325,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         r = view.map_sync(lambda x:x, arr)
         self.assertEqual(r, list(arr))
     
-    def test_scatterGatherNonblocking(self):
+    def test_scatter_gather_nonblocking(self):
         data = range(16)
         view = self.client[:]
         view.scatter('a', data, block=False)

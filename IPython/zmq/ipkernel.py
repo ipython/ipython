@@ -572,8 +572,8 @@ class Kernel(Configurable):
                 for key in ns.iterkeys():
                     working.pop(key)
 
-            packed_result,buf = serialize_object(result)
-            result_buf = [packed_result]+buf
+            result_buf = serialize_object(result)
+        
         except:
             # invoke IPython traceback formatting
             shell.showtraceback()

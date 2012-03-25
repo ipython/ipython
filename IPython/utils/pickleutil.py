@@ -19,7 +19,22 @@ import copy
 import sys
 from types import FunctionType
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+try:
+    import numpy
+except:
+    numpy = None
+
 import codeutil
+import py3compat
+from importstring import import_item
+
+if py3compat.PY3:
+    buffer = memoryview
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -32,14 +47,16 @@ class CannedObject(object):
         self.obj = copy.copy(obj)
         for key in keys:
             setattr(self.obj, key, can(getattr(obj, key)))
+        
+        self.buffers = []
 
-
-    def getObject(self, g=None):
+    def get_object(self, g=None):
         if g is None:
-            g = globals()
+            g = {}
         for key in self.keys:
             setattr(self.obj, key, uncan(getattr(self.obj, key), g))
         return self.obj
+    
 
 class Reference(CannedObject):
     """object for wrapping a remote reference by name."""
@@ -47,13 +64,14 @@ class Reference(CannedObject):
         if not isinstance(name, basestring):
             raise TypeError("illegal name: %r"%name)
         self.name = name
+        self.buffers = []
 
     def __repr__(self):
         return "<Reference: %r>"%self.name
 
-    def getObject(self, g=None):
+    def get_object(self, g=None):
         if g is None:
-            g = globals()
+            g = {}
         
         return eval(self.name, g)
 
@@ -61,16 +79,17 @@ class Reference(CannedObject):
 class CannedFunction(CannedObject):
 
     def __init__(self, f):
-        self._checkType(f)
+        self._check_type(f)
         self.code = f.func_code
         self.defaults = f.func_defaults
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
+        self.buffers = []
 
-    def _checkType(self, obj):
+    def _check_type(self, obj):
         assert isinstance(obj, FunctionType), "Not a function type"
 
-    def getObject(self, g=None):
+    def get_object(self, g=None):
         # try to load function back into its module:
         if not self.module.startswith('__'):
             try:
@@ -81,30 +100,65 @@ class CannedFunction(CannedObject):
                 g = sys.modules[self.module].__dict__
 
         if g is None:
-            g = globals()
+            g = {}
         newFunc = FunctionType(self.code, g, self.__name__, self.defaults)
         return newFunc
+
+
+class CannedArray(CannedObject):
+    def __init__(self, obj):
+        self.shape = obj.shape
+        self.dtype = obj.dtype
+        if sum(obj.shape) == 0:
+            # just pickle it
+            self.buffers = [pickle.dumps(obj, -1)]
+        else:
+            # ensure contiguous
+            obj = numpy.ascontiguousarray(obj, dtype=None)
+            self.buffers = [buffer(obj)]
+    
+    def get_object(self, g=None):
+        data = self.buffers[0]
+        if sum(self.shape) == 0:
+            # no shape, we just pickled it
+            return pickle.loads(data)
+        else:
+            return numpy.frombuffer(data, dtype=self.dtype).reshape(self.shape)
+
+
+class CannedBytes(CannedObject):
+    wrap = bytes
+    def __init__(self, obj):
+        self.buffers = [obj]
+    
+    def get_object(self, g=None):
+        data = self.buffers[0]
+        return self.wrap(data)
+
+def CannedBuffer(CannedBytes):
+    wrap = buffer
 
 #-------------------------------------------------------------------------------
 # Functions
 #-------------------------------------------------------------------------------
 
-def can(obj):
-    # import here to prevent module-level circular imports
-    from IPython.parallel import dependent
-    if isinstance(obj, dependent):
-        keys = ('f','df')
-        return CannedObject(obj, keys=keys)
-    elif isinstance(obj, FunctionType):
-        return CannedFunction(obj)
-    elif isinstance(obj,dict):
-        return canDict(obj)
-    elif isinstance(obj, (list,tuple)):
-        return canSequence(obj)
-    else:
-        return obj
 
-def canDict(obj):
+def can(obj):
+    """prepare an object for pickling"""
+    for cls,canner in can_map.iteritems():
+        if isinstance(cls, basestring):
+            try:
+                cls = import_item(cls)
+            except Exception:
+                # not importable
+                print "not importable: %r" % cls
+                continue
+        if isinstance(obj, cls):
+            return canner(obj)
+    return obj
+
+def can_dict(obj):
+    """can the *values* of a dict"""
     if isinstance(obj, dict):
         newobj = {}
         for k, v in obj.iteritems():
@@ -113,7 +167,8 @@ def canDict(obj):
     else:
         return obj
 
-def canSequence(obj):
+def can_sequence(obj):
+    """can the elements of a sequence"""
     if isinstance(obj, (list, tuple)):
         t = type(obj)
         return t([can(i) for i in obj])
@@ -121,16 +176,20 @@ def canSequence(obj):
         return obj
 
 def uncan(obj, g=None):
-    if isinstance(obj, CannedObject):
-        return obj.getObject(g)
-    elif isinstance(obj,dict):
-        return uncanDict(obj, g)
-    elif isinstance(obj, (list,tuple)):
-        return uncanSequence(obj, g)
-    else:
-        return obj
+    """invert canning"""
+    for cls,uncanner in uncan_map.iteritems():
+        if isinstance(cls, basestring):
+            try:
+                cls = import_item(cls)
+            except Exception:
+                # not importable
+                print "not importable: %r" % cls
+                continue
+        if isinstance(obj, cls):
+            return uncanner(obj, g)
+    return obj
 
-def uncanDict(obj, g=None):
+def uncan_dict(obj, g=None):
     if isinstance(obj, dict):
         newobj = {}
         for k, v in obj.iteritems():
@@ -139,7 +198,7 @@ def uncanDict(obj, g=None):
     else:
         return obj
 
-def uncanSequence(obj, g=None):
+def uncan_sequence(obj, g=None):
     if isinstance(obj, (list, tuple)):
         t = type(obj)
         return t([uncan(i,g) for i in obj])
@@ -147,5 +206,27 @@ def uncanSequence(obj, g=None):
         return obj
 
 
-def rebindFunctionGlobals(f, glbls):
-    return FunctionType(f.func_code, glbls)
+#-------------------------------------------------------------------------------
+# API dictionary
+#-------------------------------------------------------------------------------
+
+# These dicts can be extended for custom serialization of new objects
+
+can_map = {
+    'IPython.parallel.dependent' : lambda obj: CannedObject(obj, keys=('f','df')),
+    'numpy.ndarray' : CannedArray,
+    FunctionType : CannedFunction,
+    bytes : CannedBytes,
+    buffer : CannedBuffer,
+    # dict : can_dict,
+    # list : can_sequence,
+    # tuple : can_sequence,
+}
+
+uncan_map = {
+    CannedObject : lambda obj, g: obj.get_object(g),
+    # dict : uncan_dict,
+    # list : uncan_sequence,
+    # tuple : uncan_sequence,
+}
+
