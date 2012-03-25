@@ -55,6 +55,7 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils import openpy
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -2261,28 +2262,15 @@ Currently the magic system has the following functions:\n"""
             # Local files must be .py; for remote URLs it's possible that the
             # fetch URL doesn't have a .py in it (many servers have an opaque
             # URL, such as scipy-central.org).
-            raise ValueError('%%load only works with .py files: %s' % arg_s)
+            raise ValueError('%%loadpy only works with .py files: %s' % arg_s)
+        
+        # openpy takes care of finding the source encoding (per PEP 263)
         if remote_url:
-            import urllib2
-            fileobj = urllib2.urlopen(arg_s)
-            # While responses have a .info().getencoding() way of asking for
-            # their encoding, in *many* cases the return value is bogus.  In
-            # the wild, servers serving utf-8 but declaring latin-1 are
-            # extremely common, as the old HTTP standards specify latin-1 as
-            # the default but many modern filesystems use utf-8.  So we can NOT
-            # rely on the headers.  Short of building complex encoding-guessing
-            # logic, going with utf-8 is a simple solution likely to be right
-            # in most real-world cases.
-            linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
-            fileobj.close()
+            contents = openpy.read_py_url(arg_s, skip_encoding_cookie=True)
         else:
-            with open(arg_s) as fileobj:
-                linesource = fileobj.read().splitlines()
+            contents = openpy.read_py_file(arg_s, skip_encoding_cookie=True)
         
-        # Strip out encoding declarations
-        lines = [l for l in linesource if not _encoding_declaration_re.match(l)]
-        
-        self.set_next_input(os.linesep.join(lines))
+        self.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""

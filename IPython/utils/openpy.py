@@ -4,6 +4,7 @@ as per PEP 263.
 
 Much of the code is taken from the tokenize module in Python 3.2.
 """
+from __future__ import absolute_import
 
 import __builtin__
 import io
@@ -107,7 +108,7 @@ except ImportError:
 try:
     # Available in Python 3.2 and above.
     from tokenize import open
-except:
+except ImportError:
     # Copied from Python 3.2 tokenize
     def open(filename):
         """Open a file in read only mode using the encoding detected by
@@ -118,19 +119,7 @@ except:
         buffer.seek(0)
         text = TextIOWrapper(buffer, encoding, line_buffering=True)
         text.mode = 'r'
-        return text
-
-def open_url(url, errors='replace'):
-    """Open a URL to a raw Python file, using the encoding detected by
-    detect_encoding().
-    """
-    response = urllib.urlopen(url)
-    buffer = io.BufferedRandom(response)
-    encoding, lines = detect_encoding(buffer.readline)
-    buffer.seek(0)
-    text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
-    text.mode = 'r'
-    return text
+        return text   
 
 def strip_encoding_cookie(filelike):
     """Generator to pull lines from a text-mode file, skipping the encoding
@@ -150,9 +139,24 @@ def strip_encoding_cookie(filelike):
     for line in it:
         yield line
 
-def read_py_file(filename, skip_encoding_cookie=True):
-    f = open(filename)   # the open function defined in this module.
+def read_py_file(filename, errors='replace', skip_encoding_cookie=True):
+    with open(filename) as f:   # the open function defined in this module.
+        if skip_encoding_cookie:
+            return "".join(strip_encoding_cookie(f))
+        else:
+            return f.read()
+
+def read_py_url(url, errors='replace', skip_encoding_cookie=True):
+    """Open a URL to a raw Python file, using the encoding detected by
+    detect_encoding().
+    """
+    response = urllib.urlopen(url)
+    buffer = io.BytesIO(response.read())
+    encoding, lines = detect_encoding(buffer.readline)
+    buffer.seek(0)
+    text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
+    text.mode = 'r'
     if skip_encoding_cookie:
-        return "".join(strip_encoding_cookie(f))
+        return "".join(strip_encoding_cookie(text))
     else:
-        return f.read()
+        return text.read()
