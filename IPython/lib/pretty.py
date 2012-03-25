@@ -628,7 +628,7 @@ def _exception_pprint(obj, p, cycle):
             obj.__class__.__name__
         )
     step = len(name) + 1
-    p.begin_group(step, '(')
+    p.begin_group(step, name + '(')
     for idx, arg in enumerate(getattr(obj, 'args', ())):
         if idx:
             p.text(',')
