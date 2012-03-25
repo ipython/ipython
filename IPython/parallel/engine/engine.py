@@ -188,7 +188,10 @@ class EngineFactory(RegistrationFactory):
             iopub_stream.setsockopt(zmq.IDENTITY, identity)
             connect(iopub_stream, iopub_addr)
 
-            # # Redirect input streams and set a display hook.
+            # disable history:
+            self.config.HistoryManager.hist_file = ':memory:'
+            
+            # Redirect input streams and set a display hook.
             if self.out_stream_factory:
                 sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
                 sys.stdout.topic = py3compat.cast_bytes('engine.%i.stdout' % self.id)
