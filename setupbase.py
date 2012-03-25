@@ -371,13 +371,13 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
 
     The extended command tries to run git to find the current commit, getting
     the empty string if it fails.  It then writes the commit hash into a file
-    in the `pkg_dir` path, named ``.git_commit_info.ini``.
+    in the `pkg_dir` path, named ``git_commit_info.ini``.
 
     In due course this information can be used by the package after it is
     installed, to tell you what commit it was installed from if known.
 
-    To make use of this system, you need a package with a .git_commit_info.ini
-    file - e.g. ``myproject/.git_commit_info.ini`` - that might well look like
+    To make use of this system, you need a package with a git_commit_info.ini
+    file - e.g. ``myproject/git_commit_info.ini`` - that might well look like
     this::
 
         # This is an ini file that may contain information about the code state
@@ -388,13 +388,13 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
         # This line may be modified by the install process
         install_hash=
 
-    The .git_commit_info file above is also designed to be used with git
+    The git_commit_info file above is also designed to be used with git
     substitution - so you probably also want a ``.gitattributes`` file in the
     root directory of your working tree that contains something like this::
 
-       myproject/.git_commit_info.ini export-subst
+       myproject/git_commit_info.ini export-subst
 
-    That will cause the ``.git_commit_info.ini`` file to get filled in by ``git
+    That will cause the ``git_commit_info.ini`` file to get filled in by ``git
     archive`` - useful in case someone makes such an archive - for example with
     via the github 'download source' button.
 
@@ -415,13 +415,13 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
             repo_commit, _ = proc.communicate()
             # We write the installation commit even if it's empty
             cfg_parser = ConfigParser()
-            cfg_parser.read(pjoin(pkg_dir, '.git_commit_info.ini'))
+            cfg_parser.read(pjoin(pkg_dir, 'git_commit_info.ini'))
             if not cfg_parser.has_section('commit hash'):
                 # just in case the ini file is empty or doesn't exist, somehow
                 # we don't want the next line to raise
                 cfg_parser.add_section('commit hash')
             cfg_parser.set('commit hash', 'install_hash', repo_commit.decode('ascii'))
-            out_pth = pjoin(self.build_lib, pkg_dir, '.git_commit_info.ini')
+            out_pth = pjoin(self.build_lib, pkg_dir, 'git_commit_info.ini')
             out_file = open(out_pth, 'wt')
             cfg_parser.write(out_file)
             out_file.close()
