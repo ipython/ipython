@@ -233,6 +233,23 @@ class TestView(ClusterTestCase):
         view.scatter('a', a)
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
+
+    @skip_without('numpy')
+    def test_push_numpy_nocopy(self):
+        import numpy
+        view = self.client[:]
+        a = numpy.arange(64)
+        view['A'] = a
+        @interactive
+        def check_writeable(x):
+            return x.flags.writeable
+        
+        for flag in view.apply_sync(check_writeable, pmod.Reference('A')):
+            self.assertFalse(flag, "array is writeable, push shouldn't have pickled it")
+        
+        view.push(dict(B=a))
+        for flag in view.apply_sync(check_writeable, pmod.Reference('B')):
+            self.assertFalse(flag, "array is writeable, push shouldn't have pickled it")
     
     @skip_without('numpy')
     def test_apply_numpy(self):
