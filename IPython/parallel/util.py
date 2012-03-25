@@ -355,7 +355,7 @@ def interactive(f):
     return f
 
 @interactive
-def _push(ns):
+def _push(**ns):
     """helper method for implementing `client.push` via `client.apply`"""
     globals().update(ns)
 
