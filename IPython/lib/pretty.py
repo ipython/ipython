@@ -155,8 +155,7 @@ class _PrettyPrinterBase(object):
         """like begin_group / end_group but for the with statement."""
         self.begin_group(indent, open)
         try:
-            with self.indent(indent):
-                yield
+            yield
         finally:
             self.end_group(indent, close)
 
