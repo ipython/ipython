@@ -99,9 +99,6 @@ def needs_local_scope(func):
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
 
-# Taken from PEP 263, this is the official encoding regexp.
-_encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
-
 #***************************************************************************
 # Main class implementing Magic functionality
 
