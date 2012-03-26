@@ -23,12 +23,7 @@ import subprocess
 from ConfigParser import ConfigParser
 
 from IPython.core import release
-from IPython.utils import py3compat
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-COMMIT_INFO_FNAME = '.git_commit_info.ini'
+from IPython.utils import py3compat, _sysinfo
 
 #-----------------------------------------------------------------------------
 # Code
@@ -37,25 +32,18 @@ COMMIT_INFO_FNAME = '.git_commit_info.ini'
 def pkg_commit_hash(pkg_path):
     """Get short form of commit hash given directory `pkg_path`
 
-    There should be a file called 'COMMIT_INFO.txt' in `pkg_path`.  This is a
-    file in INI file format, with at least one section: ``commit hash``, and two
-    variables ``archive_subst_hash`` and ``install_hash``.  The first has a
-    substitution pattern in it which may have been filled by the execution of
-    ``git archive`` if this is an archive generated that way.  The second is
-    filled in by the installation, if the installation is from a git archive.
-
     We get the commit hash from (in order of preference):
 
-    * A substituted value in ``archive_subst_hash``
-    * A written commit hash value in ``install_hash`
+    * IPython.utils._sysinfo.commit
     * git output, if we are in a git repository
 
-    If all these fail, we return a not-found placeholder tuple
+    If these fail, we return a not-found placeholder tuple
 
     Parameters
     ----------
     pkg_path : str
        directory containing package
+       only used for getting commit from active repo
 
     Returns
     -------
@@ -65,21 +53,9 @@ def pkg_commit_hash(pkg_path):
        short form of hash
     """
     # Try and get commit from written commit text file
-    pth = os.path.join(pkg_path, COMMIT_INFO_FNAME)
-    if not os.path.isfile(pth):
-        raise IOError('Missing commit info file %s' % pth)
-    cfg_parser = ConfigParser()
-    cfg_parser.read(pth)
-    try:
-        archive_subst = cfg_parser.get('commit hash', 'archive_subst_hash')
-    except Exception:
-        pass
-    else:
-        if not archive_subst.startswith('$Format'): # it has been substituted
-            return 'archive substitution', archive_subst
-    install_subst = cfg_parser.get('commit hash', 'install_hash')
-    if install_subst != '':
-        return 'installation', install_subst
+    if _sysinfo.commit:
+        return "installation", _sysinfo.commit
+
     # maybe we are in a repository
     proc = subprocess.Popen('git rev-parse --short HEAD',
                             stdout=subprocess.PIPE,
