@@ -416,14 +416,14 @@ class IPCompleter(Completer):
         When 0: nothing will be excluded.
         """
     )
-    limit_to__all__ = Enum((0,1), default_value=0, config=True,
+    limit_to__all__ = CBool(default_value=False, config=True,
         help="""Instruct the completer to use __all__ for the completion
         
         Specifically, when completing on ``object.<tab>``.
         
-        When 1: only those names in obj.__all__ will be included.
+        When True: only those names in obj.__all__ will be included.
         
-        When 0 [default]: the values in the __all__ attribute are ignored
+        When False [default]: the __all__ attribute is ignored 
         """
     )
 
