@@ -18,6 +18,7 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
+from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -229,4 +230,15 @@ def test_omit__names():
     nt.assert_false('ip.__str__' in matches)
     nt.assert_false('ip._hidden_attr' in matches)
     del ip._hidden_attr
-    
+
+def test_get__all__entries_ok():
+  class A(object):
+    __all__ = ['x', 1]
+  words = completer.get__all__entries(A())
+  nt.assert_equal(words, ['x'])
+
+def test_get__all__entries_no__all__ok():
+  class A(object):
+      pass
+  words = completer.get__all__entries(A())
+  nt.assert_equal(words, [])
