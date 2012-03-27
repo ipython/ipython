@@ -355,7 +355,10 @@ class Completer(Configurable):
             except:
                 return []
 
-        words = dir2(obj)
+        if self.limit_to__all__ and hasattr(obj, '__all__'):
+            words = get__all__entries(obj)
+        else: 
+            words = dir2(obj)
 
         try:
             words = generics.complete_object(obj, words)
@@ -369,6 +372,16 @@ class Completer(Configurable):
         n = len(attr)
         res = ["%s.%s" % (expr, w) for w in words if w[:n] == attr ]
         return res
+
+
+def get__all__entries(obj):
+    """returns the strings in the __all__ attribute"""
+    try:
+        words = getattr(obj,'__all__')
+    except:
+        return []
+    
+    return [w for w in words if isinstance(w, basestring)]
 
 
 class IPCompleter(Completer):
@@ -401,6 +414,16 @@ class IPCompleter(Completer):
         When 1: all 'magic' names (``__foo__``) will be excluded.
         
         When 0: nothing will be excluded.
+        """
+    )
+    limit_to__all__ = Enum((0,1), default_value=0, config=True,
+        help="""Instruct the completer to use __all__ for the completion
+        
+        Specifically, when completing on ``object.<tab>``.
+        
+        When 1: only those names in obj.__all__ will be included.
+        
+        When 0 [default]: the values in the __all__ attribute are ignored
         """
     )
 
