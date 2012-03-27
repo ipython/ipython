@@ -416,7 +416,7 @@ class IPCompleter(Completer):
         When 0: nothing will be excluded.
         """
     )
-    limit_to__all__ = Enum((0,1), default_value=1, config=True,
+    limit_to__all__ = Enum((0,1), default_value=0, config=True,
         help="""Instruct the completer to use __all__ for the completion
         
         Specifically, when completing on ``object.<tab>``.

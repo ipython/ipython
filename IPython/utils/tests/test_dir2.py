@@ -13,8 +13,8 @@ def test_base():
     assert ('z' in res)
     assert ('y' not in res)
     assert ('__class__' in res)
-    nt.assert_equal(res.count('x'), 2)  # duplicates
-    nt.assert_equal(res.count('__class__'), 4) # duplicates
+    nt.assert_equal(res.count('x'), 1)
+    nt.assert_equal(res.count('__class__'), 1)
 
 def test_SubClass():
 
@@ -23,8 +23,8 @@ def test_SubClass():
 
     res = dir2(SubClass())
     assert ('y' in res)
-    nt.assert_equal(res.count('y'), 2) # duplicates,
-    nt.assert_equal(res.count('x'), 3) # duplicates, but fewer than above!
+    nt.assert_equal(res.count('y'), 1)
+    nt.assert_equal(res.count('x'), 1)
 
 
 def test_SubClass_with_trait_names_method():
@@ -37,6 +37,7 @@ def test_SubClass_with_trait_names_method():
     res = dir2(SubClass())
     assert('trait_names' in res)
     assert('umbrella' in res)
+    nt.assert_equal(res[-6:], ['t', 'trait_names','umbrella', 'x','y','z'])
     nt.assert_equal(res.count('t'), 1)
 
 

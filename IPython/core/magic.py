@@ -3753,6 +3753,13 @@ Defaulting color scheme to 'NoColor'"""
                 Whether to merge completion results into a single list
                 If False, only the completion results from the first non-empty completer
                 will be returned.
+	        IPCompleter.limit_to__all__=<Enum>
+    	        Current: 0
+                Choices: (0, 1)
+                Instruct the completer to use __all__ for the completion
+                Specifically, when completing on ``object.<tab>``.
+                When 1: only those names in obj.__all__ will be included.
+                When 0 [default]: the values in the __all__ attribute are ignored
             IPCompleter.greedy=<CBool>
                 Current: False
                 Activate greedy completion

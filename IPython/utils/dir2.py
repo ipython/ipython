@@ -19,7 +19,7 @@
 
 def get_class_members(cls):
     ret = dir(cls)
-    if hasattr(cls,'__bases__'):
+    if hasattr(cls, '__bases__'):
         try:
             bases = cls.__bases__
         except AttributeError:
@@ -46,49 +46,28 @@ def dir2(obj):
 
     # Start building the attribute list via dir(), and then complete it
     # with a few extra special-purpose calls.
-    words = dir(obj)
 
-    if hasattr(obj,'__class__'):
-        words.append('__class__')
-        words.extend(get_class_members(obj.__class__))
-    #if '__base__' in words: 1/0
+    words = set(dir(obj))
 
-    # Some libraries (such as traits) may introduce duplicates, we want to
-    # track and clean this up if it happens
-    may_have_dupes = False
+    if hasattr(obj, '__class__'):
+        #words.add('__class__')
+        words |= set(get_class_members(obj.__class__))
 
-    # this is the 'dir' function for objects with Enthought's traits
-    if hasattr(obj, 'trait_names'):
-        try:
-            words.extend(obj.trait_names())
-            may_have_dupes = True
-        except TypeError:
-            # This will happen if `obj` is a class and not an instance.
-            pass
-        except AttributeError:
-            # `obj` lied to hasatter (e.g. Pyro), ignore
-            pass
 
-    # Support for PyCrust-style _getAttributeNames magic method.
-    if hasattr(obj, '_getAttributeNames'):
-        try:
-            words.extend(obj._getAttributeNames())
-            may_have_dupes = True
-        except TypeError:
-            # `obj` is a class and not an instance.  Ignore
-            # this error.
-            pass
-        except AttributeError:
-            # `obj` lied to hasatter (e.g. Pyro), ignore
-            pass
-
-    if may_have_dupes:
-        # eliminate possible duplicates, as some traits may also
-        # appear as normal attributes in the dir() call.
-        words = list(set(words))
-        words.sort()
+    # for objects with Enthought's traits, add trait_names() list
+    # for PyCrust-style, add _getAttributeNames() magic method list
+    for attr in ('trait_names', '_getAttributeNames'):
+        if hasattr(obj, attr):
+            try:
+                func = getattr(obj, attr)
+                if callable(func):
+                    words |= set(func())
+            except:
+                # TypeError: obj is class not instance
+                pass
 
     # filter out non-string attributes which may be stuffed by dir() calls
     # and poor coding in third-party modules
-    return [w for w in words if isinstance(w, basestring)]
 
+    words = [w for w in words if isinstance(w, basestring)]
+    return sorted(words)
