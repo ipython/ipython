@@ -18,7 +18,6 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
-from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------
 # Test functions

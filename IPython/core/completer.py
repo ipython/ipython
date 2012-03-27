@@ -336,6 +336,7 @@ class Completer(Configurable):
         #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
+    
         if m:
             expr, attr = m.group(1, 3)
         elif self.greedy:
@@ -345,7 +346,7 @@ class Completer(Configurable):
             expr, attr = m2.group(1,2)
         else:
             return []
-        
+    
         try:
             obj = eval(expr, self.namespace)
         except:
