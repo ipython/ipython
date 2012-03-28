@@ -254,6 +254,61 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEqual(ip.var_expand(u"{asdf}"), u"{asdf}")
         # ZeroDivisionError
         self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
+    
+    def test_silent_nopostexec(self):
+        """run_cell(silent=True) doesn't invoke post-exec funcs"""
+        ip = get_ipython()
+        
+        d = dict(called=False)
+        def set_called():
+            d['called'] = True
+        
+        ip.register_post_execute(set_called)
+        ip.run_cell("1", silent=True)
+        self.assertFalse(d['called'])
+        # double-check that non-silent exec did what we expected
+        # silent to avoid
+        ip.run_cell("1")
+        self.assertTrue(d['called'])
+        # remove post-exec
+        ip._post_execute.pop(set_called)
+    
+    def test_silent_noadvance(self):
+        """run_cell(silent=True) doesn't advance execution_count"""
+        ip = get_ipython()
+        
+        ec = ip.execution_count
+        # silent should force store_history=False
+        ip.run_cell("1", store_history=True, silent=True)
+        
+        self.assertEquals(ec, ip.execution_count)
+        # double-check that non-silent exec did what we expected
+        # silent to avoid
+        ip.run_cell("1", store_history=True)
+        self.assertEquals(ec+1, ip.execution_count)
+    
+    def test_silent_nodisplayhook(self):
+        """run_cell(silent=True) doesn't trigger displayhook"""
+        ip = get_ipython()
+        
+        d = dict(called=False)
+        
+        trap = ip.display_trap
+        save_hook = trap.hook
+        
+        def failing_hook(*args, **kwargs):
+            d['called'] = True
+        
+        try:
+            trap.hook = failing_hook
+            ip.run_cell("1", silent=True)
+            self.assertFalse(d['called'])
+            # double-check that non-silent exec did what we expected
+            # silent to avoid
+            ip.run_cell("1")
+            self.assertTrue(d['called'])
+        finally:
+            trap.hook = save_hook
 
     @skipif(sys.version_info[0] >= 3, "softspace removed in py3")
     def test_print_softspace(self):
