@@ -334,14 +334,8 @@ class Kernel(Configurable):
 
         reply_content = {}
         try:
-            if silent:
-                # run_code uses 'exec' mode, so no displayhook will fire, and it
-                # doesn't call logging or history manipulations.  Print
-                # statements in that code will obviously still execute.
-                shell.run_code(code)
-            else:
-                # FIXME: the shell calls the exception handler itself.
-                shell.run_cell(code, store_history=True)
+            # FIXME: the shell calls the exception handler itself.
+            shell.run_cell(code, store_history=not silent, silent=silent)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
@@ -359,7 +353,7 @@ class Kernel(Configurable):
         reply_content[u'status'] = status
 
         # Return the execution counter so clients can display prompts
-        reply_content['execution_count'] = shell.execution_count -1
+        reply_content['execution_count'] = shell.execution_count - 1
 
         # FIXME - fish exception info out of shell, possibly left there by
         # runlines.  We'll need to clean up this logic later.
@@ -404,11 +398,8 @@ class Kernel(Configurable):
                                       reply_content, parent, ident=ident)
         self.log.debug("%s", reply_msg)
 
-        if reply_msg['content']['status'] == u'error':
-            # FIXME: queue_abort on error is disabled
-            # A policy decision must be made
-            pass
-            # self._abort_queues()
+        if not silent and reply_msg['content']['status'] == u'error':
+            self._abort_queues()
 
         self.session.send(self.iopub_stream,
                           u'status',

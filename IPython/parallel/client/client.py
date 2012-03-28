@@ -1089,7 +1089,7 @@ class Client(HasTraits):
 
         return msg
 
-    def send_execute_request(self, socket, code, silent=False, subheader=None, ident=None):
+    def send_execute_request(self, socket, code, silent=True, subheader=None, ident=None):
         """construct and send an execute request via a socket.
 
         """
