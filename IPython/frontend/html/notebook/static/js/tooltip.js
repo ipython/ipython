@@ -8,19 +8,20 @@
 //============================================================================
 // Tooltip
 //============================================================================
+//
+// you can set the autocall time by setting `IPython.notebook.time_before_tooltip` in ms
 
-// Todo : 
-// use codemirror highlight example to 
-// highlight the introspection request and introspect on mouse hove ...
-//
-//
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
+    // tooltip constructor
     var Tooltip = function (notebook) {
-        this.tooltip = $('#tooltip');
         var that = this;
+
+        // handle to html
+        this.tooltip = $('#tooltip');
+        var tooltip = this.tooltip;
         this._hidden = true;
 
         // variable for consecutive call
@@ -35,16 +36,14 @@ var IPython = (function (IPython) {
         this.buttons = $('<div/>')
               .addClass('tooltipbuttons');
 
-        // will contain the docstring 
+        // will contain the docstring
         this.text    = $('<div/>')
           .addClass('tooltiptext')
           .addClass('smalltooltip');
-        
-        var tooltip = this.tooltip;
 
-	// build the buttons menu on the upper right
-        
-	// expand the tooltip to see more
+        // build the buttons menu on the upper right
+
+        // expand the tooltip to see more
         var expandlink=$('<a/>').attr('href',"#")
               .addClass("ui-corner-all") //rounded corner
               .attr('role',"button")
@@ -79,7 +78,7 @@ var IPython = (function (IPython) {
         closelink.click(function(){
         that.remove_and_cancel_tooltip(true);
             });
-        
+
         //construct the tooltip
         // add in the reverse order you want them to appear
         this.buttons.append(closelink);
@@ -88,13 +87,16 @@ var IPython = (function (IPython) {
 
         // we need a phony element to make the small arrow
         // of the tooltip in css
-        // we could try to move the arrow later
+        // we will move the arrow later
         this.arrow = $('<div/>').addClass('pretooltiparrow');
         this.tooltip.append(this.buttons);
         this.tooltip.append(this.arrow);
         this.tooltip.append(this.text);
     };
 
+    // will resend the request on behalf on the cell which invoked the tooltip
+    // to show in it in pager. This is done so to be sure of having the same
+    // result as invoking `something?`
     Tooltip.prototype.showInPager = function()
     {
             var msg_id = IPython.notebook.kernel.execute(that.name+"?");
@@ -103,7 +105,7 @@ var IPython = (function (IPython) {
             this._cmfocus();
     }
 
-
+    // grow the tooltip verticaly
     Tooltip.prototype.expand = function(){
         this.text.removeClass('smalltooltip');
         this.text.addClass('bigtooltip');
@@ -124,11 +126,6 @@ var IPython = (function (IPython) {
          this._hidden = true;
     }
 
-    //TODO, try to diminish the number of parameters.
-    Tooltip.prototype.request_tooltip_after_time = function (pre_cursor,time){
-    };
-
-
     Tooltip.prototype.remove_and_cancel_tooltip = function(force) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
@@ -143,18 +140,22 @@ var IPython = (function (IPython) {
         this._consecutive_conter = 0;
     }
 
+    // cancel autocall done after '(' for example.
     Tooltip.prototype.cancel_pending = function(){
         if (this.tooltip_timeout != null){
             clearTimeout(this.tooltip_timeout);
             this.tooltip_timeout = null;
         }
     }
-    
+
+    // will trigger tooltip after timeout
     Tooltip.prototype.pending = function(cell,text)
     {
         var that = this;
         this.tooltip_timeout = setTimeout(function(){that.request(cell)} , IPython.notebook.time_before_tooltip);
     }
+
+    // make an imediate completion request
     Tooltip.prototype.request = function(cell)
     {
         this.cancel_pending();
@@ -187,7 +188,7 @@ var IPython = (function (IPython) {
         {
             console.log('should open in pager');
             this._old_cell = null ;
-            this._cancel_stick 
+            this._cancel_stick();
             this._old_request = null ;
             this._consecutive_conter = 0;
             this.showInPager();
@@ -205,26 +206,31 @@ var IPython = (function (IPython) {
         }
         IPython.notebook.request_tool_tip(cell, text);
     }
+
+    // cancel the option of having the tooltip to stick
     Tooltip.prototype.cancel_stick = function()
     {
             clearTimeout(this._stick_timeout);
             this._sticky = false;
     }
 
-    Tooltip.prototype.stick = function() 
+    // put the tooltip in a sicky state for 10 seconds
+    // it won't be removed by remove_and_cancell() unless you called with
+    // the first parameter set to true.
+    // remove_and_cancell_tooltip(true)
+    Tooltip.prototype.stick = function()
     {
         console.log('tooltip will stick for at least 10 sec');
-        var that = this; 
+        var that = this;
         this._sticky = true;
         this._stick_timeout = setTimeout( function(){
             that._sticky = false;
             console.log('tooltip will not stick anymore');
             }, 10*1000
         );
-
-
     }
 
+    // should be called with the kernel reply to actually show the tooltip
     Tooltip.prototype.show = function(reply, codecell)
     {
         // move the bubble if it is not hidden
@@ -242,12 +248,12 @@ var IPython = (function (IPython) {
         var xinit = pos.x;
         var xinter = o.left + (xinit-o.left)/w*(w-450);
         var posarrowleft = xinit - xinter;
-        
+
 
         if( this._hidden == false)
         {
             this.tooltip.animate({'left' : xinter-30+'px','top' :(pos.yBot+10)+'px'});
-        } else 
+        } else
         {
             this.tooltip.css({'left' : xinter-30+'px'});
             this.tooltip.css({'top' :(pos.yBot+10)+'px'});
@@ -277,25 +283,15 @@ var IPython = (function (IPython) {
         this.text.append(pre);
         // keep scroll top to be sure to always see the first line
         this.text.scrollTop(0);
-
-
     }
 
-    Tooltip.prototype.showInPager = function(text){
-        var msg_id = IPython.notebook.kernel.execute(this.name+"?");
-        IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-        this.remove_and_cancel_tooltip(true);
-        this._cmfocus();
-    }
-
+    // convenient funciton to have the correct codemirror back into focus
     Tooltip.prototype._cmfocus = function()
     {
         var cm = this.code_mirror;
         setTimeout(function(){cm.focus();}, 50);
     }
 
-
     IPython.Tooltip = Tooltip;
-
     return IPython;
 }(IPython));
