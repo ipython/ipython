@@ -186,7 +186,6 @@ var IPython = (function (IPython) {
         }
         else if( this._consecutive_conter ==  3)
         {
-            console.log('should open in pager');
             this._old_cell = null ;
             this._cancel_stick();
             this._old_request = null ;
@@ -220,12 +219,10 @@ var IPython = (function (IPython) {
     // remove_and_cancell_tooltip(true)
     Tooltip.prototype.stick = function()
     {
-        console.log('tooltip will stick for at least 10 sec');
         var that = this;
         this._sticky = true;
         this._stick_timeout = setTimeout( function(){
             that._sticky = false;
-            console.log('tooltip will not stick anymore');
             }, 10*1000
         );
     }
