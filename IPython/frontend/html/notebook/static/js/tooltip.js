@@ -187,7 +187,7 @@ var IPython = (function (IPython) {
         else if( this._consecutive_conter ==  3)
         {
             this._old_cell = null ;
-            this._cancel_stick();
+            this.cancel_stick();
             this._old_request = null ;
             this._consecutive_conter = 0;
             this.showInPager();
