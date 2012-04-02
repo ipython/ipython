@@ -49,6 +49,14 @@ ws.cells.append(new_code_cell(
     prompt_number=2,
     collapsed=True
 ))
+ws.cells.append(new_code_cell(
+    input='a = 10\nb = 5\n',
+    prompt_number=3,
+))
+ws.cells.append(new_code_cell(
+    input='a = 10\nb = 5',
+    prompt_number=4,
+))
 
 ws.cells.append(new_code_cell(
     input=u'print "ünîcødé"',
@@ -119,6 +127,16 @@ import numpy
 # <codecell>
 
 a = numpy.random.rand(100)
+
+# <codecell>
+
+a = 10
+b = 5
+
+# <codecell>
+
+a = 10
+b = 5
 
 # <codecell>
 

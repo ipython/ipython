@@ -86,17 +86,17 @@ def split_lines(nb):
         for cell in ws.cells:
             if cell.cell_type == 'code':
                 if 'input' in cell and isinstance(cell.input, basestring):
-                    cell.input = cell.input.splitlines()
+                    cell.input = (cell.input + '\n').splitlines()
                 for output in cell.outputs:
                     for key in _multiline_outputs:
                         item = output.get(key, None)
                         if isinstance(item, basestring):
-                            output[key] = item.splitlines()
+                            output[key] = (item + '\n').splitlines()
             else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, basestring):
-                        cell[key] = item.splitlines()
+                        cell[key] = (item + '\n').splitlines()
     return nb
 
 # b64 encode/decode are never actually used, because all bytes objects in

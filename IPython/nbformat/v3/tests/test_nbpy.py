@@ -28,6 +28,11 @@ class TestPy(formattest.NBFormatTestCase):
             for a,b in zip(da, db):
                 self.assertSubset(a,b)
         else:
+            if isinstance(da, basestring) and isinstance(db, basestring):
+                # pyfile is not sensitive to preserving leading/trailing
+                # newlines in blocks through roundtrip
+                da = da.strip('\n')
+                db = db.strip('\n')
             self.assertEquals(da, db)
         return True
     
