@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 from xml.dom import minidom
 
 from .displaypub import (
@@ -496,6 +498,16 @@ def clear_output(stdout=True, stderr=True, other=True):
         (e.g. figures,images,HTML, any result of display()).
     """
     from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.clear_output(
-        stdout=stdout, stderr=stderr, other=other,
-    )
+    if InteractiveShell.initialized():
+        InteractiveShell.instance().display_pub.clear_output(
+            stdout=stdout, stderr=stderr, other=other,
+        )
+    else:
+        from IPython.utils import io
+        if stdout:
+            print('\033[2K\r', file=io.stdout, end='')
+            io.stdout.flush()
+        if stderr:
+            print('\033[2K\r', file=io.stderr, end='')
+            io.stderr.flush()
+        

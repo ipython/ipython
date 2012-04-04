@@ -81,8 +81,15 @@ class ZMQDisplayPublisher(DisplayPublisher):
         )
 
     def clear_output(self, stdout=True, stderr=True, other=True):
-        self._flush_streams()
         content = dict(stdout=stdout, stderr=stderr, other=other)
+        
+        if stdout:
+            print('\r', file=sys.stdout, end='')
+        if stderr:
+            print('\r', file=sys.stderr, end='')
+        
+        self._flush_streams()
+        
         self.session.send(
             self.pub_socket, u'clear_output', content,
             parent=self.parent_header
