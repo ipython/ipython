@@ -59,8 +59,14 @@ class ZMQDisplayPublisher(DisplayPublisher):
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
         self.parent_header = extract_header(parent)
+    
+    def _flush_streams(self):
+        """flush IO Streams prior to display"""
+        sys.stdout.flush()
+        sys.stderr.flush()
 
     def publish(self, source, data, metadata=None):
+        self._flush_streams()
         if metadata is None:
             metadata = {}
         self._validate_data(source, data, metadata)
@@ -75,6 +81,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         )
 
     def clear_output(self, stdout=True, stderr=True, other=True):
+        self._flush_streams()
         content = dict(stdout=stdout, stderr=stderr, other=other)
         self.session.send(
             self.pub_socket, u'clear_output', content,
