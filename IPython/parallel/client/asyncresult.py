@@ -15,12 +15,16 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import time
+from datetime import datetime
 
 from zmq import MessageTracker
 
+from IPython.core.display import clear_output
 from IPython.external.decorator import decorator
 from IPython.parallel import error
+
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -255,7 +259,76 @@ class AsyncResult(object):
             # already done
             for r in rlist:
                 yield r
-
+    
+    def __len__(self):
+        return len(self.msg_ids)
+    
+    #-------------------------------------
+    # Sugar methods and attributes
+    #-------------------------------------
+    
+    @property
+    def progress(self):
+        """the number of tasks which have been completed at this point.
+        
+        Fractional progress would be given by 1.0 * ar.progress / len(ar)
+        """
+        self.wait(0)
+        return len(self) - len(set(self.msg_ids).intersection(self._client.outstanding))
+    
+    @property
+    def elapsed(self):
+        """elapsed time since initial submission"""
+        if self.ready():
+            return self.wall_time
+        
+        now = submitted = datetime.now()
+        for msg_id in self.msg_ids:
+            if msg_id in self._client.metadata:
+                stamp = self._client.metadata[msg_id]['submitted']
+                if stamp and stamp < submitted:
+                    submitted = stamp
+        return (now-submitted).total_seconds()
+    
+    @property
+    @check_ready
+    def serial_time(self):
+        """serial computation time of a parallel calculation
+        
+        Computed as the sum of (completed-started) of each task
+        """
+        t = 0
+        for md in self._metadata:
+            t += (md['completed'] - md['started']).total_seconds()
+        return t
+    
+    @property
+    @check_ready
+    def wall_time(self):
+        """actual computation time of a parallel calculation
+        
+        Computed as the time between the latest `received` stamp
+        and the earliest `submitted`.
+        
+        Only reliable if Client was spinning/waiting when the task finished, because
+        the `received` timestamp is created when a result is pulled off of the zmq queue,
+        which happens as a result of `client.spin()`.
+        """
+        received = max([ md['received'] for md in self._metadata ])
+        submitted = min([ md['submitted'] for md in self._metadata ])
+        return (received - submitted).total_seconds()
+    
+    def wait_interactive(self, interval=1., timeout=None):
+        """interactive wait, printing progress at regular intervals"""
+        N = len(self)
+        tic = time.time()
+        while not self.ready() and (timeout is None or time.time() - tic <= timeout):
+            self.wait(interval)
+            clear_output()
+            print "%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed),
+            sys.stdout.flush()
+        print
+        print "done"
 
 
 class AsyncMapResult(AsyncResult):
