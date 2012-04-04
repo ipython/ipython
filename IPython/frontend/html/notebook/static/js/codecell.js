@@ -21,6 +21,7 @@ var IPython = (function (IPython) {
         this.outputs = [];
         this.collapsed = false;
         this.tooltip_timeout = null;
+        this.clear_out_timeout = null;
         IPython.Cell.apply(this, arguments);
     };
 
@@ -566,6 +567,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.append_output = function (json, dynamic) {
         // If dynamic is true, javascript output will be eval'd.
         this.expand();
+        this.flush_clear_timeout();
         if (json.output_type === 'pyout') {
             this.append_pyout(json, dynamic);
         } else if (json.output_type === 'pyerr') {
@@ -620,6 +622,11 @@ var IPython = (function (IPython) {
         // default to most likely stdout:
         if (json.stream == undefined){
             json.stream = 'stdout';
+        }
+        if (!utils.fixConsole(json.text)){
+            // fixConsole gives nothing (empty string, \r, etc.)
+            // so don't append any elements, which might add undesirable space
+            return;
         }
         var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
@@ -730,7 +737,30 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.clear_output = function (stdout, stderr, other) {
+        var that = this;
+        if (this.clear_out_timeout != null){
+            // fire previous pending clear *immediately*
+            clearTimeout(this.clear_out_timeout);
+            this.clear_out_timeout = null;
+            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
+        }
+        // store flags for flushing the timeout
+        this._clear_stdout = stdout;
+        this._clear_stderr = stderr;
+        this._clear_other = other;
+        this.clear_out_timeout = setTimeout(function(){
+            // really clear timeout only after a short delay
+            // this reduces flicker in 'clear_output; print' cases
+            that.clear_out_timeout = null;
+            that._clear_stdout = that._clear_stderr = that._clear_other = null;
+            that.clear_output_callback(stdout, stderr, other);
+        }, 500
+        );
+    };
+    
+    CodeCell.prototype.clear_output_callback = function (stdout, stderr, other) {
         var output_div = this.element.find("div.output");
+        
         if (stdout && stderr && other){
             // clear all, no need for logic
             output_div.html("");
@@ -770,6 +800,15 @@ var IPython = (function (IPython) {
     CodeCell.prototype.clear_input = function () {
         this.code_mirror.setValue('');
     };
+    
+    CodeCell.prototype.flush_clear_timeout = function() {
+        var output_div = this.element.find('div.output');
+        if (this.clear_out_timeout){
+            clearTimeout(this.clear_out_timeout);
+            this.clear_out_timeout = null;
+            this.clear_output_callback(this._clear_stdout, this._clear_stderr, this._clear_other);
+        };
+    }
 
 
     CodeCell.prototype.collapse = function () {
