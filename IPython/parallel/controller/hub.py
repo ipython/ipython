@@ -454,6 +454,7 @@ class Hub(SessionFactory):
     #-----------------------------------------------------------------------------
 
 
+    @util.log_errors
     def dispatch_monitor_traffic(self, msg):
         """all ME and Task queue messages come through here, as well as
         IOPub traffic."""
@@ -473,6 +474,7 @@ class Hub(SessionFactory):
             self.log.error("Invalid monitor topic: %r", switch)
 
 
+    @util.log_errors
     def dispatch_query(self, msg):
         """Route registration requests and queries from clients."""
         try:

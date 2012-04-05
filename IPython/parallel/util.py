@@ -39,6 +39,8 @@ except:
 import zmq
 from zmq.log import handlers
 
+from IPython.external.decorator import decorator
+
 # IPython imports
 from IPython.config.application import Application
 from IPython.utils import py3compat
@@ -105,6 +107,19 @@ class ReverseDict(dict):
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+@decorator
+def log_errors(f, self, *args, **kwargs):
+    """decorator to log unhandled exceptions raised in a method.
+    
+    For use wrapping on_recv callbacks, so that exceptions
+    do not cause the stream to be closed.
+    """
+    try:
+        return f(self, *args, **kwargs)
+    except Exception:
+        self.log.error("Uncaught exception in %r" % f, exc_info=True)
+    
 
 def asbytes(s):
     """ensure that an object is ascii bytes"""
