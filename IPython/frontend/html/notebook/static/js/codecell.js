@@ -690,6 +690,9 @@ var IPython = (function (IPython) {
         // We just eval the JS code, element appears in the local scope.
         var element = $("<div/>").addClass("box_flex1 output_subarea");
         e.append(element);
+        // Div for js shouldn't be drawn, as it will add empty height to the area.
+        e.hide();
+
         eval(js);
     }
 
