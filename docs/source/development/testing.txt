@@ -84,7 +84,7 @@ Regardless of how you run things, you should eventually see something like:
     'sys_version': '2.6.6 (r266:84292, Sep 15 2010, 15:52:39) \n[GCC 4.4.5]'}
 
    Tools and libraries available at test time:
-      curses foolscap gobject gtk pexpect twisted wx wx.aui zope.interface
+      curses matplotlib pymongo qt sqlite3 tornado wx wx.aui zmq
 
    Ran 9 test groups in 67.213s
 
