@@ -686,13 +686,14 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.append_javascript = function (js, e) {
+    CodeCell.prototype.append_javascript = function (js, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = $("<div/>").addClass("box_flex1 output_subarea");
-        e.append(element);
+        container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
-        e.hide();
-
+        container.hide();
+        // If the Javascript appends content to `element` that should be drawn, then
+        // it must also call `container.show()`.
         eval(js);
     }
 

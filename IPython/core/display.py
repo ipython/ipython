@@ -367,6 +367,11 @@ class Javascript(DisplayObject):
         display function, it will result in the data being displayed
         in the frontend. If the data is a URL, the data will first be
         downloaded and then displayed. 
+        
+        In the Notebook, the containing element will be available as `element`,
+        and jQuery will be available.  The output area starts hidden, so if
+        the js appends content to `element` that should be visible, then
+        it must call `container.show()` to unhide the area.
 
         Parameters
         ----------
