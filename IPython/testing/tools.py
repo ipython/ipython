@@ -1,13 +1,8 @@
-"""Generic testing tools that do NOT depend on Twisted.
+"""Generic testing tools.
 
 In particular, this module exposes a set of top-level assert* functions that
 can be used in place of nose.tools.assert* in method generators (the ones in
 nose can not, at least as of nose 0.10.4).
-
-Note: our testing package contains testing.util, which does depend on Twisted
-and provides utilities for tests that manage Deferreds.  All testing support
-tools that only depend on nose, IPython or the standard library should go here
-instead.
 
 
 Authors
