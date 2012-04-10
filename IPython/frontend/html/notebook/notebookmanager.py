@@ -34,7 +34,7 @@ from IPython.utils.traitlets import Unicode, List, Dict, Bool
 
 class NotebookManager(LoggingConfigurable):
 
-    notebook_dir = Unicode(os.getcwd(), config=True, help="""
+    notebook_dir = Unicode(os.getcwdu(), config=True, help="""
         The directory to use for notebooks.
     """)
     
