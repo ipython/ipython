@@ -19,6 +19,7 @@ Authors:
 
 from IPython.parallel.error import TimeoutError
 
+from IPython.parallel import error
 from IPython.parallel.tests import add_engines
 from .clienttest import ClusterTestCase
 
@@ -32,7 +33,8 @@ def wait(n):
 
 class AsyncResultTest(ClusterTestCase):
 
-    def test_single_result(self):
+    def test_single_result_view(self):
+        """various one-target views get the right value for single_result"""
         eid = self.client.ids[-1]
         ar = self.client[eid].apply_async(lambda : 42)
         self.assertEquals(ar.get(), 42)
@@ -111,5 +113,13 @@ class AsyncResultTest(ClusterTestCase):
         self.assertTrue(isinstance(ar['engine_id'], int))
         self.assertTrue(isinstance(ar.engine_id, int))
         self.assertEquals(ar.engine_id, ar['engine_id'])
+    
+    def test_abort(self):
+        e = self.client[-1]
+        ar = e.execute('import time; time.sleep(1)', block=False)
+        ar2 = e.apply_async(lambda : 2)
+        ar2.abort()
+        self.assertRaises(error.TaskAborted, ar2.get)
+        ar.get()
 
 
