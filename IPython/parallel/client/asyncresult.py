@@ -195,7 +195,7 @@ class AsyncResult(object):
     def abort(self):
         """abort my tasks."""
         assert not self.ready(), "Can't abort, I am already done!"
-        return self.client.abort(self.msg_ids, targets=self._targets, block=True)
+        return self._client.abort(self.msg_ids, targets=self._targets, block=True)
 
     @property
     def sent(self):
