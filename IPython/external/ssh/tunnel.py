@@ -208,9 +208,13 @@ def openssh_tunnel(lport, rport, server, remoteip='127.0.0.1', keyfile=None, pas
     ssh="ssh "
     if keyfile:
         ssh += "-i " + keyfile
-    username, server, port = _split_server(server)
-    cmd = "%s -p %s -f -L 127.0.0.1:%i:%s:%i %s@%s sleep %i" % (
-        ssh, port, lport, remoteip, rport, username, server, timeout)
+    
+    if ':' in server:
+        server, port = server.split(':')
+        ssh += " -p %s" % port
+        
+    cmd = "%s -f -L 127.0.0.1:%i:%s:%i %s sleep %i" % (
+        ssh, lport, remoteip, rport, server, timeout)
     tunnel = pexpect.spawn(cmd)
     failed = False
     while True:
