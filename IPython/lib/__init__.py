@@ -21,6 +21,7 @@ from IPython.lib.inputhook import (
     enable_tk, disable_tk,
     enable_glut, disable_glut,
     enable_pyglet, disable_pyglet,
+    enable_gtk3, disable_gtk3,
     set_inputhook, clear_inputhook,
     current_gui
 )
