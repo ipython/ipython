@@ -510,7 +510,7 @@ def enable_gui(gui=None, app=None):
             GUI_QT4: enable_qt4,
             GUI_GLUT: enable_glut,
             GUI_PYGLET: enable_pyglet,
-	    GUI_GTK3: enable_gtk3,
+            GUI_GTK3: enable_gtk3,
             }
     try:
         gui_hook = guis[gui]
