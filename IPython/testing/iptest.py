@@ -415,9 +415,6 @@ def run_iptest():
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
 
-                        # Loading ipdoctest causes problems with Twisted, but
-                        # our test suite runner now separates things and runs
-                        # all Twisted tests with trial.
                         '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
 
@@ -456,7 +453,7 @@ def run_iptestall():
     This function constructs :class:`IPTester` instances for all IPython
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
-    nose or twisted.trial appropriately.
+    nose.
     """
 
     runners = make_runners()
