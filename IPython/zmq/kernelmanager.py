@@ -16,6 +16,7 @@ TODO
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
+import atexit
 import errno
 import json
 from subprocess import Popen
@@ -91,6 +92,7 @@ class ZMQSocketChannel(Thread):
     ioloop = None
     stream = None
     _address = None
+    _exiting = False
 
     def __init__(self, context, session, address):
         """Create a channel
@@ -113,6 +115,10 @@ class ZMQSocketChannel(Thread):
             message = 'The port number for a channel cannot be 0.'
             raise InvalidPortNumber(message)
         self._address = address
+        atexit.register(self._notice_exit)
+    
+    def _notice_exit(self):
+        self._exiting = True
 
     def _run_loop(self):
         """Run my loop, ignoring EINTR events in the poller"""
@@ -122,6 +128,11 @@ class ZMQSocketChannel(Thread):
             except ZMQError as e:
                 if e.errno == errno.EINTR:
                     continue
+                else:
+                    raise
+            except Exception:
+                if self._exiting:
+                    break
                 else:
                     raise
             else:
@@ -515,6 +526,11 @@ class HBSocketChannel(ZMQSocketChannel):
                     until_dead = self.time_to_dead - (time.time() - start_time)
                     until_dead = max(until_dead, 1e-3)
                     pass
+                else:
+                    raise
+            except Exception:
+                if self._exiting:
+                    break
                 else:
                     raise
             else:
