@@ -43,7 +43,7 @@ from IPython.config.application import Application
 from IPython.config.loader import Config
 from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes
 
-from IPython.parallel import error
+from IPython.parallel import error, util
 from IPython.parallel.factory import SessionFactory
 from IPython.parallel.util import connect_logger, local_logger, asbytes
 
@@ -240,6 +240,8 @@ class TaskScheduler(SessionFactory):
     # [Un]Registration Handling
     #-----------------------------------------------------------------------
 
+    
+    @util.log_errors
     def dispatch_notification(self, msg):
         """dispatch register/unregister events."""
         try:
@@ -343,6 +345,9 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # Job Submission
     #-----------------------------------------------------------------------
+    
+    
+    @util.log_errors
     def dispatch_submission(self, raw_msg):
         """Dispatch job submission to appropriate handlers."""
         # ensure targets up to date:
@@ -560,6 +565,9 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # Result Handling
     #-----------------------------------------------------------------------
+    
+    
+    @util.log_errors
     def dispatch_result(self, raw_msg):
         """dispatch method for result replies"""
         try:
