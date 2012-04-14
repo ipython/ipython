@@ -68,6 +68,7 @@ class PyReader(NotebookReader):
                 state = u'markdowncell'
                 cell_lines = []
                 kwargs = {}
+            # VERSIONHACK: plaintext -> raw
             elif line.startswith(u'# <rawcell>') or line.startswith(u'# <plaintextcell>'):
                 cell = self.new_cell(state, cell_lines, **kwargs)
                 if cell is not None:

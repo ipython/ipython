@@ -1197,7 +1197,8 @@ var IPython = (function (IPython) {
             var new_cell = null;
             for (i=0; i<ncells; i++) {
                 cell_data = new_cells[i];
-                // handle short-lived plaintext name for raw cells
+                // VERSIONHACK: plaintext -> raw
+                // handle never-released plaintext name for raw cells
                 if (cell_data.cell_type === 'plaintext'){
                     cell_data.cell_type = 'raw';
                 }
