@@ -59,7 +59,7 @@ class ClientCompleter(object):
         # Give the kernel up to 0.5s to respond
         for i in range(5):
             ident,rep = self.session.recv(self.socket)
-            rep = Message(rep)
+            rep = session.Message(rep)
             if rep is not None and rep.msg_type == 'complete_reply':
                 matches = rep.content.matches
                 break
