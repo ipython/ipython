@@ -238,6 +238,18 @@ class TestClient(ClusterTestCase):
         for rec in found:
             self.assertTrue('msg_id' in rec.keys())
     
+    def test_db_query_get_result(self):
+        """pop in db_query shouldn't pop from result itself"""
+        self.client[:].apply_sync(lambda : 1)
+        found = self.client.db_query({'msg_id': {'$ne' : ''}})
+        rc2 = clientmod.Client(profile='iptest')
+        # If this bug is not fixed, this call will hang:
+        ar = rc2.get_result(self.client.history[-1])
+        ar.wait(2)
+        self.assertTrue(ar.ready())
+        ar.get()
+        rc2.close()
+    
     def test_db_query_in(self):
         """test db query with '$in','$nin' operators"""
         hist = self.client.hub_history()

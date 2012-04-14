@@ -25,7 +25,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import Set, Instance, CFloat, Integer
 
-from IPython.parallel.util import asbytes
+from IPython.parallel.util import asbytes, log_errors
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -148,6 +148,7 @@ class HeartMonitor(LoggingConfigurable):
         self.hearts.remove(heart)
 
 
+    @log_errors
     def handle_pong(self, msg):
         "a heart just beat"
         current = asbytes(str(self.lifetime))
