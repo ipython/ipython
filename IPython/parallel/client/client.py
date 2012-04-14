@@ -1277,6 +1277,8 @@ class Client(HasTraits):
 
                 md = self.metadata[msg_id]
                 md.update(self._extract_metadata(header, parent, rcontent))
+                if rec.get('received'):
+                    md['received'] = rec['received']
                 md.update(iodict)
 
                 if rcontent['status'] == 'ok':
