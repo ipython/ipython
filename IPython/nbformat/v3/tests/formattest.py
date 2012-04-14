@@ -6,8 +6,6 @@ import tempfile
 
 pjoin = os.path.join
 
-from unittest import TestCase
-
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook
@@ -20,7 +18,8 @@ from .nbexamples import nb0, nb0_py
 def open_utf8(fname, mode):
     return io.open(fname, mode=mode, encoding='utf-8')
 
-class NBFormatTestCase(TestCase):
+class NBFormatTest:
+    """Mixin for writing notebook format tests"""
 
     # override with appropriate values in subclasses
     nb0_ref = None
@@ -61,4 +60,4 @@ class NBFormatTestCase(TestCase):
             nb = self.mod.read(f)
         
 
-        
+

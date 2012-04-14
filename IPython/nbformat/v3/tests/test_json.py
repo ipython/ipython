@@ -10,7 +10,7 @@ from . import formattest
 from .nbexamples import nb0
 
 
-class TestJSON(formattest.NBFormatTestCase):
+class TestJSON(formattest.NBFormatTest, TestCase):
 
     nb0_ref = None
     ext = 'ipynb'

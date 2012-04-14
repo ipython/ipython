@@ -1,11 +1,14 @@
 # -*- coding: utf8 -*-
+
+from unittest import TestCase
+
 from . import formattest
 
 from .. import nbpy
 from .nbexamples import nb0, nb0_py
 
 
-class TestPy(formattest.NBFormatTestCase):
+class TestPy(formattest.NBFormatTest, TestCase):
 
     nb0_ref = nb0_py
     ext = 'py'
