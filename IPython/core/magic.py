@@ -937,11 +937,6 @@ Currently the magic system has the following functions:\n"""
                     vsize  = var.size
                     vbytes = vsize*var.itemsize
                     vdtype = var.dtype
-                else:
-                    # Numeric
-                    vsize  = Numeric.size(var)
-                    vbytes = vsize*var.itemsize()
-                    vdtype = var.typecode()
 
                 if vbytes < 100000:
                     print aformat % (vshape,vsize,vdtype,vbytes)
@@ -2321,7 +2316,7 @@ Currently the magic system has the following functions:\n"""
         try:
             last_call[0] = self.shell.displayhook.prompt_count
             if not opts_prev:
-                last_call[1] = parameter_s
+                last_call[1] = args
         except:
             pass
 

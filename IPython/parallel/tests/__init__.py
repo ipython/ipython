@@ -21,7 +21,9 @@ from IPython.parallel import Client
 from IPython.parallel.apps.launcher import (LocalProcessLauncher,
                                                   ipengine_cmd_argv,
                                                   ipcontroller_cmd_argv,
-                                                  SIGKILL)
+                                                  SIGKILL,
+                                                  ProcessStateError,
+)
 
 # globals
 launchers = []

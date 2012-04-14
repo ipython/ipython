@@ -26,7 +26,7 @@ try:
 except:
     from IPython.utils.nested_context import nested
 
-from IPython.core.error import TryNext
+from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.pylabtools import pylab_activate

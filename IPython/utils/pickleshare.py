@@ -191,10 +191,10 @@ class PickleShareDB(collections.MutableMapping):
         return [self._normalized(p) for p in files if p.isfile()]
 
     def __iter__(self):
-        return iter(keys)
+        return iter(self.keys())
 
     def __len__(self):
-        return len(keys)
+        return len(self.keys())
 
     def uncache(self,*items):
         """ Removes all, or specified items from cache
