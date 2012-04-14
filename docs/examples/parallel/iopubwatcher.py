@@ -65,14 +65,14 @@ def main(connection_file):
             # stdout/stderr
             # stream names are in msg['content']['name'], if you want to handle
             # them differently
-            print "%s: %s" % (topic, msg['content']['data'])
+            print("%s: %s" % (topic, msg['content']['data']))
         elif msg['msg_type'] == 'pyerr':
             # Python traceback
             c = msg['content']
-            print topic + ':'
+            print(topic + ':')
             for line in c['traceback']:
                 # indent lines
-                print '    ' + line
+                print('    ' + line)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

@@ -9,6 +9,7 @@ embedding which you can cut and paste in your code once you understand how
 things work.
 
 The code in this file is deliberately extra-verbose, meant for learning."""
+from __future__ import print_function
 
 # The basics to get you going:
 
@@ -28,8 +29,8 @@ except NameError:
     prompt_config.in2_template = '   .\\D.: '
     prompt_config.out_template = 'Out<\\#>: '
 else:
-    print "Running nested copies of IPython."
-    print "The prompts for the nested copy have been modified"
+    print("Running nested copies of IPython.")
+    print("The prompts for the nested copy have been modified")
     cfg = Config()
     nested = 1
 
@@ -55,7 +56,7 @@ if not nested:
 ipshell2 = InteractiveShellEmbed(config=cfg,
                         banner1 = 'Second IPython instance.')
 
-print '\nHello. This is printed from the main controller program.\n'
+print('\nHello. This is printed from the main controller program.\n')
 
 # You can then call ipshell() anywhere you need it (with an optional
 # message):
@@ -64,7 +65,7 @@ ipshell('***Called from top level. '
         'Note that if you use %kill_embedded, you can fully deactivate\n'
         'This embedded instance so it will never turn on again')
 
-print '\nBack in caller program, moving along...\n'
+print('\nBack in caller program, moving along...\n')
 
 #---------------------------------------------------------------------------
 # More details:
@@ -101,37 +102,37 @@ ipshell.exit_msg = 'Leaving interpreter - New exit_msg'
 def foo(m):
     s = 'spam'
     ipshell('***In foo(). Try %whos, or print s or m:')
-    print 'foo says m = ',m
+    print('foo says m = ',m)
 
 def bar(n):
     s = 'eggs'
     ipshell('***In bar(). Try %whos, or print s or n:')
-    print 'bar says n = ',n
+    print('bar says n = ',n)
     
 # Some calls to the above functions which will trigger IPython:
-print 'Main program calling foo("eggs")\n'
+print('Main program calling foo("eggs")\n')
 foo('eggs')
 
 # The shell can be put in 'dummy' mode where calls to it silently return. This
 # allows you, for example, to globally turn off debugging for a program with a
 # single call.
 ipshell.dummy_mode = True
-print '\nTrying to call IPython which is now "dummy":'
+print('\nTrying to call IPython which is now "dummy":')
 ipshell()
-print 'Nothing happened...'
+print('Nothing happened...')
 # The global 'dummy' mode can still be overridden for a single call
-print '\nOverriding dummy mode manually:'
+print('\nOverriding dummy mode manually:')
 ipshell(dummy=False)
 
 # Reactivate the IPython shell
 ipshell.dummy_mode = False
 
-print 'You can even have multiple embedded instances:'
+print('You can even have multiple embedded instances:')
 ipshell2()
 
-print '\nMain program calling bar("spam")\n'
+print('\nMain program calling bar("spam")\n')
 bar('spam')
 
-print 'Main program finished. Bye!'
+print('Main program finished. Bye!')
 
 #********************** End of file <example-embed.py> ***********************

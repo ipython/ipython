@@ -34,12 +34,12 @@ view.block=True
 
 # will run on anything:
 pids1 = [ view.apply(getpid) for i in range(len(client.ids)) ]
-print pids1
+print(pids1)
 # will only run on e0:
 pids2 = [ view.apply(getpid2) for i in range(len(client.ids)) ]
-print pids2
+print(pids2)
 
-print "now test some dependency behaviors"
+print("now test some dependency behaviors")
 
 def wait(t):
     import time
@@ -98,31 +98,31 @@ def should_fail(f):
     except error.KernelError:
         pass
     else:
-        print 'should have raised'
+        print('should have raised')
         # raise Exception("should have raised")
 
-# print r1a.msg_ids
+# print(r1a.msg_ids)
 r1a.get()
-# print r1b.msg_ids
+# print(r1b.msg_ids)
 r1b.get()
-# print r2a.msg_ids
+# print(r2a.msg_ids)
 should_fail(r2a.get)
-# print r2b.msg_ids
+# print(r2b.msg_ids)
 should_fail(r2b.get)
-# print r3.msg_ids
+# print(r3.msg_ids)
 should_fail(r3.get)
-# print r4a.msg_ids
+# print(r4a.msg_ids)
 r4a.get()
-# print r4b.msg_ids
+# print(r4b.msg_ids)
 r4b.get()
-# print r4c.msg_ids
+# print(r4c.msg_ids)
 should_fail(r4c.get)
-# print r5.msg_ids
+# print(r5.msg_ids)
 r5.get()
-# print r5b.msg_ids
+# print(r5b.msg_ids)
 should_fail(r5b.get)
-# print r6.msg_ids
+# print(r6.msg_ids)
 should_fail(r6.get) # assuming > 1 engine
-# print r6b.msg_ids
+# print(r6b.msg_ids)
 should_fail(r6b.get)
-print 'done'
+print('done')

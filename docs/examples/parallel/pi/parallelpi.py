@@ -15,6 +15,7 @@ ftp://pi.super-computing.org/.2/pi200m/
 and the files used will be downloaded if they are not in the working directory
 of the IPython engines.
 """
+from __future__ import print_function
 
 from IPython.parallel import Client
 from matplotlib import pyplot as plt
@@ -36,16 +37,16 @@ id0 = c.ids[0]
 v = c[:]
 v.block=True
 # fetch the pi-files
-print "downloading %i files of pi"%n
+print("downloading %i files of pi"%n)
 v.map(fetch_pi_file, files[:n])
-print "done"
+print("done")
 
 # Run 10m digits on 1 engine
 t1 = clock()
 freqs10m = c[id0].apply_sync(compute_two_digit_freqs, files[0])
 t2 = clock()
 digits_per_second1 = 10.0e6/(t2-t1)
-print "Digits per second (1 core, 10m digits):   ", digits_per_second1
+print("Digits per second (1 core, 10m digits):   ", digits_per_second1)
 
 
 # Run n*10m digits on all engines
@@ -54,9 +55,9 @@ freqs_all = v.map(compute_two_digit_freqs, files[:n])
 freqs150m = reduce_freqs(freqs_all)
 t2 = clock()
 digits_per_second8 = n*10.0e6/(t2-t1)
-print "Digits per second (%i engines, %i0m digits): "%(n,n), digits_per_second8
+print("Digits per second (%i engines, %i0m digits): "%(n,n), digits_per_second8)
 
-print "Speedup: ", digits_per_second8/digits_per_second1
+print("Speedup: ", digits_per_second8/digits_per_second1)
 
 plot_two_digit_freqs(freqs150m)
 plt.title("2 digit sequences in %i0m digits of pi"%n)

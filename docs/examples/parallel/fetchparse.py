@@ -8,8 +8,10 @@ This module gives an example of how the task interface to the
 IPython controller works.  Before running this script start the IPython controller
 and some engines using something like::
 
-    ipclusterz start -n 4
+    ipcluster start -n 4
 """
+from __future__ import print_function
+
 import sys
 from IPython.parallel import Client, error
 import time
@@ -53,11 +55,11 @@ class DistributedSpider(object):
         if url not in self.allLinks:
             self.allLinks.append(url)
             if url.startswith(self.site):
-                print '    ', url
+                print('    ', url)
                 self.linksWorking[url] = self.view.apply(fetchAndParse, url)
 
     def onVisitDone(self, links, url):
-        print url, ':'
+        print(url, ':')
         self.linksDone[url] = None
         del self.linksWorking[url]
         for link in links:
@@ -66,7 +68,7 @@ class DistributedSpider(object):
     def run(self):
         self.visitLink(self.site)
         while self.linksWorking:
-            print len(self.linksWorking), 'pending...'
+            print(len(self.linksWorking), 'pending...')
             self.synchronize()
             time.sleep(self.pollingDelay)
 
@@ -81,7 +83,7 @@ class DistributedSpider(object):
             except Exception as e:
                 self.linksDone[url] = None
                 del self.linksWorking[url]
-                print url, ':', e.traceback
+                print(url, ':', e.traceback)
             else:
                 self.onVisitDone(links, url)
 
