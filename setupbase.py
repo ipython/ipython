@@ -288,7 +288,7 @@ def target_update(target,deps,cmd):
     command if target is outdated."""
 
     if target_outdated(target,deps):
-        system(cmd)
+        os.system(cmd)
 
 #---------------------------------------------------------------------------
 # Find scripts
