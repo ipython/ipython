@@ -20,6 +20,7 @@ import __future__
 import bdb
 import inspect
 import imp
+import io
 import os
 import sys
 import shutil
@@ -2222,7 +2223,7 @@ Currently the magic system has the following functions:\n"""
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
-        with py3compat.open(fname,'w', encoding="utf-8") as f:
+        with io.open(fname,'w', encoding="utf-8") as f:
             f.write(u"# coding: utf-8\n")
             f.write(py3compat.cast_unicode(cmds))
         print 'The following commands were written to file `%s`:' % fname
@@ -3663,7 +3664,7 @@ Defaulting color scheme to 'NoColor'"""
                 cells.append(current.new_code_cell(prompt_number=prompt_number, input=input))
             worksheet = current.new_worksheet(cells=cells)
             nb = current.new_notebook(name=name,worksheets=[worksheet])
-            with open(fname, 'w') as f:
+            with io.open(fname, 'w', encoding='utf-8') as f:
                 current.write(nb, f, format);
         elif args.format is not None:
             old_fname, old_name, old_format = current.parse_filename(args.filename)
@@ -3677,13 +3678,9 @@ Defaulting color scheme to 'NoColor'"""
                 new_fname = old_name + u'.py'
             else:
                 raise ValueError('Invalid notebook format: %s' % new_format)
-            with open(old_fname, 'r') as f:
-                s = f.read()
-                try:
-                    nb = current.reads(s, old_format)
-                except:
-                    nb = current.reads(s, u'xml')
-            with open(new_fname, 'w') as f:
+            with io.open(old_fname, 'r', encoding='utf-8') as f:
+                nb = current.read(f, old_format)
+            with io.open(new_fname, 'w', encoding='utf-8') as f:
                 current.write(nb, f, new_format)
 
     def magic_config(self, s):

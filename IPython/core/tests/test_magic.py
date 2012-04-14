@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Tests for various magic functions.
 
 Needs to be run by nose (to make ipython session available).
@@ -8,12 +9,15 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
+import io
 import os
 import sys
 from StringIO import StringIO
 
 import nose.tools as nt
 
+from IPython.nbformat.v3.tests.nbexamples import nb0
+from IPython.nbformat import current
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
@@ -22,6 +26,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 #-----------------------------------------------------------------------------
 # Test functions begin
 #-----------------------------------------------------------------------------
+
 
 def test_rehashx():
     # clear up everything
@@ -431,3 +436,34 @@ def test_extension():
     finally:
         _ip.ipython_dir = orig_ipython_dir
         
+def test_notebook_export_json():
+    with TemporaryDirectory() as td:
+        outfile = os.path.join(td, "nb.ipynb")
+        _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
+        _ip.magic("notebook -e %s" % outfile)
+
+def test_notebook_export_py():
+    with TemporaryDirectory() as td:
+        outfile = os.path.join(td, "nb.py")
+        _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
+        _ip.magic("notebook -e %s" % outfile)
+
+def test_notebook_reformat_py():
+    with TemporaryDirectory() as td:
+        infile = os.path.join(td, "nb.ipynb")
+        with io.open(infile, 'w') as f:
+            current.write(nb0, f, 'json')
+            
+        _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
+        _ip.magic("notebook -f py %s" % infile)
+
+def test_notebook_reformat_json():
+    with TemporaryDirectory() as td:
+        infile = os.path.join(td, "nb.py")
+        with io.open(infile, 'w') as f:
+            current.write(nb0, f, 'py')
+            
+        _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
+        _ip.magic("notebook -f ipynb %s" % infile)
+        _ip.magic("notebook -f json %s" % infile)
+
