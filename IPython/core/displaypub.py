@@ -30,6 +30,7 @@ Authors:
 from __future__ import print_function
 
 from IPython.config.configurable import Configurable
+from IPython.utils import io
 
 #-----------------------------------------------------------------------------
 # Main payload class
@@ -99,14 +100,20 @@ class DisplayPublisher(Configurable):
             arbitrary key, value pairs that frontends can use to interpret
             the data.
         """
-        from IPython.utils import io
+
         # The default is to simply write the plain text data using io.stdout.
         if data.has_key('text/plain'):
             print(data['text/plain'], file=io.stdout)
 
-        def clear_output(self, stdout=True, stderr=True, other=True):
-            """Clear the output of the cell receiving output."""
-            pass
+    def clear_output(self, stdout=True, stderr=True, other=True):
+        """Clear the output of the cell receiving output."""
+        if stdout:
+            print('\033[2K\r', file=io.stdout, end='')
+            io.stdout.flush()
+        if stderr:
+            print('\033[2K\r', file=io.stderr, end='')
+            io.stderr.flush()
+            
 
 
 def publish_display_data(source, data, metadata=None):

@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 from xml.dom import minidom
 
 from .displaypub import (
@@ -365,6 +367,11 @@ class Javascript(DisplayObject):
         display function, it will result in the data being displayed
         in the frontend. If the data is a URL, the data will first be
         downloaded and then displayed. 
+        
+        In the Notebook, the containing element will be available as `element`,
+        and jQuery will be available.  The output area starts hidden, so if
+        the js appends content to `element` that should be visible, then
+        it must call `container.show()` to unhide the area.
 
         Parameters
         ----------
@@ -496,6 +503,16 @@ def clear_output(stdout=True, stderr=True, other=True):
         (e.g. figures,images,HTML, any result of display()).
     """
     from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.clear_output(
-        stdout=stdout, stderr=stderr, other=other,
-    )
+    if InteractiveShell.initialized():
+        InteractiveShell.instance().display_pub.clear_output(
+            stdout=stdout, stderr=stderr, other=other,
+        )
+    else:
+        from IPython.utils import io
+        if stdout:
+            print('\033[2K\r', file=io.stdout, end='')
+            io.stdout.flush()
+        if stderr:
+            print('\033[2K\r', file=io.stderr, end='')
+            io.stderr.flush()
+        
