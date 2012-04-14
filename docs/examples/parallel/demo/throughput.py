@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import time
 import numpy as np
 from IPython import parallel
@@ -43,7 +45,7 @@ def do_runs(nlist,t=0,f=wait, trials=2, runner=time_throughput):
         t2 /= trials
         A[i] = (t1,t2)
         A[i] = n/A[i]
-        print n,A[i]
+        print(n,A[i])
     return A
 
 def do_echo(n,tlist=[0],f=echo, trials=2, runner=time_throughput):
@@ -59,6 +61,6 @@ def do_echo(n,tlist=[0],f=echo, trials=2, runner=time_throughput):
         t2 /= trials
         A[i] = (t1,t2)
         A[i] = n/A[i]
-        print t,A[i]
+        print(t,A[i])
     return A
     

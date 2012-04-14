@@ -9,6 +9,7 @@
 # ## Problem setup
 
 # <codecell>
+from __future__ import print_function
 
 import sys
 import time
@@ -59,8 +60,8 @@ view = c.load_balanced_view()
 
 # <codecell>
 
-print "Strike prices: ", strike_vals
-print "Volatilities: ", sigma_vals
+print("Strike prices: ", strike_vals)
+print("Volatilities: ", sigma_vals)
 
 # <markdowncell>
 
@@ -77,7 +78,7 @@ for strike in strike_vals:
 
 # <codecell>
 
-print "Submitted tasks: ", len(async_results)
+print("Submitted tasks: ", len(async_results))
 
 # <markdowncell>
 
@@ -89,7 +90,7 @@ c.wait(async_results)
 t2 = time.time()
 t = t2-t1
 
-print "Parallel calculation completed, time = %s s" % t
+print("Parallel calculation completed, time = %s s" % t)
 
 # <markdowncell>
 
