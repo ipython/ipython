@@ -5,7 +5,7 @@ The two files plotting_frontend.py and plotting_backend.py go together.
 To run this example, first start the IPython controller and 4
 engines::
 
-    ipclusterz start -n 4
+    ipcluster start -n 4
 
 Then start ipython in pylab mode::
 

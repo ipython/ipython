@@ -6,7 +6,7 @@ are basically just a time.sleep(t), where t is a random number between
 two limits that can be configured at the command line.  To run
 the script there must first be an IPython controller and engines running::
 
-    ipclusterz start -n 16
+    ipcluster start -n 16
 
 A good test to run with 16 engines is::
 
