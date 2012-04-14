@@ -26,6 +26,7 @@ exclude docs/man/*.1
 prune docs/attic
 prune docs/build
 prune docs/gh-pages
+prune docs/dist
 
 # Patterns to exclude from any directory
 global-exclude *~
