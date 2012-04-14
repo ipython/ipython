@@ -101,7 +101,7 @@ class InputHookManager(object):
     This class installs various hooks under ``PyOSInputHook`` to handle
     GUI event loop integration.
     """
-
+    
     def __init__(self):
         if ctypes is None:
             warn("IPython GUI event loop requires ctypes, %gui will not be available\n")
@@ -223,7 +223,7 @@ class InputHookManager(object):
 
     def enable_qt4(self, app=None):
         """Enable event loop integration with PyQt4.
-
+        
         Parameters
         ----------
         app : Qt Application, optional.
@@ -289,7 +289,7 @@ class InputHookManager(object):
 
     def disable_gtk(self):
         """Disable event loop integration with PyGTK.
-
+        
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -320,7 +320,7 @@ class InputHookManager(object):
 
     def disable_tk(self):
         """Disable event loop integration with Tkinter.
-
+        
         This merely sets PyOS_InputHook to NULL.
         """
         self.clear_inputhook()
@@ -346,7 +346,7 @@ class InputHookManager(object):
         without first creating a window. You should thus not create another
         window but use instead the created one. See 'gui-glut.py' in the
         docs/examples/lib directory.
-
+        
         The default screen mode is set to:
         glut.GLUT_DOUBLE | glut.GLUT_RGBA | glut.GLUT_DEPTH
         """
@@ -380,7 +380,7 @@ class InputHookManager(object):
 
     def disable_glut(self):
         """Disable event loop integration with glut.
-
+        
         This sets PyOS_InputHook to NULL and set the display function to a
         dummy one and set the timer to a dummy timer that will be triggered
         very far in the future.
