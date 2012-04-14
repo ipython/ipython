@@ -3420,6 +3420,7 @@ Defaulting color scheme to 'NoColor'"""
             %gui wx      # enable wxPython event loop integration
             %gui qt4|qt  # enable PyQt4 event loop integration
             %gui gtk     # enable PyGTK event loop integration
+            %gui gtk3    # enable Gtk3 event loop integration
             %gui tk      # enable Tk event loop integration
             %gui OSX     # enable Cocoa event loop integration
                          # (requires %matplotlib 1.1) 
