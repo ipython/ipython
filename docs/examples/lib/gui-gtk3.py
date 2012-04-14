@@ -12,7 +12,7 @@ from gi.repository import Gtk
 
 
 def hello_world(wigdet, data=None):
-    print "Hello World"
+    print("Hello World")
 
 def delete_event(widget, event, data=None):
     return False
