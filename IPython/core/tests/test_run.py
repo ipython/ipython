@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Tests for code execution (%run and related), which is particularly tricky.
 
 Because of how %run manages namespaces, and the fact that we are trying here to
@@ -240,3 +241,10 @@ tclass.py: deleting object: C-third
         _ip.run_cell("zz = 23")
         _ip.magic('run -i %s' % self.fname)
         tt.assert_equals(_ip.user_ns['yy'], 23)
+    
+    def test_unicode(self):
+        """Check that files in odd encodings are accepted."""
+        mydir = os.path.dirname(__file__)
+        na = os.path.join(mydir, 'nonascii.py')
+        _ip.magic('run %s' % na)
+        tt.assert_equals(_ip.user_ns['u'], u'Ўт№Ф')
