@@ -5,6 +5,7 @@
 # # Simple task farming example
 
 # <codecell>
+from __future__ import print_function
 
 from IPython.parallel import Client
 
@@ -48,5 +49,5 @@ ar = v.apply(task, 5)
 
 # <codecell>
 
-print "a, b, c: ", ar.get()
+print("a, b, c: ", ar.get())
 

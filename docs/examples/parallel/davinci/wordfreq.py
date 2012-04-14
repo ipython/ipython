@@ -1,6 +1,7 @@
 """Count the frequencies of words in a string"""
 
 from __future__ import division
+from __future__ import print_function
 
 import cmath as math
 
@@ -24,7 +25,7 @@ def print_wordfreq(freqs, n=10):
     items = zip(counts, words)
     items.sort(reverse=True)
     for (count, word) in items[:n]:
-        print word, count
+        print(word, count)
 
 
 def wordfreq_to_weightsize(worddict, minsize=25, maxsize=50, minalpha=0.5, maxalpha=1.0):

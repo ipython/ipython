@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 from IPython.parallel import *
 
 client = Client()
@@ -32,5 +34,5 @@ ar = psquare.map(range(42))
 
 # wait for the results to be done:
 squares3 = ar.get()
-print squares == squares2, squares3==squares
+print(squares == squares2, squares3==squares)
 # True

@@ -79,7 +79,7 @@ def main(nodes, edges):
     from matplotlib import pyplot as plt
     from matplotlib.dates import date2num
     from matplotlib.cm import gist_rainbow
-    print "building DAG"
+    print("building DAG")
     G = random_dag(nodes, edges)
     jobs = {}
     pos = {}
@@ -89,11 +89,11 @@ def main(nodes, edges):
     
     client = parallel.Client()
     view = client.load_balanced_view()
-    print "submitting %i tasks with %i dependencies"%(nodes,edges)
+    print("submitting %i tasks with %i dependencies"%(nodes,edges))
     results = submit_jobs(view, G, jobs)
-    print "waiting for results"
+    print("waiting for results")
     view.wait()
-    print "done"
+    print("done")
     for node in G:
         md = results[node].metadata
         start = date2num(md.started)

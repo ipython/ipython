@@ -41,10 +41,10 @@ class InternalIPKernel(object):
         #self.namespace['ipkernel'] = self.ipkernel  # dbg
 
     def print_namespace(self, evt=None):
-        print "\n***Variables in User namespace***"
+        print("\n***Variables in User namespace***")
         for k, v in self.namespace.iteritems():
             if k not in self._init_keys and not k.startswith('_'):
-                print '%s -> %r' % (k, v)
+                print('%s -> %r' % (k, v))
         sys.stdout.flush()
 
     def new_qt_console(self, evt=None):

@@ -5,7 +5,7 @@ The two files plotting_frontend.py and plotting_backend.py go together.
 To run this example, first start the IPython controller and 4
 engines::
 
-    ipclusterz start -n 4
+    ipcluster start -n 4
 
 Then start ipython in pylab mode::
 
@@ -15,6 +15,7 @@ Then a simple "run plotting_frontend.py" in IPython will run the
 example.  When this is done, all the variables (such as number, downx, etc.)
 are available in IPython, so for example you can make additional plots.
 """
+from __future__ import print_function
 
 import numpy as N
 from pylab import *
@@ -36,8 +37,8 @@ downpx = view.gather('downpx')
 downpy = view.gather('downpy')
 
 # but we can still iterate through AsyncResults before they are done
-print "number: ", sum(number)
-print "downsampled number: ", sum(d_number)
+print("number: ", sum(number))
+print("downsampled number: ", sum(d_number))
 
 
 # Make a scatter plot of the gathered data

@@ -44,21 +44,21 @@ if __name__ == '__main__':
 
     if not os.path.exists('davinci.txt'):
         # download from project gutenberg
-        print "Downloading Da Vinci's notebooks from Project Gutenberg"
+        print("Downloading Da Vinci's notebooks from Project Gutenberg")
         urllib.urlretrieve(davinci_url, 'davinci.txt')
         
     # Run the serial version
-    print "Serial word frequency count:"
+    print("Serial word frequency count:")
     text = open('davinci.txt').read()
     tic = time.time()
     freqs = wordfreq(text)
     toc = time.time()
     print_wordfreq(freqs, 10)
-    print "Took %.3f s to calcluate"%(toc-tic)
+    print("Took %.3f s to calcluate"%(toc-tic))
     
     
     # The parallel version
-    print "\nParallel word frequency count:"
+    print("\nParallel word frequency count:")
     # split the davinci.txt into one file per engine:
     lines = text.splitlines()
     nlines = len(lines)
@@ -75,6 +75,6 @@ if __name__ == '__main__':
     pfreqs = pwordfreq(view,fnames)
     toc = time.time()
     print_wordfreq(freqs)
-    print "Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets))
+    print("Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets)))
     # cleanup split files
     map(os.remove, fnames)

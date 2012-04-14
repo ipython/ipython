@@ -20,7 +20,7 @@ class MyApp:
         self.button.pack(side=LEFT)
 
     def hello_world(self):
-        print "Hello World!"
+        print("Hello World!")
 
 root = Tk()
 

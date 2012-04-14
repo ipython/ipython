@@ -15,7 +15,7 @@ class EngineCommunicator(object):
         
         # configure sockets
         self.identity = identity or bytes(uuid.uuid4())
-        print self.identity
+        print(self.identity)
         self.socket.setsockopt(zmq.IDENTITY, self.identity)
         self.sub.setsockopt(zmq.SUBSCRIBE, b'')
         

@@ -90,7 +90,7 @@ class MyFrame(wx.Frame, InternalIPKernel):
 
     def OnTimeToClose(self, evt):
         """Event handler for the button click."""
-        print "See ya later!"
+        print("See ya later!")
         sys.stdout.flush()
         self.cleanup_consoles(evt)
         self.Close()
