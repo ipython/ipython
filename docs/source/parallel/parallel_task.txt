@@ -111,27 +111,6 @@ that turns any Python function into a parallel function:
     In [11]: f.map(range(32))    # this is done in parallel
     Out[11]: [0.0,10.0,160.0,...]
 
-.. _parallel_taskmap:
-
-Map results are iterable!
--------------------------
-
-When an AsyncResult object actually maps multiple results (e.g. the :class:`~AsyncMapResult`
-object), you can actually iterate through them, and act on the results as they arrive:
-
-.. literalinclude:: ../../examples/parallel/itermapresult.py
-    :language: python
-    :lines: 9-34
-
-.. seealso::
-
-    When AsyncResult or the AsyncMapResult don't provide what you need (for instance,
-    handling individual results as they arrive, but with metadata), you can always
-    just split the original result's ``msg_ids`` attribute, and handle them as you like.
-    
-    For an example of this, see :file:`docs/examples/parallel/customresult.py`
-    
-
 .. _parallel_dependencies:
 
 Dependencies
