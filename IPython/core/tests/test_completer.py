@@ -229,4 +229,40 @@ def test_omit__names():
     nt.assert_false('ip.__str__' in matches)
     nt.assert_false('ip._hidden_attr' in matches)
     del ip._hidden_attr
-    
+
+
+def test_limit_to__all__False_ok():
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex('class D: x=24')
+    ip.ex('d=D()')
+    cfg = Config()
+    cfg.IPCompleter.limit_to__all__ = False
+    c.update_config(cfg)
+    s, matches = c.complete('d.')
+    nt.assert_true('d.x' in matches) 
+
+def test_limit_to__all__True_ok():
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex('class D: x=24')
+    ip.ex('d=D()')
+    ip.ex("d.__all__=['z']")
+    cfg = Config()
+    cfg.IPCompleter.limit_to__all__ = True
+    c.update_config(cfg)
+    s, matches = c.complete('d.')
+    nt.assert_true('d.z' in matches) 
+    nt.assert_false('d.x' in matches)
+
+def test_get__all__entries_ok():
+  class A(object):
+    __all__ = ['x', 1]
+  words = completer.get__all__entries(A())
+  nt.assert_equal(words, ['x'])
+
+def test_get__all__entries_no__all__ok():
+  class A(object):
+      pass
+  words = completer.get__all__entries(A())
+  nt.assert_equal(words, [])
