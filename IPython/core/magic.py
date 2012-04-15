@@ -1734,7 +1734,9 @@ Currently the magic system has the following functions:\n"""
             main_mod = self.shell.new_main_mod()
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
-
+        
+        prog_ns['execfile'] = py3compat.execfile
+        
         # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
         # set the __file__ global in the script's namespace
         prog_ns['__file__'] = filename
@@ -1864,6 +1866,9 @@ Currently the magic system has the following functions:\n"""
             # we can do is to at least restore __builtins__ for the user on
             # exit.
             self.shell.user_ns['__builtins__'] = builtin_mod
+
+            if prog_ns.has_key('execfile'):
+                del prog_ns['execfile']
 
             # Ensure key global structures are restored
             sys.argv = save_argv
