@@ -18,6 +18,7 @@ Authors:
 
 from __future__ import division
 
+import os
 import tempfile
 import time
 
@@ -222,3 +223,11 @@ class TestSQLiteBackend(TestDictBackend):
     
     def tearDown(self):
         self.db._db.close()
+
+
+def teardown():
+    """cleanup task db file after all tests have run"""
+    try:
+        os.remove(os.path.join(tempfile.gettempdir(), 'tasks.db'))
+    except:
+        pass
