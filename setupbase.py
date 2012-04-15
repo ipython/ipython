@@ -100,11 +100,11 @@ def find_packages():
     """
     Find all of IPython's packages.
     """
-    excludes = ['deathrow']
+    excludes = ['deathrow', 'quarantine']
     packages = []
     for dir,subdirs,files in os.walk('IPython'):
         package = dir.replace(os.path.sep, '.')
-        if any([ package.startswith('IPython.'+exc) for exc in excludes ]):
+        if any(package.startswith('IPython.'+exc) for exc in excludes):
             # package is to be excluded (e.g. deathrow)
             continue
         if '__init__.py' not in files:
