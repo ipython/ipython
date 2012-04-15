@@ -201,12 +201,17 @@ class Kernel(Configurable):
         # stop ignoring sigint, now that we are out of our own loop,
         # we don't want to prevent future code from handling it
         signal(SIGINT, default_int_handler)
-        if self.eventloop is not None:
+        while self.eventloop is not None:
             try:
                 self.eventloop(self)
             except KeyboardInterrupt:
                 # Ctrl-C shouldn't crash the kernel
                 io.raw_print("KeyboardInterrupt caught in kernel")
+                continue
+            else:
+                # eventloop exited cleanly, this means we should stop (right?)
+                self.eventloop = None
+                break
 
 
     def record_ports(self, ports):
