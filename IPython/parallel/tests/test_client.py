@@ -316,4 +316,22 @@ class TestClient(ClusterTestCase):
         self.client.purge_results('all')
         hist = self.client.hub_history()
         self.assertEquals(len(hist), 0)
+    
+    def test_spin_thread(self):
+        self.client.spin_thread(0.01)
+        ar = self.client[-1].apply_async(lambda : 1)
+        time.sleep(0.1)
+        self.assertTrue(ar.wall_time < 0.1,
+            "spin should have kept wall_time < 0.1, but got %f" % ar.wall_time
+        )
+    
+    def test_stop_spin_thread(self):
+        self.client.spin_thread(0.01)
+        self.client.stop_spin_thread()
+        ar = self.client[-1].apply_async(lambda : 1)
+        time.sleep(0.15)
+        self.assertTrue(ar.wall_time > 0.1,
+            "Shouldn't be spinning, but got wall_time=%f" % ar.wall_time
+        )
+    
 
