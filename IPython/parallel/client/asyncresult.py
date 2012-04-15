@@ -25,6 +25,18 @@ from IPython.core.display import clear_output
 from IPython.external.decorator import decorator
 from IPython.parallel import error
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
+
+def _total_seconds(td):
+    """timedelta.total_seconds was added in 2.7"""
+    try:
+        # Python >= 2.7
+        return td.total_seconds()
+    except AttributeError:
+        # Python 2.6
+        return 1e-6 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -300,7 +312,7 @@ class AsyncResult(object):
             # handle single_result AsyncResults, where ar.stamp is single object,
             # not a list
             end = end_key(end)
-        return (end - start).total_seconds()
+        return _total_seconds(end - start)
         
     @property
     def progress(self):
@@ -323,7 +335,7 @@ class AsyncResult(object):
                 stamp = self._client.metadata[msg_id]['submitted']
                 if stamp and stamp < submitted:
                     submitted = stamp
-        return (now-submitted).total_seconds()
+        return _total_seconds(now-submitted)
     
     @property
     @check_ready
@@ -334,7 +346,7 @@ class AsyncResult(object):
         """
         t = 0
         for md in self._metadata:
-            t += (md['completed'] - md['started']).total_seconds()
+            t += _total_seconds(md['completed'] - md['started'])
         return t
     
     @property
