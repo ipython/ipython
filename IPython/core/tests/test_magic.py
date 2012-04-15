@@ -451,7 +451,7 @@ def test_notebook_export_py():
 def test_notebook_reformat_py():
     with TemporaryDirectory() as td:
         infile = os.path.join(td, "nb.ipynb")
-        with io.open(infile, 'w') as f:
+        with io.open(infile, 'w', encoding='utf-8') as f:
             current.write(nb0, f, 'json')
             
         _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
@@ -460,7 +460,7 @@ def test_notebook_reformat_py():
 def test_notebook_reformat_json():
     with TemporaryDirectory() as td:
         infile = os.path.join(td, "nb.py")
-        with io.open(infile, 'w') as f:
+        with io.open(infile, 'w', encoding='utf-8') as f:
             current.write(nb0, f, 'py')
             
         _ip.ex(py3compat.u_format(u"u = {u}'héllo'"))
