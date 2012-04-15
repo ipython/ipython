@@ -15,12 +15,16 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import time
+from datetime import datetime
 
 from zmq import MessageTracker
 
+from IPython.core.display import clear_output
 from IPython.external.decorator import decorator
 from IPython.parallel import error
+
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -255,7 +259,112 @@ class AsyncResult(object):
             # already done
             for r in rlist:
                 yield r
-
+    
+    def __len__(self):
+        return len(self.msg_ids)
+    
+    #-------------------------------------
+    # Sugar methods and attributes
+    #-------------------------------------
+    
+    def timedelta(self, start, end, start_key=min, end_key=max):
+        """compute the difference between two sets of timestamps
+        
+        The default behavior is to use the earliest of the first
+        and the latest of the second list, but this can be changed
+        by passing a different
+        
+        Parameters
+        ----------
+        
+        start : one or more datetime objects (e.g. ar.submitted)
+        end : one or more datetime objects (e.g. ar.received)
+        start_key : callable
+            Function to call on `start` to extract the relevant
+            entry [defalt: min]
+        end_key : callable
+            Function to call on `end` to extract the relevant
+            entry [default: max]
+        
+        Returns
+        -------
+        
+        dt : float
+            The time elapsed (in seconds) between the two selected timestamps.
+        """
+        if not isinstance(start, datetime):
+            # handle single_result AsyncResults, where ar.stamp is single object,
+            # not a list
+            start = start_key(start)
+        if not isinstance(end, datetime):
+            # handle single_result AsyncResults, where ar.stamp is single object,
+            # not a list
+            end = end_key(end)
+        return (end - start).total_seconds()
+        
+    @property
+    def progress(self):
+        """the number of tasks which have been completed at this point.
+        
+        Fractional progress would be given by 1.0 * ar.progress / len(ar)
+        """
+        self.wait(0)
+        return len(self) - len(set(self.msg_ids).intersection(self._client.outstanding))
+    
+    @property
+    def elapsed(self):
+        """elapsed time since initial submission"""
+        if self.ready():
+            return self.wall_time
+        
+        now = submitted = datetime.now()
+        for msg_id in self.msg_ids:
+            if msg_id in self._client.metadata:
+                stamp = self._client.metadata[msg_id]['submitted']
+                if stamp and stamp < submitted:
+                    submitted = stamp
+        return (now-submitted).total_seconds()
+    
+    @property
+    @check_ready
+    def serial_time(self):
+        """serial computation time of a parallel calculation
+        
+        Computed as the sum of (completed-started) of each task
+        """
+        t = 0
+        for md in self._metadata:
+            t += (md['completed'] - md['started']).total_seconds()
+        return t
+    
+    @property
+    @check_ready
+    def wall_time(self):
+        """actual computation time of a parallel calculation
+        
+        Computed as the time between the latest `received` stamp
+        and the earliest `submitted`.
+        
+        Only reliable if Client was spinning/waiting when the task finished, because
+        the `received` timestamp is created when a result is pulled off of the zmq queue,
+        which happens as a result of `client.spin()`.
+        
+        For similar comparison of other timestamp pairs, check out AsyncResult.timedelta.
+        
+        """
+        return self.timedelta(self.submitted, self.received)
+    
+    def wait_interactive(self, interval=1., timeout=None):
+        """interactive wait, printing progress at regular intervals"""
+        N = len(self)
+        tic = time.time()
+        while not self.ready() and (timeout is None or time.time() - tic <= timeout):
+            self.wait(interval)
+            clear_output()
+            print "%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed),
+            sys.stdout.flush()
+        print
+        print "done"
 
 
 class AsyncMapResult(AsyncResult):
