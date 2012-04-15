@@ -1786,8 +1786,9 @@ Currently the magic system has the following functions:\n"""
                         # Start file run
                         print "NOTE: Enter 'c' at the",
                         print "%s prompt to start your script." % deb.prompt
+                        ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
                         try:
-                            deb.run('execfile("%s")' % filename, prog_ns)
+                            deb.run('execfile("%s", prog_ns)' % filename, ns)
 
                         except:
                             etype, value, tb = sys.exc_info()
