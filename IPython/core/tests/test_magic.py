@@ -467,3 +467,6 @@ def test_notebook_reformat_json():
         _ip.magic("notebook -f ipynb %s" % infile)
         _ip.magic("notebook -f json %s" % infile)
 
+def test_env():
+    env = _ip.magic("env")
+    assert isinstance(env, dict), type(env)
