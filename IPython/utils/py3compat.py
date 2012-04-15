@@ -32,7 +32,7 @@ def cast_bytes(s, encoding=None):
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
     def wrapper(func_or_str):
-        if isinstance(func_or_str, str):
+        if isinstance(func_or_str, basestring):
             func = None
             doc = func_or_str
         else:
