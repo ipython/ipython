@@ -336,21 +336,27 @@ class RepresentationPrinter(PrettyPrinter):
                 pass
             else:
                 return printer(obj, self, cycle)
-            # Next look for type_printers.
+            # Next walk the mro and check for either:
+            #   1) a registered printer
+            #   2) a _repr_pretty_ method
             for cls in _get_mro(obj_class):
                 if cls in self.type_pprinters:
+                    # printer registered in self.type_pprinters
                     return self.type_pprinters[cls](obj, self, cycle)
                 else:
+                    # deferred printer
                     printer = self._in_deferred_types(cls)
                     if printer is not None:
                         return printer(obj, self, cycle)
-            # Finally look for special method names.
-            if hasattr(obj_class, '_repr_pretty_'):
-                # Some objects automatically create any requested
-                # attribute. Try to ignore most of them by checking for
-                # callability.
-                if callable(obj_class._repr_pretty_):
-                    return obj_class._repr_pretty_(obj, self, cycle)
+                    else:
+                        # Finally look for special method names.
+                        # Some objects automatically create any requested
+                        # attribute. Try to ignore most of them by checking for
+                        # callability.
+                        if '_repr_pretty_' in obj_class.__dict__:
+                            meth = obj_class._repr_pretty_
+                            if callable(meth):
+                                return meth(obj, self, cycle)
             return _default_pprint(obj, self, cycle)
         finally:
             self.end_group()

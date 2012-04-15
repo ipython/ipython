@@ -40,10 +40,26 @@ class MyList(object):
                     p.pretty(child)
 
 
+class MyDict(dict):
+    def _repr_pretty_(self, p, cycle):
+        p.text("MyDict(...)")
+
+
 def test_indentation():
     """Test correct indentation in groups"""
     count = 40
     gotoutput = pretty.pretty(MyList(range(count)))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
+
+    nt.assert_equals(gotoutput, expectedoutput)
+
+
+def test_dispatch():
+    """
+    Test correct dispatching: The _repr_pretty_ method for MyDict
+    must be found before the registered printer for dict.
+    """
+    gotoutput = pretty.pretty(MyDict())
+    expectedoutput = "MyDict(...)"
 
     nt.assert_equals(gotoutput, expectedoutput)
