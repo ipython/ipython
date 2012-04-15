@@ -47,8 +47,12 @@ var IPython = (function (IPython) {
         this.element = cell;
         this.collapse();
 
-        // construct a completer
+        // construct a completer only if class exist
+        // otherwise no print view
+        if (IPython.Completer != undefined )
+        {
         this.completer = new IPython.Completer(this);
+        }
     };
 
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
