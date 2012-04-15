@@ -99,7 +99,7 @@ var IPython = (function (IPython) {
     // result as invoking `something?`
     Tooltip.prototype.showInPager = function()
     {
-            var msg_id = IPython.notebook.kernel.execute(that.name+"?");
+            var msg_id = IPython.notebook.kernel.execute(this.name+"?");
             IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
             this.remove_and_cancel_tooltip();
             this._cmfocus();
