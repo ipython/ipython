@@ -449,11 +449,20 @@ class NotebookApp(BaseIPythonApplication):
                 self.port = port
                 break
     
+    def init_signal(self):
+        signal.signal(signal.SIGINT, self._handle_signal)
+        signal.signal(signal.SIGTERM, self._handle_signal)
+    
+    def _handle_signal(self, sig, frame):
+        self.log.critical("received signal %s, stopping", sig)
+        ioloop.IOLoop.instance().stop()
+    
     @catch_config_error
     def initialize(self, argv=None):
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.init_webapp()
+        self.init_signal()
 
     def cleanup_kernels(self):
         """shutdown all kernels
