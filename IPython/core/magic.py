@@ -3006,7 +3006,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_env(self, parameter_s=''):
         """List environment variables."""
 
-        return os.environ.data
+        return dict(os.environ)
 
     def magic_pushd(self, parameter_s=''):
         """Place the current dir on stack and change directory.
