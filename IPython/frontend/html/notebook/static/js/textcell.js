@@ -237,33 +237,33 @@ var IPython = (function (IPython) {
     };
 
 
-    // PlaintextCell
+    // RawCell
 
-    var PlaintextCell = function (notebook) {
+    var RawCell = function (notebook) {
         this.placeholder = "Type plain text and LaTeX: $\\alpha^2$";
         this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
-        this.cell_type = 'plaintext';
+        this.cell_type = 'raw';
     };
 
 
-    PlaintextCell.prototype = new TextCell();
+    RawCell.prototype = new TextCell();
 
 
-    PlaintextCell.prototype.render = function () {
+    RawCell.prototype.render = function () {
         this.rendered = true;
         this.edit();
     };
 
 
-    PlaintextCell.prototype.select = function () {
+    RawCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
         this.code_mirror.focus();
     };
 
 
-    PlaintextCell.prototype.at_top = function () {
+    RawCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === 0) {
             return true;
@@ -273,7 +273,7 @@ var IPython = (function (IPython) {
     };
 
 
-    PlaintextCell.prototype.at_bottom = function () {
+    RawCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === (this.code_mirror.lineCount()-1)) {
             return true;
@@ -353,7 +353,7 @@ var IPython = (function (IPython) {
     IPython.TextCell = TextCell;
     IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
-    IPython.PlaintextCell = PlaintextCell;
+    IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
 
 

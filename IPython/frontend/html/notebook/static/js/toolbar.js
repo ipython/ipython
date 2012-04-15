@@ -113,8 +113,8 @@ var IPython = (function (IPython) {
                 IPython.notebook.to_code();
             } else if (cell_type === 'markdown')  {
                 IPython.notebook.to_markdown();
-            } else if (cell_type === 'plaintext')  {
-                IPython.notebook.to_plaintext();
+            } else if (cell_type === 'raw')  {
+                IPython.notebook.to_raw();
             } else if (cell_type === 'heading1')  {
                 IPython.notebook.to_heading(undefined, 1);
             } else if (cell_type === 'heading2')  {
