@@ -534,4 +534,10 @@ class TestView(ClusterTestCase):
         echo = lambda x:x
         self.assertRaisesRemote(NameError, v.apply_sync, echo, r)
 
+    def test_single_engine_map(self):
+        e0 = self.client[self.client.ids[0]]
+        r = range(5)
+        check = [ -1*i for i in r ]
+        result = e0.map_sync(lambda x: -1*x, r)
+        self.assertEquals(result, check)
 
