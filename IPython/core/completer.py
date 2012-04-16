@@ -682,8 +682,9 @@ class IPCompleter(Completer):
                 \S         # other characters
                 ''', re.VERBOSE | re.DOTALL)
         # 1. find the nearest identifier that comes before an unclosed
-        # parenthesis e.g. for "foo (1+bar(x), pa", the candidate is "foo"
-        tokens = regexp.findall(self.line_buffer)
+        # parenthesis before the cursor
+        # e.g. for "foo (1+bar(x), pa<cursor>,a=1)", the candidate is "foo"
+        tokens = regexp.findall(self.text_until_cursor)
         tokens.reverse()
         iterTokens = iter(tokens); openPar = 0
         for token in iterTokens:
