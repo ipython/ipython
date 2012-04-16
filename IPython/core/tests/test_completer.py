@@ -282,5 +282,5 @@ def test_func_kw_completions():
     ip.ex('def myfunc(a=1,b=2): return a+b')
     s, matches = c.complete(None,'myfunc(1,b')
     nt.assert_true('b=' in matches) 
-    s, matches = c.complete(None,'myfunc(1,b)',10)
+    s, matches = c.complete(None,'myfunc(1,b)',10)#cursor is right after b
     nt.assert_true('b=' in matches)
