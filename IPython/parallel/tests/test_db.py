@@ -18,6 +18,7 @@ Authors:
 
 from __future__ import division
 
+import os
 import tempfile
 import time
 
@@ -36,6 +37,12 @@ from IPython.zmq.session import Session
 #-------------------------------------------------------------------------------
 # TestCases
 #-------------------------------------------------------------------------------
+
+
+def setup():
+    global temp_db
+    temp_db = tempfile.NamedTemporaryFile(suffix='.db').name
+
 
 class TestDictBackend(TestCase):
     def setUp(self):
@@ -218,7 +225,16 @@ class TestSQLiteBackend(TestDictBackend):
 
     @dec.skip_without('sqlite3')
     def create_db(self):
-        return SQLiteDB(location=tempfile.gettempdir())
+        location, fname = os.path.split(temp_db)
+        return SQLiteDB(location=location, fname=fname)
     
     def tearDown(self):
         self.db._db.close()
+
+
+def teardown():
+    """cleanup task db file after all tests have run"""
+    try:
+        os.remove(temp_db)
+    except:
+        pass
