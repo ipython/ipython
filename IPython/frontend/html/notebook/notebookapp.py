@@ -20,11 +20,13 @@ Authors:
 import errno
 import logging
 import os
+import re
 import select
 import signal
 import socket
 import sys
 import threading
+import time
 import webbrowser
 
 # Third party
@@ -451,7 +453,20 @@ class NotebookApp(BaseIPythonApplication):
                 break
     
     def init_signal(self):
-        signal.signal(signal.SIGINT, self._handle_sigint)
+        # FIXME: remove this check when pyzmq dependency is >= 2.1.11
+        # safely extract zmq version info:
+        try:
+            zmq_v = zmq.pyzmq_version_info()
+        except AttributeError:
+            zmq_v = [ int(n) for n in re.findall(r'\d+', zmq.__version__) ]
+            if 'dev' in zmq.__version__:
+                zmq_v.append(999)
+            zmq_v = tuple(zmq_v)
+        if zmq_v >= (2,1,9):
+            # This won't work with 2.1.7 and
+            # 2.1.9-10 will log ugly 'Interrupted system call' messages,
+            # but it will work
+            signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
     
     def _handle_sigint(self, sig, frame):
@@ -474,6 +489,8 @@ class NotebookApp(BaseIPythonApplication):
         A second ^C, or answering 'y' within 5s will cause shutdown,
         otherwise original SIGINT handler will be restored.
         """
+        # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
+        time.sleep(0.1)
         sys.stdout.write("Shutdown Notebook Server (y/[n])? ")
         sys.stdout.flush()
         r,w,x = select.select([sys.stdin], [], [], 5)
