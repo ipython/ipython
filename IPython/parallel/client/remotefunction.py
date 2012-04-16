@@ -182,6 +182,9 @@ class ParallelFunction(RemoteFunction):
             # 'all' is lazily evaluated at execution time, which is now:
             if targets == 'all':
                 targets = client._build_targets(targets)[1]
+            elif isinstance(targets, int):
+                # single-engine view, targets must be iterable
+                targets = [targets]
             nparts = len(targets)
 
         msg_ids = []
