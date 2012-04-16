@@ -2,6 +2,7 @@
 """
 # Slightly modified version of:
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511509
+from __future__ import print_function
 
 import heapq
 from IPython.parallel.error import RemoteError
@@ -82,7 +83,7 @@ def remote_iterator(view,name):
         try:
             result = view.apply_sync(lambda x: x.next(), Reference('it'+name))
         # This causes the StopIteration exception to be raised.
-        except RemoteError, e:
+        except RemoteError as e:
             if e.ename == 'StopIteration':
                 raise StopIteration
             else:
@@ -96,7 +97,7 @@ if __name__ == '__main__':
     from IPython.parallel import Client, Reference
     rc = Client()
     view = rc[:]
-    print 'Engine IDs:', rc.ids
+    print('Engine IDs:', rc.ids)
 
     # Make a set of 'sorted datasets'
     a0 = range(5,20)
@@ -116,8 +117,8 @@ if __name__ == '__main__':
     aa2 = remote_iterator(rc[2],'a')
 
     # Let's merge them, both locally and remotely:
-    print 'Merge the local datasets:'
-    print list(mergesort([a0,a1,a2]))
+    print('Merge the local datasets:')
+    print(list(mergesort([a0,a1,a2])))
     
-    print 'Locally merge the remote sets:'
-    print list(mergesort([aa0,aa1,aa2]))
+    print('Locally merge the remote sets:')
+    print(list(mergesort([aa0,aa1,aa2])))

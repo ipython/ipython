@@ -25,7 +25,7 @@ def gilsleep(t):
     ])
     while True:
         inline(code, quiet=True, t=t)
-        print time.time()
+        print(time.time())
         sys.stdout.flush() # this is important
 
 gilsleep(5)

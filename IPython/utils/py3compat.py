@@ -32,7 +32,7 @@ def cast_bytes(s, encoding=None):
 def _modify_str_or_docstring(str_change_func):
     @functools.wraps(str_change_func)
     def wrapper(func_or_str):
-        if isinstance(func_or_str, str):
+        if isinstance(func_or_str, basestring):
             func = None
             doc = func_or_str
         else:
@@ -70,7 +70,7 @@ if sys.version_info[0] >= 3:
     
     def execfile(fname, glob, loc=None):
         loc = loc if (loc is not None) else glob
-        exec compile(open(fname).read(), fname, 'exec') in glob, loc
+        exec compile(open(fname, 'rb').read(), fname, 'exec') in glob, loc
     
     # Refactor print statements in doctests.
     _print_statement_re = re.compile(r"\bprint (?P<expr>.*)$", re.MULTILINE)

@@ -106,28 +106,65 @@ class TestAnsiCodeProcessor(unittest.TestCase):
         """ Are carriage return characters processed correctly?
         """
         string = 'foo\rbar' # carriage return
-        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar'])
-        self.assertEquals(len(self.processor.actions), 1)
-        action = self.processor.actions[0]
-        self.assertEquals(action.action, 'carriage-return')
+        splits = []
+        actions = []
+        for split in self.processor.split_string(string):
+            splits.append(split)
+            actions.append([action.action for action in self.processor.actions])
+        self.assertEquals(splits, ['foo', None, 'bar'])
+        self.assertEquals(actions, [[], ['carriage-return'], []])
 
     def test_carriage_return_newline(self):
         """transform CRLF to LF"""
-        string = 'foo\rbar\r\ncat\r\n' # carriage return and newline
+        string = 'foo\rbar\r\ncat\r\n\n' # carriage return and newline
         # only one CR action should occur, and '\r\n' should transform to '\n'
-        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar\r\ncat\r\n'])
-        self.assertEquals(len(self.processor.actions), 1)
-        action = self.processor.actions[0]
-        self.assertEquals(action.action, 'carriage-return')
+        splits = []
+        actions = []
+        for split in self.processor.split_string(string):
+            splits.append(split)
+            actions.append([action.action for action in self.processor.actions])
+        self.assertEquals(splits, ['foo', None, 'bar', '\r\n', 'cat', '\r\n', '\n'])
+        self.assertEquals(actions, [[], ['carriage-return'], [], ['newline'], [], ['newline'], ['newline']])
 
     def test_beep(self):
         """ Are beep characters processed correctly?
         """
-        string = 'foo\bbar' # form feed
-        self.assertEquals(list(self.processor.split_string(string)), ['foo', '', 'bar'])
-        self.assertEquals(len(self.processor.actions), 1)
-        action = self.processor.actions[0]
-        self.assertEquals(action.action, 'beep')
+        string = 'foo\abar' # bell
+        splits = []
+        actions = []
+        for split in self.processor.split_string(string):
+            splits.append(split)
+            actions.append([action.action for action in self.processor.actions])
+        self.assertEquals(splits, ['foo', None, 'bar'])
+        self.assertEquals(actions, [[], ['beep'], []])
+
+    def test_backspace(self):
+        """ Are backspace characters processed correctly?
+        """
+        string = 'foo\bbar' # backspace
+        splits = []
+        actions = []
+        for split in self.processor.split_string(string):
+            splits.append(split)
+            actions.append([action.action for action in self.processor.actions])
+        self.assertEquals(splits, ['foo', None, 'bar'])
+        self.assertEquals(actions, [[], ['backspace'], []])
+
+    def test_combined(self):
+        """ Are CR and BS characters processed correctly in combination?
+
+        BS is treated as a change in print position, rather than a
+        backwards character deletion.  Therefore a BS at EOL is
+        effectively ignored.
+        """
+        string = 'abc\rdef\b' # CR and backspace
+        splits = []
+        actions = []
+        for split in self.processor.split_string(string):
+            splits.append(split)
+            actions.append([action.action for action in self.processor.actions])
+        self.assertEquals(splits, ['abc', None, 'def', None])
+        self.assertEquals(actions, [[], ['carriage-return'], [], ['backspace']])
 
 
 if __name__ == '__main__':

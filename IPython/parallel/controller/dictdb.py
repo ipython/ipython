@@ -46,7 +46,7 @@ We support a subset of mongodb operators:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-
+from copy import copy
 from datetime import datetime
 
 from IPython.config.configurable import LoggingConfigurable
@@ -120,7 +120,7 @@ class DictDB(BaseDB):
 
         for rec in self._records.itervalues():
             if self._match_one(rec, tests):
-                matches.append(rec)
+                matches.append(copy(rec))
         return matches
 
     def _extract_subdict(self, rec, keys):
@@ -139,9 +139,9 @@ class DictDB(BaseDB):
 
     def get_record(self, msg_id):
         """Get a specific Task Record, by msg_id."""
-        if not self._records.has_key(msg_id):
+        if not msg_id in self._records:
             raise KeyError("No such msg_id %r"%(msg_id))
-        return self._records[msg_id]
+        return copy(self._records[msg_id])
 
     def update_record(self, msg_id, rec):
         """Update the data in an existing record."""

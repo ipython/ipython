@@ -11,6 +11,7 @@ Using IPython for parallel computing
    parallel_process.txt
    parallel_multiengine.txt
    parallel_task.txt
+   asyncresult.txt
    parallel_mpi.txt
    parallel_db.txt
    parallel_security.txt

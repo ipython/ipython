@@ -17,6 +17,7 @@ When used with IPython.parallel, this code is run on the engines.  Because this
 code doesn't make any plots, the engines don't have to have any plotting
 packages installed.
 """
+from __future__ import print_function
 
 # Imports
 import numpy as N
@@ -51,7 +52,7 @@ downy = downsample(x, d_number)
 downpx = downsample(px, d_number)
 downpy = downsample(py, d_number)
 
-print "downx: ", downx[:10]
-print "downy: ", downy[:10]
-print "downpx: ", downpx[:10]
-print "downpy: ", downpy[:10]
+print("downx: ", downx[:10])
+print("downy: ", downy[:10])
+print("downpx: ", downpx[:10])
+print("downpy: ", downpy[:10])

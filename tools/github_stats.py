@@ -8,25 +8,59 @@
 from __future__ import print_function
 
 import json
+import re
 import sys
 
 from datetime import datetime, timedelta
 from urllib import urlopen
 
 #-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+ISO8601 = "%Y-%m-%dT%H:%M:%SZ"
+PER_PAGE = 100
+
+element_pat = re.compile(r'<(.+?)>')
+rel_pat = re.compile(r'rel=[\'"](\w+)[\'"]')
+
+#-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
 
-def get_issues(project="ipython/ipython/", state="open"):
+def parse_link_header(headers):
+    link_s = headers.get('link', '')
+    urls = element_pat.findall(link_s)
+    rels = rel_pat.findall(link_s)
+    d = {}
+    for rel,url in zip(rels, urls):
+        d[rel] = url
+    return d
+
+def get_paged_request(url):
+    """get a full list, handling APIv3's paging"""
+    results = []
+    while url:
+        print("fetching %s" % url, file=sys.stderr)
+        f = urlopen(url)
+        results.extend(json.load(f))
+        links = parse_link_header(f.headers)
+        url = links.get('next')
+    return results
+
+def get_issues(project="ipython/ipython", state="closed", pulls=False):
     """Get a list of the issues from the Github API."""
-    f = urlopen("http://github.com/api/v2/json/issues/list/%s%s" % (project,
-                                                                    state))
-    return json.load(f)['issues']
+    which = 'pulls' if pulls else 'issues'
+    url = "https://api.github.com/repos/%s/%s?state=%s&per_page=%i" % (project, which, state, PER_PAGE)
+    return get_paged_request(url)
 
 
 def _parse_datetime(s):
     """Parse dates in the format returned by the Github API."""
-    return datetime.strptime(s.rpartition(" ")[0], "%Y/%m/%d %H:%M:%S")
+    if s:
+        return datetime.strptime(s, ISO8601)
+    else:
+        return datetime.fromtimestamp(0)
 
 
 def issues2dict(issues):
@@ -42,14 +76,20 @@ def is_pull_request(issue):
     return 'pull_request_url' in issue
 
 
-def issues_closed_since(period=timedelta(days=365), project="ipython/ipython/"):
+def issues_closed_since(period=timedelta(days=365), project="ipython/ipython", pulls=False):
     """Get all issues closed since a particular point in time. period
 can either be a datetime object, or a timedelta object. In the
 latter case, it is used as a time before the present."""
-    allclosed = get_issues(project=project, state='closed')
+
+    which = 'pulls' if pulls else 'issues'
+
     if isinstance(period, timedelta):
         period = datetime.now() - period
-    return [i for i in allclosed if _parse_datetime(i['closed_at']) > period]
+    url = "https://api.github.com/repos/%s/%s?state=closed&sort=updated&since=%s&per_page=%i" % (project, which, period.strftime(ISO8601), PER_PAGE)
+    allclosed = get_paged_request(url)
+    # allclosed = get_issues(project=project, state='closed', pulls=pulls, since=period)
+    filtered = [i for i in allclosed if _parse_datetime(i['closed_at']) > period]
+    return filtered
 
 
 def sorted_by_field(issues, field='closed_at', reverse=False):
@@ -63,8 +103,8 @@ def report(issues, show_urls=False):
     # titles may have unicode in them, so we must encode everything below
     if show_urls:
         for i in issues:
-            print('* `%d <%s>`_: %s' % (i['number'],
-                                        i['html_url'].encode('utf-8'),
+            role = 'ghpull' if 'merged' in i else 'ghissue'
+            print('* :%s:`%d`: %s' % (role, i['number'],
                                         i['title'].encode('utf-8')))
     else:
         for i in issues:
@@ -86,24 +126,24 @@ if __name__ == "__main__":
 
     # turn off to play interactively without redownloading, use %run -i
     if 1:
-        issues = issues_closed_since(timedelta(days=days))
+        issues = issues_closed_since(timedelta(days=days), pulls=False)
+        pulls = issues_closed_since(timedelta(days=days), pulls=True)
 
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)
-
-    # Break up into pull requests and regular issues
-    pulls = filter(is_pull_request, issues)
-    regular = filter(lambda i: not is_pull_request(i), issues)
-    n_issues, n_pulls, n_regular = map(len, (issues, pulls, regular))
+    pulls = sorted_by_field(pulls, reverse=True)
+    
+    n_issues, n_pulls = map(len, (issues, pulls))
+    n_total = n_issues + n_pulls
 
     # Print summary report we can directly include into release notes.
-    print("Github stats for the last  %d days." % days)
+    print("GitHub stats for the last  %d days." % days)
     print("We closed a total of %d issues, %d pull requests and %d regular \n"
           "issues; this is the full list (generated with the script \n"
-          "`tools/github_stats.py`):" % (n_issues, n_pulls, n_regular))
+          "`tools/github_stats.py`):" % (n_total, n_pulls, n_issues))
     print()
-    print('Pull requests (%d):\n' % n_pulls)
+    print('Pull Requests (%d):\n' % n_pulls)
     report(pulls, show_urls)
     print()
-    print('Regular issues (%d):\n' % n_regular)
-    report(regular, show_urls)
+    print('Issues (%d):\n' % n_issues)
+    report(issues, show_urls)

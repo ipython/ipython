@@ -8,8 +8,8 @@ for id in client.ids:
 v = client[0]
 v['a'] = 5
 
-print v['a']
+print(v['a'])
 
 remotes = client[:]
 
-print remotes['ids']
+print(remotes['ids'])

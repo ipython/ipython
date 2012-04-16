@@ -1553,8 +1553,31 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                     elif act.action == 'beep':
                         QtGui.qApp.beep()
 
+                    elif act.action == 'backspace':
+                        if not cursor.atBlockStart():
+                            cursor.movePosition(
+                                cursor.PreviousCharacter, cursor.KeepAnchor)
+
+                    elif act.action == 'newline':
+                        cursor.movePosition(cursor.EndOfLine)
+
                 format = self._ansi_processor.get_format()
-                cursor.insertText(substring, format)
+
+                selection = cursor.selectedText()
+                if len(selection) == 0:
+                    cursor.insertText(substring, format)
+                elif substring is not None:
+                    # BS and CR are treated as a change in print
+                    # position, rather than a backwards character
+                    # deletion for output equivalence with (I)Python
+                    # terminal.
+                    if len(substring) >= len(selection):
+                        cursor.insertText(substring, format)
+                    else:
+                        old_text = selection[len(substring):]
+                        cursor.insertText(substring + old_text, format)
+                        cursor.movePosition(cursor.PreviousCharacter,
+                               cursor.KeepAnchor, len(old_text))
         else:
             cursor.insertText(text)
         cursor.endEditBlock()

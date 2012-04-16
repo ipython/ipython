@@ -130,8 +130,8 @@ var IPython = (function (IPython) {
         this.element.find('#to_markdown').click(function () {
             IPython.notebook.to_markdown();
         });
-        this.element.find('#to_plaintext').click(function () {
-            IPython.notebook.to_plaintext();
+        this.element.find('#to_raw').click(function () {
+            IPython.notebook.to_raw();
         });
         this.element.find('#to_heading1').click(function () {
             IPython.notebook.to_heading(undefined, 1);

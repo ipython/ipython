@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 from base64 import encodestring
 
@@ -33,7 +35,7 @@ ws.cells.append(new_text_cell(
 ))
 
 ws.cells.append(new_text_cell(
-    u'plaintext',
+    u'raw',
     source='A random array',
 ))
 
@@ -47,9 +49,17 @@ ws.cells.append(new_code_cell(
     prompt_number=2,
     collapsed=True
 ))
+ws.cells.append(new_code_cell(
+    input='a = 10\nb = 5\n',
+    prompt_number=3,
+))
+ws.cells.append(new_code_cell(
+    input='a = 10\nb = 5',
+    prompt_number=4,
+))
 
 ws.cells.append(new_code_cell(
-    input='print a',
+    input=u'print "ünîcødé"',
     prompt_number=3,
     collapsed=False,
     outputs=[new_output(
@@ -91,7 +101,7 @@ nb0 = new_notebook(
     metadata=md
 )
 
-nb0_py = """# -*- coding: utf-8 -*-
+nb0_py = u"""# -*- coding: utf-8 -*-
 # <nbformat>%i</nbformat>
 
 # <htmlcell>
@@ -106,7 +116,7 @@ import numpy
 
 # A random array
 
-# <plaintextcell>
+# <rawcell>
 
 # A random array
 
@@ -120,7 +130,17 @@ a = numpy.random.rand(100)
 
 # <codecell>
 
-print a
+a = 10
+b = 5
+
+# <codecell>
+
+a = 10
+b = 5
+
+# <codecell>
+
+print "ünîcødé"
 
 """ % nbformat
 

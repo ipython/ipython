@@ -52,12 +52,13 @@ IPython.utils = (function (IPython) {
     // are set in the css file.
     function fixConsole(txt) {
         txt = xmlencode(txt);
-        var re = /\033\[([\d;]*?)m/;
+        var re = /\033\[([\dA-Fa-f;]*?)m/;
         var opened = false;
         var cmds = [];
         var opener = "";
         var closer = "";
-        
+        // \r does nothing, so shouldn't be included
+        txt = txt.replace('\r', '');
         while (re.test(txt)) {
             var cmds = txt.match(re)[1].split(";");
             closer = opened?"</span>":"";

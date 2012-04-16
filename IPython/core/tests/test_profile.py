@@ -146,6 +146,6 @@ def test_list_profiles_in():
 
 def test_list_bundled_profiles():
     # This variable will need to be updated when a new profile gets bundled
-    bundled_true = [u'cluster', u'math', u'pysh', u'python3', u'sympy']
+    bundled_true = [u'cluster', u'math', u'pysh', u'sympy']
     bundled = sorted(list_bundled_profiles())
     nt.assert_equals(bundled, bundled_true)

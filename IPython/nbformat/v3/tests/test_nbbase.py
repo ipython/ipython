@@ -59,14 +59,14 @@ class TestCell(TestCase):
         self.assertEquals(tc.source, u'hi')
         self.assertEquals(tc.rendered, u'hi')
 
-    def test_empty_plaintext_cell(self):
-        tc = new_text_cell(u'plaintext')
-        self.assertEquals(tc.cell_type, u'plaintext')
+    def test_empty_raw_cell(self):
+        tc = new_text_cell(u'raw')
+        self.assertEquals(tc.cell_type, u'raw')
         self.assertEquals(u'source' not in tc, True)
         self.assertEquals(u'rendered' not in tc, True)
 
-    def test_plaintext_cell(self):
-        tc = new_text_cell(u'plaintext', 'hi', 'hi')
+    def test_raw_cell(self):
+        tc = new_text_cell(u'raw', 'hi', 'hi')
         self.assertEquals(tc.source, u'hi')
         self.assertEquals(tc.rendered, u'hi')
 
@@ -108,6 +108,13 @@ class TestNotebook(TestCase):
         worksheets = [new_worksheet(),new_worksheet()]
         metadata = new_metadata(name=u'foo')
         nb = new_notebook(metadata=metadata,worksheets=worksheets)
+        self.assertEquals(nb.metadata.name,u'foo')
+        self.assertEquals(nb.worksheets,worksheets)
+        self.assertEquals(nb.nbformat,nbformat)
+
+    def test_notebook_name(self):
+        worksheets = [new_worksheet(),new_worksheet()]
+        nb = new_notebook(name='foo',worksheets=worksheets)
         self.assertEquals(nb.metadata.name,u'foo')
         self.assertEquals(nb.worksheets,worksheets)
         self.assertEquals(nb.nbformat,nbformat)

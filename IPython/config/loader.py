@@ -363,7 +363,7 @@ class CommandLineConfigLoader(ConfigLoader):
             for sec,c in cfg.iteritems():
                 self.config[sec].update(c)
         else:
-            raise ValueError("Invalid flag: '%s'"%raw)
+            raise TypeError("Invalid flag: %r" % cfg)
 
 # raw --identifier=value pattern
 # but *also* accept '-' as wordsep, for aliases

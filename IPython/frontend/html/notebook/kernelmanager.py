@@ -27,10 +27,10 @@ from zmq.eventloop.zmqstream import ZMQStream
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.zmq.ipkernel import launch_kernel
-from IPython.zmq.kernelmanager import KernelManager
-from IPython.utils.traitlets import Instance, Dict, List, Unicode, Float, Integer
-
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import (
+    Instance, Dict, List, Unicode, Float, Integer, Any, DottedObjectName,
+)
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
@@ -41,7 +41,20 @@ class DuplicateKernelError(Exception):
 
 class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
-
+    
+    kernel_manager_class = DottedObjectName(
+        "IPython.zmq.kernelmanager.KernelManager", config=True,
+        help="""The kernel manager class.  This is configurable to allow
+        subclassing of the KernelManager for customized behavior.
+        """
+    )
+    def _kernel_manager_class_changed(self, name, old, new):
+        self.kernel_manager_factory = import_item(new)
+    
+    kernel_manager_factory = Any(help="this is kernel_manager_class after import")
+    def _kernel_manager_factory_default(self):
+        return import_item(self.kernel_manager_class)
+    
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
@@ -69,7 +82,7 @@ class MultiKernelManager(LoggingConfigurable):
         """Start a new kernel."""
         kernel_id = unicode(uuid.uuid4())
         # use base KernelManager for each Kernel
-        km = KernelManager(connection_file=os.path.join(
+        km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
                     config=self.config,
         )
@@ -194,7 +207,6 @@ class MappingKernelManager(MultiKernelManager):
     """A KernelManager that handles notebok mapping and HTTP error handling"""
 
     kernel_argv = List(Unicode)
-    kernel_manager = Instance(KernelManager)
     
     time_to_dead = Float(3.0, config=True, help="""Kernel heartbeat interval in seconds.""")
     first_beat = Float(5.0, config=True, help="Delay (in seconds) before sending first heartbeat.")

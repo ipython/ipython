@@ -30,14 +30,14 @@ B1 = numpy.frombuffer(msg1.buffer, dtype=A.dtype).reshape(A.shape)
 msg2 = s2.recv(copy=False)
 B2 = numpy.frombuffer(buffer(msg2.bytes), dtype=A.dtype).reshape(A.shape)
 
-print (B1==B2).all()
-print (B1==A).all()
+print((B1==B2).all())
+print((B1==A).all())
 A[0][0] += 10
-print "~"
+print("~")
 # after changing A in-place, B1 changes too, proving non-copying sends
-print (B1==A).all()
+print((B1==A).all())
 # but B2 is fixed, since it called the msg.bytes attr, which copies
-print (B1==B2).all()
+print((B1==B2).all())
 
 
 

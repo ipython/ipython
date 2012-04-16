@@ -76,6 +76,14 @@ def loop_wx(kernel):
     # The redirect=False here makes sure that wx doesn't replace
     # sys.stdout/stderr with its own classes.
     kernel.app = IPWxApp(redirect=False)
+
+    # The import of wx on Linux sets the handler for signal.SIGINT
+    # to 0.  This is a bug in wx or gtk.  We fix by just setting it
+    # back to the Python default.
+    import signal
+    if not callable(signal.getsignal(signal.SIGINT)):
+        signal.signal(signal.SIGINT, signal.default_int_handler)
+
     start_event_loop_wx(kernel.app)
 
 
