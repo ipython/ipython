@@ -20,6 +20,7 @@ Authors:
 import errno
 import logging
 import os
+import select
 import signal
 import socket
 import sys
@@ -450,10 +451,48 @@ class NotebookApp(BaseIPythonApplication):
                 break
     
     def init_signal(self):
-        signal.signal(signal.SIGINT, self._handle_signal)
-        signal.signal(signal.SIGTERM, self._handle_signal)
+        signal.signal(signal.SIGINT, self._handle_sigint)
+        signal.signal(signal.SIGTERM, self._signal_stop)
     
-    def _handle_signal(self, sig, frame):
+    def _handle_sigint(self, sig, frame):
+        """SIGINT handler spawns confirmation dialog"""
+        # register more forceful signal handler for ^C^C case
+        signal.signal(signal.SIGINT, self._signal_stop)
+        # request confirmation dialog in bg thread, to avoid
+        # blocking the App
+        thread = threading.Thread(target=self._confirm_exit)
+        thread.daemon = True
+        thread.start()
+    
+    def _restore_sigint_handler(self):
+        """callback for restoring original SIGINT handler"""
+        signal.signal(signal.SIGINT, self._handle_sigint)
+    
+    def _confirm_exit(self):
+        """confirm shutdown on ^C
+        
+        A second ^C, or answering 'y' within 5s will cause shutdown,
+        otherwise original SIGINT handler will be restored.
+        """
+        sys.stdout.write("Shutdown Notebook Server (y/[n])? ")
+        sys.stdout.flush()
+        r,w,x = select.select([sys.stdin], [], [], 5)
+        if r:
+            line = sys.stdin.readline()
+            if line.lower().startswith('y'):
+                self.log.critical("Shutdown confirmed")
+                ioloop.IOLoop.instance().stop()
+                return
+        else:
+            print "No answer for 5s:",
+        print "resuming operation..."
+        # no answer, or answer is no:
+        # set it back to original SIGINT handler
+        # use IOLoop.add_callback because signal.signal must be called
+        # from main thread
+        ioloop.IOLoop.instance().add_callback(self._restore_sigint_handler)
+    
+    def _signal_stop(self, sig, frame):
         self.log.critical("received signal %s, stopping", sig)
         ioloop.IOLoop.instance().stop()
     
