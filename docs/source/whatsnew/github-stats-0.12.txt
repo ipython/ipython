@@ -15,7 +15,7 @@ issues; this is the full list (generated with the script
 
 This list is automatically generated, and may be incomplete:
 
-Pull Requests (41):
+Pull Requests (43):
 
 * :ghpull:`1175`: core.completer: Clean up excessive and unused code.
 * :ghpull:`1187`: misc notebook: connection file cleanup, first heartbeat, startup flush
@@ -50,16 +50,18 @@ Pull Requests (41):
 * :ghpull:`1413`: get_home_dir expands symlinks, adjust test accordingly
 * :ghpull:`1414`: ignore errors in shell.var_expand
 * :ghpull:`1430`: Fix for tornado check for tornado < 1.1.0
+* :ghpull:`1445`: Don't build sphinx docs for sdists
 * :ghpull:`1463`: Fix completion when importing modules in the cwd.
 * :ghpull:`1477`: fix dangling `buffer` in IPython.parallel.util
 * :ghpull:`1495`: BUG: Fix pretty-printing for overzealous objects
 * :ghpull:`1496`: BUG: LBYL when clearing the output history on shutdown.
 * :ghpull:`1514`: DOC: Fix references to IPython.lib.pretty instead of the old location
 * :ghpull:`1517`: Fix indentation bug in IPython/lib/pretty.py
+* :ghpull:`1538`: store git commit hash in utils._sysinfo instead of hidden data file
 * :ghpull:`1599`: Fix for %run -d in Python 3
 * :ghpull:`1602`: Fix %env for Python 3
 
-Issues (26):
+Issues (27):
 
 * :ghissue:`676`: IPython.embed() from ipython crashes twice on exit
 * :ghissue:`846`: Autoreload extension doesn't work with Python 3.2
@@ -87,6 +89,7 @@ Issues (26):
 * :ghissue:`1408`: test_get_home_dir_3 failed on Mac OS X
 * :ghissue:`1412`: Input parsing issue with %prun
 * :ghissue:`1421`: ipython32 %run -d breaks with NameError name 'execfile' is not defined
+* :ghissue:`1484`: unhide .git_commit_info.ini
 
 
 Issues closed in 0.12
