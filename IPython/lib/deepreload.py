@@ -219,7 +219,7 @@ def ensure_fromlist(mod, fromlist, buf, recursive):
         elif not hasattr(mod, item):
             import_submodule(mod, item, buf + '.' + item)
 
-def import_module_level(name, globals=None, locals=None, fromlist=None, level=-1):
+def deep_import_hook(name, globals=None, locals=None, fromlist=None, level=-1):
     """Replacement for __import__()"""
     parent, buf = get_parent(globals, level)
 
@@ -243,7 +243,7 @@ def import_module_level(name, globals=None, locals=None, fromlist=None, level=-1
 
 modules_reloading = {}
 
-def reload_module(m):
+def deep_reload_hook(m):
     """Replacement for reload()."""
     if not isinstance(m, ModuleType):
         raise TypeError("reload() argument must be module")
@@ -307,9 +307,9 @@ def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
     for i in exclude:
         found_now[i] = 1
     original_import = __builtin__.__import__
-    __builtin__.__import__ = import_module_level
+    __builtin__.__import__ = deep_import_hook
     try:
-        ret = reload_module(module)
+        ret = deep_reload_hook(module)
     finally:
         __builtin__.__import__ = original_import
         found_now = {}
