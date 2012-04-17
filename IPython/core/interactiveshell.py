@@ -2768,19 +2768,21 @@ class InteractiveShell(SingletonConfigurable, Magic):
         code = self.extract_input_lines(target, raw=raw)  # Grab history
         if code:
             return code
-
-        utarget = unquote_filename(target)
-        if utarget.startswith(('http://', 'https://')):
-            return openpy.read_py_url(utarget, skip_encoding_cookie=True)
+        try:
+            utarget = unquote_filename(target)
+            if utarget.startswith(('http://', 'https://')):
+                return openpy.read_py_url(utarget, skip_encoding_cookie=True)
+        except:
+            raise ValueError(("'%s': no such URL, or URL innaccessible.") % utarget)
 
         try :
             pyfile = get_py_filename(target)
-            return open(pyfile, "r").read()
+            return openpy.read_py_url(pyfile, skip_encoding_cookie=True)
         except IOError:
             pass
 
         if os.path.isfile(target):                        # Read file
-            return open(target, "r").read()
+            return openpy.read_py_url(target, skip_encoding_cookie=True)
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
