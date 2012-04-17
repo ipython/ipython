@@ -68,10 +68,11 @@ from IPython.core.prompts import PromptManager
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
+from IPython.utils import openpy
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no, rprint
 from IPython.utils.ipstruct import Struct
-from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError
+from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError, get_py_filename, unquote_filename
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
@@ -2744,10 +2745,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Parameters
         ----------
+
         target : str
+
           A string specifying code to retrieve. This will be tried respectively
-          as: ranges of input history (see %history for syntax), a filename, or
-          an expression evaluating to a string or Macro in the user namespace.
+          as: ranges of input history (see %history for syntax), url,
+          correspnding .py file,filename, or an expression evaluating to a
+          string or Macro in the user namespace.
+
         raw : bool
           If true (default), retrieve raw history. Has no effect on the other
           retrieval mechanisms.
@@ -2763,14 +2768,25 @@ class InteractiveShell(SingletonConfigurable, Magic):
         code = self.extract_input_lines(target, raw=raw)  # Grab history
         if code:
             return code
+
+        utarget = unquote_filename(target)
+        if utarget.startswith(('http://', 'https://')):
+            return openpy.read_py_url(utarget, skip_encoding_cookie=True)
+
+        try :
+            pyfile = get_py_filename(target)
+            return open(pyfile, "r").read()
+        except IOError:
+            pass
+
         if os.path.isfile(target):                        # Read file
             return open(target, "r").read()
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
         except Exception:
-            raise ValueError(("'%s' was not found in history, as a file, nor in"
-                                " the user namespace.") % target)
+            raise ValueError(("'%s' was not found in history, as a file, url,"
+                                "nor in the user namespace.") % target)
         if isinstance(codeobj, basestring):
             return codeobj
         elif isinstance(codeobj, Macro):

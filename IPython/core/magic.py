@@ -2277,21 +2277,7 @@ Currently the magic system has the following functions:\n"""
         %loadpy http://www.example.com/myscript.py
         """
  
-        fileorurl = self._get_file_or_url(arg_s)
-        contents = fileorurl['content']
-        local_url = fileorurl['local']
-        filename = fileorurl['filename']
-
-        if local_url and not filename.endswith('.py'):
-            # Local files must be .py; for remote URLs it's possible that the
-            # fetch URL doesn't have a .py in it (many servers have an opaque
-            # URL, such as scipy-central.org).
-            raise ValueError('%%loadpy only works with .py files: %s' % arg_s)
-
-        if not contents : 
-            print "Error: no such file, variable or URL"
-            return
-        
+        contents = self.shell.find_user_code(arg_s)
         self.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
@@ -3322,38 +3308,6 @@ Defaulting color scheme to 'NoColor'"""
                 bkms[args[0]] = args[1]
         self.db['bookmarks'] = bkms
 
-    def _get_file_or_url(self, parameter_s=''):
-        """Try to find the content of a file or URL
-
-        return dict with key:
-        ====================
-        content : file or url content
-        filename : filename if local
-        local : (bool) true if local file
-
-        """
-
-        parameter_s = unquote_filename(parameter_s)
-        remote_url = parameter_s.startswith(('http://', 'https://'))
-
-        # openpy takes care of finding the source encoding (per PEP 263)
-        filename = None
-        if remote_url:
-            try :
-                cont = openpy.read_py_url(parameter_s, skip_encoding_cookie=True)
-            except IOError :
-                cont = None
-        else:
-            try:
-                filename = get_py_filename(parameter_s)
-                cont = file_read(filename)
-            except IOError:
-                try:
-                    cont = eval(parameter_s,self.user_ns)
-                except NameError:
-                    cont = None
-        return {'content': cont, 'filename':filename , 'local': not remote_url}
-
 
     def magic_pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.
@@ -3361,15 +3315,19 @@ Defaulting color scheme to 'NoColor'"""
         This magic is similar to the cat utility, but it will assume the file
         to be Python source and will show it with syntax highlighting.
 
-        This magic command can either take a local filename or a url::
+        This magic command can either take a local filename, an url,
+        an history range (see %history) or a macro as argument ::
 
         %pycat myscript.py
+        %pycat 7-27
+        %pycat myMacro
         %pycat http://www.example.com/myscript.py
         """
 
-        cont = self._get_file_or_url(parameter_s)['content']
-        if cont is None:
-            print "Error: no such file, variable or URL"
+        try :
+            cont = self.shell.find_user_code(parameter_s)
+        except ValueError, IOError:
+            print "Error: no such file, variable, URL, history range or macro"
             return
 
         page.page(self.shell.pycolorize(cont))
