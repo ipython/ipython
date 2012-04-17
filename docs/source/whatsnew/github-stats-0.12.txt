@@ -6,16 +6,16 @@ Issues closed in the 0.12 development cycle
 Issues closed in 0.12.1
 -----------------------
 
-GitHub stats for bugfix release 0.12.1 (12/28/2011-04/06/2012), backporting
+GitHub stats for bugfix release 0.12.1 (12/28/2011-04/16/2012), backporting
 pull requests from 0.13.
 .
-We closed a total of 62 issues, 39 pull requests and 23 regular 
+We closed a total of 71 issues: 44 pull requests and 27 
 issues; this is the full list (generated with the script 
 `tools/github_stats.py`).
 
 This list is automatically generated, and may be incomplete:
 
-Pull Requests (43):
+Pull Requests (44):
 
 * :ghpull:`1175`: core.completer: Clean up excessive and unused code.
 * :ghpull:`1187`: misc notebook: connection file cleanup, first heartbeat, startup flush
@@ -60,6 +60,7 @@ Pull Requests (43):
 * :ghpull:`1538`: store git commit hash in utils._sysinfo instead of hidden data file
 * :ghpull:`1599`: Fix for %run -d in Python 3
 * :ghpull:`1602`: Fix %env for Python 3
+* :ghpull:`1607`: cleanup sqlitedb temporary db file after tests
 
 Issues (27):
 
