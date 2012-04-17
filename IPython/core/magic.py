@@ -2269,12 +2269,24 @@ Currently the magic system has the following functions:\n"""
         return response_data['html_url']
 
     def magic_loadpy(self, arg_s):
-        """Load a .py python script into the GUI console.
+        """Alias of `%load`
+        
+        `%loadpy` has gain some flexibility and drop the requirement of `.py`
+        extension. So it has been rename simply into %load. You can look at
+        `%load`'s docstring for more info.
+        """
+        self.magic_load(arg_s)
 
-        This magic command can either take a local filename or a url::
+    def magic_load(self, arg_s):
+        """Load code into the current frontend.
 
-        %loadpy myscript.py
-        %loadpy http://www.example.com/myscript.py
+        This magic command can either take a local filename, an url,
+        an history range (see %history) or a macro as argument ::
+
+        %pycat myscript.py
+        %pycat 7-27
+        %pycat myMacro
+        %pycat http://www.example.com/myscript.py
         """
  
         contents = self.shell.find_user_code(arg_s)
