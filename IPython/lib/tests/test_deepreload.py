@@ -5,7 +5,13 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
+import sys
+
+import nose.tools as nt
+
 from IPython.testing import decorators as dec
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.lib.deepreload import reload as dreload
 
 #-----------------------------------------------------------------------------
@@ -14,6 +20,7 @@ from IPython.lib.deepreload import reload as dreload
 
 @dec.skipif_not_numpy
 def test_deepreload_numpy():
+    "Test that NumPy can be deep reloaded."
     import numpy
     exclude = [
         # Standard exclusions:
@@ -22,3 +29,24 @@ def test_deepreload_numpy():
         'unittest',
         ]
     dreload(numpy, exclude=exclude)
+
+def test_deepreload():
+    "Test that dreload does deep reloads and skips excluded modules."
+    with TemporaryDirectory() as tmpdir:
+        sys.path.insert(0, tmpdir)
+        with open(os.path.join(tmpdir, 'A.py'), 'w') as f:
+            f.write("class Object(object):\n    pass\n")
+        with open(os.path.join(tmpdir, 'B.py'), 'w') as f:
+            f.write("import A\n")
+        import A
+        import B
+
+        # Test that A is not reloaded.
+        obj = A.Object()
+        dreload(B, exclude=['A'])
+        nt.assert_is_instance(obj, A.Object)
+
+        # Test that A is reloaded.
+        obj = A.Object()
+        dreload(B)
+        nt.assert_not_is_instance(obj, A.Object)
