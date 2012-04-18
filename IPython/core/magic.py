@@ -2280,16 +2280,41 @@ Currently the magic system has the following functions:\n"""
     def magic_load(self, arg_s):
         """Load code into the current frontend.
 
-        This magic command can either take a local filename, an url,
-        an history range (see %history) or a macro as argument ::
+        Usage:\\
+          %load [options] source
+
+          where source can be a filename,URL, history patern or macro 
+
+        Options:
+        --------
+          -y : Don't ask confirmation for loading source above 1600 caracters.
+               Usefull for Frontend not supporting `raw_input`
+
+        This magic command can either take a local filename, an url, an history
+        range (see %history) or a macro as argument, it will prompt for
+        confirmation before loading source with more than 1600 caracters, unless
+        -y flag is passed ::
 
         %load myscript.py
         %load 7-27
         %load myMacro
         %load http://www.example.com/myscript.py
         """
- 
-        contents = self.shell.find_user_code(arg_s)
+        opts,args = self.parse_options(arg_s,'y',mode='list')
+        args = " ".join(args)
+
+        contents = self.shell.find_user_code(args)
+        l = len(contents)
+
+        # 1600 is ~ 20 full 80 caracter lines
+        # so in average, more than 40 lines
+        # this might be made configurable
+        if l > 1600 and 'y' not in opts:
+            ans = raw_input("The text you'r trying to load seem pretty big ( %d characters). Continue (y/[N])?" % l )
+            if ans.lower() not in ('y','yes') :
+                print 'Operation cancelled.'
+                return
+
         self.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
