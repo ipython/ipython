@@ -2777,12 +2777,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         try :
             pyfile = get_py_filename(target)
-            return openpy.read_py_url(pyfile, skip_encoding_cookie=True)
+            return openpy.read_py_file(pyfile, skip_encoding_cookie=True)
         except IOError:
             pass
 
         if os.path.isfile(target):                        # Read file
-            return openpy.read_py_url(target, skip_encoding_cookie=True)
+            return openpy.read_py_file(target, skip_encoding_cookie=True)
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
