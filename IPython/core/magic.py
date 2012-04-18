@@ -2309,13 +2309,13 @@ Currently the magic system has the following functions:\n"""
         # so in average, more than 5000 lines
         if l > 200000 and 'y' not in opts:
             try:
-                ans = raw_input("The text you'r trying to load seem pretty big\
-                ( %d characters).Continue (y/[N])?" % l )
+                ans = self.shell.ask_yes_no(("The text you'r trying to load seem pretty big"\
+                " (%d characters). Continue (y/[N]) ?" % l), default='n' )
             except StdinNotImplementedError:
                 #asume yes if raw input not implemented
-                ans = 'yes'
+                ans = True
 
-            if ans.lower() not in ('y','yes') :
+            if ans is False :
                 print 'Operation cancelled.'
                 return
 
