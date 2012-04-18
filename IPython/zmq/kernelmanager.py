@@ -200,6 +200,10 @@ class ShellSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -390,6 +394,10 @@ class SubSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -452,6 +460,11 @@ class StdInSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
+        
 
     def stop(self):
         self.ioloop.stop()
@@ -575,6 +588,10 @@ class HBSocketChannel(ZMQSocketChannel):
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
                 continue
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def pause(self):
         """Pause the heartbeat."""
