@@ -364,7 +364,10 @@ class Kernel(Configurable):
         self.log.debug(str(completion_msg))
 
     def object_info_request(self, ident, parent):
-        object_info = self.shell.object_inspect(parent['content']['oname'])
+        content = parent['content']
+        object_info = self.shell.object_inspect(content['oname'],
+                        detail_level = content.get('detail_level', 0)
+        )
         # Before we send this object over, we scrub it for JSON usage
         oinfo = json_clean(object_info)
         msg = self.session.send(self.shell_socket, 'object_info_reply',
