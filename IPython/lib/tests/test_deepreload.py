@@ -44,9 +44,9 @@ def test_deepreload():
         # Test that A is not reloaded.
         obj = A.Object()
         dreload(B, exclude=['A'])
-        nt.assert_is_instance(obj, A.Object)
+        nt.assert_true(isinstance(obj, A.Object))
 
         # Test that A is reloaded.
         obj = A.Object()
         dreload(B)
-        nt.assert_not_is_instance(obj, A.Object)
+        nt.assert_false(isinstance(obj, A.Object))
