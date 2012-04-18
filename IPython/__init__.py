@@ -49,7 +49,7 @@ from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
 from .utils.sysinfo import sys_info
-from .utils.frame import extract_module_locals_above
+from .utils.frame import extract_module_locals
 
 # Release data
 __author__ = ''
@@ -60,7 +60,7 @@ __version__  = release.version
 
 def embed_kernel(module=None, local_ns=None):
     """Call this to embed an IPython kernel at the current point in your program. """
-    (caller_module, caller_locals) = extract_module_locals_above()
+    (caller_module, caller_locals) = extract_module_locals(1)
     if module is None:
         module = caller_module
     if local_ns is None:

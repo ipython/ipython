@@ -92,9 +92,3 @@ def extract_module_locals(depth=0):
     module = sys.modules[global_ns['__name__']]
     return (module, f.f_locals)
 
-def extract_module_locals_above():
-    """Returns (module, locals) of the funciton calling the caller.
-    Like extract_module_locals() with a specified depth of 1."""
-    # we're one frame away from the target, the function we call would be two frames away
-    return extract_module_locals(1 + 1)
-
