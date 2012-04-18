@@ -41,7 +41,7 @@ class NotebookManager(LoggingConfigurable):
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
         
-        For easier use of import, %run and %loadpy across notebooks, a
+        For easier use of import, %run and %load across notebooks, a
         <notebook-name>.py script will be created next to any
         <notebook-name>.ipynb on each save.  This can also be set with the
         short `--script` flag.
