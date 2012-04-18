@@ -2283,10 +2283,10 @@ Currently the magic system has the following functions:\n"""
         This magic command can either take a local filename, an url,
         an history range (see %history) or a macro as argument ::
 
-        %pycat myscript.py
-        %pycat 7-27
-        %pycat myMacro
-        %pycat http://www.example.com/myscript.py
+        %load myscript.py
+        %load 7-27
+        %load myMacro
+        %load http://www.example.com/myscript.py
         """
  
         contents = self.shell.find_user_code(arg_s)
