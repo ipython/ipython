@@ -34,6 +34,7 @@ from IPython.core.payloadpage import install_payload_page
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
@@ -256,6 +257,7 @@ class ZMQInteractiveShell(InteractiveShell):
             mode=dstore.mode)
         self.payload_manager.write_payload(payload)
 
+    @skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 

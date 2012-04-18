@@ -1456,11 +1456,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
             print 'Object `%s` not found.' % oname
             return 'not found'  # so callers can take other action
 
-    def object_inspect(self, oname):
+    def object_inspect(self, oname, detail_level=0):
         with self.builtin_trap:
             info = self._object_find(oname)
             if info.found:
-                return self.inspector.info(info.obj, oname, info=info)
+                return self.inspector.info(info.obj, oname, info=info,
+                            detail_level=detail_level
+                )
             else:
                 return oinspect.object_info(name=oname, found=False)
 
