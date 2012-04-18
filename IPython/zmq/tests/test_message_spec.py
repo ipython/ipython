@@ -334,6 +334,32 @@ def test_oinfo_found():
     flush_channels()
 
 
+def test_oinfo_detail():
+    shell = KM.shell_channel
+
+    msg_id, reply = execute(code='ip=get_ipython()')
+
+    msg_id = shell.object_info('ip.object_inspect', detail_level=2)
+    reply = shell.get_msg(timeout=2)
+    validate_message(reply, 'object_info_reply', msg_id)
+    content = reply['content']
+    nt.assert_true(content['found'])
+
+    flush_channels()
+
+
+def test_oinfo_not_found():
+    shell = KM.shell_channel
+
+    msg_id = shell.object_info('dne')
+    reply = shell.get_msg(timeout=2)
+    validate_message(reply, 'object_info_reply', msg_id)
+    content = reply['content']
+    nt.assert_false(content['found'])
+
+    flush_channels()
+
+
 def test_complete():
     shell = KM.shell_channel
     
