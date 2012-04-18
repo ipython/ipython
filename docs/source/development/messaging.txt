@@ -353,8 +353,8 @@ When status is 'ok', the following extra fields are present::
 When status is 'error', the following extra fields are present::
 
     {
-      'exc_name' : str,   # Exception name, as a string
-      'exc_value' : str,  # Exception value, as a string
+      'ename' : str,   # Exception name, as a string
+      'evalue' : str,  # Exception value, as a string
 
       # The traceback will contain a list of frames, represented each as a
       # string.  For now we'll stick to the existing design of ultraTB, which
@@ -847,7 +847,7 @@ Message type: ``crash``::
 
     content = {
        # Similarly to the 'error' case for execute_reply messages, this will
-       # contain exc_name, exc_type and traceback fields.
+       # contain ename, etype and traceback fields.
 
        # An additional field with supplementary information such as where to
        # send the crash message
