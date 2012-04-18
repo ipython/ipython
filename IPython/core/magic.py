@@ -2288,12 +2288,11 @@ Currently the magic system has the following functions:\n"""
         Options:
         --------
           -y : Don't ask confirmation for loading source above 200 000 caracters.
-               Usefull for Frontend not supporting `raw_input`
 
         This magic command can either take a local filename, a URL, an history
         range (see %history) or a macro as argument, it will prompt for
         confirmation before loading source with more than 200 000 caracters, unless
-        -y flag is passed ::
+        -y flag is passed or if the frontend does not support raw_input::
 
         %load myscript.py
         %load 7-27
