@@ -766,7 +766,12 @@ These messages are the re-broadcast of the ``execute_request``.
 Message type: ``pyin``::
 
     content = {
-        'code' : str  # Source code to be executed, one or more lines
+        'code' : str,  # Source code to be executed, one or more lines
+
+        # The counter for this execution is also provided so that clients can
+        # display it, since IPython automatically creates variables called _iN
+        # (for input prompt In[N]).
+        'execution_count' : int
     }
 
 Python outputs
