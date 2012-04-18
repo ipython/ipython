@@ -226,11 +226,11 @@ class Kernel(Configurable):
     # Kernel request handlers
     #---------------------------------------------------------------------------
 
-    def _publish_pyin(self, code, parent):
+    def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
 
-        self.session.send(self.iopub_socket, u'pyin', {u'code':code},
-                          parent=parent)
+        self.session.send(self.iopub_socket, u'pyin', {u'code':code,
+                          u'execution_count': execution_count}, parent=parent)
 
     def execute_request(self, ident, parent):
 
@@ -271,7 +271,7 @@ class Kernel(Configurable):
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
         if not silent:
-            self._publish_pyin(code, parent)
+            self._publish_pyin(code, parent, shell.execution_count)
 
         reply_content = {}
         try:
