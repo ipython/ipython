@@ -2217,8 +2217,8 @@ Currently the magic system has the following functions:\n"""
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
-            ans = raw_input('File `%s` exists. Overwrite (y/[N])? ' % fname)
-            if ans.lower() not in ['y','yes']:
+            overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
+            if not overwrite :
                 print 'Operation cancelled.'
                 return
         try:
