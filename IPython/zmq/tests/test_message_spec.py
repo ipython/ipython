@@ -399,6 +399,9 @@ def test_complete():
         yield nt.assert_true(name in matches, "Missing match: %r" % name)
 
 
+# IOPub channel
+
+
 @dec.parametric
 def test_stream():
     flush_channels()
