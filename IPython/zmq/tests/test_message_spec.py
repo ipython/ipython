@@ -345,6 +345,8 @@ def test_oinfo_found():
         yield tst
     content = reply['content']
     yield nt.assert_true(content['found'])
+    argspec = content['argspec']
+    yield nt.assert_true(argspec is None, "didn't expect argspec dict, got %r" % argspec)
 
 
 @dec.parametric
@@ -361,6 +363,9 @@ def test_oinfo_detail():
         yield tst
     content = reply['content']
     yield nt.assert_true(content['found'])
+    argspec = content['argspec']
+    yield nt.assert_true(isinstance(argspec, dict), "expected non-empty argspec dict, got %r" % argspec)
+    yield nt.assert_equals(argspec['defaults'], [0])
 
 
 @dec.parametric
