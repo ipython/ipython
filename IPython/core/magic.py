@@ -2283,16 +2283,16 @@ Currently the magic system has the following functions:\n"""
         Usage:\\
           %load [options] source
 
-          where source can be a filename,URL, history patern or macro 
+          where source can be a filename, URL, input history range or macro
 
         Options:
         --------
-          -y : Don't ask confirmation for loading source above 1600 caracters.
+          -y : Don't ask confirmation for loading source above 200 000 caracters.
                Usefull for Frontend not supporting `raw_input`
 
-        This magic command can either take a local filename, an url, an history
+        This magic command can either take a local filename, a URL, an history
         range (see %history) or a macro as argument, it will prompt for
-        confirmation before loading source with more than 1600 caracters, unless
+        confirmation before loading source with more than 200 000 caracters, unless
         -y flag is passed ::
 
         %load myscript.py
@@ -2306,11 +2306,16 @@ Currently the magic system has the following functions:\n"""
         contents = self.shell.find_user_code(args)
         l = len(contents)
 
-        # 1600 is ~ 20 full 80 caracter lines
-        # so in average, more than 40 lines
-        # this might be made configurable
-        if l > 1600 and 'y' not in opts:
-            ans = raw_input("The text you'r trying to load seem pretty big ( %d characters). Continue (y/[N])?" % l )
+        # 200 000 is ~ 2500 full 80 caracter lines
+        # so in average, more than 5000 lines
+        if l > 200000 and 'y' not in opts:
+            try:
+                ans = raw_input("The text you'r trying to load seem pretty big\
+                ( %d characters).Continue (y/[N])?" % l )
+            except StdinNotImplementedError:
+                #asume yes if raw input not implemented
+                ans = 'yes'
+
             if ans.lower() not in ('y','yes') :
                 print 'Operation cancelled.'
                 return
