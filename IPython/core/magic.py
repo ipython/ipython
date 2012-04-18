@@ -19,12 +19,10 @@ import __builtin__ as builtin_mod
 import __future__
 import bdb
 import inspect
-import imp
 import io
 import json
 import os
 import sys
-import shutil
 import re
 import time
 import gc
@@ -44,27 +42,23 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
-import IPython
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
 from IPython.core.error import StdinNotImplementedError
-from IPython.core.fakemodule import FakeModule
-from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
 from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils import openpy
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from IPython.utils.text import LSString, SList, format_screen
+from IPython.utils.text import format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
