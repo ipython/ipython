@@ -184,6 +184,7 @@ class CompleteReply(Reference):
 
 class PyIn(Reference):
     code = Unicode()
+    execution_count = Integer()
 
 
 PyErr = ExecuteReplyError
