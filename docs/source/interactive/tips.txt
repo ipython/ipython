@@ -42,7 +42,8 @@ Suppress output
 
 Put a ';' at the end of a line to suppress the printing of output. This is
 useful when doing calculations which generate long output you are not
-interested in seeing.
+interested in seeing. It also keeps the object out of the output cache, so if
+you're working with large temporary objects, they'll be released from memory sooner.
 
 Lightweight 'version control'
 -----------------------------
