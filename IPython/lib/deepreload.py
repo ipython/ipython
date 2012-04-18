@@ -25,11 +25,23 @@ re-implementation of hierarchical module import.
 #*****************************************************************************
 
 import __builtin__
+from contextlib import contextmanager
 import imp
 import sys
 
 from types import ModuleType
 from warnings import warn
+
+original_import = __builtin__.__import__
+
+@contextmanager
+def replace_import_hook(new_import):
+    saved_import = __builtin__.__import__
+    __builtin__.__import__ = new_import
+    try:
+        yield
+    finally:
+        __builtin__.__import__ = saved_import
 
 def get_parent(globals, level):
     """
@@ -167,7 +179,11 @@ def import_submodule(mod, subname, fullname):
             return None
 
         try:
-            fp, filename, stuff  = imp.find_module(subname, path)
+            # This appears to be necessary on Python 3, because imp.find_module()
+            # tries to import standard libraries (like io) itself, and we don't
+            # want them to be processed by our deep_import_hook.
+            with replace_import_hook(original_import):
+                fp, filename, stuff = imp.find_module(subname, path)
         except ImportError:
             return None
 
@@ -273,7 +289,11 @@ def deep_reload_hook(m):
         path = getattr(parent, "__path__", None)
 
     try:
-        fp, filename, stuff  = imp.find_module(subname, path)
+        # This appears to be necessary on Python 3, because imp.find_module()
+        # tries to import standard libraries (like io) itself, and we don't
+        # want them to be processed by our deep_import_hook.
+        with replace_import_hook(original_import):
+            fp, filename, stuff  = imp.find_module(subname, path)
     finally:
         modules_reloading.clear()
 
@@ -306,12 +326,10 @@ def reload(module, exclude=['sys', 'os.path', '__builtin__', '__main__']):
     global found_now
     for i in exclude:
         found_now[i] = 1
-    original_import = __builtin__.__import__
-    __builtin__.__import__ = deep_import_hook
     try:
-        ret = deep_reload_hook(module)
+        with replace_import_hook(deep_import_hook):
+            ret = deep_reload_hook(module)
     finally:
-        __builtin__.__import__ = original_import
         found_now = {}
     return ret
 
