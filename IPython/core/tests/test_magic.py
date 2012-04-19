@@ -362,5 +362,5 @@ def test_timeit_arguments():
 @dec.skipif(_ip.magic_prun == _ip.profile_missing_notice)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
-    _ip.magic("prun -q x = '\t'")
+    _ip.magic(r"prun -q x = '\t'")
     nt.assert_equal(_ip.user_ns['x'], '\t')
