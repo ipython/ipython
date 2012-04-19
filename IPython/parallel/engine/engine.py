@@ -184,25 +184,25 @@ class EngineFactory(RegistrationFactory):
 
             # create iopub stream:
             iopub_addr = msg.content.iopub
-            iopub_stream = zmqstream.ZMQStream(ctx.socket(zmq.PUB), loop)
-            iopub_stream.setsockopt(zmq.IDENTITY, identity)
-            connect(iopub_stream, iopub_addr)
+            iopub_socket = ctx.socket(zmq.PUB)
+            iopub_socket.setsockopt(zmq.IDENTITY, identity)
+            connect(iopub_socket, iopub_addr)
 
             # disable history:
             self.config.HistoryManager.hist_file = ':memory:'
             
             # Redirect input streams and set a display hook.
             if self.out_stream_factory:
-                sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
+                sys.stdout = self.out_stream_factory(self.session, iopub_socket, u'stdout')
                 sys.stdout.topic = py3compat.cast_bytes('engine.%i.stdout' % self.id)
-                sys.stderr = self.out_stream_factory(self.session, iopub_stream, u'stderr')
+                sys.stderr = self.out_stream_factory(self.session, iopub_socket, u'stderr')
                 sys.stderr.topic = py3compat.cast_bytes('engine.%i.stderr' % self.id)
             if self.display_hook_factory:
-                sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
+                sys.displayhook = self.display_hook_factory(self.session, iopub_socket)
                 sys.displayhook.topic = py3compat.cast_bytes('engine.%i.pyout' % self.id)
 
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
-                    control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream,
+                    control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,
                     loop=loop, user_ns=self.user_ns, log=self.log)
             self.kernel.start()
 
