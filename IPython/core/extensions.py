@@ -18,6 +18,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
+from shutil import copyfile
 import sys
 from urllib import urlretrieve
 from urlparse import urlparse
@@ -137,8 +138,15 @@ class ExtensionManager(Configurable):
         if not os.path.isdir(self.ipython_extension_dir):
             os.makedirs(self.ipython_extension_dir, mode = 0777)
         
+        if os.path.isfile(url):
+            src_filename = os.path.basename(url)
+            copy = copyfile
+        else:
+            src_filename = urlparse(url).path.split('/')[-1]
+            copy = urlretrieve
+            
         if filename is None:
-            filename = urlparse(url).path.split('/')[-1]
+            filename = src_filename
         if os.path.splitext(filename)[1] not in ('.py', '.zip'):
             raise ValueError("The file must have a .py or .zip extension", filename)
         
