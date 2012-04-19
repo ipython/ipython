@@ -50,7 +50,7 @@ def flush_channels():
             except Empty:
                 break
             else:
-                validate_message(msg)
+                list(validate_message(msg))
 
 
 def execute(code='', **kwargs):
@@ -60,14 +60,14 @@ def execute(code='', **kwargs):
     
     msg_id = shell.execute(code=code, **kwargs)
     reply = shell.get_msg(timeout=2)
-    validate_message(reply, 'execute_reply', msg_id)
+    list(validate_message(reply, 'execute_reply', msg_id))
     busy = sub.get_msg(timeout=2)
-    validate_message(busy, 'status', msg_id)
+    list(validate_message(busy, 'status', msg_id))
     nt.assert_equals(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
         pyin = sub.get_msg(timeout=2)
-        validate_message(pyin, 'pyin', msg_id)
+        list(validate_message(pyin, 'pyin', msg_id))
         nt.assert_equals(pyin['content']['code'], code)
     
     return msg_id, reply['content']
@@ -220,7 +220,14 @@ references = {
 
 
 def validate_message(msg, msg_type=None, parent=None):
-    """validate a message"""
+    """validate a message
+    
+    This is a generator, and must be iterated through to actually
+    trigger each test.
+    
+    If msg_type and/or parent are given, the msg_type and/or parent msg_id
+    are compared with the given values.
+    """
     RMessage().check(msg)
     if msg_type:
         yield nt.assert_equals(msg['msg_type'], msg_type)
