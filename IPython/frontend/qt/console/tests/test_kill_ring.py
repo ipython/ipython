@@ -14,7 +14,9 @@ class TestKillRing(unittest.TestCase):
     def setUpClass(cls):
         """ Create the application for the test case.
         """
-        cls._app = QtGui.QApplication([])
+        cls._app = QtGui.QApplication.instance()
+        if cls._app is None:
+            cls._app = QtGui.QApplication([])
         cls._app.setQuitOnLastWindowClosed(False)
 
     @classmethod
