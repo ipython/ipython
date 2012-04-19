@@ -2265,8 +2265,8 @@ Currently the magic system has the following functions:\n"""
     def magic_loadpy(self, arg_s):
         """Alias of `%load`
         
-        `%loadpy` has gain some flexibility and drop the requirement of `.py`
-        extension. So it has been rename simply into %load. You can look at
+        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
+        extension. So it has been renamed simply into %load. You can look at
         `%load`'s docstring for more info.
         """
         self.magic_load(arg_s)
@@ -2281,11 +2281,11 @@ Currently the magic system has the following functions:\n"""
 
         Options:
         --------
-          -y : Don't ask confirmation for loading source above 200 000 caracters.
+          -y : Don't ask confirmation for loading source above 200 000 characters.
 
         This magic command can either take a local filename, a URL, an history
         range (see %history) or a macro as argument, it will prompt for
-        confirmation before loading source with more than 200 000 caracters, unless
+        confirmation before loading source with more than 200 000 characters, unless
         -y flag is passed or if the frontend does not support raw_input::
 
         %load myscript.py
@@ -2303,7 +2303,7 @@ Currently the magic system has the following functions:\n"""
         # so in average, more than 5000 lines
         if l > 200000 and 'y' not in opts:
             try:
-                ans = self.shell.ask_yes_no(("The text you'r trying to load seem pretty big"\
+                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
                 " (%d characters). Continue (y/[N]) ?" % l), default='n' )
             except StdinNotImplementedError:
                 #asume yes if raw input not implemented

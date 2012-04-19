@@ -2750,7 +2750,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
           A string specifying code to retrieve. This will be tried respectively
           as: ranges of input history (see %history for syntax), url,
-          correspnding .py file,filename, or an expression evaluating to a
+          correspnding .py file, filename, or an expression evaluating to a
           string or Macro in the user namespace.
 
         raw : bool
@@ -2772,8 +2772,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
             utarget = unquote_filename(target)
             if utarget.startswith(('http://', 'https://')):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=True)
-        except:
-            raise ValueError(("'%s': no such URL, or URL innaccessible.") % utarget)
+        except UnicodeDecodeError:
+            raise ValueError(("'%s' seem to be unredable.") % utarget)
 
         try :
             pyfile = get_py_filename(target)
