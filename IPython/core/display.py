@@ -452,11 +452,11 @@ class Image(DisplayObject):
 
         Examples
         --------
-        # embed implicitely True, works in qtconsole and notebook
+        # embed implicitly True, works in qtconsole and notebook
         Image('http://www.google.fr/images/srpr/logo3w.png')
 
-        # embed implicitely False, does not works in qtconsole but works in notebook if
-        # internet connexion availlable
+        # embed implicitly False, does not works in qtconsole but works in notebook if
+        # internet connection available
         Image(url='http://www.google.fr/images/srpr/logo3w.png')
 
         """
