@@ -118,10 +118,6 @@ def install():
         cmdbase += '-script.pyw'
     cmd = '"%s"' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
-    # Create documentation shortcuts ...
-    t = prefix + r'\share\doc\ipython\manual\index.html'
-    f = ip_start_menu + r'\Manual in HTML.lnk'
-    mkshortcut(t,'IPython Manual - HTML-Format',f)
     
     
 def remove():
