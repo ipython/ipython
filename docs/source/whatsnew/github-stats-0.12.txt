@@ -8,10 +8,9 @@ Issues closed in 0.12.1
 
 GitHub stats for bugfix release 0.12.1 (12/28/2011-04/16/2012), backporting
 pull requests from 0.13.
-.
-We closed a total of 71 issues: 44 pull requests and 27 
-issues; this is the full list (generated with the script 
-`tools/github_stats.py`).
+
+We closed a total of 71 issues: 44 pull requests and 27 issues; this is the
+full list (generated with the script `tools/github_stats.py`).
 
 This list is automatically generated, and may be incomplete:
 
