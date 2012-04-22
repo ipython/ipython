@@ -61,6 +61,7 @@ from setupbase import (
     find_data_files,
     check_for_dependencies,
     record_commit_info,
+    bdist_wininst_options,
 )
 from setupext import setupext
 
@@ -197,27 +198,16 @@ if 'setuptools' in sys.modules:
     if not setupext.check_for_readline():
         if sys.platform == 'darwin':
             requires.append('readline')
-        elif sys.platform.startswith('win') and sys.maxsize < 2**32:
-            # only require pyreadline on 32b Windows, due to 64b bug in pyreadline:
-            # https://bugs.launchpad.net/pyreadline/+bug/787574
-            requires.append('pyreadline')
+        elif sys.platform.startswith('win') and \
+          not 'bdist_wininst' in sys.argv:
+          # We must avoid listing pyreadline when *building* the binary windows
+          # installers, because if we do so, then at runtime ipython will fail
+          # to find a pyreadline that could have been installed without
+          # setuptools (such as the one from the binary pyreadline installer).
+          requires.append('pyreadline')
         else:
             pass
-            # do we want to install readline here?
-
-    # Script to be run by the windows binary installer after the default setup
-    # routine, to add shortcuts and similar windows-only things.  Windows
-    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
-    # doesn't find them.
-    if 'bdist_wininst' in sys.argv:
-        if len(sys.argv) > 2 and \
-               ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
-            print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
-            sys.exit(1)
-        setup_args['scripts'] = [pjoin('scripts','ipython_win_post_install.py')]
-        setup_args['options'] = {"bdist_wininst":
-                                 {"install_script":
-                                  "ipython_win_post_install.py"}}
+    setup_args.update(bdist_wininst_options())
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
@@ -235,9 +225,11 @@ setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 setup_args.update(setuptools_extra_args)
 
+
 def main():
     setup(**setup_args)
     cleanup()
+
 
 if __name__ == '__main__':
     main()

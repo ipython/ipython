@@ -358,3 +358,32 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
                     'commit = "%s"\n' % repo_commit.decode('ascii'),
                 ])
     return MyBuildPy
+
+#-----------------------------------------------------------------------------
+# Misc. utilities common to setup2/3
+#-----------------------------------------------------------------------------
+
+def bdist_wininst_options():
+    """Options to setup specific to the creation of Windows binary installer.
+    """
+    
+    setup_args = {}
+
+    if 'bdist_wininst' not in sys.argv:
+        return setup_args
+
+    # If we're building a binary Windows installer, a few extra flags are
+    # needed.  Script to be run by the installer after the default setup
+    # routine, to add shortcuts and similar windows-only things.  Windows
+    # post-install scripts MUST reside in the scripts/ dir, otherwise distutils
+    # doesn't find them.
+    if len(sys.argv) > 2 and \
+           ('sdist' in sys.argv or 'bdist_rpm' in sys.argv):
+        print >> sys.stderr, "ERROR: bdist_wininst must be run alone. Exiting."
+        sys.exit(1)
+    setup_args['scripts'] = [os.path.join('scripts',
+                                          'ipython_win_post_install.py')]
+    setup_args['options'] = {"bdist_wininst":
+                             {"install_script":
+                              "ipython_win_post_install.py"}}
+    return setup_args
