@@ -34,6 +34,5 @@ map(sh, win_builds)
 # Change name so retarded Vista runs the installer correctly
 sh("rename 's/linux-i686/win32/' dist/*.exe")
 sh("rename 's/linux-x86_64/win32/' dist/*.exe")
-sh("rename 's/amd64/amd64-setup/' dist/*.exe")
 # exe files aren't really executable under *nix.
 sh("chmod -x dist/*.exe")
