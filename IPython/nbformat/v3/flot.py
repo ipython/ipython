@@ -3,11 +3,20 @@ import string
 import json
 
 class plot():
+    '''
+    This class contains methods for using the javascript plotting backend flot
+    to plot in an ipython notebook. the number of pixels can be set using the
+    pixelsx and pixelsy atttributes and the legend location can be set using 
+    the legendloc attribute.
+    possible legendloc values : 'ne', 'nw', 'se', 'sw'
+    '''
     nplots = 0
     pixelsx = 600
     pixelsy = 300
+    legendloc = "ne" 
     
     def readdata(self,data,data1,label):
+        #This function takes the python data and encodes it into JSON data
         d = ""
         labelstring = ""
         encoder = json.JSONEncoder()
@@ -37,15 +46,27 @@ class plot():
         return d, labelstring
             
     def flotplot(self,data=None,data1=None,label = None):
+        '''
+        This method plots the inputs data and data1 based on the following
+        rules. If only data exists each array in that input field will be
+        plotted with the x-axis having interger values. If data exists
+        in both data and data1 it will be assumed to be of the format:
+        [x0,x1,x2...]
+        [y0,y1,y2...]
+        where xn and yn are either numerical values of arrays of values.
+        the label is assumed to be a string if there is only one input set
+        or an array of strings equal in length to the number of arrays in
+        data.
+        '''
         if data is not None and len(data) > 0:      
             d, label = self.readdata(data,data1,label)                            
             src = d + """
             var options = {
             selection: { mode: "xy" },
+            legend: { position:\"""" + self.legendloc + """\"},
             };
             $.plot($("#placeholder""" + str(self.nplots) + """"), [ """ + label + """],options);
             """
-            print src
         else:
             print "No data given to plot"
             return
@@ -54,6 +75,7 @@ class plot():
         IPython.core.display.display_javascript(IPython.core.display.Javascript(data=src))
 
     def insertplaceholder(self):
+        #This function inserts the html tag for the plot
         src = """
         <div id="placeholder""" + str(self.nplots) + """"" style="width:
         """ + str(self.pixelsx) + """px;height:""" + str(self.pixelsy) + """px;"></div>
