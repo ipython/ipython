@@ -47,7 +47,7 @@ class RichIPythonWidget(IPythonWidget):
         # Do we support jpg ?
         # it seems that sometime jpg support is a plugin of QT, so try to assume
         # it is not always supported.
-        self._supported_format = map(str,QtGui.QImageReader.supportedImageFormats())
+        self._supported_format = map(str, QtGui.QImageReader.supportedImageFormats())
         self._jpg_supported = 'jpeg' in self._supported_format
 
     #---------------------------------------------------------------------------
@@ -84,10 +84,13 @@ class RichIPythonWidget(IPythonWidget):
         """ Overridden to handle rich data types, like SVG.
         """
         def pre_image_append():
+            """ Append the Out[] prompt  and mke the output nicer
+
+            Shared code for some the following if statement
+            """
             self.log.debug("pyout: %s", msg.get('content', ''))
             self._append_plain_text(self.output_sep, True)
             self._append_html(self._make_out_prompt(prompt_number), True)
-            # This helps the output to look nice.
             self._append_plain_text('\n', True)
 
         if not self._hidden and self._is_from_this_session(msg):
@@ -218,7 +221,7 @@ class RichIPythonWidget(IPythonWidget):
                 if not os.path.exists(path):
                     os.mkdir(path)
                 relpath = os.path.basename(path)
-                if image.save("%s/qt_img%s.%s" % (path,match.group("name"),format),
+                if image.save("%s/qt_img%s.%s" % (path, match.group("name"), format),
                               "PNG"):
                     return '<img src="%s/qt_img%s.%s">' % (relpath,
                                                             match.group("name"),format)
