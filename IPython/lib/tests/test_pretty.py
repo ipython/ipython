@@ -1,7 +1,7 @@
 """Tests for IPython.lib.pretty.
 """
 #-----------------------------------------------------------------------------
-# Copyright (c) 2011, the IPython Development Team.
+# Copyright (C) 2011-2012, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #

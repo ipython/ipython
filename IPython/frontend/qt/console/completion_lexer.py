@@ -1,6 +1,13 @@
 # System library imports
 from pygments.token import Token, is_token_subtype
 
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2010-2012  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
 
 class CompletionLexer(object):
     """ Uses Pygments and some auxillary information to lex code snippets for
