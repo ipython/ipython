@@ -50,6 +50,8 @@ sh('./setup.py register')
 
 # Upload all files
 sh('./setup.py sdist --formats=gztar,zip upload')
+for wb in win_builds:
+    sh(wb + ' upload')
 cd(distdir)
 print( 'Uploading distribution files...')
 
