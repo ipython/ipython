@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """IPython release build script.
 """
+
+import os
+
 from toollib import *
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
@@ -27,9 +30,20 @@ sh('python ./setupegg.py bdist_egg')
 
 # Call the windows build separately, so that the extra Windows scripts don't
 # get pulled into Unix builds (setup.py has code which checks for
-# bdist_wininst)
-sh("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
+# bdist_wininst).  Note that the install scripts args are added to the main
+# distutils call in setup.py, so they don't need to be passed here.
+sh("python setup.py bdist_wininst")
+
+# The Windows 64-bit installer can't be built by a Linux/Mac Python because ofa
+# bug in distutils:  http://bugs.python.org/issue6792.
+# So we have to build it with a wine-installed native Windows Python...
+sh("%s/.wine/dosdevices/c\:/Python27/python.exe setup.py build "
+   "--plat-name=win-amd64 bdist_wininst "
+   "--install-script=ipython_win_post_install.py" % os.environ['HOME'])
 
 # Change name so retarded Vista runs the installer correctly
-sh("rename 's/linux-i686/win32-setup/' dist/*.exe")
-sh("rename 's/linux-x86_64/win32-setup/' dist/*.exe")
+sh("rename 's/linux-i686/win32/' dist/*.exe")
+sh("rename 's/linux-x86_64/win32/' dist/*.exe")
+sh("rename 's/amd64/amd64-setup/' dist/*.exe")
+# exe files aren't really executable under *nix.
+sh("chmod -x dist/*.exe")
