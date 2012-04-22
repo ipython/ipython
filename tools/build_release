@@ -23,10 +23,10 @@ for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
         remove_tree(d)
 
 # Build source and binary distros
-sh('./setup.py sdist --formats=gztar,zip')
+sh(sdists)
 
 # Build eggs
-sh('python ./setupegg.py bdist_egg')
+sh(eggs)
 
 # Run windows builds
 map(sh, win_builds)
