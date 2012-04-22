@@ -19,7 +19,13 @@ archive_user = 'ipython@archive.ipython.org'
 archive_dir = 'archive.ipython.org'
 archive = '%s:%s' % (archive_user, archive_dir)
 
-# Commands for Windows builds.
+# Build commands
+# Source dists
+sdists = './setup.py sdist --formats=gztar,zip'
+# Eggs
+eggs = './setupegg.py bdist_egg'
+
+# Windows builds.
 # We do them separately, so that the extra Windows scripts don't get pulled
 # into Unix builds (setup.py has code which checks for bdist_wininst).  Note
 # that the install scripts args are added to the main distutils call in
