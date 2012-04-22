@@ -19,7 +19,8 @@ dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
 Some of the installation approaches use the :mod:`distribute` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
 the most simple method of installing IPython and its dependencies.  More
-information about :mod:`distribute` can be found on its website.
+information about :mod:`distribute` can be found on `its PyPI page
+<http://pypi.python.org/pypi/distribute>`__.
 
 .. note::
 
