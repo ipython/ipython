@@ -48,8 +48,9 @@ print( 'Registering with PyPI...')
 cd(ipdir)
 sh('./setup.py register')
 
-# Upload all files
-for cmd in [sdists, eggs] + win_builds:
+# Upload files.  Note: the windows installers MUST be uploaded manually, doing
+# it from here results in incorrect names.
+for cmd in [sdists, eggs]:
     sh(cmd + ' upload')
 cd(distdir)
 print( 'Uploading distribution files...')
@@ -60,6 +61,6 @@ sh('scp * %s' % release_site)
 
 print( 'Uploading backup files...')
 cd(ipbackupdir)
-sh('scp `ls -1tr *tgz | tail -1` %s' % backup_site)
+sh('scp -i `ls -1tr *tgz | tail -1` %s' % backup_site)
 
 print('Done!')
