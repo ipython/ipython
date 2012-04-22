@@ -74,7 +74,7 @@ Installation using easy_install
 -------------------------------
 
 If you have :mod:`distribute` installed, the easiest way of getting IPython is
-to simple use :command:`easy_install`:
+to simply use :command:`easy_install`:
 
 .. code-block:: bash
 
