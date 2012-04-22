@@ -191,7 +191,8 @@ if 'setuptools' in sys.modules:
         zmq = 'pyzmq>=2.1.4',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
-        notebook = 'tornado>=2.0'
+        notebook = 'tornado>=2.0',
+        qtconsole = 'pygments',
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False

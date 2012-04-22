@@ -30,6 +30,7 @@ information about :mod:`distribute` can be found on its website.
 More general information about installing Python packages can be found in
 `Python's documentation <http://docs.python.org>`_.
 
+
 Quickstart
 ==========
 
@@ -39,10 +40,15 @@ optional dependencies:
 
 .. code-block:: bash
 
-    $ easy_install ipython[zmq,test]
+    $ easy_install ipython[zmq,qtconsole,notebook,test]
 
-This will get pyzmq, which is needed for IPython's parallel computing features
-as well as the nose package, which will enable you to run IPython's test suite.
+This will get:
+
+- pyzmq, needed for IPython's parallel computing features, qt console and
+  notebook.
+- pygments, used by the Qt console for syntax highlighting.
+- tornado, needed by the web-based notebook
+- nose, used by the test suite.
 
 To run IPython's test suite, use the :command:`iptest` command:
 
@@ -50,8 +56,7 @@ To run IPython's test suite, use the :command:`iptest` command:
 
     $ iptest
 
-Read on for more specific details and instructions for Windows.
-
+    
 Installing IPython itself
 =========================
 
@@ -60,9 +65,10 @@ with no external dependencies.  However, some Python distributions
 (particularly on Windows and OS X), don't come with a working :mod:`readline`
 module.  The IPython shell will work without :mod:`readline`, but will lack
 many features that users depend on, such as tab completion and command line
-editing.  If you install IPython with :mod:`distribute`, (e.g. with `easy_install`),
-then the appropriate :mod:`readline` for your platform will be installed.
-See below for details of how to make sure you have a working :mod:`readline`.
+editing.  If you install IPython with :mod:`distribute`, (e.g. with
+`easy_install`), then the appropriate :mod:`readline` for your platform will be
+installed.  See below for details of how to make sure you have a working
+:mod:`readline`.
 
 Installation using easy_install
 -------------------------------
@@ -339,8 +345,9 @@ the proper location::
     from IPython.external.mathjax import install_mathjax
     install_mathjax()
 
-This function does require write access to the IPython install directory, so if you
-have a system-wide Python install, it may need to be done from a ``sudo python`` session.
+This function does require write access to the IPython install directory, so if
+you have a system-wide Python install, it may need to be done from a ``sudo
+python`` session.
 
 Browser Compatibility
 ---------------------
