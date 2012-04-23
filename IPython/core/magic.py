@@ -3456,7 +3456,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         opts, args = self.parse_options(parameter_s, 'n:')
         try:
-            filename, headers = self.extension_manager.install_extension(args, opts.get('n'))
+            filename = self.extension_manager.install_extension(args, opts.get('n'))
         except ValueError as e:
             print e
             return
