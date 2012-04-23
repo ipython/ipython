@@ -110,12 +110,6 @@ class RichIPythonWidget(IPythonWidget):
                 self._pre_image_append(msg, prompt_number)
                 self._append_jpg(decodestring(data['image/jpeg'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
-            # image/jpg should be an invalid mimetype, but python mimetype package
-            # handel it.
-            elif data.has_key('image/jpg') and self._jpg_supported:
-                self._pre_image_append(msg, prompt_number)
-                self._append_jpg(decodestring(data['image/jpg'].encode('ascii')), True)
-                self._append_html(self.output_sep2, True)
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_pyout(msg)
@@ -142,10 +136,6 @@ class RichIPythonWidget(IPythonWidget):
             elif data.has_key('image/jpeg') and self._jpg_supported:
                 self.log.debug("display: %s", msg.get('content', ''))
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
-                self._append_jpg(jpg, True)
-            elif data.has_key('image/jpg') and self._jpg_supported:
-                self.log.debug("display: %s", msg.get('content', ''))
-                jpg = decodestring(data['image/jpg'].encode('ascii'))
                 self._append_jpg(jpg, True)
             else:
                 # Default back to the plain text representation.
