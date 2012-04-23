@@ -669,6 +669,14 @@ your Python programs for this to work (detailed examples follow later)::
 
     embed() # this call anywhere in your program will start IPython
 
+.. note::
+
+    As of 0.13, you can embed an IPython *kernel*, for use with qtconsole,
+    etc. via ``IPython.embed_kernel()`` instead of ``IPython.embed()``.
+    It should function just the same as regular embed, but you connect
+    an external frontend rather than IPython starting up in the local
+    terminal.
+
 You can run embedded instances even in code which is itself being run at
 the IPython interactive prompt with '%run <filename>'. Since it's easy
 to get lost as to where you are (in your top-level IPython or in your
