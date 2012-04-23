@@ -27,7 +27,7 @@ def test_deepreload_numpy():
         # Standard exclusions:
         'sys', 'os.path', '__builtin__', '__main__',
         # Test-related exclusions:
-        'unittest',
+        'unittest', 'UserDict',
         ]
     dreload(numpy, exclude=exclude)
 
