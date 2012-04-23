@@ -20,6 +20,17 @@ def patch_pyzmq():
     """
     
     import zmq
+    
+    # ioloop.install, introduced in pyzmq 2.1.7
+    from zmq.eventloop import ioloop
+    
+    def install():
+        import tornado.ioloop
+        tornado.ioloop.IOLoop = ioloop.IOLoop
+    
+    if not hasattr(ioloop, 'install'):
+        ioloop.install = install
+    
     # fix missing DEALER/ROUTER aliases in pyzmq < 2.1.9
     if not hasattr(zmq, 'DEALER'):
         zmq.DEALER = zmq.XREQ
