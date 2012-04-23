@@ -44,10 +44,12 @@ from .config.loader import Config
 from .core import release
 from .core.application import Application
 from .frontend.terminal.embed import embed
+
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell
 from .testing import test
 from .utils.sysinfo import sys_info
+from .utils.frame import extract_module_locals_above
 
 # Release data
 __author__ = ''
@@ -55,3 +57,14 @@ for author, email in release.authors.itervalues():
     __author__ += author + ' <' + email + '>\n'
 __license__  = release.license
 __version__  = release.version
+
+def embed_kernel(module=None, local_ns=None):
+    """Call this to embed an IPython kernel at the current point in your program. """
+    (caller_module, caller_locals) = extract_module_locals_above()
+    if module is None:
+        module = caller_module
+    if local_ns is None:
+        local_ns = caller_locals
+    # Only import .zmq when we really need it
+    from .zmq.ipkernel import embed_kernel as real_embed_kernel
+    real_embed_kernel(module, local_ns)

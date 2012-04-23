@@ -70,6 +70,8 @@ class Kernel(Configurable):
     iopub_socket = Instance('zmq.Socket')
     stdin_socket = Instance('zmq.Socket')
     log = Instance(logging.Logger)
+    user_module = Instance('types.ModuleType')
+    user_ns     = Dict(default_value=None)
 
     # Private interface
 
@@ -110,6 +112,8 @@ class Kernel(Configurable):
         # Initialize the InteractiveShell subclass
         self.shell = ZMQInteractiveShell.instance(config=self.config,
             profile_dir = self.profile_dir,
+            user_module = self.user_module,
+            user_ns     = self.user_ns,
         )
         self.shell.displayhook.session = self.session
         self.shell.displayhook.pub_socket = self.iopub_socket
@@ -594,6 +598,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
                                 profile_dir=self.profile_dir,
+                                user_module=self.user_module,
+                                user_ns=self.user_ns,
         )
         self.kernel = kernel
         kernel.record_ports(self.ports)
@@ -648,6 +654,10 @@ def launch_kernel(*args, **kwargs):
     return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
                               *args, **kwargs)
 
+def embed_kernel(module, local_ns):
+    app = IPKernelApp.instance(user_module=module, user_ns=local_ns)
+    app.initialize([])
+    app.start()
 
 def main():
     """Run an IPKernel as an application"""
