@@ -29,6 +29,9 @@ class RichIPythonWidget(IPythonWidget):
     # RichIPythonWidget protected class variables.
     _payload_source_plot = 'IPython.zmq.pylab.backend_payload.add_plot_payload'
     _jpg_supported = Bool(False)
+
+    # Used to determine whether a given html export attempt has already
+    # displayed a warning about being unable to convert a png to svg.
     _svg_warning_displayed = False
 
     #---------------------------------------------------------------------------
@@ -61,7 +64,8 @@ class RichIPythonWidget(IPythonWidget):
     def export_html(self):
         """ Shows a dialog to export HTML/XML in various formats.
 
-        Overridden in order to reset the _svg_warning_displayed flag.
+        Overridden in order to reset the _svg_warning_displayed flag prior
+        to the export running.
         """
         self._svg_warning_displayed = False
         super(RichIPythonWidget, self).export_html()
@@ -248,12 +252,16 @@ class RichIPythonWidget(IPythonWidget):
             except KeyError:
                 if not self._svg_warning_displayed:
                     QtGui.QMessageBox.warning(self, 'Error converting PNG to SVG.',
-                        'Cannot convert a PNG to SVG.  To fix this, add this to your ipython config:\n\n'
+                        'Cannot convert a PNG to SVG.  To fix this, add this '
+                        'to your ipython config:\n\n'
                         '\tc.InlineBackendConfig.figure_format = \'svg\'\n\n'
                         'And regenerate the figures.',
                                               QtGui.QMessageBox.Ok)
                     self._svg_warning_displayed = True
-                return "<b>Cannot convert a PNG to SVG.  </b>To fix this, add this to your config: <span>c.InlineBackendConfig.figure_format = 'svg'</span> and regenerate the figures."
+                return ("<b>Cannot convert a PNG to SVG.</b>  "
+                        "To fix this, add this to your config: "
+                        "<span>c.InlineBackendConfig.figure_format = 'svg'</span> "
+                        "and regenerate the figures.")
 
             # Not currently checking path, because it's tricky to find a
             # cross-browser way to embed external SVG images (e.g., via
