@@ -7,6 +7,8 @@ ip = ipapi.get()
 from string import Template
 import sys,os
 
+# We no longer bundle Itpl. If you update this module, you should use advanced
+# string formatting instead.
 from IPython.external.Itpl import itplns
 
 def toclip_w32(s):
