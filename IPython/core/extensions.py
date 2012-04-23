@@ -133,6 +133,8 @@ class ExtensionManager(Configurable):
         If filename is given, the file will be so named (inside the extension
         directory). Otherwise, the name from the URL will be used. The file must
         have a .py or .zip extension; otherwise, a ValueError will be raised.
+        
+        Returns the full path to the installed file.
         """
         # Ensure the extension directory exists
         if not os.path.isdir(self.ipython_extension_dir):
@@ -151,4 +153,5 @@ class ExtensionManager(Configurable):
             raise ValueError("The file must have a .py or .zip extension", filename)
         
         filename = os.path.join(self.ipython_extension_dir, filename)
-        return copy(url, filename)
+        copy(url, filename)
+        return filename
