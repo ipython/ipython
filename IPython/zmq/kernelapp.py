@@ -84,12 +84,12 @@ kernel_flags.update(session_flags)
 #-----------------------------------------------------------------------------
 
 class KernelApp(BaseIPythonApplication):
-    name='pykernel'
+    name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
     classes = [Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.zmq.pykernel.Kernel')
+    kernel_class = DottedObjectName('IPython.zmq.ipkernel.Kernel')
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
