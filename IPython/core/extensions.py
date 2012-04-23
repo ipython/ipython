@@ -151,4 +151,4 @@ class ExtensionManager(Configurable):
             raise ValueError("The file must have a .py or .zip extension", filename)
         
         filename = os.path.join(self.ipython_extension_dir, filename)
-        return urlretrieve(url, filename)
+        return copy(url, filename)
