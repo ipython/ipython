@@ -603,14 +603,14 @@ class SSHLauncher(LocalProcessLauncher):
         check_output(self.scp_cmd + [local, remote])
     
     def send_files(self):
-        """send our files"""
-        if not self.send_files:
+        """send our files (called before start)"""
+        if not self.to_send:
             return
         for local_file, remote_file in self.to_send:
             self._send_file(local_file, remote_file)
 
     def _fetch_file(self, remote, local):
-        """send a single file"""
+        """fetch a single file"""
         full_remote = "%s:%s" % (self.location, remote)
         self.log.info("fetching %s from %s", local, full_remote)
         for i in range(10):
@@ -618,15 +618,15 @@ class SSHLauncher(LocalProcessLauncher):
             check = check_output(self.ssh_cmd + self.ssh_args + \
                 [self.location, 'test -e', remote, "&& echo 'yes' || echo 'no'"])
             check = check.strip()
-            if check.strip() == 'no':
+            if check == 'no':
                 time.sleep(1)
-            elif check.strip() == 'yes':
+            elif check == 'yes':
                 break
         check_output(self.scp_cmd + [full_remote, local])
     
     def fetch_files(self):
-        """override in subclass"""
-        if not self.fetch_files:
+        """fetch remote files (called after start)"""
+        if not self.to_fetch:
             return
         for remote_file, local_file in self.to_fetch:
             self._fetch_file(remote_file, local_file)
