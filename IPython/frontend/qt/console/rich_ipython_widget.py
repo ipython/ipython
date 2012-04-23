@@ -15,6 +15,7 @@ import re
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
+from IPython.utils.traitlets import Bool
 from IPython.frontend.qt.svg import save_svg, svg_to_clipboard, svg_to_image
 from ipython_widget import IPythonWidget
 
@@ -27,7 +28,7 @@ class RichIPythonWidget(IPythonWidget):
 
     # RichIPythonWidget protected class variables.
     _payload_source_plot = 'IPython.zmq.pylab.backend_payload.add_plot_payload'
-
+    _jpg_supported = Bool(False)
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
@@ -47,8 +48,9 @@ class RichIPythonWidget(IPythonWidget):
         # Do we support jpg ?
         # it seems that sometime jpg support is a plugin of QT, so try to assume
         # it is not always supported.
-        self._supported_format = map(str, QtGui.QImageReader.supportedImageFormats())
-        self._jpg_supported = 'jpeg' in self._supported_format
+        _supported_format = map(str, QtGui.QImageReader.supportedImageFormats())
+        self._jpg_supported = 'jpeg' in _supported_format
+
 
     #---------------------------------------------------------------------------
     # 'ConsoleWidget' protected interface
@@ -79,40 +81,39 @@ class RichIPythonWidget(IPythonWidget):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
     #---------------------------------------------------------------------------
+    def _pre_image_append(self, msg, prompt_number):
+        """ Append the Out[] prompt  and make the output nicer
+
+        Shared code for some the following if statement
+        """
+        self.log.debug("pyout: %s", msg.get('content', ''))
+        self._append_plain_text(self.output_sep, True)
+        self._append_html(self._make_out_prompt(prompt_number), True)
+        self._append_plain_text('\n', True)
 
     def _handle_pyout(self, msg):
         """ Overridden to handle rich data types, like SVG.
         """
-        def pre_image_append():
-            """ Append the Out[] prompt  and mke the output nicer
-
-            Shared code for some the following if statement
-            """
-            self.log.debug("pyout: %s", msg.get('content', ''))
-            self._append_plain_text(self.output_sep, True)
-            self._append_html(self._make_out_prompt(prompt_number), True)
-            self._append_plain_text('\n', True)
-
         if not self._hidden and self._is_from_this_session(msg):
             content = msg['content']
             prompt_number = content['execution_count']
             data = content['data']
             if data.has_key('image/svg+xml'):
-                pre_image_append()
+                self._pre_image_append(msg, prompt_number)
                 self._append_svg(data['image/svg+xml'], True)
                 self._append_html(self.output_sep2, True)
             elif data.has_key('image/png'):
-                pre_image_append()
+                self._pre_image_append(msg, prompt_number)
                 self._append_png(decodestring(data['image/png'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
             elif data.has_key('image/jpeg') and self._jpg_supported:
-                pre_image_append()
+                self._pre_image_append(msg, prompt_number)
                 self._append_jpg(decodestring(data['image/jpeg'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
             # image/jpg should be an invalid mimetype, but python mimetype package
             # handel it.
             elif data.has_key('image/jpg') and self._jpg_supported:
-                pre_image_append()
+                self._pre_image_append(msg, prompt_number)
                 self._append_jpg(decodestring(data['image/jpg'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
             else:
