@@ -1,8 +1,38 @@
-import IPython.core.display
+"""A class to provide the flot plotting utility in an ipython notebook
+
+This class provides utilities to plot data in an ipython notebook using
+the flot http://code.google.com/p/flot/ javascript plotting library. It 
+has the class plot which must be instantiated as an object. Once this is
+instantiated the plot_figure method can be called to plot data. This inserts
+a div tag and then uses the flot library to render that data.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function
+
+# Stdlib imports
 import string
 import json
 
-class plot():
+# Third-party imports
+
+# Our own imports
+import IPython.core.display
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
+
+class Plot():
     '''
     This class contains methods for using the javascript plotting backend flot
     to plot in an ipython notebook. the number of pixels can be set using the
@@ -13,9 +43,9 @@ class plot():
     nplots = 0
     pixelsx = 600
     pixelsy = 300
-    legendloc = "ne" 
-    
-    def readdata(self,data,data1,label):
+    legendloc = "ne"
+
+    def _read_data(self, data, data1, label):
         #This function takes the python data and encodes it into JSON data
         d = ""
         labelstring = ""
@@ -45,7 +75,7 @@ class plot():
 
         return d, labelstring
             
-    def flotplot(self,data=None,data1=None,label = None):
+    def plot_figure( self, data = None, data1 = None, label = None):
         '''
         This method plots the inputs data and data1 based on the following
         rules. If only data exists each array in that input field will be
@@ -59,7 +89,7 @@ class plot():
         data.
         '''
         if data is not None and len(data) > 0:      
-            d, label = self.readdata(data,data1,label)                            
+            d, label = self._read_data(data,data1,label)                            
             src = d + """
             var options = {
             selection: { mode: "xy" },
@@ -70,11 +100,11 @@ class plot():
         else:
             print "No data given to plot"
             return
-        self.insertplaceholder()
+        self._insert_placeholder()
         self.nplots = self.nplots + 1
         IPython.core.display.display_javascript(IPython.core.display.Javascript(data=src))
 
-    def insertplaceholder(self):
+    def _insert_placeholder(self):
         #This function inserts the html tag for the plot
         src = """
         <div id="placeholder""" + str(self.nplots) + """"" style="width:
