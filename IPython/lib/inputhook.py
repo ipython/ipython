@@ -459,13 +459,31 @@ class InputHookManager(object):
         self.clear_inputhook()
 
     def enable_gevent(self, app=None):
-        import gevent
+        """Enable event loop integration with gevent.
+
+        Parameters
+        ----------
+        app : ignored
+           Ignored, it's only a placeholder to keep the call signature of all
+           gui activation methods consistent, which simplifies the logic of
+           supporting magics.
+
+        Notes
+        -----
+        This methods sets the PyOS_InputHook for gevent, which allows
+        gevent greenlets to run in the background while interactively using
+        IPython.
+        """
         from IPython.lib.inputhookgevent import inputhook_gevent
         self.set_inputhook(inputhook_gevent)
         self._current_gui = GUI_GEVENT
         return app
 
     def disable_gevent(self):
+        """Disable event loop integration with gevent.
+
+        This merely sets PyOS_InputHook to NULL.
+        """
         self.clear_inputhook()
 
     def current_gui(self):
