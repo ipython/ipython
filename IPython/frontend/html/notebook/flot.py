@@ -98,7 +98,7 @@ class Plot():
             $.plot($("#placeholder""" + str(self.nplots) + """"), [ """ + label + """],options);
             """
         else:
-            print "No data given to plot"
+            print("No data given to plot")
             return
         self._insert_placeholder()
         self.nplots = self.nplots + 1
