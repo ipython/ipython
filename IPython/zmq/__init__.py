@@ -12,6 +12,40 @@
 import warnings
 from distutils.version import LooseVersion as V
 
+
+def patch_pyzmq():
+    """backport a few patches from newer pyzmq
+    
+    These can be removed as we bump our minimum pyzmq version
+    """
+    
+    import zmq
+    
+    # ioloop.install, introduced in pyzmq 2.1.7
+    from zmq.eventloop import ioloop
+    
+    def install():
+        import tornado.ioloop
+        tornado.ioloop.IOLoop = ioloop.IOLoop
+    
+    if not hasattr(ioloop, 'install'):
+        ioloop.install = install
+    
+    # fix missing DEALER/ROUTER aliases in pyzmq < 2.1.9
+    if not hasattr(zmq, 'DEALER'):
+        zmq.DEALER = zmq.XREQ
+    if not hasattr(zmq, 'ROUTER'):
+        zmq.ROUTER = zmq.XREP
+    
+    # fallback on stdlib json if jsonlib is selected, because jsonlib breaks things.
+    # jsonlib support is removed from pyzmq >= 2.2.0
+
+    from zmq.utils import jsonapi
+    if jsonapi.jsonmod.__name__ == 'jsonlib':
+        import json
+        jsonapi.jsonmod = json
+
+
 def check_for_zmq(minimum_version, module='IPython.zmq'):
     try:
         import zmq
@@ -24,12 +58,6 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
         raise ImportError("%s requires pyzmq >= %s, but you have %s"%(
                         module, minimum_version, pyzmq_version))
 
-    # fix missing DEALER/ROUTER aliases in pyzmq < 2.1.9
-    if not hasattr(zmq, 'DEALER'):
-        zmq.DEALER = zmq.XREQ
-    if not hasattr(zmq, 'ROUTER'):
-        zmq.ROUTER = zmq.XREP
-
     if V(zmq.zmq_version()) >= V('4.0.0'):
         warnings.warn("""libzmq 4 detected.
         It is unlikely that IPython's zmq code will work properly.
@@ -37,3 +65,4 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
         RuntimeWarning)
 
 check_for_zmq('2.1.4')
+patch_pyzmq()
