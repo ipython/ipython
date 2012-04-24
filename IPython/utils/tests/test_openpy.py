@@ -16,8 +16,8 @@ def test_read_file():
     read_specified_enc = io.open(nonascii_path, encoding='iso-8859-5').read()
     read_detected_enc = openpy.read_py_file(nonascii_path, skip_encoding_cookie=False)
     nt.assert_equal(read_detected_enc, read_specified_enc)
-    assert u'encoding: iso-8859-5' in read_detected_enc
+    assert u'coding: iso-8859-5' in read_detected_enc
     
     read_strip_enc_cookie = openpy.read_py_file(nonascii_path, skip_encoding_cookie=True)
-    assert u'encoding: iso-8859-5' not in read_strip_enc_cookie
+    assert u'coding: iso-8859-5' not in read_strip_enc_cookie
     

@@ -13,3 +13,8 @@ except AttributeError:
 if version_info < (2,1,0):
     raise ImportError(msg + ", but you have %s" % tornado.version)
 del msg
+
+# check for pyzmq 2.1.4
+from IPython.zmq import check_for_zmq
+check_for_zmq('2.1.4', 'IPython.frontend.html.notebook')
+del check_for_zmq

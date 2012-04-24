@@ -200,6 +200,10 @@ class ShellSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -297,19 +301,21 @@ class ShellSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, oname):
+    def object_info(self, oname, detail_level=0):
         """Get metadata information about an object.
 
         Parameters
         ----------
         oname : str
             A string specifying the object name.
+        detail_level : int, optional
+            The level of detail for the introspection (0-2)
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(oname=oname)
+        content = dict(oname=oname, detail_level=detail_level)
         msg = self.session.msg('object_info_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
@@ -388,6 +394,10 @@ class SubSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -450,6 +460,11 @@ class StdInSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
+        
 
     def stop(self):
         self.ioloop.stop()
@@ -573,6 +588,10 @@ class HBSocketChannel(ZMQSocketChannel):
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
                 continue
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def pause(self):
         """Pause the heartbeat."""

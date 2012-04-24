@@ -237,6 +237,7 @@ if 'setuptools' in sys.modules:
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}
         setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
+        setuptools._dont_write_bytecode = True
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is
