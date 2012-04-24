@@ -721,13 +721,16 @@ class Hub(SessionFactory):
         header = msg['header']
         engine_uuid = header.get('engine', None)
         eid = self.by_ident.get(engine_uuid, None)
+        
+        status = header.get('status', None)
 
         if msg_id in self.pending:
             self.log.info("task::task %r finished on %s", msg_id, eid)
             self.pending.remove(msg_id)
             self.all_completed.add(msg_id)
             if eid is not None:
-                self.completed[eid].append(msg_id)
+                if status != 'aborted':
+                    self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
