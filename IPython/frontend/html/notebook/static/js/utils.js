@@ -47,7 +47,7 @@ IPython.utils = (function (IPython) {
         "37":"ansigrey", "01":"ansibold"
     };
 
-    // Transform ANI color escape codes into HTML <span> tags with css
+    // Transform ANSI color escape codes into HTML <span> tags with css
     // classes listed in the above ansi_colormap object. The actual color used
     // are set in the css file.
     function fixConsole(txt) {
@@ -58,7 +58,6 @@ IPython.utils = (function (IPython) {
         var opener = "";
         var closer = "";
         // \r does nothing, so shouldn't be included
-        txt = txt.replace('\r', '');
         while (re.test(txt)) {
             var cmds = txt.match(re)[1].split(";");
             closer = opened?"</span>":"";
@@ -74,6 +73,16 @@ IPython.utils = (function (IPython) {
         return txt;
     }
 
+    // Remove chunks that should be overridden by the effect carriage
+    // return characters
+    function fixCarriageReturn(txt) {
+        tmp = txt;
+        do {
+            txt = tmp;
+            tmp = txt.replace(/^.*\r/gm, '');
+        } while (tmp.length < txt.length);
+        return txt;
+    }
 
     grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
@@ -95,7 +104,8 @@ IPython.utils = (function (IPython) {
     return {
         uuid : uuid,
         fixConsole : fixConsole,
-        grow : grow
+        grow : grow,
+        fixCarriageReturn : fixCarriageReturn
     };
 
 }(IPython));

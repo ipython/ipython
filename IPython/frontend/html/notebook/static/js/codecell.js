@@ -623,7 +623,8 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
-        if (!utils.fixConsole(json.text)){
+        var text = utils.fixConsole(json.text);
+        if (!text){
             // fixConsole gives nothing (empty string, \r, etc.)
             // so don't append any elements, which might add undesirable space
             return;
@@ -636,15 +637,16 @@ var IPython = (function (IPython) {
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                var text = utils.fixConsole(json.text);
-                this.element.find('div.'+subclass).last().find('pre').append(text);
+                pre = this.element.find('div.'+subclass).last().find('pre');
+                text = utils.fixCarriageReturn(pre.text() + text);
+                pre.text(text);
                 return;
             }
         }
-        
+
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(json.text, toinsert, "output_stream "+subclass);
+        this.append_text(text, toinsert, "output_stream "+subclass);
         this.element.find('div.output').append(toinsert);
     };
 
@@ -702,6 +704,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box_flex1 output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
+        data = utils.fixCarriageReturn(data);
         if (extra_class){
             toinsert.addClass(extra_class);
         }
