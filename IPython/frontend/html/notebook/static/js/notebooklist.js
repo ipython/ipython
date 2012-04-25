@@ -43,33 +43,45 @@ var IPython = (function (IPython) {
         this.element.bind('dragover', function () {
             return false;
         });
-        this.element.bind('drop', function (event) {
-            var files = event.originalEvent.dataTransfer.files;
-            for (var i = 0, f; f = files[i]; i++) {
-                var reader = new FileReader();
-                reader.readAsText(f);
-                var fname = f.name.split('.'); 
-                var nbname = fname.slice(0,-1).join('.');
-                var nbformat = fname.slice(-1)[0];
-                if (nbformat === 'ipynb') {nbformat = 'json';};
-                if (nbformat === 'py' || nbformat === 'json') {
-                    var item = that.new_notebook_item(0);
-                    that.add_name_input(nbname, item);
-                    item.data('nbformat', nbformat);
-                    // Store the notebook item in the reader so we can use it later
-                    // to know which item it belongs to.
-                    $(reader).data('item', item);
-                    reader.onload = function (event) {
-                        var nbitem = $(event.target).data('item');
-                        that.add_notebook_data(event.target.result, nbitem);
-                        that.add_upload_button(nbitem);
-                    };
-                };
-            }
+        this.element.bind('drop', function(event){
+            console.log('bound to drop');
+                that.handelFilesUpload(event,'drop');
             return false;
         });
     };
 
+    NotebookList.prototype.handelFilesUpload =  function(event, dropOrForm) {
+        var that = this;
+        var files;
+        if(dropOrForm =='drop'){
+            files = event.originalEvent.dataTransfer.files;
+        } else 
+        {
+            files = event.originalEvent.target.files
+        }
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader();
+            reader.readAsText(f);
+            var fname = f.name.split('.'); 
+            var nbname = fname.slice(0,-1).join('.');
+            var nbformat = fname.slice(-1)[0];
+            if (nbformat === 'ipynb') {nbformat = 'json';};
+            if (nbformat === 'py' || nbformat === 'json') {
+                var item = that.new_notebook_item(0);
+                that.add_name_input(nbname, item);
+                item.data('nbformat', nbformat);
+                // Store the notebook item in the reader so we can use it later
+                // to know which item it belongs to.
+                $(reader).data('item', item);
+                reader.onload = function (event) {
+                    var nbitem = $(event.target).data('item');
+                    that.add_notebook_data(event.target.result, nbitem);
+                    that.add_upload_button(nbitem);
+                };
+            };
+        }
+        return false;
+        };
 
     NotebookList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
