@@ -32,8 +32,11 @@ $(document).ready(function () {
 
     IPython.notebook_list.load_list();
     IPython.cluster_list.load_list();
-
     IPython.page.show();
-
+    
+    // bound the upload method to the on change of the file select list
+    $("#alternate_upload").change(function (event){
+        IPython.notebook_list.handelFilesUpload(event,'form');
+    });
 });
 
