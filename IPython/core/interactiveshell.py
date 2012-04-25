@@ -2555,14 +2555,19 @@ class InteractiveShell(SingletonConfigurable, Magic):
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
                 code = self.compile(mod, cell_name, "exec")
-                if self.run_code(code):
+                if self.run_code(code, flush_softspace=False):
                     return True
 
             for i, node in enumerate(to_run_interactive):
                 mod = ast.Interactive([node])
                 code = self.compile(mod, cell_name, "single")
-                if self.run_code(code):
+                if self.run_code(code, flush_softspace=False):
                     return True
+
+            # Flush softspace
+            if softspace(sys.stdout, 0):
+                print
+
         except:
             # It's possible to have exceptions raised here, typically by
             # compilation of odd code (such as a naked 'return' outside a
@@ -2577,7 +2582,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         return False
 
-    def run_code(self, code_obj):
+    def run_code(self, code_obj, flush_softspace=True):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2589,6 +2594,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
           A compiled code object, to be executed
         post_execute : bool [default: True]
           whether to call post_execute hooks after this particular execution.
+        flush_softspace : bool [default: True]
+          whether to flush softspace, i.e., print a new line after this particular execution.
 
         Returns
         -------
@@ -2622,8 +2629,9 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
         else:
             outflag = 0
-            if softspace(sys.stdout, 0):
-                print
+            if flush_softspace:
+                if softspace(sys.stdout, 0):
+                    print
 
         return outflag
 
