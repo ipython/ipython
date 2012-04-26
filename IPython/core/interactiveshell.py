@@ -2563,6 +2563,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 code = self.compile(mod, cell_name, "single")
                 if self.run_code(code):
                     return True
+
+            # Flush softspace
+            if softspace(sys.stdout, 0):
+                print
+
         except:
             # It's possible to have exceptions raised here, typically by
             # compilation of odd code (such as a naked 'return' outside a
@@ -2622,9 +2627,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
         else:
             outflag = 0
-            if softspace(sys.stdout, 0):
-                print
-
         return outflag
 
     # For backwards compatibility
