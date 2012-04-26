@@ -28,6 +28,7 @@ from os.path import join
 import sys
 from StringIO import StringIO
 
+from IPython.testing.decorators import skipif
 from IPython.utils import io
 
 #-----------------------------------------------------------------------------
@@ -254,6 +255,18 @@ class InteractiveShellTestCase(unittest.TestCase):
         # ZeroDivisionError
         self.assertEqual(ip.var_expand(u"{1/0}"), u"{1/0}")
 
+    @skipif(sys.version_info[0] >= 3, "softspace removed in py3")
+    def test_print_softspace(self):
+        """Verify that softspace is handled correctly when executing multiple
+        statements.
+
+        In [1]: print 1; print 2
+        1
+        2
+
+        In [2]: print 1,; print 2
+        1 2
+        """
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
 
