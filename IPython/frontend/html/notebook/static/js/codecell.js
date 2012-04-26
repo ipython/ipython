@@ -623,12 +623,8 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
+
         var text = utils.fixConsole(json.text);
-        if (!text){
-            // fixConsole gives nothing (empty string, \r, etc.)
-            // so don't append any elements, which might add undesirable space
-            return;
-        }
         var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
             // have at least one output to consider
@@ -642,6 +638,12 @@ var IPython = (function (IPython) {
                 pre.text(text);
                 return;
             }
+        }
+
+        if (!text.replace("\r", "")) {
+            // text is nothing (empty string, \r, etc.)
+            // so don't append any elements, which might add undesirable space
+            return;
         }
 
         // If we got here, attach a new div

@@ -57,7 +57,6 @@ IPython.utils = (function (IPython) {
         var cmds = [];
         var opener = "";
         var closer = "";
-        // \r does nothing, so shouldn't be included
         while (re.test(txt)) {
             var cmds = txt.match(re)[1].split(";");
             closer = opened?"</span>":"";
