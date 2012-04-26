@@ -128,9 +128,9 @@ if not _PY3K:
             return unicode(obj)
             # Else encode it... but how? There are many choices... :)
             # Replace unprintables with escape codes?
-            #return unicode(obj).encode(py3compat.getdefaultencoding(), 'backslashreplace_errors')
+            #return unicode(obj).encode(sys.getdefaultencoding(), 'backslashreplace_errors')
             # Replace unprintables with question marks?
-            #return unicode(obj).encode(py3compat.getdefaultencoding(), 'replace')
+            #return unicode(obj).encode(sys.getdefaultencoding(), 'replace')
             # ...
 else:
     _ustr = str

@@ -31,6 +31,7 @@ from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.pylabtools import pylab_activate
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
@@ -319,7 +320,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
         for i in range(hlen - hlen_before_cell):
             self.readline.remove_history_item(hlen - i - 1)
-        stdin_encoding = py3compat.get_stream_enc(sys.stdin, 'utf-8')
+        stdin_encoding = get_stream_enc(sys.stdin, 'utf-8')
         self.readline.add_history(py3compat.unicode_to_str(source_raw.rstrip(),
                                     stdin_encoding))
         return self.readline.get_current_history_length()

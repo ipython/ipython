@@ -23,7 +23,7 @@ from IPython.core.history import HistoryManager, extract_hist_ranges
 from IPython.utils import py3compat
 
 def setUp():
-    nt.assert_equal(py3compat.getdefaultencoding(), "utf-8" if py3compat.PY3 else "ascii")
+    nt.assert_equal(sys.getdefaultencoding(), "utf-8" if py3compat.PY3 else "ascii")
 
 def test_history():
     ip = get_ipython()

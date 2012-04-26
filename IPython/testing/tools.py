@@ -45,6 +45,7 @@ from IPython.utils.process import find_cmd, getoutputerror
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
+from IPython.utils.encoding import getdefaultencoding
 
 from . import decorators as dec
 from . import skipdoctest
@@ -322,7 +323,7 @@ else:
     # so we need a class that can handle both.
     class MyStringIO(StringIO):
         def write(self, s):
-            s = py3compat.cast_unicode(s, encoding=py3compat.getdefaultencoding())
+            s = py3compat.cast_unicode(s, encoding=getdefaultencoding())
             super(MyStringIO, self).write(s)
 
 notprinted_msg = """Did not find {0!r} in printed output (on {1}):

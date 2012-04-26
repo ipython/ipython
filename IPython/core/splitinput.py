@@ -24,6 +24,7 @@ import re
 import sys
 
 from IPython.utils import py3compat
+from IPython.utils.encoding import get_stream_enc
 
 #-----------------------------------------------------------------------------
 # Main function
@@ -53,7 +54,7 @@ def split_user_input(line, pattern=None):
     and the rest.
     """
     # We need to ensure that the rest of this routine deals only with unicode
-    encoding = py3compat.get_stream_enc(sys.stdin, 'utf-8')
+    encoding = get_stream_enc(sys.stdin, 'utf-8')
     line = py3compat.cast_unicode(line, encoding)
 
     if pattern is None:
