@@ -2587,8 +2587,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         ----------
         code_obj : code object
           A compiled code object, to be executed
-        post_execute : bool [default: True]
-          whether to call post_execute hooks after this particular execution.
 
         Returns
         -------
