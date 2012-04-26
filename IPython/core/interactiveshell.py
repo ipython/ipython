@@ -2555,13 +2555,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
                 code = self.compile(mod, cell_name, "exec")
-                if self.run_code(code, flush_softspace=False):
+                if self.run_code(code):
                     return True
 
             for i, node in enumerate(to_run_interactive):
                 mod = ast.Interactive([node])
                 code = self.compile(mod, cell_name, "single")
-                if self.run_code(code, flush_softspace=False):
+                if self.run_code(code):
                     return True
 
             # Flush softspace
@@ -2582,7 +2582,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         return False
 
-    def run_code(self, code_obj, flush_softspace=True):
+    def run_code(self, code_obj):
         """Execute a code object.
 
         When an exception occurs, self.showtraceback() is called to display a
@@ -2594,8 +2594,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
           A compiled code object, to be executed
         post_execute : bool [default: True]
           whether to call post_execute hooks after this particular execution.
-        flush_softspace : bool [default: True]
-          whether to flush softspace, i.e., print a new line after this particular execution.
 
         Returns
         -------
@@ -2629,10 +2627,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
         else:
             outflag = 0
-            if flush_softspace:
-                if softspace(sys.stdout, 0):
-                    print
-
         return outflag
 
     # For backwards compatibility
