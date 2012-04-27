@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """IPython release build script.
 """
+
+import os
+
 from toollib import *
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
@@ -20,16 +23,16 @@ for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
         remove_tree(d)
 
 # Build source and binary distros
-sh('./setup.py sdist --formats=gztar,zip')
+sh(sdists)
 
 # Build eggs
-sh('python ./setupegg.py bdist_egg')
+sh(eggs)
 
-# Call the windows build separately, so that the extra Windows scripts don't
-# get pulled into Unix builds (setup.py has code which checks for
-# bdist_wininst)
-sh("python setup.py bdist_wininst --install-script=ipython_win_post_install.py")
+# Run windows builds
+map(sh, win_builds)
 
 # Change name so retarded Vista runs the installer correctly
-sh("rename 's/linux-i686/win32-setup/' dist/*.exe")
-sh("rename 's/linux-x86_64/win32-setup/' dist/*.exe")
+sh("rename 's/linux-i686/win32/' dist/*.exe")
+sh("rename 's/linux-x86_64/win32/' dist/*.exe")
+# exe files aren't really executable under *nix.
+sh("chmod -x dist/*.exe")

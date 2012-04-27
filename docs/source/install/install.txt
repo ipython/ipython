@@ -7,7 +7,6 @@ All of the subpackages come with IPython, so you don't need to download and
 install them separately.  However, to use a given subpackage, you will need to
 install all of its dependencies.
 
-
 Please let us know if you have problems installing IPython or any of its
 dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
 
@@ -17,38 +16,40 @@ dependencies. Officially, IPython requires Python 2.6, 2.7, 3.1, or 3.2.
     longer work on Python <= 2.5. You can find older versions of IPython which
     supported Python <= 2.5 `here <http://archive.ipython.org/release/>`_
 
-Some of the installation approaches use the :mod:`setuptools` package and its
+Some of the installation approaches use the :mod:`distribute` package and its
 :command:`easy_install` command line program.  In many scenarios, this provides
-the most simple method of installing IPython and its dependencies.  It is not
-required though.  More information about :mod:`setuptools` can be found on its
-website.
+the most simple method of installing IPython and its dependencies.  More
+information about :mod:`distribute` can be found on `its PyPI page
+<http://pypi.python.org/pypi/distribute>`__.
 
 .. note::
 
-    On Windows, IPython *does* depend on :mod:`setuptools`, and it is recommended
-    that you install the :mod:`distribute` package, which improves
-    :mod:`setuptools` and fixes various bugs. Installing on Python 3 requires
-    :mod:`distribute` on all platforms.
-    
-    We hope to remove this dependency in the future.
+   On Windows, IPython has a hard dependency on :mod:`distribute`.  We hope to
+   change this in the future, but for now on Windows, you *must* install
+   :mod:`distribute`.
 
 More general information about installing Python packages can be found in
-Python's documentation at http://www.python.org/doc/.
+`Python's documentation <http://docs.python.org>`_.
+
 
 Quickstart
 ==========
 
-If you have :mod:`setuptools` installed and you are on OS X or Linux (not
+If you have :mod:`distribute` installed and you are on OS X or Linux (not
 Windows), the following will download and install IPython *and* the main
 optional dependencies:
 
 .. code-block:: bash
 
-    $ easy_install ipython[zmq,test]
+    $ easy_install ipython[zmq,qtconsole,notebook,test]
 
-This will get pyzmq, which is needed for
-IPython's parallel computing features as well as the nose package, which will
-enable you to run IPython's test suite.  
+This will get:
+
+- pyzmq, needed for IPython's parallel computing features, qt console and
+  notebook.
+- pygments, used by the Qt console for syntax highlighting.
+- tornado, needed by the web-based notebook
+- nose, used by the test suite.
 
 To run IPython's test suite, use the :command:`iptest` command:
 
@@ -56,8 +57,7 @@ To run IPython's test suite, use the :command:`iptest` command:
 
     $ iptest
 
-Read on for more specific details and instructions for Windows.
-
+    
 Installing IPython itself
 =========================
 
@@ -66,15 +66,16 @@ with no external dependencies.  However, some Python distributions
 (particularly on Windows and OS X), don't come with a working :mod:`readline`
 module.  The IPython shell will work without :mod:`readline`, but will lack
 many features that users depend on, such as tab completion and command line
-editing.  If you install IPython with :mod:`setuptools`, (e.g. with `easy_install`),
-then the appropriate :mod:`readline` for your platform will be installed.
-See below for details of how to make sure you have a working :mod:`readline`.
+editing.  If you install IPython with :mod:`distribute`, (e.g. with
+`easy_install`), then the appropriate :mod:`readline` for your platform will be
+installed.  See below for details of how to make sure you have a working
+:mod:`readline`.
 
 Installation using easy_install
 -------------------------------
 
-If you have :mod:`setuptools` installed, the easiest way of getting IPython is
-to simple use :command:`easy_install`:
+If you have :mod:`distribute` installed, the easiest way of getting IPython is
+to simply use :command:`easy_install`:
 
 .. code-block:: bash
 
@@ -101,24 +102,22 @@ permissions, you may need to run the last command with :command:`sudo`.
 Windows
 -------
 
-.. note::
+As mentioned above, on Windows, IPython requires :mod:`distribute`, and it also
+requires the PyReadline library to properly support coloring and keyboard
+management (features that the default windows console doesn't have).  So on
+Windows, the installation procedure is:
 
-    On Windows, IPython requires :mod:`setuptools` or :mod:`distribute`.
-    
-    We hope to remove this dependency in the future.
+1. Install `distribute <http://pypi.python.org/pypi/distribute>`_.
 
-There are a few caveats for Windows users.  The main issue is that a basic
-``python setup.py install`` approach won't create ``.bat`` file or Start Menu
-shortcuts, which most users want.  To get an installation with these, you can
-use any of the following alternatives:
+2. Install `pyreadline <http://pypi.python.org/pypi/pyreadline>`_.  You can use
+   the command ``easy_install pyreadline`` from a terminal, or the binary
+   installer appropriate for your platform from the PyPI page.
 
-1. Install using :command:`easy_install`.
-
-2. Install using our binary ``.exe`` Windows installer, which can be found
-   `here <http://ipython.org/download.html>`_
-
-3. Install from source, but using :mod:`setuptools` (``python setupegg.py
-   install``).
+3. Install IPython itself, which you can download from `PyPI
+   <http://pypi.python.org/pypi/ipython>`_ or from `our site
+   <http://ipython.org/download.html>`_.  Note that on Windows 7, you *must*
+   right-click and 'Run as administrator' for the Start menu shortcuts to be
+   created.
 
 IPython by default runs in a terminal window, but the normal terminal
 application supplied by Microsoft Windows is very primitive.  You may want to
@@ -128,14 +127,6 @@ IPython tab, which is very convenient to create new IPython sessions directly
 from the working terminal.
 
 .. _Console:  http://sourceforge.net/projects/console
-
-Note for Windows 64 bit users: you may have difficulties with the stock
-installer on 64 bit systems; in this case (since we currently do not have 64
-bit builds of the Windows installer) your best bet is to install from source
-with the setuptools method indicated in #3 above.  See `this bug report`_ for
-further details.
-
-.. _this bug report: https://bugs.launchpad.net/ipython/+bug/382214
 
    
 Installing the development version
@@ -151,11 +142,8 @@ need to have Git installed on your system.  Then just do:
     $ cd ipython
     $ python setup.py install
 
-Again, this last step on Windows won't create ``.bat`` files or Start Menu
-shortcuts, so you will have to use one of the other approaches listed above.
-
 Some users want to be able to follow the development branch as it changes.  If
-you have :mod:`setuptools` installed, this is easy. Simply replace the last
+you have :mod:`distribute` installed, this is easy. Simply replace the last
 step by:
 
 .. code-block:: bash
@@ -170,6 +158,7 @@ just do:
 
     $ git pull
 
+    
 Basic optional dependencies
 ===========================
 
@@ -186,33 +175,24 @@ read on for more details.
 readline
 --------
 
-In principle, all Python distributions should come with a working
-:mod:`readline` module.  But, reality is not quite that simple.  There are two
-common situations where you won't have a working :mod:`readline` module:
+As indicated above, on Windows, PyReadline is a *mandatory* dependency.
+PyReadline is a separate, Windows only implementation of readline that uses
+native Windows calls through :mod:`ctypes`. The easiest way of installing
+PyReadline is you use the binary installer available `here
+<http://pypi.python.org/pypi/pyreadline>`_.
 
-* If you are using the built-in Python on Mac OS X.
-
-* If you are running Windows, which doesn't have a :mod:`readline` module.
-
-When IPython is installed with :mod:`setuptools`, (e.g. with `easy_install`),
-readline is added as a dependency on OS X, and PyReadline on Windows, and will
-be installed on your system.  However, if you do not use setuptools, you may
-have to install one of these packages yourself.
-
-On OS X, the built-in Python doesn't not have :mod:`readline` because of
-license issues.  Starting with OS X 10.5 (Leopard), Apple's built-in Python has
-a BSD-licensed not-quite-compatible readline replacement. As of IPython 0.9,
-many of the issues related to the differences between readline and libedit seem
-to have been resolved.  While you may find libedit sufficient, we have
-occasional reports of bugs with it and several developers who use OS X as their
-main environment consider libedit unacceptable for productive, regular use with
-IPython.
+On OSX, if you are using the built-in Python shipped by Apple, you will be
+missing a full readline implementation as Apple ships instead a library called
+``libedit`` that provides only some of readline's functionality.  While you may
+find libedit sufficient, we have occasional reports of bugs with it and several
+developers who use OS X as their main environment consider libedit unacceptable
+for productive, regular use with IPython.
 
 Therefore, we *strongly* recommend that on OS X you get the full
 :mod:`readline` module.  We will *not* consider completion/history problems to
 be bugs for IPython if you are using libedit.
 
-To get a working :mod:`readline` module, just do (with :mod:`setuptools`
+To get a working :mod:`readline` module, just do (with :mod:`distribute`
 installed):
 
 .. code-block:: bash
@@ -225,14 +205,11 @@ installed):
     python.org binaries) already have readline installed so you likely don't
     have to do this step.
 
-If needed, the readline egg can be build and installed from source (see the
-wiki page at
-http://web.archive.org/web/20090614162410/ipython.scipy.org/moin/InstallationOSXLeopard).
+When IPython is installed with :mod:`distribute`, (e.g. using the
+``easy_install`` command), readline is added as a dependency on OS X, and
+PyReadline on Windows, and will be installed on your system.  However, if you
+do not use distribute, you may have to install one of these packages yourself.
 
-On Windows, you will need the PyReadline module. PyReadline is a separate,
-Windows only implementation of readline that uses native Windows calls through
-:mod:`ctypes`. The easiest way of installing PyReadline is you use the binary
-installer available `here <https://launchpad.net/pyreadline/+download>`_.
 
 nose
 ----
@@ -281,13 +258,12 @@ Dependencies for IPython.parallel (parallel computing)
 :mod:`IPython.kernel` has been replaced by :mod:`IPython.parallel`, 
 which uses ZeroMQ for all communication.
 
-IPython.parallel provides a nice architecture for parallel computing.  The
-main focus of this architecture is on interactive parallel computing.  These
-features require just one package: PyZMQ.  See the next section for PyZMQ
-details.
+IPython.parallel provides a nice architecture for parallel computing, with a
+focus on fluid interactive workflows.  These features require just one package:
+PyZMQ.  See the next section for PyZMQ details.
 
 On a Unix style platform (including OS X), if you want to use
-:mod:`setuptools`, you can just do:
+:mod:`distribute`, you can just do:
 
 .. code-block:: bash
 
@@ -346,8 +322,8 @@ started withe command ``ipython notebook``.
 pyzmq
 -----
 
-Like the :mod:`IPython.parallel` and :mod:`IPython.frontend.qt.console` packages, 
-the HTML notebook requires ZeroMQ and PyZMQ.
+Like the :mod:`IPython.parallel` and :mod:`IPython.frontend.qt.console`
+packages, the HTML notebook requires ZeroMQ and PyZMQ.
 
 Tornado
 -------
@@ -370,8 +346,9 @@ the proper location::
     from IPython.external.mathjax import install_mathjax
     install_mathjax()
 
-This function does require write access to the IPython install directory, so if you
-have a system-wide Python install, it may need to be done from a ``sudo python`` session.
+This function does require write access to the IPython install directory, so if
+you have a system-wide Python install, it may need to be done from a ``sudo
+python`` session.
 
 Browser Compatibility
 ---------------------
