@@ -2,11 +2,19 @@
 """
 Script for setting up and using [all]reduce with a binary-tree engine interconnect.
 
-Binary trees allow large data communications to be highly scalable, because even
-in a global communication, never more than two messages are occupant on a single node.
-
 usage: `python bintree_script.py`
 
+This spanning tree strategy ensures that a single node node mailbox will never 
+receive more that 2 messages at once. This is very important to scale to large 
+clusters (e.g. 1000 nodes) since if you have many incoming messages of a couple 
+of megabytes you might saturate the network interface of a single node and 
+potentially its memory buffers if the messages are not consumed in a streamed 
+manner.
+
+Note that the AllReduce scheme implemented with the spanning tree strategy 
+impose the aggregation function to be commutative and distributive. It might 
+not be the case if you implement the naive gather / reduce / broadcast strategy 
+where you can reorder the partial data before performing the reduce.
 """
 
 from IPython.parallel import Client, Reference
