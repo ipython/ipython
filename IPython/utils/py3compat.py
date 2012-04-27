@@ -6,7 +6,9 @@ import sys
 import re
 import types
 
-from IPython.utils.encoding import getdefaultencoding
+from .encoding import getdefaultencoding
+
+default_encoding = getdefaultencoding()
 
 orig_open = open
 
@@ -14,11 +16,11 @@ def no_code(x, encoding=None):
     return x
 
 def decode(s, encoding=None):
-    encoding = encoding or getdefaultencoding()
+    encoding = encoding or default_encoding
     return s.decode(encoding, "replace")
 
 def encode(u, encoding=None):
-    encoding = encoding or getdefaultencoding()
+    encoding = encoding or default_encoding
     return u.encode(encoding, "replace")
 
 
