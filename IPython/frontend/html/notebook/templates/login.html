@@ -17,7 +17,7 @@
 
     {% if login_available %}
     <form action="/login?next={{url_escape(next)}}" method="post">
-        Password: <input type="password" name="password" id="password_input">
+        Password: <input type="password" class='ui-widget ui-widget-content' name="password" id="password_input">
         <input type="submit" value="Log in" id="login_submit">
     </form>
     {% end %}
