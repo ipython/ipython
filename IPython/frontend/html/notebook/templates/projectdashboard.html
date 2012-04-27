@@ -31,15 +31,12 @@ data-read-only={{read_only}}
     <div id="tab1">
         {% if logged_in or not read_only %}
         <div id="notebook_toolbar">
-
-            <form id='alternate_upload' action="notebooks" enctype="multipart/form-data" method="post" class='alternate_upload'>
-                    <span id="drag_info" style="position:absolute" >Drag files
-                        onto the list, or click here, to import
-                        notebooks.</span>
-                    <input type="file" name="datafile" class="fileinput">
+            <form id='alternate_upload' action="notebooks" enctype="multipart/form-data" method="post" class='alternate_upload' >
+                <span id="drag_info" style="position:absolute" >Drag files
+                    onto the list, or click here, to import
+                    notebooks.</span>
+                <input type="file" name="datafile" class="fileinput" multiple='multiple'>
             </form>
-
-
             <span id="notebook_buttons">
                 <button id="refresh_notebook_list" title="Refresh notebook list">Refresh</button>
                 <button id="new_notebook" title="Create new notebook">New Notebook</button>
