@@ -118,11 +118,18 @@ def install():
         cmdbase += '-script.pyw'
     cmd = '"%s"' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
-    # Create documentation shortcuts ...
-    t = prefix + r'\share\doc\ipython\manual\index.html'
-    f = ip_start_menu + r'\Manual in HTML.lnk'
-    mkshortcut(t,'IPython Manual - HTML-Format',f)
+
+    # FIXME: These below are commented out because we don't ship the html built
+    # docs anymore.  We should make the shortcut to continue existing, but as a
+    # URL to the online the docs for the right version of IPython.  The stable
+    # URLs have the pattern:
+    # http://ipython.org/ipython-doc/rel-X.Y.Z/html
+    # For IPython version X.Y.Z.
     
+    ## # Create documentation shortcuts ...
+    ## t = prefix + r'\share\doc\ipython\manual\index.html'
+    ## f = ip_start_menu + r'\Manual in HTML.lnk'
+    ## mkshortcut(t,'IPython Manual - HTML-Format',f)
     
 def remove():
     """Routine to be run by the win32 installer with the -remove switch."""
