@@ -72,8 +72,8 @@ IPython.utils = (function (IPython) {
         return txt;
     }
 
-    // Remove chunks that should be overridden by the effect carriage
-    // return characters
+    // Remove chunks that should be overridden by the effect of
+    // carriage return characters
     function fixCarriageReturn(txt) {
         tmp = txt;
         do {
