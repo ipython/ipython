@@ -96,6 +96,7 @@ class Plot():
             legend: { position:\"""" + self.legendloc + """\"},
             };
             $.plot($("#placeholder""" + str(self.nplots) + """"), [ """ + label + """],options);
+            this.kernel.execute("print 'blah'")
             """
         else:
             print("No data given to plot")
