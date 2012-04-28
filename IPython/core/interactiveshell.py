@@ -14,7 +14,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import with_statement
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -2514,7 +2513,7 @@ class InteractiveShell(SingletonConfigurable):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read(), store_history=False)
+                    self.run_cell(thefile.read(), store_history=False, shell_futures=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
@@ -2548,7 +2547,7 @@ class InteractiveShell(SingletonConfigurable):
         self._current_cell_magic_body = None
         return self.run_cell_magic(magic_name, line, cell)
 
-    def run_cell(self, raw_cell, store_history=False, silent=False):
+    def run_cell(self, raw_cell, store_history=False, silent=False, shell_futures=True):
         """Run a complete IPython cell.
 
         Parameters
@@ -2562,6 +2561,11 @@ class InteractiveShell(SingletonConfigurable):
         silent : bool
           If True, avoid side-effects, such as implicit displayhooks and
           and logging.  silent=True forces store_history=False.
+        shell_futures : bool
+          If True, the code will share future statements with the interactive
+          shell. It will both be affected by previous __future__ imports, and
+          any __future__ imports in the code will affect the shell. If False,
+          __future__ imports are not shared in either direction.
         """
         if (not raw_cell) or raw_cell.isspace():
             return
@@ -2579,6 +2583,16 @@ class InteractiveShell(SingletonConfigurable):
             self._current_cell_magic_body = \
                                ''.join(self.input_splitter.cell_magic_parts)
         cell = self.input_splitter.source_reset()
+        
+        # Our own compiler remembers the __future__ environment. If we want to
+        # run code with a separate __future__ environment, use the default
+        # compiler
+        if shell_futures:
+            compiler = self.compile
+            ast_parse = self.compile.ast_parse
+        else:
+            compiler = compile
+            ast_parse = ast.parse
 
         with self.builtin_trap:
             prefilter_failed = False
@@ -2608,8 +2622,7 @@ class InteractiveShell(SingletonConfigurable):
 
                 with self.display_trap:
                     try:
-                        code_ast = self.compile.ast_parse(cell,
-                                                          filename=cell_name)
+                        code_ast = ast_parse(cell, filename=cell_name)
                     except IndentationError:
                         self.showindentationerror()
                         if store_history:
@@ -2626,7 +2639,7 @@ class InteractiveShell(SingletonConfigurable):
                     
                     interactivity = "none" if silent else self.ast_node_interactivity
                     self.run_ast_nodes(code_ast.body, cell_name,
-                                       interactivity=interactivity)
+                                       interactivity=interactivity, compiler=compiler)
                     
                     # Execute any registered post-execution functions.
                     # unless we are silent
@@ -2682,7 +2695,8 @@ class InteractiveShell(SingletonConfigurable):
         return ast.fix_missing_locations(node)
                 
 
-    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr'):
+    def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
+                        compiler=compile):
         """Run a sequence of AST nodes. The execution mode depends on the
         interactivity parameter.
 
@@ -2699,6 +2713,9 @@ class InteractiveShell(SingletonConfigurable):
           will run the last node interactively only if it is an expression (i.e.
           expressions in loops or other blocks are not displayed. Other values
           for this parameter will raise a ValueError.
+        compiler : callable
+          A function with the same interface as the built-in compile(), to turn
+          the AST nodes into code objects. Default is the built-in compile().
         """
         if not nodelist:
             return
@@ -2723,13 +2740,13 @@ class InteractiveShell(SingletonConfigurable):
         try:
             for i, node in enumerate(to_run_exec):
                 mod = ast.Module([node])
-                code = self.compile(mod, cell_name, "exec")
+                code = compiler(mod, cell_name, "exec")
                 if self.run_code(code):
                     return True
 
             for i, node in enumerate(to_run_interactive):
                 mod = ast.Interactive([node])
-                code = self.compile(mod, cell_name, "single")
+                code = compiler(mod, cell_name, "single")
                 if self.run_code(code):
                     return True
 
