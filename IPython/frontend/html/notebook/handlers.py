@@ -338,7 +338,7 @@ class MainKernelHandler(AuthenticatedHandler):
 
 class KernelHandler(AuthenticatedHandler):
 
-    SUPPORTED_METHODS = ('DELETE')
+    SUPPORTED_METHODS = ('POST','DELETE')
 
     @web.authenticated
     def delete(self, kernel_id):
@@ -346,7 +346,6 @@ class KernelHandler(AuthenticatedHandler):
         km.kill_kernel(kernel_id)
         self.set_status(204)
         self.finish()
-
 
 class KernelActionHandler(AuthenticatedHandler):
 
@@ -596,8 +595,9 @@ class NotebookRootHandler(AuthenticatedHandler):
         nlist=[]
         for f in files :
             nid = f['notebook_id']
-            if km.kernel_for_notebook(nid) is not None:
-                f['kernel_status']='on'
+            kid = km.kernel_for_notebook(nid)
+            if  kid is not None:
+                f['kernel_status']=kid
             else:
                 f['kernel_status']='off'
             nlist.append(f)
