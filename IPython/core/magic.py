@@ -2232,15 +2232,29 @@ Currently the magic system has the following functions:\n"""
         print cmds
 
     def magic_pastebin(self, parameter_s = ''):
-        """Upload code to the 'Lodge it' paste bin, returning the URL."""
+        """Upload code to Github's Gist paste bin, returning the URL.
+        
+        Usage:\\
+          %pastebin [-d "Custom description"] 1-7
+          
+        The argument can be an input history range, a filename, or the name of a
+        string or macro.
+        
+        Options:
+        
+          -d: Pass a custom description for the gist. The default will say
+              "Pasted from IPython".
+        """
+        opts, args = self.parse_options(parameter_s, 'd:')
+        
         try:
-            code = self.shell.find_user_code(parameter_s)
+            code = self.shell.find_user_code(args)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
         
         post_data = json.dumps({
-          "description": "Pasted from IPython",
+          "description": opts.get('d', "Pasted from IPython"),
           "public": True,
           "files": {
             "file1.py": {
