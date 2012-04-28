@@ -21,6 +21,7 @@ import bdb
 import inspect
 import imp
 import io
+import json
 import os
 import sys
 import shutil
@@ -30,7 +31,7 @@ import gc
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
-from xmlrpclib import ServerProxy
+from urllib2 import urlopen
 
 # cProfile was added in Python2.5
 try:
@@ -2237,9 +2238,20 @@ Currently the magic system has the following functions:\n"""
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
-        pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
-        id = pbserver.pastes.newPaste("python", code)
-        return "http://paste.pocoo.org/show/" + id
+        
+        post_data = json.dumps({
+          "description": "Pasted from IPython",
+          "public": True,
+          "files": {
+            "file1.py": {
+              "content": code
+            }
+          }
+        }).encode('utf-8')
+        
+        response = urlopen("https://api.github.com/gists", post_data)
+        response_data = json.loads(response.read().decode('utf-8'))
+        return response_data['html_url']
 
     def magic_loadpy(self, arg_s):
         """Load a .py python script into the GUI console.
