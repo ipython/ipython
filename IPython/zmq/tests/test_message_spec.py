@@ -34,6 +34,11 @@ def setup():
 
     KM.start_kernel(stdout=PIPE, stderr=PIPE)
     KM.start_channels()
+    
+    # wait for kernel to be ready
+    KM.shell_channel.execute("pass")
+    KM.shell_channel.get_msg(block=True, timeout=5)
+    flush_channels()
 
 
 def teardown():
@@ -207,12 +212,22 @@ class DisplayData(Reference):
             nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
 
 
+class PyOut(Reference):
+    execution_count = Integer()
+    data = Dict()
+    def _data_changed(self, name, old, new):
+        for k,v in new.iteritems():
+            nt.assert_true(mime_pat.match(k))
+            nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
+
+
 references = {
     'execute_reply' : ExecuteReply(),
     'object_info_reply' : OInfoReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
     'pyin' : PyIn(),
+    'pyout' : PyOut(),
     'pyerr' : PyErr(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
