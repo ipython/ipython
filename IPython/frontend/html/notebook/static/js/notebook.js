@@ -25,6 +25,8 @@ var IPython = (function (IPython) {
         this.paste_enabled = false;
         this.dirty = false;
         this.metadata = {};
+        // single worksheet for now
+        this.worksheet_metadata = {};
         this.control_key_active = false;
         this.notebook_id = null;
         this.notebook_name = null;
@@ -1003,6 +1005,9 @@ var IPython = (function (IPython) {
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
+            if (worksheet.metadata) {
+                this.worksheet_metadata = worksheet.metadata;
+            }
             var new_cells = worksheet.cells;
             ncells = new_cells.length;
             var cell_data = null;
@@ -1031,7 +1036,10 @@ var IPython = (function (IPython) {
         };
         var data = {
             // Only handle 1 worksheet for now.
-            worksheets : [{cells:cell_array}],
+            worksheets : [{
+                cells: cell_array,
+                metadata: this.worksheet_metadata
+            }],
             metadata : this.metadata
         };
         return data;

@@ -92,7 +92,7 @@ def new_output(output_type=None, output_text=None, output_png=None,
 
 
 def new_code_cell(input=None, prompt_number=None, outputs=None,
-    language=u'python', collapsed=False):
+    language=u'python', collapsed=False, metadata=None):
     """Create a new code cell with input and output"""
     cell = NotebookNode()
     cell.cell_type = u'code'
@@ -108,10 +108,11 @@ def new_code_cell(input=None, prompt_number=None, outputs=None,
         cell.outputs = outputs
     if collapsed is not None:
         cell.collapsed = bool(collapsed)
+    cell.metadata = NotebookNode(metadata or {})
 
     return cell
 
-def new_text_cell(cell_type, source=None, rendered=None):
+def new_text_cell(cell_type, source=None, rendered=None, metadata=None):
     """Create a new text cell."""
     cell = NotebookNode()
     # VERSIONHACK: plaintext -> raw
@@ -122,11 +123,12 @@ def new_text_cell(cell_type, source=None, rendered=None):
         cell.source = unicode(source)
     if rendered is not None:
         cell.rendered = unicode(rendered)
+    cell.metadata = NotebookNode(metadata or {})
     cell.cell_type = cell_type
     return cell
 
 
-def new_heading_cell(source=None, rendered=None, level=1):
+def new_heading_cell(source=None, rendered=None, level=1, metadata=None):
     """Create a new section cell with a given integer level."""
     cell = NotebookNode()
     cell.cell_type = u'heading'
@@ -135,10 +137,11 @@ def new_heading_cell(source=None, rendered=None, level=1):
     if rendered is not None:
         cell.rendered = unicode(rendered)
     cell.level = int(level)
+    cell.metadata = NotebookNode(metadata or {})
     return cell
 
 
-def new_worksheet(name=None, cells=None):
+def new_worksheet(name=None, cells=None, metadata=None):
     """Create a worksheet by name with with a list of cells."""
     ws = NotebookNode()
     if name is not None:
@@ -147,6 +150,7 @@ def new_worksheet(name=None, cells=None):
         ws.cells = []
     else:
         ws.cells = list(cells)
+    ws.metadata = NotebookNode(metadata or {})
     return ws
 
 
