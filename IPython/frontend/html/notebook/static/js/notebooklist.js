@@ -89,7 +89,6 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.load_list = function () {
-        this.clear_list();
         var settings = {
             processData : false,
             cache : false,
@@ -104,15 +103,21 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.list_loaded = function (data, status, xhr) {
         var len = data.length;
+        this.clear_list();
         // Todo: remove old children
         for (var i=0; i<len; i++) {
             var notebook_id = data[i].notebook_id;
             var nbname = data[i].name;
+            var kernel = data[i].kernel_status;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
-                this.add_delete_button(item);
+                if(kernel == 'off'){
+                    this.add_delete_button(item);
+                } else {
+                    this.add_shutdown_button(item,kernel);
+                }
             }
         };
     };
@@ -175,6 +180,33 @@ var IPython = (function (IPython) {
         item.data('nbdata',data);
     };
 
+
+    NotebookList.prototype.add_shutdown_button = function (item,kernel) {
+        var new_buttons = $('<span/>').addClass('item_buttons');
+        var that = this;
+        var shutdown_button = $('<button>Shutdown</button>').button().
+            click(function (e) {
+                var settings = {
+                    processData : false,
+                    cache : false,
+                    type : "DELETE",
+                    dataType : "json",
+                    success : function (data, status, xhr) {
+                        console.log('kernel killed');
+                        that.load_list();
+                    }
+                };
+                var url = $('body').data('baseProjectUrl') + 'kernels/'+kernel;
+                $.ajax(url, settings);
+            });
+        new_buttons.append(shutdown_button);
+        var e = item.find('.item_buttons');
+        if (e.length === 0) {
+            item.append(new_buttons);
+        } else {
+            e.replaceWith(new_buttons);
+        };
+    };
 
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass('item_buttons');
