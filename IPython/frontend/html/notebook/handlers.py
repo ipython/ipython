@@ -338,7 +338,7 @@ class MainKernelHandler(AuthenticatedHandler):
 
 class KernelHandler(AuthenticatedHandler):
 
-    SUPPORTED_METHODS = ('POST','DELETE')
+    SUPPORTED_METHODS = ('DELETE')
 
     @web.authenticated
     def delete(self, kernel_id):
@@ -346,6 +346,7 @@ class KernelHandler(AuthenticatedHandler):
         km.kill_kernel(kernel_id)
         self.set_status(204)
         self.finish()
+
 
 class KernelActionHandler(AuthenticatedHandler):
 
@@ -591,8 +592,6 @@ class NotebookRootHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         km = self.application.kernel_manager
         files = nbm.list_notebooks()
-        #kernel_for_notebook
-        nlist=[]
         for f in files :
             nid = f['notebook_id']
             kid = km.kernel_for_notebook(nid)
@@ -600,9 +599,7 @@ class NotebookRootHandler(AuthenticatedHandler):
                 f['kernel_status']=kid
             else:
                 f['kernel_status']='off'
-            nlist.append(f)
-        print(files)
-        self.finish(jsonapi.dumps(nlist))
+        self.finish(jsonapi.dumps(files))
 
     @web.authenticated
     def post(self):
