@@ -11,6 +11,7 @@ pretty.
 """
 from __future__ import print_function
 
+import codecs
 import os
 import pprint
 import re
@@ -79,16 +80,22 @@ class ConversionException(Exception):
 
 class Converter(object):
     default_encoding = 'utf-8'
+    extension = str()
     figures_counter = 0
-
+    infile = str()
+    infile_dir = str()
+    infile_root = str()
+    files_dir = str()
+    
     def __init__(self, infile):
         self.infile = infile
-        self.dirpath = os.path.dirname(infile)
-
-    @property
-    def extension(self):
-        raise ConversionException("""extension must be defined in Converter
-                subclass""")
+        self.infile_dir = os.path.dirname(infile)
+        infile_root = os.path.splitext(infile)[0]
+        files_dir = infile_root + '_files'
+        if not os.path.isdir(files_dir):
+            os.mkdir(files_dir)
+        self.infile_root = infile_root
+        self.files_dir = files_dir
 
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
@@ -133,14 +140,27 @@ class Converter(object):
     def optional_footer(self):
         return []
 
-    def _new_figure(self, data, format):
-        basename = self.infile.replace('.ipynb', '')
-        figname = '%s_fig_%02i.%s' % (basename, self.figures_counter, format)
+    def _new_figure(self, data, fmt):
+        """Create a new figure file in the given format.
+
+        Returns a path relative to the input file.
+        """
+        figname = '%s_fig_%02i.%s' % (self.infile_root, 
+                                      self.figures_counter, fmt)
         self.figures_counter += 1
-        fullname = os.path.join(self.dirpath, figname)
-        with open(fullname, 'w') as f:
-            f.write(data.decode('base64'))
-        return figname
+        fullname = os.path.join(self.files_dir, figname)
+
+        # Binary files are base64-encoded, SVG is already XML
+        if fmt in ('png', 'jpg', 'pdf'):
+            data = data.decode('base64')
+            fopen = lambda fname: open(fname, 'wb')
+        else:
+            fopen = lambda fname: codecs.open(fname, 'wb', self.default_encoding)
+            
+        with fopen(fullname) as f:
+            f.write(data)
+            
+        return fullname
 
     def render_heading(self, cell):
         """convert a heading cell
@@ -173,12 +193,30 @@ class Converter(object):
         Returns list."""
         raise NotImplementedError
 
+    def _img_lines(self, img_file):
+        """Return list of lines to include an image file."""
+        # Note: subclasses may choose to implement format-specific _FMT_lines
+        # methods if they so choose (FMT in {png, svg, jpg, pdf}).
+        raise NotImplementedError
+
     def render_display_data(self, output):
         """convert display data from the output of a code cell
 
         Returns list.
         """
-        raise NotImplementedError
+        lines = []
+
+        for fmt in ['png', 'svg', 'jpg', 'pdf']:
+            if fmt in output:
+                img_file = self._new_figure(output[fmt], fmt)
+                # Subclasses can have format-specific render functions (e.g.,
+                # latex has to auto-convert all SVG to PDF first).
+                lines_fun = getattr(self, '_%s_lines' % fmt, None)
+                if not lines_fun:
+                    lines_fun = self._img_lines
+                lines.extend(lines_fun(img_file))
+
+        return lines
 
     def render_stream(self, cell):
         """convert stream part of a code cell
@@ -244,16 +282,9 @@ class ConverterRST(Converter):
         return lines
 
     @DocInherit
-    def render_display_data(self, output):
-        lines = []
-
-        if 'png' in output:
-            figfile = self._new_figure(output.png, 'png')
-            lines.append('.. image:: %s' % figfile)
-            lines.append('')
-
-        return lines
-
+    def _img_lines(self, img_file):
+        return ['.. image:: %s' % figfile, '']
+    
     @DocInherit
     def render_stream(self, output):
         lines = []
@@ -336,20 +367,8 @@ class ConverterQuickHTML(Converter):
         return lines
 
     @DocInherit
-    def render_display_data(self, output):
-        lines = []
-
-        if 'png' in output:
-            infile = 'nb_figure_%s.png' % self.figures_counter
-            fullname = os.path.join(self.dirpath, infile)
-            with open(fullname, 'w') as f:
-                f.write(output.png.decode('base64'))
-
-            self.figures_counter += 1
-            lines.append('<img src="%s">' % infile)
-            lines.append('')
-
-        return lines
+    def _img_lines(self, img_file):
+        return ['<img src="%s">' % img_file, '']
 
     @DocInherit
     def render_stream(self, output):
@@ -362,7 +381,31 @@ class ConverterQuickHTML(Converter):
 
 
 class ConverterLaTeX(Converter):
+    """Converts a notebook to a .tex file suitable for pdflatex.
+
+    Note: this converter *needs*:
+
+    - `pandoc`: for all conversion of markdown cells.  If your notebook only
+       has Raw cells, pandoc will not be needed.
+    
+    -  `inkscape`: if your notebook has SVG figures.  These need to be
+       converted to PDF before inclusion in the TeX file, as LaTeX doesn't
+       understand SVG natively.
+    
+    You will in general obtain much better final PDF results if you configure
+    the matplotlib backend to create SVG output with 
+
+    %config InlineBackend.figure_format = 'svg'
+
+    (or set the equivalent flag at startup or in your configuration profile).
+    """
     extension = 'tex'
+    heading_marker = {1: r'\section',
+                      2: r'\subsection',
+                      3: r'\subsubsection',
+                      4: r'\paragraph',
+                      5: r'\subparagraph',
+                      6: r'\subparagraph'}
 
     def env(self, environment, lines):
         """Return list of environment lines for input lines
@@ -383,13 +426,7 @@ class ConverterLaTeX(Converter):
     
     @DocInherit
     def render_heading(self, cell):
-        heading_marker = {1: r'\section',
-                          2: r'\subsection',
-                          3: r'\subsubsection',
-                          4: r'\paragraph',
-                          5: r'\subparagraph',
-                          6: r'\subparagraph'}
-        marker = heading_marker[cell.level]
+        marker = self.heading_marker[cell.level]
         return ['%s{%s}\n\n' % (marker, cell.source) ]
 
     @DocInherit
@@ -416,17 +453,18 @@ class ConverterLaTeX(Converter):
 
         return lines
 
+
     @DocInherit
-    def render_display_data(self, output):
-        lines = []
+    def _img_lines(self, img_file):
+        return self.env('center',
+                [r'\includegraphics[width=3in]{%s}' % img_file, r'\par'])
 
-        if 'png' in output:
-            figfile = self._new_figure(output.png, 'png')
-
-            lines.extend(self.env('center',
-                                  [r'\includegraphics[width=3in]{%s}' % figfile,
-                                   r'\par']))
-        return lines
+    def _svg_lines(self, img_file):
+        base_file = os.path.splitext(img_file)[0]
+        pdf_file = base_file + '.pdf'
+        subprocess.check_call(['inkscape', '--export-pdf=%s' % pdf_file,
+                               img_file])
+        return self._img_lines(pdf_file)
 
     @DocInherit
     def render_stream(self, output):
