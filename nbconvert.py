@@ -12,6 +12,7 @@ pretty.
 from __future__ import print_function
 
 import codecs
+import logging
 import os
 import pprint
 import re
@@ -89,6 +90,7 @@ class Converter(object):
     with_preamble = True
     user_preamble = None
     output = str()
+    raw_as_verbatim = False
         
     def __init__(self, infile):
         self.infile = infile
@@ -110,6 +112,7 @@ class Converter(object):
         lines.extend(self.optional_header())
         for worksheet in self.nb.worksheets:
             for cell in worksheet.cells:
+                #print(cell.cell_type)  # dbg
                 conv_fn = self.dispatch(cell.cell_type)
                 lines.extend(conv_fn(cell))
                 lines.append('')
@@ -227,8 +230,8 @@ class Converter(object):
         Returns list."""
         raise NotImplementedError
 
-    def render_plaintext(self, cell):
-        """convert plain text
+    def render_raw(self, cell):
+        """convert a cell with raw text
 
         Returns list."""
         raise NotImplementedError
@@ -237,6 +240,18 @@ class Converter(object):
         """Render cells of unkown type
 
         Returns list."""
+        data = pprint.pformat(cell)
+        logging.warning('Unknown cell:\n%s' % data)
+        return self._unknown_lines(data)
+
+    def _unknown_lines(self, data):
+        """Return list of lines for an unknown cell.
+
+        Parameters
+        ----------
+        data : str
+          The content of the unknown data as a single string.
+        """
         raise NotImplementedError
 
 
@@ -268,8 +283,11 @@ class ConverterRST(Converter):
         return [cell.source]
 
     @DocInherit
-    def render_plaintext(self, cell):
-        return [cell.source]
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return ['::', '', indent(cell.source), '']
+        else:
+            return [cell.source]
 
     @DocInherit
     def render_pyout(self, output):
@@ -285,6 +303,11 @@ class ConverterRST(Converter):
         return lines
 
     @DocInherit
+    def render_pyerr(self, output):
+        # Note: a traceback is a *list* of frames.
+        return ['::', '', indent(remove_ansi('\n'.join(output.traceback))), '']
+
+    @DocInherit
     def _img_lines(self, img_file):
         return ['.. image:: %s' % img_file, '']
     
@@ -298,12 +321,16 @@ class ConverterRST(Converter):
         return lines
 
     @DocInherit
-    def render_unknown(self, cell):
-        return rst_directive('.. warning:: Unknown cell') + [repr(cell)]
+    def _unknown_lines(self, data):
+        return rst_directive('.. warning:: Unknown cell') + [data]
 
 
 class ConverterQuickHTML(Converter):
     extension = 'html'
+
+    def in_tag(self, tag, src):
+        """Return a list of elements bracketed by the given tag"""
+        return ['<%s>' % tag, src, '</%s>' % tag]
 
     def optional_header(self):
         # XXX: inject the IPython standard CSS into here
@@ -347,28 +374,31 @@ class ConverterQuickHTML(Converter):
 
     @DocInherit
     def render_markdown(self, cell):
-        return ["<pre>"+cell.source+"</pre>"]
+        return self.in_tag('pre', cell.source)
 
     @DocInherit
-    def render_plaintext(self, cell):
-        return ["<pre>"+cell.source+"</pre>"]
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return self.in_tag('pre', cell.source)
+        else:
+            return [cell.source]
 
     @DocInherit
     def render_pyout(self, output):
-        lines = ['<tr><td><tt>Out[<b>%s</b>]:</tt></td></tr>' % output.prompt_number, '<td>']
+        lines = ['<tr><td><tt>Out[<b>%s</b>]:</tt></td></tr>' % 
+                 output.prompt_number, '<td>']
 
         # output is a dictionary like object with type as a key
-        if 'latex' in output:
-            lines.append("<pre>")
-            lines.extend(indent(output.latex))
-            lines.append("</pre>")
-
-        if 'text' in output:
-            lines.append("<pre>")
-            lines.extend(indent(output.text))
-            lines.append("</pre>")
+        for out_type in ('text', 'latex'):
+            if out_type in output:
+                lines.extend(self.in_tag('pre', indent(output[out_type])))
 
         return lines
+
+    @DocInherit
+    def render_pyerr(self, output):
+        # Note: a traceback is a *list* of frames.
+        return self.in_tag('pre', remove_ansi('\n'.join(output.traceback)))
 
     @DocInherit
     def _img_lines(self, img_file):
@@ -382,6 +412,10 @@ class ConverterQuickHTML(Converter):
             lines.append(output.text)
 
         return lines
+
+    @DocInherit
+    def _unknown_lines(self, data):
+        return ['<h2>Warning:: Unknown cell</h2>'] + self.in_tag('pre', data)
 
 
 class ConverterLaTeX(Converter):
@@ -413,7 +447,7 @@ class ConverterLaTeX(Converter):
                    5: r'\subparagraph',
                    6: r'\subparagraph'}
 
-    def env(self, environment, lines):
+    def in_env(self, environment, lines):
         """Return list of environment lines for input lines
 
         Parameters
@@ -482,8 +516,8 @@ class ConverterLaTeX(Converter):
         # Cell codes first carry input code, we use lstlisting for that
         lines = [r'\begin{codecell}']
         
-        lines.extend(self.env('codeinput',
-                              self.env('lstlisting', cell.input)))
+        lines.extend(self.in_env('codeinput',
+                              self.in_env('lstlisting', cell.input)))
 
         outlines = []
         for output in cell.outputs:
@@ -492,7 +526,7 @@ class ConverterLaTeX(Converter):
 
         # And then output of many possible types; use a frame for all of it.
         if outlines:
-            lines.extend(self.env('codeoutput', outlines))
+            lines.extend(self.in_env('codeoutput', outlines))
 
         lines.append(r'\end{codecell}')
 
@@ -501,7 +535,7 @@ class ConverterLaTeX(Converter):
 
     @DocInherit
     def _img_lines(self, img_file):
-        return self.env('center',
+        return self.in_env('center',
                 [r'\includegraphics[width=3in]{%s}' % img_file, r'\par'])
 
     def _svg_lines(self, img_file):
@@ -516,7 +550,7 @@ class ConverterLaTeX(Converter):
         lines = []
 
         if 'text' in output:
-            lines.extend(self.env('verbatim', output.text.strip()))
+            lines.extend(self.in_env('verbatim', output.text.strip()))
 
         return lines
 
@@ -533,20 +567,28 @@ class ConverterLaTeX(Converter):
             lines.extend(output.latex)
 
         if 'text' in output:
-            lines.extend(self.env('verbatim', output.text))
+            lines.extend(self.in_env('verbatim', output.text))
 
         return lines
 
     @DocInherit
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
-        return self.env('traceback',
-                        self.env('verbatim', 
+        return self.in_env('traceback',
+                        self.in_env('verbatim', 
                                  remove_ansi('\n'.join(output.traceback))))
 
     @DocInherit
-    def render_unknown(self, cell):
-        return self.env('verbatim', pprint.pformat(cell))
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return self.in_env('verbatim', cell.source)
+        else:
+            return [cell.source]
+
+    @DocInherit
+    def _unknown_lines(self, data):
+        return [r'{\vspace{5mm}\bf WARNING:: unknown cell:}'] + \
+          self.in_env('verbatim', data)
 
 
 def rst2simplehtml(infile):
