@@ -43,7 +43,7 @@ IPython.utils = (function (IPython) {
     ansi_colormap = {
         "30":"ansiblack", "31":"ansired",
         "32":"ansigreen", "33":"ansiyellow",
-        "34":"ansiblue", "35":"ansipurple","36":"ansicyan", 
+        "34":"ansiblue", "35":"ansipurple","36":"ansicyan",
         "37":"ansigrey", "01":"ansibold"
     };
 
@@ -74,6 +74,16 @@ IPython.utils = (function (IPython) {
         return txt;
     }
 
+    // Remove chunks that should be overridden by the effect of
+    // carriage return characters
+    function fixCarriageReturn(txt) {
+        tmp = txt;
+        do {
+            txt = tmp;
+            tmp = txt.replace(/^.*\r(?!\n)/gm, '');
+        } while (tmp.length < txt.length);
+        return txt;
+    }
 
     grow = function(element) {
         // Grow the cell by hand. This is used upon reloading from JSON, when the
@@ -126,4 +136,3 @@ IPython.utils = (function (IPython) {
     };
 
 }(IPython));
-
