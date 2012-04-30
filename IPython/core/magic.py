@@ -2618,6 +2618,41 @@ Currently the magic system has the following functions:\n"""
                 else:
                     self.shell.showtraceback()
 
+    @skip_doctest
+    def magic_open(self, parameter_s='', last_call=['', '']):
+        """Open editor in non-blocking manner.
+
+        Usage:
+          %open [options] [args]
+
+        %open acts similarly as %edit.  However, it does not block
+        IPython so that you can continue interaction with IPython and
+        view code at the same time.  See the document of %edit for
+        more information.  Options '-p', '-r' and '-n' are available
+        and same as %edit.
+
+        """
+        opts, args = self.parse_options(parameter_s,'prn:')
+
+        try:
+            (filename, lineno, is_temp) = self._find_edit_target(
+                args, opts, last_call)
+        except MacroToEdit as e:
+            filename = self.shell.mktempfile(e.args[0].value)
+            self.shell.hooks.editor(filename)
+            return
+
+        print 'Opening...',
+        sys.stdout.flush()
+        try:
+            # Quote filenames that may have spaces in them
+            if ' ' in filename:
+                filename = "'%s'" % filename
+            self.shell.hooks.editor(filename, lineno, wait=False)
+        except TryNext:
+            warn('Could not open editor')
+            return
+
     def magic_xmode(self,parameter_s = ''):
         """Switch modes for the exception handlers.
 
