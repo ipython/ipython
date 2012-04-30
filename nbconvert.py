@@ -9,8 +9,12 @@ called nb_figure_NN.png. To avoid the two-step process, ipynb -> rst -> html,
 use '--format quick-html' which will do ipynb -> html, but won't look as
 pretty.
 """
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 from __future__ import print_function
 
+# Stdlib
 import codecs
 import logging
 import os
@@ -19,10 +23,22 @@ import re
 import subprocess
 import sys
 
+# From IPython
 from IPython.external import argparse
 from IPython.nbformat import current as nbformat
 from IPython.utils.text import indent
 from decorators import DocInherit
+
+#-----------------------------------------------------------------------------
+# Utility functions
+#-----------------------------------------------------------------------------
+
+def remove_fake_files_url(cell):
+    """Remove from the cell source the /files/ pseudo-path we use.
+    """
+    src = cell.source
+    cell.source = src.replace('/files/', '')
+
 
 def remove_ansi(src):
     """Strip all ANSI color escape sequences from input string.
@@ -36,6 +52,7 @@ def remove_ansi(src):
     string
     """
     return re.sub(r'\033\[(0|\d;\d\d)m', '', src)
+
 
 # Pandoc-dependent code
 def markdown2latex(src):
@@ -63,8 +80,6 @@ def markdown2latex(src):
     #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
     return out
 
-# Cell converters
-
 
 def rst_directive(directive, text=''):
     out = [directive, '']
@@ -72,8 +87,9 @@ def rst_directive(directive, text=''):
         out.extend([indent(text), ''])
     return out
 
-# Converters for parts of a cell.
-
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
 
 class ConversionException(Exception):
     pass
@@ -114,6 +130,8 @@ class Converter(object):
             for cell in worksheet.cells:
                 #print(cell.cell_type)  # dbg
                 conv_fn = self.dispatch(cell.cell_type)
+                if cell.cell_type in ('markdown', 'raw'):
+                    remove_fake_files_url(cell)
                 lines.extend(conv_fn(cell))
                 lines.append('')
         lines.extend(self.optional_footer())
@@ -556,7 +574,7 @@ class ConverterLaTeX(Converter):
 
     @DocInherit
     def render_markdown(self, cell):
-        return [markdown2latex(cell['source'])]
+        return [markdown2latex(cell.source)]
         
     @DocInherit
     def render_pyout(self, output):
@@ -590,6 +608,9 @@ class ConverterLaTeX(Converter):
         return [r'{\vspace{5mm}\bf WARNING:: unknown cell:}'] + \
           self.in_env('verbatim', data)
 
+#-----------------------------------------------------------------------------
+# Standalone conversion functions
+#-----------------------------------------------------------------------------
 
 def rst2simplehtml(infile):
     """Convert a rst file to simplified html suitable for blogger.
@@ -664,7 +685,9 @@ def main(infile, format='rst'):
         raise SystemExit("Unknown format '%s', " % format +
                 "known formats are: " + known_formats)
 
-
+#-----------------------------------------------------------------------------
+# Script main
+#-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__,
