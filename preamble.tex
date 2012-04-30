@@ -6,6 +6,9 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 
+% needed for markdown enumerations to work
+\usepackage{enumerate}
+
 % Slightly bigger margins than the latex defaults
 \usepackage{geometry}
 \geometry{verbose,tmargin=3cm,bmargin=3cm,lmargin=2.5cm,rmargin=2.5cm}
@@ -52,18 +55,6 @@
    \MakeFramed{\advance\hsize-\width \FrameRestore}}
  {\endMakeFramed}
 
-% The hyperref package gives us a pdf with properly built
-% internal navigation ('pdf bookmarks' for the table of contents,
-% internal cross-reference links, web links for URLs, etc.)
-\usepackage{hyperref}
-\hypersetup{
-  breaklinks=true,  % so long urls are correctly broken across lines
-  colorlinks=true,
-  urlcolor=blue,
-  linkcolor=darkorange,
-  citecolor=darkgreen,
-  }
-
 % Use and configure listings package for nicely formatted code
 \usepackage{listings}
 \lstset{
@@ -79,6 +70,18 @@
   stringstyle=\color{darkgreen},
   identifierstyle=\color{darkorange},
 }
+
+% The hyperref package gives us a pdf with properly built
+% internal navigation ('pdf bookmarks' for the table of contents,
+% internal cross-reference links, web links for URLs, etc.)
+\usepackage{hyperref}
+\hypersetup{
+  breaklinks=true,  % so long urls are correctly broken across lines
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=darkorange,
+  citecolor=darkgreen,
+  }
 
 % hardcode size of all verbatim environments to be a bit smaller
 \makeatletter 

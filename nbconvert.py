@@ -506,7 +506,7 @@ class ConverterLaTeX(Converter):
     @DocInherit
     def render_heading(self, cell):
         marker = self.heading_map[cell.level]
-        return ['%s{%s}\n\n' % (marker, cell.source) ]
+        return ['%s{%s}' % (marker, cell.source) ]
 
     @DocInherit
     def render_code(self, cell):
