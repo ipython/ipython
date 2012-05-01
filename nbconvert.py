@@ -23,6 +23,12 @@ import re
 import subprocess
 import sys
 
+inkscape = 'inkscape'
+if sys.platform == 'darwin':
+    inkscape = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
+    if not os.path.exists(inkscape):
+        inkscape = None
+
 # From IPython
 from IPython.external import argparse
 from IPython.nbformat import current as nbformat
@@ -559,7 +565,7 @@ class ConverterLaTeX(Converter):
     def _svg_lines(self, img_file):
         base_file = os.path.splitext(img_file)[0]
         pdf_file = base_file + '.pdf'
-        subprocess.check_call(['inkscape', '--export-pdf=%s' % pdf_file,
+        subprocess.check_call([ inkscape, '--export-pdf=%s' % pdf_file,
                                img_file])
         return self._img_lines(pdf_file)
 
