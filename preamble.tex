@@ -19,8 +19,9 @@
 \definecolor{darkorange}{rgb}{.71,0.21,0.01}
 \definecolor{darkgreen}{rgb}{.12,.54,.11}
 \definecolor{myteal}{rgb}{.26, .44, .56}
-\definecolor{gray}{rgb}{0.45, 0.45, 0.45}
-\definecolor{lightgray}{rgb}{.95, .95, .95}
+\definecolor{gray}{gray}{0.45}
+\definecolor{lightgray}{gray}{.95}
+\definecolor{mediumgray}{gray}{.8}
 \definecolor{inputbackground}{rgb}{.95, .95, .85}
 \definecolor{outputbackground}{rgb}{.95, .95, .95}
 \definecolor{traceback}{rgb}{1, .95, .95}
@@ -36,8 +37,8 @@
 % codecell is the whole input+output set of blocks that a Code cell can
 % generate.
 \newenvironment{codecell}{%
-    \def\FrameCommand{\vrule width 0.5pt \hspace{5pt}}%
-   \MakeFramed{\FrameRestore}}
+    \def\FrameCommand{\color{mediumgray} \vrule width 1pt \hspace{5pt}}%
+   \MakeFramed{\vspace{-0.5em}\FrameRestore}}
  {\unskip\endMakeFramed}
 
  \newenvironment{codeinput}{%
@@ -47,6 +48,7 @@
 
 \newenvironment{codeoutput}{%
    \def\FrameCommand{\colorbox{outputbackground}}%
+   \vspace{-1.4em}
    \MakeFramed{\advance\hsize-\width \FrameRestore}}
  {\unskip\medskip\endMakeFramed}
 
@@ -85,7 +87,7 @@
 
 % hardcode size of all verbatim environments to be a bit smaller
 \makeatletter 
-\g@addto@macro\@verbatim\small
+\g@addto@macro\@verbatim\small\topsep=0.5em\partopsep=0pt
 \makeatother 
 
 % Prevent overflowing lines due to urls and other hard-to-break entities.
