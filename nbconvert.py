@@ -157,12 +157,13 @@ class Converter(object):
     def save(self, infile=None, encoding=None):
         "read and parse notebook into self.nb"
         if infile is None:
-            infile = os.path.splitext(self.infile)[0] + '.' + self.extension
+            outfile = os.path.basename(self.infile)
+            outfile = os.path.splitext(outfile)[0] + '.' + self.extension
         if encoding is None:
             encoding = self.default_encoding
-        with open(infile, 'w') as f:
+        with open(outfile, 'w') as f:
             f.write(self.output.encode(encoding))
-        return infile
+        return os.path.abspath(outfile)
 
     def optional_header(self):
         return []
