@@ -618,11 +618,6 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
     of common args, such as `ipython -c 'print 5'`, but still gets
     arbitrary config with `ipython --InteractiveShell.use_readline=False`"""
 
-    def _convert_to_config(self):
-        """self.parsed_data->self.config"""
-        for k, v in vars(self.parsed_data).iteritems():
-            self._exec_config_str(k, v)
-
     def _add_arguments(self, aliases=None, flags=None):
         self.alias_flags = {}
         # print aliases, flags
