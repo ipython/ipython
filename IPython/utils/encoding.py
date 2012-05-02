@@ -52,3 +52,5 @@ def getdefaultencoding():
         except Exception:
             pass
     return enc or sys.getdefaultencoding()
+
+DEFAULT_ENCODING = getdefaultencoding()

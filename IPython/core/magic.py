@@ -57,7 +57,7 @@ from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils import openpy
-from IPython.utils.encoding import getdefaultencoding
+from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -950,7 +950,7 @@ Currently the magic system has the following functions:\n"""
                 try:
                     vstr = str(var)
                 except UnicodeEncodeError:
-                    vstr = unicode(var).encode(getdefaultencoding(),
+                    vstr = unicode(var).encode(DEFAULT_ENCODING,
                                                'backslashreplace')
                 vstr = vstr.replace('\n','\\n')
                 if len(vstr) < 50:

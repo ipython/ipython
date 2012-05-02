@@ -26,7 +26,7 @@ from .autoattr import auto_attr
 from ._process_common import getoutput, arg_split
 from IPython.utils import text
 from IPython.utils import py3compat
-from IPython.utils.encoding import getdefaultencoding
+from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
 # Function definitions
@@ -129,7 +129,7 @@ class ProcessHandler(object):
         int : child's exitstatus
         """
         # Get likely encoding for the output.
-        enc = getdefaultencoding()
+        enc = DEFAULT_ENCODING
         
         # Patterns to match on the output, for pexpect.  We read input and
         # allow either a short timeout or EOF
