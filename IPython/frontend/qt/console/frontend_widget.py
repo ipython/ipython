@@ -95,6 +95,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     enable_calltips = Bool(True, config=True,
         help="Whether to draw information calltips on open-parentheses.")
 
+    clear_on_kernel_restart = Bool(True, config=True,
+        help="Whether to clear the console when the kernel is restarted")
+
     # Emitted when a user visible 'execute_request' has been submitted to the
     # kernel from the FrontendWidget. Contains the code to be executed.
     executing = QtCore.Signal(object)
@@ -505,7 +508,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                     time.sleep(0.25) # wait 1/4 sec to reset
                                      # lest the request for a new prompt
                                      # goes to the old kernel
-                    self.reset()
+                    self.reset_on_restart()
             else: # remote kernel, prompt on Kernel shutdown/reset
                 title = self.window().windowTitle()
                 if not msg['content']['restart']:
@@ -516,6 +519,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                     if reply == QtGui.QMessageBox.Yes:
                         self.exit_requested.emit(self)
                 else:
+                    # XXX: remove message box in favor of using the
+                    # clear_on_kernel_restart setting?
                     reply = QtGui.QMessageBox.question(self, title,
                         "Kernel has been reset. Clear the Console?",
                         QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
@@ -580,6 +585,22 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._append_before_prompt_pos = self._get_cursor().position()
         self._show_interpreter_prompt()
 
+    def reset_on_restart(self):
+        """Resets the widget if ``clear_on_kernel_restart`` is True, otherwise
+        prints a visual indication of the fact that the kernel restarted, but
+        does not clear the traces from previous usage of the kernel before it
+        was restarted.
+        """
+        if self.clear_on_kernel_restart:
+            self.reset()
+        else:
+            self._append_before_prompt_pos = self._get_cursor().position()
+            self._append_plain_text("# restarting kernel...\n#" + "-"*42)
+            # XXX: Reprinting the full banner may be too much, but once #1680 is
+            # addressed, that will mitigate it.
+            #self._append_plain_text(self.banner)
+            self._show_interpreter_prompt()
+
     def restart_kernel(self, message, now=False):
         """ Attempts to restart the running kernel.
         """
@@ -611,7 +632,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                                             before_prompt=True
                                             )
                 else:
-                    self.reset()
+                    self.reset_on_restart()
             else:
                 self.kernel_manager.hb_channel.unpause()
 
@@ -693,7 +714,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._append_plain_text(traceback)
 
     def _process_execute_ok(self, msg):
-        """ Process a reply for a successful execution equest.
+        """ Process a reply for a successful execution request.
         """
         payload = msg['content']['payload']
         for item in payload:
