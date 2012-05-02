@@ -209,6 +209,7 @@ def test_get_ipython_dir_1():
     env['IPYTHON_DIR'] = env_ipdir
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, env_ipdir)
+    raise Exception("Spurious exception")
 
 
 @with_environment
