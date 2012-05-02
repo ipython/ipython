@@ -12,6 +12,7 @@ import errno
 from glob import glob
 import json
 import os
+import re
 import shutil
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError
 try:
@@ -70,6 +71,13 @@ def get_pull_request(num, project="ipython/ipython"):
     response = urlopen(url).read().decode('utf-8')
     return json.loads(response)
 
+missing_libs_re = re.compile(r"Tools and libraries NOT available at test time:\n"
+                             r"\s*(.*?)\n")
+def get_missing_libraries(log):
+    m = missing_libs_re.search(log)
+    if m:
+        return m.group(1)
+
 def merge_branch(repo, branch, owner):
     merged_branch = "%s-%s" % (owner, branch)
     os.chdir(repodir)
@@ -124,18 +132,22 @@ if __name__ == '__main__':
     results = []
     for py, venv in venvs:
         passed, log = run_tests(venv)
+        missing_libraries = get_missing_libraries(log)
         if passed:
-            results.append((py, True, None))
+            results.append((py, True, None, missing_libraries))
         else:
             gist_url = post_gist(log)
-            results.append((py, False, gist_url))
+            results.append((py, False, gist_url, missing_libraries))
     
     print("\n")
     print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
-    for py, passed, gist_url in results:
+    print("Platform:", sys.platform)
+    for py, passed, gist_url, missing_libraries in results:
         if passed:
             print(py, ":", "OK")
         else:
             print(py, ":", "Failed")
             print("    Test log:", gist_url)
+        if missing_libraries:
+            print("    Libraries not available:", missing_libraries)
     print("Not available for testing:", ", ".join(unavailable_pythons))
