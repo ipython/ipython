@@ -12,7 +12,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from pymongo import Connection
-from pymongo.binary import Binary
+from bson import Binary
 
 from IPython.utils.traitlets import Dict, List, Unicode, Instance
 
