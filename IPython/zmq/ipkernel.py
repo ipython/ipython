@@ -640,6 +640,10 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                 
 
     def init_shell(self):
+        # I am a little hesitant to put these into InteractiveShell itself.
+        # But that might be the place for them
+        sys.path.insert(0, '')
+
         self.shell = self.kernel.shell
         self.shell.configurables.append(self)
 
