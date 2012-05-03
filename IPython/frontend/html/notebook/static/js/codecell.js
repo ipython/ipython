@@ -13,7 +13,8 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
-    var CodeCell = function (notebook) {
+    var CodeCell = function (kernel) {
+		this.kernel = kernel;
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.is_completing = false;
@@ -22,6 +23,9 @@ var IPython = (function (IPython) {
         this.collapsed = false;
         this.tooltip_timeout = null;
         this.clear_out_timeout = null;
+		this.tooltip_on_tab = true;
+		this.smart_completer = true;
+		this.time_before_tooltip = 1200;		
         IPython.Cell.apply(this, arguments);
     };
 
@@ -56,8 +60,8 @@ var IPython = (function (IPython) {
             // don't do anything if line beggin with '(' or is empty
         } else {
             // Will set a timer to request tooltip in `time`
-            that.tooltip_timeout = setTimeout(function(){
-                    IPython.notebook.request_tool_tip(that, pre_cursor)
+            that.tooltip_timeout = setTimeout(function() {
+                    that.request_tooltip(pre_cursor)
                 },time);
         }
     };
@@ -75,8 +79,6 @@ var IPython = (function (IPython) {
         // note that we are comparing and setting the time to wait at each key press.
         // a better wqy might be to generate a new function on each time change and
         // assign it to CodeCell.prototype.request_tooltip_after_time
-        tooltip_wait_time = this.notebook.time_before_tooltip;
-        tooltip_on_tab    = this.notebook.tooltip_on_tab;
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any
@@ -88,13 +90,13 @@ var IPython = (function (IPython) {
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
-        } else if (event.which === 40 && event.type === 'keypress' && tooltip_wait_time >= 0) {
+        } else if (event.which === 40 && event.type === 'keypress' && this.time_before_tooltip >= 0) {
             // triger aon keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             var cursor = editor.getCursor();
             var pre_cursor = editor.getRange({line:cursor.line,ch:0},cursor).trim()+'(';
-            that.request_tooltip_after_time(pre_cursor,tooltip_wait_time);
+            that.request_tooltip_after_time(pre_cursor, this.time_before_tooltip);
         } else if (event.which === 38) {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
@@ -122,7 +124,7 @@ var IPython = (function (IPython) {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
-            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && tooltip_on_tab ) {
+            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && that.tooltip_on_tab ) {
                 that.request_tooltip_after_time(pre_cursor,0);
                 // Prevent the event from bubbling up.
                 event.stop();
@@ -135,7 +137,8 @@ var IPython = (function (IPython) {
                 var line = editor.getLine(cur.line);
                 this.is_completing = true;
                 this.completion_cursor = cur;
-                IPython.notebook.complete_cell(this, line, cur.ch);
+				var callbacks = {'complete_reply': $.proxy(this.finish_completing,this)}
+                this.kernel.complete(line, cur.ch, callbacks);
                 return true;
             };
         } else if (event.keyCode === 8 && event.type == 'keydown') {
@@ -181,6 +184,9 @@ var IPython = (function (IPython) {
     }
 
     CodeCell.prototype.finish_tooltip = function (reply) {
+		if (!reply.found) {
+			return;
+		}
         // Extract call tip data; the priority is call, init, main.
         defstring = reply.call_def;
         if (defstring == null) { defstring = reply.init_definition; }
@@ -223,9 +229,9 @@ var IPython = (function (IPython) {
             morespan.addClass('ui-icon');
             morespan.addClass('ui-icon-arrowstop-l-n');
         morelink.append(morespan);
-        morelink.click(function(){
-            var msg_id = IPython.notebook.kernel.execute(name+"?");
-            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
+        morelink.click(function() {
+			var callbacks = {'execute_reply': $.proxy(that._handle_execute_reply,that)}
+            var msg_id = that.kernel.execute(name+"?", callbacks);
             that.remove_and_cancel_tooltip();
             setTimeout(function(){that.code_mirror.focus();}, 50);
         });
@@ -263,7 +269,9 @@ var IPython = (function (IPython) {
     };
 
     // As you type completer
-    CodeCell.prototype.finish_completing = function (matched_text, matches) {
+    CodeCell.prototype.finish_completing = function (content) {
+		var matched_text = content.matched_text;
+		var matches = content.matches;
         if(matched_text[0]=='%'){
             completing_from_magic = true;
             completing_to_magic = false;
@@ -299,7 +307,7 @@ var IPython = (function (IPython) {
 
         // smart completion, sort kwarg ending with '='
         var newm = new Array();
-        if(this.notebook.smart_completer)
+        if(this.smart_completer)
         {
             kwargs = new Array();
             other = new Array();
@@ -545,6 +553,55 @@ var IPython = (function (IPython) {
     };
 
 
+	// Kernel related calls.
+
+	CodeCell.prototype.execute = function () {
+        this.clear_output(true, true, true);
+        this.set_input_prompt('*');
+        this.element.addClass("running");
+        var code = this.get_text();
+		var callbacks = {
+			'execute_reply': $.proxy(this._handle_execute_reply, this),
+			'output': $.proxy(this._handle_output, this),
+			'clear_output': $.proxy(this._handle_clear_output, this),
+			'cell': this
+        };
+        var msg_id = this.kernel.execute(this.get_text(), callbacks);
+	};
+
+
+	CodeCell.prototype._handle_execute_reply = function (content) {
+        this.set_input_prompt(content.execution_count);
+        this.element.removeClass("running");
+        // this.dirty = true;
+	}
+
+
+    CodeCell.prototype.request_tooltip = function (func) {
+        // Feel free to shorten this logic if you are better
+        // than me in regEx
+        // basicaly you shoul be able to get xxx.xxx.xxx from 
+        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
+        // remove everything between matchin bracket (need to iterate)
+        matchBracket = /\([^\(\)]+\)/g;
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        while( oldfunc != func )
+        {
+        oldfunc = func;
+        func = func.replace(matchBracket,"");
+        }
+        // remove everythin after last open bracket
+        endBracket = /\([^\(]*$/g;
+        func = func.replace(endBracket,"");
+        var re = /[a-zA-Z._]+$/g;
+		var callbacks = {'object_info_reply': $.proxy(this.finish_tooltip,this)}
+        var msg_id = this.kernel.object_info_request(re.exec(func), callbacks);
+    };
+
+
+	// Basic cell manipulation.
+
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
@@ -561,6 +618,125 @@ var IPython = (function (IPython) {
         var last_line = this.code_mirror.getLine(nlines-1);
         var end = {line: nlines-1, ch: last_line.length};
         this.code_mirror.setSelection(start, end);
+    };
+
+
+    CodeCell.prototype.collapse = function () {
+        if (!this.collapsed) {
+            this.element.find('div.output').hide();
+            this.collapsed = true;
+        };
+    };
+
+
+    CodeCell.prototype.expand = function () {
+        if (this.collapsed) {
+            this.element.find('div.output').show();
+            this.collapsed = false;
+        };
+    };
+
+
+    CodeCell.prototype.toggle_output = function () {
+        if (this.collapsed) {
+            this.expand();
+        } else {
+            this.collapse();
+        };
+    };
+
+
+    CodeCell.prototype.set_input_prompt = function (number) {
+        this.input_prompt_number = number;
+        var ns = number || "&nbsp;";
+        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
+    };
+
+
+    CodeCell.prototype.clear_input = function () {
+        this.code_mirror.setValue('');
+    };
+
+
+    CodeCell.prototype.get_text = function () {
+        return this.code_mirror.getValue();
+    };
+
+
+    CodeCell.prototype.set_text = function (code) {
+        return this.code_mirror.setValue(code);
+    };
+
+
+    CodeCell.prototype.at_top = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === 0) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+
+    CodeCell.prototype.at_bottom = function () {
+        var cursor = this.code_mirror.getCursor();
+        if (cursor.line === (this.code_mirror.lineCount()-1)) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+
+	// Output handling.
+
+    CodeCell.prototype._handle_output = function (msg_type, content) {
+        var json = {};
+        json.output_type = msg_type;
+        if (msg_type === "stream") {
+            json.text = content.data;
+            json.stream = content.name;
+        } else if (msg_type === "display_data") {
+            json = this.convert_mime_types(json, content.data);
+        } else if (msg_type === "pyout") {
+            json.prompt_number = content.execution_count;
+            json = this.convert_mime_types(json, content.data);
+        } else if (msg_type === "pyerr") {
+            json.ename = content.ename;
+            json.evalue = content.evalue;
+            json.traceback = content.traceback;
+        };
+        // append with dynamic=true
+        this.append_output(json, true);
+    };
+
+
+    CodeCell.prototype.convert_mime_types = function (json, data) {
+        if (data['text/plain'] !== undefined) {
+            json.text = data['text/plain'];
+        };
+        if (data['text/html'] !== undefined) {
+            json.html = data['text/html'];
+        };
+        if (data['image/svg+xml'] !== undefined) {
+            json.svg = data['image/svg+xml'];
+        };
+        if (data['image/png'] !== undefined) {
+            json.png = data['image/png'];
+        };
+        if (data['image/jpeg'] !== undefined) {
+            json.jpeg = data['image/jpeg'];
+        };
+        if (data['text/latex'] !== undefined) {
+            json.latex = data['text/latex'];
+        };
+        if (data['application/json'] !== undefined) {
+            json.json = data['application/json'];
+        };
+        if (data['application/javascript'] !== undefined) {
+            json.javascript = data['application/javascript'];
+        }
+        return json;    
     };
 
 
@@ -689,6 +865,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.append_javascript = function (js, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = $("<div/>").addClass("box_flex1 output_subarea");
+		var kernel = this.kernel;
         container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
@@ -740,6 +917,11 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype._handle_clear_output = function (content) {
+		this.clear_output(content.stdout, content.stderr, content.other);
+	}
+
+
     CodeCell.prototype.clear_output = function (stdout, stderr, other) {
         var that = this;
         if (this.clear_out_timeout != null){
@@ -752,7 +934,7 @@ var IPython = (function (IPython) {
         this._clear_stdout = stdout;
         this._clear_stderr = stderr;
         this._clear_other = other;
-        this.clear_out_timeout = setTimeout(function(){
+        this.clear_out_timeout = setTimeout(function() {
             // really clear timeout only after a short delay
             // this reduces flicker in 'clear_output; print' cases
             that.clear_out_timeout = null;
@@ -761,7 +943,8 @@ var IPython = (function (IPython) {
         }, 500
         );
     };
-    
+
+
     CodeCell.prototype.clear_output_callback = function (stdout, stderr, other) {
         var output_div = this.element.find("div.output");
         
@@ -774,26 +957,26 @@ var IPython = (function (IPython) {
         // remove html output
         // each output_subarea that has an identifying class is in an output_area
         // which is the element to be removed.
-        if (stdout){
+        if (stdout) {
             output_div.find("div.output_stdout").parent().remove();
         }
-        if (stderr){
+        if (stderr) {
             output_div.find("div.output_stderr").parent().remove();
         }
-        if (other){
+        if (other) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
         
         // remove cleared outputs from JSON list:
-        for (var i = this.outputs.length - 1; i >= 0; i--){
+        for (var i = this.outputs.length - 1; i >= 0; i--) {
             var out = this.outputs[i];
             var output_type = out.output_type;
-            if (output_type == "display_data" && other){
+            if (output_type == "display_data" && other) {
                 this.outputs.splice(i,1);
-            }else if (output_type == "stream"){
-                if (stdout && out.stream == "stdout"){
+            } else if (output_type == "stream") {
+                if (stdout && out.stream == "stdout") {
                     this.outputs.splice(i,1);
-                }else if (stderr && out.stream == "stderr"){
+                } else if (stderr && out.stream == "stderr") {
                     this.outputs.splice(i,1);
                 }
             }
@@ -801,10 +984,6 @@ var IPython = (function (IPython) {
     };
 
 
-    CodeCell.prototype.clear_input = function () {
-        this.code_mirror.setValue('');
-    };
-    
     CodeCell.prototype.flush_clear_timeout = function() {
         var output_div = this.element.find('div.output');
         if (this.clear_out_timeout){
@@ -815,66 +994,7 @@ var IPython = (function (IPython) {
     }
 
 
-    CodeCell.prototype.collapse = function () {
-        if (!this.collapsed) {
-            this.element.find('div.output').hide();
-            this.collapsed = true;
-        };
-    };
-
-
-    CodeCell.prototype.expand = function () {
-        if (this.collapsed) {
-            this.element.find('div.output').show();
-            this.collapsed = false;
-        };
-    };
-
-
-    CodeCell.prototype.toggle_output = function () {
-        if (this.collapsed) {
-            this.expand();
-        } else {
-            this.collapse();
-        };
-    };
-
-    CodeCell.prototype.set_input_prompt = function (number) {
-        this.input_prompt_number = number;
-        var ns = number || "&nbsp;";
-        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
-    };
-
-
-    CodeCell.prototype.get_text = function () {
-        return this.code_mirror.getValue();
-    };
-
-
-    CodeCell.prototype.set_text = function (code) {
-        return this.code_mirror.setValue(code);
-    };
-
-
-    CodeCell.prototype.at_top = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0) {
-            return true;
-        } else {
-            return false;
-        }
-    };
-
-
-    CodeCell.prototype.at_bottom = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === (this.code_mirror.lineCount()-1)) {
-            return true;
-        } else {
-            return false;
-        }
-    };
-
+	// JSON serialization
 
     CodeCell.prototype.fromJSON = function (data) {
         if (data.cell_type === 'code') {
