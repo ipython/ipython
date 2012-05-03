@@ -597,6 +597,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
+        self.init_path()
         self.init_shell()
         self.init_extensions()
         self.init_code()
@@ -640,10 +641,6 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                 
 
     def init_shell(self):
-        # I am a little hesitant to put these into InteractiveShell itself.
-        # But that might be the place for them
-        sys.path.insert(0, '')
-
         self.shell = self.kernel.shell
         self.shell.configurables.append(self)
 
