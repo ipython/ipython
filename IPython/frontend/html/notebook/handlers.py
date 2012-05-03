@@ -593,10 +593,7 @@ class NotebookRootHandler(AuthenticatedHandler):
         km = self.application.kernel_manager
         files = nbm.list_notebooks()
         for f in files :
-            nid = f['notebook_id']
-            kid = km.kernel_for_notebook(nid)
-            if  kid is not None:
-                f['kernel_id'] = kid
+            f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated
