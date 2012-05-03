@@ -286,6 +286,8 @@ following algorithm:
 * If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHONDIR`
   environment variable and then default to a platform-specific default.
+  Historical support for the :envvar:`IPYTHON_DIR` environment variable will
+  be removed in a future release.
 
 On posix systems (Linux, Unix, etc.), IPython respects the ``$XDG_CONFIG_HOME``
 part of the `XDG Base Directory`_ specification. If ``$XDG_CONFIG_HOME`` is
