@@ -113,7 +113,7 @@ var IPython = (function (IPython) {
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
-                if(kernel == undefined){
+                if(kernel == null){
                     this.add_delete_button(item);
                 } else {
                     this.add_shutdown_button(item,kernel);
