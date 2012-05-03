@@ -108,7 +108,7 @@ var IPython = (function (IPython) {
         for (var i=0; i<len; i++) {
             var notebook_id = data[i].notebook_id;
             var nbname = data[i].name;
-            var kernel = data[i].kernel_status;
+            var kernel = data[i].kernel_id;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
