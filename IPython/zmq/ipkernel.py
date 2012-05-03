@@ -597,6 +597,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
+        self.init_path()
         self.init_shell()
         self.init_extensions()
         self.init_code()
