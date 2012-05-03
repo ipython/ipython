@@ -260,7 +260,7 @@ def get_ipython_dir():
     xdg_dir = get_xdg_dir()
     
     # import pdb; pdb.set_trace()  # dbg
-    ipdir = env.get('IPYTHON_DIR', env.get('IPYTHONDIR', None))
+    ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use XDG_CONFIG_HOME or HOME
         home_ipdir = pjoin(home_dir, ipdir_def)

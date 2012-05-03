@@ -186,7 +186,7 @@ class BaseIPythonApplication(Application):
         if not os.path.exists(readme):
             path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
             shutil.copy(os.path.join(path, 'README'), readme)
-        self.log.debug("IPYTHON_DIR set to: %s" % new)
+        self.log.debug("IPYTHONDIR set to: %s" % new)
 
     def load_config_file(self, suppress_errors=True):
         """Load the config file.
