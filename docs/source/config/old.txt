@@ -95,7 +95,7 @@ sequences. You can go to a 'no color' mode by typing '%colors NoColor'.
 
 You can try using a different terminal emulator program (Emacs users,
 see below). To permanently set your color preferences, edit the file
-$IPYTHON_DIR/ipythonrc and set the colors option to the desired value.
+$IPYTHONDIR/ipythonrc and set the colors option to the desired value.
 
 
 Object details (types, docstrings, source code, etc.)

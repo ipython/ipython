@@ -318,7 +318,7 @@ def get_ipython_module_path(module_str):
 def locate_profile(profile='default'):
     """Find the path to the folder associated with a given profile.
     
-    I.e. find $IPYTHON_DIR/profile_whatever.
+    I.e. find $IPYTHONDIR/profile_whatever.
     """
     from IPython.core.profiledir import ProfileDir, ProfileDirError
     try:

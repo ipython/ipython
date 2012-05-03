@@ -118,7 +118,7 @@ class BaseIPythonApplication(Application):
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This options can also be specified through
-        the environment variable IPYTHON_DIR.
+        the environment variable IPYTHONDIR.
         """
     )
 
@@ -148,7 +148,7 @@ class BaseIPythonApplication(Application):
 
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
-        # ensure even default IPYTHON_DIR exists
+        # ensure even default IPYTHONDIR exists
         if not os.path.exists(self.ipython_dir):
             self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
 
