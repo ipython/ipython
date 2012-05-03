@@ -314,6 +314,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # print self.extra_args
         if self.extra_args and not self.something_to_run:
             self.file_to_run = self.extra_args[0]
+        self.init_path()
         # create the shell
         self.init_shell()
         # and draw the banner
@@ -325,10 +326,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
 
     def init_shell(self):
         """initialize the InteractiveShell instance"""
-        # I am a little hesitant to put these into InteractiveShell itself.
-        # But that might be the place for them
-        sys.path.insert(0, '')
-
         # Create an InteractiveShell instance.
         # shell.display_banner should always be False for the terminal
         # based app, because we call shell.show_banner() by hand below
