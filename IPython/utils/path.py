@@ -260,6 +260,9 @@ def get_ipython_dir():
     xdg_dir = get_xdg_dir()
     
     # import pdb; pdb.set_trace()  # dbg
+    if 'IPYTHON_DIR' in env:
+        warnings.warn('The environment variable IPYTHON_DIR is deprecated. '
+                      'Please use IPYTHONDIR instead.')
     ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use XDG_CONFIG_HOME or HOME
