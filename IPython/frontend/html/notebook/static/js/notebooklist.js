@@ -113,7 +113,7 @@ var IPython = (function (IPython) {
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
-                if(kernel == 'off'){
+                if(kernel == undefined){
                     this.add_delete_button(item);
                 } else {
                     this.add_shutdown_button(item,kernel);
@@ -192,7 +192,6 @@ var IPython = (function (IPython) {
                     type : "DELETE",
                     dataType : "json",
                     success : function (data, status, xhr) {
-                        console.log('kernel killed');
                         that.load_list();
                     }
                 };
