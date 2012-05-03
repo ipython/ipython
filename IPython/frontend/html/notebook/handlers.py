@@ -597,8 +597,6 @@ class NotebookRootHandler(AuthenticatedHandler):
             kid = km.kernel_for_notebook(nid)
             if  kid is not None:
                 f['kernel_status']=kid
-            else:
-                f['kernel_status']='off'
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated
