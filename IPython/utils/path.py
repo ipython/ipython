@@ -260,7 +260,10 @@ def get_ipython_dir():
     xdg_dir = get_xdg_dir()
     
     # import pdb; pdb.set_trace()  # dbg
-    ipdir = env.get('IPYTHON_DIR', env.get('IPYTHONDIR', None))
+    if 'IPYTHON_DIR' in env:
+        warnings.warn('The environment variable IPYTHON_DIR is deprecated. '
+                      'Please use IPYTHONDIR instead.')
+    ipdir = env.get('IPYTHONDIR', env.get('IPYTHON_DIR', None))
     if ipdir is None:
         # not set explicitly, use XDG_CONFIG_HOME or HOME
         home_ipdir = pjoin(home_dir, ipdir_def)
@@ -318,7 +321,7 @@ def get_ipython_module_path(module_str):
 def locate_profile(profile='default'):
     """Find the path to the folder associated with a given profile.
     
-    I.e. find $IPYTHON_DIR/profile_whatever.
+    I.e. find $IPYTHONDIR/profile_whatever.
     """
     from IPython.core.profiledir import ProfileDir, ProfileDirError
     try:
