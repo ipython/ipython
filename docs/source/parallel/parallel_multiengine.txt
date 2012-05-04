@@ -275,13 +275,9 @@ then returns a :class:`AsyncResult` object immediately. The
 :class:`AsyncResult` object gives you a way of getting a result at a later
 time through its :meth:`get` method.
 
-.. Note::
+.. seealso::
 
-    The :class:`AsyncResult` object provides a superset of the interface in 
-    :py:class:`multiprocessing.pool.AsyncResult`.  See the 
-    `official Python documentation <http://docs.python.org/library/multiprocessing#multiprocessing.pool.AsyncResult>`_
-    for more.
-
+    Docs on the :ref:`AsyncResult <parallel_asyncresult>` object.
 
 This allows you to quickly submit long running commands without blocking your
 local Python/IPython session:

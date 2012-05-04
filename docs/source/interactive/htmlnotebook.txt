@@ -236,7 +236,7 @@ similarly protect *all* cells that you do not want executed when other scripts
 try to import your notebook.  A convenient shortand for this is to define early
 on::
 
-  script = __name__ == '__main__':
+  script = __name__ == '__main__'
 
 and then on any cell that you need to protect, use::
 

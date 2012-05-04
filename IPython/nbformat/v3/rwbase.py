@@ -19,7 +19,9 @@ Authors:
 from base64 import encodestring, decodestring
 import pprint
 
-from IPython.utils.py3compat import str_to_bytes
+from IPython.utils import py3compat
+
+str_to_bytes = py3compat.str_to_bytes
 
 #-----------------------------------------------------------------------------
 # Code
@@ -84,17 +86,17 @@ def split_lines(nb):
         for cell in ws.cells:
             if cell.cell_type == 'code':
                 if 'input' in cell and isinstance(cell.input, basestring):
-                    cell.input = cell.input.splitlines()
+                    cell.input = (cell.input + '\n').splitlines()
                 for output in cell.outputs:
                     for key in _multiline_outputs:
                         item = output.get(key, None)
                         if isinstance(item, basestring):
-                            output[key] = item.splitlines()
+                            output[key] = (item + '\n').splitlines()
             else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, basestring):
-                        cell[key] = item.splitlines()
+                        cell[key] = (item + '\n').splitlines()
     return nb
 
 # b64 encode/decode are never actually used, because all bytes objects in
@@ -147,7 +149,10 @@ class NotebookReader(object):
 
     def read(self, fp, **kwargs):
         """Read a notebook from a file like object"""
-        return self.read(fp.read(), **kwargs)
+        nbs = fp.read()
+        if not py3compat.PY3 and not isinstance(nbs, unicode):
+            nbs = py3compat.str_to_unicode(nbs)
+        return self.reads(nbs, **kwargs)
 
 
 class NotebookWriter(object):
@@ -159,7 +164,11 @@ class NotebookWriter(object):
 
     def write(self, nb, fp, **kwargs):
         """Write a notebook to a file like object"""
-        return fp.write(self.writes(nb,**kwargs))
+        nbs = self.writes(nb,**kwargs)
+        if not py3compat.PY3 and not isinstance(nbs, unicode):
+            # this branch is likely only taken for JSON on Python 2
+            nbs = py3compat.str_to_unicode(nbs)
+        return fp.write(nbs)
 
 
 

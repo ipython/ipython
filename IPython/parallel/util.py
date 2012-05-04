@@ -39,11 +39,17 @@ except:
 import zmq
 from zmq.log import handlers
 
+from IPython.external.decorator import decorator
+
 # IPython imports
 from IPython.config.application import Application
+from IPython.utils import py3compat
 from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
 from IPython.utils.newserialized import serialize, unserialize
 from IPython.zmq.log import EnginePUBHandler
+
+if py3compat.PY3:
+    buffer = memoryview
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -101,6 +107,19 @@ class ReverseDict(dict):
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+@decorator
+def log_errors(f, self, *args, **kwargs):
+    """decorator to log unhandled exceptions raised in a method.
+    
+    For use wrapping on_recv callbacks, so that exceptions
+    do not cause the stream to be closed.
+    """
+    try:
+        return f(self, *args, **kwargs)
+    except Exception:
+        self.log.error("Uncaught exception in %r" % f, exc_info=True)
+    
 
 def asbytes(s):
     """ensure that an object is ascii bytes"""
@@ -351,7 +370,7 @@ def interactive(f):
     return f
 
 @interactive
-def _push(ns):
+def _push(**ns):
     """helper method for implementing `client.push` via `client.apply`"""
     globals().update(ns)
 

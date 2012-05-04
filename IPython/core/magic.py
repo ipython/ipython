@@ -20,6 +20,8 @@ import __future__
 import bdb
 import inspect
 import imp
+import io
+import json
 import os
 import sys
 import shutil
@@ -29,7 +31,7 @@ import gc
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
-from xmlrpclib import ServerProxy
+from urllib2 import urlopen
 
 # cProfile was added in Python2.5
 try:
@@ -55,6 +57,7 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils import openpy
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -97,9 +100,6 @@ def needs_local_scope(func):
     
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
-
-# Taken from PEP 263, this is the official encoding regexp.
-_encoding_declaration_re = re.compile(r"^#.*coding[:=]\s*([-\w.]+)")
 
 #***************************************************************************
 # Main class implementing Magic functionality
@@ -937,11 +937,6 @@ Currently the magic system has the following functions:\n"""
                     vsize  = var.size
                     vbytes = vsize*var.itemsize
                     vdtype = var.dtype
-                else:
-                    # Numeric
-                    vsize  = Numeric.size(var)
-                    vbytes = vsize*var.itemsize()
-                    vdtype = var.typecode()
 
                 if vbytes < 100000:
                     print aformat % (vshape,vsize,vdtype,vbytes)
@@ -1792,8 +1787,9 @@ Currently the magic system has the following functions:\n"""
                         # Start file run
                         print "NOTE: Enter 'c' at the",
                         print "%s prompt to start your script." % deb.prompt
+                        ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
                         try:
-                            deb.run('execfile("%s")' % filename, prog_ns)
+                            deb.run('execfile("%s", prog_ns)' % filename, ns)
 
                         except:
                             etype, value, tb = sys.exc_info()
@@ -2229,22 +2225,47 @@ Currently the magic system has the following functions:\n"""
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
-        with py3compat.open(fname,'w', encoding="utf-8") as f:
+        with io.open(fname,'w', encoding="utf-8") as f:
             f.write(u"# coding: utf-8\n")
             f.write(py3compat.cast_unicode(cmds))
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
     def magic_pastebin(self, parameter_s = ''):
-        """Upload code to the 'Lodge it' paste bin, returning the URL."""
+        """Upload code to Github's Gist paste bin, returning the URL.
+        
+        Usage:\\
+          %pastebin [-d "Custom description"] 1-7
+          
+        The argument can be an input history range, a filename, or the name of a
+        string or macro.
+        
+        Options:
+        
+          -d: Pass a custom description for the gist. The default will say
+              "Pasted from IPython".
+        """
+        opts, args = self.parse_options(parameter_s, 'd:')
+        
         try:
-            code = self.shell.find_user_code(parameter_s)
+            code = self.shell.find_user_code(args)
         except (ValueError, TypeError) as e:
             print e.args[0]
             return
-        pbserver = ServerProxy('http://paste.pocoo.org/xmlrpc/')
-        id = pbserver.pastes.newPaste("python", code)
-        return "http://paste.pocoo.org/show/" + id
+        
+        post_data = json.dumps({
+          "description": opts.get('d', "Pasted from IPython"),
+          "public": True,
+          "files": {
+            "file1.py": {
+              "content": code
+            }
+          }
+        }).encode('utf-8')
+        
+        response = urlopen("https://api.github.com/gists", post_data)
+        response_data = json.loads(response.read().decode('utf-8'))
+        return response_data['html_url']
 
     def magic_loadpy(self, arg_s):
         """Load a .py python script into the GUI console.
@@ -2261,28 +2282,15 @@ Currently the magic system has the following functions:\n"""
             # Local files must be .py; for remote URLs it's possible that the
             # fetch URL doesn't have a .py in it (many servers have an opaque
             # URL, such as scipy-central.org).
-            raise ValueError('%%load only works with .py files: %s' % arg_s)
+            raise ValueError('%%loadpy only works with .py files: %s' % arg_s)
+        
+        # openpy takes care of finding the source encoding (per PEP 263)
         if remote_url:
-            import urllib2
-            fileobj = urllib2.urlopen(arg_s)
-            # While responses have a .info().getencoding() way of asking for
-            # their encoding, in *many* cases the return value is bogus.  In
-            # the wild, servers serving utf-8 but declaring latin-1 are
-            # extremely common, as the old HTTP standards specify latin-1 as
-            # the default but many modern filesystems use utf-8.  So we can NOT
-            # rely on the headers.  Short of building complex encoding-guessing
-            # logic, going with utf-8 is a simple solution likely to be right
-            # in most real-world cases.
-            linesource = fileobj.read().decode('utf-8', 'replace').splitlines()
-            fileobj.close()
+            contents = openpy.read_py_url(arg_s, skip_encoding_cookie=True)
         else:
-            with open(arg_s) as fileobj:
-                linesource = fileobj.read().splitlines()
+            contents = openpy.read_py_file(arg_s, skip_encoding_cookie=True)
         
-        # Strip out encoding declarations
-        lines = [l for l in linesource if not _encoding_declaration_re.match(l)]
-        
-        self.set_next_input(os.linesep.join(lines))
+        self.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
@@ -2321,7 +2329,7 @@ Currently the magic system has the following functions:\n"""
         try:
             last_call[0] = self.shell.displayhook.prompt_count
             if not opts_prev:
-                last_call[1] = parameter_s
+                last_call[1] = args
         except:
             pass
 
@@ -3025,7 +3033,7 @@ Defaulting color scheme to 'NoColor'"""
     def magic_env(self, parameter_s=''):
         """List environment variables."""
 
-        return os.environ.data
+        return dict(os.environ)
 
     def magic_pushd(self, parameter_s=''):
         """Place the current dir on stack and change directory.
@@ -3440,6 +3448,7 @@ Defaulting color scheme to 'NoColor'"""
             %gui wx      # enable wxPython event loop integration
             %gui qt4|qt  # enable PyQt4 event loop integration
             %gui gtk     # enable PyGTK event loop integration
+            %gui gtk3    # enable Gtk3 event loop integration
             %gui tk      # enable Tk event loop integration
             %gui OSX     # enable Cocoa event loop integration
                          # (requires %matplotlib 1.1) 
@@ -3473,7 +3482,7 @@ Defaulting color scheme to 'NoColor'"""
         """
         opts, args = self.parse_options(parameter_s, 'n:')
         try:
-            filename, headers = self.extension_manager.install_extension(args, opts.get('n'))
+            filename = self.extension_manager.install_extension(args, opts.get('n'))
         except ValueError as e:
             print e
             return
@@ -3682,7 +3691,7 @@ Defaulting color scheme to 'NoColor'"""
                 cells.append(current.new_code_cell(prompt_number=prompt_number, input=input))
             worksheet = current.new_worksheet(cells=cells)
             nb = current.new_notebook(name=name,worksheets=[worksheet])
-            with open(fname, 'w') as f:
+            with io.open(fname, 'w', encoding='utf-8') as f:
                 current.write(nb, f, format);
         elif args.format is not None:
             old_fname, old_name, old_format = current.parse_filename(args.filename)
@@ -3696,13 +3705,9 @@ Defaulting color scheme to 'NoColor'"""
                 new_fname = old_name + u'.py'
             else:
                 raise ValueError('Invalid notebook format: %s' % new_format)
-            with open(old_fname, 'r') as f:
-                s = f.read()
-                try:
-                    nb = current.reads(s, old_format)
-                except:
-                    nb = current.reads(s, u'xml')
-            with open(new_fname, 'w') as f:
+            with io.open(old_fname, 'r', encoding='utf-8') as f:
+                nb = current.read(f, old_format)
+            with io.open(new_fname, 'w', encoding='utf-8') as f:
                 current.write(nb, f, new_format)
 
     def magic_config(self, s):
@@ -3753,6 +3758,12 @@ Defaulting color scheme to 'NoColor'"""
                 Whether to merge completion results into a single list
                 If False, only the completion results from the first non-empty completer
                 will be returned.
+            IPCompleter.limit_to__all__=<CBool>
+                Current: False
+                Instruct the completer to use __all__ for the completion
+                Specifically, when completing on ``object.<tab>``.
+                When True: only those names in obj.__all__ will be included.
+                When False [default]: the __all__ attribute is ignored
             IPCompleter.greedy=<CBool>
                 Current: False
                 Activate greedy completion

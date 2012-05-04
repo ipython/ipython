@@ -324,22 +324,17 @@ Message type: ``execute_reply``::
 When status is 'ok', the following extra fields are present::
 
     {
-      # The execution payload is a dict with string keys that may have been
+      # 'payload' will be a list of payload dicts.
+      # Each execution payload is a dict with string keys that may have been
       # produced by the code being executed.  It is retrieved by the kernel at
       # the end of the execution and sent back to the front end, which can take
       # action on it as needed.  See main text for further details.
-      'payload' : dict,
+      'payload' : list(dict),
 
       # Results for the user_variables and user_expressions.
       'user_variables' : dict,
       'user_expressions' : dict,
-
-      # The kernel will often transform the input provided to it.  If the
-      # '---->' transform had been applied, this is filled, otherwise it's the
-      # empty string.  So transformations like magics don't appear here, only
-      # autocall ones.
-      'transformed_code' : str,
-      }
+    }
 
 .. admonition:: Execution payloads
     
@@ -347,20 +342,19 @@ When status is 'ok', the following extra fields are present::
    given set of code, which normally is just displayed on the pyout stream
    through the PUB socket.  The idea of a payload is to allow special types of
    code, typically magics, to populate a data container in the IPython kernel
-   that will be shipped back to the caller via this channel.  The kernel will
-   have an API for this, probably something along the lines of::
+   that will be shipped back to the caller via this channel.  The kernel
+   has an API for this in the PayloadManager::
 
-       ip.exec_payload_add(key, value)
+       ip.payload_manager.write_payload(payload_dict)
 
-   though this API is still in the design stages.  The data returned in this
-   payload will allow frontends to present special views of what just happened.
+   which appends a dictionary to the list of payloads.
 
    
 When status is 'error', the following extra fields are present::
 
     {
-      'exc_name' : str,   # Exception name, as a string
-      'exc_value' : str,  # Exception value, as a string
+      'ename' : str,   # Exception name, as a string
+      'evalue' : str,  # Exception value, as a string
 
       # The traceback will contain a list of frames, represented each as a
       # string.  For now we'll stick to the existing design of ultraTB, which
@@ -766,7 +760,12 @@ These messages are the re-broadcast of the ``execute_request``.
 Message type: ``pyin``::
 
     content = {
-        'code' : str  # Source code to be executed, one or more lines
+        'code' : str,  # Source code to be executed, one or more lines
+
+        # The counter for this execution is also provided so that clients can
+        # display it, since IPython automatically creates variables called _iN
+        # (for input prompt In[N]).
+        'execution_count' : int
     }
 
 Python outputs
@@ -848,7 +847,7 @@ Message type: ``crash``::
 
     content = {
        # Similarly to the 'error' case for execute_reply messages, this will
-       # contain exc_name, exc_type and traceback fields.
+       # contain ename, etype and traceback fields.
 
        # An additional field with supplementary information such as where to
        # send the crash message

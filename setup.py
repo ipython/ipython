@@ -154,35 +154,6 @@ if len(sys.argv) >= 2 and sys.argv[1] in ('sdist','bdist_rpm'):
                   'cd docs/man && gzip -9c pycolor.1 > pycolor.1.gz'),
                  ]
 
-    # Only build the docs if sphinx is present
-    try:
-        import sphinx
-    except ImportError:
-        pass
-    else:
-        # The Makefile calls the do_sphinx scripts to build html and pdf, so
-        # just one target is enough to cover all manual generation
-
-        # First, compute all the dependencies that can force us to rebuild the
-        # docs.  Start with the main release file that contains metadata
-        docdeps = ['IPython/core/release.py']
-        # Inculde all the reST sources
-        pjoin = os.path.join
-        for dirpath,dirnames,filenames in os.walk('docs/source'):
-            if dirpath in ['_static','_templates']:
-                continue
-            docdeps += [ pjoin(dirpath,f) for f in filenames
-                         if f.endswith('.txt') ]
-        # and the examples
-        for dirpath,dirnames,filenames in os.walk('docs/example'):
-            docdeps += [ pjoin(dirpath,f) for f in filenames
-                         if not f.endswith('~') ]
-        # then, make them all dependencies for the main html docs
-        to_update.append(
-            ('docs/dist/index.html',
-             docdeps,
-             "cd docs && make dist")
-            )
 
     [ target_update(*t) for t in to_update ]
 
@@ -266,6 +237,7 @@ if 'setuptools' in sys.modules:
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}
         setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
+        setuptools._dont_write_bytecode = True
 else:
     # If we are running without setuptools, call this function which will
     # check for dependencies an inform the user what is needed.  This is

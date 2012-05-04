@@ -403,13 +403,6 @@ The controller's remote location and configuration can be specified:
     # in the location specified by the `profile-dir` argument.
     # c.SSHControllerLauncher.controller_args = ['--reuse', '--ip=*', '--profile-dir=/path/to/cd']
 
-.. note::
-
-    SSH mode does not do any file movement, so you will need to distribute configuration
-    files manually.  To aid in this, the `reuse_files` flag defaults to True for ssh-launched
-    Controllers, so you will only need to do this once, unless you override this flag back
-    to False.
-
 Engines are specified in a dictionary, by hostname and the number of engines to be run
 on that host.
 
@@ -434,11 +427,27 @@ a single location:
 
 Current limitations of the SSH mode of :command:`ipcluster` are:
 
-* Untested on Windows. Would require a working :command:`ssh` on Windows.
-  Also, we are using shell scripts to setup and execute commands on remote
-  hosts.
-* No file movement - This is a regression from 0.10, which moved connection files
-  around with scp. This will be improved, Pull Requests are welcome.
+* Untested and unsupported on Windows.  Would require a working :command:`ssh` on Windows.
+  Also, we are using shell scripts to setup and execute commands on remote hosts.
+
+
+Moving files with SSH
+*********************
+
+SSH launchers will try to move connection files, controlled by the ``to_send`` and
+``to_fetch`` configurables.  If your machines are on a shared filesystem, this step is
+unnecessary, and can be skipped by setting these to empty lists:
+
+.. sourcecode:: python
+
+    c.SSHLauncher.to_send = []
+    c.SSHLauncher.to_fetch = []
+
+If our default guesses about paths don't work for you, or other files 
+should be moved, you can manually specify these lists as tuples of (local_path, 
+remote_path) for to_send, and (remote_path, local_path) for to_fetch.  If you do
+specify these lists explicitly, IPython *will not* automatically send connection files,
+so you must include this yourself if they should still be sent/retrieved.
 
 
 IPython on EC2 with StarCluster

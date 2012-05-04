@@ -9,6 +9,8 @@ from IPython.core import ipapi
 from IPython.core.error import TryNext
 ip = ipapi.get()
 
+# We no longer bundle Itpl. If you update this module, you should use advanced
+# string formatting instead.
 from IPython.external.Itpl import itplns
 import os
 

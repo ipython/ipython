@@ -16,6 +16,7 @@ TODO
 #-----------------------------------------------------------------------------
 
 # Standard library imports.
+import atexit
 import errno
 import json
 from subprocess import Popen
@@ -91,6 +92,7 @@ class ZMQSocketChannel(Thread):
     ioloop = None
     stream = None
     _address = None
+    _exiting = False
 
     def __init__(self, context, session, address):
         """Create a channel
@@ -113,6 +115,10 @@ class ZMQSocketChannel(Thread):
             message = 'The port number for a channel cannot be 0.'
             raise InvalidPortNumber(message)
         self._address = address
+        atexit.register(self._notice_exit)
+    
+    def _notice_exit(self):
+        self._exiting = True
 
     def _run_loop(self):
         """Run my loop, ignoring EINTR events in the poller"""
@@ -122,6 +128,11 @@ class ZMQSocketChannel(Thread):
             except ZMQError as e:
                 if e.errno == errno.EINTR:
                     continue
+                else:
+                    raise
+            except Exception:
+                if self._exiting:
+                    break
                 else:
                     raise
             else:
@@ -189,6 +200,10 @@ class ShellSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -286,19 +301,21 @@ class ShellSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def object_info(self, oname):
+    def object_info(self, oname, detail_level=0):
         """Get metadata information about an object.
 
         Parameters
         ----------
         oname : str
             A string specifying the object name.
+        detail_level : int, optional
+            The level of detail for the introspection (0-2)
 
         Returns
         -------
         The msg_id of the message sent.
         """
-        content = dict(oname=oname)
+        content = dict(oname=oname, detail_level=detail_level)
         msg = self.session.msg('object_info_request', content)
         self._queue_send(msg)
         return msg['header']['msg_id']
@@ -377,6 +394,10 @@ class SubSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def stop(self):
         self.ioloop.stop()
@@ -439,6 +460,11 @@ class StdInSocketChannel(ZMQSocketChannel):
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
+        try:
+            self.socket.close()
+        except:
+            pass
+        
 
     def stop(self):
         self.ioloop.stop()
@@ -517,6 +543,11 @@ class HBSocketChannel(ZMQSocketChannel):
                     pass
                 else:
                     raise
+            except Exception:
+                if self._exiting:
+                    break
+                else:
+                    raise
             else:
                 break
         return events
@@ -557,6 +588,10 @@ class HBSocketChannel(ZMQSocketChannel):
                 # and close/reopen the socket, because the REQ/REP cycle has been broken
                 self._create_socket()
                 continue
+        try:
+            self.socket.close()
+        except:
+            pass
 
     def pause(self):
         """Pause the heartbeat."""

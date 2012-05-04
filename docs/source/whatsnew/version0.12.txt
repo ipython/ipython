@@ -2,6 +2,15 @@
  0.12 Series
 =============
 
+Release 0.12.1
+==============
+
+IPython 0.12.1 is a bugfix release of 0.12, pulling only bugfixes and minor
+cleanup from 0.13, timed for the Ubuntu 12.04 LTS release.
+
+See the :ref:`list of fixed issues <issues_list_012>` for specific backported issues.
+
+
 Release 0.12
 ============
 

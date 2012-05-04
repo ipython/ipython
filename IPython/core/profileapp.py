@@ -110,7 +110,7 @@ def list_bundled_profiles():
     profiles = []
     for profile in files:
         full_path = os.path.join(path, profile)
-        if os.path.isdir(full_path):
+        if os.path.isdir(full_path) and profile != "__pycache__":
             profiles.append(profile)
     return profiles
 

@@ -24,6 +24,8 @@ from .rwbase import (
     NotebookReader, NotebookWriter, restore_bytes, rejoin_lines, split_lines
 )
 
+from IPython.utils import py3compat
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -56,7 +58,7 @@ class JSONWriter(NotebookWriter):
         kwargs['separators'] = (',',': ')
         if kwargs.pop('split_lines', True):
             nb = split_lines(copy.deepcopy(nb))
-        return json.dumps(nb, **kwargs)
+        return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
     
 
 _reader = JSONReader()

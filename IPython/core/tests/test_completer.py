@@ -85,6 +85,7 @@ def test_line_split():
     # all inputs turned into unicode
     check_line_split(sp, [ map(unicode, p) for p in t] )
 
+
 def test_custom_completion_error():
     """Test that errors from custom attribute completers are silenced."""
     ip = get_ipython()
@@ -151,6 +152,7 @@ def test_has_open_quotes4():
     for s in ['""', '""" """', '"hi" "ipython"']:
         nt.assert_false(completer.has_open_quotes(s))
 
+
 @knownfailureif(sys.platform == 'win32', "abspath completions fail on Windows")
 def test_abspath_file_completions():
     ip = get_ipython()
@@ -170,6 +172,7 @@ def test_abspath_file_completions():
         c = ip.complete(prefix, cmd)[1]
         comp = [prefix+s for s in suffixes]
         nt.assert_equal(c, comp)
+
 
 def test_local_file_completions():
     ip = get_ipython()
@@ -196,6 +199,7 @@ def test_local_file_completions():
         # prevent failures from making chdir stick
         os.chdir(cwd)
 
+
 def test_greedy_completions():
     ip = get_ipython()
     ip.Completer.greedy = False
@@ -205,6 +209,7 @@ def test_greedy_completions():
     ip.Completer.greedy = True
     _,c = ip.complete('.',line='a[0].')
     nt.assert_true('a[0].real' in c, "Should have completed on a[0]: %s"%c)
+
 
 def test_omit__names():
     # also happens to test IPCompleter as a configurable
@@ -229,4 +234,53 @@ def test_omit__names():
     nt.assert_false('ip.__str__' in matches)
     nt.assert_false('ip._hidden_attr' in matches)
     del ip._hidden_attr
-    
+
+
+def test_limit_to__all__False_ok():
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex('class D: x=24')
+    ip.ex('d=D()')
+    cfg = Config()
+    cfg.IPCompleter.limit_to__all__ = False
+    c.update_config(cfg)
+    s, matches = c.complete('d.')
+    nt.assert_true('d.x' in matches) 
+
+
+def test_limit_to__all__True_ok():
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex('class D: x=24')
+    ip.ex('d=D()')
+    ip.ex("d.__all__=['z']")
+    cfg = Config()
+    cfg.IPCompleter.limit_to__all__ = True
+    c.update_config(cfg)
+    s, matches = c.complete('d.')
+    nt.assert_true('d.z' in matches) 
+    nt.assert_false('d.x' in matches)
+
+
+def test_get__all__entries_ok():
+    class A(object):
+        __all__ = ['x', 1]
+    words = completer.get__all__entries(A())
+    nt.assert_equal(words, ['x'])
+
+
+def test_get__all__entries_no__all__ok():
+    class A(object):
+        pass
+    words = completer.get__all__entries(A())
+    nt.assert_equal(words, [])
+
+
+def test_func_kw_completions():
+    ip = get_ipython()
+    c = ip.Completer
+    ip.ex('def myfunc(a=1,b=2): return a+b')
+    s, matches = c.complete(None,'myfunc(1,b')
+    nt.assert_true('b=' in matches) 
+    s, matches = c.complete(None,'myfunc(1,b)',10)#cursor is right after b
+    nt.assert_true('b=' in matches)

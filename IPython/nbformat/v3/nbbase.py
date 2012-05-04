@@ -114,6 +114,10 @@ def new_code_cell(input=None, prompt_number=None, outputs=None,
 def new_text_cell(cell_type, source=None, rendered=None):
     """Create a new text cell."""
     cell = NotebookNode()
+    # VERSIONHACK: plaintext -> raw
+    # handle never-released plaintext name for raw cells
+    if cell_type == 'plaintext':
+        cell_type = 'raw'
     if source is not None:
         cell.source = unicode(source)
     if rendered is not None:
@@ -146,7 +150,7 @@ def new_worksheet(name=None, cells=None):
     return ws
 
 
-def new_notebook(metadata=None, worksheets=None):
+def new_notebook(name=None, metadata=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = nbformat
@@ -158,6 +162,8 @@ def new_notebook(metadata=None, worksheets=None):
         nb.metadata = new_metadata()
     else:
         nb.metadata = NotebookNode(metadata)
+    if name is not None:
+        nb.metadata.name = unicode(name)
     return nb
 
 

@@ -5,10 +5,11 @@ it on-screen, syntax-highlighted in one shot.  If you add a little simple
 markup, you can stop at specified intervals and return to the ipython prompt,
 resuming execution later.
 """
+from __future__ import print_function
 
-print 'Hello, welcome to an interactive IPython demo.'
-print 'Executing this block should require confirmation before proceeding,'
-print 'unless auto_all has been set to true in the demo object'
+print('Hello, welcome to an interactive IPython demo.')
+print('Executing this block should require confirmation before proceeding,')
+print('unless auto_all has been set to true in the demo object')
 
 # The mark below defines a block boundary, which is a point where IPython will
 # stop execution and return to the interactive prompt.
@@ -23,18 +24,18 @@ y = 2
 # the mark below makes this block as silent
 # <demo> silent
 
-print 'This is a silent block, which gets executed but not printed.'
+print('This is a silent block, which gets executed but not printed.')
 
 # <demo> --- stop ---
 # <demo> auto
-print 'This is an automatic block.'
-print 'It is executed without asking for confirmation, but printed.'
+print('This is an automatic block.')
+print('It is executed without asking for confirmation, but printed.')
 z = x+y
 
-print 'z=',x
+print('z=',x)
 
 # <demo> --- stop ---
 # This is just another normal block.
-print 'z is now:', z
+print('z is now:', z)
 
-print 'bye!'
+print('bye!')

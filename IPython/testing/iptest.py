@@ -233,6 +233,7 @@ def make_exclude():
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
     exclusions.append(ipjoin('lib', 'inputhookgtk'))
+    exclusions.append(ipjoin('zmq', 'gui', 'gtkembed'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://github.com/ipython/ipython/issues/87
@@ -263,7 +264,9 @@ def make_exclude():
 
     if not have['matplotlib']:
         exclusions.extend([ipjoin('core', 'pylabtools'),
-                           ipjoin('core', 'tests', 'test_pylabtools')])
+                           ipjoin('core', 'tests', 'test_pylabtools'),
+                           ipjoin('zmq', 'pylab'),
+        ])
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
@@ -385,6 +388,7 @@ def make_runners():
                      'scripts', 'testing', 'utils', 'nbformat' ]
 
     if have['zmq']:
+        nose_pkg_names.append('zmq')
         nose_pkg_names.append('parallel')
 
     # For debugging this code, only load quick stuff
@@ -415,9 +419,6 @@ def run_iptest():
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
 
-                        # Loading ipdoctest causes problems with Twisted, but
-                        # our test suite runner now separates things and runs
-                        # all Twisted tests with trial.
                         '--with-ipdoctest',
                         '--ipdoctest-tests','--ipdoctest-extension=txt',
 
@@ -456,7 +457,7 @@ def run_iptestall():
     This function constructs :class:`IPTester` instances for all IPython
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
-    nose or twisted.trial appropriately.
+    nose.
     """
 
     runners = make_runners()

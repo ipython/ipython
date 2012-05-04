@@ -24,6 +24,8 @@ Authors:
 import sys
 from unittest import TestCase
 
+from nose import SkipTest
+
 from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,

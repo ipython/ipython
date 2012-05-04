@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 from xml.dom import minidom
 
 from .displaypub import (
@@ -365,6 +367,11 @@ class Javascript(DisplayObject):
         display function, it will result in the data being displayed
         in the frontend. If the data is a URL, the data will first be
         downloaded and then displayed. 
+        
+        In the Notebook, the containing element will be available as `element`,
+        and jQuery will be available.  The output area starts hidden, so if
+        the js appends content to `element` that should be visible, then
+        it must call `container.show()` to unhide the area.
 
         Parameters
         ----------
@@ -415,7 +422,7 @@ class Image(DisplayObject):
 
     _read_flags = 'rb'
 
-    def __init__(self, data=None, url=None, filename=None, format=u'png', embed=False):
+    def __init__(self, data=None, url=None, filename=None, format=u'png', embed=None):
         """Create a display an PNG/JPEG image given raw data.
 
         When this object is returned by an expression or passed to the
@@ -434,10 +441,24 @@ class Image(DisplayObject):
             The format of the image data (png/jpeg/jpg). If a filename or URL is given
             for format will be inferred from the filename extension.
         embed : bool
-            Should the image data be embedded in the notebook using a data URI (True)
-            or be loaded using an <img> tag. Set this to True if you want the image
-            to be viewable later with no internet connection. If a filename is given
-            embed is always set to True.
+            Should the image data be embedded using a data URI (True) or be
+            loaded using an <img> tag. Set this to True if you want the image
+            to be viewable later with no internet connection in the notebook.
+
+            Default is `True`, unless the keyword argument `url` is set, then
+            default value is `False`.
+
+            Note that QtConsole is not able to display images if `embed` is set to `False`
+
+        Examples
+        --------
+        # embed implicitly True, works in qtconsole and notebook
+        Image('http://www.google.fr/images/srpr/logo3w.png')
+
+        # embed implicitly False, does not works in qtconsole but works in notebook if
+        # internet connection available
+        Image(url='http://www.google.fr/images/srpr/logo3w.png')
+
         """
         if filename is not None:
             ext = self._find_ext(filename)
@@ -453,7 +474,7 @@ class Image(DisplayObject):
             if ext == u'png':
                 format = u'png'
         self.format = unicode(format).lower()
-        self.embed = True if filename is not None else embed
+        self.embed = embed if embed is not None else (url is None)
         super(Image, self).__init__(data=data, url=url, filename=filename)
 
     def reload(self):
@@ -496,6 +517,16 @@ def clear_output(stdout=True, stderr=True, other=True):
         (e.g. figures,images,HTML, any result of display()).
     """
     from IPython.core.interactiveshell import InteractiveShell
-    InteractiveShell.instance().display_pub.clear_output(
-        stdout=stdout, stderr=stderr, other=other,
-    )
+    if InteractiveShell.initialized():
+        InteractiveShell.instance().display_pub.clear_output(
+            stdout=stdout, stderr=stderr, other=other,
+        )
+    else:
+        from IPython.utils import io
+        if stdout:
+            print('\033[2K\r', file=io.stdout, end='')
+            io.stdout.flush()
+        if stderr:
+            print('\033[2K\r', file=io.stderr, end='')
+            io.stderr.flush()
+        

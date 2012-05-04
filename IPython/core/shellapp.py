@@ -117,9 +117,10 @@ class InteractiveShellApp(Configurable):
     
     Provides configurables for loading extensions and executing files
     as part of configuring a Shell environment.
-    
-    Provides init_extensions() and init_code() methods, to be called
-    after init_shell(), which must be implemented by subclasses.
+
+    Provides init_path(), to be called before, and init_extensions() and
+    init_code() methods, to be called after init_shell(), which must be
+    implemented by subclasses.
     """
     extensions = List(Unicode, config=True,
         help="A list of dotted module names of IPython extensions to load."
@@ -155,6 +156,11 @@ class InteractiveShellApp(Configurable):
         when using pylab"""
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+
+    def init_path(self):
+        """Add current working directory, '', to sys.path"""
+        if sys.path[0] != '':
+            sys.path.insert(0, '')
 
     def init_shell(self):
         raise NotImplementedError("Override in subclasses")

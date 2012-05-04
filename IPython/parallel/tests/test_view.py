@@ -233,6 +233,36 @@ class TestView(ClusterTestCase):
         view.scatter('a', a)
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
+
+    @skip_without('numpy')
+    def test_push_numpy_nocopy(self):
+        import numpy
+        view = self.client[:]
+        a = numpy.arange(64)
+        view['A'] = a
+        @interactive
+        def check_writeable(x):
+            return x.flags.writeable
+        
+        for flag in view.apply_sync(check_writeable, pmod.Reference('A')):
+            self.assertFalse(flag, "array is writeable, push shouldn't have pickled it")
+        
+        view.push(dict(B=a))
+        for flag in view.apply_sync(check_writeable, pmod.Reference('B')):
+            self.assertFalse(flag, "array is writeable, push shouldn't have pickled it")
+    
+    @skip_without('numpy')
+    def test_apply_numpy(self):
+        """view.apply(f, ndarray)"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal, assert_array_almost_equal
+        
+        A = numpy.random.random((100,100))
+        view = self.client[-1]
+        for dt in [ 'int32', 'uint8', 'float32', 'float64' ]:
+            B = A.astype(dt)
+            C = view.apply_sync(lambda x:x, B)
+            assert_array_equal(B,C)
     
     def test_map(self):
         view = self.client[:]
@@ -504,4 +534,10 @@ class TestView(ClusterTestCase):
         echo = lambda x:x
         self.assertRaisesRemote(NameError, v.apply_sync, echo, r)
 
+    def test_single_engine_map(self):
+        e0 = self.client[self.client.ids[0]]
+        r = range(5)
+        check = [ -1*i for i in r ]
+        result = e0.map_sync(lambda x: -1*x, r)
+        self.assertEquals(result, check)
 

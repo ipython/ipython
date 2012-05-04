@@ -117,13 +117,32 @@ def draw_if_interactive():
     """
     Is called after every pylab drawing command
     """
-    # signal that the current active figure should be sent at the end of execution.
-    # Also sets the _draw_called flag, signaling that there will be something to send.
-    # At the end of the code execution, a separate call to flush_figures()
-    # will act upon these values
-    
+    # signal that the current active figure should be sent at the end of
+    # execution.  Also sets the _draw_called flag, signaling that there will be
+    # something to send.  At the end of the code execution, a separate call to
+    # flush_figures() will act upon these values
+
     fig = Gcf.get_active().canvas.figure
+
+    # Hack: matplotlib FigureManager objects in interacive backends (at least
+    # in some of them) monkeypatch the figure object and add a .show() method
+    # to it.  This applies the same monkeypatch in order to support user code
+    # that might expect `.show()` to be part of the official API of figure
+    # objects.
+    # For further reference:
+    # https://github.com/ipython/ipython/issues/1612
+    # https://github.com/matplotlib/matplotlib/issues/835
     
+    if not hasattr(fig, 'show'):
+        # Queue up `fig` for display
+        fig.show = lambda *a: send_figure(fig)
+
+    # If matplotlib was manually set to non-interactive mode, this function
+    # should be a no-op (otherwise we'll generate duplicate plots, since a user
+    # who set ioff() manually expects to make separate draw/show calls).
+    if not matplotlib.is_interactive():
+        return
+
     # ensure current figure will be drawn, and each subsequent call
     # of draw_if_interactive() moves the active figure to ensure it is
     # drawn last
@@ -132,8 +151,10 @@ def draw_if_interactive():
     except ValueError:
         # ensure it only appears in the draw list once
         pass
+    # Queue up the figure for drawing in next show() call
     show._to_draw.append(fig)
     show._draw_called = True
+
 
 def flush_figures():
     """Send all figures that changed
@@ -184,7 +205,7 @@ def flush_figures():
 
 
 def send_figure(fig):
-    """Draw the current figure and send it as a PNG payload.
+    """Draw the given figure and send it as a PNG payload.
     """
     fmt = InlineBackend.instance().figure_format
     data = print_figure(fig, fmt)

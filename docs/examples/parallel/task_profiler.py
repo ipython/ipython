@@ -6,7 +6,7 @@ are basically just a time.sleep(t), where t is a random number between
 two limits that can be configured at the command line.  To run
 the script there must first be an IPython controller and engines running::
 
-    ipclusterz start -n 16
+    ipcluster start -n 16
 
 A good test to run with 16 engines is::
 
@@ -42,7 +42,7 @@ def main():
 
     rc = Client()
     view = rc.load_balanced_view()
-    print view
+    print(view)
     rc.block=True
     nengines = len(rc.ids)
     with rc[:].sync_imports():
@@ -52,7 +52,7 @@ def main():
     times = [random.random()*(opts.tmax-opts.tmin)+opts.tmin for i in range(opts.n)]
     stime = sum(times)
 
-    print "executing %i tasks, totalling %.1f secs on %i engines"%(opts.n, stime, nengines)
+    print("executing %i tasks, totalling %.1f secs on %i engines"%(opts.n, stime, nengines))
     time.sleep(1)
     start = time.time()
     amr = view.map(time.sleep, times)
@@ -62,9 +62,9 @@ def main():
     ptime = stop-start
     scale = stime/ptime
 
-    print "executed %.1f secs in %.1f secs"%(stime, ptime)
-    print "%.3fx parallel performance on %i engines"%(scale, nengines)
-    print "%.1f%% of theoretical max"%(100*scale/nengines)
+    print("executed %.1f secs in %.1f secs"%(stime, ptime))
+    print("%.3fx parallel performance on %i engines"%(scale, nengines))
+    print("%.1f%% of theoretical max"%(100*scale/nengines))
 
 
 if __name__ == '__main__':

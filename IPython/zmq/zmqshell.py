@@ -34,6 +34,7 @@ from IPython.core.payloadpage import install_payload_page
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
@@ -59,8 +60,14 @@ class ZMQDisplayPublisher(DisplayPublisher):
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
         self.parent_header = extract_header(parent)
+    
+    def _flush_streams(self):
+        """flush IO Streams prior to display"""
+        sys.stdout.flush()
+        sys.stderr.flush()
 
     def publish(self, source, data, metadata=None):
+        self._flush_streams()
         if metadata is None:
             metadata = {}
         self._validate_data(source, data, metadata)
@@ -76,6 +83,14 @@ class ZMQDisplayPublisher(DisplayPublisher):
 
     def clear_output(self, stdout=True, stderr=True, other=True):
         content = dict(stdout=stdout, stderr=stderr, other=other)
+        
+        if stdout:
+            print('\r', file=sys.stdout, end='')
+        if stderr:
+            print('\r', file=sys.stderr, end='')
+        
+        self._flush_streams()
+        
         self.session.send(
             self.pub_socket, u'clear_output', content,
             parent=self.parent_header
@@ -242,6 +257,7 @@ class ZMQInteractiveShell(InteractiveShell):
             mode=dstore.mode)
         self.payload_manager.write_payload(payload)
 
+    @skip_doctest
     def magic_edit(self,parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 

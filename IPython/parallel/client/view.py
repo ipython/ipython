@@ -656,7 +656,7 @@ class DirectView(View):
         # applier = self.apply_sync if block else self.apply_async
         if not isinstance(ns, dict):
             raise TypeError("Must be a dict, not %s"%type(ns))
-        return self._really_apply(util._push, (ns,), block=block, track=track, targets=targets)
+        return self._really_apply(util._push, kwargs=ns, block=block, track=track, targets=targets)
 
     def get(self, key_s):
         """get object(s) by `key_s` from remote namespace

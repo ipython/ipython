@@ -363,7 +363,7 @@ class CommandLineConfigLoader(ConfigLoader):
             for sec,c in cfg.iteritems():
                 self.config[sec].update(c)
         else:
-            raise ValueError("Invalid flag: '%s'"%raw)
+            raise TypeError("Invalid flag: %r" % cfg)
 
 # raw --identifier=value pattern
 # but *also* accept '-' as wordsep, for aliases
@@ -617,11 +617,6 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
     but will use KVLoader for the rest.  This allows better parsing
     of common args, such as `ipython -c 'print 5'`, but still gets
     arbitrary config with `ipython --InteractiveShell.use_readline=False`"""
-
-    def _convert_to_config(self):
-        """self.parsed_data->self.config"""
-        for k, v in vars(self.parsed_data).iteritems():
-            self._exec_config_str(k, v)
 
     def _add_arguments(self, aliases=None, flags=None):
         self.alias_flags = {}

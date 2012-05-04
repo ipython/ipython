@@ -15,6 +15,7 @@ Authors
  * Min Ragan-Kelley
 
 """
+from __future__ import print_function
 import time
 
 from numpy import zeros, ascontiguousarray, frombuffer
@@ -43,10 +44,10 @@ class RectPartitioner:
 
     def redim (self, global_num_cells, num_parts):
         nsd_ = len(global_num_cells)
-#        print "Inside the redim function, nsd=%d" %nsd_
+#        print("Inside the redim function, nsd=%d" %nsd_)
 
         if nsd_<1 | nsd_>3 | nsd_!=len(num_parts):
-            print 'The input global_num_cells is not ok!'
+            print('The input global_num_cells is not ok!')
             return
 
         self.nsd = nsd_
@@ -61,7 +62,7 @@ class RectPartitioner:
         
         nsd_ = self.nsd
         if nsd_<1:
-            print 'Number of space dimensions is %d, nothing to do' %nsd_
+            print('Number of space dimensions is %d, nothing to do' %nsd_)
             return
         
         self.subd_rank = [-1,-1,-1]
@@ -77,7 +78,7 @@ class RectPartitioner:
         for i in range(nsd_):
             num_subds = num_subds*self.num_parts[i]
         if my_id==0:
-            print "# subds=", num_subds
+            print("# subds=", num_subds)
             # should check num_subds againt num_procs
 
         offsets = [1, 0, 0]
@@ -93,9 +94,9 @@ class RectPartitioner:
             self.subd_rank[1] = (my_id%offsets[2])/self.num_parts[0]
             self.subd_rank[2] = my_id/offsets[2]
                     
-        print "my_id=%d, subd_rank: "%my_id, self.subd_rank
+        print("my_id=%d, subd_rank: "%my_id, self.subd_rank)
         if my_id==0:
-            print "offsets=", offsets
+            print("offsets=", offsets)
 
         # find the neighbor ids
         for i in range(nsd_):
@@ -118,11 +119,11 @@ class RectPartitioner:
                 ix = ix+1  # one cell of overlap
             self.subd_hi_ix[i] = ix
 
-        print "subd_rank:",self.subd_rank,\
+        print("subd_rank:",self.subd_rank,\
               "lower_neig:", self.lower_neighbors, \
-              "upper_neig:", self.upper_neighbors
-        print "subd_rank:",self.subd_rank,"subd_lo_ix:", self.subd_lo_ix, \
-              "subd_hi_ix:", self.subd_hi_ix
+              "upper_neig:", self.upper_neighbors)
+        print("subd_rank:",self.subd_rank,"subd_lo_ix:", self.subd_lo_ix, \
+              "subd_hi_ix:", self.subd_hi_ix)
 
         
 class RectPartitioner1D(RectPartitioner):
@@ -199,10 +200,10 @@ class MPIRectPartitioner2D(RectPartitioner2D):
     def update_internal_boundary (self, solution_array):
         nsd_ = self.nsd
         if nsd_!=len(self.in_lower_buffers) | nsd_!=len(self.out_lower_buffers):
-            print "Buffers for communicating with lower neighbors not ready"
+            print("Buffers for communicating with lower neighbors not ready")
             return
         if nsd_!=len(self.in_upper_buffers) | nsd_!=len(self.out_upper_buffers):
-            print "Buffers for communicating with upper neighbors not ready"
+            print("Buffers for communicating with upper neighbors not ready")
             return
 
         loc_nx = self.subd_hi_ix[0]-self.subd_lo_ix[0]
@@ -299,10 +300,10 @@ class ZMQRectPartitioner2D(RectPartitioner2D):
         nsd_ = self.nsd
         dtype = solution_array.dtype
         if nsd_!=len(self.in_lower_buffers) | nsd_!=len(self.out_lower_buffers):
-            print "Buffers for communicating with lower neighbors not ready"
+            print("Buffers for communicating with lower neighbors not ready")
             return
         if nsd_!=len(self.in_upper_buffers) | nsd_!=len(self.out_upper_buffers):
-            print "Buffers for communicating with upper neighbors not ready"
+            print("Buffers for communicating with upper neighbors not ready")
             return
 
         loc_nx = self.subd_hi_ix[0]-self.subd_lo_ix[0]
@@ -390,10 +391,10 @@ class ZMQRectPartitioner2D(RectPartitioner2D):
         nsd_ = self.nsd
         dtype = solution_array.dtype
         if nsd_!=len(self.in_lower_buffers) | nsd_!=len(self.out_lower_buffers):
-            print "Buffers for communicating with lower neighbors not ready"
+            print("Buffers for communicating with lower neighbors not ready")
             return
         if nsd_!=len(self.in_upper_buffers) | nsd_!=len(self.out_upper_buffers):
-            print "Buffers for communicating with upper neighbors not ready"
+            print("Buffers for communicating with upper neighbors not ready")
             return
 
         loc_nx = self.subd_hi_ix[0]-self.subd_lo_ix[0]

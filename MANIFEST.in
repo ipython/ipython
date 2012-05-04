@@ -1,3 +1,4 @@
+include README.rst
 include ipython.py
 include setup2.py
 include setup3.py
@@ -20,12 +21,13 @@ include IPython/frontend/qt/console/resources/icon/IPythonConsole.svg
 # Documentation
 graft docs
 exclude docs/\#*
-exclude docs/man/*.1
+exclude docs/man/*.1.gz
 
 # docs subdirs we want to skip
 prune docs/attic
 prune docs/build
 prune docs/gh-pages
+prune docs/dist
 
 # Patterns to exclude from any directory
 global-exclude *~

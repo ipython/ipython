@@ -41,7 +41,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m k', help: 'move cell up'},
             {key: 'Ctrl-m y', help: 'code cell'},
             {key: 'Ctrl-m m', help: 'markdown cell'},
-            {key: 'Ctrl-m t', help: 'plaintext cell'},
+            {key: 'Ctrl-m t', help: 'raw cell'},
             {key: 'Ctrl-m 1-6', help: 'heading 1-6 cell'},
             {key: 'Ctrl-m p', help: 'select previous'},
             {key: 'Ctrl-m n', help: 'select next'},
