@@ -16,10 +16,6 @@ import re
 import requests
 import shutil
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError
-try:
-    from urllib.request import urlopen
-except ImportError:
-    from urllib2 import urlopen
 
 import gh_auth
 
@@ -72,8 +68,7 @@ def setup():
 
 def get_pull_request(num):
     url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=gh_project, num=num)
-    response = urlopen(url).read().decode('utf-8')
-    return json.loads(response)
+    return json.loads(requests.get(url).text)
 
 missing_libs_re = re.compile(r"Tools and libraries NOT available at test time:\n"
                              r"\s*(.*?)\n")
@@ -125,8 +120,8 @@ def post_gist(content, description='IPython test log', filename="results.log"):
       }
     }).encode('utf-8')
     
-    response = urlopen("https://api.github.com/gists", post_data)
-    response_data = json.loads(response.read().decode('utf-8'))
+    response = requests.post("https://api.github.com/gists", data=post_data)
+    response_data = json.loads(response.text)
     return response_data['html_url']
 
 def markdown_format(pr, results):
@@ -159,7 +154,7 @@ def post_results_comment(pr, results, num):
     auth_token = gh_auth.get_auth_token()
     headers = {'Authorization': 'token ' + auth_token}
     r = requests.post(url, data=payload, headers=headers)
-            
+
 
 if __name__ == '__main__':
     import sys
