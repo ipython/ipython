@@ -82,13 +82,18 @@ def get_missing_libraries(log):
     if m:
         return m.group(1)
 
-def merge_branch(repo, branch, owner):
-    merged_branch = "%s-%s" % (owner, branch)
+def get_branch(repo, branch, owner, mergeable):
     os.chdir(repodir)
-    # Delete the branch first
-    call(['git', 'branch', '-D', merged_branch])
-    check_call(['git', 'checkout', '-b', merged_branch])
-    check_call(['git', 'pull', repo, branch])
+    if mergeable:
+        merged_branch = "%s-%s" % (owner, branch)
+        # Delete the branch first
+        call(['git', 'branch', '-D', merged_branch])
+        check_call(['git', 'checkout', '-b', merged_branch])
+        check_call(['git', 'pull', repo, branch])
+    else:
+        # Fetch the branch without merging it.
+        check_call(['git', 'fetch', repo, branch])
+        check_call(['git', 'checkout', 'FETCH_HEAD'])
     os.chdir(basedir)
 
 def run_tests(venv):
@@ -135,12 +140,16 @@ def markdown_format(pr, results):
             s += " (libraries not available: " + missing_libraries + ")"
         return s
     
-    lines = ["**Test results for commit %s merged into master**" % pr['head']['sha'][:7],
+    if pr['mergeable']:
+        com = pr['head']['sha'][:7] + " merged into master"
+    else:
+        com = pr['head']['sha'][:7] + " (can't merge cleanly)"
+    lines = ["**Test results for commit %s**" % com,
              "Platform: " + sys.platform,
              ""] + \
             [format_result(*r) for r in results] + \
             ["",
-             "Not available for testing:" + ", ".join(unavailable_pythons)] 
+             "Not available for testing: " + ", ".join(unavailable_pythons)] 
     return "\n".join(lines)
 
 def post_results_comment(pr, results, num):
@@ -157,9 +166,11 @@ if __name__ == '__main__':
     num = sys.argv[1]
     setup()
     pr = get_pull_request(num)
-    merge_branch(repo=pr['head']['repo']['clone_url'], 
+    get_branch(repo=pr['head']['repo']['clone_url'], 
                  branch=pr['head']['ref'],
-                 owner=pr['head']['repo']['owner']['login'])
+                 owner=pr['head']['repo']['owner']['login'],
+                 mergeable=pr['mergeable'],
+              )
     
     results = []
     for py, venv in venvs:
@@ -172,7 +183,10 @@ if __name__ == '__main__':
             results.append((py, False, gist_url, missing_libraries))
     
     print("\n")
-    print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
+    if pr['mergeable']:
+        print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
+    else:
+        print("**Test results for commit %s (can't merge cleanly)**" % pr['head']['sha'][:7])
     print("Platform:", sys.platform)
     for py, passed, gist_url, missing_libraries in results:
         if passed:
