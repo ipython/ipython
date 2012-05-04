@@ -39,10 +39,10 @@ Usage
     configuration, look into your `ipython_config.py` configuration file for
     details.
 
-    This file is typically installed in the `IPYTHON_DIR` directory, and there
+    This file is typically installed in the `IPYTHONDIR` directory, and there
     is a separate configuration directory for each profile. The default profile
-    directory will be located in $IPYTHON_DIR/profile_default. For Linux users,
-    IPYTHON_DIR defaults to `$HOME/.config/ipython`, and for other Unix systems
+    directory will be located in $IPYTHONDIR/profile_default. For Linux users,
+    IPYTHONDIR defaults to `$HOME/.config/ipython`, and for other Unix systems
     to `$HOME/.ipython`.  For Windows users, $HOME resolves to C:\\Documents
     and Settings\\YourUserName in most instances.
 
@@ -50,10 +50,10 @@ Usage
 
       $> ipython profile create
 
-    and start editing `IPYTHON_DIR/profile_default/ipython_config.py`
+    and start editing `IPYTHONDIR/profile_default/ipython_config.py`
 
     In IPython's documentation, we will refer to this directory as
-    `IPYTHON_DIR`, you can change its default location by creating an
+    `IPYTHONDIR`, you can change its default location by creating an
     environment variable with this name and setting it to the desired path.
 
     For more information, see the manual available in HTML and PDF in your

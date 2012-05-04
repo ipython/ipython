@@ -206,7 +206,7 @@ def test_get_ipython_dir_1():
     """test_get_ipython_dir_1, Testcase to see if we can call get_ipython_dir without Exceptions."""
     env_ipdir = os.path.join("someplace", ".ipython")
     path._writable_dir = lambda path: True
-    env['IPYTHON_DIR'] = env_ipdir
+    env['IPYTHONDIR'] = env_ipdir
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, env_ipdir)
 
@@ -278,10 +278,10 @@ def test_get_ipython_dir_6():
 
 @with_environment
 def test_get_ipython_dir_7():
-    """test_get_ipython_dir_7, test home directory expansion on IPYTHON_DIR"""
+    """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
     path._writable_dir = lambda path: True
     home_dir = os.path.expanduser('~')
-    env['IPYTHON_DIR'] = os.path.join('~', 'somewhere')
+    env['IPYTHONDIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 

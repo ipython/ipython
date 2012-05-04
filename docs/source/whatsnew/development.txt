@@ -15,4 +15,9 @@ Other new features
 * **%install_ext**: A new magic function to install an IPython extension from
   a URL. E.g. ``%install_ext https://bitbucket.org/birkenfeld/ipython-physics/raw/d1310a2ab15d/physics.py``.
 
+* The :envvar:`IPYTHON_DIR` environment variable, introduced in the Great
+  Reorganization of 0.11 and existing only in versions 0.11-0.13, has been
+  deprecated. As described in :ghissue:`1167`, the complexity and confusion of
+  migrating to this variable is not worth the aesthetic improvement. Please use
+  the historical :envvar:`IPYTHONDIR` environment variable instead.
 
