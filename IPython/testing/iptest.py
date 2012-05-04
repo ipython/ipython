@@ -475,8 +475,8 @@ def run_iptestall():
     t_start = time.time()
     try:
         for (name, runner) in runners:
-            print '*'*70
-            print 'IPython test group:',name
+            print >>sys.stderr, '*'*70
+            print >>sys.stderr, 'IPython test group:',name
             res = runner.run()
             if res:
                 failed.append( (name, runner) )
