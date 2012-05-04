@@ -10,14 +10,16 @@ from __future__ import print_function
 
 import errno
 from glob import glob
+import io
 import json
 import os
 import re
 import requests
 import shutil
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError
+import sys
 
-import gh_auth
+import gh_api
 
 basedir = os.path.join(os.path.expanduser("~"), ".ipy_pr_tests")
 repodir = os.path.join(basedir, "ipython")
@@ -66,10 +68,6 @@ def setup():
     check_call(['git', 'pull', ipy_repository, 'master'])
     os.chdir(basedir)
 
-def get_pull_request(num):
-    url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=gh_project, num=num)
-    return json.loads(requests.get(url).text)
-
 missing_libs_re = re.compile(r"Tools and libraries NOT available at test time:\n"
                              r"\s*(.*?)\n")
 def get_missing_libraries(log):
@@ -108,22 +106,6 @@ def run_tests(venv):
     except CalledProcessError as e:
         return False, e.output.decode('utf-8')
 
-def post_gist(content, description='IPython test log', filename="results.log"):
-    """Post some text to a Gist, and return the URL."""
-    post_data = json.dumps({
-      "description": description,
-      "public": True,
-      "files": {
-        filename: {
-          "content": content
-        }
-      }
-    }).encode('utf-8')
-    
-    response = requests.post("https://api.github.com/gists", data=post_data)
-    response_data = json.loads(response.text)
-    return response_data['html_url']
-
 def markdown_format(pr, results):
     def format_result(py, passed, gist_url, missing_libraries):
         s = "* %s: " % py
@@ -149,34 +131,9 @@ def markdown_format(pr, results):
 
 def post_results_comment(pr, results, num):
     body = markdown_format(pr, results)
-    url = 'https://api.github.com/repos/{project}/issues/{num}/comments'.format(project=gh_project, num=num)
-    payload = json.dumps({'body': body})
-    auth_token = gh_auth.get_auth_token()
-    headers = {'Authorization': 'token ' + auth_token}
-    r = requests.post(url, data=payload, headers=headers)
+    gh_api.post_issue_comment(gh_project, num, body)
 
-
-if __name__ == '__main__':
-    import sys
-    num = sys.argv[1]
-    setup()
-    pr = get_pull_request(num)
-    get_branch(repo=pr['head']['repo']['clone_url'], 
-                 branch=pr['head']['ref'],
-                 owner=pr['head']['repo']['owner']['login'],
-                 mergeable=pr['mergeable'],
-              )
-    
-    results = []
-    for py, venv in venvs:
-        passed, log = run_tests(venv)
-        missing_libraries = get_missing_libraries(log)
-        if passed:
-            results.append((py, True, None, missing_libraries))
-        else:
-            gist_url = post_gist(log)
-            results.append((py, False, gist_url, missing_libraries))
-    
+def print_results(pr, results):
     print("\n")
     if pr['mergeable']:
         print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
@@ -192,5 +149,49 @@ if __name__ == '__main__':
         if missing_libraries:
             print("    Libraries not available:", missing_libraries)
     print("Not available for testing:", ", ".join(unavailable_pythons))
-    post_results_comment(pr, results, num)
-    print("(Posted to Github)")
+
+def test_pr(num, post_results=True):
+    # Get Github authorisation first, so that the user is prompted straight away
+    # if their login is needed.
+    if post_results:
+        gh_api.get_auth_token()
+    
+    setup()
+    pr = gh_api.get_pull_request(gh_project, num)
+    get_branch(repo=pr['head']['repo']['clone_url'], 
+                 branch=pr['head']['ref'],
+                 owner=pr['head']['repo']['owner']['login'],
+                 mergeable=pr['mergeable'],
+              )
+    
+    results = []
+    for py, venv in venvs:
+        passed, log = run_tests(venv)
+        missing_libraries = get_missing_libraries(log)
+        if passed:
+            results.append((py, True, None, missing_libraries))
+        else:
+            if post_results:
+                result_locn = gh_api.post_gist(log, description='IPython test log',
+                                    filename="results.log", auth=True)
+            else:
+                result_locn = os.path.join(venv, pr['head']['sha'][:7]+".log")
+                with io.open(result_locn, 'w', encoding='utf-8') as f:
+                    f.write(log)
+            results.append((py, False, result_locn, missing_libraries))
+    
+    print_results(pr, results)
+    if post_results:
+        post_results_comment(pr, results, num)
+        print("(Posted to Github)")
+    
+
+if __name__ == '__main__':
+    import argparse
+    parser = argparse.ArgumentParser(description="Test an IPython pull request")
+    parser.add_argument('-l', '--local', action='store_true',
+                        help="Don't publish the results to Github")
+    parser.add_argument('number', type=int, help="The pull request number")
+    
+    args = parser.parse_args()
+    test_pr(args.number, post_results=(not args.local))
