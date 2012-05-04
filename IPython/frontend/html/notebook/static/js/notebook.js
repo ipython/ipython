@@ -1141,7 +1141,7 @@ var IPython = (function (IPython) {
         // remove everythin after last open bracket
         endBracket = /\([^\(]*$/g;
         func = func.replace(endBracket,"");
-        var re = /[a-zA-Z._]+$/g;
+        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
         var msg_id = this.kernel.object_info_request(re.exec(func));
         if(typeof(msg_id)!='undefined'){
             this.msg_cell_map[msg_id] = cell.cell_id;
