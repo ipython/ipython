@@ -15,7 +15,7 @@ Terminal=false
 Type=Application
 X-Ayatana-Desktop-Shortcuts=Pylab;Pylabinline
 
-[Pylab Shortcut Group]
+[Pylab Shortcut Group somniferous]
 Name=Pylab
 Exec=ipython qtconsole --pylab
 TargetEnvironment=Unity
