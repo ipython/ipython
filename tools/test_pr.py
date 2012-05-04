@@ -175,7 +175,8 @@ def test_pr(num, post_results=True):
                 result_locn = gh_api.post_gist(log, description='IPython test log',
                                     filename="results.log", auth=True)
             else:
-                result_locn = os.path.join(venv, pr['head']['sha'][:7]+".log")
+                result_locn = os.path.abspath(os.path.join(venv,
+                                                pr['head']['sha'][:7]+".log"))
                 with io.open(result_locn, 'w', encoding='utf-8') as f:
                     f.write(log)
             results.append((py, False, result_locn, missing_libraries))
