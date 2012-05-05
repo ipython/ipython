@@ -211,6 +211,9 @@ class DisplayData(Reference):
             nt.assert_true(mime_pat.match(k))
             nt.assert_true(isinstance(v, basestring), "expected string data, got %r" % v)
 
+class User(Reference):
+    pass
+
 
 class PyOut(Reference):
     execution_count = Integer()
@@ -231,6 +234,7 @@ references = {
     'pyerr' : PyErr(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
+    'user' : User(),
 }
 
 
@@ -450,3 +454,14 @@ def test_display_data():
     data = display['content']['data']
     yield nt.assert_equals(data['text/plain'], u'1')
 
+@dec.parametric
+def test_user():
+    flush_channels()
+
+    msg_id, reply = execute("from IPython.zmq.message import UserMessage; a=UserMessage(); a.send({'test':1})")
+    
+    user_msg = KM.sub_channel.get_msg(timeout=2)
+    for tst in validate_message(user_msg, 'user', parent=msg_id):
+        yield tst
+    content = user_msg['content']
+    yield nt.assert_equals(content['test'], 1)
