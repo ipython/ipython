@@ -40,7 +40,7 @@ var IPython = (function(IPython ) {
         this.cell = cell;
         this.editor = cell.code_mirror;
         // if last caractere before cursor is not in this, we stop completing
-        this.reg = /[A-Za-z.]/;
+        this.reg = /[0-9a-z.]/i; // casse insensitive
     }
 
     Completer.prototype.kernelCompletionRequest = function(){
