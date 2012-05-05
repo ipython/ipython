@@ -11,16 +11,16 @@ top-level IPython subpackages.
 Subpackage descriptions
 =======================
 
-* :mod:`IPython.config`.  This package contains the configuration system of 
-  IPython, as well as default configuration files for the different IPython
-  applications.
+* :mod:`IPython.config`.  This package contains the :ref:`configuration system
+  <config_index>` of IPython, as well as default configuration files for the
+  different IPython applications.
 
 * :mod:`IPython.core`. This sub-package contains the core of the IPython
   interpreter, but none of its extended capabilities.
 
 * :mod:`IPython.deathrow`. This is for code that is outdated, untested,
   rotting, or that belongs in a separate third party project. Eventually all
-  this code will either i) be revived by someone willing to maintain it with
+  this code will either 1) be revived by someone willing to maintain it with
   tests and docs and re-included into IPython or 2) be removed from IPython
   proper, but put into a separate third-party Python package. No new code will
   be allowed here. If your favorite extension has been moved here please
@@ -39,17 +39,23 @@ Subpackage descriptions
   Usually, these are short, single file modules.
 
 * :mod:`IPython.frontend`. This package contains the various IPython
-  frontends. Currently, the code in this subpackage is very experimental and
-  may be broken.
-
-* :mod:`IPython.gui`.  Another semi-experimental wxPython based IPython GUI.
-
-* :mod:`IPython.kernel`.  This contains IPython's parallel computing system.
+  frontends which communicate with the :mod:`IPython.zmq` kernels (see
+  :ref:`Messaging in IPython <messaging>`). This includes the
+  :ref:`ipython notebook <htmlnotebook>`, :ref:`ipython qtconsole
+  <qtconsole>`, and :ref:`ipython console <two_process_console>` entry points.
 
 * :mod:`IPython.lib`. IPython has many extended capabilities that are not part
   of the IPython core. These things will go here and in.  Modules in this
   package are similar to extensions, but don't adhere to the official
   IPython extension API.
+
+* :mod:`IPython.nbformat`.  This package contains code related to reading and
+  writing :ref:`IPython Notebook's <htmlnotebook>` file format (`.ipynb`
+  files).
+
+* :mod:`IPython.parallel`.  This contains :ref:`IPython's parallel computing
+  system <parallel_index>`. This previously lived under :mod:`IPython.kernel`,
+  but that module has been deprecated.
 
 * :mod:`IPython.quarantine`. This is for code that doesn't meet IPython's
   standards, but that we plan on keeping. To be moved out of this sub-package
@@ -62,10 +68,18 @@ Subpackage descriptions
   command line scripts.  Eventually, these should be moved to the 
   :file:`scripts` subdirectory of the appropriate IPython subpackage.
 
+* :mod:`IPython.testing`.  This package contains code related to the IPython
+  test suite, which  locates and executes the `tests` submodules of all
+  IPython sub-packages. It also contains decorators and utilities relevant for
+  testing.
+
 * :mod:`IPython.utils`. This sub-package will contain anything that might
   eventually be found in the Python standard library, like things in
   :mod:`genutils`. Each sub-module in this sub-package should contain
   functions and classes that serve a single purpose and that don't
   depend on things in the rest of IPython.
 
+* :mod:`IPython.zmq`. This sub-package contains code related to starting and
+  managing IPython kernels, which :mod:`IPython.frontend` instances can then
+  communicate with (see :ref:`Messaging in IPython <messaging>`).
 

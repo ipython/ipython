@@ -100,6 +100,7 @@ not need to make this decision when starting the server.
   
 See :ref:`the Notebook docs <htmlnotebook>` for technical details.
 
+.. _two_process_console:
 
 Two-process terminal console
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
