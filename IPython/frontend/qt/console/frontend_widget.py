@@ -595,7 +595,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self.reset()
         else:
             self._append_before_prompt_pos = self._get_cursor().position()
-            self._append_plain_text("# restarting kernel...\n#" + "-"*42)
+            self._append_plain_text("# restarting kernel...")
+            self._append_html("<hr><br>")
             # XXX: Reprinting the full banner may be too much, but once #1680 is
             # addressed, that will mitigate it.
             #self._append_plain_text(self.banner)
