@@ -69,7 +69,7 @@ class OutStream(object):
         else:
             # Make sure that we're handling unicode
             if not isinstance(string, unicode):
-                enc = encoding.getdefaultencoding()
+                enc = encoding.DEFAULT_ENCODING
                 string = string.decode(enc, 'replace')
             
             self._buffer.write(string)
