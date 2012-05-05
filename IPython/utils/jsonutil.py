@@ -17,6 +17,7 @@ import types
 from datetime import datetime
 
 from IPython.utils import py3compat
+from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils import text
 next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
@@ -135,7 +136,7 @@ def json_clean(obj):
         return obj
     
     if isinstance(obj, bytes):
-        return obj.decode(text.getdefaultencoding(), 'replace')
+        return obj.decode(DEFAULT_ENCODING, 'replace')
     
     if isinstance(obj, container_to_list) or (
         hasattr(obj, '__iter__') and hasattr(obj, next_attr_name)):
