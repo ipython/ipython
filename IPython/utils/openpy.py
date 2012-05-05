@@ -189,3 +189,4 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
         return "".join(strip_encoding_cookie(text))
     else:
         return text.read()
+

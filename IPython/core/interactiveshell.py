@@ -2738,8 +2738,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
 
-    def find_user_code(self, target, raw=True):
-        """Get a code string from history, file, or a string or macro.
+    def find_user_code(self, target, raw=True, py_only=False):
+        """Get a code string from history, file, url, or a string or macro.
 
         This is mainly used by magic functions.
 
@@ -2757,6 +2757,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
           If true (default), retrieve raw history. Has no effect on the other
           retrieval mechanisms.
 
+        py_only : bool
+          Only try to fetch python code, do not try alternative methods to decode file
+          if unicode fails.
+
         Returns
         -------
         A string of code.
@@ -2768,21 +2772,33 @@ class InteractiveShell(SingletonConfigurable, Magic):
         code = self.extract_input_lines(target, raw=raw)  # Grab history
         if code:
             return code
+        utarget = unquote_filename(target)
         try:
-            utarget = unquote_filename(target)
             if utarget.startswith(('http://', 'https://')):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=True)
         except UnicodeDecodeError:
-            raise ValueError(("'%s' seem to be unredable.") % utarget)
+            if not py_only :
+                return openpy.read_py_url(utarget, skip_encoding_cookie=False)
+            raise ValueError(("'%s' seem to be unreadable.") % utarget)
 
         try :
             pyfile = get_py_filename(target)
             return openpy.read_py_file(pyfile, skip_encoding_cookie=True)
         except IOError:
+            #py file don't exist... we just made a bad guess, don't raise
             pass
+        except UnicodeDecodeError :
+            if not py_only :
+                return openpy.read_py_file(utarget, skip_encoding_cookie=False)
+            raise ValueError(("'%s' seem to be unreadable.") % target)
 
         if os.path.isfile(target):                        # Read file
-            return openpy.read_py_file(target, skip_encoding_cookie=True)
+            try :
+                return openpy.read_py_file(target, skip_encoding_cookie=True)
+            except UnicodeDecodeError :
+                if not py_only :
+                    return openpy.read_py_file(utarget, skip_encoding_cookie=False)
+                raise ValueError(("'%s' seem to be unreadable.") % target)
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
