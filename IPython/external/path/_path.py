@@ -602,7 +602,7 @@ class path(unicode):
         u'\x85', u'\r\x85', and u'\u2028'.
 
         (This is slightly different from when you open a file for
-        writing with fopen(filename, "w") in C or file(filename, 'w')
+        writing with fopen(filename, "w") in C or open(filename, 'w')
         in Python.)
 
 
