@@ -13,6 +13,7 @@ from glob import glob
 import io
 import json
 import os
+import pickle
 import re
 import requests
 import shutil
@@ -106,7 +107,7 @@ def run_tests(venv):
     except CalledProcessError as e:
         return False, e.output.decode('utf-8')
 
-def markdown_format(pr, results):
+def markdown_format(pr, results_urls):
     def format_result(py, passed, gist_url, missing_libraries):
         s = "* %s: " % py
         if passed:
@@ -124,7 +125,7 @@ def markdown_format(pr, results):
     lines = ["**Test results for commit %s**" % com,
              "Platform: " + sys.platform,
              ""] + \
-            [format_result(*r) for r in results] + \
+            [format_result(*r) for r in results_urls] + \
             ["",
              "Not available for testing: " + ", ".join(unavailable_pythons)] 
     return "\n".join(lines)
@@ -133,14 +134,14 @@ def post_results_comment(pr, results, num):
     body = markdown_format(pr, results)
     gh_api.post_issue_comment(gh_project, num, body)
 
-def print_results(pr, results):
+def print_results(pr, results_urls):
     print("\n")
     if pr['mergeable']:
         print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
     else:
         print("**Test results for commit %s (can't merge cleanly)**" % pr['head']['sha'][:7])
     print("Platform:", sys.platform)
-    for py, passed, gist_url, missing_libraries in results:
+    for py, passed, gist_url, missing_libraries in results_urls:
         if passed:
             print(py, ":", "OK")
         else:
@@ -149,6 +150,42 @@ def print_results(pr, results):
         if missing_libraries:
             print("    Libraries not available:", missing_libraries)
     print("Not available for testing:", ", ".join(unavailable_pythons))
+
+def dump_results(num, results, pr):
+    with open(os.path.join(basedir, 'lastresults.pkl'), 'wb') as f:
+        pickle.dump((num, results, pr), f)
+
+def load_results():
+    with open(os.path.join(basedir, 'lastresults.pkl'), 'rb') as f:
+        return pickle.load(f)
+
+def save_logs(results, pr):
+    results_paths = []
+    for py, passed, log, missing_libraries in results:
+        if passed:
+            results_paths.append((py, passed, None, missing_libraries))
+        else:
+            
+            result_locn = os.path.abspath(os.path.join('venv-%s' % py,
+                                        pr['head']['sha'][:7]+".log"))
+            with io.open(result_locn, 'w', encoding='utf-8') as f:
+                f.write(log)
+        
+            results_paths.append((py, False, result_locn, missing_libraries))
+    
+    return results_paths
+
+def post_logs(results):
+    results_urls = []
+    for py, passed, log, missing_libraries in results:
+        if passed:
+            results_urls.append((py, passed, None, missing_libraries))
+        else:
+            result_locn = gh_api.post_gist(log, description='IPython test log',
+                                            filename="results.log", auth=True)
+            results_urls.append((py, False, result_locn, missing_libraries))
+    
+    return results_urls
 
 def test_pr(num, post_results=True):
     # Get Github authorisation first, so that the user is prompted straight away
@@ -171,28 +208,28 @@ def test_pr(num, post_results=True):
         if passed:
             results.append((py, True, None, missing_libraries))
         else:
-            if post_results:
-                result_locn = gh_api.post_gist(log, description='IPython test log',
-                                    filename="results.log", auth=True)
-            else:
-                result_locn = os.path.abspath(os.path.join(venv,
-                                                pr['head']['sha'][:7]+".log"))
-                with io.open(result_locn, 'w', encoding='utf-8') as f:
-                    f.write(log)
-            results.append((py, False, result_locn, missing_libraries))
+            results.append((py, False, log, missing_libraries))
     
-    print_results(pr, results)
+    dump_results(num, results, pr)
+    
+    results_paths = save_logs(results, pr)
+    print_results(pr, results_paths)
+    
     if post_results:
-        post_results_comment(pr, results, num)
+        results_urls = post_logs(results)
+        post_results_comment(pr, results_urls, num)
         print("(Posted to Github)")
+    else:
+        post_script = os.path.join(os.path.dirname(sys.argv[0]), "post_pr_test.py")
+        print("To post the results to Github, run", post_script)
     
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description="Test an IPython pull request")
-    parser.add_argument('-l', '--local', action='store_true',
-                        help="Don't publish the results to Github")
+    parser.add_argument('-p', '--publish', action='store_true',
+                        help="Publish the results to Github")
     parser.add_argument('number', type=int, help="The pull request number")
     
     args = parser.parse_args()
-    test_pr(args.number, post_results=(not args.local))
+    test_pr(args.number, post_results=args.publish)
