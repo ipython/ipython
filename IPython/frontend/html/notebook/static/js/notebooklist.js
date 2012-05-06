@@ -260,6 +260,7 @@ var IPython = (function (IPython) {
         var that = this;
         var new_buttons = $('<span/>').addClass('item_buttons');
         var upload_button = $('<button>Upload</button>').button().
+            addClass('upload-button').
             click(function (e) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');
