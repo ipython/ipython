@@ -68,6 +68,10 @@ var IPython = (function (IPython) {
         this.element.find('button#print_notebook').click(function () {
             IPython.print_widget.print_notebook();
         });
+        this.element.find('#kill_and_exit').click(function () {
+            IPython.notebook.kernel.kill();
+            setTimeout(function(){window.close();}, 200);
+        });
         // Edit
         this.element.find('#cut_cell').click(function () {
             IPython.notebook.cut_cell();
