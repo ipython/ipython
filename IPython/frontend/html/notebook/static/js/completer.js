@@ -37,7 +37,6 @@ var IPython = (function(IPython ) {
 
 
     var Completer = function(cell) {
-        this.cell = cell;
         this.editor = cell.code_mirror;
         // if last caractere before cursor is not in this, we stop completing
         this.reg = /[0-9a-z.]/i; // casse insensitive
@@ -47,7 +46,8 @@ var IPython = (function(IPython ) {
         var cur  = this.editor.getCursor();
         var line = this.editor.getLine(cur.line);
         // one could fork here and directly call finish completing if kernel is busy
-        IPython.notebook.complete_cell(this.cell, line, cur.ch);
+        var callbacks = {'complete_reply': $.proxy(this.finish_completing,this)};
+        IPython.notebook.kernel.complete(line, cur.ch, callbacks);
     }
 
 
@@ -85,9 +85,11 @@ var IPython = (function(IPython ) {
         this.kernelCompletionRequest();
     }
 
-    Completer.prototype.finish_completing =function (matched_text, matches) {
+    Completer.prototype.finish_completing =function (content) {
         // let's build a function that wrap all that stuff into what is needed
         // for the new completer:
+        var matched_text = content.matched_text;
+        var matches = content.matches;
 
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);

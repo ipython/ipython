@@ -54,6 +54,13 @@ var IPython = (function (IPython) {
             that.toggle();
         });
 
+        $([IPython.events]).on('open_with_text.Pager', function (event, data) {
+            if (data.text.trim() !== '') {
+                that.clear();
+                that.expand();
+                that.append_text(data.text);
+            };
+        });
     };
 
 

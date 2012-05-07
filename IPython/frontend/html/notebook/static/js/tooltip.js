@@ -16,8 +16,9 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     // tooltip constructor
-    var Tooltip = function (notebook) {
+    var Tooltip = function () {
         var that = this;
+        this.time_before_tooltip = 1200;
 
         // handle to html
         this.tooltip = $('#tooltip');
@@ -99,10 +100,12 @@ var IPython = (function (IPython) {
     // result as invoking `something?`
     Tooltip.prototype.showInPager = function()
     {
-            var msg_id = IPython.notebook.kernel.execute(this.name+"?");
-            IPython.notebook.msg_cell_map[msg_id] = IPython.notebook.get_selected_cell().cell_id;
-            this.remove_and_cancel_tooltip();
-            this._cmfocus();
+         var that = this;
+         var callbacks = {'execute_reply': $.proxy(that._handle_execute_reply,that)}
+         var msg_id = IPython.notebook.kernel.execute(this.name+"?", callbacks);
+
+         this.remove_and_cancel_tooltip();
+         this._cmfocus();
     }
 
     // grow the tooltip verticaly
@@ -152,7 +155,7 @@ var IPython = (function (IPython) {
     Tooltip.prototype.pending = function(cell,text)
     {
         var that = this;
-        this.tooltip_timeout = setTimeout(function(){that.request(cell)} , IPython.notebook.time_before_tooltip);
+        this.tooltip_timeout = setTimeout(function(){that.request(cell)} , that.time_before_tooltip);
     }
 
     // make an imediate completion request
@@ -203,7 +206,7 @@ var IPython = (function (IPython) {
             return;
             // don't do anything if line beggin with '(' or is empty
         }
-        IPython.notebook.request_tool_tip(cell, text);
+        cell.request_tooltip(text);
     }
 
     // cancel the option of having the tooltip to stick

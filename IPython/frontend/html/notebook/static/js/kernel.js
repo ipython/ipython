@@ -13,15 +13,18 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
-    var Kernel = function () {
+    // Initialization and connection.
+
+    var Kernel = function (base_url) {
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
-        this.base_url = $('body').data('baseKernelUrl') + "kernels";
+        this.base_url = base_url;
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
-        
+        this._msg_callbacks = {};
+
         if (typeof(WebSocket) !== 'undefined') {
             this.WebSocket = WebSocket;
         } else if (typeof(MozWebSocket) !== 'undefined') {
@@ -32,7 +35,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Kernel.prototype.get_msg = function (msg_type, content) {
+    Kernel.prototype._get_msg = function (msg_type, content) {
         var msg = {
             header : {
                 msg_id : utils.uuid(),
@@ -46,45 +49,44 @@ var IPython = (function (IPython) {
         return msg;
     };
 
-    Kernel.prototype.start = function (notebook_id, callback) {
+    Kernel.prototype.start = function (notebook_id) {
         var that = this;
         if (!this.running) {
             var qs = $.param({notebook:notebook_id});
             var url = this.base_url + '?' + qs;
             $.post(url,
-                function (kernel_id) {
-                    that._handle_start_kernel(kernel_id, callback);
-                }, 
+                $.proxy(that._kernel_started,that),
                 'json'
             );
         };
     };
 
 
-    Kernel.prototype.restart = function (callback) {
+    Kernel.prototype.restart = function () {
         $([IPython.events]).trigger('status_restarting.Kernel');
-        var url = this.kernel_url + "/restart";
         var that = this;
         if (this.running) {
             this.stop_channels();
+            var url = this.kernel_url + "/restart";
             $.post(url,
-                function (kernel_id) {
-                    that._handle_start_kernel(kernel_id, callback);
-                },
+                $.proxy(that._kernel_started, that),
                 'json'
             );
         };
     };
 
 
-    Kernel.prototype._handle_start_kernel = function (json, callback) {
+    Kernel.prototype._kernel_started = function (json) {
+        console.log("Kernel started: ", json.kernel_id);
         this.running = true;
         this.kernel_id = json.kernel_id;
         this.ws_url = json.ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
-        callback();
+        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
+        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
     };
+
 
     Kernel.prototype._websocket_closed = function(ws_url, early){
         var msg;
@@ -114,7 +116,7 @@ var IPython = (function (IPython) {
                 }
             }
         });
-        
+
     };
 
     Kernel.prototype.start_channels = function () {
@@ -171,20 +173,58 @@ var IPython = (function (IPython) {
         };
     };
 
-    Kernel.prototype.object_info_request = function (objname) {
+    // Main public methods.
+
+    Kernel.prototype.object_info_request = function (objname, callbacks) {
+        // When calling this method pass a callbacks structure of the form:
+        //
+        // callbacks = {
+        //  'object_info_reply': object_into_reply_callback
+        // }
+        //
+        // The object_info_reply_callback will be passed the content object of the
+        // object_into_reply message documented here:
+        //
+        // http://ipython.org/ipython-doc/dev/development/messaging.html#object-information
         if(typeof(objname)!=null && objname!=null)
         {
             var content = {
                 oname : objname.toString(),
             };
-            var msg = this.get_msg("object_info_request", content);
+            var msg = this._get_msg("object_info_request", content);
             this.shell_channel.send(JSON.stringify(msg));
+            this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
             return msg.header.msg_id;
         }
         return;
     }
 
-    Kernel.prototype.execute = function (code) {
+    Kernel.prototype.execute = function (code, callbacks) {
+        // When calling this method pass a callbacks structure of the form:
+        //
+        // callbacks = {
+        //  'execute_reply': execute_reply_callback,
+        //  'output': output_callback,
+        //  'clear_output': clear_output_callback,
+        //  'cell': cell
+        // }
+        //
+        // The execute_reply_callback will be passed the content object of the execute_reply
+        // message documented here:
+        //
+        // http://ipython.org/ipython-doc/dev/development/messaging.html#execute
+        //
+        // The output_callback will be passed msg_type ('stream','display_data','pyout','pyerr')
+        // of the output and the content object of the PUB/SUB channel that contains the
+        // output:
+        //
+        // http://ipython.org/ipython-doc/dev/development/messaging.html#messages-on-the-pub-sub-socket
+        //
+        // The clear_output_callback will be passed a content object that contains
+        // stdout, stderr and other fields that are booleans.
+        //
+        // The cell value will contain the a cell object that the notebook can use for the
+        // set_next_input payload.
         var content = {
             code : code,
             silent : false,
@@ -192,20 +232,32 @@ var IPython = (function (IPython) {
             user_expressions : {},
             allow_stdin : false
         };
-        var msg = this.get_msg("execute_request", content);
+        var msg = this._get_msg("execute_request", content);
         this.shell_channel.send(JSON.stringify(msg));
+        this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
     };
 
 
-    Kernel.prototype.complete = function (line, cursor_pos) {
+    Kernel.prototype.complete = function (line, cursor_pos, callbacks) {
+        // When calling this method pass a callbacks structure of the form:
+        //
+        // callbacks = {
+        //  'complete_reply': complete_reply_callback
+        // }
+        //
+        // The complete_reply_callback will be passed the content object of the
+        // complete_reply message documented here:
+        //
+        // http://ipython.org/ipython-doc/dev/development/messaging.html#complete
         var content = {
             text : '',
             line : line,
             cursor_pos : cursor_pos
         };
-        var msg = this.get_msg("complete_request", content);
+        var msg = this._get_msg("complete_request", content);
         this.shell_channel.send(JSON.stringify(msg));
+        this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
         return msg.header.msg_id;
     };
 
@@ -228,6 +280,90 @@ var IPython = (function (IPython) {
             $.ajax(this.kernel_url, settings);
         };
     };
+
+
+    // Reply handlers.
+
+    Kernel.prototype.get_callbacks_for_msg = function (msg_id) {
+        var callbacks = this._msg_callbacks[msg_id];
+        return callbacks;
+    };
+
+
+    Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
+        this._msg_callbacks[msg_id] = callbacks;
+    }
+
+
+    Kernel.prototype._handle_shell_reply = function (e) {
+        reply = $.parseJSON(e.data);
+        var header = reply.header;
+        var content = reply.content;
+        var msg_type = header.msg_type;
+        var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
+        if (callbacks !== undefined) {
+            var cb = callbacks[msg_type];
+            if (cb !== undefined) {
+                cb(content);
+            }
+        };
+
+        if (content.payload !== undefined) {
+            var payload = content.payload || [];
+            this._handle_payload(callbacks.cell, payload);
+        }
+    };
+
+
+    Kernel.prototype._handle_payload = function (cell, payload) {
+        var l = payload.length;
+        // Payloads are handled by triggering events because we don't want the Kernel
+        // to depend on the Notebook or Pager classes.
+        for (var i=0; i<l; i++) {
+            if (payload[i].source === 'IPython.zmq.page.page') {
+                var data = {'text':payload[i].text}
+                $([IPython.events]).trigger('open_with_text.Pager', data);
+            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input' && cell !== undefined) {
+                var data = {'cell': cell, 'text': payload[i].text}
+                $([IPython.events]).trigger('set_next_input.Notebook', data);
+            }
+        };
+    };
+
+
+    Kernel.prototype._handle_iopub_reply = function (e) {
+        reply = $.parseJSON(e.data);
+        var content = reply.content;
+        var msg_type = reply.header.msg_type;
+        var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
+        if (msg_type !== 'status' && callbacks === undefined) {
+            // Message not from one of this notebook's cells and there are no
+            // callbacks to handle it.
+            return;
+        }
+        var output_types = ['stream','display_data','pyout','pyerr'];
+        if (output_types.indexOf(msg_type) >= 0) {
+            var cb = callbacks['output'];
+            if (cb !== undefined) {
+                cb(msg_type, content);
+            }
+        } else if (msg_type === 'status') {
+            if (content.execution_state === 'busy') {
+                $([IPython.events]).trigger('status_busy.Kernel');
+            } else if (content.execution_state === 'idle') {
+                $([IPython.events]).trigger('status_idle.Kernel');
+            } else if (content.execution_state === 'dead') {
+                this.stop_channels();
+                $([IPython.events]).trigger('status_dead.Kernel');
+            };
+        } else if (msg_type === 'clear_output') {
+            var cb = callbacks['clear_output'];
+            if (cb !== undefined) {
+                cb(content);
+            }
+        };
+    };
+
 
     IPython.Kernel = Kernel;
 

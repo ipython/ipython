@@ -53,6 +53,23 @@ var IPython = (function (IPython) {
         $([IPython.events]).on('status_interrupting.Kernel',function () {
             that.set_message("Interrupting kernel",500);
         });
+        $([IPython.events]).on('status_dead.Kernel',function () {
+            IPython.notebook.start_kernel();
+            that.set_message("Restarting kernel",500);
+            var dialog = $('<div/>');
+            dialog.html('The kernel has died and is being restarted.');
+            $(document).append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Dead kernel",
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                }
+            });
+        });
         // Notebook events
         $([IPython.events]).on('notebook_loading.Notebook', function () {
             that.set_message("Loading notebook",500);
