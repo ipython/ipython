@@ -11,14 +11,15 @@ var IPython = (function(IPython ) {
 
     // what is the common start of all completions
     function sharedStart(B){
-            if(B.length == 1){return B[0]}
-            var A = new Array()
+            if(B.length == 1){return B[0];}
+            var A = new Array();
             for(var i=0; i< B.length; i++)
             {
                A.push(B[i].str);
             }
             if(A.length > 1 ){
-                var tem1, tem2, s, A = A.slice(0).sort();
+                var tem1, tem2, s;
+                A = A.slice(0).sort();
                 tem1 = A[0];
                 s = tem1.length;
                 tem2 = A.pop();
@@ -40,7 +41,7 @@ var IPython = (function(IPython ) {
         this.editor = cell.code_mirror;
         // if last caractere before cursor is not in this, we stop completing
         this.reg = /[0-9a-z.]/i; // casse insensitive
-    }
+    };
 
     Completer.prototype.kernelCompletionRequest = function(){
         var cur  = this.editor.getCursor();
@@ -48,7 +49,7 @@ var IPython = (function(IPython ) {
         // one could fork here and directly call finish completing if kernel is busy
         var callbacks = {'complete_reply': $.proxy(this.finish_completing,this)};
         IPython.notebook.kernel.complete(line, cur.ch, callbacks);
-    }
+    };
 
 
     Completer.prototype.startCompletion = function()
@@ -60,7 +61,7 @@ var IPython = (function(IPython ) {
         this.done = false;
         // use to get focus back on opera
         this.carryOnCompletion(true);
-    }
+    };
 
     Completer.prototype.carryOnCompletion = function(ff) {
         // Pass true as parameter if you want the commpleter to autopick when
@@ -83,7 +84,7 @@ var IPython = (function(IPython ) {
 
         //one kernel completion came back, finish_completing will be called with the results
         this.kernelCompletionRequest();
-    }
+    };
 
     Completer.prototype.finish_completing =function (content) {
         // let's build a function that wrap all that stuff into what is needed
@@ -104,7 +105,7 @@ var IPython = (function(IPython ) {
                     type : "introspection",
                     from : {line: cur.line, ch: cur.ch-matched_text.length},
                     to   : {line: cur.line, ch: cur.ch}
-                })
+                });
         }
 
         // one the 2 sources results have been merge, deal with it
@@ -115,17 +116,16 @@ var IPython = (function(IPython ) {
 
         // When there is only one completion, use it directly.
         if (this.autopick == true && this.raw_result.length == 1)
-            {
-                this.insert(this.raw_result[0]);
-                return true;
-            }
+        {
+            this.insert(this.raw_result[0]);
+            return;
+        }
 
         if (this.raw_result.length == 1)
         {
             // test if first and only completion totally matches
             // what is typed, in this case dismiss
-            var str = this.raw_result[0].str
-            var cur = this.editor.getCursor();
+            var str = this.raw_result[0].str;
             var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-str.length},cur);
             if(pre_cursor == str)
                 { this.close(); return ; }
@@ -148,9 +148,9 @@ var IPython = (function(IPython ) {
         $('body').append(this.complete);
         //build the container
         var that = this;
-        this.sel.dblclick(function(){that.pick()});
+        this.sel.dblclick(function(){that.pick();});
         this.sel.blur(this.close);
-        this.sel.keydown(function(event){that.keydown(event)});
+        this.sel.keydown(function(event){that.keydown(event);});
 
         this.build_gui_list(this.raw_result);
 
@@ -191,6 +191,7 @@ var IPython = (function(IPython ) {
 
     Completer.prototype.keydown = function(event) {
       var code = event.keyCode;
+      var that = this;
       // Enter
       if (code == key.enter) {CodeMirror.e_stop(event); this.pick();}
       // Escape or backspace
@@ -209,7 +210,6 @@ var IPython = (function(IPython ) {
             CodeMirror.e_stop(event);
             this.editor.focus();
             //reinvoke self
-            var that = this;
             setTimeout(function(){that.carryOnCompletion();}, 50);
       }
       else if (code == key.upArrow || code == key.downArrow) {
@@ -220,7 +220,6 @@ var IPython = (function(IPython ) {
       else if (code != key.upArrow && code != key.downArrow) {
         this.close(); this.editor.focus();
         //we give focus to the editor immediately and call sell in 50 ms
-        var that = this;
         setTimeout(function(){that.carryOnCompletion();}, 50);
       }
     }

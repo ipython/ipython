@@ -9,7 +9,7 @@
 // Tooltip
 //============================================================================
 //
-// you can set the autocall time by setting `IPython.notebook.time_before_tooltip` in ms
+// you can set the autocall time by setting `IPython.tooltip.time_before_tooltip` in ms
 
 var IPython = (function (IPython) {
 
@@ -95,9 +95,6 @@ var IPython = (function (IPython) {
         this.tooltip.append(this.text);
     };
 
-    // will resend the request on behalf on the cell which invoked the tooltip
-    // to show in it in pager. This is done so to be sure of having the same
-    // result as invoking `something?`
     Tooltip.prototype.showInPager = function()
     {
          var that = this;
