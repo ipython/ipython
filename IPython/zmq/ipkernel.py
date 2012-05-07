@@ -774,6 +774,7 @@ aliases.update(shell_aliases)
 
 # it's possible we don't want short aliases for *all* of these:
 aliases.update(dict(
+    gui='IPKernelApp.gui',
     pylab='IPKernelApp.pylab',
 ))
 
@@ -789,6 +790,9 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     
     # configurables
+    gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet'), config=True,
+        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet')."
+    )
     pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
@@ -801,6 +805,7 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         super(IPKernelApp, self).initialize(argv)
         self.init_path()
         self.init_shell()
+        self.init_gui_pylab()
         self.init_extensions()
         self.init_code()
 
@@ -818,10 +823,17 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         self.kernel = kernel
         kernel.record_ports(self.ports)
         shell = kernel.shell
-        if self.pylab:
+
+    def init_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+        if self.gui or self.pylab:
+            shell = self.shell
             try:
-                gui, backend = pylabtools.find_gui_and_backend(self.pylab)
-                shell.enable_pylab(gui, import_all=self.pylab_import_all)
+                if self.pylab:
+                    gui, backend = pylabtools.find_gui_and_backend(self.pylab)
+                    shell.enable_pylab(gui, import_all=self.pylab_import_all)
+                else:
+                    shell.enable_gui(self.gui)
             except Exception:
                 self.log.error("Pylab initialization failed", exc_info=True)
                 # print exception straight to stdout, because normally 
