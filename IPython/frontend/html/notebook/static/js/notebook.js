@@ -60,7 +60,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.bind_events = function () {
         var that = this;
-		
+
         $([IPython.events]).on('set_next_input.Notebook', function (event, data) {
             var index = that.find_cell_index(data.cell);
             var new_cell = that.insert_cell_below('code',index);
@@ -70,7 +70,7 @@ var IPython = (function (IPython) {
 
         $([IPython.events]).on('select.Cell', function (event, data) {
             var index = that.find_cell_index(data.cell);
-			that.select(index);
+            that.select(index);
         });
 
 
@@ -885,7 +885,7 @@ var IPython = (function (IPython) {
     // Kernel related things
 
     Notebook.prototype.start_kernel = function () {
-		var base_url = $('body').data('baseKernelUrl') + "kernels";
+        var base_url = $('body').data('baseKernelUrl') + "kernels";
         this.kernel = new IPython.Kernel(base_url);
         this.kernel.start(this.notebook_id);
     };
@@ -923,7 +923,7 @@ var IPython = (function (IPython) {
         var cell = that.get_selected_cell();
         var cell_index = that.find_cell_index(cell);
         if (cell instanceof IPython.CodeCell) {
-			cell.execute();
+            cell.execute();
         } else if (cell instanceof IPython.HTMLCell) {
             cell.render();
         }
@@ -1076,7 +1076,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
-		// Create the kernel before creating cells as they need to be passed it.
+        // Create the kernel before creating cells as they need to be passed it.
         if (! this.read_only) {
             this.start_kernel();
         }
