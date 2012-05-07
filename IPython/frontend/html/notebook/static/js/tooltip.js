@@ -10,11 +10,19 @@
 //============================================================================
 //
 // you can set the autocall time by setting `IPython.tooltip.time_before_tooltip` in ms
+//
+// you can configure the differents action of pressing tab several times in a row by 
+// setting/appending different fonction in the array 
+// IPython.tooltip.tabs_functions
+//
+// eg :
+// IPython.tooltip.tabs_functions[4] = function(){console.log('this is the action of the 4th tab pressing')}
+//
 
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
-
+    
     // tooltip constructor
     var Tooltip = function () {
         var that = this;
@@ -22,13 +30,12 @@ var IPython = (function (IPython) {
 
         // handle to html
         this.tooltip = $('#tooltip');
-        var tooltip = this.tooltip;
         this._hidden = true;
 
         // variable for consecutive call
         this._old_cell = null ;
         this._old_request = null ;
-        this._consecutive_conter = 0;
+        this._consecutive_counter = 0;
 
         // 'sticky ?'
         this._sticky = false;
@@ -93,16 +100,35 @@ var IPython = (function (IPython) {
         this.tooltip.append(this.buttons);
         this.tooltip.append(this.arrow);
         this.tooltip.append(this.text);
+
+        this.tabs_functions = [
+                                 function(){that.expand()},
+                                 function(){that.stick()},
+                                 function(){
+                                    that.cancel_stick();
+                                    that.showInPager();
+                                    that._cmfocus();
+                                    }
+                                ];
+        // call after all the tabs function above have bee call to clean their effects
+        // if necessary
+        this.reset_tabs_function = function(cell,text){
+            this._old_cell = (cell)? cell : null ;
+            this._old_request = (text) ? text : null ;
+            this._consecutive_counter = 0;
+            this.cancel_stick();
+        }
     };
 
     Tooltip.prototype.showInPager = function()
     {
-         var that = this;
-         var callbacks = {'execute_reply': $.proxy(that._handle_execute_reply,that)}
-         var msg_id = IPython.notebook.kernel.execute(this.name+"?", callbacks);
+        // reexecute last call in pager by appending ? to show back in pager
+        var that = this;
+        var callbacks = {'execute_reply': $.proxy(that._handle_execute_reply,that)}
+        var msg_id = IPython.notebook.kernel.execute(this.name+"?", callbacks);
 
-         this.remove_and_cancel_tooltip();
-         this._cmfocus();
+        this.remove_and_cancel_tooltip();
+        this._cmfocus();
     }
 
     // grow the tooltip verticaly
@@ -137,7 +163,7 @@ var IPython = (function (IPython) {
         this.cancel_pending();
         this._old_cell = null ;
         this._old_request = null ;
-        this._consecutive_conter = 0;
+        this._consecutive_counter = 0;
     }
 
     // cancel autocall done after '(' for example.
@@ -157,6 +183,8 @@ var IPython = (function (IPython) {
     
     Tooltip.prototype._request_tooltip = function(func)
     {
+       // use internally just to maek the request to the kernel
+
        // Feel free to shorten this logic if you are better
        // than me in regEx
        // basicaly you shoul be able to get xxx.xxx.xxx from 
@@ -182,52 +210,47 @@ var IPython = (function (IPython) {
     // make an imediate completion request
     Tooltip.prototype.request = function(cell)
     {
+        // request(codecell) 
+        // Deal with extracting the text from the cell and counting
+        // call in a row
+        
         this.cancel_pending();
         var editor = cell.code_mirror;
-        this.code_mirror = editor;
         var cursor = editor.getCursor();
         var text = editor.getRange({line:cursor.line,ch:0},cursor).trim();
+        
+        // need a permanent handel to codemirror for future auto recall
+        this.code_mirror = editor;
 
+
+        // now we treat the different kind of keypress
+        // first if same cell, same text, increment counter by 1
         if( this._old_cell == cell && this._old_request == text && this._hidden == false)
         {
-            this._consecutive_conter = this._consecutive_conter +1;
+            this._consecutive_counter = this._consecutive_counter +1;
         } else {
-            this._old_cell = cell ;
-            this._old_request = text ;
-            this._consecutive_conter =0;
-            this.cancel_stick();
+            // else reset
+            this.reset_tabs_function(cell,text);
         }
-
-        if( this._consecutive_conter == 1 )
-        {
-            this.expand()
-            return;
-        }
-        else if( this._consecutive_conter ==  2)
-        {
-            this.stick();
-            return;
-        }
-        else if( this._consecutive_conter ==  3)
-        {
-            this._old_cell = null ;
-            this.cancel_stick();
-            this._old_request = null ;
-            this._consecutive_conter = 0;
-            this.showInPager();
-            this._cmfocus();
-            return;
-        }
-        else if( this._consecutive_conter ==  4)
-        {
-
-        }
-
+        
+        // don't do anything if line beggin with '(' or is empty
         if (text === "" || text === "(" ) {
             return;
-            // don't do anything if line beggin with '(' or is empty
         }
-        this._request_tooltip(text);
+        
+        if (this._consecutive_counter == 0) {
+            // make a kernel request
+            this._request_tooltip(text);
+        } else if (this._consecutive_counter == this.tabs_functions.length) {
+            // then if we are at the end of list function, reset
+            // and call the last function after
+            this.tabs_functions[this._consecutive_counter-1]();
+            this.reset_tabs_function(cell,text);
+        } else {
+            // otherwise, call the nth function of the list
+            this.tabs_functions[this._consecutive_counter-1]();
+        }
+        return;
     }
 
     // cancel the option of having the tooltip to stick
@@ -257,6 +280,7 @@ var IPython = (function (IPython) {
         // move the bubble if it is not hidden
         // otherwise fade it
         var editor = this.code_mirror;
+        this.name = reply.name;
 
         // do some math to have the tooltip arrow on more or less on left or right
         // width of the editor
