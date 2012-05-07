@@ -24,7 +24,6 @@ var IPython = (function (IPython) {
         this.clipboard = null;
         this.paste_enabled = false;
         this.dirty = false;
-        this.msg_cell_map = {};
         this.metadata = {};
         this.control_key_active = false;
         this.notebook_id = null;
@@ -34,9 +33,6 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
-        this.set_tooltipontab(true);
-        this.set_smartcompleter(true);
-        this.set_timebeforetooltip(1200);
     };
 
 
@@ -64,6 +60,20 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.bind_events = function () {
         var that = this;
+		
+        $([IPython.events]).on('set_next_input.Notebook', function (event, data) {
+            var index = that.find_cell_index(data.cell);
+            var new_cell = that.insert_cell_below('code',index);
+            new_cell.set_text(data.text);
+            that.dirty = true;
+        });
+
+        $([IPython.events]).on('select.Cell', function (event, data) {
+            var index = that.find_cell_index(data.cell);
+			that.select(index);
+        });
+
+
         $(document).keydown(function (event) {
             // console.log(event);
             if (that.read_only) return true;
@@ -393,19 +403,6 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.cell_for_msg = function (msg_id) {
-        var cell_id = this.msg_cell_map[msg_id];
-        var result = null;
-        this.get_cell_elements().filter(function (index) {
-            cell = $(this).data("cell");
-            if (cell.cell_id === cell_id) {
-                result = cell;
-            };
-        });
-        return result;
-    };
-
-
     // Cell selection.
 
     Notebook.prototype.select = function (index) {
@@ -528,16 +525,16 @@ var IPython = (function (IPython) {
         var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell();
             } else if (type === 'html') {
-                cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell();
             } else if (type === 'raw') {
-                cell = new IPython.RawCell(this);
+                cell = new IPython.RawCell();
             } else if (type === 'heading') {
-                cell = new IPython.HeadingCell(this);
+                cell = new IPython.HeadingCell();
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -562,16 +559,16 @@ var IPython = (function (IPython) {
         var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this);
+                cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell(this);
+                cell = new IPython.MarkdownCell();
             } else if (type === 'html') {
-                cell = new IPython.HTMLCell(this);
+                cell = new IPython.HTMLCell();
             } else if (type === 'raw') {
-                cell = new IPython.RawCell(this);
+                cell = new IPython.RawCell();
             } else if (type === 'heading') {
-                cell = new IPython.HeadingCell(this);
+                cell = new IPython.HeadingCell();
             };
             if (cell !== null) {
                 if (this.ncells() === 0) {
@@ -864,21 +861,6 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.set_timebeforetooltip = function (time) {
-        this.time_before_tooltip = time;
-    };
-
-
-    Notebook.prototype.set_tooltipontab = function (state) {
-        this.tooltip_on_tab = state;
-    };
-
-
-    Notebook.prototype.set_smartcompleter = function (state) {
-        this.smart_completer = state;
-    };
-
-
     Notebook.prototype.clear_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -903,8 +885,9 @@ var IPython = (function (IPython) {
     // Kernel related things
 
     Notebook.prototype.start_kernel = function () {
-        this.kernel = new IPython.Kernel();
-        this.kernel.start(this.notebook_id, $.proxy(this.kernel_started, this));
+		var base_url = $('body').data('baseKernelUrl') + "kernels";
+        this.kernel = new IPython.Kernel(base_url);
+        this.kernel.start(this.notebook_id);
     };
 
 
@@ -920,7 +903,7 @@ var IPython = (function (IPython) {
             closeText: '',
             buttons : {
                 "Restart": function () {
-                    that.kernel.restart($.proxy(that.kernel_started, that));
+                    that.kernel.restart();
                     $(this).dialog('close');
                 },
                 "Continue running": function () {
@@ -928,167 +911,6 @@ var IPython = (function (IPython) {
                 }
             }
         });
-    };
-
-
-    Notebook.prototype.kernel_started = function () {
-        console.log("Kernel started: ", this.kernel.kernel_id);
-        this.kernel.shell_channel.onmessage = $.proxy(this.handle_shell_reply,this);
-        this.kernel.iopub_channel.onmessage = $.proxy(this.handle_iopub_reply,this);
-    };
-
-
-    Notebook.prototype.handle_shell_reply = function (e) {
-        reply = $.parseJSON(e.data);
-        var header = reply.header;
-        var content = reply.content;
-        var msg_type = header.msg_type;
-        // console.log(reply);
-        var cell = this.cell_for_msg(reply.parent_header.msg_id);
-        if (msg_type === "execute_reply") {
-            cell.set_input_prompt(content.execution_count);
-            cell.element.removeClass("running");
-            this.dirty = true;
-        } else if (msg_type === "complete_reply") {
-            cell.finish_completing(content.matched_text, content.matches);
-        } else if (msg_type === "object_info_reply"){
-            //console.log('back from object_info_request : ')
-            rep = reply.content;
-            if(rep.found)
-            {
-                cell.finish_tooltip(rep);
-            }
-        } else {
-          //console.log("unknown reply:"+msg_type);
-        }
-        // when having a rely from object_info_reply,
-        // no payload so no nned to handle it
-        if(typeof(content.payload)!='undefined') {
-            var payload = content.payload || [];
-            this.handle_payload(cell, payload);
-        }
-    };
-
-
-    Notebook.prototype.handle_payload = function (cell, payload) {
-        var l = payload.length;
-        for (var i=0; i<l; i++) {
-            if (payload[i].source === 'IPython.zmq.page.page') {
-                if (payload[i].text.trim() !== '') {
-                    IPython.pager.clear();
-                    IPython.pager.expand();
-                    IPython.pager.append_text(payload[i].text);
-                }
-            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
-                var index = this.find_cell_index(cell);
-                var new_cell = this.insert_cell_below('code',index);
-                new_cell.set_text(payload[i].text);
-                this.dirty = true;
-            }
-        };
-    };
-
-
-    Notebook.prototype.handle_iopub_reply = function (e) {
-        reply = $.parseJSON(e.data);
-        var content = reply.content;
-        // console.log(reply);
-        var msg_type = reply.header.msg_type;
-        var cell = this.cell_for_msg(reply.parent_header.msg_id);
-        if (msg_type !== 'status' && !cell){
-            // message not from this notebook, but should be attached to a cell
-            // console.log("Received IOPub message not caused by one of my cells");
-            // console.log(reply);
-            return;
-        }
-        var output_types = ['stream','display_data','pyout','pyerr'];
-        if (output_types.indexOf(msg_type) >= 0) {
-            this.handle_output(cell, msg_type, content);
-        } else if (msg_type === 'status') {
-            if (content.execution_state === 'busy') {
-                $([IPython.events]).trigger('status_busy.Kernel');
-            } else if (content.execution_state === 'idle') {
-                $([IPython.events]).trigger('status_idle.Kernel');
-            } else if (content.execution_state === 'dead') {
-                this.handle_status_dead();
-            };
-        } else if (msg_type === 'clear_output') {
-            cell.clear_output(content.stdout, content.stderr, content.other);
-        };
-    };
-
-
-    Notebook.prototype.handle_status_dead = function () {
-        var that = this;
-        this.kernel.stop_channels();
-        var dialog = $('<div/>');
-        dialog.html('The kernel has died, would you like to restart it? If you do not restart the kernel, you will be able to save the notebook, but running code will not work until the notebook is reopened.');
-        $(document).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Dead kernel",
-            buttons : {
-                "Restart": function () {
-                    that.start_kernel();
-                    $(this).dialog('close');
-                },
-                "Continue running": function () {
-                    $(this).dialog('close');
-                }
-            }
-        });
-    };
-
-
-    Notebook.prototype.handle_output = function (cell, msg_type, content) {
-        var json = {};
-        json.output_type = msg_type;
-        if (msg_type === "stream") {
-            json.text = content.data;
-            json.stream = content.name;
-        } else if (msg_type === "display_data") {
-            json = this.convert_mime_types(json, content.data);
-        } else if (msg_type === "pyout") {
-            json.prompt_number = content.execution_count;
-            json = this.convert_mime_types(json, content.data);
-        } else if (msg_type === "pyerr") {
-            json.ename = content.ename;
-            json.evalue = content.evalue;
-            json.traceback = content.traceback;
-        };
-        // append with dynamic=true
-        cell.append_output(json, true);
-        this.dirty = true;
-    };
-
-
-    Notebook.prototype.convert_mime_types = function (json, data) {
-        if (data['text/plain'] !== undefined) {
-            json.text = data['text/plain'];
-        };
-        if (data['text/html'] !== undefined) {
-            json.html = data['text/html'];
-        };
-        if (data['image/svg+xml'] !== undefined) {
-            json.svg = data['image/svg+xml'];
-        };
-        if (data['image/png'] !== undefined) {
-            json.png = data['image/png'];
-        };
-        if (data['image/jpeg'] !== undefined) {
-            json.jpeg = data['image/jpeg'];
-        };
-        if (data['text/latex'] !== undefined) {
-            json.latex = data['text/latex'];
-        };
-        if (data['application/json'] !== undefined) {
-            json.json = data['application/json'];
-        };
-        if (data['application/javascript'] !== undefined) {
-            json.javascript = data['application/javascript'];
-        }
-        return json;    
     };
 
 
@@ -1101,12 +923,7 @@ var IPython = (function (IPython) {
         var cell = that.get_selected_cell();
         var cell_index = that.find_cell_index(cell);
         if (cell instanceof IPython.CodeCell) {
-            cell.clear_output(true, true, true);
-            cell.set_input_prompt('*');
-            cell.element.addClass("running");
-            var code = cell.get_text();
-            var msg_id = that.kernel.execute(cell.get_text());
-            that.msg_cell_map[msg_id] = cell.cell_id;
+			cell.execute();
         } else if (cell instanceof IPython.HTMLCell) {
             cell.render();
         }
@@ -1133,37 +950,6 @@ var IPython = (function (IPython) {
         };
         this.scroll_to_bottom();
     };
-
-
-    Notebook.prototype.request_tool_tip = function (cell,func) {
-        // Feel free to shorten this logic if you are better
-        // than me in regEx
-        // basicaly you shoul be able to get xxx.xxx.xxx from 
-        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
-        // remove everything between matchin bracket (need to iterate)
-        matchBracket = /\([^\(\)]+\)/g;
-        oldfunc = func;
-        func = func.replace(matchBracket,"");
-        while( oldfunc != func )
-        {
-        oldfunc = func;
-        func = func.replace(matchBracket,"");
-        }
-        // remove everythin after last open bracket
-        endBracket = /\([^\(]*$/g;
-        func = func.replace(endBracket,"");
-        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
-        var msg_id = this.kernel.object_info_request(re.exec(func));
-        if(typeof(msg_id)!='undefined'){
-            this.msg_cell_map[msg_id] = cell.cell_id;
-            }
-    };
-
-    Notebook.prototype.complete_cell = function (cell, line, cursor_pos) {
-        var msg_id = this.kernel.complete(line, cursor_pos);
-        this.msg_cell_map[msg_id] = cell.cell_id;
-    };
-
 
     // Persistance and loading
 
@@ -1290,14 +1076,15 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
+		// Create the kernel before creating cells as they need to be passed it.
+        if (! this.read_only) {
+            this.start_kernel();
+        }
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
         };
         this.dirty = false;
-        if (! this.read_only) {
-            this.start_kernel();
-        }
         this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
