@@ -835,7 +835,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                 else:
                     shell.enable_gui(self.gui)
             except Exception:
-                self.log.error("Pylab initialization failed", exc_info=True)
+                self.log.error("GUI event loop or pylab initialization failed",
+                               exc_info=True)
                 # print exception straight to stdout, because normally 
                 # _showtraceback associates the reply with an execution, 
                 # which means frontends will never draw it, as this exception 
@@ -844,8 +845,8 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
                 # replace pyerr-sending traceback with stdout
                 _showtraceback = shell._showtraceback
                 def print_tb(etype, evalue, stb):
-                    print ("Error initializing pylab, pylab mode will not "
-                           "be active", file=io.stderr)
+                    print ("GUI event loop or pylab initialization failed",
+                           file=io.stderr)
                     print (shell.InteractiveTB.stb2text(stb), file=io.stdout)
                 shell._showtraceback = print_tb
                 
