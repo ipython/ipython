@@ -53,7 +53,7 @@ var IPython = (function (IPython) {
         // otherwise no print view
         if (IPython.Completer != undefined )
         {
-        this.completer = new IPython.Completer(this);
+            this.completer = new IPython.Completer(this);
         }
     };
 
@@ -143,10 +143,6 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    CodeCell.prototype.finish_tooltip = function (reply) {
-        IPython.tooltip.show(reply, this);
-    };
-
     // Kernel related calls.
 
     CodeCell.prototype.execute = function () {
@@ -169,31 +165,6 @@ var IPython = (function (IPython) {
         this.element.removeClass("running");
         // this.dirty = true;
     }
-
-
-    CodeCell.prototype.request_tooltip = function (func) {
-        // Feel free to shorten this logic if you are better
-        // than me in regEx
-        // basicaly you shoul be able to get xxx.xxx.xxx from 
-        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
-        // remove everything between matchin bracket (need to iterate)
-        var matchBracket = /\([^\(\)]+\)/g;
-        var endBracket = /\([^\(]*$/g;
-        var oldfunc = func;
-
-        func = func.replace(matchBracket,"");
-        while( oldfunc != func )
-        {
-        oldfunc = func;
-        func = func.replace(matchBracket,"");
-        }
-        // remove everythin after last open bracket
-        func = func.replace(endBracket,"");
-        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
-        var callbacks = {'object_info_reply': $.proxy(this.finish_tooltip,this)}
-        var msg_id = this.kernel.object_info_request(re.exec(func), callbacks);
-    };
-
 
     // Basic cell manipulation.
 

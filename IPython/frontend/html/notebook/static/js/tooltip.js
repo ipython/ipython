@@ -154,6 +154,30 @@ var IPython = (function (IPython) {
         var that = this;
         this.tooltip_timeout = setTimeout(function(){that.request(cell)} , that.time_before_tooltip);
     }
+    
+    Tooltip.prototype._request_tooltip = function(func)
+    {
+       // Feel free to shorten this logic if you are better
+       // than me in regEx
+       // basicaly you shoul be able to get xxx.xxx.xxx from 
+       // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2, 
+       // remove everything between matchin bracket (need to iterate)
+       var matchBracket = /\([^\(\)]+\)/g;
+       var endBracket = /\([^\(]*$/g;
+       var oldfunc = func;
+
+       func = func.replace(matchBracket,"");
+       while( oldfunc != func )
+       {
+       oldfunc = func;
+       func = func.replace(matchBracket,"");
+       }
+       // remove everythin after last open bracket
+       func = func.replace(endBracket,"");
+       var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
+       var callbacks = {'object_info_reply': $.proxy(this.show,this)}
+       var msg_id = IPython.notebook.kernel.object_info_request(re.exec(func), callbacks);
+    }
 
     // make an imediate completion request
     Tooltip.prototype.request = function(cell)
@@ -203,7 +227,7 @@ var IPython = (function (IPython) {
             return;
             // don't do anything if line beggin with '(' or is empty
         }
-        cell.request_tooltip(text);
+        this._request_tooltip(text);
     }
 
     // cancel the option of having the tooltip to stick
@@ -228,13 +252,11 @@ var IPython = (function (IPython) {
     }
 
     // should be called with the kernel reply to actually show the tooltip
-    Tooltip.prototype.show = function(reply, codecell)
+    Tooltip.prototype.show = function(reply)
     {
         // move the bubble if it is not hidden
         // otherwise fade it
-        var editor = codecell.code_mirror;
-        this.name = reply.name;
-        this.code_mirror = editor;
+        var editor = this.code_mirror;
 
         // do some math to have the tooltip arrow on more or less on left or right
         // width of the editor
