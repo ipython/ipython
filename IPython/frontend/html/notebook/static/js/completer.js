@@ -44,7 +44,6 @@ var IPython = (function(IPython ) {
             that.skip_kernel_completion = true;
         });
         $([IPython.events]).on('status_idle.Kernel',function () {
-            window.document.title='(Busy) '+window.document.title;
             that.skip_kernel_completion = false;
         });
 
