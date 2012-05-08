@@ -328,8 +328,7 @@ class IPythonConsoleApp(Configurable):
         )
         # start the kernel
         if not self.existing:
-            kwargs['extra_arguments'] = self.kernel_argv
-            self.kernel_manager.start_kernel(**kwargs)
+            self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
         elif self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()
