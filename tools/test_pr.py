@@ -17,6 +17,7 @@ import pickle
 import re
 import requests
 import shutil
+import time
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError
 import sys
 
@@ -207,7 +208,10 @@ def test_pr(num, post_results=True):
     
     results = []
     for py, venv in venvs:
+        tic = time.time()
         passed, log = run_tests(venv)
+        elapsed = int(time.time() - tic)
+        print("Ran tests with %s in %is" % (py, elapsed))
         missing_libraries = get_missing_libraries(log)
         if passed:
             results.append((py, True, None, missing_libraries))
