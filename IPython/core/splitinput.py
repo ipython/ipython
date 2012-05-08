@@ -133,7 +133,7 @@ class LineInfo(object):
         """
         if not self._oinfo:
             # ip.shell._ofind is actually on the Magic class!
-            self._oinfo = ip.shell._ofind(self.ifun)
+            self._oinfo = ip._ofind(self.ifun)
         return self._oinfo
 
     def __str__(self):

@@ -472,7 +472,7 @@ class IPCompleter(Completer):
 
         # List where completion matches will be stored
         self.matches = []
-        self.shell = shell.shell
+        self.shell = shell
         if alias_table is None:
             alias_table = {}
         self.alias_table = alias_table
@@ -602,7 +602,7 @@ class IPCompleter(Completer):
         #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too
-        magics = self.shell.lsmagic()
+        magics = self.shell._magic.lsmagic()
         pre = self.magic_escape
         baretext = text.lstrip(pre)
         return [ pre+m for m in magics if m.startswith(baretext)]

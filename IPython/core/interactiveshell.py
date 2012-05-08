@@ -187,7 +187,7 @@ class ReadlineNoRecord(object):
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-class InteractiveShell(SingletonConfigurable, Magic):
+class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
     _instance = None
@@ -430,7 +430,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.init_encoding()
         self.init_prefilter()
 
-        Magic.__init__(self, self)
+        self._magic = Magic(self)
 
         self.init_syntax_highlighting()
         self.init_hooks()
@@ -588,11 +588,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """Initialize logging in case it was requested at the command line.
         """
         if self.logappend:
-            self.magic_logstart(self.logappend + ' append')
+            self.magic('logstart %s append' % self.logappend)
         elif self.logfile:
-            self.magic_logstart(self.logfile)
+            self.magic('logstart %' % self.logfile)
         elif self.logstart:
-            self.magic_logstart()
+            self.magic('logstart')
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates
@@ -1397,7 +1397,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if not found:
             if oname.startswith(ESC_MAGIC):
                 oname = oname[1:]
-            obj = getattr(self,'magic_'+oname,None)
+            obj = self.find_magic(oname)
             if obj is not None:
                 found = True
                 ospace = 'IPython internal'
@@ -1996,7 +1996,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic_colors(self.colors)
+        self.magic('colors %s' % self.colors)
         # History was moved to a separate module
         from IPython.core import history
         history.init_ipython(self)
@@ -2026,11 +2026,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         magic_name, _, magic_args = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
 
-        fn = getattr(self,'magic_'+magic_name,None)
+        fn = self.find_magic(magic_name)
         if fn is None:
             error("Magic function `%s` not found." % magic_name)
         else:
-            magic_args = self.var_expand(magic_args,1)
+            magic_args = self.var_expand(magic_args, 1)
             # Grab local namespace if we need it:
             if getattr(fn, "needs_local_scope", False):
                 self._magic_locals = sys._getframe(1).f_locals
@@ -2040,7 +2040,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self._magic_locals = {}
             return result
 
-    def define_magic(self, magicname, func):
+    def define_magic(self, magic_name, func):
         """Expose own function as magic function for ipython
         
         Example::
@@ -2054,9 +2054,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
           ip.define_magic('foo',foo_impl)
         """
         im = types.MethodType(func,self)
-        old = getattr(self, "magic_" + magicname, None)
-        setattr(self, "magic_" + magicname, im)
+        old = self.find_magic(magic_name)
+        setattr(self._magic, 'magic_' + magic_name, im)
         return old
+
+    def find_magic(self, magic_name):
+        """Find and return a magic function by name.
+        """
+        return getattr(self._magic, 'magic_' + magic_name, None)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2685,7 +2690,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
-        self.magic_run = self._pylab_magic_run
+        self._magic.magic_run = self._pylab_magic_run
 
     #-------------------------------------------------------------------------
     # Utilities

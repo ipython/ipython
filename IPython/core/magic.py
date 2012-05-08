@@ -107,7 +107,7 @@ class MacroToEdit(ValueError): pass
 # Configurable. This messes up the MRO in some way. The fix is that we need to
 # make Magic a configurable that InteractiveShell does not subclass.
 
-class Magic:
+class Magic(object):
     """Magic functions for InteractiveShell.
 
     Shell functions which can be reached as %function_name. All magic
@@ -127,7 +127,7 @@ class Magic:
     #......................................................................
     # some utility functions
 
-    def __init__(self,shell):
+    def __init__(self, shell):
 
         self.options_table = {}
         if profile is None:
@@ -3012,7 +3012,7 @@ Defaulting color scheme to 'NoColor'"""
         # jump to bookmark if needed
         else:
             if not os.path.isdir(ps) or opts.has_key('b'):
-                bkms = self.db.get('bookmarks', {})
+                bkms = self.shell.db.get('bookmarks', {})
 
                 if bkms.has_key(ps):
                     target = bkms[ps]
@@ -3049,7 +3049,7 @@ Defaulting color scheme to 'NoColor'"""
 
             if oldcwd != cwd:
                 dhist.append(cwd)
-                self.db['dhist'] = compress_dhist(dhist)[-100:]
+                self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
         if not 'q' in opts and self.shell.user_ns['_dh']:
             print self.shell.user_ns['_dh'][-1]
 
