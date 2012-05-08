@@ -39,17 +39,18 @@ var IPython = (function(IPython ) {
 
     var Completer = function(cell) {
         this.editor = cell.code_mirror;
-        // if last caractere before cursor is not in this, we stop completing
-        this.reg = /[0-9a-z.]/i; // casse insensitive
+        var that = this;
+        $([IPython.events]).on('status_busy.Kernel',function () {
+            that.skip_kernel_completion = true;
+        });
+        $([IPython.events]).on('status_idle.Kernel',function () {
+            window.document.title='(Busy) '+window.document.title;
+            that.skip_kernel_completion = false;
+        });
+
+
     };
 
-    Completer.prototype.kernelCompletionRequest = function(){
-        var cur  = this.editor.getCursor();
-        var line = this.editor.getLine(cur.line);
-        // one could fork here and directly call finish completing if kernel is busy
-        var callbacks = {'complete_reply': $.proxy(this.finish_completing,this)};
-        IPython.notebook.kernel.complete(line, cur.ch, callbacks);
-    };
 
 
     Completer.prototype.startCompletion = function()
@@ -69,11 +70,12 @@ var IPython = (function(IPython ) {
         // each keystroke with ff = false
 
         var cur = this.editor.getCursor();
+        var line = this.editor.getLine(cur.line);
         var pre_cursor = this.editor.getRange({line:cur.line,ch:cur.ch-1},cur);
 
         // we need to check that we are still on a word boundary
         // because while typing the completer is still reinvoking itself
-        if(!this.reg.test(pre_cursor)){ this.close(); return;}
+        if(!/[0-9a-z._]/i.test(pre_cursor)){ this.close(); return;}
 
         this.autopick = false;
         if( ff != 'undefined' && ff==true)
@@ -82,8 +84,14 @@ var IPython = (function(IPython ) {
         // We want a single cursor position.
         if (this.editor.somethingSelected()) return;
 
-        //one kernel completion came back, finish_completing will be called with the results
-        this.kernelCompletionRequest();
+        // one kernel completion came back, finish_completing will be called with the results
+        // we fork here and directly call finish completing if kernel is busy
+        if (this.skip_kernel_completion == true){
+            this.finish_completing({'matches' :[], matched_text : ""})
+        } else {
+            var callbacks = {'complete_reply': $.proxy(this.finish_completing,this)};
+            IPython.notebook.kernel.complete(line, cur.ch, callbacks);
+        }
     };
 
     Completer.prototype.finish_completing =function (content) {
