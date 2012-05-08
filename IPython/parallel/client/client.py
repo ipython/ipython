@@ -97,6 +97,7 @@ class Metadata(dict):
               'pyerr' : None,
               'stdout' : '',
               'stderr' : '',
+              'outputs' : [],
             }
         self.update(md)
         self.update(dict(*args, **kwargs))
@@ -773,8 +774,13 @@ class Client(HasTraits):
                 md.update({'pyerr' : self._unwrap_exception(content)})
             elif msg_type == 'pyin':
                 md.update({'pyin' : content['code']})
+            elif msg_type == 'display_data':
+                md['outputs'].append(content.get('data'))
+            elif msg_type == 'pyout':
+                md['pyout'] = content.get('data')
             else:
-                md.update({msg_type : content.get('data', '')})
+                # unhandled msg_type (status, etc.)
+                pass
 
             # reduntant?
             self.metadata[msg_id] = md
