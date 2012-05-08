@@ -83,7 +83,8 @@ def get_branch(repo, branch, owner, mergeable):
         # Delete the branch first
         call(['git', 'branch', '-D', merged_branch])
         check_call(['git', 'checkout', '-b', merged_branch])
-        check_call(['git', 'pull', repo, branch])
+        check_call(['git', 'pull', '--no-commit', repo, branch])
+        check_call(['git', 'commit', '-m', "merge %s/%s" % (repo, branch)])
     else:
         # Fetch the branch without merging it.
         check_call(['git', 'fetch', repo, branch])
