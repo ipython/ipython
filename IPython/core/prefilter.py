@@ -35,7 +35,9 @@ from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.core import page
 
-from IPython.utils.traitlets import List, Integer, Any, Unicode, CBool, Bool, Instance
+from IPython.utils.traitlets import (
+    List, Integer, Any, Unicode, CBool, Bool, Instance, CRegExp
+)
 from IPython.utils.autoattr import auto_attr
 
 #-----------------------------------------------------------------------------
@@ -659,6 +661,11 @@ class AutocallChecker(PrefilterChecker):
 
     priority = Integer(1000, config=True)
 
+    function_name_regexp = CRegExp(re_fun_name, config=True,
+        help="RegExp to identify potential function names.")
+    exclude_regexp = CRegExp(re_exclude_auto, config=True,
+        help="RegExp to exclude strings with this start from autocalling.")
+
     def check(self, line_info):
         "Check if the initial word/function is callable and autocall is on."
         if not self.shell.autocall:
@@ -669,8 +676,8 @@ class AutocallChecker(PrefilterChecker):
             return None
 
         if callable(oinfo['obj']) \
-               and (not re_exclude_auto.match(line_info.the_rest)) \
-               and re_fun_name.match(line_info.ifun):
+               and (not self.exclude_regexp.match(line_info.the_rest)) \
+               and self.function_name_regexp.match(line_info.ifun):
             return self.prefilter_manager.get_handler_by_name('auto')
         else:
             return None
