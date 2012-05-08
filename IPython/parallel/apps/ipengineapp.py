@@ -37,6 +37,7 @@ from IPython.parallel.apps.baseapp import (
     catch_config_error,
 )
 from IPython.zmq.log import EnginePUBHandler
+from IPython.zmq.ipkernel import Kernel
 from IPython.zmq.session import (
     Session, session_aliases, session_flags
 )
@@ -44,7 +45,6 @@ from IPython.zmq.session import (
 from IPython.config.configurable import Configurable
 
 from IPython.parallel.engine.engine import EngineFactory
-from IPython.parallel.engine.streamkernel import Kernel
 from IPython.parallel.util import disambiguate_url, asbytes
 
 from IPython.utils.importstring import import_item
