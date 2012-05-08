@@ -156,7 +156,7 @@ var IPython = (function (IPython) {
             'clear_output': $.proxy(this._handle_clear_output, this),
             'cell': this
         };
-        var msg_id = this.kernel.execute(this.get_text(), callbacks);
+        var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false});
     };
 
 
@@ -302,7 +302,7 @@ var IPython = (function (IPython) {
         if (data['application/javascript'] !== undefined) {
             json.javascript = data['application/javascript'];
         }
-        return json;    
+        return json;
     };
 
 

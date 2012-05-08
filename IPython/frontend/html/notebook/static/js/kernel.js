@@ -199,7 +199,17 @@ var IPython = (function (IPython) {
         return;
     }
 
-    Kernel.prototype.execute = function (code, callbacks) {
+    Kernel.prototype.execute = function (code, callbacks, options) {
+        // The options object should contain the options for the execute call. Its default
+        // values are:
+        //
+        // options = {
+        //   silent : true,
+        //   user_variables : [],
+        //   user_expressions : {},
+        //   allow_stdin : false
+        // }
+        //
         // When calling this method pass a callbacks structure of the form:
         //
         // callbacks = {
@@ -225,13 +235,15 @@ var IPython = (function (IPython) {
         //
         // The cell value will contain the a cell object that the notebook can use for the
         // set_next_input payload.
+
         var content = {
             code : code,
-            silent : false,
+            silent : true,
             user_variables : [],
             user_expressions : {},
             allow_stdin : false
         };
+		$.extend(true, content, options)
         var msg = this._get_msg("execute_request", content);
         this.shell_channel.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
