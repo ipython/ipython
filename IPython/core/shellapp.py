@@ -29,9 +29,12 @@ import sys
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
+from IPython.core import pylabtools
 from IPython.utils import py3compat
 from IPython.utils.path import filefind
-from IPython.utils.traitlets import Unicode, Instance, List, Bool
+from IPython.utils.traitlets import (
+    Unicode, Instance, List, Bool, CaselessStrEnum
+)
 
 #-----------------------------------------------------------------------------
 # Aliases and Flags
@@ -94,7 +97,11 @@ nosep_config.InteractiveShell.separate_out = ''
 nosep_config.InteractiveShell.separate_out2 = ''
 
 shell_flags['nosep']=(nosep_config, "Eliminate all spacing between prompts.")
-
+shell_flags['pylab'] = (
+    {'InteractiveShellApp' : {'pylab' : 'auto'}},
+    """Pre-load matplotlib and numpy for interactive use with
+    the default matplotlib backend."""
+)
 
 # it's possible we don't want short aliases for *all* of these:
 shell_aliases = dict(
@@ -105,6 +112,8 @@ shell_aliases = dict(
     c='InteractiveShellApp.code_to_run',
     m='InteractiveShellApp.module_to_run',
     ext='InteractiveShellApp.extra_extension',
+    gui='InteractiveShellApp.gui',
+    pylab='InteractiveShellApp.pylab',
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 
@@ -118,9 +127,14 @@ class InteractiveShellApp(Configurable):
     Provides configurables for loading extensions and executing files
     as part of configuring a Shell environment.
 
-    Provides init_path(), to be called before, and init_extensions() and
-    init_code() methods, to be called after init_shell(), which must be
-    implemented by subclasses.
+    The following methods should be called by the :meth:`initialize` method
+    of the subclass:
+
+      - :meth:`init_path`
+      - :meth:`init_shell` (to be implemented by the subclass)
+      - :meth:`init_gui_pylab`
+      - :meth:`init_extensions`
+      - :meth:`init_code`
     """
     extensions = List(Unicode, config=True,
         help="A list of dotted module names of IPython extensions to load."
@@ -151,6 +165,15 @@ class InteractiveShellApp(Configurable):
     module_to_run = Unicode('', config=True,
         help="Run the module as a script."
     )
+    gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet'), config=True,
+        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet')."
+    )
+    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
+        config=True,
+        help="""Pre-load matplotlib and numpy for interactive use,
+        selecting a particular matplotlib backend and loop integration.
+        """
+    )
     pylab_import_all = Bool(True, config=True,
         help="""If true, an 'import *' is done from numpy and pylab,
         when using pylab"""
@@ -164,7 +187,25 @@ class InteractiveShellApp(Configurable):
 
     def init_shell(self):
         raise NotImplementedError("Override in subclasses")
-    
+
+    def init_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+        if self.gui or self.pylab:
+            shell = self.shell
+            try:
+                if self.pylab:
+                    gui, backend = pylabtools.find_gui_and_backend(self.pylab)
+                    self.log.info("Enabling GUI event loop integration, "
+                              "toolkit=%s, pylab=%s" % (gui, self.pylab))
+                    shell.enable_pylab(gui, import_all=self.pylab_import_all)
+                else:
+                    self.log.info("Enabling GUI event loop integration, "
+                                  "toolkit=%s" % self.gui)
+                    shell.enable_gui(self.gui)
+            except Exception:
+                self.log.warn("GUI event loop or pylab initialization failed")
+                self.shell.showtraceback()
+
     def init_extensions(self):
         """Load all IPython extensions in IPythonApp.extensions.
 
