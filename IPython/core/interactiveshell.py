@@ -2023,21 +2023,21 @@ class InteractiveShell(SingletonConfigurable):
         if next_input:
             self.set_next_input(next_input)
 
-        magic_name, _, magic_args = arg_s.partition(' ')
+        magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
 
         fn = self.find_magic(magic_name)
         if fn is None:
             error("Magic function `%s` not found." % magic_name)
         else:
-            magic_args = self.var_expand(magic_args, 1)
+            magic_arg_s = self.var_expand(magic_arg_s, 1)
+            # Put magic args in a list so we can call with f(*a) syntax
+            args = [magic_arg_s]
             # Grab local namespace if we need it:
             if getattr(fn, "needs_local_scope", False):
-                self._magic_locals = sys._getframe(1).f_locals
+                args.append(sys._getframe(1).f_locals)
             with self.builtin_trap:
-                result = fn(magic_args)
-            # Ensure we're not keeping object references around:
-            self._magic_locals = {}
+                result = fn(*args)
             return result
 
     def define_magic(self, magic_name, func):

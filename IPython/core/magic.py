@@ -2017,7 +2017,7 @@ Currently the magic system has the following functions:\n"""
 
     @skip_doctest
     @needs_local_scope
-    def magic_time(self,parameter_s = ''):
+    def magic_time(self,parameter_s, user_locals):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -2084,19 +2084,17 @@ Currently the magic system has the following functions:\n"""
             tc = clock()-t0
         # skew measurement as little as possible
         glob = self.shell.user_ns
-        locs = self._magic_locals
-        clk = clock2
         wtime = time.time
         # time execution
         wall_st = wtime()
         if mode=='eval':
-            st = clk()
-            out = eval(code, glob, locs)
-            end = clk()
+            st = clock2()
+            out = eval(code, glob, user_locals)
+            end = clock2()
         else:
-            st = clk()
-            exec code in glob, locs
-            end = clk()
+            st = clock2()
+            exec code in glob, user_locals
+            end = clock2()
             out = None
         wall_end = wtime()
         # Compute actual times and report
