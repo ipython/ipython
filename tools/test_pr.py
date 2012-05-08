@@ -94,6 +94,9 @@ def run_tests(venv):
     py = os.path.join(basedir, venv, 'bin', 'python')
     print(py)
     os.chdir(repodir)
+    # cleanup build-dir
+    if os.path.exists('build'):
+        shutil.rmtree('build')
     check_call([py, 'setup.py', 'install'])
     os.chdir(basedir)
     
