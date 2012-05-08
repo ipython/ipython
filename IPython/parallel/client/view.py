@@ -593,7 +593,7 @@ class DirectView(View):
 
     @sync_results
     @save_ids
-    def execute(self, code, targets=None, block=None):
+    def execute(self, code, silent=True, targets=None, block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
 
         ``execute`` is always `bound` (affects engine namespace)
@@ -614,7 +614,7 @@ class DirectView(View):
         msg_ids = []
         trackers = []
         for ident in _idents:
-            msg = self.client.send_execute_request(self._socket, code, ident=ident)
+            msg = self.client.send_execute_request(self._socket, code, silent=silent, ident=ident)
             msg_ids.append(msg['header']['msg_id'])
         ar = AsyncResult(self.client, msg_ids, fname='execute', targets=targets)
         if block:
