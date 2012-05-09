@@ -118,8 +118,6 @@ class LineInfo(object):
         else:
             self.pre_whitespace = self.pre
 
-        self._oinfo = None
-
     def ofind(self, ip):
         """Do a full, attribute-walking lookup of the ifun in the various
         namespaces for the given IPython InteractiveShell instance.
@@ -133,10 +131,7 @@ class LineInfo(object):
         Does cache the results of the call, so can be called multiple times
         without worrying about *further* damaging state.
         """
-        if not self._oinfo:
-            # ip.shell._ofind is actually on the Magic class!
-            self._oinfo = ip._ofind(self.ifun)
-        return self._oinfo
+        return ip._ofind(self.ifun)
 
     def __str__(self):
         return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)
