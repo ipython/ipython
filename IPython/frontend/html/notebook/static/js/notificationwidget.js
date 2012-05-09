@@ -54,17 +54,21 @@ var IPython = (function (IPython) {
             that.set_message("Interrupting kernel",500);
         });
         $([IPython.events]).on('status_dead.Kernel',function () {
-            IPython.notebook.start_kernel();
-            that.set_message("Restarting kernel",500);
+            IPython.notebook.kernel.stop_channels();
             var dialog = $('<div/>');
-            dialog.html('The kernel has died and is being restarted.');
+            dialog.html('The kernel has died, would you like to restart it? If you do not restart the kernel, you will be able to save the notebook, but running code will not work until the notebook is reopened.');
             $(document).append(dialog);
             dialog.dialog({
                 resizable: false,
                 modal: true,
                 title: "Dead kernel",
                 buttons : {
-                    "OK": function () {
+                    "Restart": function () {
+                        that.set_message("Restarting kernel",500);
+                        IPython.notebook.start_kernel();
+                        $(this).dialog('close');
+                    },
+                    "Continue running": function () {
                         $(this).dialog('close');
                     }
                 }
