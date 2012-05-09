@@ -49,6 +49,7 @@ line_split = re.compile("""
              (.*?$|$)             # rest of line
              """, re.VERBOSE)
 
+
 def split_user_input(line, pattern=None):
     """Split user input into initial whitespace, escape character, function part
     and the rest.
@@ -75,6 +76,7 @@ def split_user_input(line, pattern=None):
     #print 'line:<%s>' % line # dbg
     #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
     return pre, esc or '', ifun.strip(), the_rest.lstrip()
+
 
 class LineInfo(object):
     """A single line of input and associated info.
@@ -122,7 +124,7 @@ class LineInfo(object):
         """Do a full, attribute-walking lookup of the ifun in the various
         namespaces for the given IPython InteractiveShell instance.
 
-        Return a dict with keys: found,obj,ospace,ismagic
+        Return a dict with keys: {found, obj, ospace, ismagic}
 
         Note: can cause state changes because of calling getattr, but should
         only be run if autocall is on and if the line hasn't matched any

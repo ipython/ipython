@@ -807,7 +807,7 @@ class AutoHandler(PrefilterHandler):
         pre     = line_info.pre
         esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
-        obj = line_info.ofind(self)['obj']
+        obj = line_info.ofind(self.shell)['obj']
         #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
 
         # This should only be active for single-line input!

@@ -909,7 +909,7 @@ def magic_rep(self, arg):
         self.shell.set_next_input(str(self.shell.user_ns["_"]))
         return
                                 # Get history range
-    histlines = self.history_manager.get_range_by_str(arg)
+    histlines = self.shell.history_manager.get_range_by_str(arg)
     cmd = "\n".join(x[2] for x in histlines)
     if cmd:
         self.shell.set_next_input(cmd.rstrip())
@@ -918,7 +918,7 @@ def magic_rep(self, arg):
     try:                        # Variable in user namespace
         cmd = str(eval(arg, self.shell.user_ns))
     except Exception:           # Search for term in history
-        histlines = self.history_manager.search("*"+arg+"*")
+        histlines = self.shell.history_manager.search("*"+arg+"*")
         for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
@@ -945,10 +945,10 @@ def magic_rerun(self, parameter_s=''):
     opts, args = self.parse_options(parameter_s, 'l:g:', mode='string')
     if "l" in opts:         # Last n lines
         n = int(opts['l'])
-        hist = self.history_manager.get_tail(n)
+        hist = self.shell.history_manager.get_tail(n)
     elif "g" in opts:       # Search
         p = "*"+opts['g']+"*"
-        hist = list(self.history_manager.search(p))
+        hist = list(self.shell.history_manager.search(p))
         for l in reversed(hist):
             if "rerun" not in l[2]:
                 hist = [l]     # The last match which isn't a %rerun
@@ -956,9 +956,9 @@ def magic_rerun(self, parameter_s=''):
         else:
             hist = []          # No matches except %rerun
     elif args:              # Specify history ranges
-        hist = self.history_manager.get_range_by_str(args)
+        hist = self.shell.history_manager.get_range_by_str(args)
     else:                   # Last line
-        hist = self.history_manager.get_tail(1)
+        hist = self.shell.history_manager.get_tail(1)
     hist = [x[2] for x in hist]
     if not hist:
         print("No lines in history match specification")
@@ -967,7 +967,7 @@ def magic_rerun(self, parameter_s=''):
     print("=== Executing: ===")
     print(histlines)
     print("=== Output: ===")
-    self.run_cell("\n".join(hist), store_history=False)
+    self.shell.run_cell("\n".join(hist), store_history=False)
 
 
 def init_ipython(ip):

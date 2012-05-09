@@ -171,8 +171,8 @@ python-profiler package from non-free.""")
         inst_bound_magic =  lambda fn: fn.startswith('magic_') and \
                            callable(self.__class__.__dict__[fn])
         magics = filter(class_magic,Magic.__dict__.keys()) + \
-                 filter(inst_magic,self.__dict__.keys()) + \
-                 filter(inst_bound_magic,self.__class__.__dict__.keys())
+                 filter(inst_magic, self.__dict__.keys()) + \
+                 filter(inst_bound_magic, self.__class__.__dict__.keys())
         out = []
         for fn in set(magics):
             out.append(fn.replace('magic_','',1))
@@ -337,7 +337,7 @@ python-profiler package from non-free.""")
         magic_docs = []
         for fname in self.lsmagic():
             mname = 'magic_' + fname
-            for space in (Magic,self,self.__class__):
+            for space in (Magic, self, self.__class__):
                 try:
                     fn = space.__dict__[mname]
                 except KeyError:
@@ -1035,17 +1035,17 @@ Currently the magic system has the following functions:\n"""
         
         # reset in/out/dhist/array: previously extensinions/clearcmd.py
         ip = self.shell
-        user_ns = self.user_ns  # local lookup, heavily used
+        user_ns = self.shell.user_ns  # local lookup, heavily used
 
         for target in args:
             target = target.lower() # make matches case insensitive
             if target == 'out':
                 print "Flushing output cache (%d entries)" % len(user_ns['_oh'])
-                self.displayhook.flush()
+                self.shell.displayhook.flush()
 
             elif target == 'in':
                 print "Flushing input history"
-                pc = self.displayhook.prompt_count + 1
+                pc = self.shell.displayhook.prompt_count + 1
                 for n in range(1, pc):
                     key = '_i'+repr(n)
                     user_ns.pop(key,None)
@@ -2630,7 +2630,7 @@ Currently the magic system has the following functions:\n"""
                 self.shell.run_cell(file_read(filename),
                                                     store_history=False)
             else:
-                self.shell.safe_execfile(filename,self.shell.user_ns,
+                self.shell.safe_execfile(filename, self.shell.user_ns,
                                          self.shell.user_ns)
 
         if is_temp:
@@ -3804,7 +3804,8 @@ Defaulting color scheme to 'NoColor'"""
         # some IPython objects are Configurable, but do not yet have
         # any configurable traits.  Exclude them from the effects of
         # this magic, as their presence is just noise:
-        configurables = [ c for c in self.configurables if c.__class__.class_traits(config=True) ]
+        configurables = [ c for c in self.shell.configurables
+                          if c.__class__.class_traits(config=True) ]
         classnames = [ c.__class__.__name__ for c in configurables ]
         
         line = s.strip()
@@ -3832,7 +3833,7 @@ Defaulting color scheme to 'NoColor'"""
         # leave quotes on args when splitting, because we want
         # unquoted args to eval in user_ns
         cfg = Config()
-        exec "cfg."+line in locals(), self.user_ns
+        exec "cfg."+line in locals(), self.shell.user_ns
         
         for configurable in configurables:
             try:
