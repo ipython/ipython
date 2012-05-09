@@ -69,7 +69,7 @@ possible inclusion in future releases.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from __future__ import with_statement
+from __future__ import unicode_literals
 
 import inspect
 import keyword
@@ -99,6 +99,7 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils import pyfile
 from IPython.utils.data import uniq_stable
@@ -282,12 +283,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     _line_format = _parser.format2
 
     for line in lines:
-        # FIXME: we need to ensure the source is a pure string at this point,
-        # else the coloring code makes a  royal mess.  This is in need of a
-        # serious refactoring, so that all of the ultratb and PyColorize code
-        # is unicode-safe.  So for now this is rather an ugly hack, but
-        # necessary to at least have readable tracebacks. Improvements welcome!
-        line = py3compat.cast_bytes_py2(line, 'utf-8')
+        line = py3compat.cast_unicode(line)
 
         new_line, err = _line_format(line, 'str', scheme)
         if not err: line = new_line
@@ -779,7 +775,6 @@ class VerboseTB(TBTools):
         abspath = os.path.abspath
         for frame, file, lnum, func, lines, index in records:
             #print '*** record:',file,lnum,func,lines,index  # dbg
-
             if not file:
                 file = '?'
             elif not(file.startswith("<") and file.endswith(">")):
@@ -791,7 +786,7 @@ class VerboseTB(TBTools):
                     # Not sure if this can still happen: abspath now works with
                     # file names like <string>
                     pass
-
+            file = py3compat.cast_unicode(file, util_path.fs_encoding)
             link = tpl_link % file
             args, varargs, varkw, locals = inspect.getargvalues(frame)
 
