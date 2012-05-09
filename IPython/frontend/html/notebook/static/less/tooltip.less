@@ -32,6 +32,12 @@
 @borderwidth : 1px;
 @textColor : #000;
 
+.dropshadow{
+ -moz-box-shadow:    0px 6px 10px -1px #adadad;
+  -webkit-box-shadow: 0px 6px 10px -1px #adadad;
+  box-shadow:         0px 6px 10px -1px #adadad;
+}
+
 // smoth height adaptation
 .smoothheight(@t:1s) {
     -webkit-transition-property: height;
@@ -72,25 +78,6 @@
 //    to {opacity:1;}
 //}
 
-.linearGradient(@stop1:0, @color1:#ccc, @stop2:33%, @color2:#ddd, @stop3:66%, @color3:#ccc, @stop4:100%, @color4:#ddd){ 
-  background-color:@color4;
-  background-image: -webkit-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
-  background-image: -webkit-gradient(
-      linear,
-      left bottom,
-      left top,
-      color-stop(@stop1, @color1),
-      color-stop(@stop2, @color2),
-      color-stop(@stop3, @color3),
-      color-stop(@stop4, @color4)
-  );
-  background-image:-moz-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
-  background-image:-ms-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
-  background-image:-o-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
-  background-image:linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4); 
-
-}
-
 .tooltip a {
     float:right;
 }
@@ -124,8 +111,8 @@
 
 .tooltip {
     max-width:700px;
-    border-radius: 10px 10px 10px 10px;
-    box-shadow: 3px 3px 5px #999;
+    border-radius: 4px;
+    .dropshadow;
     /*fade-in animation when inserted*/
     -webkit-animation: fadeOut 800ms;
     -moz-animation: fadeOut 800ms;
@@ -134,8 +121,8 @@
     -moz-animation: fadeIn 800ms;
     animation: fadeIn 800ms;
     vertical-align: middle;
+    background-color: @c4;
     
-    .linearGradient(13%,@c1, 39%, @c2 , 56%,@c3, 91% , @c4) ;
     overflow : visible;
     color: @textColor;
     border: @bordercolor @borderwidth solid;
