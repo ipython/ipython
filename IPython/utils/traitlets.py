@@ -1411,3 +1411,17 @@ class TCPAddress(TraitType):
                     if port >= 0 and port <= 65535:
                         return value
         self.error(obj, value)
+
+class CRegExp(TraitType):
+    """A casting compiled regular expression trait.
+
+    Accepts both strings and compiled regular expressions. The resulting
+    attribute will be a compiled regular expression."""
+
+    info_text = 'a regular expression'
+
+    def validate(self, obj, value):
+        try:
+            return re.compile(value)
+        except:
+            self.error(obj, value)
