@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 This is a script for testing pull requests for IPython. It merges the pull
 request with current master, installs and tests on all available versions of
