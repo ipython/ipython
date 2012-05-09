@@ -1413,7 +1413,10 @@ class TCPAddress(TraitType):
         self.error(obj, value)
 
 class CRegExp(TraitType):
-    """A trait for a compiled regular expression."""
+    """A casting compiled regular expression trait.
+
+    Accepts both strings and compiled regular expressions. The resulting
+    attribute will be a compiled regular expression."""
 
     info_text = 'a regular expression'
 
