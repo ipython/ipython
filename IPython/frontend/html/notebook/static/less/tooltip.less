@@ -1,0 +1,186 @@
+/**
+ * Primary styles
+ *
+ * Author: IPython Development Team
+ */
+
+/**
+ * WARNING IF YOU ARE EDITTING THIS FILE, 
+ * if this is a .css file, It has a lot of chance of beeing generated from the
+ * ../css/[samename].less file, it might not stay a less file forever, 
+ * but as until now it is convenient to developp using less
+ * 
+ * it it's a less file, don't forget to recompile it 
+ */
+/*
+ * We'll try to get something prety, so we
+ * have some strange ccs to have the scroll bar on
+ * the left of the left with fix button on the top right of the tooltip
+ */
+
+// double slash comment are remove by less compilation
+// **
+// * Less mixins
+// **/
+
+// Four color of the background
+@c1 : rgb(215,215,215);
+@c2 : rgb(210,210,210);
+@c3 : rgb(227,227,227);
+@c4 : rgb(247,247,247);
+@bordercolor : #BBB;
+@borderwidth : 1px;
+@textColor : #000;
+
+// smoth height adaptation
+.smoothheight(@t:1s) {
+    -webkit-transition-property: height;
+    -webkit-transition-duration: 1s;
+    -moz-transition-property: height;
+    -moz-transition-duration: 1s;
+    transition-property: height;
+    transition-duration: 1s;
+}
+
+@-moz-keyframes fadeOut {
+    from {opacity:1;}
+    to {opacity:0;}
+}
+
+@-webkit-keyframes fadeOut {
+    from {opacity:1;}
+    to {opacity:0;}
+}
+
+//@keyframes fadeOut {
+//    from {opacity:1;}
+//    to {opacity:0;}
+//}
+
+@-moz-keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+@-webkit-keyframes fadeIn {
+    from {opacity:0;}
+    to {opacity:1;}
+}
+
+//@keyframes fadeIn {
+//    from {opacity:0;}
+//    to {opacity:1;}
+//}
+
+.linearGradient(@stop1:0, @color1:#ccc, @stop2:33%, @color2:#ddd, @stop3:66%, @color3:#ccc, @stop4:100%, @color4:#ddd){ 
+  background-color:@color4;
+  background-image: -webkit-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
+  background-image: -webkit-gradient(
+      linear,
+      left bottom,
+      left top,
+      color-stop(@stop1, @color1),
+      color-stop(@stop2, @color2),
+      color-stop(@stop3, @color3),
+      color-stop(@stop4, @color4)
+  );
+  background-image:-moz-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
+  background-image:-ms-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
+  background-image:-o-linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4);
+  background-image:linear-gradient(center bottom, @color1 @stop1, @color2 @stop2, @color3 @stop3, @color4 @stop4); 
+
+}
+
+.tooltip a {
+    float:right;
+}
+
+/*properties of tooltip after "expand"*/
+.bigtooltip {
+    overflow: auto;
+    height: 200px;
+    .smoothheight();
+}
+
+/*properties of tooltip before "expand"*/
+.smalltooltip{
+    .smoothheight();
+    text-overflow: ellipsis;
+    overflow: hidden;
+    height:80px;
+}
+.tooltipbuttons
+{
+    position: absolute;
+    padding-right : 15px;
+    top : 0px;
+    right:0px;
+}
+.tooltiptext
+{   
+    /*avoid the button to overlap on some docstring*/
+    padding-right:30px
+}
+
+.tooltip {
+    max-width:700px;
+    border-radius: 10px 10px 10px 10px;
+    box-shadow: 3px 3px 5px #999;
+    /*fade-in animation when inserted*/
+    -webkit-animation: fadeOut 800ms;
+    -moz-animation: fadeOut 800ms;
+    animation: fadeOut 800ms;
+    -webkit-animation: fadeIn 800ms;
+    -moz-animation: fadeIn 800ms;
+    animation: fadeIn 800ms;
+    vertical-align: middle;
+    
+    .linearGradient(13%,@c1, 39%, @c2 , 56%,@c3, 91% , @c4) ;
+    overflow : visible;
+    color: @textColor;
+    border: @bordercolor @borderwidth solid;
+    outline: none;
+    padding: 3px;
+    margin: 0px;
+    padding-left:7px;
+    font-family: monospace;
+    min-height:50px;
+    position: absolute;
+}
+
+
+.pretooltiparrow {
+  left: 0px;
+  margin: 0px;
+  top: -16px;
+  width: 40px;
+  height: 16px;
+  overflow: hidden;
+  position: absolute;
+
+}
+.pretooltiparrow:before {
+  background-color : @c4;
+  border : @borderwidth @bordercolor solid; 
+  z-index:11;
+  content: "";
+  position: absolute;
+  left: 15px;
+  top: 10px;
+  width: 25px;
+  height: 25px;
+  @theta : 45deg;
+  -webkit-transform: rotate(@theta);
+  -moz-transform:    rotate(@theta);
+  -ms-transform:     rotate(@theta);
+  -o-transform:      rotate(@theta);
+
+}
+
+.tooltip.hide
+{
+    -webkit-animation: fadeOut 800ms;
+    -moz-animation: fadeOut 800ms;
+    animation: fadeOut 800ms;
+    opacity : 0;
+}
