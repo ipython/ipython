@@ -786,13 +786,19 @@ class VerboseTB(TBTools):
         abspath = os.path.abspath
         for frame, file, lnum, func, lines, index in records:
             #print '*** record:',file,lnum,func,lines,index  # dbg
-            try:
-                file = file and abspath(file) or '?'
-            except OSError:
-                # if file is '<console>' or something not in the filesystem,
-                # the abspath call will throw an OSError.  Just ignore it and
-                # keep the original file string.
-                pass
+
+            if not file:
+                file = '?'
+            elif not(file.startswith("<") and file.endswith(">")):
+                # Guess that filenames like <string> aren't real filenames, so
+                # don't call abspath on them.                    
+                try:
+                    file = abspath(file)
+                except OSError:
+                    # Not sure if this can still happen: abspath now works with
+                    # file names like <string>
+                    pass
+
             link = tpl_link % file
             args, varargs, varkw, locals = inspect.getargvalues(frame)
 
