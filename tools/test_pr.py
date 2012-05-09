@@ -17,6 +17,7 @@ import pickle
 import re
 import requests
 import shutil
+import time
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError
 import sys
 
@@ -83,7 +84,8 @@ def get_branch(repo, branch, owner, mergeable):
         # Delete the branch first
         call(['git', 'branch', '-D', merged_branch])
         check_call(['git', 'checkout', '-b', merged_branch])
-        check_call(['git', 'pull', repo, branch])
+        check_call(['git', 'pull', '--no-commit', repo, branch])
+        check_call(['git', 'commit', '-m', "merge %s/%s" % (repo, branch)])
     else:
         # Fetch the branch without merging it.
         check_call(['git', 'fetch', repo, branch])
@@ -94,6 +96,9 @@ def run_tests(venv):
     py = os.path.join(basedir, venv, 'bin', 'python')
     print(py)
     os.chdir(repodir)
+    # cleanup build-dir
+    if os.path.exists('build'):
+        shutil.rmtree('build')
     check_call([py, 'setup.py', 'install'])
     os.chdir(basedir)
     
@@ -203,7 +208,10 @@ def test_pr(num, post_results=True):
     
     results = []
     for py, venv in venvs:
+        tic = time.time()
         passed, log = run_tests(venv)
+        elapsed = int(time.time() - tic)
+        print("Ran tests with %s in %is" % (py, elapsed))
         missing_libraries = get_missing_libraries(log)
         if passed:
             results.append((py, True, None, missing_libraries))
