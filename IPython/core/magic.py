@@ -3045,11 +3045,11 @@ Defaulting color scheme to 'NoColor'"""
 
         dir_s = self.shell.dir_stack
         tgt = os.path.expanduser(unquote_filename(parameter_s))
-        cwd = os.getcwdu().replace(self.home_dir,'~')
+        cwd = os.getcwdu().replace(self.shell.home_dir,'~')
         if tgt:
             self.magic_cd(parameter_s)
         dir_s.insert(0,cwd)
-        return self.magic_dirs()
+        return self.shell.magic('dirs')
 
     def magic_popd(self, parameter_s=''):
         """Change to directory popped off the top of the stack.
@@ -3417,7 +3417,7 @@ Defaulting color scheme to 'NoColor'"""
             ptformatter.pprint = False
             disp_formatter.plain_text_only = True
 
-            shell.magic_xmode('Plain')
+            shell.magic('xmode Plain')
         else:
             # turn off
             pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
@@ -3432,7 +3432,7 @@ Defaulting color scheme to 'NoColor'"""
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.plain_text_only = dstore.rc_plain_text_only
 
-            shell.magic_xmode(dstore.xmode)
+            shell.magic('xmode ' + dstore.xmode)
 
         # Store new mode and inform
         dstore.mode = bool(1-int(mode))
@@ -3487,7 +3487,8 @@ Defaulting color scheme to 'NoColor'"""
         """
         opts, args = self.parse_options(parameter_s, 'n:')
         try:
-            filename = self.extension_manager.install_extension(args, opts.get('n'))
+            filename = self.shell.extension_manager.install_extension(args,
+                                                                 opts.get('n'))
         except ValueError as e:
             print e
             return
@@ -3499,15 +3500,15 @@ Defaulting color scheme to 'NoColor'"""
 
     def magic_load_ext(self, module_str):
         """Load an IPython extension by its module name."""
-        return self.extension_manager.load_extension(module_str)
+        return self.shell.extension_manager.load_extension(module_str)
 
     def magic_unload_ext(self, module_str):
         """Unload an IPython extension by its module name."""
-        self.extension_manager.unload_extension(module_str)
+        self.shell.extension_manager.unload_extension(module_str)
 
     def magic_reload_ext(self, module_str):
         """Reload an IPython extension by its module name."""
-        self.extension_manager.reload_extension(module_str)
+        self.shell.extension_manager.reload_extension(module_str)
 
     def magic_install_profiles(self, s):
         """%install_profiles has been deprecated."""
@@ -3681,9 +3682,10 @@ Defaulting color scheme to 'NoColor'"""
         if args.export:
             fname, name, format = current.parse_filename(args.filename)
             cells = []
-            hist = list(self.history_manager.get_range())
+            hist = list(self.shell.history_manager.get_range())
             for session, prompt_number, input in hist[:-1]:
-                cells.append(current.new_code_cell(prompt_number=prompt_number, input=input))
+                cells.append(current.new_code_cell(prompt_number=prompt_number,
+                                                   input=input))
             worksheet = current.new_worksheet(cells=cells)
             nb = current.new_notebook(name=name,worksheets=[worksheet])
             with io.open(fname, 'w', encoding='utf-8') as f:

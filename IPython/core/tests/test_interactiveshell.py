@@ -343,7 +343,7 @@ class TestSafeExecfileNonAsciiPath(unittest.TestCase):
     def test_1(self):
         """Test safe_execfile with non-ascii path
         """
-        _ip.shell.safe_execfile(self.fname, {}, raise_exceptions=True)
+        _ip.safe_execfile(self.fname, {}, raise_exceptions=True)
 
 
 class TestSystemRaw(unittest.TestCase):
@@ -351,7 +351,7 @@ class TestSystemRaw(unittest.TestCase):
         """Test system_raw with non-ascii cmd
         """
         cmd = ur'''python -c "'åäö'"   '''
-        _ip.shell.system_raw(cmd)
+        _ip.system_raw(cmd)
 
 
 def test__IPYTHON__():

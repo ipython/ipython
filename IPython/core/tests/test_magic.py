@@ -51,7 +51,7 @@ def test_magic_parse_options():
     """Test that we don't mangle paths when parsing magic options."""
     ip = get_ipython()
     path = 'c:\\x'
-    opts = ip.parse_options('-f %s' % path,'f:')[0]
+    opts = ip._magic.parse_options('-f %s' % path,'f:')[0]
     # argv splitting is os-dependent
     if os.name == 'posix':
         expected = 'c:x'
@@ -284,8 +284,8 @@ def test_parse_options():
     """Tests for basic options parsing in magics."""
     # These are only the most minimal of tests, more should be added later.  At
     # the very least we check that basic text/unicode calls work OK.
-    nt.assert_equal(_ip.parse_options('foo', '')[1], 'foo')
-    nt.assert_equal(_ip.parse_options(u'foo', '')[1], u'foo')
+    nt.assert_equal(_ip._magic.parse_options('foo', '')[1], 'foo')
+    nt.assert_equal(_ip._magic.parse_options(u'foo', '')[1], u'foo')
 
     
 def test_dirops():
@@ -326,7 +326,7 @@ def test_reset_hard():
     _ip.run_cell("a")
     
     nt.assert_equal(monitor, [])
-    _ip.magic_reset("-f")
+    _ip.magic("reset -f")
     nt.assert_equal(monitor, [1])
     
 class TestXdel(tt.TempFileMixin):
@@ -388,7 +388,7 @@ def test_whos():
 def doctest_precision():
     """doctest for %precision
     
-    In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
+    In [1]: f = get_ipython().display_formatter.formatters['text/plain']
     
     In [2]: %precision 5
     Out[2]: {u}'%.5f'
@@ -422,7 +422,7 @@ def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     _ip.magic("timeit ('#')")
 
-@dec.skipif(_ip.magic_prun == _ip.profile_missing_notice)
+@dec.skipif(_ip._magic.magic_prun == _ip._magic.profile_missing_notice)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.magic("prun -q x = '\t'")

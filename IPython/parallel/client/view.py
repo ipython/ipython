@@ -815,7 +815,7 @@ class DirectView(View):
         else:
             pmagic = ip.plugin_manager.get_plugin('parallelmagic')
             if pmagic is None:
-                ip.magic_load_ext('parallelmagic')
+                ip.magic('load_ext parallelmagic')
                 pmagic = ip.plugin_manager.get_plugin('parallelmagic')
 
             pmagic.active_view = self

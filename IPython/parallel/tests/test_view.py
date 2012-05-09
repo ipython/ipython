@@ -374,21 +374,21 @@ class TestView(ClusterTestCase, ParametricTestCase):
         v.activate()
         v.block=True
 
-        ip.magic_px('a=5')
+        ip.magic('px a=5')
         self.assertEquals(v['a'], 5)
-        ip.magic_px('a=10')
+        ip.magic('px a=10')
         self.assertEquals(v['a'], 10)
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
         # just 'print a' worst ~99% of the time, but this ensures that
         # the stdout message has arrived when the result is finished:
-        ip.magic_px('import sys,time;print (a); sys.stdout.flush();time.sleep(0.2)')
+        ip.magic('px import sys,time;print (a); sys.stdout.flush();time.sleep(0.2)')
         sys.stdout = savestdout
         buf = sio.getvalue()
         self.assertTrue('[stdout:' in buf, buf)
         self.assertTrue(buf.rstrip().endswith('10'))
-        self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
+        self.assertRaisesRemote(ZeroDivisionError, ip.magic, 'px 1/0')
 
     def test_magic_px_nonblocking(self):
         ip = get_ipython()
@@ -396,18 +396,18 @@ class TestView(ClusterTestCase, ParametricTestCase):
         v.activate()
         v.block=False
 
-        ip.magic_px('a=5')
+        ip.magic('px a=5')
         self.assertEquals(v['a'], 5)
-        ip.magic_px('a=10')
+        ip.magic('px a=10')
         self.assertEquals(v['a'], 10)
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
-        ip.magic_px('print a')
+        ip.magic('px print a')
         sys.stdout = savestdout
         buf = sio.getvalue()
         self.assertFalse('[stdout:%i]'%v.targets in buf)
-        ip.magic_px('1/0')
+        ip.magic('px 1/0')
         ar = v.get_result(-1)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
     
@@ -420,12 +420,12 @@ class TestView(ClusterTestCase, ParametricTestCase):
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
-        ip.magic_autopx()
+        ip.magic('autopx')
         ip.run_cell('\n'.join(('a=5','b=10','c=0')))
         ip.run_cell('b*=2')
         ip.run_cell('print (b)')
         ip.run_cell("b/c")
-        ip.magic_autopx()
+        ip.magic('autopx')
         sys.stdout = savestdout
         output = sio.getvalue().strip()
         self.assertTrue(output.startswith('%autopx enabled'))
@@ -445,13 +445,13 @@ class TestView(ClusterTestCase, ParametricTestCase):
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
-        ip.magic_autopx()
+        ip.magic('autopx')
         ip.run_cell('\n'.join(('a=5','b=10','c=0')))
         ip.run_cell('print (b)')
         ip.run_cell('import time; time.sleep(0.1)')
         ip.run_cell("b/c")
         ip.run_cell('b*=2')
-        ip.magic_autopx()
+        ip.magic('autopx')
         sys.stdout = savestdout
         output = sio.getvalue().strip()
         self.assertTrue(output.startswith('%autopx enabled'))
@@ -472,10 +472,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         v['a'] = 111
         ra = v['a']
         
-        ar = ip.magic_result()
+        ar = ip.magic('result')
         self.assertEquals(ar.msg_ids, [v.history[-1]])
         self.assertEquals(ar.get(), 111)
-        ar = ip.magic_result('-2')
+        ar = ip.magic('result -2')
         self.assertEquals(ar.msg_ids, [v.history[-2]])
     
     def test_unicode_execute(self):
