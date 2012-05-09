@@ -257,11 +257,11 @@ div.text_cell_render {
 .ansigrey {color: grey;}
 .ansibold {font-weight: bold;}
 
-.completions , .tooltip {
+.completions {
     position: absolute;
     z-index: 10;
     overflow: auto;
-    border: 1px solid black;
+    border: 1px solid grey;
 }
 
 .completions select {
