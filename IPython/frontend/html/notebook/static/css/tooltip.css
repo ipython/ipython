@@ -16,6 +16,11 @@
  * have some strange ccs to have the scroll bar on
  * the left of the left with fix button on the top right of the tooltip
  */
+.dropshadow {
+  -moz-box-shadow: 0px 6px 10px -1px #adadad;
+  -webkit-box-shadow: 0px 6px 10px -1px #adadad;
+  box-shadow: 0px 6px 10px -1px #adadad;
+}
 @-moz-keyframes fadeOut {
   from {
     opacity: 1;
@@ -87,8 +92,10 @@
 }
 .tooltip {
   max-width: 700px;
-  border-radius: 10px 10px 10px 10px;
-  box-shadow: 3px 3px 5px #999;
+  border-radius: 4px;
+  -moz-box-shadow: 0px 6px 10px -1px #adadad;
+  -webkit-box-shadow: 0px 6px 10px -1px #adadad;
+  box-shadow: 0px 6px 10px -1px #adadad;
   /*fade-in animation when inserted*/
 
   -webkit-animation: fadeOut 800ms;
@@ -99,12 +106,6 @@
   animation: fadeIn 800ms;
   vertical-align: middle;
   background-color: #f7f7f7;
-  background-image: -webkit-linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
-  background-image: -webkit-gradient(linear, left bottom, left top, color-stop(13%, #d7d7d7), color-stop(39%, #d2d2d2), color-stop(56%, #e3e3e3), color-stop(91%, #f7f7f7));
-  background-image: -moz-linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
-  background-image: -ms-linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
-  background-image: -o-linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
-  background-image: linear-gradient(center bottom, #d7d7d7 13%, #d2d2d2 39%, #e3e3e3 56%, #f7f7f7 91%);
   overflow: visible;
   color: #000000;
   border: #bbbbbb 1px solid;
