@@ -126,9 +126,9 @@ var IPython = (function (IPython) {
         this.tabs_functions = [  function(cell,text){that._request_tooltip(cell,text)},
                                  function(){that.expand()},
                                  function(){that.stick()},
-                                 function(){
+                                 function(cell){
                                     that.cancel_stick();
-                                    that.showInPager();
+                                    that.showInPager(cell);
                                     that._cmfocus();
                                     }
                                 ];
@@ -141,13 +141,16 @@ var IPython = (function (IPython) {
         }
     };
 
-    Tooltip.prototype.showInPager = function()
+    Tooltip.prototype.showInPager = function(cell)
     {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var callbacks = {'execute_reply': $.proxy(that._handle_execute_reply,that)}
-        var msg_id = IPython.notebook.kernel.execute(this.name+"?", callbacks);
-
+        var empty = function(){};
+        IPython.notebook.kernel.execute(
+                that.name+'?',
+                {'execute_reply':empty,'output':empty,'clear_output':empty,'cell':cell},
+                {'silent':false}
+                );
         this.remove_and_cancel_tooltip();
         this._cmfocus();
     }
@@ -270,7 +273,6 @@ var IPython = (function (IPython) {
     // cancel the option of having the tooltip to stick
     Tooltip.prototype.cancel_stick = function()
     {
-            console.log('cancel stick');
             clearTimeout(this._stick_timeout);
             this._stick_timeout = null;
             this._clocklink.hide('slow');
