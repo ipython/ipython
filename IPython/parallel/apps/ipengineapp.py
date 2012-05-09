@@ -45,9 +45,10 @@ from IPython.zmq.session import (
 from IPython.config.configurable import Configurable
 
 from IPython.parallel.engine.engine import EngineFactory
-from IPython.parallel.util import disambiguate_url, asbytes
+from IPython.parallel.util import disambiguate_url
 
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import Bool, Unicode, Dict, List, Float
 
 
@@ -203,7 +204,7 @@ class IPEngineApp(BaseParallelApplication):
             d = json.loads(f.read())
         
         if 'exec_key' in d:
-            config.Session.key = asbytes(d['exec_key'])
+            config.Session.key = cast_bytes(d['exec_key'])
         
         try:
             config.EngineFactory.location

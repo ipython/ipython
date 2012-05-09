@@ -124,12 +124,6 @@ def log_errors(f, self, *args, **kwargs):
         self.log.error("Uncaught exception in %r" % f, exc_info=True)
     
 
-def asbytes(s):
-    """ensure that an object is ascii bytes"""
-    if isinstance(s, unicode):
-        s = s.encode('ascii')
-    return s
-
 def is_url(url):
     """boolean check for whether a string is a zmq url"""
     if '://' not in url:

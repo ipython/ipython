@@ -27,11 +27,11 @@ from IPython.external.ssh import tunnel
 from IPython.utils.traitlets import (
     Instance, Dict, Integer, Type, CFloat, Unicode, CBytes, Bool
 )
-from IPython.utils import py3compat
+from IPython.utils.py3compat import cast_bytes
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.util import disambiguate_url, asbytes
+from IPython.parallel.util import disambiguate_url
 
 from IPython.zmq.session import Message
 from IPython.zmq.ipkernel import Kernel
@@ -69,7 +69,7 @@ class EngineFactory(RegistrationFactory):
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
-        self.bident = asbytes(new)
+        self.bident = cast_bytes(new)
     using_ssh=Bool(False)
 
 
@@ -194,12 +194,12 @@ class EngineFactory(RegistrationFactory):
             # Redirect input streams and set a display hook.
             if self.out_stream_factory:
                 sys.stdout = self.out_stream_factory(self.session, iopub_socket, u'stdout')
-                sys.stdout.topic = py3compat.cast_bytes('engine.%i.stdout' % self.id)
+                sys.stdout.topic = cast_bytes('engine.%i.stdout' % self.id)
                 sys.stderr = self.out_stream_factory(self.session, iopub_socket, u'stderr')
-                sys.stderr.topic = py3compat.cast_bytes('engine.%i.stderr' % self.id)
+                sys.stderr.topic = cast_bytes('engine.%i.stderr' % self.id)
             if self.display_hook_factory:
                 sys.displayhook = self.display_hook_factory(self.session, iopub_socket)
-                sys.displayhook.topic = py3compat.cast_bytes('engine.%i.pyout' % self.id)
+                sys.displayhook.topic = cast_bytes('engine.%i.pyout' % self.id)
 
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,

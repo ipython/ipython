@@ -28,6 +28,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (
         HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
@@ -441,7 +442,7 @@ class Hub(SessionFactory):
         for t in targets:
             # map raw identities to ids
             if isinstance(t, (str,unicode)):
-                t = self.by_ident.get(t, t)
+                t = self.by_ident.get(cast_bytes(t), t)
             _targets.append(t)
         targets = _targets
         bad_targets = [ t for t in targets if t not in self.ids ]
@@ -719,8 +720,8 @@ class Hub(SessionFactory):
             self.unassigned.remove(msg_id)
 
         header = msg['header']
-        engine_uuid = header.get('engine', None)
-        eid = self.by_ident.get(engine_uuid, None)
+        engine_uuid = header.get('engine', u'')
+        eid = self.by_ident.get(cast_bytes(engine_uuid), None)
         
         status = header.get('status', None)
 
@@ -763,7 +764,7 @@ class Hub(SessionFactory):
         # print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
-        eid = self.by_ident[util.asbytes(engine_uuid)]
+        eid = self.by_ident[cast_bytes(engine_uuid)]
 
         self.log.info("task::task %r arrived on %r", msg_id, eid)
         if msg_id in self.unassigned:
@@ -853,13 +854,13 @@ class Hub(SessionFactory):
         """Register a new engine."""
         content = msg['content']
         try:
-            queue = util.asbytes(content['queue'])
+            queue = cast_bytes(content['queue'])
         except KeyError:
             self.log.error("registration::queue not specified", exc_info=True)
             return
         heart = content.get('heartbeat', None)
         if heart:
-            heart = util.asbytes(heart)
+            heart = cast_bytes(heart)
         """register a new engine, and create the socket(s) necessary"""
         eid = self._next_id
         # print (eid, queue, reg, heart)

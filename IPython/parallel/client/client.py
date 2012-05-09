@@ -36,6 +36,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
+from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
@@ -370,7 +371,7 @@ class Client(HasTraits):
             if os.path.isfile(exec_key):
                 extra_args['keyfile'] = exec_key
             else:
-                exec_key = util.asbytes(exec_key)
+                exec_key = cast_bytes(exec_key)
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
 
@@ -468,7 +469,7 @@ class Client(HasTraits):
         if not isinstance(targets, (tuple, list, xrange)):
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
 
-        return [util.asbytes(self._engines[t]) for t in targets], list(targets)
+        return [cast_bytes(self._engines[t]) for t in targets], list(targets)
 
     def _connect(self, sshserver, ssh_kwargs, timeout):
         """setup all our socket connections to the cluster. This is called from
