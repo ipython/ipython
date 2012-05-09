@@ -38,11 +38,18 @@ class TryNext(IPythonCoreError):
     should be used to handle the operation.  If you pass arguments to the
     constructor those arguments will be used by the next hook instead of the
     original ones.
+    
+    A _msg argument will not be passed on, so it can be used as a displayable
+    error message.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, _msg="", *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
+        self.msg = _msg
+    
+    def __str__(self):
+        return str(self.msg)
 
 class UsageError(IPythonCoreError):
     """Error in magic function arguments, etc.
