@@ -22,15 +22,15 @@ var IPython = (function (IPython) {
                         containment: 'window',
                         axis:'y',
                         helper: null ,
-                        drag: function(event,ui){
+                        drag: function(event, ui) {
                             // recalculate the amount of space the pager should take
-                            var pheight =($(body).height()-event.clientY-4);
+                            var pheight = ($(body).height()-event.clientY-4);
                             var downprct = pheight/IPython.layout_manager.app_height();
-                                downprct = Math.min(0.9,downprct);
-                            if(downprct < 0.1) {
+                                downprct = Math.min(0.9, downprct);
+                            if (downprct < 0.1) {
                                 that.percentage_height = 0.1;
                                 that.collapse({'duration':0});
-                            } else if(downprct > 0.2) {
+                            } else if (downprct > 0.2) {
                                 that.percentage_height = downprct;
                                 that.expand({'duration':0});
                             }
@@ -52,12 +52,12 @@ var IPython = (function (IPython) {
     Pager.prototype.bind_events = function () {
         var that = this;
 
-        this.pager_element.bind('collapse_pager', function (event,extrap) {
+        this.pager_element.bind('collapse_pager', function (event, extrap) {
             time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             that.pager_element.hide(time);
         });
 
-        this.pager_element.bind('expand_pager', function (event,extrap) {
+        this.pager_element.bind('expand_pager', function (event, extrap) {
             time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             that.pager_element.show(time);
         });
@@ -81,7 +81,7 @@ var IPython = (function (IPython) {
     Pager.prototype.collapse = function (extrap) {
         if (this.expanded === true) {
             this.expanded = false;
-            this.pager_element.add($('div#notebook')).trigger('collapse_pager',extrap);
+            this.pager_element.add($('div#notebook')).trigger('collapse_pager', extrap);
         };
     };
 
@@ -89,7 +89,7 @@ var IPython = (function (IPython) {
     Pager.prototype.expand = function (extrap) {
         if (this.expanded !== true) {
             this.expanded = true;
-            this.pager_element.add($('div#notebook')).trigger('expand_pager',extrap);
+            this.pager_element.add($('div#notebook')).trigger('expand_pager', extrap);
         };
     };
 
