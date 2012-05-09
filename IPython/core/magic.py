@@ -49,7 +49,6 @@ from IPython.core.error import StdinNotImplementedError
 from IPython.core.macro import Macro
 from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
-from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
@@ -124,6 +123,8 @@ class Magic(object):
 
 
     configurables = None
+
+    default_runner = None
     #......................................................................
     # some utility functions
 
@@ -1795,6 +1796,8 @@ Currently the magic system has the following functions:\n"""
                             # user (run by exec in pdb itself).
                             self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
                     else:
+                        if runner is None:
+                            runner = self.default_runner
                         if runner is None:
                             runner = self.shell.safe_execfile
                         if 't' in opts:
@@ -3548,16 +3551,6 @@ Defaulting color scheme to 'NoColor'"""
             "with the default config files.",
             "Add `--reset` to overwrite already existing config files with defaults."
         ])
-
-    # Pylab support: simple wrappers that activate pylab, load gui input
-    # handling and modify slightly %run
-
-    @skip_doctest
-    def _pylab_magic_run(self, parameter_s=''):
-        Magic.magic_run(self, parameter_s,
-                        runner=mpl_runner(self.shell.safe_execfile))
-
-    _pylab_magic_run.__doc__ = magic_run.__doc__
 
     @skip_doctest
     def magic_pylab(self, s):

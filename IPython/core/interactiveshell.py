@@ -2674,7 +2674,7 @@ class InteractiveShell(SingletonConfigurable):
           make sense in all contexts, for example a terminal ipython can't
           display figures inline.
         """
-
+        from IPython.core.pylabtools import mpl_runner
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
@@ -2690,7 +2690,7 @@ class InteractiveShell(SingletonConfigurable):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
-        self._magic.magic_run = self._pylab_magic_run
+        self._magic.default_runner = mpl_runner(self.safe_execfile)
 
     #-------------------------------------------------------------------------
     # Utilities

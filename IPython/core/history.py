@@ -924,6 +924,7 @@ def magic_rep(self, arg):
         self.set_next_input(cmd.rstrip())
     print("Couldn't evaluate or find in history:", arg)
 
+
 def magic_rerun(self, parameter_s=''):
     """Re-run previous input
 
@@ -969,8 +970,8 @@ def init_ipython(ip):
     ip.define_magic("rep", magic_rep)
     ip.define_magic("recall", magic_rep)
     ip.define_magic("rerun", magic_rerun)
-    ip.define_magic("hist",magic_history)    # Alternative name
-    ip.define_magic("history",magic_history)
+    ip.define_magic("hist", magic_history)    # Alternative name
+    ip.define_magic("history", magic_history)
 
     # XXX - ipy_completers are in quarantine, need to be updated to new apis
     #import ipy_completers
