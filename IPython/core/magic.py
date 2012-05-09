@@ -179,30 +179,6 @@ python-profiler package from non-free.""")
         out.sort()
         return out
 
-    def extract_input_lines(self, range_str, raw=False):
-        """Return as a string a set of input history slices.
-
-        Parameters
-        ----------
-        range_str : string
-            The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
-            since this function is for use by magic functions which get their
-            arguments as strings. The number before the / is the session
-            number: ~n goes n back from the current session.
-
-        Optional Parameters:
-          - raw(False): by default, the processed input is used.  If this is
-          true, the raw input history is used instead.
-
-        Note that slices can be called with two notations:
-
-        N:M -> standard python form, means including items N...(M-1).
-
-        N-M -> include items N..M (closed endpoint)."""
-        lines = self.shell.history_manager.\
-                                    get_range_by_str(range_str, raw=raw)
-        return "\n".join(x for _, _, x in lines)
-
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
         print 'Error in arguments:'
@@ -2370,7 +2346,7 @@ Currently the magic system has the following functions:\n"""
             use_temp = False
         elif args:
             # Mode where user specifies ranges of lines, like in %macro.
-            data = self.extract_input_lines(args, opts_raw)
+            data = self.shell.extract_input_lines(args, opts_raw)
             if not data:
                 try:
                     # Load the parameter given as a variable. If not a string,

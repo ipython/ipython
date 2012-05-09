@@ -2754,6 +2754,29 @@ class InteractiveShell(SingletonConfigurable):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
 
+    def extract_input_lines(self, range_str, raw=False):
+        """Return as a string a set of input history slices.
+
+        Parameters
+        ----------
+        range_str : string
+            The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
+            since this function is for use by magic functions which get their
+            arguments as strings. The number before the / is the session
+            number: ~n goes n back from the current session.
+
+        Optional Parameters:
+          - raw(False): by default, the processed input is used.  If this is
+          true, the raw input history is used instead.
+
+        Note that slices can be called with two notations:
+
+        N:M -> standard python form, means including items N...(M-1).
+
+        N-M -> include items N..M (closed endpoint)."""
+        lines = self.history_manager.get_range_by_str(range_str, raw=raw)
+        return "\n".join(x for _, _, x in lines)
+
     def find_user_code(self, target, raw=True, py_only=False):
         """Get a code string from history, file, url, or a string or macro.
 
