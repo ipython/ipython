@@ -2053,7 +2053,7 @@ class InteractiveShell(SingletonConfigurable):
 
           ip.define_magic('foo',foo_impl)
         """
-        im = types.MethodType(func,self)
+        im = types.MethodType(func, self._magic)
         old = self.find_magic(magic_name)
         setattr(self._magic, 'magic_' + magic_name, im)
         return old

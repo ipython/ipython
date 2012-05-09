@@ -53,7 +53,8 @@ class DummyDB(object):
     
     def __exit__(self, *args, **kwargs):
         pass
-    
+
+
 @decorator
 def needs_sqlite(f,*a,**kw):
     """return an empty list in the absence of sqlite"""
@@ -61,6 +62,7 @@ def needs_sqlite(f,*a,**kw):
         return []
     else:
         return f(*a,**kw)
+
 
 class HistoryAccessor(Configurable):
     """Access the history database without adding to it.
@@ -83,7 +85,6 @@ class HistoryAccessor(Configurable):
             ipython --HistoryManager.hist_file=/tmp/ipython_hist.sqlite
         
         """)
-
 
     # The SQLite database
     if sqlite3:
@@ -676,6 +677,7 @@ range_re = re.compile(r"""
  (?P<end>\d+))?
 $""", re.VERBOSE)
 
+
 def extract_hist_ranges(ranges_str):
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
@@ -708,11 +710,13 @@ def extract_hist_ranges(ranges_str):
             yield (sess, 1, None)
         yield (endsess, 1, end)
 
+
 def _format_lineno(session, line):
     """Helper function to format line numbers properly."""
     if session == 0:
         return str(line)
     return "%s#%s" % (session, line)
+
 
 @skip_doctest
 def magic_history(self, parameter_s = ''):
@@ -902,13 +906,13 @@ def magic_rep(self, arg):
     placed at the next input prompt.
     """
     if not arg:                 # Last output
-        self.set_next_input(str(self.shell.user_ns["_"]))
+        self.shell.set_next_input(str(self.shell.user_ns["_"]))
         return
                                 # Get history range
     histlines = self.history_manager.get_range_by_str(arg)
     cmd = "\n".join(x[2] for x in histlines)
     if cmd:
-        self.set_next_input(cmd.rstrip())
+        self.shell.set_next_input(cmd.rstrip())
         return
 
     try:                        # Variable in user namespace
@@ -918,10 +922,10 @@ def magic_rep(self, arg):
         for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
-            self.set_next_input(h.rstrip())
+            self.shell.set_next_input(h.rstrip())
             return
     else:
-        self.set_next_input(cmd.rstrip())
+        self.shell.set_next_input(cmd.rstrip())
     print("Couldn't evaluate or find in history:", arg)
 
 
