@@ -1752,7 +1752,7 @@ Currently the magic system has the following functions:\n"""
 
         try:
             stats = None
-            with self.readline_no_record:
+            with self.shell.readline_no_record:
                 if 'p' in opts:
                     stats = self.magic_prun('', 0, opts, arg_lst, prog_ns)
                 else:
@@ -2796,7 +2796,7 @@ Defaulting color scheme to 'NoColor'"""
 
         par = parameter_s.strip()
         if not par:
-            stored = self.db.get('stored_aliases', {} )
+            stored = self.shell.db.get('stored_aliases', {} )
             aliases = sorted(self.shell.alias_manager.aliases)
             # for k, v in stored:
             #     atab.append(k, v[0])
@@ -2819,11 +2819,11 @@ Defaulting color scheme to 'NoColor'"""
 
         aname = parameter_s.strip()
         self.shell.alias_manager.undefine_alias(aname)
-        stored = self.db.get('stored_aliases', {} )
+        stored = self.shell.db.get('stored_aliases', {} )
         if aname in stored:
             print "Removing %stored alias",aname
             del stored[aname]
-            self.db['stored_aliases'] = stored
+            self.shell.db['stored_aliases'] = stored
 
     def magic_rehashx(self, parameter_s = ''):
         """Update the alias table with all executable files in $PATH.
@@ -3036,7 +3036,7 @@ Defaulting color scheme to 'NoColor'"""
                 dhist = self.shell.user_ns['_dh']
                 if oldcwd != cwd:
                     dhist.append(cwd)
-                    self.db['dhist'] = compress_dhist(dhist)[-100:]
+                    self.shell.db['dhist'] = compress_dhist(dhist)[-100:]
 
         else:
             os.chdir(self.shell.home_dir)
@@ -3305,7 +3305,7 @@ Defaulting color scheme to 'NoColor'"""
         if len(args) > 2:
             raise UsageError("%bookmark: too many arguments")
 
-        bkms = self.db.get('bookmarks',{})
+        bkms = self.shell.db.get('bookmarks',{})
 
         if opts.has_key('d'):
             try:
@@ -3340,7 +3340,7 @@ Defaulting color scheme to 'NoColor'"""
                 bkms[args[0]] = os.getcwdu()
             elif len(args)==2:
                 bkms[args[0]] = args[1]
-        self.db['bookmarks'] = bkms
+        self.shell.db['bookmarks'] = bkms
 
 
     def magic_pycat(self, parameter_s=''):
