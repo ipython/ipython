@@ -637,6 +637,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def init_prompts(self):
         self.prompt_manager = PromptManager(shell=self, config=self.config)
         self.configurables.append(self.prompt_manager)
+        # Set system prompts, so that scripts can decide if they are running
+        # interactively.
+        sys.ps1 = 'In : '
+        sys.ps2 = '...: '
+        sys.ps3 = 'Out: '
 
     def init_display_formatter(self):
         self.display_formatter = DisplayFormatter(config=self.config)
