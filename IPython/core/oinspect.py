@@ -457,7 +457,7 @@ class Inspector:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
-            page.page(self.format(open(ofile).read()), lineno-1)
+            page.page(self.format(io.source_to_unicode(open(ofile).read())), lineno-1)
 
     def _format_fields(self, fields, title_width=12):
         """Formats a list of fields for display.
