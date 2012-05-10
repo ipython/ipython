@@ -11,7 +11,7 @@ var IPython = (function (IPython) {
     // what is the common start of all completions
 
 
-    function sharedStart(B) {
+    function shared_start(B) {
         if (B.length == 1) {
             return B[0];
         }
@@ -64,10 +64,10 @@ var IPython = (function (IPython) {
         if (this.editor.somethingSelected()) return;
         this.done = false;
         // use to get focus back on opera
-        this.carryOnCompletion(true);
+        this.carry_on_completion(true);
     };
 
-    Completer.prototype.carryOnCompletion = function (ff) {
+    Completer.prototype.carry_on_completion = function (ff) {
         // Pass true as parameter if you want the commpleter to autopick when
         // only one completion. This function is automatically reinvoked at
         // each keystroke with ff = false
@@ -244,7 +244,7 @@ var IPython = (function (IPython) {
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
             // to erase py
-            var sh = sharedStart(this.raw_result);
+            var sh = shared_start(this.raw_result);
             if (sh) {
                 this.insert(sh);
             }
@@ -253,7 +253,7 @@ var IPython = (function (IPython) {
             this.editor.focus();
             //reinvoke self
             setTimeout(function () {
-                that.carryOnCompletion();
+                that.carry_on_completion();
             }, 50);
         } else if (code == key.upArrow || code == key.downArrow) {
             // need to do that to be able to move the arrow
@@ -264,7 +264,7 @@ var IPython = (function (IPython) {
             this.editor.focus();
             //we give focus to the editor immediately and call sell in 50 ms
             setTimeout(function () {
-                that.carryOnCompletion();
+                that.carry_on_completion();
             }, 50);
         }
     }
