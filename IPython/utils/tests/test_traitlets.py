@@ -21,6 +21,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import re
 import sys
 from unittest import TestCase
 
@@ -30,7 +31,7 @@ from IPython.utils.traitlets import (
     HasTraits, MetaHasTraits, TraitType, Any, CBytes,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
-    ObjectName, DottedObjectName
+    ObjectName, DottedObjectName, CRegExp
 )
 from IPython.utils import py3compat
 from IPython.testing.decorators import skipif
@@ -890,3 +891,18 @@ class TestMultiTuple(TraitTestBase):
     _default_value = (99,b'bottles')
     _good_values = [(1,b'a'), (2,b'b')]
     _bad_values = ((),10, b'a', (1,b'a',3), (b'a',1), (1, u'a'))
+
+class CRegExpTrait(HasTraits):
+
+    value = CRegExp(r'')
+
+class TestCRegExp(TraitTestBase):
+
+    def coerce(self, value):
+        return re.compile(value)
+
+    obj = CRegExpTrait()
+
+    _default_value = re.compile(r'')
+    _good_values = [r'\d+', re.compile(r'\d+')]
+    _bad_values = [r'(', None, ()]
