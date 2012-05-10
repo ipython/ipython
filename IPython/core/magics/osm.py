@@ -31,7 +31,7 @@ from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.io import file_read, nlprint
+from IPython.utils.io import file_read, nlprint, source_to_unicode
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
@@ -691,7 +691,7 @@ class OSMagics(Magics):
             print "Error: no such file, variable, URL, history range or macro"
             return
 
-        page.page(self.shell.pycolorize(cont))
+        page.page(self.shell.pycolorize(source_to_unicode(cont)))
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(

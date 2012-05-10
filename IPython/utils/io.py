@@ -14,6 +14,7 @@ from __future__ import print_function
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import re
 import os
 import sys
 import tempfile
@@ -153,6 +154,23 @@ class Tee(object):
         if not self._closed:
             self.close()
 
+
+def source_to_unicode(txt):
+    """Converts string with python source code to unicode
+    """
+    if isinstance(txt, unicode):
+        return txt
+    
+    reg = re.compile("#.*coding[:=]\s*([-\w.]+)")
+    for row in txt.split("\n", 2)[:2]: #We only need to check the first two lines
+        result = reg.match(row)
+        if result:
+            coding = result.groups()[0]
+            break
+    else:
+        coding = "ascii"
+    return txt.decode(coding, errors="replace")
+    
 
 def file_read(filename):
     """Read a file and close it.  Returns the file source."""
