@@ -95,8 +95,43 @@ class Plot():
             selection: { mode: "xy" },
             legend: { position:\"""" + self.legendloc + """\"},
             };
-            $.plot($("#placeholder""" + str(self.nplots) + """"), [ """ + label + """],options);
-            this.kernel.execute("print 'blah'")
+            
+            var plot""" + str(self.nplots) + """ = $.plot($("#placeholder""" + str(self.nplots) + """"), [ """ + label + """],options);
+            var minx""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().xaxis.min;
+            var maxx""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().xaxis.max;
+            var miny""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().yaxis.min;
+            var maxy""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().yaxis.max;
+            
+            var iminx""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().xaxis.min;
+            var imaxx""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().xaxis.max;
+            var iminy""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().yaxis.min;
+            var imaxy""" + str(self.nplots) + """  = plot""" + str(self.nplots) + """.getAxes().yaxis.max;            
+            
+            $("#placeholder""" + str(self.nplots) + """").bind("plotselected", function (event, ranges) {
+                minx""" + str(self.nplots) + """  = ranges.xaxis.from;
+                maxx""" + str(self.nplots) + """  = ranges.xaxis.to;
+                miny""" + str(self.nplots) + """  = ranges.yaxis.from;
+                maxy""" + str(self.nplots) + """  = ranges.yaxis.to;
+            });
+            
+
+            $("#zoom""" + str(self.nplots) + """").click(function() {
+                $.plot($("#placeholder""" + str(self.nplots) + """"), plot""" + str(self.nplots) + """.getData(),
+                      $.extend(true, {}, options, {
+                          xaxis: { min: minx""" + str(self.nplots) + """ , max: maxx""" + str(self.nplots) + """  },
+                          yaxis: { min: miny""" + str(self.nplots) + """ , max: maxy""" + str(self.nplots) + """  }
+                }));
+
+            });
+            
+            $("#home""" + str(self.nplots) + """").click(function() {
+                $.plot($("#placeholder""" + str(self.nplots) + """"), plot""" + str(self.nplots) + """.getData(),
+                      $.extend(true, {}, options, {
+                          xaxis: { min: iminx""" + str(self.nplots) + """ , max: imaxx""" + str(self.nplots) + """  },
+                          yaxis: { min: iminy""" + str(self.nplots) + """ , max: imaxy""" + str(self.nplots) + """  }
+                }));
+
+            });
             """
         else:
             print("No data given to plot")
@@ -110,6 +145,7 @@ class Plot():
         src = """
         <div id="placeholder""" + str(self.nplots) + """"" style="width:
         """ + str(self.pixelsx) + """px;height:""" + str(self.pixelsy) + """px;"></div>
+        <input id="home""" + str(self.nplots) + """" type="button" value="home"> <input id="zoom""" + str(self.nplots) + """" type="button" value="zoom to selection">
         """
         IPython.core.display.display_html(IPython.core.display.HTML(data=src))
 
