@@ -84,27 +84,27 @@ var IPython = (function (IPython) {
                 that.save_notebook();
                 event.preventDefault();
                 return false;
-            } else if (event.which === key.esc) {
+            } else if (event.which === key.ESC) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
                 event.preventDefault();
             }
-            if (event.which === key.upArrow && !event.shiftKey) {
+            if (event.which === key.UPARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
                 if (cell.at_top()) {
                     event.preventDefault();
                     that.select_prev();
                 };
-            } else if (event.which === key.downArrow && !event.shiftKey) {
+            } else if (event.which === key.DOWNARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
                 if (cell.at_bottom()) {
                     event.preventDefault();
                     that.select_next();
                 };
-            } else if (event.which === key.enter && event.shiftKey) {
+            } else if (event.which === key.ENTER && event.shiftKey) {
                 that.execute_selected_cell();
                 return false;
-            } else if (event.which === key.enter && event.ctrlKey) {
+            } else if (event.which === key.ENTER && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
             } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {

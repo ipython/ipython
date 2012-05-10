@@ -227,19 +227,19 @@ var IPython = (function (IPython) {
         var code = event.keyCode;
         var that = this;
         // Enter
-        if (code == key.enter) {
+        if (code == key.ENTER) {
             CodeMirror.e_stop(event);
             this.pick();
         }
         // Escape or backspace
-        else if (code == key.esc) {
+        else if (code == key.ESC) {
             CodeMirror.e_stop(event);
             this.close();
             this.editor.focus();
-        } else if (code == key.space || code == key.backspace) {
+        } else if (code == key.SPACE || code == key.BACKSPACE) {
             this.close();
             this.editor.focus();
-        } else if (code == key.tab) {
+        } else if (code == key.TAB) {
             //all the fastforwarding operation,
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
@@ -255,11 +255,11 @@ var IPython = (function (IPython) {
             setTimeout(function () {
                 that.carry_on_completion();
             }, 50);
-        } else if (code == key.upArrow || code == key.downArrow) {
+        } else if (code == key.UPARROW || code == key.DOWNARROW) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.stopPropagation();
-        } else if (code != key.upArrow && code != key.downArrow) {
+        } else if (code != key.UPARROW && code != key.DOWNARROW) {
             this.close();
             this.editor.focus();
             //we give focus to the editor immediately and call sell in 50 ms
