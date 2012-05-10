@@ -54,11 +54,18 @@ class Plot():
             if type(data[0]) == list or ('numpy' in str(type(data[0])) and data[0].shape != () ):           
                 n = len(data)
                 for index,item in enumerate(data):
-                    d += "var d"+str(index)+" ="+ encoder.encode(zip(item,data1[index])) +";\n"                 
-                    if label is not None and type(label) == list:
-                        labelstring += "{ label:\"" +label[index] + "\", data:d" + str(index) + " },"
+                    if data1 is not None:
+                        d += "var d"+str(index)+" ="+ encoder.encode(zip(item,data1[index])) +";\n"                 
+                        if label is not None and type(label) == list:
+                            labelstring += "{ label:\"" +label[index] + "\", data:d" + str(index) + " },"
+                        else:
+                            labelstring += "{ data:d" + str(index) + " },"
                     else:
-                        labelstring += "{ data:d" + str(index) + " },"
+                        d += "var d"+str(index)+" ="+ encoder.encode(zip(item,range(len(item)))) +";\n"                 
+                        if label is not None and type(label) == list:
+                            labelstring += "{ label:\"" +label[index] + "\", data:d" + str(index) + " },"
+                        else:
+                            labelstring += "{ data:d" + str(index) + " },"
                 labelstring = string.rstrip(labelstring,",")
             else:
                 datastring = "var d1 = "
@@ -79,7 +86,7 @@ class Plot():
         '''
         This method plots the inputs data and data1 based on the following
         rules. If only data exists each array in that input field will be
-        plotted with the x-axis having interger values. If data exists
+        plotted with the x-axis having integer values. If data exists
         in both data and data1 it will be assumed to be of the format:
         [x0,x1,x2...]
         [y0,y1,y2...]
