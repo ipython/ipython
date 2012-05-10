@@ -57,8 +57,7 @@ class ZMQShellDisplayHook(DisplayHook):
 
     def write_output_prompt(self):
         """Write the output prompt."""
-        if self.do_full_cache:
-            self.msg['content']['execution_count'] = self.prompt_count
+        self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
         _encode_binary(format_dict)
