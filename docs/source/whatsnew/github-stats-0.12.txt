@@ -3,6 +3,98 @@
 Issues closed in the 0.12 development cycle
 ===========================================
 
+Issues closed in 0.12.1
+-----------------------
+
+GitHub stats for bugfix release 0.12.1 (12/28/2011-04/16/2012), backporting
+pull requests from 0.13.
+
+We closed a total of 71 issues: 44 pull requests and 27 issues; this is the
+full list (generated with the script `tools/github_stats.py`).
+
+This list is automatically generated, and may be incomplete:
+
+Pull Requests (44):
+
+* :ghpull:`1175`: core.completer: Clean up excessive and unused code.
+* :ghpull:`1187`: misc notebook: connection file cleanup, first heartbeat, startup flush
+* :ghpull:`1190`: Fix link to Chris Fonnesbeck blog post about 0.11 highlights.
+* :ghpull:`1196`: docs: looks like a file path might have been accidentally pasted in the middle of a word
+* :ghpull:`1206`: don't preserve fixConsole output in json
+* :ghpull:`1207`: fix loadpy duplicating newlines
+* :ghpull:`1213`: BUG: Minor typo in history_console_widget.py
+* :ghpull:`1218`: Added -q option to %prun for suppression of the output, along with editing the dochelp string.
+* :ghpull:`1222`: allow Reference as callable in map/apply
+* :ghpull:`1229`: Fix display of SyntaxError in Python 3
+* :ghpull:`1246`: Skip tests that require X, when importing pylab results in RuntimeError.
+* :ghpull:`1253`: set auto_create flag for notebook apps
+* :ghpull:`1257`: use self.kernel_manager_class in qtconsoleapp
+* :ghpull:`1262`: Heartbeat no longer shares the app's Context
+* :ghpull:`1283`: HeartMonitor.period should be an Integer
+* :ghpull:`1284`: a fix for GH 1269
+* :ghpull:`1289`: Make autoreload extension work on Python 3.
+* :ghpull:`1306`: Fix %prun input parsing for escaped characters (closes #1302)
+* :ghpull:`1312`: minor heartbeat tweaks
+* :ghpull:`1318`: make Ctrl-D in qtconsole act same as in terminal (ready to merge)
+* :ghpull:`1341`: Don't attempt to tokenize binary files for tracebacks
+* :ghpull:`1353`: Save notebook as script using unicode file handle.
+* :ghpull:`1363`: Fix some minor color/style config issues in the qtconsole
+* :ghpull:`1364`: avoid jsonlib returning Decimal
+* :ghpull:`1369`: load header with engine id when engine dies in TaskScheduler
+* :ghpull:`1370`: allow draft76 websockets (Safari)
+* :ghpull:`1374`: remove calls to meaningless ZMQStream.on_err
+* :ghpull:`1377`: Saving non-ascii history
+* :ghpull:`1396`: Fix for %tb magic.
+* :ghpull:`1402`: fix symlinked /home issue for FreeBSD
+* :ghpull:`1413`: get_home_dir expands symlinks, adjust test accordingly
+* :ghpull:`1414`: ignore errors in shell.var_expand
+* :ghpull:`1430`: Fix for tornado check for tornado < 1.1.0
+* :ghpull:`1445`: Don't build sphinx docs for sdists
+* :ghpull:`1463`: Fix completion when importing modules in the cwd.
+* :ghpull:`1477`: fix dangling `buffer` in IPython.parallel.util
+* :ghpull:`1495`: BUG: Fix pretty-printing for overzealous objects
+* :ghpull:`1496`: BUG: LBYL when clearing the output history on shutdown.
+* :ghpull:`1514`: DOC: Fix references to IPython.lib.pretty instead of the old location
+* :ghpull:`1517`: Fix indentation bug in IPython/lib/pretty.py
+* :ghpull:`1538`: store git commit hash in utils._sysinfo instead of hidden data file
+* :ghpull:`1599`: Fix for %run -d in Python 3
+* :ghpull:`1602`: Fix %env for Python 3
+* :ghpull:`1607`: cleanup sqlitedb temporary db file after tests
+
+Issues (27):
+
+* :ghissue:`676`: IPython.embed() from ipython crashes twice on exit
+* :ghissue:`846`: Autoreload extension doesn't work with Python 3.2
+* :ghissue:`1187`: misc notebook: connection file cleanup, first heartbeat, startup flush
+* :ghissue:`1191`: profile/startup files not executed with "notebook"
+* :ghissue:`1197`: Interactive shell trying to: from ... import history
+* :ghissue:`1198`: Kernel Has Died error in Notebook
+* :ghissue:`1201`: %env magic fails with Python 3.2
+* :ghissue:`1204`: double newline from %loadpy in python notebook (at least on mac)
+* :ghissue:`1208`: should dv.sync_import print failed imports ?
+* :ghissue:`1225`: SyntaxError display broken in Python 3
+* :ghissue:`1232`: Dead kernel loop
+* :ghissue:`1241`: When our debugger class is used standalone `_oh` key errors are thrown
+* :ghissue:`1254`: typo in notebooklist.js breaks links
+* :ghissue:`1260`: heartbeat failure on long gil-holding operation
+* :ghissue:`1268`: notebook %reset magic fails with StdinNotImplementedError
+* :ghissue:`1269`: Another strange input handling error
+* :ghissue:`1281`: in Hub: registration_timeout must be an integer, but heartmonitor.period is CFloat
+* :ghissue:`1302`: Input parsing with %prun clobbers escapes
+* :ghissue:`1304`: controller/server load can disrupt heartbeat
+* :ghissue:`1317`: Very slow traceback construction from Cython extension
+* :ghissue:`1345`: notebook can't save unicode as script
+* :ghissue:`1375`: %history -g -f file encoding issue
+* :ghissue:`1401`: numpy arrays cannot be used with View.apply() in Python 3
+* :ghissue:`1408`: test_get_home_dir_3 failed on Mac OS X
+* :ghissue:`1412`: Input parsing issue with %prun
+* :ghissue:`1421`: ipython32 %run -d breaks with NameError name 'execfile' is not defined
+* :ghissue:`1484`: unhide .git_commit_info.ini
+
+
+Issues closed in 0.12
+---------------------
+
 In this cycle, from August 1 to December 28 2011, we closed a total of 515
 issues, 257 pull requests and 258 regular issues; this is the full list
 (generated with the script `tools/github_stats.py`).

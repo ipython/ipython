@@ -28,12 +28,13 @@ if QT_API is None:
         if PySide.__version__ < '1.0.3':
             # old PySide, fallback on PyQt
             raise ImportError
+        from PySide import QtCore, QtGui, QtSvg
         QT_API = QT_API_PYSIDE
     except ImportError:
         try:
             prepare_pyqt4()
             import PyQt4
-            from PyQt4 import QtCore
+            from PyQt4 import QtCore, QtGui, QtSvg
             if QtCore.PYQT_VERSION_STR < '4.7':
                 # PyQt 4.6 has issues with null strings returning as None
                 raise ImportError

@@ -38,6 +38,10 @@ def import_item(name):
 
     if package:
         module = __import__(package,fromlist=[obj])
-        return module.__dict__[obj]
+        try:
+            pak = module.__dict__[obj]
+        except KeyError:
+            raise ImportError('No module named %s' % obj)
+        return pak
     else:
         return __import__(obj)

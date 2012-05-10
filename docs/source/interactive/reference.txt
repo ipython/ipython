@@ -26,7 +26,7 @@ the command line, simply because they are not practical here. Look into
 your configuration files for details on those. There are separate configuration 
 files for each profile, and the files look like "ipython_config.py" or 
 "ipython_config_<frontendname>.py".  Profile directories look like 
-"profile_profilename" and are typically installed in the IPYTHON_DIR directory. 
+"profile_profilename" and are typically installed in the IPYTHONDIR directory.
 For Linux users, this will be $HOME/.config/ipython, and for other users it 
 will be $HOME/.ipython.  For Windows users, $HOME resolves to C:\\Documents and
 Settings\\YourUserName in most instances.
@@ -249,7 +249,7 @@ Persistent command history across sessions
 
 IPython will save your input history when it leaves and reload it next
 time you restart it. By default, the history file is named
-$IPYTHON_DIR/profile_<name>/history.sqlite. This allows you to keep
+$IPYTHONDIR/profile_<name>/history.sqlite. This allows you to keep
 separate histories related to various tasks: commands related to
 numerical work will not be clobbered by a system shell history, for
 example.

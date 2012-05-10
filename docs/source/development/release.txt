@@ -26,8 +26,7 @@ Most of the release process is automated by the :file:`release` script in the
    installer.  It posts them to the site and registers the release with PyPI.
 
 #. Update the website with announcements and links to the updated changes.txt
-   in html form. Remember to put a short note both on the news page of the 
-   site and on Launcphad.
+   in html form. Remember to put a short note on the news page of the site.
    
 #. Drafting a short release announcement with i) highlights and ii) a link to
    the html version of the :ref:`Whats new <whatsnew_index>` section of the 

@@ -637,6 +637,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def init_prompts(self):
         self.prompt_manager = PromptManager(shell=self, config=self.config)
         self.configurables.append(self.prompt_manager)
+        # Set system prompts, so that scripts can decide if they are running
+        # interactively.
+        sys.ps1 = 'In : '
+        sys.ps2 = '...: '
+        sys.ps3 = 'Out: '
 
     def init_display_formatter(self):
         self.display_formatter = DisplayFormatter(config=self.config)
@@ -2563,6 +2568,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 code = self.compile(mod, cell_name, "single")
                 if self.run_code(code):
                     return True
+
+            # Flush softspace
+            if softspace(sys.stdout, 0):
+                print
+
         except:
             # It's possible to have exceptions raised here, typically by
             # compilation of odd code (such as a naked 'return' outside a
@@ -2587,8 +2597,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         ----------
         code_obj : code object
           A compiled code object, to be executed
-        post_execute : bool [default: True]
-          whether to call post_execute hooks after this particular execution.
 
         Returns
         -------
@@ -2622,9 +2630,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
         else:
             outflag = 0
-            if softspace(sys.stdout, 0):
-                print
-
         return outflag
 
     # For backwards compatibility

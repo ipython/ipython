@@ -234,6 +234,7 @@ class TestView(ClusterTestCase):
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
 
+    @dec.known_failure_py3
     @skip_without('numpy')
     def test_push_numpy_nocopy(self):
         import numpy

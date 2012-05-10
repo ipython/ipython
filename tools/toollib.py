@@ -19,6 +19,27 @@ archive_user = 'ipython@archive.ipython.org'
 archive_dir = 'archive.ipython.org'
 archive = '%s:%s' % (archive_user, archive_dir)
 
+# Build commands
+# Source dists
+sdists = './setup.py sdist --formats=gztar,zip'
+# Eggs
+eggs = './setupegg.py bdist_egg'
+
+# Windows builds.
+# We do them separately, so that the extra Windows scripts don't get pulled
+# into Unix builds (setup.py has code which checks for bdist_wininst).  Note
+# that the install scripts args are added to the main distutils call in
+# setup.py, so they don't need to be passed here.
+#
+# The Windows 64-bit installer can't be built by a Linux/Mac Python because ofa
+# bug in distutils:  http://bugs.python.org/issue6792.
+# So we have to build it with a wine-installed native Windows Python...
+win_builds = ["python setup.py bdist_wininst",
+              r"%s/.wine/dosdevices/c\:/Python27/python.exe setup.py build "
+              "--plat-name=win-amd64 bdist_wininst "
+              "--install-script=ipython_win_post_install.py" %
+              os.environ['HOME'] ]
+
 # Utility functions
 def sh(cmd):
     """Run system command in shell, raise SystemExit if it returns an error."""

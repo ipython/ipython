@@ -1,3 +1,5 @@
+.. _parallel_examples:
+
 =================
 Parallel examples
 =================

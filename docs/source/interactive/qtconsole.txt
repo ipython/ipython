@@ -400,9 +400,9 @@ generate this key, but the default is just to generate a new UUID. You can gener
 private key with::
 
     # generate 1024b of random data, and store in a file only you can read:
-    # (assumes IPYTHON_DIR is defined, otherwise use your IPython directory)
-    $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHON_DIR/sessionkey
-    $> chmod 600 $IPYTHON_DIR/sessionkey
+    # (assumes IPYTHONDIR is defined, otherwise use your IPython directory)
+    $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHONDIR/sessionkey
+    $> chmod 600 $IPYTHONDIR/sessionkey
 
 The *contents* of this file will be stored in the JSON connection file, so that file
 contains everything you need to connect to and use a kernel.
@@ -411,7 +411,7 @@ To use this generated key, simply specify the ``Session.keyfile`` configurable
 in :file:`ipython_config.py` or at the command-line, as in::
 
     # instruct IPython to sign messages with that key, instead of a new UUID
-    $> ipython qtconsole --Session.keyfile=$IPYTHON_DIR/sessionkey
+    $> ipython qtconsole --Session.keyfile=$IPYTHONDIR/sessionkey
 
 .. _ssh_tunnels:
 

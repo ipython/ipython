@@ -13,14 +13,12 @@ Categories=Development;Utility;
 StartupNotify=false
 Terminal=false
 Type=Application
-X-Ayatana-Desktop-Shortcuts=Pylab;Pylabinline
+Actions=Pylab;Pylabinline;
 
-[Pylab Shortcut Group]
+[Desktop Action Pylab]
 Name=Pylab
 Exec=ipython qtconsole --pylab
-TargetEnvironment=Unity
 
-[Pylabinline Shortcut Group]
+[Desktop Action Pylabinline]
 Name=Pylab (inline plots)
 Exec=ipython qtconsole --pylab=inline
-TargetEnvironment=Unity

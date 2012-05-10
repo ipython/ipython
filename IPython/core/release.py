@@ -2,8 +2,8 @@
 """Release data for the IPython project."""
 
 #-----------------------------------------------------------------------------
-#  Copyright (c) 2008-2011, IPython Development Team.
-#  Copyright (c) 2001-2007, Fernando Perez <fernando.perez@colorado.edu>
+#  Copyright (c) 2008, IPython Development Team.
+#  Copyright (c) 2001, Fernando Perez <fernando.perez@colorado.edu>
 #  Copyright (c) 2001, Janko Hauser <jhauser@zscout.de>
 #  Copyright (c) 2001, Nathaniel Gray <n8gray@caltech.edu>
 #
@@ -45,9 +45,12 @@ IPython provides a rich toolkit to help you make the most out of using Python
 interactively.  Its main components are:
 
 * Powerful interactive Python shells (terminal- and Qt-based).
+* A web-based interactive notebook environment with all shell features plus
+  support for embedded figures, animations and rich media.
 * Support for interactive data visualization and use of GUI toolkits.
 * Flexible, embeddable interpreters to load into your own projects.
-* Tools for high level and interactive parallel computing.
+* A high-performance library for high level and interactive parallel computing
+  that works in multicore systems, clusters, supercomputing and cloud scenarios.
 
 The enhanced interactive Python shells have the following main features:
 
@@ -58,13 +61,14 @@ The enhanced interactive Python shells have the following main features:
 * Caching of output results during a session with automatically generated
   references.
 
-* Readline based name completion.
+* Extensible tab completion, with support by default for completion of python
+  variables and keywords, filenames and function keywords.
 
 * Extensible system of 'magic' commands for controlling the environment and
   performing many tasks related either to IPython or the operating system.
 
-* Configuration system with easy switching between different setups (simpler
-  than changing $PYTHONSTARTUP environment variables every time).
+* A rich configuration system with easy switching between different setups
+  (simpler than changing $PYTHONSTARTUP environment variables every time).
 
 * Session logging and reloading.
 
@@ -72,7 +76,7 @@ The enhanced interactive Python shells have the following main features:
 
 * Access to the system shell with user-extensible alias system.
 
-* Easily embeddable in other Python programs and wxPython GUIs.
+* Easily embeddable in other Python programs and GUIs.
 
 * Integrated access to the pdb debugger and the Python profiler.
 
@@ -108,7 +112,8 @@ authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
            'Nathan'   : ('Nathaniel Gray','n8gray@caltech.edu'),
            'Ville'    : ('Ville Vainio','vivainio@gmail.com'),
            'Brian'    : ('Brian E Granger', 'ellisonbg@gmail.com'),
-           'Min'      : ('Min Ragan-Kelley', 'benjaminrk@gmail.com')
+           'Min'      : ('Min Ragan-Kelley', 'benjaminrk@gmail.com'),
+           'Thomas'   : ('Thomas A. Kluyver', 'takowl@gmail.com'),
            }
 
 author = 'The IPython Development Team'
@@ -121,9 +126,10 @@ url = 'http://ipython.org'
 # those are the ones we want pip/easy_install to be able to find.
 download_url = 'http://archive.ipython.org/release/%s' % version
 
-platforms = ['Linux','Mac OSX','Windows XP/2000/NT']
+platforms = ['Linux','Mac OSX','Windows XP/2000/NT/Vista/7']
 
-keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed']
+keywords = ['Interactive','Interpreter','Shell','Parallel','Distributed',
+            'Web-based computing', 'Qt console', 'Embedding']
 
 classifiers = [
     'Intended Audience :: Developers',
