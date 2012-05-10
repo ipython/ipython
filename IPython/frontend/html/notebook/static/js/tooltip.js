@@ -292,15 +292,16 @@ var IPython = (function (IPython) {
     // it won't be removed by remove_and_cancell() unless you called with
     // the first parameter set to true.
     // remove_and_cancell_tooltip(true)
-    Tooltip.prototype.stick = function()
+    Tooltip.prototype.stick = function(time)
     {
+        time = (time != undefined ) ? time:10;
         var that = this;
         this._sticky = true;
         this._clocklink.show('slow');
         this._stick_timeout = setTimeout( function(){
             that._sticky = false;
             that._clocklink.hide('slow');
-            }, 10*1000
+            }, time*1000
         );
     }
 
