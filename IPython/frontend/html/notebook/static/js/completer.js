@@ -1,7 +1,7 @@
 // function completer.
 //
 // completer should be a class that take an cell instance
-var IPython = (function(IPython) {
+var IPython = (function (IPython) {
     // that will prevent us from misspelling
     "use strict";
 
@@ -42,13 +42,13 @@ var IPython = (function(IPython) {
     }
 
 
-    var Completer = function(cell) {
+    var Completer = function (cell) {
             this.editor = cell.code_mirror;
             var that = this;
-            $([IPython.events]).on('status_busy.Kernel', function() {
+            $([IPython.events]).on('status_busy.Kernel', function () {
                 that.skip_kernel_completion = true;
             });
-            $([IPython.events]).on('status_idle.Kernel', function() {
+            $([IPython.events]).on('status_idle.Kernel', function () {
                 that.skip_kernel_completion = false;
             });
 
@@ -57,7 +57,7 @@ var IPython = (function(IPython) {
 
 
 
-    Completer.prototype.startCompletion = function() {
+    Completer.prototype.startCompletion = function () {
         // call for a 'first' completion, that will set the editor and do some
         // special behaviour like autopicking if only one completion availlable
         //
@@ -67,7 +67,7 @@ var IPython = (function(IPython) {
         this.carryOnCompletion(true);
     };
 
-    Completer.prototype.carryOnCompletion = function(ff) {
+    Completer.prototype.carryOnCompletion = function (ff) {
         // Pass true as parameter if you want the commpleter to autopick when
         // only one completion. This function is automatically reinvoked at
         // each keystroke with ff = false
@@ -108,7 +108,7 @@ var IPython = (function(IPython) {
         }
     };
 
-    Completer.prototype.finish_completing = function(content) {
+    Completer.prototype.finish_completing = function (content) {
         // let's build a function that wrap all that stuff into what is needed
         // for the new completer:
         var matched_text = content.matched_text;
@@ -176,11 +176,11 @@ var IPython = (function(IPython) {
         $('body').append(this.complete);
         //build the container
         var that = this;
-        this.sel.dblclick(function() {
+        this.sel.dblclick(function () {
             that.pick();
         });
         this.sel.blur(this.close);
-        this.sel.keydown(function(event) {
+        this.sel.keydown(function (event) {
             that.keydown(event);
         });
 
@@ -188,17 +188,17 @@ var IPython = (function(IPython) {
 
         this.sel.focus();
         // Opera sometimes ignores focusing a freshly created node
-        if (window.opera) setTimeout(function() {
+        if (window.opera) setTimeout(function () {
             if (!this.done) this.sel.focus();
         }, 100);
         return true;
     }
 
-    Completer.prototype.insert = function(completion) {
+    Completer.prototype.insert = function (completion) {
         this.editor.replaceRange(completion.str, completion.from, completion.to);
     }
 
-    Completer.prototype.build_gui_list = function(completions) {
+    Completer.prototype.build_gui_list = function (completions) {
         // Need to clear the all list
         for (var i = 0; i < completions.length; ++i) {
             var opt = $('<option/>').text(completions[i].str).addClass(completions[i].type);
@@ -207,23 +207,23 @@ var IPython = (function(IPython) {
         this.sel.children().first().attr('selected', 'true');
     }
 
-    Completer.prototype.close = function() {
+    Completer.prototype.close = function () {
         if (this.done) return;
         this.done = true;
         $('.completions').remove();
     }
 
-    Completer.prototype.pick = function() {
+    Completer.prototype.pick = function () {
         this.insert(this.raw_result[this.sel[0].selectedIndex]);
         this.close();
         var that = this;
-        setTimeout(function() {
+        setTimeout(function () {
             that.editor.focus();
         }, 50);
     }
 
 
-    Completer.prototype.keydown = function(event) {
+    Completer.prototype.keydown = function (event) {
         var code = event.keyCode;
         var that = this;
         // Enter
@@ -252,7 +252,7 @@ var IPython = (function(IPython) {
             CodeMirror.e_stop(event);
             this.editor.focus();
             //reinvoke self
-            setTimeout(function() {
+            setTimeout(function () {
                 that.carryOnCompletion();
             }, 50);
         } else if (code == key.upArrow || code == key.downArrow) {
@@ -263,7 +263,7 @@ var IPython = (function(IPython) {
             this.close();
             this.editor.focus();
             //we give focus to the editor immediately and call sell in 50 ms
-            setTimeout(function() {
+            setTimeout(function () {
                 that.carryOnCompletion();
             }, 50);
         }
