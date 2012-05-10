@@ -146,7 +146,6 @@ var IPython = (function (IPython) {
         this.output_area.clear_output(true, true, true);
         this.set_input_prompt('*');
         this.element.addClass("running");
-        var code = this.get_text();
         var callbacks = {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),
