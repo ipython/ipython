@@ -4,7 +4,6 @@
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
 //----------------------------------------------------------------------------
-
 //============================================================================
 // Tooltip
 //============================================================================
@@ -18,154 +17,133 @@
 // eg :
 // IPython.tooltip.tabs_functions[4] = function(){console.log('this is the action of the 4th tab pressing')}
 //
-
-var IPython = (function (IPython) {
+var IPython = (function(IPython) {
     "use strict";
 
     var utils = IPython.utils;
 
     // tooltip constructor
-    var Tooltip = function () {
-        var that = this;
-        this.time_before_tooltip = 1200;
+    var Tooltip = function() {
+            var that = this;
+            this.time_before_tooltip = 1200;
 
-        // handle to html
-        this.tooltip = $('#tooltip');
-        this._hidden = true;
+            // handle to html
+            this.tooltip = $('#tooltip');
+            this._hidden = true;
 
-        // variable for consecutive call
-        this._old_cell = null ;
-        this._old_request = null ;
-        this._consecutive_counter = 0;
+            // variable for consecutive call
+            this._old_cell = null;
+            this._old_request = null;
+            this._consecutive_counter = 0;
 
-        // 'sticky ?'
-        this._sticky = false;
+            // 'sticky ?'
+            this._sticky = false;
 
-        // contain the button in the upper right corner
-        this.buttons = $('<div/>')
-              .addClass('tooltipbuttons');
+            // contain the button in the upper right corner
+            this.buttons = $('<div/>').addClass('tooltipbuttons');
 
-        // will contain the docstring
-        this.text    = $('<div/>')
-          .addClass('tooltiptext')
-          .addClass('smalltooltip');
+            // will contain the docstring
+            this.text = $('<div/>').addClass('tooltiptext').addClass('smalltooltip');
 
-        // build the buttons menu on the upper right
+            // build the buttons menu on the upper right
+            // expand the tooltip to see more
+            var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
+            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press tab 2 times)').click(function() {
+                that.expand()
+            }).append(
+            $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
 
-        // expand the tooltip to see more
-        var expandlink=$('<a/>').attr('href',"#")
-              .addClass("ui-corner-all") //rounded corner
-              .attr('role',"button")
-              .attr('id','expanbutton')
-              .attr('title','Grow the tooltip vertically (press tab 2 times)')
-              .click(function(){that.expand()})
-            .append(
-        $('<span/>').text('Expand')
-            .addClass('ui-icon')
-            .addClass('ui-icon-plus')
-        );
-
-        // open in pager
-        var morelink=$('<a/>').attr('href',"#")
-            .attr('role',"button")
-            .addClass('ui-button')
-            .attr('title','show the current docstring in pager (press tab 4 times)');
-        var morespan=$('<span/>').text('Open in Pager')
-            .addClass('ui-icon')
-            .addClass('ui-icon-arrowstop-l-n');
-        morelink.append(morespan);
-        morelink.click(function(){
-            that.showInPager();
-        });
-
-        // close the tooltip
-        var closelink=$('<a/>').attr('href',"#")
-            .attr('role',"button")
-            .addClass('ui-button');
-        var closespan=$('<span/>').text('Close')
-            .addClass('ui-icon')
-            .addClass('ui-icon-close');
-        closelink.append(closespan);
-        closelink.click(function(){
-        that.remove_and_cancel_tooltip(true);
+            // open in pager
+            var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press tab 4 times)');
+            var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
+            morelink.append(morespan);
+            morelink.click(function() {
+                that.showInPager();
             });
 
-        this._clocklink=$('<a/>').attr('href',"#");
-        this._clocklink.attr('role',"button");
-        this._clocklink.addClass('ui-button');
-        this._clocklink.attr('title','Tootip is not dismissed while typing for 10 seconds');
-        var clockspan=$('<span/>').text('Close');
+            // close the tooltip
+            var closelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button');
+            var closespan = $('<span/>').text('Close').addClass('ui-icon').addClass('ui-icon-close');
+            closelink.append(closespan);
+            closelink.click(function() {
+                that.remove_and_cancel_tooltip(true);
+            });
+
+            this._clocklink = $('<a/>').attr('href', "#");
+            this._clocklink.attr('role', "button");
+            this._clocklink.addClass('ui-button');
+            this._clocklink.attr('title', 'Tootip is not dismissed while typing for 10 seconds');
+            var clockspan = $('<span/>').text('Close');
             clockspan.addClass('ui-icon');
             clockspan.addClass('ui-icon-clock');
-        this._clocklink.append(clockspan);
-        this._clocklink.click(function(){
-            that.cancel_stick();
+            this._clocklink.append(clockspan);
+            this._clocklink.click(function() {
+                that.cancel_stick();
             });
 
 
 
 
-        //construct the tooltip
-        // add in the reverse order you want them to appear
-        this.buttons.append(closelink);
-        this.buttons.append(expandlink);
-        this.buttons.append(morelink);
-        this.buttons.append(this._clocklink);
-        this._clocklink.hide();
+            //construct the tooltip
+            // add in the reverse order you want them to appear
+            this.buttons.append(closelink);
+            this.buttons.append(expandlink);
+            this.buttons.append(morelink);
+            this.buttons.append(this._clocklink);
+            this._clocklink.hide();
 
 
-        // we need a phony element to make the small arrow
-        // of the tooltip in css
-        // we will move the arrow later
-        this.arrow = $('<div/>').addClass('pretooltiparrow');
-        this.tooltip.append(this.buttons);
-        this.tooltip.append(this.arrow);
-        this.tooltip.append(this.text);
+            // we need a phony element to make the small arrow
+            // of the tooltip in css
+            // we will move the arrow later
+            this.arrow = $('<div/>').addClass('pretooltiparrow');
+            this.tooltip.append(this.buttons);
+            this.tooltip.append(this.arrow);
+            this.tooltip.append(this.text);
 
-        // function that will be called if you press tab 1, 2, 3... times in a row
-        this.tabs_functions = [  function(cell,text){
-                                    that._request_tooltip(cell,text);
-                                    IPython.notification_widget.set_message('tab again to expand pager',2500);
-                                    },
-                                 function(){
-                                    that.expand();
-                                    IPython.notification_widget.set_message('tab again to make pager sticky for 10s',2500);
-                                 },
-                                 function(){
-                                     that.stick();
-                                     IPython.notification_widget.set_message('tab again to open help in pager',2500);
-                                 },
-                                 function(cell){
-                                    that.cancel_stick();
-                                    that.showInPager(cell);
-                                    that._cmfocus();
-                                    }
-                                ];
-        // call after all the tabs function above have bee call to clean their effects
-        // if necessary
-        this.reset_tabs_function = function(cell,text){
-            this._old_cell = (cell)? cell : null ;
-            this._old_request = (text) ? text : null ;
-            this._consecutive_counter = 0;
-        }
-    };
+            // function that will be called if you press tab 1, 2, 3... times in a row
+            this.tabs_functions = [function(cell, text) {
+                that._request_tooltip(cell, text);
+                IPython.notification_widget.set_message('tab again to expand pager', 2500);
+            }, function() {
+                that.expand();
+                IPython.notification_widget.set_message('tab again to make pager sticky for 10s', 2500);
+            }, function() {
+                that.stick();
+                IPython.notification_widget.set_message('tab again to open help in pager', 2500);
+            }, function(cell) {
+                that.cancel_stick();
+                that.showInPager(cell);
+                that._cmfocus();
+            }];
+            // call after all the tabs function above have bee call to clean their effects
+            // if necessary
+            this.reset_tabs_function = function(cell, text) {
+                this._old_cell = (cell) ? cell : null;
+                this._old_request = (text) ? text : null;
+                this._consecutive_counter = 0;
+            }
+        };
 
-    Tooltip.prototype.showInPager = function(cell)
-    {
+    Tooltip.prototype.showInPager = function(cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var empty = function(){};
+        var empty = function() {};
         IPython.notebook.kernel.execute(
-                that.name+'?',
-                {'execute_reply':empty,'output':empty,'clear_output':empty,'cell':cell},
-                {'silent':false}
-                );
+        that.name + '?', {
+            'execute_reply': empty,
+            'output': empty,
+            'clear_output': empty,
+            'cell': cell
+        }, {
+            'silent': false
+        });
         this.remove_and_cancel_tooltip();
         this._cmfocus();
     }
 
     // grow the tooltip verticaly
-    Tooltip.prototype.expand = function(){
+    Tooltip.prototype.expand = function() {
         this.text.removeClass('smalltooltip');
         this.text.addClass('bigtooltip');
         $('#expanbutton').hide('slow');
@@ -174,23 +152,21 @@ var IPython = (function (IPython) {
 
     // deal with all the logic of hiding the tooltip
     // and reset it's status
-    Tooltip.prototype.hide = function()
-    {
-         this.tooltip.addClass('hide');
-         $('#expanbutton').show('slow');
-         this.text.removeClass('bigtooltip');
-         this.text.addClass('smalltooltip');
-         // keep scroll top to be sure to always see the first line
-         this.text.scrollTop(0);
-         this._hidden = true;
+    Tooltip.prototype.hide = function() {
+        this.tooltip.addClass('hide');
+        $('#expanbutton').show('slow');
+        this.text.removeClass('bigtooltip');
+        this.text.addClass('smalltooltip');
+        // keep scroll top to be sure to always see the first line
+        this.text.scrollTop(0);
+        this._hidden = true;
     }
 
     Tooltip.prototype.remove_and_cancel_tooltip = function(force) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
-        if(this._sticky == false || force == true)
-        {
+        if (this._sticky == false || force == true) {
             this.hide();
         }
         this.cancel_pending();
@@ -198,116 +174,111 @@ var IPython = (function (IPython) {
     }
 
     // cancel autocall done after '(' for example.
-    Tooltip.prototype.cancel_pending = function(){
-        if (this._tooltip_timeout != null){
+    Tooltip.prototype.cancel_pending = function() {
+        if (this._tooltip_timeout != null) {
             clearTimeout(this._tooltip_timeout);
             this._tooltip_timeout = null;
         }
     }
 
     // will trigger tooltip after timeout
-    Tooltip.prototype.pending = function(cell)
-    {
+    Tooltip.prototype.pending = function(cell) {
         var that = this;
-        this._tooltip_timeout = setTimeout(function(){that.request(cell)} , that.time_before_tooltip);
+        this._tooltip_timeout = setTimeout(function() {
+            that.request(cell)
+        }, that.time_before_tooltip);
     }
 
-    Tooltip.prototype._request_tooltip = function(cell,func)
-    {
-       // use internally just to make the request to the kernel
+    Tooltip.prototype._request_tooltip = function(cell, func) {
+        // use internally just to make the request to the kernel
+        // Feel free to shorten this logic if you are better
+        // than me in regEx
+        // basicaly you shoul be able to get xxx.xxx.xxx from
+        // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2,
+        // remove everything between matchin bracket (need to iterate)
+        var matchBracket = /\([^\(\)]+\)/g;
+        var endBracket = /\([^\(]*$/g;
+        var oldfunc = func;
 
-       // Feel free to shorten this logic if you are better
-       // than me in regEx
-       // basicaly you shoul be able to get xxx.xxx.xxx from
-       // something(range(10), kwarg=smth) ; xxx.xxx.xxx( firstarg, rand(234,23), kwarg1=2,
-       // remove everything between matchin bracket (need to iterate)
-       var matchBracket = /\([^\(\)]+\)/g;
-       var endBracket = /\([^\(]*$/g;
-       var oldfunc = func;
+        func = func.replace(matchBracket, "");
+        while (oldfunc != func) {
+            oldfunc = func;
+            func = func.replace(matchBracket, "");
+        }
+        // remove everything after last open bracket
+        func = func.replace(endBracket, "");
 
-       func = func.replace(matchBracket,"");
-       while( oldfunc != func )
-       {
-           oldfunc = func;
-           func = func.replace(matchBracket,"");
-       }
-       // remove everything after last open bracket
-       func = func.replace(endBracket,"");
-
-       var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
-       var callbacks = {'object_info_reply': $.proxy(this.show,this)}
-       var msg_id = IPython.notebook.kernel.object_info_request(re.exec(func), callbacks);
+        var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
+        var callbacks = {
+            'object_info_reply': $.proxy(this.show, this)
+        }
+        var msg_id = IPython.notebook.kernel.object_info_request(re.exec(func), callbacks);
     }
 
     // make an imediate completion request
-    Tooltip.prototype.request = function(cell)
-    {
+    Tooltip.prototype.request = function(cell) {
         // request(codecell)
         // Deal with extracting the text from the cell and counting
         // call in a row
-
         this.cancel_pending();
         var editor = cell.code_mirror;
         var cursor = editor.getCursor();
-        var text = editor.getRange({line:cursor.line,ch:0},cursor).trim();
+        var text = editor.getRange({
+            line: cursor.line,
+            ch: 0
+        }, cursor).trim();
 
         // need a permanent handel to codemirror for future auto recall
         this.code_mirror = editor;
 
         // now we treat the different number of keypress
         // first if same cell, same text, increment counter by 1
-        if( this._old_cell == cell && this._old_request == text && this._hidden == false)
-        {
+        if (this._old_cell == cell && this._old_request == text && this._hidden == false) {
             this._consecutive_counter++;
         } else {
             // else reset
             this.cancel_stick();
-            this.reset_tabs_function(cell,text);
+            this.reset_tabs_function(cell, text);
         }
 
         // don't do anything if line beggin with '(' or is empty
-        if (text === "" || text === "(" ) {
+        if (text === "" || text === "(") {
             return;
         }
 
-        this.tabs_functions[this._consecutive_counter](cell,text);
+        this.tabs_functions[this._consecutive_counter](cell, text);
 
         // then if we are at the end of list function, reset
-        if (this._consecutive_counter == this.tabs_functions.length)
-            this.reset_tabs_function(cell,text);
+        if (this._consecutive_counter == this.tabs_functions.length) this.reset_tabs_function(cell, text);
 
         return;
     }
 
     // cancel the option of having the tooltip to stick
-    Tooltip.prototype.cancel_stick = function()
-    {
-            clearTimeout(this._stick_timeout);
-            this._stick_timeout = null;
-            this._clocklink.hide('slow');
-            this._sticky = false;
+    Tooltip.prototype.cancel_stick = function() {
+        clearTimeout(this._stick_timeout);
+        this._stick_timeout = null;
+        this._clocklink.hide('slow');
+        this._sticky = false;
     }
 
     // put the tooltip in a sicky state for 10 seconds
     // it won't be removed by remove_and_cancell() unless you called with
     // the first parameter set to true.
     // remove_and_cancell_tooltip(true)
-    Tooltip.prototype.stick = function(time)
-    {
-        time = (time != undefined ) ? time:10;
+    Tooltip.prototype.stick = function(time) {
+        time = (time != undefined) ? time : 10;
         var that = this;
         this._sticky = true;
         this._clocklink.show('slow');
-        this._stick_timeout = setTimeout( function(){
+        this._stick_timeout = setTimeout(function() {
             that._sticky = false;
             that._clocklink.hide('slow');
-            }, time*1000
-        );
+        }, time * 1000);
     }
 
     // should be called with the kernel reply to actually show the tooltip
-    Tooltip.prototype.show = function(reply)
-    {
+    Tooltip.prototype.show = function(reply) {
         // move the bubble if it is not hidden
         // otherwise fade it
         this.name = reply.name;
@@ -319,37 +290,54 @@ var IPython = (function (IPython) {
         var o = $(this.code_mirror.getScrollerElement()).offset();
         var pos = this.code_mirror.cursorCoords();
         var xinit = pos.x;
-        var xinter = o.left + (xinit-o.left)/w*(w-450);
+        var xinter = o.left + (xinit - o.left) / w * (w - 450);
         var posarrowleft = xinit - xinter;
 
 
-        if( this._hidden == false)
-        {
-            this.tooltip.animate({'left' : xinter-30+'px','top' :(pos.yBot+10)+'px'});
-        } else
-        {
-            this.tooltip.css({'left' : xinter-30+'px'});
-            this.tooltip.css({'top' :(pos.yBot+10)+'px'});
+        if (this._hidden == false) {
+            this.tooltip.animate({
+                'left': xinter - 30 + 'px',
+                'top': (pos.yBot + 10) + 'px'
+            });
+        } else {
+            this.tooltip.css({
+                'left': xinter - 30 + 'px'
+            });
+            this.tooltip.css({
+                'top': (pos.yBot + 10) + 'px'
+            });
         }
-        this.arrow.animate({'left' : posarrowleft+'px'});
+        this.arrow.animate({
+            'left': posarrowleft + 'px'
+        });
         this.tooltip.removeClass('hidden')
         this.tooltip.removeClass('hide');
         this._hidden = false;
 
         // build docstring
         var defstring = reply.call_def;
-        if (defstring == null) { defstring = reply.init_definition; }
-        if (defstring == null) { defstring = reply.definition; }
+        if (defstring == null) {
+            defstring = reply.init_definition;
+        }
+        if (defstring == null) {
+            defstring = reply.definition;
+        }
 
         var docstring = reply.call_docstring;
-        if (docstring == null) { docstring = reply.init_docstring; }
-        if (docstring == null) { docstring = reply.docstring; }
-        if (docstring == null) { docstring = "<empty docstring>"; }
+        if (docstring == null) {
+            docstring = reply.init_docstring;
+        }
+        if (docstring == null) {
+            docstring = reply.docstring;
+        }
+        if (docstring == null) {
+            docstring = "<empty docstring>";
+        }
 
         this.text.children().remove();
 
-        var pre=$('<pre/>').html(utils.fixConsole(docstring));
-        if(defstring){
+        var pre = $('<pre/>').html(utils.fixConsole(docstring));
+        if (defstring) {
             var defstring_html = $('<pre/>').html(utils.fixConsole(defstring));
             this.text.append(defstring_html);
         }
@@ -359,10 +347,11 @@ var IPython = (function (IPython) {
     }
 
     // convenient funciton to have the correct codemirror back into focus
-    Tooltip.prototype._cmfocus = function()
-    {
+    Tooltip.prototype._cmfocus = function() {
         var cm = this.code_mirror;
-        setTimeout(function(){cm.focus();}, 50);
+        setTimeout(function() {
+            cm.focus();
+        }, 50);
     }
 
     IPython.Tooltip = Tooltip;
