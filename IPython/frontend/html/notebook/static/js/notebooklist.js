@@ -44,8 +44,7 @@ var IPython = (function (IPython) {
             return false;
         });
         this.element.bind('drop', function(event){
-            console.log('bound to drop');
-                that.handelFilesUpload(event,'drop');
+            that.handelFilesUpload(event,'drop');
             return false;
         });
     };
