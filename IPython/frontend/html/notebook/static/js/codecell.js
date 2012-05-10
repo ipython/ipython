@@ -16,7 +16,9 @@ var IPython = (function (IPython) {
     var key   = IPython.utils.keycodes;
 
     var CodeCell = function (kernel) {
-        this.kernel = kernel;
+        // The kernel doesn't have to be set at creation time, in that case
+        // it will be null and set_kernel has to be called later.
+        this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.tooltip_on_tab = true;
@@ -48,7 +50,7 @@ var IPython = (function (IPython) {
 
         // construct a completer only if class exist
         // otherwise no print view
-        if (IPython.Completer != undefined )
+        if (IPython.Completer !== undefined)
         {
             this.completer = new IPython.Completer(this);
         }
@@ -140,7 +142,13 @@ var IPython = (function (IPython) {
         return false;
     };
 
+
     // Kernel related calls.
+
+    CodeCell.prototype.set_kernel = function (kernel) {
+        this.kernel = kernel;
+    }
+
 
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output(true, true, true);
