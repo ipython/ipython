@@ -1,5 +1,5 @@
 // highly adapted for codemiror jshint
-(function() {
+(function () {
     "use strict";
 
     function forEach(arr, f) {
@@ -19,7 +19,7 @@
         return arr.indexOf(item) != -1;
     }
 
-    CodeMirror.contextHint = function(editor) {
+    CodeMirror.contextHint = function (editor) {
         // Find the token at the cursor
         var cur = editor.getCursor(),
             token = editor.getTokenAt(cur),
@@ -46,7 +46,7 @@
     }
 
     // find all 'words' of current cell
-    var getAllTokens = function(editor) {
+    var getAllTokens = function (editor) {
             var found = [];
 
             // add to found if not already in it
@@ -85,7 +85,7 @@
     function getCompletions(token, editor) {
         var candidates = getAllTokens(editor);
         // filter all token that have a common start (but nox exactly) the lenght of the current token
-        var lambda = function(x) {
+        var lambda = function (x) {
                 return (x.indexOf(token.string) == 0 && x != token.string)
             };
         var filterd = candidates.filter(lambda);
