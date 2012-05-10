@@ -155,20 +155,27 @@ class Tee(object):
             self.close()
 
 
-def source_to_unicode(txt):
-    """Converts string with python source code to unicode
-    """
-    if isinstance(txt, unicode):
-        return txt
+def guess_encoding(lines):
+    """check list of lines for line matching the source code encoding pattern
     
+    Only check first two lines
+    """
     reg = re.compile("#.*coding[:=]\s*([-\w.]+)")
-    for row in txt.split("\n", 2)[:2]: #We only need to check the first two lines
+    for row in lines[:2]: #We only need to check the first two lines
         result = reg.match(row)
         if result:
             coding = result.groups()[0]
             break
     else:
         coding = "ascii"
+    return coding
+
+def source_to_unicode(txt):
+    """Converts string with python source code to unicode
+    """
+    if isinstance(txt, unicode):
+        return txt
+    coding = guess_encoding(txt.split("\n", 2))
     return txt.decode(coding, errors="replace")
     
 

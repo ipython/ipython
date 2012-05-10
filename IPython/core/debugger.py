@@ -352,6 +352,7 @@ class Pdb(OldPdb):
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
+        encoding = io.guess_encoding(lines)
         start = max(start, 0)
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
@@ -362,9 +363,8 @@ class Pdb(OldPdb):
                       and tpl_line_em \
                       or tpl_line
             ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line,
+                                          start + 1 + i, line.decode(encoding),
                                           arrow = show_arrow) )
-
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
@@ -422,8 +422,10 @@ class Pdb(OldPdb):
             tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
             tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
+            lines = linecache.getlines(filename)
+            encoding = io.guess_encoding(lines)
             for lineno in range(first, last+1):
-                line = linecache.getline(filename, lineno)
+                line = lines[lineno].decode(encoding)
                 if not line:
                     break
 
