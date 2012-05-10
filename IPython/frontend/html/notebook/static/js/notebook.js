@@ -1013,11 +1013,11 @@ var IPython = (function (IPython) {
     Notebook.prototype.toJSON = function () {
         var cells = this.get_cells();
         var ncells = cells.length;
-        cell_array = new Array(ncells);
+        var cell_array = new Array(ncells);
         for (var i=0; i<ncells; i++) {
             cell_array[i] = cells[i].toJSON();
         };
-        data = {
+        var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{cells:cell_array}],
             metadata : this.metadata
