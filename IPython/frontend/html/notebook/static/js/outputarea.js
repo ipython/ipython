@@ -22,7 +22,9 @@ var IPython = (function (IPython) {
         this.clear_out_timeout = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
-        }
+        } else {
+            this.prompt_area = prompt_area;
+        };
         this.style();
     };
 
