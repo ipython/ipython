@@ -15,15 +15,15 @@
 // IPython.tooltip.tabs_functions
 //
 // eg :
-// IPython.tooltip.tabs_functions[4] = function(){console.log('this is the action of the 4th tab pressing')}
+// IPython.tooltip.tabs_functions[4] = function (){console.log('this is the action of the 4th tab pressing')}
 //
-var IPython = (function(IPython) {
+var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
 
     // tooltip constructor
-    var Tooltip = function() {
+    var Tooltip = function () {
             var that = this;
             this.time_before_tooltip = 1200;
 
@@ -48,7 +48,7 @@ var IPython = (function(IPython) {
             // build the buttons menu on the upper right
             // expand the tooltip to see more
             var expandlink = $('<a/>').attr('href', "#").addClass("ui-corner-all") //rounded corner
-            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press tab 2 times)').click(function() {
+            .attr('role', "button").attr('id', 'expanbutton').attr('title', 'Grow the tooltip vertically (press tab 2 times)').click(function () {
                 that.expand()
             }).append(
             $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
@@ -57,7 +57,7 @@ var IPython = (function(IPython) {
             var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press tab 4 times)');
             var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
             morelink.append(morespan);
-            morelink.click(function() {
+            morelink.click(function () {
                 that.showInPager();
             });
 
@@ -65,7 +65,7 @@ var IPython = (function(IPython) {
             var closelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button');
             var closespan = $('<span/>').text('Close').addClass('ui-icon').addClass('ui-icon-close');
             closelink.append(closespan);
-            closelink.click(function() {
+            closelink.click(function () {
                 that.remove_and_cancel_tooltip(true);
             });
 
@@ -77,7 +77,7 @@ var IPython = (function(IPython) {
             clockspan.addClass('ui-icon');
             clockspan.addClass('ui-icon-clock');
             this._clocklink.append(clockspan);
-            this._clocklink.click(function() {
+            this._clocklink.click(function () {
                 that.cancel_stick();
             });
 
@@ -102,33 +102,33 @@ var IPython = (function(IPython) {
             this.tooltip.append(this.text);
 
             // function that will be called if you press tab 1, 2, 3... times in a row
-            this.tabs_functions = [function(cell, text) {
+            this.tabs_functions = [function (cell, text) {
                 that._request_tooltip(cell, text);
                 IPython.notification_widget.set_message('tab again to expand pager', 2500);
-            }, function() {
+            }, function () {
                 that.expand();
                 IPython.notification_widget.set_message('tab again to make pager sticky for 10s', 2500);
-            }, function() {
+            }, function () {
                 that.stick();
                 IPython.notification_widget.set_message('tab again to open help in pager', 2500);
-            }, function(cell) {
+            }, function (cell) {
                 that.cancel_stick();
                 that.showInPager(cell);
                 that._cmfocus();
             }];
             // call after all the tabs function above have bee call to clean their effects
             // if necessary
-            this.reset_tabs_function = function(cell, text) {
+            this.reset_tabs_function = function (cell, text) {
                 this._old_cell = (cell) ? cell : null;
                 this._old_request = (text) ? text : null;
                 this._consecutive_counter = 0;
             }
         };
 
-    Tooltip.prototype.showInPager = function(cell) {
+    Tooltip.prototype.showInPager = function (cell) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
-        var empty = function() {};
+        var empty = function () {};
         IPython.notebook.kernel.execute(
         that.name + '?', {
             'execute_reply': empty,
@@ -143,7 +143,7 @@ var IPython = (function(IPython) {
     }
 
     // grow the tooltip verticaly
-    Tooltip.prototype.expand = function() {
+    Tooltip.prototype.expand = function () {
         this.text.removeClass('smalltooltip');
         this.text.addClass('bigtooltip');
         $('#expanbutton').hide('slow');
@@ -152,7 +152,7 @@ var IPython = (function(IPython) {
 
     // deal with all the logic of hiding the tooltip
     // and reset it's status
-    Tooltip.prototype.hide = function() {
+    Tooltip.prototype.hide = function () {
         this.tooltip.addClass('hide');
         $('#expanbutton').show('slow');
         this.text.removeClass('bigtooltip');
@@ -162,7 +162,7 @@ var IPython = (function(IPython) {
         this._hidden = true;
     }
 
-    Tooltip.prototype.remove_and_cancel_tooltip = function(force) {
+    Tooltip.prototype.remove_and_cancel_tooltip = function (force) {
         // note that we don't handle closing directly inside the calltip
         // as in the completer, because it is not focusable, so won't
         // get the event.
@@ -170,11 +170,11 @@ var IPython = (function(IPython) {
             this.hide();
         }
         this.cancel_pending();
-        this.reset_tabs_function();
+        this.reset_tabs_function ();
     }
 
     // cancel autocall done after '(' for example.
-    Tooltip.prototype.cancel_pending = function() {
+    Tooltip.prototype.cancel_pending = function () {
         if (this._tooltip_timeout != null) {
             clearTimeout(this._tooltip_timeout);
             this._tooltip_timeout = null;
@@ -182,14 +182,14 @@ var IPython = (function(IPython) {
     }
 
     // will trigger tooltip after timeout
-    Tooltip.prototype.pending = function(cell) {
+    Tooltip.prototype.pending = function (cell) {
         var that = this;
-        this._tooltip_timeout = setTimeout(function() {
+        this._tooltip_timeout = setTimeout(function () {
             that.request(cell)
         }, that.time_before_tooltip);
     }
 
-    Tooltip.prototype._request_tooltip = function(cell, func) {
+    Tooltip.prototype._request_tooltip = function (cell, func) {
         // use internally just to make the request to the kernel
         // Feel free to shorten this logic if you are better
         // than me in regEx
@@ -216,7 +216,7 @@ var IPython = (function(IPython) {
     }
 
     // make an imediate completion request
-    Tooltip.prototype.request = function(cell) {
+    Tooltip.prototype.request = function (cell) {
         // request(codecell)
         // Deal with extracting the text from the cell and counting
         // call in a row
@@ -238,7 +238,7 @@ var IPython = (function(IPython) {
         } else {
             // else reset
             this.cancel_stick();
-            this.reset_tabs_function(cell, text);
+            this.reset_tabs_function (cell, text);
         }
 
         // don't do anything if line beggin with '(' or is empty
@@ -249,13 +249,13 @@ var IPython = (function(IPython) {
         this.tabs_functions[this._consecutive_counter](cell, text);
 
         // then if we are at the end of list function, reset
-        if (this._consecutive_counter == this.tabs_functions.length) this.reset_tabs_function(cell, text);
+        if (this._consecutive_counter == this.tabs_functions.length) this.reset_tabs_function (cell, text);
 
         return;
     }
 
     // cancel the option of having the tooltip to stick
-    Tooltip.prototype.cancel_stick = function() {
+    Tooltip.prototype.cancel_stick = function () {
         clearTimeout(this._stick_timeout);
         this._stick_timeout = null;
         this._clocklink.hide('slow');
@@ -266,19 +266,19 @@ var IPython = (function(IPython) {
     // it won't be removed by remove_and_cancell() unless you called with
     // the first parameter set to true.
     // remove_and_cancell_tooltip(true)
-    Tooltip.prototype.stick = function(time) {
+    Tooltip.prototype.stick = function (time) {
         time = (time != undefined) ? time : 10;
         var that = this;
         this._sticky = true;
         this._clocklink.show('slow');
-        this._stick_timeout = setTimeout(function() {
+        this._stick_timeout = setTimeout(function () {
             that._sticky = false;
             that._clocklink.hide('slow');
         }, time * 1000);
     }
 
     // should be called with the kernel reply to actually show the tooltip
-    Tooltip.prototype.show = function(reply) {
+    Tooltip.prototype.show = function (reply) {
         // move the bubble if it is not hidden
         // otherwise fade it
         this.name = reply.name;
@@ -347,9 +347,9 @@ var IPython = (function(IPython) {
     }
 
     // convenient funciton to have the correct codemirror back into focus
-    Tooltip.prototype._cmfocus = function() {
+    Tooltip.prototype._cmfocus = function () {
         var cm = this.code_mirror;
-        setTimeout(function() {
+        setTimeout(function () {
             cm.focus();
         }, 50);
     }
