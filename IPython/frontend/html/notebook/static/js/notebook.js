@@ -888,6 +888,14 @@ var IPython = (function (IPython) {
         var base_url = $('body').data('baseKernelUrl') + "kernels";
         this.kernel = new IPython.Kernel(base_url);
         this.kernel.start(this.notebook_id);
+        // Now that the kernel has been created, tell the CodeCells about it.
+        var ncells = this.ncells();
+        for (var i=0; i<ncells; i++) {
+            var cell = this.get_cell(i);
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_kernel(this.kernel)
+            };
+        };
     };
 
 
@@ -1076,10 +1084,6 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
-        // Create the kernel before creating cells as they need to be passed it.
-        if (! this.read_only) {
-            this.start_kernel();
-        }
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
@@ -1110,6 +1114,11 @@ var IPython = (function (IPython) {
                 },
                 width: 400
             });
+        }
+        // Create the kernel after the notebook is completely loaded to prevent
+        // code execution upon loading, which is a security risk.
+        if (! this.read_only) {
+            this.start_kernel();
         }
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
