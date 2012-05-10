@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
         var output = $('<div></div>');
         cell.append(input).append(output);
         this.element = cell;
-		this.output_area = new IPython.OutputArea(output, false);
+		this.output_area = new IPython.OutputArea(output, true);
 
         // construct a completer only if class exist
         // otherwise no print view
