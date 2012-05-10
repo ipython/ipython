@@ -67,13 +67,13 @@ var IPython = (function (IPython) {
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
-        if(event.type === 'keydown' && event.which != key.tab ) {
+        if (event.type === 'keydown' && event.which != key.TAB ) {
             IPython.tooltip.remove_and_cancel_tooltip();
         };
 
         var cur = editor.getCursor();
 
-        if (event.keyCode === key.enter && (event.shiftKey || event.ctrlKey)) {
+        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
         } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
@@ -81,7 +81,7 @@ var IPython = (function (IPython) {
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             IPython.tooltip.pending(that);
-        } else if (event.which === key.upArrow) {
+        } else if (event.which === key.UPARROW) {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_top()) {
@@ -90,7 +90,7 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
-        } else if (event.which === key.downArrow) {
+        } else if (event.which === key.DOWNARROW) {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_bottom()) {
@@ -99,7 +99,7 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
-        } else if (event.keyCode === key.tab && event.type == 'keydown') {
+        } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
             //Do not trim here because of tooltip
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
@@ -118,7 +118,7 @@ var IPython = (function (IPython) {
                 this.completer.startCompletion();
                 return true;
             };
-        } else if (event.keyCode === key.backspace && event.type == 'keydown') {
+        } else if (event.keyCode === key.BACKSPACE && event.type == 'keydown') {
             // If backspace and the line ends with 4 spaces, remove them.
             var line = editor.getLine(cur.line);
             var ending = line.slice(-4);
