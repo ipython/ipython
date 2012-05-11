@@ -71,14 +71,12 @@ $(document).ready(function () {
     // finally start it, it will refresh immediately
     enable_autorefresh();
 
-    IPython.enable_autorefresh = enable_autorefresh;
-    IPython.disable_autorefresh = disable_autorefresh;
-
     IPython.page.show();
     
     // bound the upload method to the on change of the file select list
     $("#alternate_upload").change(function (event){
         IPython.notebook_list.handelFilesUpload(event,'form');
     });
+
 });
 
