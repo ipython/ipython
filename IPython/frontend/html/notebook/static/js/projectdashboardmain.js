@@ -71,10 +71,6 @@ $(document).ready(function () {
     // finally start it, it will refresh immediately
     enable_autorefresh();
 
-    IPython.enable_autorefresh = enable_autorefresh;
-    IPython.disable_autorefresh = disable_autorefresh;
-
     IPython.page.show();
-
 });
 
