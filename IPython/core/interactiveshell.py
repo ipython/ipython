@@ -30,6 +30,8 @@ import runpy
 import sys
 import tempfile
 import types
+import urllib
+from io import BytesIO,TextIOWrapper
 
 try:
     from contextlib import nested
@@ -2757,13 +2759,14 @@ class InteractiveShell(SingletonConfigurable, Magic):
           If true (default), retrieve raw history. Has no effect on the other
           retrieval mechanisms.
 
-        py_only : bool
+        py_only : bool (default False)
           Only try to fetch python code, do not try alternative methods to decode file
           if unicode fails.
 
         Returns
         -------
-        A string of code.
+        A string of code. If py_only set to False, might return raw bytes if unable
+        to decode target.
 
         ValueError is raised if nothing is found, and TypeError if it evaluates
         to an object of another type. In each case, .args[0] is a printable
@@ -2777,8 +2780,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
             if utarget.startswith(('http://', 'https://')):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=True)
         except UnicodeDecodeError:
+            print('other url');
             if not py_only :
-                return openpy.read_py_url(utarget, skip_encoding_cookie=False)
+                response = urllib.urlopen(target)
+                buffer = BytesIO(response.read())
+                return buffer.read()
             raise ValueError(("'%s' seem to be unreadable.") % utarget)
 
         try :
@@ -2789,7 +2795,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
             pass
         except UnicodeDecodeError :
             if not py_only :
-                return openpy.read_py_file(utarget, skip_encoding_cookie=False)
+                with open(pyfile) as f :
+                    return f.read()
             raise ValueError(("'%s' seem to be unreadable.") % target)
 
         if os.path.isfile(target):                        # Read file
@@ -2797,7 +2804,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 return openpy.read_py_file(target, skip_encoding_cookie=True)
             except UnicodeDecodeError :
                 if not py_only :
-                    return openpy.read_py_file(utarget, skip_encoding_cookie=False)
+                    with open(target) as f :
+                        return f.read()
                 raise ValueError(("'%s' seem to be unreadable.") % target)
 
         try:                                              # User namespace
