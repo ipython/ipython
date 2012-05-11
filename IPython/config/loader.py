@@ -334,27 +334,24 @@ class CommandLineConfigLoader(ConfigLoader):
     """
 
     def _exec_config_str(self, lhs, rhs):
-        """execute self.config.<lhs>=<rhs>
+        """execute self.config.<lhs> = <rhs>
         
         * expands ~ with expanduser
-        * tries to assign with raw exec, otherwise assigns with just the string,
+        * tries to assign with raw eval, otherwise assigns with just the string,
           allowing `--C.a=foobar` and `--C.a="foobar"` to be equivalent.  *Not*
           equivalent are `--C.a=4` and `--C.a='4'`.
         """
         rhs = os.path.expanduser(rhs)
-        exec_str = 'self.config.' + lhs + '=' + rhs
         try:
             # Try to see if regular Python syntax will work. This
             # won't handle strings as the quote marks are removed
             # by the system shell.
-            exec exec_str in locals(), globals()
+            value = eval(rhs)
         except (NameError, SyntaxError):
-            # This case happens if the rhs is a string but without
-            # the quote marks. Use repr, to get quote marks, and
-            # 'u' prefix and see if
-            # it succeeds. If it still fails, we let it raise.
-            exec_str = u'self.config.' + lhs + '= rhs'
-            exec exec_str in locals(), globals()
+            # This case happens if the rhs is a string.
+            value = rhs
+
+        exec u'self.config.%s = value' % lhs
 
     def _load_flag(self, cfg):
         """update self.config from a flag, which can be a dict or Config"""
