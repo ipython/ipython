@@ -692,6 +692,9 @@ class DirectView(View):
         block = block if block is not None else self.block
         track = track if track is not None else self.track
         targets = targets if targets is not None else self.targets
+        
+        # construct integer ID list:
+        targets = self.client._build_targets(targets)[1]
 
         mapObject = Map.dists[dist]()
         nparts = len(targets)
@@ -730,6 +733,9 @@ class DirectView(View):
         mapObject = Map.dists[dist]()
         msg_ids = []
 
+        # construct integer ID list:
+        targets = self.client._build_targets(targets)[1]
+        
         for index, engineid in enumerate(targets):
             msg_ids.extend(self.pull(key, block=False, targets=engineid).msg_ids)
 

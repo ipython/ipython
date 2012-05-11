@@ -233,6 +233,15 @@ class TestView(ClusterTestCase):
         view.scatter('a', a)
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
+    
+    def test_scatter_gather_lazy(self):
+        """scatter/gather with targets='all'"""
+        view = self.client.direct_view(targets='all')
+        x = range(64)
+        view.scatter('x', x)
+        gathered = view.gather('x', block=True)
+        self.assertEquals(gathered, x)
+        
 
     @dec.known_failure_py3
     @skip_without('numpy')
