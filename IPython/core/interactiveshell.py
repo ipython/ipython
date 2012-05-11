@@ -22,8 +22,6 @@ import __future__
 import abc
 import ast
 import atexit
-import codeop
-import inspect
 import os
 import re
 import runpy
@@ -31,16 +29,10 @@ import sys
 import tempfile
 import types
 import urllib
-from io import BytesIO,TextIOWrapper
-
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
+from io import BytesIO
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
-from IPython.core import history as ipcorehist
 from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
@@ -52,7 +44,7 @@ from IPython.core.compilerop import CachingCompiler
 from IPython.core.display_trap import DisplayTrap
 from IPython.core.displayhook import DisplayHook
 from IPython.core.displaypub import DisplayPublisher
-from IPython.core.error import TryNext, UsageError
+from IPython.core.error import UsageError
 from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
@@ -72,18 +64,18 @@ from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils import openpy
 from IPython.utils.doctestreload import doctest_reload
-from IPython.utils.io import ask_yes_no, rprint
+from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
-from IPython.utils.path import get_home_dir, get_ipython_dir, HomeDirError, get_py_filename, unquote_filename
+from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename
 from IPython.utils.pickleshare import PickleShareDB
 from IPython.utils.process import system, getoutput
 from IPython.utils.strdispatch import StrDispatch
 from IPython.utils.syspathcontext import prepended_to_syspath
-from IPython.utils.text import (num_ini_spaces, format_screen, LSString, SList,
+from IPython.utils.text import (format_screen, LSString, SList,
                                 DollarFormatter)
 from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
                                      List, Unicode, Instance, Type)
-from IPython.utils.warn import warn, error, fatal
+from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
 #-----------------------------------------------------------------------------
