@@ -43,6 +43,7 @@ class ZMQShellDisplayHook(DisplayHook):
     """A displayhook subclass that publishes data using ZeroMQ. This is intended
     to work with an InteractiveShell instance. It sends a dict of different
     representations of the object."""
+    topic=None
 
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
@@ -67,6 +68,6 @@ class ZMQShellDisplayHook(DisplayHook):
         """Finish up all displayhook activities."""
         sys.stdout.flush()
         sys.stderr.flush()
-        self.session.send(self.pub_socket, self.msg)
+        self.session.send(self.pub_socket, self.msg, ident=self.topic)
         self.msg = None
 

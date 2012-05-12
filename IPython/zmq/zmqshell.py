@@ -183,7 +183,11 @@ class ZMQInteractiveShell(InteractiveShell):
         dh = self.displayhook
         # Send exception info over pub socket for other clients than the caller
         # to pick up
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header)
+        topic = None
+        if dh.topic:
+            topic = dh.topic.replace(b'pyout', b'pyerr')
+        
+        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
