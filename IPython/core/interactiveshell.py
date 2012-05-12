@@ -2780,31 +2780,26 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 return text.read()
             raise ValueError(("'%s' seem to be unreadable.") % utarget)
 
+        potential_target = [target]
         try :
-            pyfile = get_py_filename(target)
-            return openpy.read_py_file(pyfile, skip_encoding_cookie=True)
+            potential_target.insert(0,get_py_filename(target))
         except IOError:
-            #py file don't exist... we just made a bad guess, don't raise
             pass
-        except UnicodeDecodeError :
-            if not py_only :
-                with io_open(pyfile,'r', encoding='latin1') as f :
-                    return f.read()
-            raise ValueError(("'%s' seem to be unreadable.") % target)
 
-        if os.path.isfile(target):                        # Read file
-            try :
-                return openpy.read_py_file(target, skip_encoding_cookie=True)
-            except UnicodeDecodeError :
-                if not py_only :
-                    with io_open(pyfile,'r', encoding='latin1') as f :
-                        return f.read()
-                raise ValueError(("'%s' seem to be unreadable.") % target)
+        for tgt in potential_target :
+            if os.path.isfile(tgt):                        # Read file
+                try :
+                    return openpy.read_py_file(tgt, skip_encoding_cookie=True)
+                except UnicodeDecodeError :
+                    if not py_only :
+                        with io_open(tgt,'r', encoding='latin1') as f :
+                            return f.read()
+                    raise ValueError(("'%s' seem to be unreadable.") % target)
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
         except Exception:
-            raise ValueError(("'%s' was not found in history, as a file, url,"
+            raise ValueError(("'%s' was not found in history, as a file, url, "
                                 "nor in the user namespace.") % target)
         if isinstance(codeobj, basestring):
             return codeobj
