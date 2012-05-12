@@ -226,15 +226,16 @@ class SQLiteDB(BaseDB):
             # isolation_level = None)#,
              cached_statements=64)
         # print dir(self._db)
-        first_table = self.table
+        first_table = previous_table = self.table
         i=0
         while not self._check_table():
             i+=1
             self.table = first_table+'_%i'%i
             self.log.warn(
                 "Table %s exists and doesn't match db format, trying %s"%
-                (first_table,self.table)
+                (previous_table, self.table)
             )
+            previous_table = self.table
 
         self._db.execute("""CREATE TABLE IF NOT EXISTS %s
                 (msg_id text PRIMARY KEY,
