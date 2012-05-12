@@ -376,6 +376,14 @@ def doctest_who():
     Out[7]: ['alpha', 'beta']
     """
 
+def test_whos():
+    """Check that whos is protected against objects where repr() fails."""
+    class A(object):
+        def __repr__(self):
+            raise Exception()
+    _ip.user_ns['a'] = A()
+    _ip.magic("whos")
+
 @py3compat.u_format
 def doctest_precision():
     """doctest for %precision

@@ -953,6 +953,8 @@ Currently the magic system has the following functions:\n"""
                 except UnicodeEncodeError:
                     vstr = unicode(var).encode(DEFAULT_ENCODING,
                                                'backslashreplace')
+                except:
+                    vstr = "<object with id %d (repr failed)>" % id(var)
                 vstr = vstr.replace('\n','\\n')
                 if len(vstr) < 50:
                     print vstr
