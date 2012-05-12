@@ -331,13 +331,14 @@ class TestClient(ClusterTestCase):
         r2 = ahr.get(1)
 
     def test_resubmit_inflight(self):
-        """ensure ValueError on resubmit of inflight task"""
+        """resubmit of inflight task"""
         v = self.client.load_balanced_view()
         ar = v.apply_async(time.sleep,1)
         # give the message a chance to arrive
         time.sleep(0.2)
-        self.assertRaisesRemote(ValueError, self.client.resubmit, ar.msg_ids)
+        ahr = self.client.resubmit(ar.msg_ids)
         ar.get(2)
+        ahr.get(2)
 
     def test_resubmit_badkey(self):
         """ensure KeyError on resubmit of nonexistant task"""

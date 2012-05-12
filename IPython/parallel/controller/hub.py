@@ -1134,7 +1134,7 @@ class Hub(SessionFactory):
 
         # validate msg_ids
         found_ids = [ rec['msg_id'] for rec in records ]
-        invalid_ids = filter(lambda m: m in self.pending, found_ids)
+        pending_ids = [ msg_id for msg_id in found_ids if msg_id in self.pending ]
         if len(records) > len(msg_ids):
             try:
                 raise RuntimeError("DB appears to be in an inconsistent state."
@@ -1147,40 +1147,46 @@ class Hub(SessionFactory):
                 raise KeyError("No such msg(s): %r" % missing)
             except KeyError:
                 return finish(error.wrap_exception())
-        elif invalid_ids:
-            msg_id = invalid_ids[0]
+        elif pending_ids:
+            pass
+            # no need to raise on resubmit of pending task, now that we
+            # resubmit under new ID, but do we want to raise anyway?
+            # msg_id = invalid_ids[0]
+            # try:
+            #     raise ValueError("Task(s) %r appears to be inflight" % )
+            # except Exception:
+            #     return finish(error.wrap_exception())
+
+        # mapping of original IDs to resubmitted IDs
+        resubmitted = {}
+
+        # send the messages
+        for rec in records:
+            header = rec['header']
+            msg = self.session.msg(header['msg_type'])
+            msg_id = msg['msg_id']
+            msg['content'] = rec['content']
+            header.update(msg['header'])
+            msg['header'] = header
+
+            self.session.send(self.resubmit, msg, buffers=rec['buffers'])
+
+            resubmitted[rec['msg_id']] = msg_id
+            self.pending.add(msg_id)
+            msg['buffers'] = []
             try:
-                raise ValueError("Task %r appears to be inflight" % msg_id)
+                self.db.add_record(msg_id, init_record(msg))
             except Exception:
-                return finish(error.wrap_exception())
+                self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
 
-        # clear the existing records
-        now = datetime.now()
-        rec = empty_record()
-        map(rec.pop, ['msg_id', 'header', 'content', 'buffers', 'submitted'])
-        rec['resubmitted'] = now
-        rec['queue'] = 'task'
-        rec['client_uuid'] = client_id[0]
-        try:
-            for msg_id in msg_ids:
-                self.all_completed.discard(msg_id)
-                self.db.update_record(msg_id, rec)
-        except Exception:
-            self.log.error('db::db error upating record', exc_info=True)
-            reply = error.wrap_exception()
-        else:
-            # send the messages
-            for rec in records:
-                header = rec['header']
-                # include resubmitted in header to prevent digest collision
-                header['resubmitted'] = now
-                msg = self.session.msg(header['msg_type'])
-                msg['content'] = rec['content']
-                msg['header'] = header
-                msg['header']['msg_id'] = rec['msg_id']
-                self.session.send(self.resubmit, msg, buffers=rec['buffers'])
-
-        finish(dict(status='ok'))
+        finish(dict(status='ok', resubmitted=resubmitted))
+        
+        # store the new IDs in the Task DB
+        for msg_id, resubmit_id in resubmitted.iteritems():
+            try:
+                self.db.update_record(msg_id, {'resubmitted' : resubmit_id})
+            except Exception:
+                self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
 
 
     def _extract_record(self, rec):

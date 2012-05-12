@@ -1286,12 +1286,6 @@ class Client(HasTraits):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
-        for msg_id in theids:
-            self.outstanding.discard(msg_id)
-            if msg_id in self.history:
-                self.history.remove(msg_id)
-            self.results.pop(msg_id, None)
-            self.metadata.pop(msg_id, None)
         content = dict(msg_ids = theids)
 
         self.session.send(self._query_socket, 'resubmit_request', content)
@@ -1303,8 +1297,10 @@ class Client(HasTraits):
         content = msg['content']
         if content['status'] != 'ok':
             raise self._unwrap_exception(content)
+        mapping = content['resubmitted']
+        new_ids = [ mapping[msg_id] for msg_id in theids ]
 
-        ar = AsyncHubResult(self, msg_ids=theids)
+        ar = AsyncHubResult(self, msg_ids=new_ids)
 
         if block:
             ar.wait()
