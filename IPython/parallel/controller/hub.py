@@ -468,13 +468,13 @@ class Hub(SessionFactory):
         except ValueError:
             idents=[]
         if not idents:
-            self.log.error("Bad Monitor Message: %r", msg)
+            self.log.error("Monitor message without topic: %r", msg)
             return
         handler = self.monitor_handlers.get(switch, None)
         if handler is not None:
             handler(idents, msg)
         else:
-            self.log.error("Invalid monitor topic: %r", switch)
+            self.log.error("Unrecognized monitor topic: %r", switch)
 
 
     @util.log_errors
