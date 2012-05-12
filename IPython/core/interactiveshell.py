@@ -29,7 +29,8 @@ import sys
 import tempfile
 import types
 import urllib
-from io import BytesIO
+from io import BytesIO,TextIOWrapper
+from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
@@ -2757,8 +2758,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
         Returns
         -------
-        A string of code. If py_only set to False, might return raw bytes if unable
-        to decode target.
+        A string of code.
 
         ValueError is raised if nothing is found, and TypeError if it evaluates
         to an object of another type. In each case, .args[0] is a printable
@@ -2772,11 +2772,12 @@ class InteractiveShell(SingletonConfigurable, Magic):
             if utarget.startswith(('http://', 'https://')):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=True)
         except UnicodeDecodeError:
-            print('other url');
             if not py_only :
                 response = urllib.urlopen(target)
                 buffer = BytesIO(response.read())
-                return buffer.read()
+                text = TextIOWrapper(buffer, 'latin1', errors='replace', line_buffering=True)
+                text.mode = 'r'
+                return text.read()
             raise ValueError(("'%s' seem to be unreadable.") % utarget)
 
         try :
@@ -2787,7 +2788,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             pass
         except UnicodeDecodeError :
             if not py_only :
-                with open(pyfile) as f :
+                with io_open(pyfile,'r', encoding='latin1') as f :
                     return f.read()
             raise ValueError(("'%s' seem to be unreadable.") % target)
 
@@ -2796,7 +2797,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
                 return openpy.read_py_file(target, skip_encoding_cookie=True)
             except UnicodeDecodeError :
                 if not py_only :
-                    with open(target) as f :
+                    with io_open(pyfile,'r', encoding='latin1') as f :
                         return f.read()
                 raise ValueError(("'%s' seem to be unreadable.") % target)
 
