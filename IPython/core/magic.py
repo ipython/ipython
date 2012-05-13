@@ -282,6 +282,15 @@ class MagicFunctions(object):
         self.options_table[fn] = optstr
 
 
+class UserMagics(MagicFunctions):
+    """Placeholder for user-defined magics to be added at runtime.
+
+    All magics are eventually merged into a single namespace at runtime, but we
+    use this class to isolate the magics defined dynamically by the user into
+    their own class.
+    """
+
+
 class BasicMagics(MagicFunctions):
     """Magics that provide central IPython functionality.
 
