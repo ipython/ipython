@@ -72,6 +72,60 @@ def spin_first(f, self, *args, **kwargs):
 # Classes
 #--------------------------------------------------------------------------
 
+
+class ExecuteReply(object):
+    """wrapper for finished Execute results"""
+    def __init__(self, msg_id, content, metadata):
+        self.msg_id = msg_id
+        self._content = content
+        self.execution_count = content['execution_count']
+        self.metadata = metadata
+    
+    def __getitem__(self, key):
+        return self.metadata[key]
+    
+    def __getattr__(self, key):
+        if key not in self.metadata:
+            raise AttributeError(key)
+        return self.metadata[key]
+    
+    def __repr__(self):
+        pyout = self.metadata['pyout'] or {}
+        text_out = pyout.get('text/plain', '')
+        if len(text_out) > 32:
+            text_out = text_out[:29] + '...'
+        
+        return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
+    
+    def _repr_html_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("text/html")
+    
+    def _repr_latex_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("text/latex")
+    
+    def _repr_json_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("application/json")
+    
+    def _repr_javascript_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("application/javascript")
+    
+    def _repr_png_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("image/png")
+    
+    def _repr_jpeg_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("image/jpeg")
+    
+    def _repr_svg_(self):
+        pyout = self.metadata['pyout'] or {}
+        return pyout.get("image/svg+xml")
+
+
 class Metadata(dict):
     """Subclass of dict for initializing metadata values.
 
@@ -646,7 +700,7 @@ class Client(HasTraits):
 
         # construct result:
         if content['status'] == 'ok':
-            self.results[msg_id] = content
+            self.results[msg_id] = ExecuteReply(msg_id, content, md)
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.TaskAborted(msg_id)
         elif content['status'] == 'resubmitted':
@@ -878,14 +932,14 @@ class Client(HasTraits):
         """
         if self._notification_socket:
             self._flush_notifications()
+        if self._iopub_socket:
+            self._flush_iopub(self._iopub_socket)
         if self._mux_socket:
             self._flush_results(self._mux_socket)
         if self._task_socket:
             self._flush_results(self._task_socket)
         if self._control_socket:
             self._flush_control(self._control_socket)
-        if self._iopub_socket:
-            self._flush_iopub(self._iopub_socket)
         if self._query_socket:
             self._flush_ignored_hub_replies()
 
