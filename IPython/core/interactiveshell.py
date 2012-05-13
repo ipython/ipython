@@ -380,6 +380,7 @@ class InteractiveShell(SingletonConfigurable):
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
+    magics_manager = Instance('IPython.core.magic.MagicsManager')
 
     profile_dir = Instance('IPython.core.application.ProfileDir')
     @property

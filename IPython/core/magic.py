@@ -4,8 +4,8 @@
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#  Copyright (C) 2001-2007 Fernando Perez <fperez@colorado.edu>
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2001 Fernando Perez <fperez@colorado.edu>
+#  Copyright (C) 2008 The IPython Development Team
 
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -18,14 +18,16 @@
 import __builtin__ as builtin_mod
 import __future__
 import bdb
+import gc
+import imp
 import inspect
 import io
 import json
 import os
-import sys
 import re
+import shutil
+import sys
 import time
-import gc
 from StringIO import StringIO
 from getopt import getopt,GetoptError
 from pprint import pformat
@@ -42,36 +44,48 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
+import IPython
+from IPython.config.application import Application
+from IPython.config.configurable import Configurable
 from IPython.core import debugger, oinspect
+from IPython.core import magic_arguments, page
+from IPython.core.error import StdinNotImplementedError
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
-from IPython.core.error import StdinNotImplementedError
+from IPython.core.fakemodule import FakeModule
 from IPython.core.macro import Macro
-from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
+from IPython.core.profiledir import ProfileDir
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.io import file_read, nlprint
+from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
 from IPython.utils.text import format_screen
 from IPython.utils.timing import clock, clock2
+from IPython.utils.traitlets import Bool, Dict, Instance, Integer, List, Unicode
 from IPython.utils.warn import warn, error
-from IPython.utils.ipstruct import Struct
-from IPython.config.application import Application
 
 #-----------------------------------------------------------------------------
-# Utility functions
+# Utility classes and functions
 #-----------------------------------------------------------------------------
+
+class Bunch: pass
+
+
+# Used for exception handling in magic_edit
+class MacroToEdit(ValueError): pass
+
 
 def on_off(tag):
     """Return an ON/OFF string for a 1/0 input. Simple utility function."""
     return ['OFF','ON'][tag]
 
-class Bunch: pass
 
 def compress_dhist(dh):
     head, tail = dh[:-10], dh[-10:]
@@ -86,72 +100,28 @@ def compress_dhist(dh):
 
     return newhead + tail
 
+
 def needs_local_scope(func):
     """Decorator to mark magic functions which need to local scope to run."""
     func.needs_local_scope = True
     return func
 
-    
-# Used for exception handling in magic_edit
-class MacroToEdit(ValueError): pass
-
 #***************************************************************************
-# Main class implementing Magic functionality
 
-# XXX - for some odd reason, if Magic is made a new-style class, we get errors
-# on construction of the main InteractiveShell object.  Something odd is going
-# on with super() calls, Configurable and the MRO... For now leave it as-is, but
-# eventually this needs to be clarified.
-# BG: This is because InteractiveShell inherits from this, but is itself a
-# Configurable. This messes up the MRO in some way. The fix is that we need to
-# make Magic a configurable that InteractiveShell does not subclass.
+class MagicManager(Configurable):
+    """Object that handles all magic-related functionality for IPython.
+    """
+    # An instance of the IPython shell we are attached to
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-class Magic(object):
-    """Magic functions for InteractiveShell.
+    auto_status = Enum([
+        'Automagic is OFF, % prefix IS needed for magic functions.',
+        'Automagic is ON, % prefix NOT needed for magic functions.'])
 
-    Shell functions which can be reached as %function_name. All magic
-    functions should accept a string, which they can parse for their own
-    needs. This can make some functions easier to type, eg `%cd ../`
-    vs. `%cd("../")`
+    def __init__(self, shell=None, config=None, **traits):
 
-    ALL definitions MUST begin with the prefix magic_. The user won't need it
-    at the command line, but it is is needed in the definition. """
+        super(MagicManager, self).__init__(shell=shell, config=config, **traits)
 
-    # class globals
-    auto_status = ['Automagic is OFF, % prefix IS needed for magic functions.',
-                   'Automagic is ON, % prefix NOT needed for magic functions.']
-
-
-    configurables = None
-
-    default_runner = None
-    #......................................................................
-    # some utility functions
-
-    def __init__(self, shell):
-
-        self.options_table = {}
-        if profile is None:
-            self.magic_prun = self.profile_missing_notice
-        self.shell = shell
-        if self.configurables is None:
-            self.configurables = []
-
-        # namespace for holding state we may need
-        self._magic_state = Bunch()
-
-    def profile_missing_notice(self, *args, **kwargs):
-        error("""\
-The profile module could not be found. It has been removed from the standard
-python packages because of its non-free license. To use profiling, install the
-python-profiler package from non-free.""")
-
-    def default_option(self,fn,optstr):
-        """Make an entry in the options_table for fn, with value optstr"""
-
-        if fn not in self.lsmagic():
-            error("%s is not a magic function" % fn)
-        self.options_table[fn] = optstr
 
     def lsmagic(self):
         """Return a list of currently available magic functions.
@@ -170,14 +140,38 @@ python-profiler package from non-free.""")
         # and bound magics by user (so they can access self):
         inst_bound_magic =  lambda fn: fn.startswith('magic_') and \
                            callable(self.__class__.__dict__[fn])
-        magics = filter(class_magic,Magic.__dict__.keys()) + \
+        magics = filter(class_magic, Magic.__dict__.keys()) + \
                  filter(inst_magic, self.__dict__.keys()) + \
                  filter(inst_bound_magic, self.__class__.__dict__.keys())
         out = []
         for fn in set(magics):
-            out.append(fn.replace('magic_','',1))
+            out.append(fn.replace('magic_', '', 1))
         out.sort()
         return out
+
+
+class MagicFunctions(object):
+    """Base class for implementing magic functions.
+
+    Shell functions which can be reached as %function_name. All magic
+    functions should accept a string, which they can parse for their own
+    needs. This can make some functions easier to type, eg `%cd ../`
+    vs. `%cd("../")`
+    """
+
+    options_table = Dict(config=True,
+        help = """Dict holding all command-line options for each magic.
+        """)
+
+    class __metaclass__(type):
+        def __new__(cls, name, bases, dct):
+            cls.registered = False
+            return type.__new__(cls, name, bases, dct)
+
+    def __init__(self, shell):
+        if not(self.__class__.registered):
+            raise ValueError('unregistered Magics')
+        self.shell = shell
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -211,7 +205,7 @@ python-profiler package from non-free.""")
         strng = newline_re.sub(r'\\textbackslash{}n',strng)
         return strng
 
-    def parse_options(self,arg_str,opt_str,*long_opts,**kw):
+    def parse_options(self, arg_str, opt_str, *long_opts, **kw):
         """Parse options passed to an argument string.
 
         The interface is similar to that of getopt(), but it returns back a
@@ -280,10 +274,20 @@ python-profiler package from non-free.""")
 
         return opts,args
 
-    #......................................................................
-    # And now the actual magic functions
+    def default_option(self,fn,optstr):
+        """Make an entry in the options_table for fn, with value optstr"""
 
-    # Functions for IPython shell work (vars,funcs, config, etc)
+        if fn not in self.lsmagic():
+            error("%s is not a magic function" % fn)
+        self.options_table[fn] = optstr
+
+
+class BasicMagics(MagicFunctions):
+    """Magics that provide central IPython functionality.
+
+    These are various magics that don't fit into specific categories but that
+    are all part of the base 'IPython experience'."""
+
     def magic_lsmagic(self, parameter_s = ''):
         """List currently available magic functions."""
         mesc = ESC_MAGIC
@@ -383,99 +387,6 @@ Currently the magic system has the following functions:\n"""
                                      Magic.auto_status[self.shell.automagic] ) )
         page.page(outmsg)
 
-    def magic_automagic(self, parameter_s = ''):
-        """Make magic functions callable without having to type the initial %.
-
-        Without argumentsl toggles on/off (when off, you must call it as
-        %automagic, of course).  With arguments it sets the value, and you can
-        use any of (case insensitive):
-
-         - on,1,True: to activate
-
-         - off,0,False: to deactivate.
-
-        Note that magic functions have lowest priority, so if there's a
-        variable whose name collides with that of a magic fn, automagic won't
-        work for that function (you get the variable instead). However, if you
-        delete the variable (del var), the previously shadowed magic function
-        becomes visible to automagic again."""
-
-        arg = parameter_s.lower()
-        if parameter_s in ('on','1','true'):
-            self.shell.automagic = True
-        elif parameter_s in ('off','0','false'):
-            self.shell.automagic = False
-        else:
-            self.shell.automagic = not self.shell.automagic
-        print '\n' + Magic.auto_status[self.shell.automagic]
-
-    @skip_doctest
-    def magic_autocall(self, parameter_s = ''):
-        """Make functions callable without having to type parentheses.
-
-        Usage:
-
-           %autocall [mode]
-
-        The mode can be one of: 0->Off, 1->Smart, 2->Full.  If not given, the
-        value is toggled on and off (remembering the previous state).
-
-        In more detail, these values mean:
-
-        0 -> fully disabled
-
-        1 -> active, but do not apply if there are no arguments on the line.
-
-        In this mode, you get::
-
-          In [1]: callable
-          Out[1]: <built-in function callable>
-
-          In [2]: callable 'hello'
-          ------> callable('hello')
-          Out[2]: False
-
-        2 -> Active always.  Even if no arguments are present, the callable
-        object is called::
-
-          In [2]: float
-          ------> float()
-          Out[2]: 0.0
-
-        Note that even with autocall off, you can still use '/' at the start of
-        a line to treat the first argument on the command line as a function
-        and add parentheses to it::
-
-          In [8]: /str 43
-          ------> str(43)
-          Out[8]: '43'
-
-        # all-random (note for auto-testing)
-        """
-
-        if parameter_s:
-            arg = int(parameter_s)
-        else:
-            arg = 'toggle'
-
-        if not arg in (0,1,2,'toggle'):
-            error('Valid modes: (0->Off, 1->Smart, 2->Full')
-            return
-
-        if arg in (0,1,2):
-            self.shell.autocall = arg
-        else: # toggle
-            if self.shell.autocall:
-                self._magic_state.autocall_save = self.shell.autocall
-                self.shell.autocall = 0
-            else:
-                try:
-                    self.shell.autocall = self._magic_state.autocall_save
-                except AttributeError:
-                    self.shell.autocall = self._magic_state.autocall_save = 1
-
-        print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
-
 
     def magic_page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.
@@ -509,6 +420,920 @@ Currently the magic system has the following functions:\n"""
             print BaseIPythonApplication.instance().profile
         else:
             error("profile is an application-level value, but you don't appear to be in an IPython application")
+
+    def magic_pprint(self, parameter_s=''):
+        """Toggle pretty printing on/off."""
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.pprint = bool(1 - ptformatter.pprint)
+        print 'Pretty printing has been turned', \
+              ['OFF','ON'][ptformatter.pprint]
+
+    def magic_colors(self,parameter_s = ''):
+        """Switch color scheme for prompts, info system and exception handlers.
+
+        Currently implemented schemes: NoColor, Linux, LightBG.
+
+        Color scheme names are not case-sensitive.
+
+        Examples
+        --------
+        To get a plain black and white terminal::
+
+          %colors nocolor
+        """
+
+        def color_switch_err(name):
+            warn('Error changing %s color schemes.\n%s' %
+                 (name,sys.exc_info()[1]))
+
+
+        new_scheme = parameter_s.strip()
+        if not new_scheme:
+            raise UsageError(
+                "%colors: you must specify a color scheme. See '%colors?'")
+            return
+        # local shortcut
+        shell = self.shell
+
+        import IPython.utils.rlineimpl as readline
+
+        if not shell.colors_force and \
+                not readline.have_readline and sys.platform == "win32":
+            msg = """\
+Proper color support under MS Windows requires the pyreadline library.
+You can find it at:
+http://ipython.org/pyreadline.html
+Gary's readline needs the ctypes module, from:
+http://starship.python.net/crew/theller/ctypes
+(Note that ctypes is already part of Python versions 2.5 and newer).
+
+Defaulting color scheme to 'NoColor'"""
+            new_scheme = 'NoColor'
+            warn(msg)
+
+        # readline option is 0
+        if not shell.colors_force and not shell.has_readline:
+            new_scheme = 'NoColor'
+
+        # Set prompt colors
+        try:
+            shell.prompt_manager.color_scheme = new_scheme
+        except:
+            color_switch_err('prompt')
+        else:
+            shell.colors = \
+                   shell.prompt_manager.color_scheme_table.active_scheme_name
+        # Set exception colors
+        try:
+            shell.InteractiveTB.set_colors(scheme = new_scheme)
+            shell.SyntaxTB.set_colors(scheme = new_scheme)
+        except:
+            color_switch_err('exception')
+
+        # Set info (for 'object?') colors
+        if shell.color_info:
+            try:
+                shell.inspector.set_active_scheme(new_scheme)
+            except:
+                color_switch_err('object inspector')
+        else:
+            shell.inspector.set_active_scheme('NoColor')
+
+    def magic_xmode(self,parameter_s = ''):
+        """Switch modes for the exception handlers.
+
+        Valid modes: Plain, Context and Verbose.
+
+        If called without arguments, acts as a toggle."""
+
+        def xmode_switch_err(name):
+            warn('Error changing %s exception modes.\n%s' %
+                 (name,sys.exc_info()[1]))
+
+        shell = self.shell
+        new_mode = parameter_s.strip().capitalize()
+        try:
+            shell.InteractiveTB.set_mode(mode=new_mode)
+            print 'Exception reporting mode:',shell.InteractiveTB.mode
+        except:
+            xmode_switch_err('user')
+
+    def magic_quickref(self,arg):
+        """ Show a quick reference sheet """
+        import IPython.core.usage
+        qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
+        page.page(qr)
+
+    def magic_doctest_mode(self,parameter_s=''):
+        """Toggle doctest mode on and off.
+
+        This mode is intended to make IPython behave as much as possible like a
+        plain Python shell, from the perspective of how its prompts, exceptions
+        and output look.  This makes it easy to copy and paste parts of a
+        session into doctests.  It does so by:
+
+        - Changing the prompts to the classic ``>>>`` ones.
+        - Changing the exception reporting mode to 'Plain'.
+        - Disabling pretty-printing of output.
+
+        Note that IPython also supports the pasting of code snippets that have
+        leading '>>>' and '...' prompts in them.  This means that you can paste
+        doctests from files or docstrings (even if they have leading
+        whitespace), and the code will execute correctly.  You can then use
+        '%history -t' to see the translated history; this will give you the
+        input after removal of all the leading prompts and whitespace, which
+        can be pasted back into an editor.
+
+        With these features, you can switch into this mode easily whenever you
+        need to do testing and changes to doctests, without having to leave
+        your existing IPython session.
+        """
+
+        from IPython.utils.ipstruct import Struct
+
+        # Shorthands
+        shell = self.shell
+        pm = shell.prompt_manager
+        meta = shell.meta
+        disp_formatter = self.shell.display_formatter
+        ptformatter = disp_formatter.formatters['text/plain']
+        # dstore is a data store kept in the instance metadata bag to track any
+        # changes we make, so we can undo them later.
+        dstore = meta.setdefault('doctest_mode',Struct())
+        save_dstore = dstore.setdefault
+
+        # save a few values we'll need to recover later
+        mode = save_dstore('mode',False)
+        save_dstore('rc_pprint',ptformatter.pprint)
+        save_dstore('xmode',shell.InteractiveTB.mode)
+        save_dstore('rc_separate_out',shell.separate_out)
+        save_dstore('rc_separate_out2',shell.separate_out2)
+        save_dstore('rc_prompts_pad_left',pm.justify)
+        save_dstore('rc_separate_in',shell.separate_in)
+        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
+        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
+
+        if mode == False:
+            # turn on
+            pm.in_template = '>>> '
+            pm.in2_template = '... '
+            pm.out_template = ''
+
+            # Prompt separators like plain python
+            shell.separate_in = ''
+            shell.separate_out = ''
+            shell.separate_out2 = ''
+
+            pm.justify = False
+
+            ptformatter.pprint = False
+            disp_formatter.plain_text_only = True
+
+            shell.magic('xmode Plain')
+        else:
+            # turn off
+            pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
+
+            shell.separate_in = dstore.rc_separate_in
+
+            shell.separate_out = dstore.rc_separate_out
+            shell.separate_out2 = dstore.rc_separate_out2
+
+            pm.justify = dstore.rc_prompts_pad_left
+
+            ptformatter.pprint = dstore.rc_pprint
+            disp_formatter.plain_text_only = dstore.rc_plain_text_only
+
+            shell.magic('xmode ' + dstore.xmode)
+
+        # Store new mode and inform
+        dstore.mode = bool(1-int(mode))
+        mode_label = ['OFF','ON'][dstore.mode]
+        print 'Doctest mode is:', mode_label
+
+    def magic_gui(self, parameter_s=''):
+        """Enable or disable IPython GUI event loop integration.
+
+        %gui [GUINAME]
+
+        This magic replaces IPython's threaded shells that were activated
+        using the (pylab/wthread/etc.) command line flags.  GUI toolkits
+        can now be enabled at runtime and keyboard
+        interrupts should work without any problems.  The following toolkits
+        are supported:  wxPython, PyQt4, PyGTK, Tk and Cocoa (OSX)::
+
+            %gui wx      # enable wxPython event loop integration
+            %gui qt4|qt  # enable PyQt4 event loop integration
+            %gui gtk     # enable PyGTK event loop integration
+            %gui gtk3    # enable Gtk3 event loop integration
+            %gui tk      # enable Tk event loop integration
+            %gui OSX     # enable Cocoa event loop integration
+                         # (requires %matplotlib 1.1)
+            %gui         # disable all event loop integration
+
+        WARNING:  after any of these has been called you can simply create
+        an application object, but DO NOT start the event loop yourself, as
+        we have already handled that.
+        """
+        opts, arg = self.parse_options(parameter_s, '')
+        if arg=='': arg = None
+        try:
+            return self.enable_gui(arg)
+        except Exception as e:
+            # print simple error message, rather than traceback if we can't
+            # hook up the GUI
+            error(str(e))
+
+    @skip_doctest
+    def magic_precision(self, s=''):
+        """Set floating point precision for pretty printing.
+
+        Can set either integer precision or a format string.
+
+        If numpy has been imported and precision is an int,
+        numpy display precision will also be set, via ``numpy.set_printoptions``.
+
+        If no argument is given, defaults will be restored.
+
+        Examples
+        --------
+        ::
+
+            In [1]: from math import pi
+
+            In [2]: %precision 3
+            Out[2]: u'%.3f'
+
+            In [3]: pi
+            Out[3]: 3.142
+
+            In [4]: %precision %i
+            Out[4]: u'%i'
+
+            In [5]: pi
+            Out[5]: 3
+
+            In [6]: %precision %e
+            Out[6]: u'%e'
+
+            In [7]: pi**10
+            Out[7]: 9.364805e+04
+
+            In [8]: %precision
+            Out[8]: u'%r'
+
+            In [9]: pi**10
+            Out[9]: 93648.047476082982
+        """
+        ptformatter = self.shell.display_formatter.formatters['text/plain']
+        ptformatter.float_precision = s
+        return ptformatter.float_format
+
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-e', '--export', action='store_true', default=False,
+        help='Export IPython history as a notebook. The filename argument '
+             'is used to specify the notebook name and format. For example '
+             'a filename of notebook.ipynb will result in a notebook name '
+             'of "notebook" and a format of "xml". Likewise using a ".json" '
+             'or ".py" file extension will write the notebook in the json '
+             'or py formats.'
+    )
+    @magic_arguments.argument(
+        '-f', '--format',
+        help='Convert an existing IPython notebook to a new format. This option '
+             'specifies the new format and can have the values: xml, json, py. '
+             'The target filename is chosen automatically based on the new '
+             'format. The filename argument gives the name of the source file.'
+    )
+    @magic_arguments.argument(
+        'filename', type=unicode,
+        help='Notebook name or filename'
+    )
+    def magic_notebook(self, s):
+        """Export and convert IPython notebooks.
+
+        This function can export the current IPython history to a notebook file
+        or can convert an existing notebook file into a different format. For
+        example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
+        To export the history to "foo.py" do "%notebook -e foo.py". To convert
+        "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
+        formats include (json/ipynb, py).
+        """
+        args = magic_arguments.parse_argstring(self.magic_notebook, s)
+
+        from IPython.nbformat import current
+        args.filename = unquote_filename(args.filename)
+        if args.export:
+            fname, name, format = current.parse_filename(args.filename)
+            cells = []
+            hist = list(self.shell.history_manager.get_range())
+            for session, prompt_number, input in hist[:-1]:
+                cells.append(current.new_code_cell(prompt_number=prompt_number,
+                                                   input=input))
+            worksheet = current.new_worksheet(cells=cells)
+            nb = current.new_notebook(name=name,worksheets=[worksheet])
+            with io.open(fname, 'w', encoding='utf-8') as f:
+                current.write(nb, f, format);
+        elif args.format is not None:
+            old_fname, old_name, old_format = current.parse_filename(args.filename)
+            new_format = args.format
+            if new_format == u'xml':
+                raise ValueError('Notebooks cannot be written as xml.')
+            elif new_format == u'ipynb' or new_format == u'json':
+                new_fname = old_name + u'.ipynb'
+                new_format = u'json'
+            elif new_format == u'py':
+                new_fname = old_name + u'.py'
+            else:
+                raise ValueError('Invalid notebook format: %s' % new_format)
+            with io.open(old_fname, 'r', encoding='utf-8') as f:
+                nb = current.read(f, old_format)
+            with io.open(new_fname, 'w', encoding='utf-8') as f:
+                current.write(nb, f, new_format)
+
+
+class CodeMagics(MagicFunctions):
+    """Magics related to code management (loading, saving, editing, ...)."""
+
+    def magic_save(self,parameter_s = ''):
+        """Save a set of lines or a macro to a given filename.
+
+        Usage:\\
+          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+
+        Options:
+
+          -r: use 'raw' input.  By default, the 'processed' history is used,
+          so that magics are loaded in their transformed version to valid
+          Python.  If this option is given, the raw input as typed as the
+          command line is used instead.
+
+        This function uses the same syntax as %history for input ranges,
+        then saves the lines to the filename you specify.
+
+        It adds a '.py' extension to the file if you don't do so yourself, and
+        it asks for confirmation before overwriting existing files."""
+
+        opts,args = self.parse_options(parameter_s,'r',mode='list')
+        fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
+        if not fname.endswith('.py'):
+            fname += '.py'
+        if os.path.isfile(fname):
+            ans = raw_input('File `%s` exists. Overwrite (y/[N])? ' % fname)
+            if ans.lower() not in ['y','yes']:
+                print 'Operation cancelled.'
+                return
+        try:
+            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
+        except (TypeError, ValueError) as e:
+            print e.args[0]
+            return
+        with io.open(fname,'w', encoding="utf-8") as f:
+            f.write(u"# coding: utf-8\n")
+            f.write(py3compat.cast_unicode(cmds))
+        print 'The following commands were written to file `%s`:' % fname
+        print cmds
+
+    def magic_pastebin(self, parameter_s = ''):
+        """Upload code to Github's Gist paste bin, returning the URL.
+
+        Usage:\\
+          %pastebin [-d "Custom description"] 1-7
+
+        The argument can be an input history range, a filename, or the name of a
+        string or macro.
+
+        Options:
+
+          -d: Pass a custom description for the gist. The default will say
+              "Pasted from IPython".
+        """
+        opts, args = self.parse_options(parameter_s, 'd:')
+
+        try:
+            code = self.shell.find_user_code(args)
+        except (ValueError, TypeError) as e:
+            print e.args[0]
+            return
+
+        post_data = json.dumps({
+          "description": opts.get('d', "Pasted from IPython"),
+          "public": True,
+          "files": {
+            "file1.py": {
+              "content": code
+            }
+          }
+        }).encode('utf-8')
+
+        response = urlopen("https://api.github.com/gists", post_data)
+        response_data = json.loads(response.read().decode('utf-8'))
+        return response_data['html_url']
+
+    def magic_loadpy(self, arg_s):
+        """Alias of `%load`
+        
+        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
+        extension. So it has been renamed simply into %load. You can look at
+        `%load`'s docstring for more info.
+        """
+        self.magic_load(arg_s)
+
+    def magic_load(self, arg_s):
+        """Load code into the current frontend.
+
+        Usage:\\
+          %load [options] source
+
+          where source can be a filename, URL, input history range or macro
+
+        Options:
+        --------
+          -y : Don't ask confirmation for loading source above 200 000 characters.
+
+        This magic command can either take a local filename, a URL, an history
+        range (see %history) or a macro as argument, it will prompt for
+        confirmation before loading source with more than 200 000 characters, unless
+        -y flag is passed or if the frontend does not support raw_input::
+
+        %load myscript.py
+        %load 7-27
+        %load myMacro
+        %load http://www.example.com/myscript.py
+        """
+        opts,args = self.parse_options(arg_s,'y')
+
+        contents = self.shell.find_user_code(args)
+        l = len(contents)
+
+        # 200 000 is ~ 2500 full 80 caracter lines
+        # so in average, more than 5000 lines
+        if l > 200000 and 'y' not in opts:
+            try:
+                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
+                " (%d characters). Continue (y/[N]) ?" % l), default='n' )
+            except StdinNotImplementedError:
+                #asume yes if raw input not implemented
+                ans = True
+
+            if ans is False :
+                print 'Operation cancelled.'
+                return
+
+        self.set_next_input(contents)
+
+    def _find_edit_target(self, args, opts, last_call):
+        """Utility method used by magic_edit to find what to edit."""
+
+        def make_filename(arg):
+            "Make a filename from the given args"
+            arg = unquote_filename(arg)
+            try:
+                filename = get_py_filename(arg)
+            except IOError:
+                # If it ends with .py but doesn't already exist, assume we want
+                # a new file.
+                if arg.endswith('.py'):
+                    filename = arg
+                else:
+                    filename = None
+            return filename
+
+        # Set a few locals from the options for convenience:
+        opts_prev = 'p' in opts
+        opts_raw = 'r' in opts
+
+        # custom exceptions
+        class DataIsObject(Exception): pass
+
+        # Default line number value
+        lineno = opts.get('n',None)
+
+        if opts_prev:
+            args = '_%s' % last_call[0]
+            if not self.shell.user_ns.has_key(args):
+                args = last_call[1]
+
+        # use last_call to remember the state of the previous call, but don't
+        # let it be clobbered by successive '-p' calls.
+        try:
+            last_call[0] = self.shell.displayhook.prompt_count
+            if not opts_prev:
+                last_call[1] = args
+        except:
+            pass
+
+        # by default this is done with temp files, except when the given
+        # arg is a filename
+        use_temp = True
+
+        data = ''
+
+        # First, see if the arguments should be a filename.
+        filename = make_filename(args)
+        if filename:
+            use_temp = False
+        elif args:
+            # Mode where user specifies ranges of lines, like in %macro.
+            data = self.shell.extract_input_lines(args, opts_raw)
+            if not data:
+                try:
+                    # Load the parameter given as a variable. If not a string,
+                    # process it as an object instead (below)
+
+                    #print '*** args',args,'type',type(args)  # dbg
+                    data = eval(args, self.shell.user_ns)
+                    if not isinstance(data, basestring):
+                        raise DataIsObject
+
+                except (NameError,SyntaxError):
+                    # given argument is not a variable, try as a filename
+                    filename = make_filename(args)
+                    if filename is None:
+                        warn("Argument given (%s) can't be found as a variable "
+                             "or as a filename." % args)
+                        return
+                    use_temp = False
+
+                except DataIsObject:
+                    # macros have a special edit function
+                    if isinstance(data, Macro):
+                        raise MacroToEdit(data)
+
+                    # For objects, try to edit the file where they are defined
+                    try:
+                        filename = inspect.getabsfile(data)
+                        if 'fakemodule' in filename.lower() and inspect.isclass(data):
+                            # class created by %edit? Try to find source
+                            # by looking for method definitions instead, the
+                            # __module__ in those classes is FakeModule.
+                            attrs = [getattr(data, aname) for aname in dir(data)]
+                            for attr in attrs:
+                                if not inspect.ismethod(attr):
+                                    continue
+                                filename = inspect.getabsfile(attr)
+                                if filename and 'fakemodule' not in filename.lower():
+                                    # change the attribute to be the edit target instead
+                                    data = attr
+                                    break
+
+                        datafile = 1
+                    except TypeError:
+                        filename = make_filename(args)
+                        datafile = 1
+                        warn('Could not find file where `%s` is defined.\n'
+                             'Opening a file named `%s`' % (args,filename))
+                    # Now, make sure we can actually read the source (if it was in
+                    # a temp file it's gone by now).
+                    if datafile:
+                        try:
+                            if lineno is None:
+                                lineno = inspect.getsourcelines(data)[1]
+                        except IOError:
+                            filename = make_filename(args)
+                            if filename is None:
+                                warn('The file `%s` where `%s` was defined cannot '
+                                     'be read.' % (filename,data))
+                                return
+                    use_temp = False
+
+        if use_temp:
+            filename = self.shell.mktempfile(data)
+            print 'IPython will make a temporary file named:',filename
+
+        return filename, lineno, use_temp
+
+    def _edit_macro(self,mname,macro):
+        """open an editor with the macro data in a file"""
+        filename = self.shell.mktempfile(macro.value)
+        self.shell.hooks.editor(filename)
+
+        # and make a new macro object, to replace the old one
+        mfile = open(filename)
+        mvalue = mfile.read()
+        mfile.close()
+        self.shell.user_ns[mname] = Macro(mvalue)
+
+    def magic_ed(self,parameter_s=''):
+        """Alias to %edit."""
+        return self.magic_edit(parameter_s)
+
+    @skip_doctest
+    def magic_edit(self,parameter_s='',last_call=['','']):
+        """Bring up an editor and execute the resulting code.
+
+        Usage:
+          %edit [options] [args]
+
+        %edit runs IPython's editor hook. The default version of this hook is
+        set to call the editor specified by your $EDITOR environment variable.
+        If this isn't found, it will default to vi under Linux/Unix and to
+        notepad under Windows. See the end of this docstring for how to change
+        the editor hook.
+
+        You can also set the value of this editor via the
+        ``TerminalInteractiveShell.editor`` option in your configuration file.
+        This is useful if you wish to use a different editor from your typical
+        default with IPython (and for Windows users who typically don't set
+        environment variables).
+
+        This command allows you to conveniently edit multi-line code right in
+        your IPython session.
+
+        If called without arguments, %edit opens up an empty editor with a
+        temporary file and will execute the contents of this file when you
+        close it (don't forget to save it!).
+
+
+        Options:
+
+        -n <number>: open the editor at a specified line number.  By default,
+        the IPython editor hook uses the unix syntax 'editor +N filename', but
+        you can configure this by providing your own modified hook if your
+        favorite editor supports line-number specifications with a different
+        syntax.
+
+        -p: this will call the editor with the same data as the previous time
+        it was used, regardless of how long ago (in your current session) it
+        was.
+
+        -r: use 'raw' input.  This option only applies to input taken from the
+        user's history.  By default, the 'processed' history is used, so that
+        magics are loaded in their transformed version to valid Python.  If
+        this option is given, the raw input as typed as the command line is
+        used instead.  When you exit the editor, it will be executed by
+        IPython's own processor.
+
+        -x: do not execute the edited code immediately upon exit. This is
+        mainly useful if you are editing programs which need to be called with
+        command line arguments, which you can then do using %run.
+
+
+        Arguments:
+
+        If arguments are given, the following possibilities exist:
+
+        - If the argument is a filename, IPython will load that into the
+          editor. It will execute its contents with execfile() when you exit,
+          loading any code in the file into your interactive namespace.
+
+        - The arguments are ranges of input history,  e.g. "7 ~1/4-6".
+          The syntax is the same as in the %history magic.
+
+        - If the argument is a string variable, its contents are loaded
+          into the editor. You can thus edit any string which contains
+          python code (including the result of previous edits).
+
+        - If the argument is the name of an object (other than a string),
+          IPython will try to locate the file where it was defined and open the
+          editor at the point where it is defined. You can use `%edit function`
+          to load an editor exactly at the point where 'function' is defined,
+          edit it and have the file be executed automatically.
+
+        - If the object is a macro (see %macro for details), this opens up your
+          specified editor with a temporary file containing the macro's data.
+          Upon exit, the macro is reloaded with the contents of the file.
+
+        Note: opening at an exact line is only supported under Unix, and some
+        editors (like kedit and gedit up to Gnome 2.8) do not understand the
+        '+NUMBER' parameter necessary for this feature. Good editors like
+        (X)Emacs, vi, jed, pico and joe all do.
+
+        After executing your code, %edit will return as output the code you
+        typed in the editor (except when it was an existing file). This way
+        you can reload the code in further invocations of %edit as a variable,
+        via _<NUMBER> or Out[<NUMBER>], where <NUMBER> is the prompt number of
+        the output.
+
+        Note that %edit is also available through the alias %ed.
+
+        This is an example of creating a simple function inside the editor and
+        then modifying it. First, start up the editor::
+
+          In [1]: ed
+          Editing... done. Executing edited code...
+          Out[1]: 'def foo():\\n    print "foo() was defined in an editing
+          session"\\n'
+
+        We can then call the function foo()::
+
+          In [2]: foo()
+          foo() was defined in an editing session
+
+        Now we edit foo.  IPython automatically loads the editor with the
+        (temporary) file where foo() was previously defined::
+
+          In [3]: ed foo
+          Editing... done. Executing edited code...
+
+        And if we call foo() again we get the modified version::
+
+          In [4]: foo()
+          foo() has now been changed!
+
+        Here is an example of how to edit a code snippet successive
+        times. First we call the editor::
+
+          In [5]: ed
+          Editing... done. Executing edited code...
+          hello
+          Out[5]: "print 'hello'\\n"
+
+        Now we call it again with the previous output (stored in _)::
+
+          In [6]: ed _
+          Editing... done. Executing edited code...
+          hello world
+          Out[6]: "print 'hello world'\\n"
+
+        Now we call it with the output #8 (stored in _8, also as Out[8])::
+
+          In [7]: ed _8
+          Editing... done. Executing edited code...
+          hello again
+          Out[7]: "print 'hello again'\\n"
+
+
+        Changing the default editor hook:
+
+        If you wish to write your own editor hook, you can put it in a
+        configuration file which you load at startup time.  The default hook
+        is defined in the IPython.core.hooks module, and you can use that as a
+        starting example for further modifications.  That file also has
+        general instructions on how to set a new hook for use once you've
+        defined it."""
+        opts,args = self.parse_options(parameter_s,'prxn:')
+
+        try:
+            filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
+        except MacroToEdit as e:
+            self._edit_macro(args, e.args[0])
+            return
+
+        # do actual editing here
+        print 'Editing...',
+        sys.stdout.flush()
+        try:
+            # Quote filenames that may have spaces in them
+            if ' ' in filename:
+                filename = "'%s'" % filename
+            self.shell.hooks.editor(filename,lineno)
+        except TryNext:
+            warn('Could not open editor')
+            return
+
+        # XXX TODO: should this be generalized for all string vars?
+        # For now, this is special-cased to blocks created by cpaste
+        if args.strip() == 'pasted_block':
+            self.shell.user_ns['pasted_block'] = file_read(filename)
+
+        if 'x' in opts:  # -x prevents actual execution
+            print
+        else:
+            print 'done. Executing edited code...'
+            if 'r' in opts:    # Untranslated IPython code
+                self.shell.run_cell(file_read(filename),
+                                                    store_history=False)
+            else:
+                self.shell.safe_execfile(filename, self.shell.user_ns,
+                                         self.shell.user_ns)
+
+        if is_temp:
+            try:
+                return open(filename).read()
+            except IOError,msg:
+                if msg.filename == filename:
+                    warn('File not found. Did you forget to save?')
+                    return
+                else:
+                    self.shell.showtraceback()
+
+
+class ConfigMagics(MagicFunctions):
+
+    def __init__(self, shell):
+        super(ProfileMagics, self).__init__(shell)
+        self.configurables = []
+
+    def magic_config(self, s):
+        """configure IPython
+
+            %config Class[.trait=value]
+
+        This magic exposes most of the IPython config system. Any
+        Configurable class should be able to be configured with the simple
+        line::
+
+            %config Class.trait=value
+
+        Where `value` will be resolved in the user's namespace, if it is an
+        expression or variable name.
+
+        Examples
+        --------
+
+        To see what classes are available for config, pass no arguments::
+
+            In [1]: %config
+            Available objects for config:
+                TerminalInteractiveShell
+                HistoryManager
+                PrefilterManager
+                AliasManager
+                IPCompleter
+                PromptManager
+                DisplayFormatter
+
+        To view what is configurable on a given class, just pass the class
+        name::
+
+            In [2]: %config IPCompleter
+            IPCompleter options
+            -----------------
+            IPCompleter.omit__names=<Enum>
+                Current: 2
+                Choices: (0, 1, 2)
+                Instruct the completer to omit private method names
+                Specifically, when completing on ``object.<tab>``.
+                When 2 [default]: all names that start with '_' will be excluded.
+                When 1: all 'magic' names (``__foo__``) will be excluded.
+                When 0: nothing will be excluded.
+            IPCompleter.merge_completions=<CBool>
+                Current: True
+                Whether to merge completion results into a single list
+                If False, only the completion results from the first non-empty completer
+                will be returned.
+            IPCompleter.limit_to__all__=<CBool>
+                Current: False
+                Instruct the completer to use __all__ for the completion
+                Specifically, when completing on ``object.<tab>``.
+                When True: only those names in obj.__all__ will be included.
+                When False [default]: the __all__ attribute is ignored
+            IPCompleter.greedy=<CBool>
+                Current: False
+                Activate greedy completion
+                This will enable completion on elements of lists, results of function calls,
+                etc., but can be unsafe because the code is actually evaluated on TAB.
+
+        but the real use is in setting values::
+
+            In [3]: %config IPCompleter.greedy = True
+
+        and these values are read from the user_ns if they are variables::
+
+            In [4]: feeling_greedy=False
+
+            In [5]: %config IPCompleter.greedy = feeling_greedy
+
+        """
+        from IPython.config.loader import Config
+        # some IPython objects are Configurable, but do not yet have
+        # any configurable traits.  Exclude them from the effects of
+        # this magic, as their presence is just noise:
+        configurables = [ c for c in self.shell.configurables
+                          if c.__class__.class_traits(config=True) ]
+        classnames = [ c.__class__.__name__ for c in configurables ]
+
+        line = s.strip()
+        if not line:
+            # print available configurable names
+            print "Available objects for config:"
+            for name in classnames:
+                print "    ", name
+            return
+        elif line in classnames:
+            # `%config TerminalInteractiveShell` will print trait info for
+            # TerminalInteractiveShell
+            c = configurables[classnames.index(line)]
+            cls = c.__class__
+            help = cls.class_get_help(c)
+            # strip leading '--' from cl-args:
+            help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
+            print help
+            return
+        elif '=' not in line:
+            raise UsageError("Invalid config statement: %r, should be Class.trait = value" % line)
+
+
+        # otherwise, assume we are setting configurables.
+        # leave quotes on args when splitting, because we want
+        # unquoted args to eval in user_ns
+        cfg = Config()
+        exec "cfg."+line in locals(), self.shell.user_ns
+
+        for configurable in configurables:
+            try:
+                configurable.update_config(cfg)
+            except Exception as e:
+                error(e)
+
+
+class NamespaceMagics(MagicFunctions):
+    """Magics to manage various aspects of the user's namespace.
+
+    These include listing variables, introspecting into them, etc.
+    """
 
     def magic_pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
@@ -948,11 +1773,11 @@ Currently the magic system has the following functions:\n"""
             references to objects from the current session.
 
         in : reset input history
-       
+
         out : reset output history
-       
+
         dhist : reset directory history
-        
+
         array : reset only variables that are NumPy arrays
 
         See Also
@@ -1008,7 +1833,7 @@ Currently the magic system has the following functions:\n"""
                 del(user_ns[i])
         elif len(args) == 0:                # Hard reset
             self.shell.reset(new_session = False)
-        
+
         # reset in/out/dhist/array: previously extensinions/clearcmd.py
         ip = self.shell
         user_ns = self.shell.user_ns  # local lookup, heavily used
@@ -1160,188 +1985,24 @@ Currently the magic system has the following functions:\n"""
         except (NameError, ValueError) as e:
             print type(e).__name__ +": "+ str(e)
 
-    def magic_logstart(self,parameter_s=''):
-        """Start logging anywhere in a session.
 
-        %logstart [-o|-r|-t] [log_name [log_mode]]
+class ExecutionMagics(MagicFunctions):
+    """Magics related to code execution, debugging, profiling, etc.
 
-        If no name is given, it defaults to a file named 'ipython_log.py' in your
-        current directory, in 'rotate' mode (see below).
+    """
 
-        '%logstart name' saves to file 'name' in 'backup' mode.  It saves your
-        history up to that point and then continues logging.
+    def __init__(self, shell):
+        super(ProfileMagics, self).__init__(shell)
+        if profile is None:
+            self.magic_prun = self.profile_missing_notice
+        # Default execution function used to actually run user code.
+        self.default_runner = None
 
-        %logstart takes a second optional parameter: logging mode. This can be one
-        of (note that the modes are given unquoted):\\
-          append: well, that says it.\\
-          backup: rename (if exists) to name~ and start name.\\
-          global: single logfile in your home dir, appended to.\\
-          over  : overwrite existing log.\\
-          rotate: create rotating logs name.1~, name.2~, etc.
-
-        Options:
-
-          -o: log also IPython's output.  In this mode, all commands which
-          generate an Out[NN] prompt are recorded to the logfile, right after
-          their corresponding input line.  The output lines are always
-          prepended with a '#[Out]# ' marker, so that the log remains valid
-          Python code.
-
-          Since this marker is always the same, filtering only the output from
-          a log is very easy, using for example a simple awk call::
-
-            awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
-
-          -r: log 'raw' input.  Normally, IPython's logs contain the processed
-          input, so that user lines are logged in their final form, converted
-          into valid Python.  For example, %Exit is logged as
-          _ip.magic("Exit").  If the -r flag is given, all input is logged
-          exactly as typed, with no transformations applied.
-
-          -t: put timestamps before each input line logged (these are put in
-          comments)."""
-
-        opts,par = self.parse_options(parameter_s,'ort')
-        log_output = 'o' in opts
-        log_raw_input = 'r' in opts
-        timestamp = 't' in opts
-
-        logger = self.shell.logger
-
-        # if no args are given, the defaults set in the logger constructor by
-        # ipython remain valid
-        if par:
-            try:
-                logfname,logmode = par.split()
-            except:
-                logfname = par
-                logmode = 'backup'
-        else:
-            logfname = logger.logfname
-            logmode = logger.logmode
-        # put logfname into rc struct as if it had been called on the command
-        # line, so it ends up saved in the log header Save it in case we need
-        # to restore it...
-        old_logfile = self.shell.logfile
-        if logfname:
-            logfname = os.path.expanduser(logfname)
-        self.shell.logfile = logfname
-
-        loghead = '# IPython log file\n\n'
-        try:
-            started  = logger.logstart(logfname,loghead,logmode,
-                                       log_output,timestamp,log_raw_input)
-        except:
-            self.shell.logfile = old_logfile
-            warn("Couldn't start log: %s" % sys.exc_info()[1])
-        else:
-            # log input history up to this point, optionally interleaving
-            # output if requested
-
-            if timestamp:
-                # disable timestamping for the previous history, since we've
-                # lost those already (no time machine here).
-                logger.timestamp = False
-
-            if log_raw_input:
-                input_hist = self.shell.history_manager.input_hist_raw
-            else:
-                input_hist = self.shell.history_manager.input_hist_parsed
-
-            if log_output:
-                log_write = logger.log_write
-                output_hist = self.shell.history_manager.output_hist
-                for n in range(1,len(input_hist)-1):
-                    log_write(input_hist[n].rstrip() + '\n')
-                    if n in output_hist:
-                        log_write(repr(output_hist[n]),'output')
-            else:
-                logger.log_write('\n'.join(input_hist[1:]))
-                logger.log_write('\n')
-            if timestamp:
-                # re-enable timestamping
-                logger.timestamp = True
-
-            print ('Activating auto-logging. '
-                   'Current session state plus future input saved.')
-            logger.logstate()
-
-    def magic_logstop(self,parameter_s=''):
-        """Fully stop logging and close log file.
-
-        In order to start logging again, a new %logstart call needs to be made,
-        possibly (though not necessarily) with a new filename, mode and other
-        options."""
-        self.logger.logstop()
-
-    def magic_logoff(self,parameter_s=''):
-        """Temporarily stop logging.
-
-        You must have previously started logging."""
-        self.shell.logger.switch_log(0)
-
-    def magic_logon(self,parameter_s=''):
-        """Restart logging.
-
-        This function is for restarting logging which you've temporarily
-        stopped with %logoff. For starting logging for the first time, you
-        must use the %logstart function, which allows you to specify an
-        optional log filename."""
-
-        self.shell.logger.switch_log(1)
-
-    def magic_logstate(self,parameter_s=''):
-        """Print the status of the logging system."""
-
-        self.shell.logger.logstate()
-
-    def magic_pdb(self, parameter_s=''):
-        """Control the automatic calling of the pdb interactive debugger.
-
-        Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
-        argument it works as a toggle.
-
-        When an exception is triggered, IPython can optionally call the
-        interactive pdb debugger after the traceback printout. %pdb toggles
-        this feature on and off.
-
-        The initial state of this feature is set in your configuration
-        file (the option is ``InteractiveShell.pdb``).
-
-        If you want to just activate the debugger AFTER an exception has fired,
-        without having to type '%pdb on' and rerunning your code, you can use
-        the %debug magic."""
-
-        par = parameter_s.strip().lower()
-
-        if par:
-            try:
-                new_pdb = {'off':0,'0':0,'on':1,'1':1}[par]
-            except KeyError:
-                print ('Incorrect argument. Use on/1, off/0, '
-                       'or nothing for a toggle.')
-                return
-        else:
-            # toggle
-            new_pdb = not self.shell.call_pdb
-
-        # set on the shell
-        self.shell.call_pdb = new_pdb
-        print 'Automatic pdb calling has been turned',on_off(new_pdb)
-
-    def magic_debug(self, parameter_s=''):
-        """Activate the interactive debugger in post-mortem mode.
-
-        If an exception has just occurred, this lets you inspect its stack
-        frames interactively.  Note that this will always work only on the last
-        traceback that occurred, so you must call this quickly after an
-        exception that you wish to inspect has fired, because if another one
-        occurs, it clobbers the previous one.
-
-        If you want IPython to automatically do this on every exception, see
-        the %pdb magic for more details.
-        """
-        self.shell.debugger(force=True)
+    def profile_missing_notice(self, *args, **kwargs):
+        error("""\
+The profile module could not be found. It has been removed from the standard
+python packages because of its non-free license. To use profiling, install the
+python-profiler package from non-free.""")
 
     @skip_doctest
     def magic_prun(self, parameter_s ='',user_mode=1,
@@ -1526,6 +2187,60 @@ Currently the magic system has the following functions:\n"""
             return stats
         else:
             return None
+
+    def magic_pdb(self, parameter_s=''):
+        """Control the automatic calling of the pdb interactive debugger.
+
+        Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
+        argument it works as a toggle.
+
+        When an exception is triggered, IPython can optionally call the
+        interactive pdb debugger after the traceback printout. %pdb toggles
+        this feature on and off.
+
+        The initial state of this feature is set in your configuration
+        file (the option is ``InteractiveShell.pdb``).
+
+        If you want to just activate the debugger AFTER an exception has fired,
+        without having to type '%pdb on' and rerunning your code, you can use
+        the %debug magic."""
+
+        par = parameter_s.strip().lower()
+
+        if par:
+            try:
+                new_pdb = {'off':0,'0':0,'on':1,'1':1}[par]
+            except KeyError:
+                print ('Incorrect argument. Use on/1, off/0, '
+                       'or nothing for a toggle.')
+                return
+        else:
+            # toggle
+            new_pdb = not self.shell.call_pdb
+
+        # set on the shell
+        self.shell.call_pdb = new_pdb
+        print 'Automatic pdb calling has been turned',on_off(new_pdb)
+
+    def magic_debug(self, parameter_s=''):
+        """Activate the interactive debugger in post-mortem mode.
+
+        If an exception has just occurred, this lets you inspect its stack
+        frames interactively.  Note that this will always work only on the last
+        traceback that occurred, so you must call this quickly after an
+        exception that you wish to inspect has fired, because if another one
+        occurs, it clobbers the previous one.
+
+        If you want IPython to automatically do this on every exception, see
+        the %pdb magic for more details.
+        """
+        self.shell.debugger(force=True)
+
+    def magic_tb(self, s):
+        """Print the last traceback with the currently active exception mode.
+
+        See %xmode for changing exception reporting modes."""
+        self.shell.showtraceback()
 
     @skip_doctest
     def magic_run(self, parameter_s ='', runner=None,
@@ -2166,558 +2881,112 @@ Currently the magic system has the following functions:\n"""
         print '=== Macro contents: ==='
         print macro,
 
-    def magic_save(self,parameter_s = ''):
-        """Save a set of lines or a macro to a given filename.
 
-        Usage:\\
-          %save [options] filename n1-n2 n3-n4 ... n5 .. n6 ...
+class AutoMagics(MagicFunctions):
+    """Magics that control various autoX behaviors."""
 
-        Options:
+    def __init__(self, shell):
+        super(ProfileMagics, self).__init__(shell)
+        # namespace for holding state we may need
+        self._magic_state = Bunch()
 
-          -r: use 'raw' input.  By default, the 'processed' history is used,
-          so that magics are loaded in their transformed version to valid
-          Python.  If this option is given, the raw input as typed as the
-          command line is used instead.
+    def magic_automagic(self, parameter_s = ''):
+        """Make magic functions callable without having to type the initial %.
 
-        This function uses the same syntax as %history for input ranges,
-        then saves the lines to the filename you specify.
+        Without argumentsl toggles on/off (when off, you must call it as
+        %automagic, of course).  With arguments it sets the value, and you can
+        use any of (case insensitive):
 
-        It adds a '.py' extension to the file if you don't do so yourself, and
-        it asks for confirmation before overwriting existing files."""
+         - on,1,True: to activate
 
-        opts,args = self.parse_options(parameter_s,'r',mode='list')
-        fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
-        if not fname.endswith('.py'):
-            fname += '.py'
-        if os.path.isfile(fname):
-            overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
-            if not overwrite :
-                print 'Operation cancelled.'
-                return
-        try:
-            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
-        except (TypeError, ValueError) as e:
-            print e.args[0]
-            return
-        with io.open(fname,'w', encoding="utf-8") as f:
-            f.write(u"# coding: utf-8\n")
-            f.write(py3compat.cast_unicode(cmds))
-        print 'The following commands were written to file `%s`:' % fname
-        print cmds
+         - off,0,False: to deactivate.
 
-    def magic_pastebin(self, parameter_s = ''):
-        """Upload code to Github's Gist paste bin, returning the URL.
-        
-        Usage:\\
-          %pastebin [-d "Custom description"] 1-7
-          
-        The argument can be an input history range, a filename, or the name of a
-        string or macro.
-        
-        Options:
-        
-          -d: Pass a custom description for the gist. The default will say
-              "Pasted from IPython".
-        """
-        opts, args = self.parse_options(parameter_s, 'd:')
-        
-        try:
-            code = self.shell.find_user_code(args)
-        except (ValueError, TypeError) as e:
-            print e.args[0]
-            return
-        
-        post_data = json.dumps({
-          "description": opts.get('d', "Pasted from IPython"),
-          "public": True,
-          "files": {
-            "file1.py": {
-              "content": code
-            }
-          }
-        }).encode('utf-8')
-        
-        response = urlopen("https://api.github.com/gists", post_data)
-        response_data = json.loads(response.read().decode('utf-8'))
-        return response_data['html_url']
+        Note that magic functions have lowest priority, so if there's a
+        variable whose name collides with that of a magic fn, automagic won't
+        work for that function (you get the variable instead). However, if you
+        delete the variable (del var), the previously shadowed magic function
+        becomes visible to automagic again."""
 
-    def magic_loadpy(self, arg_s):
-        """Alias of `%load`
-        
-        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
-        extension. So it has been renamed simply into %load. You can look at
-        `%load`'s docstring for more info.
-        """
-        self.magic_load(arg_s)
-
-    def magic_load(self, arg_s):
-        """Load code into the current frontend.
-
-        Usage:\\
-          %load [options] source
-
-          where source can be a filename, URL, input history range or macro
-
-        Options:
-        --------
-          -y : Don't ask confirmation for loading source above 200 000 characters.
-
-        This magic command can either take a local filename, a URL, an history
-        range (see %history) or a macro as argument, it will prompt for
-        confirmation before loading source with more than 200 000 characters, unless
-        -y flag is passed or if the frontend does not support raw_input::
-
-        %load myscript.py
-        %load 7-27
-        %load myMacro
-        %load http://www.example.com/myscript.py
-        """
-        opts,args = self.parse_options(arg_s,'y')
-
-        contents = self.shell.find_user_code(args)
-        l = len(contents)
-
-        # 200 000 is ~ 2500 full 80 caracter lines
-        # so in average, more than 5000 lines
-        if l > 200000 and 'y' not in opts:
-            try:
-                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
-                " (%d characters). Continue (y/[N]) ?" % l), default='n' )
-            except StdinNotImplementedError:
-                #asume yes if raw input not implemented
-                ans = True
-
-            if ans is False :
-                print 'Operation cancelled.'
-                return
-
-        self.set_next_input(contents)
-
-    def _find_edit_target(self, args, opts, last_call):
-        """Utility method used by magic_edit to find what to edit."""
-
-        def make_filename(arg):
-            "Make a filename from the given args"
-            arg = unquote_filename(arg)
-            try:
-                filename = get_py_filename(arg)
-            except IOError:
-                # If it ends with .py but doesn't already exist, assume we want
-                # a new file.
-                if arg.endswith('.py'):
-                    filename = arg
-                else:
-                    filename = None
-            return filename
-
-        # Set a few locals from the options for convenience:
-        opts_prev = 'p' in opts
-        opts_raw = 'r' in opts
-
-        # custom exceptions
-        class DataIsObject(Exception): pass
-
-        # Default line number value
-        lineno = opts.get('n',None)
-
-        if opts_prev:
-            args = '_%s' % last_call[0]
-            if not self.shell.user_ns.has_key(args):
-                args = last_call[1]
-
-        # use last_call to remember the state of the previous call, but don't
-        # let it be clobbered by successive '-p' calls.
-        try:
-            last_call[0] = self.shell.displayhook.prompt_count
-            if not opts_prev:
-                last_call[1] = args
-        except:
-            pass
-
-        # by default this is done with temp files, except when the given
-        # arg is a filename
-        use_temp = True
-
-        data = ''
-
-        # First, see if the arguments should be a filename.
-        filename = make_filename(args)
-        if filename:
-            use_temp = False
-        elif args:
-            # Mode where user specifies ranges of lines, like in %macro.
-            data = self.shell.extract_input_lines(args, opts_raw)
-            if not data:
-                try:
-                    # Load the parameter given as a variable. If not a string,
-                    # process it as an object instead (below)
-
-                    #print '*** args',args,'type',type(args)  # dbg
-                    data = eval(args, self.shell.user_ns)
-                    if not isinstance(data, basestring):
-                        raise DataIsObject
-
-                except (NameError,SyntaxError):
-                    # given argument is not a variable, try as a filename
-                    filename = make_filename(args)
-                    if filename is None:
-                        warn("Argument given (%s) can't be found as a variable "
-                             "or as a filename." % args)
-                        return
-                    use_temp = False
-
-                except DataIsObject:
-                    # macros have a special edit function
-                    if isinstance(data, Macro):
-                        raise MacroToEdit(data)
-
-                    # For objects, try to edit the file where they are defined
-                    try:
-                        filename = inspect.getabsfile(data)
-                        if 'fakemodule' in filename.lower() and inspect.isclass(data):
-                            # class created by %edit? Try to find source
-                            # by looking for method definitions instead, the
-                            # __module__ in those classes is FakeModule.
-                            attrs = [getattr(data, aname) for aname in dir(data)]
-                            for attr in attrs:
-                                if not inspect.ismethod(attr):
-                                    continue
-                                filename = inspect.getabsfile(attr)
-                                if filename and 'fakemodule' not in filename.lower():
-                                    # change the attribute to be the edit target instead
-                                    data = attr
-                                    break
-
-                        datafile = 1
-                    except TypeError:
-                        filename = make_filename(args)
-                        datafile = 1
-                        warn('Could not find file where `%s` is defined.\n'
-                             'Opening a file named `%s`' % (args,filename))
-                    # Now, make sure we can actually read the source (if it was in
-                    # a temp file it's gone by now).
-                    if datafile:
-                        try:
-                            if lineno is None:
-                                lineno = inspect.getsourcelines(data)[1]
-                        except IOError:
-                            filename = make_filename(args)
-                            if filename is None:
-                                warn('The file `%s` where `%s` was defined cannot '
-                                     'be read.' % (filename,data))
-                                return
-                    use_temp = False
-
-        if use_temp:
-            filename = self.shell.mktempfile(data)
-            print 'IPython will make a temporary file named:',filename
-
-        return filename, lineno, use_temp
-
-    def _edit_macro(self,mname,macro):
-        """open an editor with the macro data in a file"""
-        filename = self.shell.mktempfile(macro.value)
-        self.shell.hooks.editor(filename)
-
-        # and make a new macro object, to replace the old one
-        mfile = open(filename)
-        mvalue = mfile.read()
-        mfile.close()
-        self.shell.user_ns[mname] = Macro(mvalue)
-
-    def magic_ed(self,parameter_s=''):
-        """Alias to %edit."""
-        return self.magic_edit(parameter_s)
+        arg = parameter_s.lower()
+        if parameter_s in ('on','1','true'):
+            self.shell.automagic = True
+        elif parameter_s in ('off','0','false'):
+            self.shell.automagic = False
+        else:
+            self.shell.automagic = not self.shell.automagic
+        print '\n' + Magic.auto_status[self.shell.automagic]
 
     @skip_doctest
-    def magic_edit(self,parameter_s='',last_call=['','']):
-        """Bring up an editor and execute the resulting code.
+    def magic_autocall(self, parameter_s = ''):
+        """Make functions callable without having to type parentheses.
 
         Usage:
-          %edit [options] [args]
 
-        %edit runs IPython's editor hook. The default version of this hook is
-        set to call the editor specified by your $EDITOR environment variable.
-        If this isn't found, it will default to vi under Linux/Unix and to
-        notepad under Windows. See the end of this docstring for how to change
-        the editor hook.
+           %autocall [mode]
 
-        You can also set the value of this editor via the
-        ``TerminalInteractiveShell.editor`` option in your configuration file.
-        This is useful if you wish to use a different editor from your typical
-        default with IPython (and for Windows users who typically don't set
-        environment variables).
+        The mode can be one of: 0->Off, 1->Smart, 2->Full.  If not given, the
+        value is toggled on and off (remembering the previous state).
 
-        This command allows you to conveniently edit multi-line code right in
-        your IPython session.
+        In more detail, these values mean:
 
-        If called without arguments, %edit opens up an empty editor with a
-        temporary file and will execute the contents of this file when you
-        close it (don't forget to save it!).
+        0 -> fully disabled
 
+        1 -> active, but do not apply if there are no arguments on the line.
 
-        Options:
+        In this mode, you get::
 
-        -n <number>: open the editor at a specified line number.  By default,
-        the IPython editor hook uses the unix syntax 'editor +N filename', but
-        you can configure this by providing your own modified hook if your
-        favorite editor supports line-number specifications with a different
-        syntax.
+          In [1]: callable
+          Out[1]: <built-in function callable>
 
-        -p: this will call the editor with the same data as the previous time
-        it was used, regardless of how long ago (in your current session) it
-        was.
+          In [2]: callable 'hello'
+          ------> callable('hello')
+          Out[2]: False
 
-        -r: use 'raw' input.  This option only applies to input taken from the
-        user's history.  By default, the 'processed' history is used, so that
-        magics are loaded in their transformed version to valid Python.  If
-        this option is given, the raw input as typed as the command line is
-        used instead.  When you exit the editor, it will be executed by
-        IPython's own processor.
+        2 -> Active always.  Even if no arguments are present, the callable
+        object is called::
 
-        -x: do not execute the edited code immediately upon exit. This is
-        mainly useful if you are editing programs which need to be called with
-        command line arguments, which you can then do using %run.
+          In [2]: float
+          ------> float()
+          Out[2]: 0.0
 
+        Note that even with autocall off, you can still use '/' at the start of
+        a line to treat the first argument on the command line as a function
+        and add parentheses to it::
 
-        Arguments:
+          In [8]: /str 43
+          ------> str(43)
+          Out[8]: '43'
 
-        If arguments are given, the following possibilities exist:
-
-        - If the argument is a filename, IPython will load that into the
-          editor. It will execute its contents with execfile() when you exit,
-          loading any code in the file into your interactive namespace.
-
-        - The arguments are ranges of input history,  e.g. "7 ~1/4-6".
-          The syntax is the same as in the %history magic.
-
-        - If the argument is a string variable, its contents are loaded
-          into the editor. You can thus edit any string which contains
-          python code (including the result of previous edits).
-
-        - If the argument is the name of an object (other than a string),
-          IPython will try to locate the file where it was defined and open the
-          editor at the point where it is defined. You can use `%edit function`
-          to load an editor exactly at the point where 'function' is defined,
-          edit it and have the file be executed automatically.
-
-        - If the object is a macro (see %macro for details), this opens up your
-          specified editor with a temporary file containing the macro's data.
-          Upon exit, the macro is reloaded with the contents of the file.
-
-        Note: opening at an exact line is only supported under Unix, and some
-        editors (like kedit and gedit up to Gnome 2.8) do not understand the
-        '+NUMBER' parameter necessary for this feature. Good editors like
-        (X)Emacs, vi, jed, pico and joe all do.
-
-        After executing your code, %edit will return as output the code you
-        typed in the editor (except when it was an existing file). This way
-        you can reload the code in further invocations of %edit as a variable,
-        via _<NUMBER> or Out[<NUMBER>], where <NUMBER> is the prompt number of
-        the output.
-
-        Note that %edit is also available through the alias %ed.
-
-        This is an example of creating a simple function inside the editor and
-        then modifying it. First, start up the editor::
-
-          In [1]: ed
-          Editing... done. Executing edited code...
-          Out[1]: 'def foo():\\n    print "foo() was defined in an editing
-          session"\\n'
-
-        We can then call the function foo()::
-
-          In [2]: foo()
-          foo() was defined in an editing session
-
-        Now we edit foo.  IPython automatically loads the editor with the
-        (temporary) file where foo() was previously defined::
-
-          In [3]: ed foo
-          Editing... done. Executing edited code...
-
-        And if we call foo() again we get the modified version::
-
-          In [4]: foo()
-          foo() has now been changed!
-
-        Here is an example of how to edit a code snippet successive
-        times. First we call the editor::
-
-          In [5]: ed
-          Editing... done. Executing edited code...
-          hello
-          Out[5]: "print 'hello'\\n"
-
-        Now we call it again with the previous output (stored in _)::
-
-          In [6]: ed _
-          Editing... done. Executing edited code...
-          hello world
-          Out[6]: "print 'hello world'\\n"
-
-        Now we call it with the output #8 (stored in _8, also as Out[8])::
-
-          In [7]: ed _8
-          Editing... done. Executing edited code...
-          hello again
-          Out[7]: "print 'hello again'\\n"
-
-
-        Changing the default editor hook:
-
-        If you wish to write your own editor hook, you can put it in a
-        configuration file which you load at startup time.  The default hook
-        is defined in the IPython.core.hooks module, and you can use that as a
-        starting example for further modifications.  That file also has
-        general instructions on how to set a new hook for use once you've
-        defined it."""
-        opts,args = self.parse_options(parameter_s,'prxn:')
-
-        try:
-            filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
-        except MacroToEdit as e:
-            self._edit_macro(args, e.args[0])
-            return
-
-        # do actual editing here
-        print 'Editing...',
-        sys.stdout.flush()
-        try:
-            # Quote filenames that may have spaces in them
-            if ' ' in filename:
-                filename = "'%s'" % filename
-            self.shell.hooks.editor(filename,lineno)
-        except TryNext:
-            warn('Could not open editor')
-            return
-
-        # XXX TODO: should this be generalized for all string vars?
-        # For now, this is special-cased to blocks created by cpaste
-        if args.strip() == 'pasted_block':
-            self.shell.user_ns['pasted_block'] = file_read(filename)
-
-        if 'x' in opts:  # -x prevents actual execution
-            print
-        else:
-            print 'done. Executing edited code...'
-            if 'r' in opts:    # Untranslated IPython code
-                self.shell.run_cell(file_read(filename),
-                                                    store_history=False)
-            else:
-                self.shell.safe_execfile(filename, self.shell.user_ns,
-                                         self.shell.user_ns)
-
-        if is_temp:
-            try:
-                return open(filename).read()
-            except IOError,msg:
-                if msg.filename == filename:
-                    warn('File not found. Did you forget to save?')
-                    return
-                else:
-                    self.shell.showtraceback()
-
-    def magic_xmode(self,parameter_s = ''):
-        """Switch modes for the exception handlers.
-
-        Valid modes: Plain, Context and Verbose.
-
-        If called without arguments, acts as a toggle."""
-
-        def xmode_switch_err(name):
-            warn('Error changing %s exception modes.\n%s' %
-                 (name,sys.exc_info()[1]))
-
-        shell = self.shell
-        new_mode = parameter_s.strip().capitalize()
-        try:
-            shell.InteractiveTB.set_mode(mode=new_mode)
-            print 'Exception reporting mode:',shell.InteractiveTB.mode
-        except:
-            xmode_switch_err('user')
-
-    def magic_colors(self,parameter_s = ''):
-        """Switch color scheme for prompts, info system and exception handlers.
-
-        Currently implemented schemes: NoColor, Linux, LightBG.
-
-        Color scheme names are not case-sensitive.
-
-        Examples
-        --------
-        To get a plain black and white terminal::
-
-          %colors nocolor
+        # all-random (note for auto-testing)
         """
 
-        def color_switch_err(name):
-            warn('Error changing %s color schemes.\n%s' %
-                 (name,sys.exc_info()[1]))
+        if parameter_s:
+            arg = int(parameter_s)
+        else:
+            arg = 'toggle'
 
-
-        new_scheme = parameter_s.strip()
-        if not new_scheme:
-            raise UsageError(
-                "%colors: you must specify a color scheme. See '%colors?'")
+        if not arg in (0,1,2,'toggle'):
+            error('Valid modes: (0->Off, 1->Smart, 2->Full')
             return
-        # local shortcut
-        shell = self.shell
 
-        import IPython.utils.rlineimpl as readline
+        if arg in (0,1,2):
+            self.shell.autocall = arg
+        else: # toggle
+            if self.shell.autocall:
+                self._magic_state.autocall_save = self.shell.autocall
+                self.shell.autocall = 0
+            else:
+                try:
+                    self.shell.autocall = self._magic_state.autocall_save
+                except AttributeError:
+                    self.shell.autocall = self._magic_state.autocall_save = 1
 
-        if not shell.colors_force and \
-                not readline.have_readline and sys.platform == "win32":
-            msg = """\
-Proper color support under MS Windows requires the pyreadline library.
-You can find it at:
-http://ipython.org/pyreadline.html
-Gary's readline needs the ctypes module, from:
-http://starship.python.net/crew/theller/ctypes
-(Note that ctypes is already part of Python versions 2.5 and newer).
+        print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
 
-Defaulting color scheme to 'NoColor'"""
-            new_scheme = 'NoColor'
-            warn(msg)
 
-        # readline option is 0
-        if not shell.colors_force and not shell.has_readline:
-            new_scheme = 'NoColor'
-
-        # Set prompt colors
-        try:
-            shell.prompt_manager.color_scheme = new_scheme
-        except:
-            color_switch_err('prompt')
-        else:
-            shell.colors = \
-                   shell.prompt_manager.color_scheme_table.active_scheme_name
-        # Set exception colors
-        try:
-            shell.InteractiveTB.set_colors(scheme = new_scheme)
-            shell.SyntaxTB.set_colors(scheme = new_scheme)
-        except:
-            color_switch_err('exception')
-
-        # Set info (for 'object?') colors
-        if shell.color_info:
-            try:
-                shell.inspector.set_active_scheme(new_scheme)
-            except:
-                color_switch_err('object inspector')
-        else:
-            shell.inspector.set_active_scheme('NoColor')
-
-    def magic_pprint(self, parameter_s=''):
-        """Toggle pretty printing on/off."""
-        ptformatter = self.shell.display_formatter.formatters['text/plain']
-        ptformatter.pprint = bool(1 - ptformatter.pprint)
-        print 'Pretty printing has been turned', \
-              ['OFF','ON'][ptformatter.pprint]
-
-    #......................................................................
-    # Functions to implement unix shell-type things
+class OSMagics(MagicFunctions):
+    """Magics to interact with the underlying OS (shell-type functionality).
+    """
 
     @skip_doctest
     def magic_alias(self, parameter_s = ''):
@@ -3345,133 +3614,146 @@ Defaulting color scheme to 'NoColor'"""
 
         page.page(self.shell.pycolorize(cont))
 
-    def magic_quickref(self,arg):
-        """ Show a quick reference sheet """
-        import IPython.core.usage
-        qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
 
-        page.page(qr)
+class LoggingMagics(MagicFunctions):
+    """Magics related to all logging machinery."""
+    def magic_logstart(self,parameter_s=''):
+        """Start logging anywhere in a session.
 
-    def magic_doctest_mode(self,parameter_s=''):
-        """Toggle doctest mode on and off.
+        %logstart [-o|-r|-t] [log_name [log_mode]]
 
-        This mode is intended to make IPython behave as much as possible like a
-        plain Python shell, from the perspective of how its prompts, exceptions
-        and output look.  This makes it easy to copy and paste parts of a
-        session into doctests.  It does so by:
+        If no name is given, it defaults to a file named 'ipython_log.py' in your
+        current directory, in 'rotate' mode (see below).
 
-        - Changing the prompts to the classic ``>>>`` ones.
-        - Changing the exception reporting mode to 'Plain'.
-        - Disabling pretty-printing of output.
+        '%logstart name' saves to file 'name' in 'backup' mode.  It saves your
+        history up to that point and then continues logging.
 
-        Note that IPython also supports the pasting of code snippets that have
-        leading '>>>' and '...' prompts in them.  This means that you can paste
-        doctests from files or docstrings (even if they have leading
-        whitespace), and the code will execute correctly.  You can then use
-        '%history -t' to see the translated history; this will give you the
-        input after removal of all the leading prompts and whitespace, which
-        can be pasted back into an editor.
+        %logstart takes a second optional parameter: logging mode. This can be one
+        of (note that the modes are given unquoted):\\
+          append: well, that says it.\\
+          backup: rename (if exists) to name~ and start name.\\
+          global: single logfile in your home dir, appended to.\\
+          over  : overwrite existing log.\\
+          rotate: create rotating logs name.1~, name.2~, etc.
 
-        With these features, you can switch into this mode easily whenever you
-        need to do testing and changes to doctests, without having to leave
-        your existing IPython session.
-        """
+        Options:
 
-        from IPython.utils.ipstruct import Struct
+          -o: log also IPython's output.  In this mode, all commands which
+          generate an Out[NN] prompt are recorded to the logfile, right after
+          their corresponding input line.  The output lines are always
+          prepended with a '#[Out]# ' marker, so that the log remains valid
+          Python code.
 
-        # Shorthands
-        shell = self.shell
-        pm = shell.prompt_manager
-        meta = shell.meta
-        disp_formatter = self.shell.display_formatter
-        ptformatter = disp_formatter.formatters['text/plain']
-        # dstore is a data store kept in the instance metadata bag to track any
-        # changes we make, so we can undo them later.
-        dstore = meta.setdefault('doctest_mode',Struct())
-        save_dstore = dstore.setdefault
+          Since this marker is always the same, filtering only the output from
+          a log is very easy, using for example a simple awk call::
 
-        # save a few values we'll need to recover later
-        mode = save_dstore('mode',False)
-        save_dstore('rc_pprint',ptformatter.pprint)
-        save_dstore('xmode',shell.InteractiveTB.mode)
-        save_dstore('rc_separate_out',shell.separate_out)
-        save_dstore('rc_separate_out2',shell.separate_out2)
-        save_dstore('rc_prompts_pad_left',pm.justify)
-        save_dstore('rc_separate_in',shell.separate_in)
-        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
-        save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
+            awk -F'#\\[Out\\]# ' '{if($2) {print $2}}' ipython_log.py
 
-        if mode == False:
-            # turn on
-            pm.in_template = '>>> '
-            pm.in2_template = '... '
-            pm.out_template = ''
+          -r: log 'raw' input.  Normally, IPython's logs contain the processed
+          input, so that user lines are logged in their final form, converted
+          into valid Python.  For example, %Exit is logged as
+          _ip.magic("Exit").  If the -r flag is given, all input is logged
+          exactly as typed, with no transformations applied.
 
-            # Prompt separators like plain python
-            shell.separate_in = ''
-            shell.separate_out = ''
-            shell.separate_out2 = ''
+          -t: put timestamps before each input line logged (these are put in
+          comments)."""
 
-            pm.justify = False
+        opts,par = self.parse_options(parameter_s,'ort')
+        log_output = 'o' in opts
+        log_raw_input = 'r' in opts
+        timestamp = 't' in opts
 
-            ptformatter.pprint = False
-            disp_formatter.plain_text_only = True
+        logger = self.shell.logger
 
-            shell.magic('xmode Plain')
+        # if no args are given, the defaults set in the logger constructor by
+        # ipython remain valid
+        if par:
+            try:
+                logfname,logmode = par.split()
+            except:
+                logfname = par
+                logmode = 'backup'
         else:
-            # turn off
-            pm.in_template, pm.in2_template, pm.out_template = dstore.prompt_templates
+            logfname = logger.logfname
+            logmode = logger.logmode
+        # put logfname into rc struct as if it had been called on the command
+        # line, so it ends up saved in the log header Save it in case we need
+        # to restore it...
+        old_logfile = self.shell.logfile
+        if logfname:
+            logfname = os.path.expanduser(logfname)
+        self.shell.logfile = logfname
 
-            shell.separate_in = dstore.rc_separate_in
-
-            shell.separate_out = dstore.rc_separate_out
-            shell.separate_out2 = dstore.rc_separate_out2
-
-            pm.justify = dstore.rc_prompts_pad_left
-
-            ptformatter.pprint = dstore.rc_pprint
-            disp_formatter.plain_text_only = dstore.rc_plain_text_only
-
-            shell.magic('xmode ' + dstore.xmode)
-
-        # Store new mode and inform
-        dstore.mode = bool(1-int(mode))
-        mode_label = ['OFF','ON'][dstore.mode]
-        print 'Doctest mode is:', mode_label
-
-    def magic_gui(self, parameter_s=''):
-        """Enable or disable IPython GUI event loop integration.
-
-        %gui [GUINAME]
-
-        This magic replaces IPython's threaded shells that were activated
-        using the (pylab/wthread/etc.) command line flags.  GUI toolkits
-        can now be enabled at runtime and keyboard
-        interrupts should work without any problems.  The following toolkits
-        are supported:  wxPython, PyQt4, PyGTK, Tk and Cocoa (OSX)::
-
-            %gui wx      # enable wxPython event loop integration
-            %gui qt4|qt  # enable PyQt4 event loop integration
-            %gui gtk     # enable PyGTK event loop integration
-            %gui gtk3    # enable Gtk3 event loop integration
-            %gui tk      # enable Tk event loop integration
-            %gui OSX     # enable Cocoa event loop integration
-                         # (requires %matplotlib 1.1) 
-            %gui         # disable all event loop integration
-
-        WARNING:  after any of these has been called you can simply create
-        an application object, but DO NOT start the event loop yourself, as
-        we have already handled that.
-        """
-        opts, arg = self.parse_options(parameter_s, '')
-        if arg=='': arg = None
+        loghead = '# IPython log file\n\n'
         try:
-            return self.enable_gui(arg)
-        except Exception as e:
-            # print simple error message, rather than traceback if we can't
-            # hook up the GUI
-            error(str(e))
-    
+            started  = logger.logstart(logfname,loghead,logmode,
+                                       log_output,timestamp,log_raw_input)
+        except:
+            self.shell.logfile = old_logfile
+            warn("Couldn't start log: %s" % sys.exc_info()[1])
+        else:
+            # log input history up to this point, optionally interleaving
+            # output if requested
+
+            if timestamp:
+                # disable timestamping for the previous history, since we've
+                # lost those already (no time machine here).
+                logger.timestamp = False
+
+            if log_raw_input:
+                input_hist = self.shell.history_manager.input_hist_raw
+            else:
+                input_hist = self.shell.history_manager.input_hist_parsed
+
+            if log_output:
+                log_write = logger.log_write
+                output_hist = self.shell.history_manager.output_hist
+                for n in range(1,len(input_hist)-1):
+                    log_write(input_hist[n].rstrip() + '\n')
+                    if n in output_hist:
+                        log_write(repr(output_hist[n]),'output')
+            else:
+                logger.log_write('\n'.join(input_hist[1:]))
+                logger.log_write('\n')
+            if timestamp:
+                # re-enable timestamping
+                logger.timestamp = True
+
+            print ('Activating auto-logging. '
+                   'Current session state plus future input saved.')
+            logger.logstate()
+
+    def magic_logstop(self,parameter_s=''):
+        """Fully stop logging and close log file.
+
+        In order to start logging again, a new %logstart call needs to be made,
+        possibly (though not necessarily) with a new filename, mode and other
+        options."""
+        self.logger.logstop()
+
+    def magic_logoff(self,parameter_s=''):
+        """Temporarily stop logging.
+
+        You must have previously started logging."""
+        self.shell.logger.switch_log(0)
+
+    def magic_logon(self,parameter_s=''):
+        """Restart logging.
+
+        This function is for restarting logging which you've temporarily
+        stopped with %logoff. For starting logging for the first time, you
+        must use the %logstart function, which allows you to specify an
+        optional log filename."""
+
+        self.shell.logger.switch_log(1)
+
+    def magic_logstate(self,parameter_s=''):
+        """Print the status of the logging system."""
+
+        self.shell.logger.logstate()
+
+class ExtensionsMagics(MagicFunctions):
+    """Magics to manage the IPython extensions system."""
     def magic_install_ext(self, parameter_s):
         """Download and install an extension from a URL, e.g.::
         
@@ -3510,6 +3792,9 @@ Defaulting color scheme to 'NoColor'"""
         """Reload an IPython extension by its module name."""
         self.shell.extension_manager.reload_extension(module_str)
 
+
+class DeprecatedMagics(MagicFunctions):
+    """Magics slated for later removal."""
     def magic_install_profiles(self, s):
         """%install_profiles has been deprecated."""
         print '\n'.join([
@@ -3528,6 +3813,10 @@ Defaulting color scheme to 'NoColor'"""
             "with the default config files.",
             "Add `--reset` to overwrite already existing config files with defaults."
         ])
+
+
+class PylabMagics(MagicFunctions):
+    """Magics related to matplotlib's pylab support"""
 
     @skip_doctest
     def magic_pylab(self, s):
@@ -3589,234 +3878,3 @@ Defaulting color scheme to 'NoColor'"""
             import_all_status = True
 
         self.shell.enable_pylab(s, import_all=import_all_status)
-
-    def magic_tb(self, s):
-        """Print the last traceback with the currently active exception mode.
-
-        See %xmode for changing exception reporting modes."""
-        self.shell.showtraceback()
-
-    @skip_doctest
-    def magic_precision(self, s=''):
-        """Set floating point precision for pretty printing.
-
-        Can set either integer precision or a format string.
-
-        If numpy has been imported and precision is an int,
-        numpy display precision will also be set, via ``numpy.set_printoptions``.
-
-        If no argument is given, defaults will be restored.
-
-        Examples
-        --------
-        ::
-
-            In [1]: from math import pi
-
-            In [2]: %precision 3
-            Out[2]: u'%.3f'
-
-            In [3]: pi
-            Out[3]: 3.142
-
-            In [4]: %precision %i
-            Out[4]: u'%i'
-
-            In [5]: pi
-            Out[5]: 3
-
-            In [6]: %precision %e
-            Out[6]: u'%e'
-
-            In [7]: pi**10
-            Out[7]: 9.364805e+04
-
-            In [8]: %precision
-            Out[8]: u'%r'
-
-            In [9]: pi**10
-            Out[9]: 93648.047476082982
-
-        """
-
-        ptformatter = self.shell.display_formatter.formatters['text/plain']
-        ptformatter.float_precision = s
-        return ptformatter.float_format
-
-
-    @magic_arguments.magic_arguments()
-    @magic_arguments.argument(
-        '-e', '--export', action='store_true', default=False,
-        help='Export IPython history as a notebook. The filename argument '
-             'is used to specify the notebook name and format. For example '
-             'a filename of notebook.ipynb will result in a notebook name '
-             'of "notebook" and a format of "xml". Likewise using a ".json" '
-             'or ".py" file extension will write the notebook in the json '
-             'or py formats.'
-    )
-    @magic_arguments.argument(
-        '-f', '--format',
-        help='Convert an existing IPython notebook to a new format. This option '
-             'specifies the new format and can have the values: xml, json, py. '
-             'The target filename is chosen automatically based on the new '
-             'format. The filename argument gives the name of the source file.'
-    )
-    @magic_arguments.argument(
-        'filename', type=unicode,
-        help='Notebook name or filename'
-    )
-    def magic_notebook(self, s):
-        """Export and convert IPython notebooks.
-
-        This function can export the current IPython history to a notebook file
-        or can convert an existing notebook file into a different format. For
-        example, to export the history to "foo.ipynb" do "%notebook -e foo.ipynb".
-        To export the history to "foo.py" do "%notebook -e foo.py". To convert
-        "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
-        formats include (json/ipynb, py).
-        """
-        args = magic_arguments.parse_argstring(self.magic_notebook, s)
-
-        from IPython.nbformat import current
-        args.filename = unquote_filename(args.filename)
-        if args.export:
-            fname, name, format = current.parse_filename(args.filename)
-            cells = []
-            hist = list(self.shell.history_manager.get_range())
-            for session, prompt_number, input in hist[:-1]:
-                cells.append(current.new_code_cell(prompt_number=prompt_number,
-                                                   input=input))
-            worksheet = current.new_worksheet(cells=cells)
-            nb = current.new_notebook(name=name,worksheets=[worksheet])
-            with io.open(fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, format);
-        elif args.format is not None:
-            old_fname, old_name, old_format = current.parse_filename(args.filename)
-            new_format = args.format
-            if new_format == u'xml':
-                raise ValueError('Notebooks cannot be written as xml.')
-            elif new_format == u'ipynb' or new_format == u'json':
-                new_fname = old_name + u'.ipynb'
-                new_format = u'json'
-            elif new_format == u'py':
-                new_fname = old_name + u'.py'
-            else:
-                raise ValueError('Invalid notebook format: %s' % new_format)
-            with io.open(old_fname, 'r', encoding='utf-8') as f:
-                nb = current.read(f, old_format)
-            with io.open(new_fname, 'w', encoding='utf-8') as f:
-                current.write(nb, f, new_format)
-
-    def magic_config(self, s):
-        """configure IPython
-        
-            %config Class[.trait=value]
-        
-        This magic exposes most of the IPython config system. Any
-        Configurable class should be able to be configured with the simple
-        line::
-        
-            %config Class.trait=value
-        
-        Where `value` will be resolved in the user's namespace, if it is an
-        expression or variable name.
-        
-        Examples
-        --------
-        
-        To see what classes are available for config, pass no arguments::
-
-            In [1]: %config
-            Available objects for config:
-                TerminalInteractiveShell
-                HistoryManager
-                PrefilterManager
-                AliasManager
-                IPCompleter
-                PromptManager
-                DisplayFormatter
-
-        To view what is configurable on a given class, just pass the class
-        name::
-
-            In [2]: %config IPCompleter
-            IPCompleter options
-            -----------------
-            IPCompleter.omit__names=<Enum>
-                Current: 2
-                Choices: (0, 1, 2)
-                Instruct the completer to omit private method names
-                Specifically, when completing on ``object.<tab>``.
-                When 2 [default]: all names that start with '_' will be excluded.
-                When 1: all 'magic' names (``__foo__``) will be excluded.
-                When 0: nothing will be excluded.
-            IPCompleter.merge_completions=<CBool>
-                Current: True
-                Whether to merge completion results into a single list
-                If False, only the completion results from the first non-empty completer
-                will be returned.
-            IPCompleter.limit_to__all__=<CBool>
-                Current: False
-                Instruct the completer to use __all__ for the completion
-                Specifically, when completing on ``object.<tab>``.
-                When True: only those names in obj.__all__ will be included.
-                When False [default]: the __all__ attribute is ignored
-            IPCompleter.greedy=<CBool>
-                Current: False
-                Activate greedy completion
-                This will enable completion on elements of lists, results of function calls,
-                etc., but can be unsafe because the code is actually evaluated on TAB.
-
-        but the real use is in setting values::
-
-            In [3]: %config IPCompleter.greedy = True
-
-        and these values are read from the user_ns if they are variables::
-
-            In [4]: feeling_greedy=False
-
-            In [5]: %config IPCompleter.greedy = feeling_greedy
-
-        """
-        from IPython.config.loader import Config
-        # some IPython objects are Configurable, but do not yet have
-        # any configurable traits.  Exclude them from the effects of
-        # this magic, as their presence is just noise:
-        configurables = [ c for c in self.shell.configurables
-                          if c.__class__.class_traits(config=True) ]
-        classnames = [ c.__class__.__name__ for c in configurables ]
-        
-        line = s.strip()
-        if not line:
-            # print available configurable names
-            print "Available objects for config:"
-            for name in classnames:
-                print "    ", name
-            return
-        elif line in classnames:
-            # `%config TerminalInteractiveShell` will print trait info for
-            # TerminalInteractiveShell
-            c = configurables[classnames.index(line)]
-            cls = c.__class__
-            help = cls.class_get_help(c)
-            # strip leading '--' from cl-args:
-            help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
-            print help
-            return
-        elif '=' not in line:
-            raise UsageError("Invalid config statement: %r, should be Class.trait = value" % line)
-            
-        
-        # otherwise, assume we are setting configurables.
-        # leave quotes on args when splitting, because we want
-        # unquoted args to eval in user_ns
-        cfg = Config()
-        exec "cfg."+line in locals(), self.shell.user_ns
-        
-        for configurable in configurables:
-            try:
-                configurable.update_config(cfg)
-            except Exception as e:
-                error(e)
-
-# end Magic
