@@ -257,6 +257,9 @@ class NotebookApp(BaseIPythonApplication):
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
 
+    # file to be opened in the notebook server
+    file_to_run = Unicode('')
+
     # Network related information.
 
     ip = Unicode(LOCALHOST, config=True,
@@ -375,6 +378,10 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_argv = swallow_argv(argv, notebook_aliases, notebook_flags)
         # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
+
+        if self.extra_args:
+            self.file_to_run = os.path.abspath(self.extra_args[0])
+            self.config.NotebookManager.notebook_dir = os.path.dirname(self.file_to_run)
 
     def init_configurables(self):
         # force Session default to be secure
@@ -524,9 +531,20 @@ class NotebookApp(BaseIPythonApplication):
                 browser = webbrowser.get(self.browser)
             else:
                 browser = webbrowser.get()
-            b = lambda : browser.open("%s://%s:%i%s" % (proto, ip, self.port,
-                                                           self.base_project_url),
-                                         new=2)
+
+            if self.file_to_run:
+                filename, _ = os.path.splitext(os.path.basename(self.file_to_run))
+                for nb in self.notebook_manager.list_notebooks():
+                    if filename == nb['name']:
+                        url = nb['notebook_id']
+                        break
+                else:
+                    url = ''
+            else:
+                url = ''
+            b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
+                                        self.port, self.base_project_url, url),
+                                    new=2)
             threading.Thread(target=b).start()
         try:
             ioloop.IOLoop.instance().start()
