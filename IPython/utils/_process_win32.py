@@ -156,7 +156,7 @@ def getoutput(cmd):
 try:
     CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
     CommandLineToArgvW.arg_types = [LPCWSTR, POINTER(c_int)]
-    CommandLineToArgvW.res_types = [POINTER(LPCWSTR)]
+    CommandLineToArgvW.restype = POINTER(LPCWSTR)
     LocalFree = ctypes.windll.kernel32.LocalFree
     LocalFree.res_type = HLOCAL
     LocalFree.arg_types = [HLOCAL]
@@ -178,7 +178,7 @@ try:
         argvn = c_int()
         result_pointer = CommandLineToArgvW(py3compat.cast_unicode(commandline.lstrip()), ctypes.byref(argvn))
         result_array_type = LPCWSTR * argvn.value
-        result = [arg for arg in result_array_type.from_address(result_pointer)]
+        result = [arg for arg in result_array_type.from_address(ctypes.addressof(result_pointer.contents))]
         retval = LocalFree(result_pointer)
         return result
 except AttributeError:
