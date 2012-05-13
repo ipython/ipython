@@ -623,8 +623,6 @@ class DirectView(View):
             except KeyboardInterrupt:
                 pass
         return ar
-        
-        return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
 
     def run(self, filename, targets=None, block=None):
         """Execute contents of `filename` on my engine(s).
