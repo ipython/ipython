@@ -33,6 +33,8 @@ from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
+from IPython.core import history as ipcorehist
+from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
@@ -52,7 +54,6 @@ from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
-from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
@@ -430,8 +431,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
-
-        self._magic = Magic(self)
 
         self.init_syntax_highlighting()
         self.init_hooks()
@@ -1994,6 +1993,17 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_magics(self):
+        from IPython.core import magic_functions as mf
+        self.magics_manager = magic.MagicsManager(shell=self,
+                                   confg=self.config,
+                                   user_magics=mf.UserMagics(self))
+        self.configurables.append(self.magics_manager)
+
+        self.magics_manager.register(mf.BasicMagics, mf.CodeMagics,
+             mf.ConfigMagics, mf.NamespaceMagics, mf.ExecutionMagics,
+             mf.AutoMagics, mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
+             mf.PylabMagics, mf.DeprecatedMagics)
+
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
@@ -2046,23 +2056,31 @@ class InteractiveShell(SingletonConfigurable):
         
         Example::
 
-          def foo_impl(self,parameter_s=''):
+          def foo_impl(self, parameter_s=''):
               'My very own magic!. (Use docstrings, IPython reads them).'
               print 'Magic function. Passed parameter is between < >:'
               print '<%s>' % parameter_s
               print 'The self object is:', self
 
-          ip.define_magic('foo',foo_impl)
+          ip.define_magic('foo', foo_impl)
         """
+        return self.magics_manager
         im = types.MethodType(func, self._magic)
         old = self.find_magic(magic_name)
         setattr(self._magic, 'magic_' + magic_name, im)
         return old
 
-    def find_magic(self, magic_name):
-        """Find and return a magic function by name.
-        """
-        return getattr(self._magic, 'magic_' + magic_name, None)
+    def find_line_magic(self, magic_name):
+        """Find and return a line magic by name."""
+        return self.magics_manager.magics['line'].get(magic_name)
+
+    def find_cell_magic(self, magic_name):
+        """Find and return a cell magic by name."""
+        return self.magics_manager.magics['cell'].get(magic_name)
+
+    def find_magic(self, magic_name, magic_type='line'):
+        """Find and return a magic of the given type by name."""
+        return self.magics_manager.magics[magic_type].get(magic_name)
 
     #-------------------------------------------------------------------------
     # Things related to macros

@@ -61,10 +61,10 @@ from IPython.utils.text import format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 
-
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
+
 @register_magics
 class UserMagics(Magics):
     """Placeholder for user-defined magics to be added at runtime.
@@ -110,12 +110,8 @@ class BasicMagics(Magics):
 
         mode = ''
         try:
-            if parameter_s.split()[0] == '-latex':
-                mode = 'latex'
-            if parameter_s.split()[0] == '-brief':
-                mode = 'brief'
-            if parameter_s.split()[0] == '-rest':
-                mode = 'rest'
+            mode = parameter_s.split()[0][1:]
+            if mode == 'rest':
                 rest_docs = []
         except:
             pass
@@ -140,11 +136,9 @@ class BasicMagics(Magics):
                     else:
                         fndoc = 'No documentation'
 
-
                 if mode == 'rest':
                     rest_docs.append('**%s%s**::\n\n\t%s\n\n' %
                                      (escape, fname, fndoc))
-
                 else:
                     magic_docs.append('%s%s:\n\t%s\n' %
                                       (escape, fname, fndoc))
@@ -185,7 +179,7 @@ of any of them, type %magic_name?, e.g. '%cd?'.
 Currently the magic system has the following functions:""",
        magic_docs,
        "Summary of magic functions (from %slsmagic):",
-       self._lsmagic,
+       self._lsmagic(),
        ]
         page.page('\n'.join(out))
 
@@ -205,7 +199,7 @@ Currently the magic system has the following functions:""",
         # After a function contributed by Olivier Aubert, slightly modified.
 
         # Process options/args
-        opts, args = self.parse_options(parameter_s,'r')
+        opts, args = self.parse_options(parameter_s, 'r')
         raw = 'r' in opts
 
         oname = args and args or '_'
@@ -1816,7 +1810,7 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_magic
-    def prun(self, parameter_s ='',user_mode=1,
+    def prun(self, parameter_s='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
 
         """Run a statement through the python code profiler.
@@ -2058,7 +2052,7 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_magic
-    def run(self, parameter_s ='', runner=None,
+    def run(self, parameter_s='', runner=None,
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
@@ -2387,7 +2381,7 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_magic
-    def timeit(self, parameter_s =''):
+    def timeit(self, parameter_s=''):
         """Time execution of a Python statement or expression
 
         Usage:\\
@@ -3038,7 +3032,6 @@ class OSMagics(Magics):
           /home/tsuser/parent/child
         """
 
-        parameter_s = parameter_s.strip()
         #bkms = self.shell.persist.get("bookmarks",{})
 
         oldcwd = os.getcwdu()
@@ -3457,6 +3450,7 @@ class OSMagics(Magics):
 @register_magics
 class LoggingMagics(Magics):
     """Magics related to all logging machinery."""
+
     @line_magic
     def logstart(self, parameter_s=''):
         """Start logging anywhere in a session.
@@ -3715,6 +3709,7 @@ class PylabMagics(Magics):
 @register_magics
 class DeprecatedMagics(Magics):
     """Magics slated for later removal."""
+
     @line_magic
     def install_profiles(self, parameter_s=''):
         """%install_profiles has been deprecated."""

@@ -18,6 +18,7 @@
 import os
 import re
 import sys
+import types
 from getopt import getopt, GetoptError
 
 # Our own
@@ -41,7 +42,9 @@ from IPython.utils.warn import error
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
-magics = None
+magics = dict(line={}, cell={})
+
+magic_types = ('line', 'cell')
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
@@ -79,27 +82,26 @@ def needs_local_scope(func):
 #-----------------------------------------------------------------------------
 
 def register_magics(cls):
-    global magics
-
-    cls.magics = magics
     cls.registered = True
-    magics = None
+    cls.magics = dict(line = magics['line'],
+                      cell = magics['cell'])
+    magics['line'] = {}
+    magics['cell'] = {}
     return cls
 
 
+def validate_type(magic_type):
+    if magic_type not in magic_types:
+        raise ValueError('magic_type must be one of %s, %s given' %
+                         magic_types, magic_type)
+
+
 def _magic_marker(magic_type):
-    global magics
-
-    if magic_type not in ('line', 'cell'):
-        raise ValueError('magic_type must be one of ["line", "cell"], %s given'
-                         % magic_type)
-
-    magics = dict(line={}, cell={})
+    validate_type(magic_type)
 
     # This is a closure to capture the magic_type.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        global magics
         call = lambda f, *a, **k: f(*a, **k)
 
         if callable(arg):
@@ -120,6 +122,7 @@ def _magic_marker(magic_type):
                              "string or function")
         # Record the magic function in the global table that will then be
         # appended to the class via the register_magics class decorator
+        #print 'magics:', magics  # dbg
         magics[magic_type][name] = retval
 
         return retval
@@ -134,7 +137,7 @@ cell_magic = _magic_marker('cell')
 # Core Magic classes
 #-----------------------------------------------------------------------------
 
-class MagicManager(Configurable):
+class MagicsManager(Configurable):
     """Object that handles all magic-related functionality for IPython.
     """
     # Non-configurable class attributes
@@ -148,9 +151,12 @@ class MagicManager(Configurable):
         'Automagic is OFF, % prefix IS needed for magic functions.',
         'Automagic is ON, % prefix IS NOT needed for magic functions.']
 
-    def __init__(self, shell=None, config=None, **traits):
+    user_magics = Instance('IPython.core.magic_functions.UserMagics')
 
-        super(MagicManager, self).__init__(shell=shell, config=config, **traits)
+    def __init__(self, shell=None, config=None, user_magics=None, **traits):
+
+        super(MagicsManager, self).__init__(shell=shell, config=config,
+                                           user_magics=user_magics, **traits)
 
     def auto_status(self):
         """Return descriptive string with automagic status."""
@@ -162,7 +168,6 @@ class MagicManager(Configurable):
         The return dict has the keys 'line' and 'cell', corresponding to the
         two types of magics we support.  Each value is a list of names.
         """
-
         return self.magics
 
     def register(self, *magics):
@@ -174,8 +179,30 @@ class MagicManager(Configurable):
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
                                  "the @register_macics class decorator")
+            if type(m) is type:
+                # If we're given an uninstantiated class
+                m = m(self.shell)
+
             self.magics.update(m.magics)
 
+    def define_magic(self, magic_name, func, magic_type='line'):
+        """Expose own function as magic function for ipython
+
+        Example::
+
+          def foo_impl(self, parameter_s=''):
+              'My very own magic!. (Use docstrings, IPython reads them).'
+              print 'Magic function. Passed parameter is between < >:'
+              print '<%s>' % parameter_s
+              print 'The self object is:', self
+
+          ip.define_magic('foo', foo_impl)
+        """
+        # Create the new method in the user_magics and register it in the
+        # global table
+        self.user_magics.new_magic(magic_name, func, magic_type)
+        self.magics[magic_type][magic_name] = \
+          self.user_magics.magics[magic_type][magic_name]
 
 # Key base class that provides the central functionality for magics.
 
@@ -199,10 +226,8 @@ class Magics(object):
 
     See :mod:`magic_functions` for examples of actual implementation classes.
     """
-
-    options_table = Dict(config=True,
-        help = """Dict holding all command-line options for each magic.
-        """)
+    # Dict holding all command-line options for each magic.
+    options_table = None
 
     # Non-configurable class attributes
     magics = Dict
@@ -318,9 +343,17 @@ class Magics(object):
 
         return opts,args
 
-    def default_option(self,fn,optstr):
+    def default_option(self, fn, optstr):
         """Make an entry in the options_table for fn, with value optstr"""
 
         if fn not in self.lsmagic():
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
+
+    def new_magic(self, magic_name, func, magic_type='line'):
+        """TODO
+        """
+        validate_type(magic_type)
+        meth = types.MethodType(func, self)
+        setattr(self, magic_name, meth)
+        self.magics[magic_type][magic_name] = meth
