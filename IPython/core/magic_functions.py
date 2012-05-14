@@ -43,7 +43,7 @@ from IPython.core import debugger, oinspect
 from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError, StdinNotImplementedError, TryNext
 from IPython.core.macro import Macro
-from IPython.core.magic import (Bunch, Magics, MacroToEdit, compress_dhist,
+from IPython.core.magic import (Bunch, Magics, compress_dhist,
                                 on_off, needs_local_scope,
                                 register_magics, line_magic, cell_magic)
 from IPython.core.prefilter import ESC_MAGIC
@@ -65,6 +65,7 @@ from IPython.utils.warn import warn, error
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
+@register_magics
 class UserMagics(Magics):
     """Placeholder for user-defined magics to be added at runtime.
 
@@ -74,21 +75,34 @@ class UserMagics(Magics):
     """
 
 
+@register_magics
 class BasicMagics(Magics):
     """Magics that provide central IPython functionality.
 
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
 
-    def magic_lsmagic(self, parameter_s = ''):
-        """List currently available magic functions."""
+    def _lsmagic(self):
         mesc = ESC_MAGIC
-        print 'Available magic functions:\n'+mesc+\
-              ('  '+mesc).join(self.lsmagic())
-        print '\n' + Magic.auto_status[self.shell.automagic]
-        return None
+        cesc = mesc*2
+        mman = self.shell.magics_manager
+        magics = mman.lsmagic()
+        out = ['Available line magics:',
+               mesc + ('  '+mesc).join(magics['line']),
+               '',
+               'Available cell magics:',
+               cesc + ('  '+cesc).join(magics['cell']),
+               '',
+               mman.auto_status[mman.automagic]]
+        return '\n'.join(out)
 
-    def magic_magic(self, parameter_s = ''):
+    @line_magic
+    def lsmagic(self, parameter_s=''):
+        """List currently available magic functions."""
+        print self._lsmagic()
+
+    @line_magic
+    def magic(self, parameter_s=''):
         """Print information about the magic function system.
 
         Supported formats: -latex, -brief, -rest
@@ -107,35 +121,34 @@ class BasicMagics(Magics):
             pass
 
         magic_docs = []
-        for fname in self.lsmagic():
-            mname = 'magic_' + fname
-            for space in (Magic, self, self.__class__):
-                try:
-                    fn = space.__dict__[mname]
-                except KeyError:
-                    pass
+        escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC*2)
+        magics = self.shell.magics_manager.magics
+
+        for mtype in ('line', 'cell'):
+            escape = escapes[mtype]
+            for fname, fn in magics:
+
+                if mode == 'brief':
+                    # only first line
+                    if fn.__doc__:
+                        fndoc = fn.__doc__.split('\n',1)[0]
+                    else:
+                        fndoc = 'No documentation'
                 else:
-                    break
-            if mode == 'brief':
-                # only first line
-                if fn.__doc__:
-                    fndoc = fn.__doc__.split('\n',1)[0]
-                else:
-                    fndoc = 'No documentation'
-            else:
-                if fn.__doc__:
-                    fndoc = fn.__doc__.rstrip()
-                else:
-                    fndoc = 'No documentation'
+                    if fn.__doc__:
+                        fndoc = fn.__doc__.rstrip()
+                    else:
+                        fndoc = 'No documentation'
 
 
-            if mode == 'rest':
-                rest_docs.append('**%s%s**::\n\n\t%s\n\n' %(ESC_MAGIC,
-                                                    fname,fndoc))
+                if mode == 'rest':
+                    rest_docs.append('**%s%s**::\n\n\t%s\n\n' %
+                                     (escape, fname, fndoc))
 
-            else:
-                magic_docs.append('%s%s:\n\t%s\n' %(ESC_MAGIC,
-                                                    fname,fndoc))
+                else:
+                    magic_docs.append('%s%s:\n\t%s\n' %
+                                      (escape, fname, fndoc))
+
 
         magic_docs = ''.join(magic_docs)
 
@@ -150,7 +163,7 @@ class BasicMagics(Magics):
         if mode == 'brief':
             return magic_docs
 
-        outmsg = """
+        out = ["""
 IPython's 'magic' functions
 ===========================
 
@@ -169,18 +182,16 @@ to 'mydir', if it exists.
 For a list of the available magic functions, use %lsmagic. For a description
 of any of them, type %magic_name?, e.g. '%cd?'.
 
-Currently the magic system has the following functions:\n"""
-
-        mesc = ESC_MAGIC
-        outmsg = ("%s\n%s\n\nSummary of magic functions (from %slsmagic):"
-                  "\n\n%s%s\n\n%s" % (outmsg,
-                                     magic_docs,mesc,mesc,
-                                     ('  '+mesc).join(self.lsmagic()),
-                                     Magic.auto_status[self.shell.automagic] ) )
-        page.page(outmsg)
+Currently the magic system has the following functions:""",
+       magic_docs,
+       "Summary of magic functions (from %slsmagic):",
+       self._lsmagic,
+       ]
+        page.page('\n'.join(out))
 
 
-    def magic_page(self, parameter_s=''):
+    @line_magic
+    def page(self, parameter_s=''):
         """Pretty print the object and display it through a pager.
 
         %page [options] OBJECT
@@ -194,7 +205,7 @@ Currently the magic system has the following functions:\n"""
         # After a function contributed by Olivier Aubert, slightly modified.
 
         # Process options/args
-        opts,args = self.parse_options(parameter_s,'r')
+        opts, args = self.parse_options(parameter_s,'r')
         raw = 'r' in opts
 
         oname = args and args or '_'
@@ -205,7 +216,8 @@ Currently the magic system has the following functions:\n"""
         else:
             print 'Object `%s` not found' % oname
 
-    def magic_profile(self, parameter_s=''):
+    @line_magic
+    def profile(self, parameter_s=''):
         """Print your currently active IPython profile."""
         from IPython.core.application import BaseIPythonApplication
         if BaseIPythonApplication.initialized():
@@ -213,14 +225,16 @@ Currently the magic system has the following functions:\n"""
         else:
             error("profile is an application-level value, but you don't appear to be in an IPython application")
 
-    def magic_pprint(self, parameter_s=''):
+    @line_magic
+    def pprint(self, parameter_s=''):
         """Toggle pretty printing on/off."""
         ptformatter = self.shell.display_formatter.formatters['text/plain']
         ptformatter.pprint = bool(1 - ptformatter.pprint)
         print 'Pretty printing has been turned', \
               ['OFF','ON'][ptformatter.pprint]
 
-    def magic_colors(self,parameter_s = ''):
+    @line_magic
+    def colors(self, parameter_s=''):
         """Switch color scheme for prompts, info system and exception handlers.
 
         Currently implemented schemes: NoColor, Linux, LightBG.
@@ -291,7 +305,8 @@ Defaulting color scheme to 'NoColor'"""
         else:
             shell.inspector.set_active_scheme('NoColor')
 
-    def magic_xmode(self,parameter_s = ''):
+    @line_magic
+    def xmode(self, parameter_s=''):
         """Switch modes for the exception handlers.
 
         Valid modes: Plain, Context and Verbose.
@@ -310,13 +325,15 @@ Defaulting color scheme to 'NoColor'"""
         except:
             xmode_switch_err('user')
 
-    def magic_quickref(self,arg):
+    @line_magic
+    def quickref(self,arg):
         """ Show a quick reference sheet """
         import IPython.core.usage
         qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
         page.page(qr)
 
-    def magic_doctest_mode(self,parameter_s=''):
+    @line_magic
+    def doctest_mode(self, parameter_s=''):
         """Toggle doctest mode on and off.
 
         This mode is intended to make IPython behave as much as possible like a
@@ -401,7 +418,8 @@ Defaulting color scheme to 'NoColor'"""
         mode_label = ['OFF','ON'][dstore.mode]
         print 'Doctest mode is:', mode_label
 
-    def magic_gui(self, parameter_s=''):
+    @line_magic
+    def gui(self, parameter_s=''):
         """Enable or disable IPython GUI event loop integration.
 
         %gui [GUINAME]
@@ -435,7 +453,8 @@ Defaulting color scheme to 'NoColor'"""
             error(str(e))
 
     @skip_doctest
-    def magic_precision(self, s=''):
+    @line_magic
+    def precision(self, s=''):
         """Set floating point precision for pretty printing.
 
         Can set either integer precision or a format string.
@@ -500,7 +519,8 @@ Defaulting color scheme to 'NoColor'"""
         'filename', type=unicode,
         help='Notebook name or filename'
     )
-    def magic_notebook(self, s):
+    @line_magic
+    def notebook(self, s):
         """Export and convert IPython notebooks.
 
         This function can export the current IPython history to a notebook file
@@ -543,10 +563,16 @@ Defaulting color scheme to 'NoColor'"""
                 current.write(nb, f, new_format)
 
 
+# Used for exception handling in magic_edit
+class MacroToEdit(ValueError): pass
+
+
+@register_magics
 class CodeMagics(Magics):
     """Magics related to code management (loading, saving, editing, ...)."""
 
-    def magic_save(self,parameter_s = ''):
+    @line_magic
+    def save(self, parameter_s=''):
         """Save a set of lines or a macro to a given filename.
 
         Usage:\\
@@ -585,7 +611,8 @@ class CodeMagics(Magics):
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
-    def magic_pastebin(self, parameter_s = ''):
+    @line_magic
+    def pastebin(self, parameter_s=''):
         """Upload code to Github's Gist paste bin, returning the URL.
 
         Usage:\\
@@ -621,7 +648,8 @@ class CodeMagics(Magics):
         response_data = json.loads(response.read().decode('utf-8'))
         return response_data['html_url']
 
-    def magic_loadpy(self, arg_s):
+    @line_magic
+    def loadpy(self, arg_s):
         """Load a .py python script into the GUI console.
 
         This magic command can either take a local filename or a url::
@@ -778,12 +806,14 @@ class CodeMagics(Magics):
         mfile.close()
         self.shell.user_ns[mname] = Macro(mvalue)
 
-    def magic_ed(self,parameter_s=''):
+    @line_magic
+    def ed(self, parameter_s=''):
         """Alias to %edit."""
         return self.magic_edit(parameter_s)
 
     @skip_doctest
-    def magic_edit(self,parameter_s='',last_call=['','']):
+    @line_magic
+    def edit(self, parameter_s='',last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -973,13 +1003,15 @@ class CodeMagics(Magics):
                     self.shell.showtraceback()
 
 
+@register_magics
 class ConfigMagics(Magics):
 
     def __init__(self, shell):
         super(ConfigMagics, self).__init__(shell)
         self.configurables = []
 
-    def magic_config(self, s):
+    @line_magic
+    def config(self, s):
         """configure IPython
 
             %config Class[.trait=value]
@@ -1092,13 +1124,15 @@ class ConfigMagics(Magics):
                 error(e)
 
 
+@register_magics
 class NamespaceMagics(Magics):
     """Magics to manage various aspects of the user's namespace.
 
     These include listing variables, introspecting into them, etc.
     """
 
-    def magic_pinfo(self, parameter_s='', namespaces=None):
+    @line_magic
+    def pinfo(self, parameter_s='', namespaces=None):
         """Provide detailed information about an object.
 
         '%pinfo object' is just a synonym for object? or ?object."""
@@ -1120,7 +1154,8 @@ class NamespaceMagics(Magics):
             self.shell._inspect('pinfo', oname, detail_level=detail_level,
                                 namespaces=namespaces)
 
-    def magic_pinfo2(self, parameter_s='', namespaces=None):
+    @line_magic
+    def pinfo2(self, parameter_s='', namespaces=None):
         """Provide extra detailed information about an object.
 
         '%pinfo2 object' is just a synonym for object?? or ??object."""
@@ -1128,7 +1163,8 @@ class NamespaceMagics(Magics):
                             namespaces=namespaces)
 
     @skip_doctest
-    def magic_pdef(self, parameter_s='', namespaces=None):
+    @line_magic
+    def pdef(self, parameter_s='', namespaces=None):
         """Print the definition header for any callable object.
 
         If the object is a class, print the constructor information.
@@ -1142,18 +1178,21 @@ class NamespaceMagics(Magics):
         """
         self._inspect('pdef',parameter_s, namespaces)
 
-    def magic_pdoc(self, parameter_s='', namespaces=None):
+    @line_magic
+    def pdoc(self, parameter_s='', namespaces=None):
         """Print the docstring for an object.
 
         If the given object is a class, it will print both the class and the
         constructor docstrings."""
         self._inspect('pdoc',parameter_s, namespaces)
 
-    def magic_psource(self, parameter_s='', namespaces=None):
+    @line_magic
+    def psource(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the source code for an object."""
         self._inspect('psource',parameter_s, namespaces)
 
-    def magic_pfile(self, parameter_s=''):
+    @line_magic
+    def pfile(self, parameter_s=''):
         """Print (or run through pager) the file where an object is defined.
 
         The file opens at the line where the object definition begins. IPython
@@ -1176,7 +1215,8 @@ class NamespaceMagics(Magics):
                 return
             page.page(self.shell.inspector.format(open(filename).read()))
 
-    def magic_psearch(self, parameter_s=''):
+    @line_magic
+    def psearch(self, parameter_s=''):
         """Search for object in namespaces by wildcard.
 
         %psearch [options] PATTERN [OBJECT TYPE]
@@ -1290,7 +1330,8 @@ class NamespaceMagics(Magics):
             shell.showtraceback()
 
     @skip_doctest
-    def magic_who_ls(self, parameter_s=''):
+    @line_magic
+    def who_ls(self, parameter_s=''):
         """Return a sorted list of all interactive variables.
 
         If arguments are given, only variables of types matching these
@@ -1330,7 +1371,8 @@ class NamespaceMagics(Magics):
         return out
 
     @skip_doctest
-    def magic_who(self, parameter_s=''):
+    @line_magic
+    def who(self, parameter_s=''):
         """Print all interactive variables, with some minimal formatting.
 
         If any arguments are given, only variables whose type matches one of
@@ -1393,7 +1435,8 @@ class NamespaceMagics(Magics):
         print
 
     @skip_doctest
-    def magic_whos(self, parameter_s=''):
+    @line_magic
+    def whos(self, parameter_s=''):
         """Like %who, but gives some extra information about each variable.
 
         The same type filtering of %who can be applied here.
@@ -1520,7 +1563,8 @@ class NamespaceMagics(Magics):
                 else:
                     print vstr[:25] + "<...>" + vstr[-25:]
 
-    def magic_reset(self, parameter_s=''):
+    @line_magic
+    def reset(self, parameter_s=''):
         """Resets the namespace by removing all names defined by the user, if
         called without arguments, or by removing some types of objects, such
         as everything currently in IPython's In[] and Out[] containers (see
@@ -1644,7 +1688,8 @@ class NamespaceMagics(Magics):
 
         gc.collect()
 
-    def magic_reset_selective(self, parameter_s=''):
+    @line_magic
+    def reset_selective(self, parameter_s=''):
         """Resets the namespace by removing names defined by the user.
 
         Input/Output history are left around in case you need them.
@@ -1731,7 +1776,8 @@ class NamespaceMagics(Magics):
                 if m.search(i):
                     del(user_ns[i])
 
-    def magic_xdel(self, parameter_s=''):
+    @line_magic
+    def xdel(self, parameter_s=''):
         """Delete a variable, trying to clear it from anywhere that
         IPython's machinery has references to it. By default, this uses
         the identity of the named object in the user namespace to remove
@@ -1749,6 +1795,7 @@ class NamespaceMagics(Magics):
             print type(e).__name__ +": "+ str(e)
 
 
+@register_magics
 class ExecutionMagics(Magics):
     """Magics related to code execution, debugging, profiling, etc.
 
@@ -1768,7 +1815,8 @@ python packages because of its non-free license. To use profiling, install the
 python-profiler package from non-free.""")
 
     @skip_doctest
-    def magic_prun(self, parameter_s ='',user_mode=1,
+    @line_magic
+    def prun(self, parameter_s ='',user_mode=1,
                    opts=None,arg_lst=None,prog_ns=None):
 
         """Run a statement through the python code profiler.
@@ -1951,7 +1999,8 @@ python-profiler package from non-free.""")
         else:
             return None
 
-    def magic_pdb(self, parameter_s=''):
+    @line_magic
+    def pdb(self, parameter_s=''):
         """Control the automatic calling of the pdb interactive debugger.
 
         Call as '%pdb on', '%pdb 1', '%pdb off' or '%pdb 0'. If called without
@@ -1985,7 +2034,8 @@ python-profiler package from non-free.""")
         self.shell.call_pdb = new_pdb
         print 'Automatic pdb calling has been turned',on_off(new_pdb)
 
-    def magic_debug(self, parameter_s=''):
+    @line_magic
+    def debug(self, parameter_s=''):
         """Activate the interactive debugger in post-mortem mode.
 
         If an exception has just occurred, this lets you inspect its stack
@@ -1999,14 +2049,16 @@ python-profiler package from non-free.""")
         """
         self.shell.debugger(force=True)
 
-    def magic_tb(self, s):
+    @line_magic
+    def tb(self, s):
         """Print the last traceback with the currently active exception mode.
 
         See %xmode for changing exception reporting modes."""
         self.shell.showtraceback()
 
     @skip_doctest
-    def magic_run(self, parameter_s ='', runner=None,
+    @line_magic
+    def run(self, parameter_s ='', runner=None,
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
@@ -2334,7 +2386,8 @@ python-profiler package from non-free.""")
         return stats
 
     @skip_doctest
-    def magic_timeit(self, parameter_s =''):
+    @line_magic
+    def timeit(self, parameter_s =''):
         """Time execution of a Python statement or expression
 
         Usage:\\
@@ -2472,9 +2525,15 @@ python-profiler package from non-free.""")
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
 
+    @cell_magic('timeit')
+    def cell_timeit(self, line, cell):
+        """Time execution of a Python cell."""
+        raise NotImplementedError
+
     @skip_doctest
     @needs_local_scope
-    def magic_time(self,parameter_s, user_locals):
+    @line_magic
+    def time(self,parameter_s, user_locals):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -2567,7 +2626,8 @@ python-profiler package from non-free.""")
         return out
 
     @skip_doctest
-    def magic_macro(self,parameter_s = ''):
+    @line_magic
+    def macro(self, parameter_s=''):
         """Define a macro for future re-execution. It accepts ranges of history,
         filenames or string objects.
 
@@ -2645,6 +2705,7 @@ python-profiler package from non-free.""")
         print macro,
 
 
+@register_magics
 class AutoMagics(Magics):
     """Magics that control various autoX behaviors."""
 
@@ -2653,16 +2714,17 @@ class AutoMagics(Magics):
         # namespace for holding state we may need
         self._magic_state = Bunch()
 
-    def magic_automagic(self, parameter_s = ''):
+    @line_magic
+    def automagic(self, parameter_s=''):
         """Make magic functions callable without having to type the initial %.
 
         Without argumentsl toggles on/off (when off, you must call it as
         %automagic, of course).  With arguments it sets the value, and you can
         use any of (case insensitive):
 
-         - on,1,True: to activate
+         - on, 1, True: to activate
 
-         - off,0,False: to deactivate.
+         - off, 0, False: to deactivate.
 
         Note that magic functions have lowest priority, so if there's a
         variable whose name collides with that of a magic fn, automagic won't
@@ -2671,16 +2733,19 @@ class AutoMagics(Magics):
         becomes visible to automagic again."""
 
         arg = parameter_s.lower()
-        if arg in ('on','1','true'):
-            self.shell.automagic = True
-        elif arg in ('off','0','false'):
-            self.shell.automagic = False
+        mman = self.shell.magics_manager
+        if arg in ('on', '1', 'true'):
+            val = True
+        elif arg in ('off', '0', 'false'):
+            val = False
         else:
-            self.shell.automagic = not self.shell.automagic
-        print '\n' + Magic.auto_status[self.shell.automagic]
+            val = not mman.auto_magic
+        mman.auto_magic = val
+        print '\n' + self.shell.magics_manager.auto_status()
 
     @skip_doctest
-    def magic_autocall(self, parameter_s = ''):
+    @line_magic
+    def autocall(self, parameter_s=''):
         """Make functions callable without having to type parentheses.
 
         Usage:
@@ -2728,11 +2793,11 @@ class AutoMagics(Magics):
         else:
             arg = 'toggle'
 
-        if not arg in (0,1,2,'toggle'):
+        if not arg in (0, 1, 2,'toggle'):
             error('Valid modes: (0->Off, 1->Smart, 2->Full')
             return
 
-        if arg in (0,1,2):
+        if arg in (0, 1, 2):
             self.shell.autocall = arg
         else: # toggle
             if self.shell.autocall:
@@ -2747,12 +2812,14 @@ class AutoMagics(Magics):
         print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
 
 
+@register_magics
 class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
     """
 
     @skip_doctest
-    def magic_alias(self, parameter_s = ''):
+    @line_magic
+    def alias(self, parameter_s=''):
         """Define an alias for a system command.
 
         '%alias alias_name cmd' defines 'alias_name' as an alias for 'cmd'
@@ -2825,7 +2892,8 @@ class OSMagics(Magics):
             self.shell.alias_manager.soft_define_alias(alias, cmd)
     # end magic_alias
 
-    def magic_unalias(self, parameter_s = ''):
+    @line_magic
+    def unalias(self, parameter_s=''):
         """Remove an alias"""
 
         aname = parameter_s.strip()
@@ -2836,7 +2904,8 @@ class OSMagics(Magics):
             del stored[aname]
             self.shell.db['stored_aliases'] = stored
 
-    def magic_rehashx(self, parameter_s = ''):
+    @line_magic
+    def rehashx(self, parameter_s=''):
         """Update the alias table with all executable files in $PATH.
 
         This version explicitly checks that every entry in $PATH is a file
@@ -2914,7 +2983,8 @@ class OSMagics(Magics):
             os.chdir(savedir)
 
     @skip_doctest
-    def magic_pwd(self, parameter_s = ''):
+    @line_magic
+    def pwd(self, parameter_s=''):
         """Return the current working directory path.
 
         Examples
@@ -2927,7 +2997,8 @@ class OSMagics(Magics):
         return os.getcwdu()
 
     @skip_doctest
-    def magic_cd(self, parameter_s=''):
+    @line_magic
+    def cd(self, parameter_s=''):
         """Change the current working directory.
 
         This command automatically maintains an internal list of directories
@@ -3063,12 +3134,14 @@ class OSMagics(Magics):
             print self.shell.user_ns['_dh'][-1]
 
 
-    def magic_env(self, parameter_s=''):
+    @line_magic
+    def env(self, parameter_s=''):
         """List environment variables."""
 
         return dict(os.environ)
 
-    def magic_pushd(self, parameter_s=''):
+    @line_magic
+    def pushd(self, parameter_s=''):
         """Place the current dir on stack and change directory.
 
         Usage:\\
@@ -3083,7 +3156,8 @@ class OSMagics(Magics):
         dir_s.insert(0,cwd)
         return self.shell.magic('dirs')
 
-    def magic_popd(self, parameter_s=''):
+    @line_magic
+    def popd(self, parameter_s=''):
         """Change to directory popped off the top of the stack.
         """
         if not self.shell.dir_stack:
@@ -3092,12 +3166,14 @@ class OSMagics(Magics):
         self.magic_cd(top)
         print "popd ->",top
 
-    def magic_dirs(self, parameter_s=''):
+    @line_magic
+    def dirs(self, parameter_s=''):
         """Return the current directory stack."""
 
         return self.shell.dir_stack
 
-    def magic_dhist(self, parameter_s=''):
+    @line_magic
+    def dhist(self, parameter_s=''):
         """Print your history of visited directories.
 
         %dhist       -> print full history\\
@@ -3118,14 +3194,14 @@ class OSMagics(Magics):
             try:
                 args = map(int,parameter_s.split())
             except:
-                self.arg_err(Magic.magic_dhist)
+                self.arg_err(self.dhist)
                 return
             if len(args) == 1:
                 ini,fin = max(len(dh)-(args[0]),0),len(dh)
             elif len(args) == 2:
                 ini,fin = args
             else:
-                self.arg_err(Magic.magic_dhist)
+                self.arg_err(self.dhist)
                 return
         else:
             ini,fin = 0,len(dh)
@@ -3134,7 +3210,8 @@ class OSMagics(Magics):
                 start=ini,stop=fin)
 
     @skip_doctest
-    def magic_sc(self, parameter_s=''):
+    @line_magic
+    def sc(self, parameter_s=''):
         """Shell capture - execute a shell command and capture its output.
 
         DEPRECATED. Suboptimal, retained for backwards compatibility.
@@ -3248,7 +3325,8 @@ class OSMagics(Magics):
         else:
             return out
 
-    def magic_sx(self, parameter_s=''):
+    @line_magic
+    def sx(self, parameter_s=''):
         """Shell execute - run a shell command and capture its output.
 
         %sx command
@@ -3293,7 +3371,8 @@ class OSMagics(Magics):
             return self.shell.getoutput(parameter_s)
 
 
-    def magic_bookmark(self, parameter_s=''):
+    @line_magic
+    def bookmark(self, parameter_s=''):
         """Manage IPython's bookmark system.
 
         %bookmark <name>       - set bookmark to current dir
@@ -3353,7 +3432,8 @@ class OSMagics(Magics):
                 bkms[args[0]] = args[1]
         self.shell.db['bookmarks'] = bkms
 
-    def magic_pycat(self, parameter_s=''):
+    @line_magic
+    def pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.
 
         This magic is similar to the cat utility, but it will assume the file
@@ -3374,9 +3454,11 @@ class OSMagics(Magics):
         page.page(self.shell.pycolorize(cont))
 
 
+@register_magics
 class LoggingMagics(Magics):
     """Magics related to all logging machinery."""
-    def magic_logstart(self,parameter_s=''):
+    @line_magic
+    def logstart(self, parameter_s=''):
         """Start logging anywhere in a session.
 
         %logstart [-o|-r|-t] [log_name [log_mode]]
@@ -3482,7 +3564,8 @@ class LoggingMagics(Magics):
                    'Current session state plus future input saved.')
             logger.logstate()
 
-    def magic_logstop(self,parameter_s=''):
+    @line_magic
+    def logstop(self, parameter_s=''):
         """Fully stop logging and close log file.
 
         In order to start logging again, a new %logstart call needs to be made,
@@ -3490,13 +3573,15 @@ class LoggingMagics(Magics):
         options."""
         self.logger.logstop()
 
-    def magic_logoff(self,parameter_s=''):
+    @line_magic
+    def logoff(self, parameter_s=''):
         """Temporarily stop logging.
 
         You must have previously started logging."""
         self.shell.logger.switch_log(0)
 
-    def magic_logon(self,parameter_s=''):
+    @line_magic
+    def logon(self, parameter_s=''):
         """Restart logging.
 
         This function is for restarting logging which you've temporarily
@@ -3506,14 +3591,19 @@ class LoggingMagics(Magics):
 
         self.shell.logger.switch_log(1)
 
-    def magic_logstate(self,parameter_s=''):
+    @line_magic
+    def logstate(self, parameter_s=''):
         """Print the status of the logging system."""
 
         self.shell.logger.logstate()
 
+
+@register_magics
 class ExtensionsMagics(Magics):
     """Magics to manage the IPython extensions system."""
-    def magic_install_ext(self, parameter_s):
+
+    @line_magic
+    def install_ext(self, parameter_s=''):
         """Download and install an extension from a URL, e.g.::
 
             %install_ext https://bitbucket.org/birkenfeld/ipython-physics/raw/d1310a2ab15d/physics.py
@@ -3539,46 +3629,29 @@ class ExtensionsMagics(Magics):
         print "  %%load_ext %s" % os.path.splitext(filename)[0]
 
 
-    def magic_load_ext(self, module_str):
+    @line_magic
+    def load_ext(self, module_str):
         """Load an IPython extension by its module name."""
         return self.shell.extension_manager.load_extension(module_str)
 
-    def magic_unload_ext(self, module_str):
+    @line_magic
+    def unload_ext(self, module_str):
         """Unload an IPython extension by its module name."""
         self.shell.extension_manager.unload_extension(module_str)
 
-    def magic_reload_ext(self, module_str):
+    @line_magic
+    def reload_ext(self, module_str):
         """Reload an IPython extension by its module name."""
         self.shell.extension_manager.reload_extension(module_str)
 
 
-class DeprecatedMagics(Magics):
-    """Magics slated for later removal."""
-    def magic_install_profiles(self, s):
-        """%install_profiles has been deprecated."""
-        print '\n'.join([
-            "%install_profiles has been deprecated.",
-            "Use `ipython profile list` to view available profiles.",
-            "Requesting a profile with `ipython profile create <name>`",
-            "or `ipython --profile=<name>` will start with the bundled",
-            "profile of that name if it exists."
-        ])
-
-    def magic_install_default_config(self, s):
-        """%install_default_config has been deprecated."""
-        print '\n'.join([
-            "%install_default_config has been deprecated.",
-            "Use `ipython profile create <name>` to initialize a profile",
-            "with the default config files.",
-            "Add `--reset` to overwrite already existing config files with defaults."
-        ])
-
-
+@register_magics
 class PylabMagics(Magics):
     """Magics related to matplotlib's pylab support"""
 
     @skip_doctest
-    def magic_pylab(self, s):
+    @line_magic
+    def pylab(self, parameter_s=''):
         """Load numpy and matplotlib to work interactively.
 
         %pylab [GUINAME]
@@ -3636,4 +3709,29 @@ class PylabMagics(Magics):
         else:
             import_all_status = True
 
-        self.shell.enable_pylab(s, import_all=import_all_status)
+        self.shell.enable_pylab(parameter_s, import_all=import_all_status)
+
+
+@register_magics
+class DeprecatedMagics(Magics):
+    """Magics slated for later removal."""
+    @line_magic
+    def install_profiles(self, parameter_s=''):
+        """%install_profiles has been deprecated."""
+        print '\n'.join([
+            "%install_profiles has been deprecated.",
+            "Use `ipython profile list` to view available profiles.",
+            "Requesting a profile with `ipython profile create <name>`",
+            "or `ipython --profile=<name>` will start with the bundled",
+            "profile of that name if it exists."
+        ])
+
+    @line_magic
+    def install_default_config(self, parameter_s=''):
+        """%install_default_config has been deprecated."""
+        print '\n'.join([
+            "%install_default_config has been deprecated.",
+            "Use `ipython profile create <name>` to initialize a profile",
+            "with the default config files.",
+            "Add `--reset` to overwrite already existing config files with defaults."
+        ])

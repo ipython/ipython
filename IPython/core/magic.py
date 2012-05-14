@@ -28,24 +28,26 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
-from IPython.utils.traitlets import Dict, Enum, Instance
+from IPython.utils.traitlets import Bool, Dict, Instance
 from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
-line_magics = {}
-cell_magics = {}
+
+# A dict we'll use for each class that has magics, used as temporary storage to
+# pass information between the @line/cell_magic method decorators and the
+# @register_magics class decorator, because the method decorators have no
+# access to the class when they run.  See for more details:
+# http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
+
+magics = None
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
 #-----------------------------------------------------------------------------
 
 class Bunch: pass
-
-
-# Used for exception handling in magic_edit
-class MacroToEdit(ValueError): pass
 
 
 def on_off(tag):
@@ -77,31 +79,27 @@ def needs_local_scope(func):
 #-----------------------------------------------------------------------------
 
 def register_magics(cls):
-    global line_magics, cell_magics
+    global magics
 
-    cls.line_magics = line_magics
-    cls.cell_magics = cell_magics
+    cls.magics = magics
     cls.registered = True
-    line_magics = {}
-    cell_magics = {}
+    magics = None
     return cls
 
 
 def _magic_marker(magic_type):
-    global line_magics, cell_magics
+    global magics
 
     if magic_type not in ('line', 'cell'):
         raise ValueError('magic_type must be one of ["line", "cell"], %s given'
                          % magic_type)
-    if magic_type == 'line':
-        line_magics = {}
-    else:
-        cell_magics = {}
+
+    magics = dict(line={}, cell={})
 
     # This is a closure to capture the magic_type.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
-        global line_magics, cell_magics
+        global magics
         call = lambda f, *a, **k: f(*a, **k)
 
         if callable(arg):
@@ -122,10 +120,7 @@ def _magic_marker(magic_type):
                              "string or function")
         # Record the magic function in the global table that will then be
         # appended to the class via the register_magics class decorator
-        if magic_type == 'line':
-            line_magics[name] = retval
-        else:
-            cell_magics[name] = retval
+        magics[magic_type][name] = retval
 
         return retval
 
@@ -143,20 +138,23 @@ class MagicManager(Configurable):
     """Object that handles all magic-related functionality for IPython.
     """
     # Non-configurable class attributes
-    line_magics = Dict
-    cell_magics = Dict
+    magics = Dict
 
-    # An instance of the IPython shell we are attached to
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    auto_status = Enum([
+    auto_magic = Bool
+
+    _auto_status = [
         'Automagic is OFF, % prefix IS needed for magic functions.',
-        'Automagic is ON, % prefix NOT needed for magic functions.'])
+        'Automagic is ON, % prefix IS NOT needed for magic functions.']
 
     def __init__(self, shell=None, config=None, **traits):
 
         super(MagicManager, self).__init__(shell=shell, config=config, **traits)
 
+    def auto_status(self):
+        """Return descriptive string with automagic status."""
+        return self._auto_status[self.auto_magic]
 
     def lsmagic(self):
         """Return a dict of currently available magic functions.
@@ -165,8 +163,7 @@ class MagicManager(Configurable):
         two types of magics we support.  Each value is a list of names.
         """
 
-        return dict(line = sorted(self.line_magics),
-                    cell = sorted(self.cell_magics))
+        return self.magics
 
     def register(self, *magics):
         """Register one or more instances of Magics.
@@ -177,9 +174,7 @@ class MagicManager(Configurable):
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
                                  "the @register_macics class decorator")
-            self.line_magics.update(m.line_magics)
-            self.cell_magics.update(m.cell_magics)
-
+            self.magics.update(m.magics)
 
 
 # Key base class that provides the central functionality for magics.
@@ -208,6 +203,9 @@ class Magics(object):
     options_table = Dict(config=True,
         help = """Dict holding all command-line options for each magic.
         """)
+
+    # Non-configurable class attributes
+    magics = Dict
 
     class __metaclass__(type):
         def __new__(cls, name, bases, dct):
