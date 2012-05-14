@@ -152,8 +152,8 @@ var IPython = (function (IPython) {
 
     // deal with all the logic of hiding the tooltip
     // and reset it's status
-    Tooltip.prototype.hide = function () {
-        this.tooltip.addClass('hide');
+    Tooltip.prototype._hide = function () {
+        this.tooltip.fadeOut('fast');
         $('#expanbutton').show('slow');
         this.text.removeClass('bigtooltip');
         this.text.addClass('smalltooltip');
@@ -167,10 +167,11 @@ var IPython = (function (IPython) {
         // as in the completer, because it is not focusable, so won't
         // get the event.
         if (this._sticky == false || force == true) {
-            this.hide();
+            this._hide();
         }
         this.cancel_pending();
-        this.reset_tabs_function ();
+        this.reset_tabs_function();
+        this._cmfocus();
     }
 
     // cancel autocall done after '(' for example.
@@ -210,7 +211,7 @@ var IPython = (function (IPython) {
 
         var re = /[a-z_][0-9a-z._]+$/gi; // casse insensitive
         var callbacks = {
-            'object_info_reply': $.proxy(this.show, this)
+            'object_info_reply': $.proxy(this._show, this)
         }
         var msg_id = IPython.notebook.kernel.object_info_request(re.exec(func), callbacks);
     }
@@ -278,7 +279,7 @@ var IPython = (function (IPython) {
     }
 
     // should be called with the kernel reply to actually show the tooltip
-    Tooltip.prototype.show = function (reply) {
+    Tooltip.prototype._show = function (reply) {
         // move the bubble if it is not hidden
         // otherwise fade it
         this.name = reply.name;
@@ -310,8 +311,7 @@ var IPython = (function (IPython) {
         this.arrow.animate({
             'left': posarrowleft + 'px'
         });
-        this.tooltip.removeClass('hidden')
-        this.tooltip.removeClass('hide');
+        this.tooltip.fadeIn('fast');
         this._hidden = false;
 
         // build docstring
