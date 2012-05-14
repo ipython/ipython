@@ -228,16 +228,16 @@ class Magics(object):
     """
     # Dict holding all command-line options for each magic.
     options_table = None
-
-    # Non-configurable class attributes
-    magics = Dict
-
+    # Dict for the mapping of magic names to methods, set by class decorator
+    magics = None
+    # Flag to check that the class decorator was properly applied
     registered = False
 
     def __init__(self, shell):
         if not(self.__class__.registered):
             raise ValueError('unregistered Magics')
         self.shell = shell
+        self.options_table = {}
         mtab = dict(line={}, cell={})
         for mtype in magic_types:
             tab = mtab[mtype]
@@ -251,7 +251,7 @@ class Magics(object):
         print 'Error in arguments:'
         print oinspect.getdoc(func)
 
-    def format_latex(self,strng):
+    def format_latex(self, strng):
         """Format a string for latex inclusion."""
 
         # Characters that need to be escaped for latex:
@@ -301,7 +301,7 @@ class Magics(object):
           standard library."""
 
         # inject default options at the beginning of the input line
-        caller = sys._getframe(1).f_code.co_name.replace('magic_','')
+        caller = sys._getframe(1).f_code.co_name
         arg_str = '%s %s' % (self.options_table.get(caller,''),arg_str)
 
         mode = kw.get('mode','string')
