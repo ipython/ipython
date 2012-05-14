@@ -142,6 +142,10 @@ cell_magic = _magic_marker('cell')
 class MagicManager(Configurable):
     """Object that handles all magic-related functionality for IPython.
     """
+    # Non-configurable class attributes
+    line_magics = Dict
+    cell_magics = Dict
+
     # An instance of the IPython shell we are attached to
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -155,30 +159,28 @@ class MagicManager(Configurable):
 
 
     def lsmagic(self):
-        """Return a list of currently available magic functions.
+        """Return a dict of currently available magic functions.
 
-        Gives a list of the bare names after mangling (['ls','cd', ...], not
-        ['magic_ls','magic_cd',...]"""
+        The return dict has the keys 'line' and 'cell', corresponding to the
+        two types of magics we support.  Each value is a list of names.
+        """
 
-        # FIXME. This needs a cleanup, in the way the magics list is built.
+        return dict(line = sorted(self.line_magics),
+                    cell = sorted(self.cell_magics))
 
-        # magics in class definition
-        class_magic = lambda fn: fn.startswith('magic_') and \
-                      callable(Magic.__dict__[fn])
-        # in instance namespace (run-time user additions)
-        inst_magic =  lambda fn: fn.startswith('magic_') and \
-                     callable(self.__dict__[fn])
-        # and bound magics by user (so they can access self):
-        inst_bound_magic =  lambda fn: fn.startswith('magic_') and \
-                           callable(self.__class__.__dict__[fn])
-        magics = filter(class_magic, Magic.__dict__.keys()) + \
-                 filter(inst_magic, self.__dict__.keys()) + \
-                 filter(inst_bound_magic, self.__class__.__dict__.keys())
-        out = []
-        for fn in set(magics):
-            out.append(fn.replace('magic_', '', 1))
-        out.sort()
-        return out
+    def register(self, *magics):
+        """Register one or more instances of Magics.
+        """
+        # Start by validating them to ensure they have all had their magic
+        # methods registered at the instance level
+        for m in magics:
+            if not m.registered:
+                raise ValueError("Class of magics %r was constructed without "
+                                 "the @register_macics class decorator")
+            self.line_magics.update(m.line_magics)
+            self.cell_magics.update(m.cell_magics)
+
+
 
 # Key base class that provides the central functionality for magics.
 
