@@ -122,7 +122,7 @@ class BasicMagics(Magics):
 
         for mtype in ('line', 'cell'):
             escape = escapes[mtype]
-            for fname, fn in magics:
+            for fname, fn in magics[mtype].iteritems():
 
                 if mode == 'brief':
                     # only first line
