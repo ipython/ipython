@@ -1141,7 +1141,7 @@ class NamespaceMagics(Magics):
         if pinfo or qmark1 or qmark2:
             detail_level = 1
         if "*" in oname:
-            self.magic_psearch(oname)
+            self.psearch(oname)
         else:
             self.shell._inspect('pinfo', oname, detail_level=detail_level,
                                 namespaces=namespaces)
@@ -1796,7 +1796,7 @@ class ExecutionMagics(Magics):
     def __init__(self, shell):
         super(ExecutionMagics, self).__init__(shell)
         if profile is None:
-            self.magic_prun = self.profile_missing_notice
+            self.prun = self.profile_missing_notice
         # Default execution function used to actually run user code.
         self.default_runner = None
 
@@ -2253,7 +2253,7 @@ python-profiler package from non-free.""")
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self.magic_prun('', 0, opts, arg_lst, prog_ns)
+                    stats = self.prun('', 0, opts, arg_lst, prog_ns)
                 else:
                     if 'd' in opts:
                         deb = debugger.Pdb(self.shell.colors)
