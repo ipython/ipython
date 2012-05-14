@@ -32,7 +32,7 @@ import sys
 
 from IPython.utils import PyColorize
 from IPython.core import ipapi
-from IPython.utils import coloransi, io
+from IPython.utils import coloransi, io, openpy
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
@@ -352,7 +352,10 @@ class Pdb(OldPdb):
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
-        encoding = io.guess_encoding(lines)
+        try:
+            encoding, _ = openpy.detect_encoding(lambda :lines[:2].pop(0))
+        except SyntaxError:
+            encoding = "ascii"
         start = max(start, 0)
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
@@ -363,7 +366,7 @@ class Pdb(OldPdb):
                       and tpl_line_em \
                       or tpl_line
             ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line.decode(encoding),
+                                          start + 1 + i, line.decode(encoding, errors="replace"),
                                           arrow = show_arrow) )
         return ''.join(ret)
 
@@ -423,9 +426,12 @@ class Pdb(OldPdb):
             tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
             lines = linecache.getlines(filename)
-            encoding = io.guess_encoding(lines)
+            try:
+                encoding, _ = openpy.detect_encoding(lambda :lines[:2].pop(0))
+            except SyntaxError:
+                encoding = "ascii"
             for lineno in range(first, last+1):
-                line = lines[lineno].decode(encoding)
+                line = lines[lineno].decode(encoding, errors="replace")
                 if not line:
                     break
 

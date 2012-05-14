@@ -9,6 +9,7 @@ from __future__ import absolute_import
 import io
 from io import TextIOWrapper
 import re
+from StringIO import StringIO
 import urllib
 
 cookie_re = re.compile(ur"coding[:=]\s*([-\w.]+)", re.UNICODE)
@@ -119,6 +120,17 @@ except ImportError:
         text = TextIOWrapper(buffer, encoding, line_buffering=True)
         text.mode = 'r'
         return text   
+
+def source_to_unicode(txt):
+    """Converts string with python source code to unicode
+    """
+    if isinstance(txt, unicode):
+        return txt
+    try:
+        coding, _ = detect_encoding(StringIO(txt).readline)
+    except SyntaxError:
+        coding = "ascii"
+    return txt.decode(coding, errors="replace")
 
 def strip_encoding_cookie(filelike):
     """Generator to pull lines from a text-mode file, skipping the encoding

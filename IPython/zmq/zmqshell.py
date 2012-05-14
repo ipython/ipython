@@ -38,7 +38,7 @@ from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import io
+from IPython.utils import io, openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
@@ -355,7 +355,9 @@ class KernelMagics(Magics):
 
         cont = open(arg_s).read()
         if arg_s.endswith('.py'):
-            cont = self.shell.pycolorize(io.source_to_unicode(cont))
+            cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
+        else:
+            cont = open(arg_s).read()
         page.page(cont)
 
     more = line_magic('more')(less)

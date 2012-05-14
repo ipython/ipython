@@ -35,6 +35,7 @@ from IPython.core import page
 from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
@@ -457,7 +458,7 @@ class Inspector:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
-            page.page(self.format(io.source_to_unicode(open(ofile).read())), lineno-1)
+            page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
     def _format_fields(self, fields, title_width=12):
         """Formats a list of fields for display.
