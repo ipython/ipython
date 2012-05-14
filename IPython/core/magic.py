@@ -178,6 +178,10 @@ class MagicsManager(Configurable):
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
                                  "the @register_macics class decorator")
+            if type(m) is type:
+                # If we're given an uninstantiated class
+                m = m(self.shell)
+
             for mtype in magic_types:
                 self.magics[mtype].update(m.magics[mtype])
 
@@ -228,10 +232,7 @@ class Magics(object):
     # Non-configurable class attributes
     magics = Dict
 
-    class __metaclass__(type):
-        def __new__(cls, name, bases, dct):
-            cls.registered = False
-            return type.__new__(cls, name, bases, dct)
+    registered = False
 
     def __init__(self, shell):
         if not(self.__class__.registered):
@@ -241,7 +242,8 @@ class Magics(object):
         for mtype in magic_types:
             tab = mtab[mtype]
             for magic_name, meth_name in self.magics[mtype].iteritems():
-                tab[magic_name] = getattr(self, meth_name)
+                if isinstance(meth_name, basestring):
+                    tab[magic_name] = getattr(self, meth_name)
         self.magics.update(mtab)
 
     def arg_err(self,func):

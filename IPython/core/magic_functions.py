@@ -143,7 +143,6 @@ class BasicMagics(Magics):
                     magic_docs.append('%s%s:\n\t%s\n' %
                                       (escape, fname, fndoc))
 
-
         magic_docs = ''.join(magic_docs)
 
         if mode == 'rest':
