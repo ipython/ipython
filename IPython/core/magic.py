@@ -232,19 +232,27 @@ class Magics(object):
     magics = None
     # Flag to check that the class decorator was properly applied
     registered = False
+    # Instance of IPython shell
+    shell = None
 
     def __init__(self, shell):
         if not(self.__class__.registered):
-            raise ValueError('unregistered Magics')
+            raise ValueError('Magics subclass without registration - '
+                             'did you forget to apply @register_magics?')
         self.shell = shell
         self.options_table = {}
-        mtab = dict(line={}, cell={})
+        # The method decorators are run when the instance doesn't exist yet, so
+        # they can only record the names of the methods they are supposed to
+        # grab.  Only now, that the instance exists, can we create the proper
+        # mapping to bound methods.  So we read the info off the original names
+        # table and replace each method name by the actual bound method.
         for mtype in magic_types:
-            tab = mtab[mtype]
-            for magic_name, meth_name in self.magics[mtype].iteritems():
+            tab = self.magics[mtype]
+            # must explicitly use keys, as we're mutating this puppy
+            for magic_name in tab.keys():
+                meth_name = tab[magic_name]
                 if isinstance(meth_name, basestring):
                     tab[magic_name] = getattr(self, meth_name)
-        self.magics.update(mtab)
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
