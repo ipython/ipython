@@ -508,7 +508,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                     time.sleep(0.25) # wait 1/4 sec to reset
                                      # lest the request for a new prompt
                                      # goes to the old kernel
-                    self.reset_on_restart()
+                    self.reset()
             else: # remote kernel, prompt on Kernel shutdown/reset
                 title = self.window().windowTitle()
                 if not msg['content']['restart']:
@@ -534,7 +534,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called when the KernelManager channels have started listening or
             when the frontend is assigned an already listening KernelManager.
         """
-        self.reset()
+        self.reset(force=True)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface
@@ -568,9 +568,13 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
 
-    def reset(self):
-        """ Resets the widget to its initial state. Similar to ``clear``, but
-            also re-writes the banner and aborts execution if necessary.
+    def reset(self, force=False):
+        """ Resets the widget to its initial state if ``force`` parameter or
+        ``clear_on_kernel_restart`` configuration setting is True, otherwise
+        prints a visual indication of the fact that the kernel restarted, but
+        does not clear the traces from previous usage of the kernel before it
+        was restarted.  With ``force=True``, it is similar to ``clear``, but
+        also re-writes the banner and aborts execution if necessary.
         """
         if self._executing:
             self._executing = False
@@ -578,29 +582,19 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._reading = False
         self._highlighter.highlighting_on = False
 
-        self._control.clear()
-        self._append_plain_text(self.banner)
-        # update output marker for stdout/stderr, so that startup
-        # messages appear after banner:
-        self._append_before_prompt_pos = self._get_cursor().position()
-        self._show_interpreter_prompt()
-
-    def reset_on_restart(self):
-        """Resets the widget if ``clear_on_kernel_restart`` is True, otherwise
-        prints a visual indication of the fact that the kernel restarted, but
-        does not clear the traces from previous usage of the kernel before it
-        was restarted.
-        """
-        if self.clear_on_kernel_restart:
-            self.reset()
+        if self.clear_on_kernel_restart or force:
+            self._control.clear()
+            self._append_plain_text(self.banner)
         else:
-            self._append_before_prompt_pos = self._get_cursor().position()
             self._append_plain_text("# restarting kernel...")
             self._append_html("<hr><br>")
             # XXX: Reprinting the full banner may be too much, but once #1680 is
             # addressed, that will mitigate it.
             #self._append_plain_text(self.banner)
-            self._show_interpreter_prompt()
+        # update output marker for stdout/stderr, so that startup
+        # messages appear after banner:
+        self._append_before_prompt_pos = self._get_cursor().position()
+        self._show_interpreter_prompt()
 
     def restart_kernel(self, message, now=False):
         """ Attempts to restart the running kernel.
@@ -633,7 +627,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                                             before_prompt=True
                                             )
                 else:
-                    self.reset_on_restart()
+                    self.reset()
             else:
                 self.kernel_manager.hb_channel.unpause()
 
