@@ -602,7 +602,8 @@ class IPCompleter(Completer):
         #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
         # runtime show up too
-        magics = self.shell._magic.lsmagic()
+        # FIXME - cell magics not implemented here yet.
+        magics = self.shell.magics_manager.lsmagic()['line']
         pre = self.magic_escape
         baretext = text.lstrip(pre)
         return [ pre+m for m in magics if m.startswith(baretext)]
