@@ -1999,15 +1999,17 @@ class InteractiveShell(SingletonConfigurable):
                                    user_magics=mf.UserMagics(self))
         self.configurables.append(self.magics_manager)
 
-        self.magics_manager.register(mf.BasicMagics, mf.CodeMagics,
+        all_m = [t(self) for t in [mf.BasicMagics, mf.CodeMagics,
              mf.ConfigMagics, mf.NamespaceMagics, mf.ExecutionMagics,
              mf.AutoMagics, mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
-             mf.PylabMagics, mf.DeprecatedMagics)
+             mf.PylabMagics, mf.DeprecatedMagics] ]
+        self.all_m = all_m
+        self.magics_manager.register(*all_m)
 
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic('colors %s' % self.colors)
+        #self.magic('colors %s' % self.colors)
         # History was moved to a separate module
         from IPython.core import history
         history.init_ipython(self)

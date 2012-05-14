@@ -110,20 +110,18 @@ def _magic_marker(magic_type):
             name = func.func_name
             func.magic_name = name
             retval = decorator(call, func)
+            magics[magic_type][name] = name
         elif isinstance(arg, basestring):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 func.magic_name = name
+                magics[magic_type][name] = func.func_name
                 return decorator(call, func)
             retval = mark
         else:
             raise ValueError("Decorator can only be called with "
                              "string or function")
-        # Record the magic function in the global table that will then be
-        # appended to the class via the register_magics class decorator
-        #print 'magics:', magics  # dbg
-        magics[magic_type][name] = retval
 
         return retval
 
@@ -157,6 +155,7 @@ class MagicsManager(Configurable):
 
         super(MagicsManager, self).__init__(shell=shell, config=config,
                                            user_magics=user_magics, **traits)
+        self.magics = dict(line={}, cell={})
 
     def auto_status(self):
         """Return descriptive string with automagic status."""
@@ -170,20 +169,17 @@ class MagicsManager(Configurable):
         """
         return self.magics
 
-    def register(self, *magics):
+    def register(self, *magic_objects):
         """Register one or more instances of Magics.
         """
         # Start by validating them to ensure they have all had their magic
         # methods registered at the instance level
-        for m in magics:
+        for m in magic_objects:
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
                                  "the @register_macics class decorator")
-            if type(m) is type:
-                # If we're given an uninstantiated class
-                m = m(self.shell)
-
-            self.magics.update(m.magics)
+            for mtype in magic_types:
+                self.magics[mtype].update(m.magics[mtype])
 
     def define_magic(self, magic_name, func, magic_type='line'):
         """Expose own function as magic function for ipython
@@ -241,6 +237,12 @@ class Magics(object):
         if not(self.__class__.registered):
             raise ValueError('unregistered Magics')
         self.shell = shell
+        mtab = dict(line={}, cell={})
+        for mtype in magic_types:
+            tab = mtab[mtype]
+            for magic_name, meth_name in self.magics[mtype].iteritems():
+                tab[magic_name] = getattr(self, meth_name)
+        self.magics.update(mtab)
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""

@@ -241,7 +241,6 @@ Currently the magic system has the following functions:""",
 
           %colors nocolor
         """
-
         def color_switch_err(name):
             warn('Error changing %s color schemes.\n%s' %
                  (name,sys.exc_info()[1]))
