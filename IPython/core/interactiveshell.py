@@ -2009,7 +2009,7 @@ class InteractiveShell(SingletonConfigurable):
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        #self.magic('colors %s' % self.colors)
+        self.magic('colors %s' % self.colors)
         # History was moved to a separate module
         from IPython.core import history
         history.init_ipython(self)

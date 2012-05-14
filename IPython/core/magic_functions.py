@@ -93,7 +93,7 @@ class BasicMagics(Magics):
                'Available cell magics:',
                cesc + ('  '+cesc).join(magics['cell']),
                '',
-               mman.auto_status[mman.automagic]]
+               mman.auto_status()]
         return '\n'.join(out)
 
     @line_magic
