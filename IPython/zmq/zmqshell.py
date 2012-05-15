@@ -43,7 +43,7 @@ from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split
-from IPython.utils.traitlets import Instance, Type, Dict, CBool
+from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
 from IPython.zmq.session import extract_header
@@ -60,6 +60,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
     parent_header = Dict({})
+    topic = CBytes(b'displaypub')
 
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
@@ -82,7 +83,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         content['metadata'] = metadata
         self.session.send(
             self.pub_socket, u'display_data', json_clean(content),
-            parent=self.parent_header
+            parent=self.parent_header, ident=self.topic,
         )
 
     def clear_output(self, stdout=True, stderr=True, other=True):
@@ -97,7 +98,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         
         self.session.send(
             self.pub_socket, u'clear_output', content,
-            parent=self.parent_header
+            parent=self.parent_header, ident=self.topic,
         )
 
 class ZMQInteractiveShell(InteractiveShell):

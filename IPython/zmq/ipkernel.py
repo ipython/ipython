@@ -527,16 +527,18 @@ class Kernel(Configurable):
         except:
             self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
+
+        # Set the parent message of the display hook and out streams.
+        self.shell.displayhook.set_parent(parent)
+        self.shell.display_pub.set_parent(parent)
+        sys.stdout.set_parent(parent)
+        sys.stderr.set_parent(parent)
+
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)
         # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
         sub = self._make_subheader()
         try:
-            # allow for not overriding displayhook
-            if hasattr(sys.displayhook, 'set_parent'):
-                sys.displayhook.set_parent(parent)
-                sys.stdout.set_parent(parent)
-                sys.stderr.set_parent(parent)
             working = self.shell.user_ns
 
             prefix = "_"+str(msg_id).replace("-","")+"_"

@@ -204,6 +204,7 @@ class EngineFactory(RegistrationFactory):
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,
                     loop=loop, user_ns=self.user_ns, log=self.log)
+            self.kernel.shell.display_pub.topic = cast_bytes('engine.%i.displaypub' % self.id)
             self.kernel.start()
 
 
