@@ -225,6 +225,7 @@ class KernelApp(BaseIPythonApplication):
         self.heartbeat = Heartbeat(hb_ctx, (self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
+        self.heartbeat.start()
 
         # Helper to make it easier to connect to an existing kernel.
         # set log-level to critical, to make sure it is output
@@ -302,7 +303,6 @@ class KernelApp(BaseIPythonApplication):
         sys.stderr.flush()
 
     def start(self):
-        self.heartbeat.start()
         if self.poller is not None:
             self.poller.start()
         self.kernel.start()

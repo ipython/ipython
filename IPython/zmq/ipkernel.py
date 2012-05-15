@@ -84,7 +84,7 @@ class Kernel(Configurable):
     stdin_socket = Instance(zmq.Socket)
     log = Instance(logging.Logger)
     
-    user_module = Instance('types.ModuleType')
+    user_module = Any()
     def _user_module_changed(self, name, old, new):
         if self.shell is not None:
             self.shell.user_module = new
@@ -250,6 +250,7 @@ class Kernel(Configurable):
 
     def start(self):
         """register dispatchers for streams"""
+        self.shell.exit_now = False
         if self.control_stream:
             self.control_stream.on_recv(self.dispatch_control, copy=False)
 
@@ -501,7 +502,8 @@ class Kernel(Configurable):
 
         self._at_shutdown()
         # call sys.exit after a short delay
-        ioloop.IOLoop.instance().add_timeout(time.time()+0.1, lambda : sys.exit(0))
+        loop = ioloop.IOLoop.instance()
+        loop.add_timeout(time.time()+0.1, loop.stop)
 
     #---------------------------------------------------------------------------
     # Engine methods
