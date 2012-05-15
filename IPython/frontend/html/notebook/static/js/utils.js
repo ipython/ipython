@@ -99,6 +99,7 @@ IPython.utils = (function (IPython) {
                 SHIFT    : 16,
                 CTRL     : 17,
                 CONTROL  : 17,
+                ALT      : 18,
                 ESC      : 27,
                 SPACE    : 32,
                 PGUP     : 33,

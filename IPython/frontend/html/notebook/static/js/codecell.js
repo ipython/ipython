@@ -83,7 +83,7 @@ var IPython = (function (IPython) {
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
             IPython.tooltip.pending(that);
-        } else if (event.which === key.UPARROW) {
+        } else if (event.which === key.UPARROW && event.type === 'keydown') {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_top()) {
@@ -92,7 +92,7 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
-        } else if (event.which === key.DOWNARROW) {
+        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
             if (!that.at_bottom()) {
