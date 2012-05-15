@@ -9,8 +9,8 @@
  **/
 /*
  * We'll try to get something pretty, so we
- * have some strange ccs to have the scroll bar on
- * the left of the left with fix button on the top right of the tooltip
+ * have some strange css to have the scroll bar on
+ * the left with fix button on the top right of the tooltip
  */
 @-moz-keyframes fadeOut {
   from {
@@ -130,10 +130,4 @@
   -moz-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   -o-transform: rotate(45deg);
-}
-.tooltip.hide {
-  -webkit-animation: fadeOut 800ms;
-  -moz-animation: fadeOut 800ms;
-  animation: fadeOut 800ms;
-  opacity: 0;
 }
