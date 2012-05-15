@@ -156,3 +156,33 @@ def test_embed_kernel_namespace():
         content = msg['content']
         nt.assert_false(content['found'])
 
+def test_embed_kernel_reentrant():
+    """IPython.embed_kernel() can be called multiple times"""
+    cmd = '\n'.join([
+        'from IPython import embed_kernel',
+        'count = 0',
+        'def go():',
+        '    global count',
+        '    embed_kernel()',
+        '    count = count + 1',
+        '',
+        'while True:'
+        '    go()',
+        '',
+    ])
+    
+    with setup_kernel(cmd) as km:
+        shell = km.shell_channel
+        for i in range(5):
+            msg_id = shell.object_info('count')
+            msg = shell.get_msg(block=True, timeout=2)
+            content = msg['content']
+            nt.assert_true(content['found'])
+            nt.assert_equals(content['string_form'], unicode(i))
+            
+            # exit from embed_kernel
+            shell.execute("get_ipython().exit_now = True")
+            msg = shell.get_msg(block=True, timeout=2)
+            time.sleep(0.2)
+
+
