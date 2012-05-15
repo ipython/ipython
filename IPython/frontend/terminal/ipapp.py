@@ -38,6 +38,7 @@ from IPython.core import usage
 from IPython.core.completer import IPCompleter
 from IPython.core.crashhandler import CrashHandler
 from IPython.core.formatters import PlainTextFormatter
+from IPython.core.history import HistoryManager
 from IPython.core.prompts import PromptManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
@@ -207,6 +208,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.__class__,      # it will also affect subclasses (e.g. QtConsole)
             TerminalInteractiveShell,
             PromptManager,
+            HistoryManager,
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,
