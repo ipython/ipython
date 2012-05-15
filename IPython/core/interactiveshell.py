@@ -717,6 +717,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self._orig_sys_module_state['stderr'] = sys.stderr
         self._orig_sys_module_state['excepthook'] = sys.excepthook
         self._orig_sys_modules_main_name = self.user_module.__name__
+        self._orig_sys_modules_main_mod = sys.modules.get(self.user_module.__name__)
 
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
@@ -726,7 +727,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         except AttributeError:
             pass
         # Reset what what done in self.init_sys_modules
-        sys.modules[self.user_module.__name__] = self._orig_sys_modules_main_name
+        if self._orig_sys_modules_main_mod is not None:
+            sys.modules[self._orig_sys_modules_main_name] = self._orig_sys_modules_main_mod
 
     #-------------------------------------------------------------------------
     # Things related to hooks
