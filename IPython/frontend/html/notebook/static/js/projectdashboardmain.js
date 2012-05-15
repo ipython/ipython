@@ -37,14 +37,14 @@ $(document).ready(function () {
 
     var enable_autorefresh = function(){
         //refresh immediately , then start interval
-        if($('upload_button').length == 0)
+        if($('.upload_button').length == 0)
         {
             IPython.notebook_list.load_list();
             IPython.cluster_list.load_list();
         }
         if (!interval_id){
             interval_id = setInterval(function(){
-                    if($('upload_button').length == 0)
+                    if($('.upload_button').length == 0)
                     {
                         IPython.notebook_list.load_list();
                         IPython.cluster_list.load_list();
