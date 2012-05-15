@@ -28,6 +28,19 @@ DirectViewWidget.prototype.create_element = function () {
     this.element.addClass('cell border-box-sizing code_cell vbox');
     this.element.attr('tabindex','2');
     this.element.css('padding-right',0);
+
+    var control = $('<div/>').addClass('dv_control').height('30px');
+    var control_label = $('<span/>').html('Select engine(s) to run code on interactively: ');
+    control_label.css('line-height','30px');
+    var select = $('<select/>').addClass('dv_select ui-widget ui-widget-content');
+    select.css('font-size','85%%').css('margin-bottom','5px');
+    var n = this.targets.length;
+    select.append($('<option/>').html('all').attr('value','all'));
+    for (var i=0; i<n; i++) {
+        select.append($('<option/>').html(this.targets[i]).attr('value',this.targets[i]))
+    }
+    control.append(control_label).append(select);
+
     var input = $('<div></div>').addClass('input hbox');
     var input_area = $('<div/>').addClass('input_area box-flex1');
     this.code_mirror = CodeMirror(input_area.get(0), {
@@ -38,7 +51,9 @@ DirectViewWidget.prototype.create_element = function () {
     });
     input.append(input_area);
     var output = $('<div></div>');
-    this.element.append(input).append(output);
+
+
+    this.element.append(control).append(input).append(output);
 	this.output_area = new IPython.OutputArea(output, false);
 
 };
@@ -100,7 +115,11 @@ DirectViewWidget.prototype.execute = function () {
         'output': $.proxy(this.output_area.handle_output, this.output_area),
         'clear_output': $.proxy(this.output_area.handle_clear_output, this.output_area),
     };
-    var code = '%(widget_var)s.execute("""'+this.get_text()+'""")';
+    var target = this.element.find('.dv_select option:selected').attr('value');
+    if (target === 'all') {
+        target = '"all"';
+    }
+    var code = '%(widget_var)s.execute("""'+this.get_text()+'""",targets='+target+')';
     console.log(code);
     console.log(this.get_text());
     var msg_id = this.kernel.execute(code, callbacks, {silent: false});
