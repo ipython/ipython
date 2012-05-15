@@ -243,7 +243,17 @@ class Kernel(Configurable):
         self.log.critical("entering eventloop")
         # restore default_int_handler
         signal(SIGINT, default_int_handler)
-        self.eventloop(self)
+        while self.eventloop is not None:
+            try:
+                self.eventloop(self)
+            except KeyboardInterrupt:
+                # Ctrl-C shouldn't crash the kernel
+                self.log.error("KeyboardInterrupt caught in kernel")
+                continue
+            else:
+                # eventloop exited cleanly, this means we should stop (right?)
+                self.eventloop = None
+                break
         self.log.critical("exiting eventloop")
         # if eventloop exits, IOLoop should stop
         ioloop.IOLoop.instance().stop()
