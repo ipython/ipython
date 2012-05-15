@@ -534,7 +534,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         """ Called when the KernelManager channels have started listening or
             when the frontend is assigned an already listening KernelManager.
         """
-        self.reset(force=True)
+        self.reset(clear=True)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' public interface
@@ -568,12 +568,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot interrupt.\n')
 
-    def reset(self, force=False):
-        """ Resets the widget to its initial state if ``force`` parameter or
+    def reset(self, clear=False):
+        """ Resets the widget to its initial state if ``clear`` parameter or
         ``clear_on_kernel_restart`` configuration setting is True, otherwise
         prints a visual indication of the fact that the kernel restarted, but
         does not clear the traces from previous usage of the kernel before it
-        was restarted.  With ``force=True``, it is similar to ``clear``, but
+        was restarted.  With ``clear=True``, it is similar to ``%clear``, but
         also re-writes the banner and aborts execution if necessary.
         """
         if self._executing:
@@ -582,7 +582,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._reading = False
         self._highlighter.highlighting_on = False
 
-        if self.clear_on_kernel_restart or force:
+        if self.clear_on_kernel_restart or clear:
             self._control.clear()
             self._append_plain_text(self.banner)
         else:
