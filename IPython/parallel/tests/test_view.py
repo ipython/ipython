@@ -569,3 +569,89 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # parametric tests seem to require manual closing?
         self.client.close()
 
+    
+    # begin execute tests
+    
+    def test_execute_reply(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        ar = e0.execute("5", silent=False)
+        er = ar.get()
+        time.sleep(0.2)
+        self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
+        self.assertEquals(er.pyout['text/plain'], '5')
+
+    def test_execute_reply_stdout(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        ar = e0.execute("print (5)", silent=False)
+        er = ar.get()
+        time.sleep(0.2)
+        self.assertEquals(er.stdout.strip(), '5')
+        
+    def test_execute_pyout(self):
+        """execute triggers pyout with silent=False"""
+        view = self.client[:]
+        ar = view.execute("5", silent=False, block=True)
+        time.sleep(0.2)
+        expected = [{'text/plain' : '5'}] * len(view)
+        self.assertEquals(ar.pyout, expected)
+    
+    def test_execute_silent(self):
+        """execute does not trigger pyout with silent=True"""
+        view = self.client[:]
+        ar = view.execute("5", block=True)
+        expected = [None] * len(view)
+        self.assertEquals(ar.pyout, expected)
+    
+    def test_execute_magic(self):
+        """execute accepts IPython commands"""
+        view = self.client[:]
+        view.execute("a = 5")
+        ar = view.execute("%whos", block=True)
+        # this will raise, if that failed
+        ar.get(5)
+        time.sleep(0.2)
+        for stdout in ar.stdout:
+            lines = stdout.splitlines()
+            self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
+            found = False
+            for line in lines[2:]:
+                split = line.split()
+                if split == ['a', 'int', '5']:
+                    found = True
+                    break
+            self.assertTrue(found, "whos output wrong: %s" % stdout)
+    
+    def test_execute_displaypub(self):
+        """execute tracks display_pub output"""
+        view = self.client[:]
+        view.execute("from IPython.core.display import *")
+        ar = view.execute("[ display(i) for i in range(5) ]", block=True)
+        time.sleep(0.2)
+        outs = [ {u'text/plain' : unicode(i)} for i in range(5) ]
+        expected = [outs] * len(view)
+        self.assertEquals(ar.outputs, expected)
+    
+    def test_apply_displaypub(self):
+        """apply tracks display_pub output"""
+        view = self.client[:]
+        view.execute("from IPython.core.display import *")
+        
+        @interactive
+        def publish():
+            [ display(i) for i in range(5) ]
+        
+        ar = view.apply_async(publish)
+        ar.get(5)
+        time.sleep(0.2)
+        outs = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        expected = [outs] * len(view)
+        self.assertEquals(ar.outputs, expected)
+    
+    def test_execute_raises(self):
+        """exceptions in execute requests raise appropriately"""
+        view = self.client[-1]
+        ar = view.execute("1/0")
+        self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
+
