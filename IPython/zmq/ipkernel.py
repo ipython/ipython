@@ -887,6 +887,13 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     else:
         app = IPKernelApp.instance(**kwargs)
         app.initialize([])
+        # Undo unnecessary sys module mangling from init_sys_modules.
+        # This would not be necessary if we could prevent it
+        # in the first place by using a different InteractiveShell
+        # subclass, as in the regular embed case.
+        main = app.kernel.shell._orig_sys_modules_main_mod
+        if main is not None:
+            sys.modules[app.kernel.shell._orig_sys_modules_main_name] = main
 
     # load the calling scope if not given
     (caller_module, caller_locals) = extract_module_locals(1)
