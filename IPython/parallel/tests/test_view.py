@@ -25,6 +25,7 @@ import zmq
 from nose import SkipTest
 
 from IPython.testing import decorators as dec
+from IPython.testing.ipunittest import ParametricTestCase
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -39,7 +40,7 @@ from .clienttest import ClusterTestCase, crash, wait, skip_without
 def setup():
     add_engines(3, total=True)
 
-class TestView(ClusterTestCase):
+class TestView(ClusterTestCase, ParametricTestCase):
     
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
@@ -550,4 +551,21 @@ class TestView(ClusterTestCase):
         check = [ -1*i for i in r ]
         result = e0.map_sync(lambda x: -1*x, r)
         self.assertEquals(result, check)
+    
+    def test_len(self):
+        """len(view) makes sense"""
+        e0 = self.client[self.client.ids[0]]
+        yield self.assertEquals(len(e0), 1)
+        v = self.client[:]
+        yield self.assertEquals(len(v), len(self.client.ids))
+        v = self.client.direct_view('all')
+        yield self.assertEquals(len(v), len(self.client.ids))
+        v = self.client[:2]
+        yield self.assertEquals(len(v), 2)
+        v = self.client[:1]
+        yield self.assertEquals(len(v), 1)
+        v = self.client.load_balanced_view()
+        yield self.assertEquals(len(v), len(self.client.ids))
+        # parametric tests seem to require manual closing?
+        self.client.close()
 

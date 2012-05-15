@@ -128,13 +128,20 @@ class View(HasTraits):
 
         assert not self.__class__ is View, "Don't use base View objects, use subclasses"
 
-
     def __repr__(self):
         strtargets = str(self.targets)
         if len(strtargets) > 16:
             strtargets = strtargets[:12]+'...]'
         return "<%s %s>"%(self.__class__.__name__, strtargets)
-
+    
+    def __len__(self):
+        if isinstance(self.targets, list):
+            return len(self.targets)
+        elif isinstance(self.targets, int):
+            return 1
+        else:
+            return len(self.client)
+    
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
 
