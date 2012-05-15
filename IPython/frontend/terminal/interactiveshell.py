@@ -636,10 +636,9 @@ class TerminalInteractiveShell(InteractiveShell):
             text = self.shell.hooks.clipboard_get()
             block = strip_email_quotes(text.splitlines())
         except TryNext as clipboard_exc:
-            message = getattr(clipboard_exc, 'args')
-            if message:
-                error(message[0])
-            else:
+            try:
+                error(clipboard_exc.msg)
+            except AttributeError:
                 error('Could not get text from the clipboard.')
             return
 
