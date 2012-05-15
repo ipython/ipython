@@ -87,6 +87,7 @@ def setup_kernel(cmd):
         yield km
     finally:
         km.stop_channels()
+        kernel.terminate()
 
 def test_embed_kernel_basic():
     """IPython.embed_kernel() is basically functional"""
