@@ -103,7 +103,16 @@ var IPython = (function (IPython) {
     NotebookList.prototype.list_loaded = function (data, status, xhr) {
         var len = data.length;
         this.clear_list();
-        // Todo: remove old children
+
+        if(len == 0)
+        {
+            $(this.new_notebook_item(0))
+                .append(
+                    $('<div style="margin:auto;text-align:center;color:grey"/>')
+                    .text('Notebook list empty.')
+                    )
+        }
+
         for (var i=0; i<len; i++) {
             var notebook_id = data[i].notebook_id;
             var nbname = data[i].name;
