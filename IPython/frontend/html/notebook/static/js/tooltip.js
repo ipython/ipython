@@ -168,6 +168,7 @@ var IPython = (function (IPython) {
         // as in the completer, because it is not focusable, so won't
         // get the event.
         if (this._sticky == false || force == true) {
+            this.cancel_stick();
             this._hide();
         }
         this.cancel_pending();
