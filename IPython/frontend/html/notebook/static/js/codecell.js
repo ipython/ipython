@@ -46,7 +46,7 @@ var IPython = (function (IPython) {
         var output = $('<div></div>');
         cell.append(input).append(output);
         this.element = cell;
-		this.output_area = new IPython.OutputArea(output, true);
+        this.output_area = new IPython.OutputArea(output, true);
 
         // construct a completer only if class exist
         // otherwise no print view
@@ -92,6 +92,9 @@ var IPython = (function (IPython) {
             } else {
                 return true; 
             };
+        } else if (event.which === key.ESC) {
+            IPython.tooltip.remove_and_cancel_tooltip(true);
+            return true;
         } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
             // If we are not at the bottom, let CM handle the down arrow and
             // prevent the global keydown handler from handling it.
@@ -192,17 +195,17 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.collapse = function () {
-		this.output_area.collapse();
+    this.output_area.collapse();
     };
 
 
     CodeCell.prototype.expand = function () {
-		this.output_area.expand();
+    this.output_area.expand();
     };
 
 
     CodeCell.prototype.toggle_output = function () {
-		this.output_area.toggle_output();
+    this.output_area.toggle_output();
     };
 
 
