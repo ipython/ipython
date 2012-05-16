@@ -160,6 +160,7 @@ var IPython = (function (IPython) {
         // keep scroll top to be sure to always see the first line
         this.text.scrollTop(0);
         this._hidden = true;
+        this.code_mirror = null;
     }
 
     Tooltip.prototype.remove_and_cancel_tooltip = function (force) {
@@ -229,7 +230,7 @@ var IPython = (function (IPython) {
             ch: 0
         }, cursor).trim();
 
-        // need a permanent handel to codemirror for future auto recall
+        // need a permanent handel to code_mirror for future auto recall
         this.code_mirror = editor;
 
         // now we treat the different number of keypress
@@ -346,12 +347,15 @@ var IPython = (function (IPython) {
         this.text.scrollTop(0);
     }
 
-    // convenient funciton to have the correct codemirror back into focus
+    // convenient funciton to have the correct code_mirror back into focus
     Tooltip.prototype._cmfocus = function () {
         var cm = this.code_mirror;
-        setTimeout(function () {
-            cm.focus();
-        }, 50);
+        if (cm == IPython.notebook.get_selected_cell())
+        {
+            setTimeout(function () {
+                cm.focus();
+            }, 50);
+        }
     }
 
     IPython.Tooltip = Tooltip;
