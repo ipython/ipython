@@ -522,6 +522,19 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="Clear the console",
             triggered=self.clear_magic_active_frontend)
         self.add_menu_action(self.view_menu, self.clear_action)
+        self.pager_menu = self.view_menu.addMenu("Pager")
+
+
+        self.hsplit_action = QtGui.QAction(".. &Horizontal Split",
+            self,
+            triggered=self.pager_hsplit)
+
+        self.vsplit_action = QtGui.QAction(" : &Vertical Split",
+            self,
+            triggered=self.pager_vsplit)
+
+        self.pager_menu.addAction(self.hsplit_action)
+        self.pager_menu.addAction(self.vsplit_action)
     
     def init_kernel_menu(self):
         self.kernel_menu = self.menuBar().addMenu("&Kernel")
@@ -780,6 +793,14 @@ class MainWindow(QtGui.QMainWindow):
             if sys.platform == 'darwin':
                 self.maximizeAct.setEnabled(True)
                 self.minimizeAct.setEnabled(True)
+
+    def pager_vsplit(self):
+        self.active_frontend.paging = "vsplit"
+        self.active_frontend._splitter.setOrientation(QtCore.Qt.Vertical)
+
+    def pager_hsplit(self):
+        self.active_frontend.paging = "hsplit"
+        self.active_frontend._splitter.setOrientation(QtCore.Qt.Horizontal)
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)
