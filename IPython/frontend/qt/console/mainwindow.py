@@ -552,6 +552,15 @@ class MainWindow(QtGui.QMainWindow):
 
         self.kernel_menu.addSeparator()
 
+        self.confirm_restart_kernel_action = QtGui.QAction("Confirm kernel restart",
+            self,
+            checkable=True,
+            checked=self.active_frontend.confirm_restart,
+            triggered=self.toggle_confirm_restart_active_frontend
+            )
+
+        self.add_menu_action(self.kernel_menu, self.confirm_restart_kernel_action)
+
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on active frontend.
 
@@ -831,6 +840,16 @@ class MainWindow(QtGui.QMainWindow):
 
     def interrupt_kernel_active_frontend(self):
         self.active_frontend.request_interrupt_kernel()
+
+    def toggle_confirm_restart_active_frontend(self):
+        widget = self.active_frontend
+        widget.confirm_restart = not widget.confirm_restart
+        # XXX: whenever tabs are switched, the checkbox may not be
+        # representative of the state of the active widget. The next line
+        # ensures that at least after toggling, the checkbox represents the
+        # state this widget is in.
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
+
 
     def cut_active_frontend(self):
         widget = self.active_frontend
