@@ -536,14 +536,14 @@ class MainWindow(QtGui.QMainWindow):
 
         ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
 
-        self.interrupt_kernel_action = QtGui.QAction("Interrupt current Kernel",
+        self.interrupt_kernel_action = QtGui.QAction("&Interrupt current Kernel",
             self,
             triggered=self.interrupt_kernel_active_frontend,
             shortcut=ctrl+"+C",
             )
         self.add_menu_action(self.kernel_menu, self.interrupt_kernel_action)
 
-        self.restart_kernel_action = QtGui.QAction("Restart current Kernel",
+        self.restart_kernel_action = QtGui.QAction("&Restart current Kernel",
             self,
             triggered=self.restart_kernel_active_frontend,
             shortcut=ctrl+"+.",
@@ -552,7 +552,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.kernel_menu.addSeparator()
 
-        self.confirm_restart_kernel_action = QtGui.QAction("Confirm kernel restart",
+        self.confirm_restart_kernel_action = QtGui.QAction("&Confirm kernel restart",
             self,
             checkable=True,
             checked=self.active_frontend.confirm_restart,
