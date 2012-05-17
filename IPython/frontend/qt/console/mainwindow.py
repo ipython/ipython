@@ -92,7 +92,7 @@ class MainWindow(QtGui.QMainWindow):
 
         send a self.close if number of tab ==0
 
-        need to be called explicitely, or be connected to tabInserted/tabRemoved
+        need to be called explicitly, or be connected to tabInserted/tabRemoved
         """
         if self.tab_widget.count() <= 1:
             self.tab_widget.tabBar().setVisible(False)
@@ -133,21 +133,23 @@ class MainWindow(QtGui.QMainWindow):
     def close_tab(self,current_tab):
         """ Called when you need to try to close a tab.
 
-        It takes the number of the tab to be closed as argument, or a referece
-        to the wiget insite this tab
+        It takes the number of the tab to be closed as argument, or a reference
+        to the widget inside this tab
         """
 
-        # let's be sure "tab" and "closing widget are respectivey the index of the tab to close
-        # and a reference to the trontend to close
+        # let's be sure "tab" and "closing widget" are respectively the index
+        # of the tab to close and a reference to the frontend to close
         if type(current_tab) is not int :
             current_tab = self.tab_widget.indexOf(current_tab)
         closing_widget=self.tab_widget.widget(current_tab)
 
 
-        # when trying to be closed, widget might re-send a request to be closed again, but will
-        # be deleted when event will be processed. So need to check that widget still exist and
-        # skip if not. One example of this is when 'exit' is send in a slave tab. 'exit' will be
-        # re-send by this fonction on the master widget, which ask all slaves widget to exit
+        # when trying to be closed, widget might re-send a request to be
+        # closed again, but will be deleted when event will be processed. So
+        # need to check that widget still exists and skip if not. One example
+        # of this is when 'exit' is sent in a slave tab. 'exit' will be
+        # re-sent by this function on the master widget, which ask all slave
+        # widgets to exit
         if closing_widget==None:
             return
 
@@ -264,13 +266,13 @@ class MainWindow(QtGui.QMainWindow):
 
     def find_master_tab(self,tab,as_list=False):
         """
-        Try to return the frontend that own the kernel attached to the given widget/tab.
+        Try to return the frontend that owns the kernel attached to the given widget/tab.
 
-            Only find frontend owed by the current application. Selection
-            based on port of the kernel, might be inacurate if several kernel
+            Only finds frontend owned by the current application. Selection
+            based on port of the kernel might be inaccurate if several kernel
             on different ip use same port number.
 
-            This fonction does the conversion tabNumber/widget if needed.
+            This function does the conversion tabNumber/widget if needed.
             Might return None if no master widget (non local kernel)
             Will crash IPython if more than 1 masterWidget
 
@@ -570,13 +572,13 @@ class MainWindow(QtGui.QMainWindow):
 
         Notes
         -----
-        `fun` execute `magic` an active frontend at the moment it is triggerd,
-        not the active frontend at the moment it has been created.
+        `fun` executes `magic` in active frontend at the moment it is triggered,
+        not the active frontend at the moment it was created.
 
         This function is mostly used to create the "All Magics..." Menu at run time.
         """
-        # need to level nested function  to be sure to past magic
-        # on active frontend **at run time**.
+        # need two level nested function to be sure to pass magic
+        # to active frontend **at run time**.
         def inner_dynamic_magic():
             self.active_frontend.execute(magic)
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
@@ -626,9 +628,9 @@ class MainWindow(QtGui.QMainWindow):
             self.all_magic_menu.addAction(xaction)
 
     def update_all_magic_menu(self):
-        """ Update the list on magic in the "All Magics..." Menu
+        """ Update the list of magics in the "All Magics..." Menu
 
-        Request the kernel with the list of availlable magic and populate the
+        Request the kernel with the list of available magics and populate the
         menu with the list received back
 
         """
@@ -672,12 +674,12 @@ class MainWindow(QtGui.QMainWindow):
             self, triggered=self.update_all_magic_menu)
         self.add_menu_action(self.all_magic_menu, self.pop)
         # we need to populate the 'Magic Menu' once the kernel has answer at
-        # least once let's do it immedialy, but it's assured to works
+        # least once let's do it immediately, but it's assured to works
         self.pop.trigger()
 
         self.reset_action = QtGui.QAction("&Reset",
             self,
-            statusTip="Clear all varible from workspace",
+            statusTip="Clear all variables from workspace",
             triggered=self.reset_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.reset_action)
 
@@ -695,19 +697,19 @@ class MainWindow(QtGui.QMainWindow):
 
         self.who_action = QtGui.QAction("&Who",
             self,
-            statusTip="List interactive variable",
+            statusTip="List interactive variables",
             triggered=self.who_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.who_action)
 
         self.who_ls_action = QtGui.QAction("Wh&o ls",
             self,
-            statusTip="Return a list of interactive variable",
+            statusTip="Return a list of interactive variables",
             triggered=self.who_ls_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.who_ls_action)
 
         self.whos_action = QtGui.QAction("Who&s",
             self,
-            statusTip="List interactive variable with detail",
+            statusTip="List interactive variables with details",
             triggered=self.whos_magic_active_frontend)
         self.add_menu_action(self.magic_menu, self.whos_action)
 
@@ -751,8 +753,8 @@ class MainWindow(QtGui.QMainWindow):
         # please keep the Help menu in Mac Os even if empty. It will
         # automatically contain a search field to search inside menus and
         # please keep it spelled in English, as long as Qt Doesn't support
-        # a QAction.MenuRole like HelpMenuRole otherwise it will loose
-        # this search field fonctionality
+        # a QAction.MenuRole like HelpMenuRole otherwise it will lose
+        # this search field functionality
 
         self.help_menu = self.menuBar().addMenu("&Help")
         

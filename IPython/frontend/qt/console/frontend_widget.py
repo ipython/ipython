@@ -335,11 +335,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         expr : string
             valid string to be executed by the kernel.
         callback : function
-            function accepting one arguement, as a string. The string will be
+            function accepting one argument, as a string. The string will be
             the `repr` of the result of evaluating `expr`
 
-        The `callback` is called with the 'repr()' of the result of `expr` as
-        first argument. To get the object, do 'eval()' onthe passed value.
+        The `callback` is called with the `repr()` of the result of `expr` as
+        first argument. To get the object, do `eval()` on the passed value.
 
         See Also
         --------
@@ -347,8 +347,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         """
 
-        # generate uuid, which would be used as a indication of wether or not
-        # the unique request originate from here (can use msg id ?)
+        # generate uuid, which would be used as an indication of whether or
+        # not the unique request originated from here (can use msg id ?)
         local_uuid = str(uuid.uuid1())
         msg_id = self.kernel_manager.shell_channel.execute('',
             silent=True, user_expressions={ local_uuid:expr })
@@ -356,7 +356,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
 
     def _handle_exec_callback(self, msg):
-        """Execute `callback` corresonding to `msg` reply, after ``_silent_exec_callback``
+        """Execute `callback` corresponding to `msg` reply, after ``_silent_exec_callback``
 
         Parameters
         ----------
@@ -365,7 +365,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         Notes
         -----
-        This fonction will look for a `callback` associated with the
+        This function will look for a `callback` associated with the
         corresponding message id. Association has been made by
         `_silent_exec_callback`. `callback` is then called with the `repr()`
         of the value of corresponding `user_expressions` as argument.
