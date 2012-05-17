@@ -522,20 +522,25 @@ class MainWindow(QtGui.QMainWindow):
             statusTip="Clear the console",
             triggered=self.clear_magic_active_frontend)
         self.add_menu_action(self.view_menu, self.clear_action)
-        self.pager_menu = self.view_menu.addMenu("Pager")
 
+        self.pager_menu = self.view_menu.addMenu("&Pager")
 
-        self.hsplit_action = QtGui.QAction(".. &Horizontal Split",
+        hsplit_action = QtGui.QAction(".. &Horizontal Split",
             self,
-            triggered=self.pager_hsplit)
+            triggered=lambda: self.set_paging_active_frontend('hsplit'))
 
-        self.vsplit_action = QtGui.QAction(" : &Vertical Split",
+        vsplit_action = QtGui.QAction(" : &Vertical Split",
             self,
-            triggered=self.pager_vsplit)
+            triggered=lambda: self.set_paging_active_frontend('vsplit'))
 
-        self.pager_menu.addAction(self.hsplit_action)
-        self.pager_menu.addAction(self.vsplit_action)
-    
+        inside_action = QtGui.QAction("   &Inside Pager",
+            self,
+            triggered=lambda: self.set_paging_active_frontend('inside'))
+
+        self.pager_menu.addAction(hsplit_action)
+        self.pager_menu.addAction(vsplit_action)
+        self.pager_menu.addAction(inside_action)
+
     def init_kernel_menu(self):
         self.kernel_menu = self.menuBar().addMenu("&Kernel")
         # Qt on OSX maps Ctrl to Cmd, and Meta to Ctrl
@@ -794,13 +799,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.maximizeAct.setEnabled(True)
                 self.minimizeAct.setEnabled(True)
 
-    def pager_vsplit(self):
-        self.active_frontend.paging = "vsplit"
-        self.active_frontend._splitter.setOrientation(QtCore.Qt.Vertical)
-
-    def pager_hsplit(self):
-        self.active_frontend.paging = "hsplit"
-        self.active_frontend._splitter.setOrientation(QtCore.Qt.Horizontal)
+    def set_paging_active_frontend(self, paging):
+        self.active_frontend._set_paging(paging)
 
     def close_active_frontend(self):
         self.close_tab(self.active_frontend)
