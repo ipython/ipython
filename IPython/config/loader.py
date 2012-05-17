@@ -417,8 +417,9 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
 
             >>> from IPython.config.loader import KeyValueConfigLoader
             >>> cl = KeyValueConfigLoader()
-            >>> cl.load_config(["--A.name='brian'","--B.number=0"])
-            {'A': {'name': 'brian'}, 'B': {'number': 0}}
+            >>> d = cl.load_config(["--A.name='brian'","--B.number=0"])
+            >>> sorted(d.items())
+            [('A', {'name': 'brian'}), ('B', {'number': 0})]
         """
         self.clear()
         if argv is None:
