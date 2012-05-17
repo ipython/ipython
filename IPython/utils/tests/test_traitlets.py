@@ -370,8 +370,8 @@ class TestHasTraits(TestCase):
             i = Int
             f = Float
         a = A()
-        self.assertEquals(a.trait_names(),['i','f'])
-        self.assertEquals(A.class_trait_names(),['i','f'])
+        self.assertEquals(sorted(a.trait_names()),['f','i'])
+        self.assertEquals(sorted(A.class_trait_names()),['f','i'])
 
     def test_trait_metadata(self):
         class A(HasTraits):
