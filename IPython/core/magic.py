@@ -89,6 +89,11 @@ def register_magics(cls):
     magics['cell'] = {}
     return cls
 
+def _record_magic(dct, mtype, mname, func):
+    if mtype == 'line_cell':
+        dct['line'][mname] = dct['cell'][mname] = func
+    else:
+        dct[mtype][mname] = func
 
 def validate_type(magic_type):
     if magic_type not in magic_types:
@@ -185,7 +190,7 @@ class MagicsManager(Configurable):
             for mtype in magic_types:
                 self.magics[mtype].update(m.magics[mtype])
 
-    def define_magic(self, magic_name, func, magic_type='line'):
+    def new_magic(self, func, magic_name=None, magic_type='line'):
         """Expose own function as magic function for ipython
 
         Example::
@@ -198,11 +203,11 @@ class MagicsManager(Configurable):
 
           ip.define_magic('foo', foo_impl)
         """
+
         # Create the new method in the user_magics and register it in the
         # global table
-        self.user_magics.new_magic(magic_name, func, magic_type)
-        self.magics[magic_type][magic_name] = \
-          self.user_magics.magics[magic_type][magic_name]
+        newm, name = self.user_magics.new_magic(func, magic_type, magic_name)
+        _record_magic(self.magics, magic_type, name, newm)
 
 # Key base class that provides the central functionality for magics.
 
@@ -362,10 +367,12 @@ class Magics(object):
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
 
-    def new_magic(self, magic_name, func, magic_type='line'):
+    def new_magic(self, func, magic_type='line', magic_name=None):
         """TODO
         """
+        magic_name = func.func_name if magic_name is None else magic_name
         validate_type(magic_type)
         meth = types.MethodType(func, self)
         setattr(self, magic_name, meth)
-        self.magics[magic_type][magic_name] = meth
+        _record_magic(self.magics, magic_type, magic_name, meth)
+        return meth, magic_name

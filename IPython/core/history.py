@@ -985,10 +985,7 @@ class HistoryMagics(Magics):
 
 
 def init_ipython(ip):
-    ip.magics_manager.register(HistoryMagics)
-    #ip.define_magic('hist', HistoryMagics.history)
-    #ip.define_magic('recall', HistoryMagics.rep)
-
+    ip.register_magics(HistoryMagics)
     # XXX - ipy_completers are in quarantine, need to be updated to new apis
     #import ipy_completers
     #ipy_completers.quick_completer('%hist' ,'-g -t -r -n')
