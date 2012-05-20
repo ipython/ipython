@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 from IPython.core.error import TryNext
-import IPython.lib.py3compat as py3compat
+import IPython.utils.py3compat as py3compat
 
 def win32_clipboard_get():
     """ Get the current clipboard's text on Windows.
