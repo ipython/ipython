@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
 """A simple interactive demo to illustrate the use of IPython's Demo class.
 
 Any python script can be run as a demo, but that does little more than showing
 it on-screen, syntax-highlighted in one shot.  If you add a little simple
 markup, you can stop at specified intervals and return to the ipython prompt,
 resuming execution later.
+
+This is a unicode test, åäö
 """
 from __future__ import print_function
 
