@@ -97,7 +97,7 @@ var IPython = (function (IPython) {
             " server's configuration.";
         } else {
             this._handle_start_kernel({
-                ws_url: ws_url,
+                ws_url: this.ws_url,
                 kernel_id: this.kernel_id
             }, $.proxy(IPython.notebook.kernel_started, IPython.notebook));
             return;
