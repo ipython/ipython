@@ -48,6 +48,7 @@ var IPython = (function (IPython) {
             that.set_message("Kernel busy");
         });
         $([IPython.events]).on('status_restarting.Kernel',function () {
+            IPython.save_widget.update_document_title();
             that.set_message("Restarting kernel",500);
         });
         $([IPython.events]).on('status_interrupting.Kernel',function () {
@@ -64,6 +65,7 @@ var IPython = (function (IPython) {
                 title: "Dead kernel",
                 buttons : {
                     "Restart": function () {
+                        IPython.save_widget.update_document_title();
                         that.set_message("Restarting kernel",500);
                         IPython.notebook.start_kernel();
                         $(this).dialog('close');
