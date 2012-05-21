@@ -31,7 +31,7 @@ except ImportError:
     pass
 
 #-----------------------------------------------------------------------------
-# Definitions of magic functions for use with IPython
+# Definitions of special display functions for use with IPython
 #-----------------------------------------------------------------------------
 
 def print_basic_unicode(o, p, cycle):
