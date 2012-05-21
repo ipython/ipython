@@ -96,8 +96,11 @@ var IPython = (function (IPython) {
             " or if the url does not look right, there could be an error in the" +
             " server's configuration.";
         } else {
-            msg = "Websocket connection closed unexpectedly." +
-            " The kernel will no longer be responsive.";
+            this._handle_start_kernel({
+                ws_url: this.ws_url,
+                kernel_id: this.kernel_id
+            }, $.proxy(IPython.notebook.kernel_started, IPython.notebook));
+            return;
         }
         var dialog = $('<div/>');
         dialog.html(msg);
