@@ -30,7 +30,7 @@ from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.traitlets import Bool, Dict, Instance
-from IPython.utils.warn import error
+from IPython.utils.warn import error, warn
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -190,15 +190,30 @@ class MagicsManager(Configurable):
             for mtype in magic_types:
                 self.magics[mtype].update(m.magics[mtype])
 
-    def new_magic(self, func, magic_name=None, magic_type='line'):
+    def function_as_magic(self, func, magic_type='line', magic_name=None):
         """Expose a standalone function as magic function for ipython.
-
         """
 
         # Create the new method in the user_magics and register it in the
         # global table
+        validate_type(magic_type)
+        magic_name = func.func_name if magic_name is None else magic_name
+        setattr(self.user_magics, magic_name, func)
         newm, name = self.user_magics.new_magic(func, magic_type, magic_name)
         _record_magic(self.magics, magic_type, name, newm)
+
+
+    def _define_magic(self, name, func):
+        """Support for deprecated API.
+
+        This method exists only to support the old-style definition of magics.
+        It will eventually be removed.  Deliberately not documented further.
+        """
+        warn('Deprecated API, use function_as_magic or register_magics: %s\n' %
+             name)
+        meth = types.MethodType(func, self.user_magics)
+        setattr(self.user_magics, name, meth)
+        _record_magic(self.magics, 'line', name, meth)
 
 # Key base class that provides the central functionality for magics.
 
@@ -357,13 +372,3 @@ class Magics(object):
         if fn not in self.lsmagic():
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
-
-    def new_magic(self, func, magic_type='line', magic_name=None):
-        """TODO
-        """
-        magic_name = func.func_name if magic_name is None else magic_name
-        validate_type(magic_type)
-        meth = types.MethodType(func, self)
-        setattr(self, magic_name, meth)
-        _record_magic(self.magics, magic_type, magic_name, meth)
-        return meth, magic_name

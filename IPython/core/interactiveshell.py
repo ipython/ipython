@@ -1999,9 +1999,10 @@ class InteractiveShell(SingletonConfigurable):
                                    user_magics=mf.UserMagics(self))
         self.configurables.append(self.magics_manager)
 
-        # Expose as public API new_magic and registere_magics
-        self.new_magic = self.magics_manager.new_magic
+        # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
+        self.function_as_magic = self.magics_manager.function_as_magic
+        self.define_magic = self.magics_manager._define_magic
 
         self.register_magics(mf.BasicMagics, mf.CodeMagics,
              mf.ConfigMagics, mf.NamespaceMagics, mf.ExecutionMagics,
@@ -2054,16 +2055,6 @@ class InteractiveShell(SingletonConfigurable):
             with self.builtin_trap:
                 result = fn(*args)
             return result
-
-    def define_magic(self, magic_name, func):
-        """Expose own function as magic function for ipython
-
-        Note: this API is now deprecated. Instead, you should use
-        `get_ipython().new_magic`.
-        """
-        warn('Deprecated API, use get_ipython().new_magic: %s\n' %
-             magic_name)
-        return self.new_magic(func, magic_name)
 
     def find_line_magic(self, magic_name):
         """Find and return a line magic by name."""
