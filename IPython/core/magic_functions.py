@@ -664,7 +664,7 @@ class CodeMagics(Magics):
         else:
             contents = openpy.read_py_file(arg_s, skip_encoding_cookie=True)
 
-        self.set_next_input(contents)
+        self.shell.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
@@ -2516,11 +2516,6 @@ python-profiler package from non-free.""")
                                                           units[order])
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
-
-    @cell_magic('timeit')
-    def cell_timeit(self, line, cell):
-        """Time execution of a Python cell."""
-        raise NotImplementedError
 
     @skip_doctest
     @needs_local_scope
