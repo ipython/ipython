@@ -211,7 +211,7 @@ class ParalleMagic(Plugin):
                 print '[stdout:%i]'%eid, stdout
 
 
-    def pxrun_cell(self, raw_cell, store_history=True):
+    def pxrun_cell(self, raw_cell, store_history=False, silent=False):
         """drop-in replacement for InteractiveShell.run_cell.
 
         This executes code remotely, instead of in the local namespace.
@@ -258,7 +258,7 @@ class ParalleMagic(Plugin):
             return False
         else:
             try:
-                result = self.active_view.execute(cell, block=False)
+                result = self.active_view.execute(cell, silent=False, block=False)
             except:
                 ipself.showtraceback()
                 return True
