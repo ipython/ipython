@@ -16,6 +16,7 @@ Authors
 #-----------------------------------------------------------------------------
 
 # Standard library imports
+import atexit
 import json
 import os
 import sys
@@ -95,6 +96,7 @@ class KernelApp(BaseIPythonApplication):
     heartbeat = Instance(Heartbeat)
     session = Instance('IPython.zmq.session.Session')
     ports = Dict()
+    _full_connection_file = Unicode()
     
     # inherit config file name from parent:
     parent_appname = Unicode(config=True)
@@ -165,6 +167,8 @@ class KernelApp(BaseIPythonApplication):
             fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
         except IOError:
             self.log.debug("Connection file not found: %s", self.connection_file)
+            # This means I own it, so I will clean it up:
+            atexit.register(self.cleanup_connection_file)
             return
         self.log.debug(u"Loading connection file %s", fname)
         with open(fname) as f:
@@ -190,6 +194,16 @@ class KernelApp(BaseIPythonApplication):
         write_connection_file(cf, ip=self.ip, key=self.session.key,
         shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
         iopub_port=self.iopub_port)
+        
+        self._full_connection_file = cf
+    
+    def cleanup_connection_file(self):
+        cf = self._full_connection_file
+        self.log.debug("cleaning up connection file: %r", cf)
+        try:
+            os.remove(cf)
+        except (IOError, OSError):
+            pass
     
     def init_connection_file(self):
         if not self.connection_file:
