@@ -218,7 +218,9 @@ class KernelApp(BaseIPythonApplication):
         self.stdin_socket = context.socket(zmq.ROUTER)
         self.stdin_port = self._bind_socket(self.stdin_socket, self.stdin_port)
         self.log.debug("stdin ROUTER Channel on port: %i"%self.stdin_port)
-        
+    
+    def init_heartbeat(self):
+        """start the heart beating"""
         # heartbeat doesn't share context, because it mustn't be blocked
         # by the GIL, which is accessed by libzmq when freeing zero-copy messages
         hb_ctx = zmq.Context()
@@ -230,7 +232,9 @@ class KernelApp(BaseIPythonApplication):
         # Helper to make it easier to connect to an existing kernel.
         # set log-level to critical, to make sure it is output
         self.log.critical("To connect another client to this kernel, use:")
-        
+    
+    def log_connection_info(self):
+        """display connection info, and store ports"""
         basename = os.path.basename(self.connection_file)
         if basename == self.connection_file or \
             os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
@@ -292,7 +296,9 @@ class KernelApp(BaseIPythonApplication):
         self.init_session()
         self.init_poller()
         self.init_sockets()
-        # writing connection file must be *after* init_sockets
+        self.init_heartbeat()
+        # writing/displaying connection info must be *after* init_sockets/heartbeat
+        self.log_connection_info()
         self.write_connection_file()
         self.init_io()
         self.init_signal()
