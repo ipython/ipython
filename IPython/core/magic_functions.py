@@ -801,7 +801,7 @@ class CodeMagics(Magics):
     @line_magic
     def ed(self, parameter_s=''):
         """Alias to %edit."""
-        return self.magic_edit(parameter_s)
+        return self.edit(parameter_s)
 
     @skip_doctest
     @line_magic
@@ -1628,7 +1628,7 @@ class NamespaceMagics(Magics):
 
         if 's' in opts:                     # Soft reset
             user_ns = self.shell.user_ns
-            for i in self.magic_who_ls():
+            for i in self.who_ls():
                 del(user_ns[i])
         elif len(args) == 0:                # Hard reset
             self.shell.reset(new_session = False)
@@ -1764,7 +1764,7 @@ class NamespaceMagics(Magics):
                 m = re.compile(regex)
             except TypeError:
                 raise TypeError('regex must be a string or compiled pattern')
-            for i in self.magic_who_ls():
+            for i in self.who_ls():
                 if m.search(i):
                     del(user_ns[i])
 
@@ -2186,7 +2186,7 @@ python-profiler package from non-free.""")
             filename = file_finder(arg_lst[0])
         except IndexError:
             warn('you must provide at least a filename.')
-            print '\n%run:\n', oinspect.getdoc(self.magic_run)
+            print '\n%run:\n', oinspect.getdoc(self.run)
             return
         except IOError as e:
             try:
@@ -2879,7 +2879,7 @@ class OSMagics(Magics):
         try:
             alias,cmd = par.split(None, 1)
         except:
-            print oinspect.getdoc(self.magic_alias)
+            print oinspect.getdoc(self.alias)
         else:
             self.shell.alias_manager.soft_define_alias(alias, cmd)
     # end magic_alias
