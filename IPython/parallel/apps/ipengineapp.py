@@ -177,6 +177,11 @@ class IPEngineApp(BaseParallelApplication):
 
     aliases = Dict(aliases)
     flags = Dict(flags)
+    
+    @property
+    def kernel(self):
+        """allow access to the Kernel object, so I look like IPKernelApp"""
+        return self.engine.kernel
 
     def find_url_file(self):
         """Set the url file.
