@@ -14,22 +14,18 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-import __builtin__
 import bdb
 import os
 import re
 import sys
 import textwrap
 
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
+from contextlib import nested
 
 from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.core.pylabtools import pylab_activate
+from IPython.core.magic import Magics, register_magics, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
@@ -124,128 +120,133 @@ def rerun_pasted(shell, name='pasted_block'):
 # Terminal-specific magics
 #------------------------------------------------------------------------
 
-def magic_autoindent(self, parameter_s = ''):
-    """Toggle autoindent on/off (if available)."""
+@register_magics
+class TerminalMagics(Magics):
 
-    self.shell.set_autoindent()
-    print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
+    @line_magic
+    def autoindent(self, parameter_s = ''):
+        """Toggle autoindent on/off (if available)."""
 
-@skip_doctest
-def magic_cpaste(self, parameter_s=''):
-    """Paste & execute a pre-formatted code block from clipboard.
+        self.shell.set_autoindent()
+        print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
 
-    You must terminate the block with '--' (two minus-signs) or Ctrl-D
-    alone on the line. You can also provide your own sentinel with '%paste
-    -s %%' ('%%' is the new sentinel for this operation)
+    @skip_doctest
+    @line_magic
+    def cpaste(self, parameter_s=''):
+        """Paste & execute a pre-formatted code block from clipboard.
 
-    The block is dedented prior to execution to enable execution of method
-    definitions. '>' and '+' characters at the beginning of a line are
-    ignored, to allow pasting directly from e-mails, diff files and
-    doctests (the '...' continuation prompt is also stripped).  The
-    executed block is also assigned to variable named 'pasted_block' for
-    later editing with '%edit pasted_block'.
+        You must terminate the block with '--' (two minus-signs) or Ctrl-D
+        alone on the line. You can also provide your own sentinel with '%paste
+        -s %%' ('%%' is the new sentinel for this operation)
 
-    You can also pass a variable name as an argument, e.g. '%cpaste foo'.
-    This assigns the pasted block to variable 'foo' as string, without
-    dedenting or executing it (preceding >>> and + is still stripped)
+        The block is dedented prior to execution to enable execution of method
+        definitions. '>' and '+' characters at the beginning of a line are
+        ignored, to allow pasting directly from e-mails, diff files and
+        doctests (the '...' continuation prompt is also stripped).  The
+        executed block is also assigned to variable named 'pasted_block' for
+        later editing with '%edit pasted_block'.
 
-    '%cpaste -r' re-executes the block previously entered by cpaste.
+        You can also pass a variable name as an argument, e.g. '%cpaste foo'.
+        This assigns the pasted block to variable 'foo' as string, without
+        dedenting or executing it (preceding >>> and + is still stripped)
 
-    Do not be alarmed by garbled output on Windows (it's a readline bug).
-    Just press enter and type -- (and press enter again) and the block
-    will be what was just pasted.
+        '%cpaste -r' re-executes the block previously entered by cpaste.
 
-    IPython statements (magics, shell escapes) are not supported (yet).
+        Do not be alarmed by garbled output on Windows (it's a readline bug).
+        Just press enter and type -- (and press enter again) and the block
+        will be what was just pasted.
 
-    See also
-    --------
-    paste: automatically pull code from clipboard.
+        IPython statements (magics, shell escapes) are not supported (yet).
 
-    Examples
-    --------
-    ::
+        See also
+        --------
+        paste: automatically pull code from clipboard.
 
-      In [8]: %cpaste
-      Pasting code; enter '--' alone on the line to stop.
-      :>>> a = ["world!", "Hello"]
-      :>>> print " ".join(sorted(a))
-      :--
-      Hello world!
-    """
+        Examples
+        --------
+        ::
 
-    opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
-    if 'r' in opts:
-        rerun_pasted(self.shell)
-        return
-
-    sentinel = opts.get('s', '--')
-    block = strip_email_quotes(get_pasted_lines(sentinel))
-    store_or_execute(self.shell, block, name)
-
-
-def magic_paste(self, parameter_s=''):
-    """Paste & execute a pre-formatted code block from clipboard.
-
-    The text is pulled directly from the clipboard without user
-    intervention and printed back on the screen before execution (unless
-    the -q flag is given to force quiet mode).
-
-    The block is dedented prior to execution to enable execution of method
-    definitions. '>' and '+' characters at the beginning of a line are
-    ignored, to allow pasting directly from e-mails, diff files and
-    doctests (the '...' continuation prompt is also stripped).  The
-    executed block is also assigned to variable named 'pasted_block' for
-    later editing with '%edit pasted_block'.
-
-    You can also pass a variable name as an argument, e.g. '%paste foo'.
-    This assigns the pasted block to variable 'foo' as string, without
-    dedenting or executing it (preceding >>> and + is still stripped)
-
-    Options
-    -------
-
-      -r: re-executes the block previously entered by cpaste.
-
-      -q: quiet mode: do not echo the pasted text back to the terminal.
-
-    IPython statements (magics, shell escapes) are not supported (yet).
-
-    See also
-    --------
-    cpaste: manually paste code into terminal until you mark its end.
-    """
-    opts, name = self.parse_options(parameter_s, 'rq', mode='string')
-    if 'r' in opts:
-        rerun_pasted(self.shell)
-        return
-    try:
-        text = self.shell.hooks.clipboard_get()
-        block = strip_email_quotes(text.splitlines())
-    except TryNext as clipboard_exc:
-        message = getattr(clipboard_exc, 'args')
-        if message:
-            error(message[0])
-        else:
-            error('Could not get text from the clipboard.')
-        return
-
-    # By default, echo back to terminal unless quiet mode is requested
-    if 'q' not in opts:
-        write = self.shell.write
-        write(self.shell.pycolorize(block))
-        if not block.endswith('\n'):
-            write('\n')
-        write("## -- End pasted text --\n")
-
-    store_or_execute(self.shell, block, name)
-
-
-# Class-level: add a '%cls' magic only on Windows
-if sys.platform == 'win32':
-    def magic_cls(self, s):
-        """Clear screen.
+          In [8]: %cpaste
+          Pasting code; enter '--' alone on the line to stop.
+          :>>> a = ["world!", "Hello"]
+          :>>> print " ".join(sorted(a))
+          :--
+          Hello world!
         """
-        os.system("cls")
+
+        opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
+        if 'r' in opts:
+            rerun_pasted(self.shell)
+            return
+
+        sentinel = opts.get('s', '--')
+        block = strip_email_quotes(get_pasted_lines(sentinel))
+        store_or_execute(self.shell, block, name)
+
+    @line_magic
+    def paste(self, parameter_s=''):
+        """Paste & execute a pre-formatted code block from clipboard.
+
+        The text is pulled directly from the clipboard without user
+        intervention and printed back on the screen before execution (unless
+        the -q flag is given to force quiet mode).
+
+        The block is dedented prior to execution to enable execution of method
+        definitions. '>' and '+' characters at the beginning of a line are
+        ignored, to allow pasting directly from e-mails, diff files and
+        doctests (the '...' continuation prompt is also stripped).  The
+        executed block is also assigned to variable named 'pasted_block' for
+        later editing with '%edit pasted_block'.
+
+        You can also pass a variable name as an argument, e.g. '%paste foo'.
+        This assigns the pasted block to variable 'foo' as string, without
+        dedenting or executing it (preceding >>> and + is still stripped)
+
+        Options
+        -------
+
+          -r: re-executes the block previously entered by cpaste.
+
+          -q: quiet mode: do not echo the pasted text back to the terminal.
+
+        IPython statements (magics, shell escapes) are not supported (yet).
+
+        See also
+        --------
+        cpaste: manually paste code into terminal until you mark its end.
+        """
+        opts, name = self.parse_options(parameter_s, 'rq', mode='string')
+        if 'r' in opts:
+            rerun_pasted(self.shell)
+            return
+        try:
+            text = self.shell.hooks.clipboard_get()
+            block = strip_email_quotes(text.splitlines())
+        except TryNext as clipboard_exc:
+            message = getattr(clipboard_exc, 'args')
+            if message:
+                error(message[0])
+            else:
+                error('Could not get text from the clipboard.')
+            return
+
+        # By default, echo back to terminal unless quiet mode is requested
+        if 'q' not in opts:
+            write = self.shell.write
+            write(self.shell.pycolorize(block))
+            if not block.endswith('\n'):
+                write('\n')
+            write("## -- End pasted text --\n")
+
+        store_or_execute(self.shell, block, name)
+
+    # Class-level: add a '%cls' magic only on Windows
+    if sys.platform == 'win32':
+        @line_magic
+        def cls(self, s):
+            """Clear screen.
+            """
+            os.system("cls")
 
 #-----------------------------------------------------------------------------
 # Main class
@@ -664,15 +665,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def init_magics(self):
         super(TerminalInteractiveShell, self).init_magics()
-        self.define_magic('autoindent', magic_autoindent)
-        self.define_magic('cpaste', magic_cpaste)
-        self.define_magic('paste', magic_paste)
-        try:
-            magic_cls
-        except NameError:
-            pass
-        else:
-            self.define_magic('cls', magic_cls)
+        self.register_magics(TerminalMagics)
 
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
