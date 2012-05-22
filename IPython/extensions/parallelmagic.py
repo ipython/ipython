@@ -24,7 +24,7 @@ Usage
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -38,9 +38,8 @@ import ast
 import re
 
 from IPython.core.magic import Magics, register_magics, line_magic
-from IPython.core.plugin import Plugin
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.traitlets import Bool, Any, Instance
+from IPython.utils.traitlets import Instance
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -51,22 +50,12 @@ Use activate() on a DirectView object to activate it for magics.
 """
 
 
-class ParallelTricks(Plugin):
-    """A component to manage the %result, %px and %autopx magics."""
-
-    active_view = Instance('IPython.parallel.client.view.DirectView')
-    verbose = Bool(False, config=True)
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-
-    def __init__(self, shell=None, config=None):
-        super(ParallelTricks, self).__init__(shell=shell, config=config)
-        self.shell.register_magics(ParallelMagics)
-
-
 @register_magics
 class ParallelMagics(Magics):
     """A set of magics useful when controlling a parallel IPython cluster.
     """
+    active_view = Instance('IPython.parallel.client.view.DirectView')
+
     def __init__(self, shell):
         super(ParallelMagics, self).__init__(shell)
         # A flag showing if autopx is activated or not
@@ -242,8 +231,9 @@ class ParallelMagics(Magics):
             cell_name = ipself.compile.cache(cell, ipself.execution_count)
 
             try:
-                code_ast = ast.parse(cell, filename=cell_name)
-            except (OverflowError, SyntaxError, ValueError, TypeError, MemoryError):
+                ast.parse(cell, filename=cell_name)
+            except (OverflowError, SyntaxError, ValueError, TypeError,
+                    MemoryError):
                 # Case 1
                 ipself.showsyntaxerror()
                 ipself.execution_count += 1
@@ -317,7 +307,6 @@ __doc__ = __doc__.replace('@PX_DOC@',
 __doc__ = __doc__.replace('@RESULT_DOC@',
                           "        " + ParallelMagics.result.__doc__)
 
-
 _loaded = False
 
 
@@ -325,6 +314,5 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        plugin = ParallelTricks(shell=ip, config=ip.config)
-        ip.plugin_manager.register_plugin('parallelmagic', plugin)
+        ip.register_magics(ParallelMagics)
         _loaded = True
