@@ -311,11 +311,11 @@ class ParallelMagics(Magics):
 
 
 __doc__ = __doc__.replace('@AUTOPX_DOC@',
-                          "        " + ParallelTricks.magic_autopx.__doc__)
+                          "        " + ParallelMagics.autopx.__doc__)
 __doc__ = __doc__.replace('@PX_DOC@',
-                          "        " + ParallelTricks.magic_px.__doc__)
+                          "        " + ParallelMagics.px.__doc__)
 __doc__ = __doc__.replace('@RESULT_DOC@',
-                          "        " + ParallelTricks.magic_result.__doc__)
+                          "        " + ParallelMagics.result.__doc__)
 
 
 _loaded = False
