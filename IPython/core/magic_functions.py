@@ -3143,7 +3143,7 @@ class OSMagics(Magics):
         tgt = os.path.expanduser(unquote_filename(parameter_s))
         cwd = os.getcwdu().replace(self.shell.home_dir,'~')
         if tgt:
-            self.magic_cd(parameter_s)
+            self.cd(parameter_s)
         dir_s.insert(0,cwd)
         return self.shell.magic('dirs')
 
@@ -3154,7 +3154,7 @@ class OSMagics(Magics):
         if not self.shell.dir_stack:
             raise UsageError("%popd on empty stack")
         top = self.shell.dir_stack.pop(0)
-        self.magic_cd(top)
+        self.cd(top)
         print "popd ->",top
 
     @line_magic

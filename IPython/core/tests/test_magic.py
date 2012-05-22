@@ -29,6 +29,8 @@ from IPython.utils.tempdir import TemporaryDirectory
 # Test functions begin
 #-----------------------------------------------------------------------------
 
+@magic.register_magics
+class DummyMagics(magic.Magics): pass
 
 def test_rehashx():
     # clear up everything
@@ -53,7 +55,7 @@ def test_magic_parse_options():
     """Test that we don't mangle paths when parsing magic options."""
     ip = get_ipython()
     path = 'c:\\x'
-    m = magic.Magics(ip)
+    m = DummyMagics(ip)
     opts = m.parse_options('-f %s' % path,'f:')[0]
     # argv splitting is os-dependent
     if os.name == 'posix':
@@ -287,7 +289,7 @@ def test_parse_options():
     """Tests for basic options parsing in magics."""
     # These are only the most minimal of tests, more should be added later.  At
     # the very least we check that basic text/unicode calls work OK.
-    m = magic.Magics(ip)
+    m = DummyMagics(_ip)
     nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
     nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
 
