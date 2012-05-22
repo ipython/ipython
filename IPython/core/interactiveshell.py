@@ -2004,9 +2004,9 @@ class InteractiveShell(SingletonConfigurable):
         self.function_as_magic = self.magics_manager.function_as_magic
         self.define_magic = self.magics_manager._define_magic
 
-        self.register_magics(mf.BasicMagics, mf.CodeMagics,
-             mf.ConfigMagics, mf.NamespaceMagics, mf.ExecutionMagics,
-             mf.AutoMagics, mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
+        self.register_magics(mf.BasicMagics, mf.CodeMagics, mf.ConfigMagics,
+             mf.ExecutionMagics, mf.NamespaceMagics, mf.AutoMagics,
+             mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
              mf.PylabMagics, mf.DeprecatedMagics)
 
         # FIXME: Move the color initialization to the DisplayHook, which
@@ -2695,7 +2695,8 @@ class InteractiveShell(SingletonConfigurable):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
-        self._magic.default_runner = mpl_runner(self.safe_execfile)
+        self.magics_manager.registry['ExecutionMagics'].default_runner = \
+        mpl_runner(self.safe_execfile)
 
     #-------------------------------------------------------------------------
     # Utilities

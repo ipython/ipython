@@ -144,7 +144,14 @@ class MagicsManager(Configurable):
     """Object that handles all magic-related functionality for IPython.
     """
     # Non-configurable class attributes
+
+    # A two-level dict, first keyed by magic type, then by magic function, and
+    # holding the actual callable object as value.  This is the dict used for
+    # magic function dispatch
     magics = Dict
+
+    # A registry of the original objects that we've been given holding magics.
+    registry = Dict
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -161,6 +168,9 @@ class MagicsManager(Configurable):
         super(MagicsManager, self).__init__(shell=shell, config=config,
                                            user_magics=user_magics, **traits)
         self.magics = dict(line={}, cell={})
+        # Let's add the user_magics to the registry for uniformity, so *all*
+        # registered magic containers can be found there.
+        self.registry[user_magics.__class__.__name__] = user_magics
 
     def auto_status(self):
         """Return descriptive string with automagic status."""
@@ -187,6 +197,9 @@ class MagicsManager(Configurable):
                 # If we're given an uninstantiated class
                 m = m(self.shell)
 
+            # Now that we have an instance, we can register it and update the
+            # table of callables
+            self.registry[m.__class__.__name__] = m
             for mtype in magic_types:
                 self.magics[mtype].update(m.magics[mtype])
 
