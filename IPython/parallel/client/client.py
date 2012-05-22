@@ -364,15 +364,19 @@ class Client(HasTraits):
         if self._cd is not None:
             if url_or_file is None:
                 url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
-        assert url_or_file is not None, "I can't find enough information to connect to a hub!"\
-            " Please specify at least one of url_or_file or profile."
+        if url_or_file is None:
+            raise ValueError(
+                "I can't find enough information to connect to a hub!"
+                " Please specify at least one of url_or_file or profile."
+            )
 
         if not util.is_url(url_or_file):
             # it's not a url, try for a file
             if not os.path.exists(url_or_file):
                 if self._cd:
                     url_or_file = os.path.join(self._cd.security_dir, url_or_file)
-                assert os.path.exists(url_or_file), "Not a valid connection file or url: %r"%url_or_file
+                if not os.path.exists(url_or_file):
+                    raise IOError("Connection file not found: %r" % url_or_file)
             with open(url_or_file) as f:
                 cfg = json.loads(f.read())
         else:
