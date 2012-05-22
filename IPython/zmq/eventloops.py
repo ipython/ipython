@@ -20,7 +20,9 @@ import sys
 import zmq
 
 # Local imports.
+from IPython.config.application import Application
 from IPython.utils import io
+
 
 #------------------------------------------------------------------------------
 # Eventloops for integrating the Kernel into different GUIs
@@ -206,11 +208,15 @@ loop_map = {
 
 def enable_gui(gui, kernel=None):
     """Enable integration with a given GUI"""
-    if kernel is None:
-        from .ipkernel import IPKernelApp
-        kernel = IPKernelApp.instance().kernel
     if gui not in loop_map:
         raise ValueError("GUI %r not supported" % gui)
+    if kernel is None:
+        if Application.initialized():
+            kernel = getattr(Application.instance(), 'kernel', None)
+        if kernel is None:
+            raise RuntimeError("You didn't specify a kernel,"
+                " and no IPython Application with a kernel appears to be running."
+            )
     loop = loop_map[gui]
     if kernel.eventloop is not None and kernel.eventloop is not loop:
         raise RuntimeError("Cannot activate multiple GUI eventloops")
