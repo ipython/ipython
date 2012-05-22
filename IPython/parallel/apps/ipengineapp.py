@@ -288,11 +288,9 @@ class IPEngineApp(BaseParallelApplication):
             context = self.engine.context
             lsock = context.socket(zmq.PUB)
             lsock.connect(self.log_url)
-            self.log.removeHandler(self._log_handler)
             handler = EnginePUBHandler(self.engine, lsock)
             handler.setLevel(self.log_level)
             self.log.addHandler(handler)
-            self._log_handler = handler
     
     def init_mpi(self):
         global mpi

@@ -45,8 +45,6 @@ class DummyIPClusterStart(IPClusterStart):
 
     def init_signal(self):
         pass
-    def init_logging(self):
-        pass
     def reinit_logging(self):
         pass
 

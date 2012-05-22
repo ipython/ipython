@@ -434,11 +434,9 @@ class IPControllerApp(BaseParallelApplication):
             lsock = context.socket(zmq.PUB)
             lsock.connect(self.log_url)
             handler = PUBHandler(lsock)
-            self.log.removeHandler(self._log_handler)
             handler.root_topic = 'controller'
             handler.setLevel(self.log_level)
             self.log.addHandler(handler)
-            self._log_handler = handler
     
     @catch_config_error
     def initialize(self, argv=None):

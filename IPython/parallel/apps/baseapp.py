@@ -175,9 +175,12 @@ class BaseParallelApplication(BaseIPythonApplication):
         else:
             open_log_file = None
         if open_log_file is not None:
-            self.log.removeHandler(self._log_handler)
+            while self.log.handlers:
+                self.log.removeHandler(self.log.handlers[0])
             self._log_handler = logging.StreamHandler(open_log_file)
             self.log.addHandler(self._log_handler)
+        else:
+            self._log_handler = self.log.handlers[0]
         # Add timestamps to log format:
         self._log_formatter = logging.Formatter("%(asctime)s.%(msecs).03d [%(name)s] %(message)s",
                                                 datefmt="%Y-%m-%d %H:%M:%S")
