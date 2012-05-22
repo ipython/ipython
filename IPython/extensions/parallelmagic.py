@@ -37,21 +37,21 @@ Usage
 import ast
 import re
 
+from IPython.core.magic import Magics, register_magics, line_magic
 from IPython.core.plugin import Plugin
-from IPython.utils.traitlets import Bool, Any, Instance
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.traitlets import Bool, Any, Instance
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
 #-----------------------------------------------------------------------------
-
 
 NO_ACTIVE_VIEW = """
 Use activate() on a DirectView object to activate it for magics.
 """
 
 
-class ParalleMagic(Plugin):
+class ParallelTricks(Plugin):
     """A component to manage the %result, %px and %autopx magics."""
 
     active_view = Instance('IPython.parallel.client.view.DirectView')
@@ -59,19 +59,22 @@ class ParalleMagic(Plugin):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
     def __init__(self, shell=None, config=None):
-        super(ParalleMagic, self).__init__(shell=shell, config=config)
-        self._define_magics()
+        super(ParallelTricks, self).__init__(shell=shell, config=config)
+        self.shell.register_magics(ParallelMagics)
+
+
+@register_magics
+class ParallelMagics(Magics):
+    """A set of magics useful when controlling a parallel IPython cluster.
+    """
+    def __init__(self, shell):
+        super(ParallelMagics, self).__init__(shell)
         # A flag showing if autopx is activated or not
         self.autopx = False
 
-    def _define_magics(self):
-        """Define the magic functions."""
-        self.shell.define_magic('result', self.magic_result)
-        self.shell.define_magic('px', self.magic_px)
-        self.shell.define_magic('autopx', self.magic_autopx)
-
     @skip_doctest
-    def magic_result(self, ipself, parameter_s=''):
+    @line_magic
+    def result(self, parameter_s=''):
         """Print the result of command i on all engines..
 
         To use this a :class:`DirectView` instance must be created
@@ -103,7 +106,8 @@ class ParalleMagic(Plugin):
         return result
 
     @skip_doctest
-    def magic_px(self, ipself, parameter_s=''):
+    @line_magic
+    def px(self, parameter_s=''):
         """Executes the given python command in parallel.
 
         To use this a :class:`DirectView` instance must be created
@@ -129,7 +133,8 @@ class ParalleMagic(Plugin):
             self._maybe_display_output(result)
 
     @skip_doctest
-    def magic_autopx(self, ipself, parameter_s=''):
+    @line_magic
+    def autopx(self, parameter_s=''):
         """Toggles auto parallel mode.
 
         To use this a :class:`DirectView` instance must be created
@@ -282,8 +287,9 @@ class ParalleMagic(Plugin):
         """
         ipself = self.shell
         # check code object for the autopx magic
-        if 'get_ipython' in code_obj.co_names and 'magic' in code_obj.co_names and \
-            any( [ isinstance(c, basestring) and 'autopx' in c for c in code_obj.co_consts ]):
+        if 'get_ipython' in code_obj.co_names and 'magic' in code_obj.co_names \
+          and any( [ isinstance(c, basestring) and 'autopx' in c
+                     for c in code_obj.co_consts ]):
             self._disable_autopx()
             return False
         else:
@@ -305,11 +311,11 @@ class ParalleMagic(Plugin):
 
 
 __doc__ = __doc__.replace('@AUTOPX_DOC@',
-                          "        " + ParalleMagic.magic_autopx.__doc__)
+                          "        " + ParallelTricks.magic_autopx.__doc__)
 __doc__ = __doc__.replace('@PX_DOC@',
-                          "        " + ParalleMagic.magic_px.__doc__)
+                          "        " + ParallelTricks.magic_px.__doc__)
 __doc__ = __doc__.replace('@RESULT_DOC@',
-                          "        " + ParalleMagic.magic_result.__doc__)
+                          "        " + ParallelTricks.magic_result.__doc__)
 
 
 _loaded = False
@@ -319,7 +325,6 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        plugin = ParalleMagic(shell=ip, config=ip.config)
+        plugin = ParallelTricks(shell=ip, config=ip.config)
         ip.plugin_manager.register_plugin('parallelmagic', plugin)
         _loaded = True
-
