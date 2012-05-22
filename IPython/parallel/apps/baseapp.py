@@ -102,6 +102,10 @@ class BaseParallelApplication(BaseIPythonApplication):
     def _log_level_default(self):
         # temporarily override default_log_level to INFO
         return logging.INFO
+    
+    def _log_format_default(self):
+        """override default log format to include time"""
+        return u"%(asctime)s.%(msecs).03d [%(name)s] %(message)s"
 
     work_dir = Unicode(os.getcwdu(), config=True,
         help='Set the working dir for the process.'
@@ -182,7 +186,7 @@ class BaseParallelApplication(BaseIPythonApplication):
         else:
             self._log_handler = self.log.handlers[0]
         # Add timestamps to log format:
-        self._log_formatter = logging.Formatter("%(asctime)s.%(msecs).03d [%(name)s] %(message)s",
+        self._log_formatter = logging.Formatter(self.log_format,
                                                 datefmt="%Y-%m-%d %H:%M:%S")
         self._log_handler.setFormatter(self._log_formatter)
         # do not propagate log messages to root logger

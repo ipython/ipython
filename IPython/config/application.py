@@ -133,6 +133,9 @@ class Application(SingletonConfigurable):
             self.log_level = new
         self.log.setLevel(new)
     
+    log_format = Unicode("[%(name)s] %(message)s", config=True,
+        help="The Logging format template",
+    )
     log = Instance(logging.Logger)
     def _log_default(self):
         """Start logging for this application.
@@ -149,7 +152,7 @@ class Application(SingletonConfigurable):
             _log_handler = logging.StreamHandler(open(os.devnull, 'w'))
         else:
             _log_handler = logging.StreamHandler()
-        _log_formatter = logging.Formatter("[%(name)s] %(message)s")
+        _log_formatter = logging.Formatter(self.log_format)
         _log_handler.setFormatter(_log_formatter)
         log.addHandler(_log_handler)
         return log
