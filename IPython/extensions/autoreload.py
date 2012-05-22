@@ -484,9 +484,7 @@ class AutoreloadMagics(Magics):
 
         %aimport -foo
         Mark module 'foo' to not be autoreloaded for %autoreload 1
-
         """
-
         modname = parameter_s
         if not modname:
             to_reload = self._reloader.modules.keys()
@@ -509,7 +507,7 @@ class AutoreloadMagics(Magics):
             # Inject module to user namespace
             self.shell.push({top_name: top_module})
 
-    def pre_run_code_hook(self, ipself):
+    def pre_run_code_hook(self, ip):
         if not self._reloader.enabled:
             raise TryNext
         try:

@@ -128,9 +128,9 @@ class CommandChainDispatcher:
     def __call__(self,*args, **kw):
         """ Command chain is called just like normal func.
 
-        This will call all funcs in chain with the same args as were given to this
-        function, and return the result of first func that didn't raise
-        TryNext """
+        This will call all funcs in chain with the same args as were given to
+        this function, and return the result of first func that didn't raise
+        TryNext"""
 
         for prio,cmd in self.chain:
             #print "prio",prio,"cmd",cmd #dbg

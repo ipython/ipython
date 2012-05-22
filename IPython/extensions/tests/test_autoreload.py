@@ -1,3 +1,17 @@
+"""Tests for autoreload extension.
+"""
+#-----------------------------------------------------------------------------
+#  Copyright (c) 2012 IPython Development Team.
+#
+#  Distributed under the terms of the Modified BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import os
 import sys
 import tempfile
@@ -16,10 +30,14 @@ from IPython.core.hooks import TryNext
 # Test fixture
 #-----------------------------------------------------------------------------
 
+noop = lambda *a, **kw: None
+
 class FakeShell(object):
     def __init__(self):
         self.ns = {}
-        self.reloader = AutoreloadPlugin(shell=get_ipython())
+        self.reloader = AutoreloadPlugin(shell=self)
+
+    register_magics = set_hook = noop
 
     def run_code(self, code):
         try:
@@ -81,7 +99,6 @@ class Fixture(object):
         future, and without changing the timestamp of the .pyc file
         (because that is stored in the file).  The only reliable way
         to achieve this seems to be to sleep.
-
         """
 
         # Sleep one second + eps
