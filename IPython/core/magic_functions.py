@@ -320,8 +320,8 @@ Defaulting color scheme to 'NoColor'"""
     @line_magic
     def quickref(self,arg):
         """ Show a quick reference sheet """
-        import IPython.core.usage
-        qr = IPython.core.usage.quick_reference + self.magic_magic('-brief')
+        from IPython.core.usage import quick_reference
+        qr = quick_reference + self.magic('-brief')
         page.page(qr)
 
     @line_magic
@@ -522,7 +522,7 @@ Defaulting color scheme to 'NoColor'"""
         "foo.ipynb" to "foo.json" do "%notebook -f json foo.ipynb". Possible
         formats include (json/ipynb, py).
         """
-        args = magic_arguments.parse_argstring(self.magic_notebook, s)
+        args = magic_arguments.parse_argstring(self.notebook, s)
 
         from IPython.nbformat import current
         args.filename = unquote_filename(args.filename)
@@ -1408,7 +1408,7 @@ class NamespaceMagics(Magics):
           beta
         """
 
-        varlist = self.magic_who_ls(parameter_s)
+        varlist = self.who_ls(parameter_s)
         if not varlist:
             if parameter_s:
                 print 'No variables match your requested type.'
@@ -1459,7 +1459,7 @@ class NamespaceMagics(Magics):
           beta       str         test
         """
 
-        varnames = self.magic_who_ls(parameter_s)
+        varnames = self.who_ls(parameter_s)
         if not varnames:
             if parameter_s:
                 print 'No variables match your requested type.'

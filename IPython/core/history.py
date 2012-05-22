@@ -884,6 +884,13 @@ class HistoryMagics(Magics):
         if close_at_end:
             outfile.close()
 
+    # For a long time we've had %hist as well as %history
+    @line_magic
+    def hist(self, arg):
+        return self.history(arg)
+
+    hist.__doc__ = history.__doc__
+
     @line_magic
     def rep(self, arg):
         r"""Repeat a command, or get command to input line for editing.

@@ -199,9 +199,7 @@ class MagicsManager(Configurable):
         validate_type(magic_type)
         magic_name = func.func_name if magic_name is None else magic_name
         setattr(self.user_magics, magic_name, func)
-        newm, name = self.user_magics.new_magic(func, magic_type, magic_name)
-        _record_magic(self.magics, magic_type, name, newm)
-
+        _record_magic(self.magics, magic_type, magic_name, func)
 
     def _define_magic(self, name, func):
         """Support for deprecated API.

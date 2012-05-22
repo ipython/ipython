@@ -16,6 +16,8 @@ from StringIO import StringIO
 
 import nose.tools as nt
 
+from IPython.core import magic
+from IPython.core import magic_functions as mf
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
 from IPython.testing import decorators as dec
@@ -51,7 +53,8 @@ def test_magic_parse_options():
     """Test that we don't mangle paths when parsing magic options."""
     ip = get_ipython()
     path = 'c:\\x'
-    opts = ip._magic.parse_options('-f %s' % path,'f:')[0]
+    m = magic.Magics(ip)
+    opts = m.parse_options('-f %s' % path,'f:')[0]
     # argv splitting is os-dependent
     if os.name == 'posix':
         expected = 'c:x'
@@ -284,8 +287,9 @@ def test_parse_options():
     """Tests for basic options parsing in magics."""
     # These are only the most minimal of tests, more should be added later.  At
     # the very least we check that basic text/unicode calls work OK.
-    nt.assert_equal(_ip._magic.parse_options('foo', '')[1], 'foo')
-    nt.assert_equal(_ip._magic.parse_options(u'foo', '')[1], u'foo')
+    m = magic.Magics(ip)
+    nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
+    nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
 
     
 def test_dirops():
@@ -422,7 +426,8 @@ def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     _ip.magic("timeit ('#')")
 
-@dec.skipif(_ip._magic.magic_prun == _ip._magic.profile_missing_notice)
+
+@dec.skipif(mf.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.magic("prun -q x = '\t'")
