@@ -521,9 +521,9 @@ class AutoreloadMagics(Magics):
 class AutoreloadPlugin(Plugin):
     def __init__(self, shell=None, config=None):
         super(AutoreloadPlugin, self).__init__(shell=shell, config=config)
-        auto = AutoreloadMagics(shell)
-        self.shell.register_magics(auto)
-        self.shell.set_hook('pre_run_code_hook', auto.pre_run_code_hook)
+        self.auto_magics = AutoreloadMagics(shell)
+        shell.register_magics(self.auto_magics)
+        shell.set_hook('pre_run_code_hook', self.auto_magics.pre_run_code_hook)
 
 
 _loaded = False

@@ -9,7 +9,7 @@ from StringIO import StringIO
 import nose.tools as nt
 import IPython.testing.tools as tt
 
-from IPython.extensions.autoreload import AutoreloadInterface
+from IPython.extensions.autoreload import AutoreloadPlugin
 from IPython.core.hooks import TryNext
 
 #-----------------------------------------------------------------------------
@@ -19,11 +19,11 @@ from IPython.core.hooks import TryNext
 class FakeShell(object):
     def __init__(self):
         self.ns = {}
-        self.reloader = AutoreloadInterface()
+        self.reloader = AutoreloadPlugin(shell=get_ipython())
 
     def run_code(self, code):
         try:
-            self.reloader.pre_run_code_hook(self)
+            self.reloader.auto_magics.pre_run_code_hook(self)
         except TryNext:
             pass
         exec code in self.ns
@@ -32,10 +32,10 @@ class FakeShell(object):
         self.ns.update(items)
 
     def magic_autoreload(self, parameter):
-        self.reloader.magic_autoreload(self, parameter)
+        self.reloader.auto_magics.autoreload(parameter)
 
     def magic_aimport(self, parameter, stream=None):
-        self.reloader.magic_aimport(self, parameter, stream=stream)
+        self.reloader.auto_magics.aimport(parameter, stream=stream)
 
 
 class Fixture(object):
@@ -160,7 +160,7 @@ class Bar:    # old-style class: weakref doesn't work for it on Python < 2.7
             self.shell.magic_aimport("", stream=stream)
             nt.assert_true("Modules to reload:\nall-except-skipped" in
                            stream.getvalue())
-        nt.assert_true(mod_name in self.shell.ns)
+        nt.assert_in(mod_name, self.shell.ns)
 
         mod = sys.modules[mod_name]
 
