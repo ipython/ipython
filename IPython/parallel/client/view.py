@@ -813,10 +813,10 @@ class DirectView(View):
         except NameError:
             print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
         else:
-            pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+            pmagic = ip.magics_manager.registry.get('ParallelMagics')
             if pmagic is None:
                 ip.magic('load_ext parallelmagic')
-                pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+                pmagic = ip.magics_manager.registry.get('ParallelMagics')
 
             pmagic.active_view = self
 
