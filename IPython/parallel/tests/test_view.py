@@ -448,6 +448,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ip.magic_autopx()
         ip.run_cell('\n'.join(('a=5','b=10','c=0')))
         ip.run_cell('print (b)')
+        ip.run_cell('import time; time.sleep(0.1)')
         ip.run_cell("b/c")
         ip.run_cell('b*=2')
         ip.magic_autopx()
@@ -457,9 +458,12 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertTrue(output.endswith('%autopx disabled'))
         self.assertFalse('ZeroDivisionError' in output)
         ar = v.get_result(-2)
-        self.assertEquals(v['a'], 5)
-        self.assertEquals(v['b'], 20)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
+        # prevent TaskAborted on pulls, due to ZeroDivisionError
+        time.sleep(0.5)
+        self.assertEquals(v['a'], 5)
+        # b*=2 will not fire, due to abort
+        self.assertEquals(v['b'], 10)
     
     def test_magic_result(self):
         ip = get_ipython()
@@ -654,4 +658,19 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view = self.client[-1]
         ar = view.execute("1/0")
         self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
+    
+    @dec.skipif_not_matplotlib
+    def test_amagic_pylab(self):
+        """%pylab works on engines"""
+        view = self.client[-1]
+        ar = view.execute("%pylab inline")
+        # at least check if this raised:
+        reply = ar.get(5)
+        # include imports, in case user config
+        ar = view.execute("plot(rand(100))", silent=False)
+        reply = ar.get(5)
+        self.assertEquals(len(reply.outputs), 1)
+        output = reply.outputs[0]
+        self.assertTrue("image/png" in output)
+        
 
