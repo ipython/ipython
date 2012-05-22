@@ -240,7 +240,7 @@ class Kernel(Configurable):
     
     def enter_eventloop(self):
         """enter eventloop"""
-        self.log.critical("entering eventloop")
+        self.log.info("entering eventloop")
         # restore default_int_handler
         signal(SIGINT, default_int_handler)
         while self.eventloop is not None:
@@ -254,7 +254,7 @@ class Kernel(Configurable):
                 # eventloop exited cleanly, this means we should stop (right?)
                 self.eventloop = None
                 break
-        self.log.critical("exiting eventloop")
+        self.log.info("exiting eventloop")
         # if eventloop exits, IOLoop should stop
         ioloop.IOLoop.instance().stop()
 
