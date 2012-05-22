@@ -575,13 +575,23 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     
     # begin execute tests
+    def _wait_for(self, f, timeout=10):
+        tic = time.time()
+        while time.time() <= tic + timeout:
+            if f():
+                return
+            time.sleep(0.1)
+            self.client.spin()
+        if not f():
+            print "Warning: Awaited condition never arrived"
+            
     
     def test_execute_reply(self):
         e0 = self.client[self.client.ids[0]]
         e0.block = True
         ar = e0.execute("5", silent=False)
         er = ar.get()
-        time.sleep(0.2)
+        self._wait_for(lambda : bool(er.pyout))
         self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
         self.assertEquals(er.pyout['text/plain'], '5')
 
@@ -590,14 +600,15 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("print (5)", silent=False)
         er = ar.get()
-        time.sleep(0.2)
+        self._wait_for(lambda : bool(er.stdout))
         self.assertEquals(er.stdout.strip(), '5')
         
     def test_execute_pyout(self):
         """execute triggers pyout with silent=False"""
         view = self.client[:]
         ar = view.execute("5", silent=False, block=True)
-        time.sleep(0.2)
+        self._wait_for(lambda : all(ar.pyout))
+        
         expected = [{'text/plain' : '5'}] * len(view)
         self.assertEquals(ar.pyout, expected)
     
@@ -615,7 +626,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("%whos", block=True)
         # this will raise, if that failed
         ar.get(5)
-        time.sleep(0.2)
+        self._wait_for(lambda : all(ar.stdout))
         for stdout in ar.stdout:
             lines = stdout.splitlines()
             self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
@@ -632,7 +643,8 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view = self.client[:]
         view.execute("from IPython.core.display import *")
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
-        time.sleep(0.2)
+        
+        self._wait_for(lambda : all(len(er.outputs) >= 5 for er in ar))
         outs = [ {u'text/plain' : unicode(i)} for i in range(5) ]
         expected = [outs] * len(view)
         self.assertEquals(ar.outputs, expected)
@@ -648,7 +660,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = view.apply_async(publish)
         ar.get(5)
-        time.sleep(0.2)
+        self._wait_for(lambda : all(len(out) >= 5 for out in ar.outputs))
         outs = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         expected = [outs] * len(view)
         self.assertEquals(ar.outputs, expected)
@@ -669,6 +681,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # include imports, in case user config
         ar = view.execute("plot(rand(100))", silent=False)
         reply = ar.get(5)
+        self._wait_for(lambda : all(ar.outputs))
         self.assertEquals(len(reply.outputs), 1)
         output = reply.outputs[0]
         self.assertTrue("image/png" in output)

@@ -65,7 +65,7 @@ def setup():
         if cp.poll() is not None:
             print cp.poll()
             raise RuntimeError("The test controller failed to start.")
-        elif time.time()-tic > 10:
+        elif time.time()-tic > 15:
             raise RuntimeError("Timeout waiting for the test controller to start.")
         time.sleep(0.1)
     add_engines(1)
@@ -93,7 +93,7 @@ def add_engines(n=1, profile='iptest', total=False):
     while len(rc) < base+n:
         if any([ ep.poll() is not None for ep in eps ]):
             raise RuntimeError("A test engine failed to start.")
-        elif time.time()-tic > 10:
+        elif time.time()-tic > 15:
             raise RuntimeError("Timeout waiting for engines to connect.")
         time.sleep(.1)
         rc.spin()
