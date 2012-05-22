@@ -1994,6 +1994,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_magics(self):
         from IPython.core import magic_functions as mf
+        from IPython.core import magics as m
         self.magics_manager = magic.MagicsManager(shell=self,
                                    confg=self.config,
                                    user_magics=mf.UserMagics(self))
@@ -2007,15 +2008,12 @@ class InteractiveShell(SingletonConfigurable):
         self.register_magics(mf.BasicMagics, mf.CodeMagics, mf.ConfigMagics,
              mf.ExecutionMagics, mf.NamespaceMagics, mf.AutoMagics,
              mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
-             mf.PylabMagics, mf.DeprecatedMagics)
+             mf.PylabMagics, m.HistoryMagics, mf.DeprecatedMagics)
 
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
         self.magic('colors %s' % self.colors)
-        # History was moved to a separate module
-        from IPython.core import history
-        history.init_ipython(self)
 
     def line_magic(self, magic_name, line, next_input=None):
         """Execute the given line magic.
