@@ -2001,8 +2001,8 @@ class InteractiveShell(SingletonConfigurable):
 
         # Expose as public API from the magics manager
         self.register_magics = self.magics_manager.register
-        self.function_as_magic = self.magics_manager.function_as_magic
-        self.define_magic = self.magics_manager._define_magic
+        self.register_magic_function = self.magics_manager.register_function
+        self.define_magic = self.magics_manager.define_magic
 
         self.register_magics(mf.BasicMagics, mf.CodeMagics, mf.ConfigMagics,
              mf.ExecutionMagics, mf.NamespaceMagics, mf.AutoMagics,

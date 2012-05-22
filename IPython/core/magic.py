@@ -207,7 +207,7 @@ class MagicsManager(Configurable):
             for mtype in magic_types:
                 self.magics[mtype].update(m.magics[mtype])
 
-    def function_as_magic(self, func, magic_type='line', magic_name=None):
+    def register_function(self, func, magic_type='line', magic_name=None):
         """Expose a standalone function as magic function for ipython.
         """
 
@@ -218,14 +218,12 @@ class MagicsManager(Configurable):
         setattr(self.user_magics, magic_name, func)
         record_magic(self.magics, magic_type, magic_name, func)
 
-    def _define_magic(self, name, func):
+    def define_magic(self, name, func):
         """Support for deprecated API.
 
         This method exists only to support the old-style definition of magics.
         It will eventually be removed.  Deliberately not documented further.
         """
-        warn('Deprecated API, use function_as_magic or register_magics: %s\n' %
-             name)
         meth = types.MethodType(func, self.user_magics)
         setattr(self.user_magics, name, meth)
         record_magic(self.magics, 'line', name, meth)
