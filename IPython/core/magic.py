@@ -191,17 +191,8 @@ class MagicsManager(Configurable):
                 self.magics[mtype].update(m.magics[mtype])
 
     def new_magic(self, func, magic_name=None, magic_type='line'):
-        """Expose own function as magic function for ipython
+        """Expose a standalone function as magic function for ipython.
 
-        Example::
-
-          def foo_impl(self, parameter_s=''):
-              'My very own magic!. (Use docstrings, IPython reads them).'
-              print 'Magic function. Passed parameter is between < >:'
-              print '<%s>' % parameter_s
-              print 'The self object is:', self
-
-          ip.define_magic('foo', foo_impl)
         """
 
         # Create the new method in the user_magics and register it in the
