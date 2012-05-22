@@ -1997,7 +1997,7 @@ class InteractiveShell(SingletonConfigurable):
         from IPython.core import magics as m
         self.magics_manager = magic.MagicsManager(shell=self,
                                    confg=self.config,
-                                   user_magics=mf.UserMagics(self))
+                                   user_magics=m.UserMagics(self))
         self.configurables.append(self.magics_manager)
 
         # Expose as public API from the magics manager

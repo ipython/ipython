@@ -165,7 +165,7 @@ class MagicsManager(Configurable):
         'Automagic is OFF, % prefix IS needed for magic functions.',
         'Automagic is ON, % prefix IS NOT needed for magic functions.']
 
-    user_magics = Instance('IPython.core.magic_functions.UserMagics')
+    user_magics = Instance('IPython.core.magics.UserMagics')
 
     def __init__(self, shell=None, config=None, user_magics=None, **traits):
 

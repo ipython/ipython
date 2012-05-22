@@ -11,4 +11,19 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from IPython.core.magic import Magics, register_magics
 from history import (HistoryMagics)
+
+
+#-----------------------------------------------------------------------------
+# Magic implementation classes
+#-----------------------------------------------------------------------------
+
+@register_magics
+class UserMagics(Magics):
+    """Placeholder for user-defined magics to be added at runtime.
+
+    All magics are eventually merged into a single namespace at runtime, but we
+    use this class to isolate the magics defined dynamically by the user into
+    their own class.
+    """
