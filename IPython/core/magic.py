@@ -45,6 +45,7 @@ from IPython.utils.warn import error, warn
 magics = dict(line={}, cell={})
 
 magic_types = ('line', 'cell')
+magic_spec = ('line', 'cell', 'line_cell')
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
@@ -89,14 +90,16 @@ def register_magics(cls):
     magics['cell'] = {}
     return cls
 
-def _record_magic(dct, mtype, mname, func):
+
+def record_magic(dct, mtype, mname, func):
     if mtype == 'line_cell':
         dct['line'][mname] = dct['cell'][mname] = func
     else:
         dct[mtype][mname] = func
 
+
 def validate_type(magic_type):
-    if magic_type not in magic_types:
+    if magic_type not in magic_spec:
         raise ValueError('magic_type must be one of %s, %s given' %
                          magic_types, magic_type)
 
@@ -115,13 +118,13 @@ def _magic_marker(magic_type):
             name = func.func_name
             func.magic_name = name
             retval = decorator(call, func)
-            magics[magic_type][name] = name
+            record_magic(magics, magic_type, name, name)
         elif isinstance(arg, basestring):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 func.magic_name = name
-                magics[magic_type][name] = func.func_name
+                record_magic(magics, magic_type, name, func.func_name)
                 return decorator(call, func)
             retval = mark
         else:
@@ -135,6 +138,7 @@ def _magic_marker(magic_type):
 
 line_magic = _magic_marker('line')
 cell_magic = _magic_marker('cell')
+line_cell_magic = _magic_marker('line_cell')
 
 #-----------------------------------------------------------------------------
 # Core Magic classes
@@ -212,7 +216,7 @@ class MagicsManager(Configurable):
         validate_type(magic_type)
         magic_name = func.func_name if magic_name is None else magic_name
         setattr(self.user_magics, magic_name, func)
-        _record_magic(self.magics, magic_type, magic_name, func)
+        record_magic(self.magics, magic_type, magic_name, func)
 
     def _define_magic(self, name, func):
         """Support for deprecated API.
@@ -224,7 +228,7 @@ class MagicsManager(Configurable):
              name)
         meth = types.MethodType(func, self.user_magics)
         setattr(self.user_magics, name, meth)
-        _record_magic(self.magics, 'line', name, meth)
+        record_magic(self.magics, 'line', name, meth)
 
 # Key base class that provides the central functionality for magics.
 

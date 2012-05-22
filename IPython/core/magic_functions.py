@@ -747,7 +747,8 @@ class CodeMagics(Magics):
                     # For objects, try to edit the file where they are defined
                     try:
                         filename = inspect.getabsfile(data)
-                        if 'fakemodule' in filename.lower() and inspect.isclass(data):
+                        if 'fakemodule' in filename.lower() and \
+                            inspect.isclass(data):
                             # class created by %edit? Try to find source
                             # by looking for method definitions instead, the
                             # __module__ in those classes is FakeModule.
@@ -756,8 +757,10 @@ class CodeMagics(Magics):
                                 if not inspect.ismethod(attr):
                                     continue
                                 filename = inspect.getabsfile(attr)
-                                if filename and 'fakemodule' not in filename.lower():
-                                    # change the attribute to be the edit target instead
+                                if filename and \
+                                  'fakemodule' not in filename.lower():
+                                    # change the attribute to be the edit
+                                    # target instead
                                     data = attr
                                     break
 
@@ -767,8 +770,8 @@ class CodeMagics(Magics):
                         datafile = 1
                         warn('Could not find file where `%s` is defined.\n'
                              'Opening a file named `%s`' % (args,filename))
-                    # Now, make sure we can actually read the source (if it was in
-                    # a temp file it's gone by now).
+                    # Now, make sure we can actually read the source (if it was
+                    # in a temp file it's gone by now).
                     if datafile:
                         try:
                             if lineno is None:
@@ -1049,8 +1052,8 @@ class ConfigMagics(Magics):
             IPCompleter.merge_completions=<CBool>
                 Current: True
                 Whether to merge completion results into a single list
-                If False, only the completion results from the first non-empty completer
-                will be returned.
+                If False, only the completion results from the first non-empty
+                completer will be returned.
             IPCompleter.limit_to__all__=<CBool>
                 Current: False
                 Instruct the completer to use __all__ for the completion
@@ -1060,8 +1063,9 @@ class ConfigMagics(Magics):
             IPCompleter.greedy=<CBool>
                 Current: False
                 Activate greedy completion
-                This will enable completion on elements of lists, results of function calls,
-                etc., but can be unsafe because the code is actually evaluated on TAB.
+                This will enable completion on elements of lists, results of
+                function calls, etc., but can be unsafe because the code is
+                actually evaluated on TAB.
 
         but the real use is in setting values::
 
@@ -1100,8 +1104,8 @@ class ConfigMagics(Magics):
             print help
             return
         elif '=' not in line:
-            raise UsageError("Invalid config statement: %r, should be Class.trait = value" % line)
-
+            raise UsageError("Invalid config statement: %r, "
+                             "should be Class.trait = value" % line)
 
         # otherwise, assume we are setting configurables.
         # leave quotes on args when splitting, because we want
@@ -1285,7 +1289,8 @@ class NamespaceMagics(Magics):
 
         Show objects beginning with a single _::
 
-          %psearch -a _*         list objects beginning with a single underscore"""
+          %psearch -a _*         list objects beginning with a single underscore
+        """
         try:
             parameter_s.encode('ascii')
         except UnicodeEncodeError:
@@ -1619,7 +1624,8 @@ class NamespaceMagics(Magics):
         else:
             try:
                 ans = self.shell.ask_yes_no(
-                "Once deleted, variables cannot be recovered. Proceed (y/[n])? ", default='n')
+                "Once deleted, variables cannot be recovered. Proceed (y/[n])?",
+                default='n')
             except StdinNotImplementedError:
                 ans = True
         if not ans:
@@ -1651,8 +1657,8 @@ class NamespaceMagics(Magics):
                     user_ns.pop(key,None)
                 user_ns.update(dict(_i=u'',_ii=u'',_iii=u''))
                 hm = ip.history_manager
-                # don't delete these, as %save and %macro depending on the length
-                # of these lists to be preserved
+                # don't delete these, as %save and %macro depending on the
+                # length of these lists to be preserved
                 hm.input_hist_parsed[:] = [''] * pc
                 hm.input_hist_raw[:] = [''] * pc
                 # hm has internal machinery for _i,_ii,_iii, clear it out
@@ -1662,8 +1668,8 @@ class NamespaceMagics(Magics):
                 # Support cleaning up numpy arrays
                 try:
                     from numpy import ndarray
-                    # This must be done with items and not iteritems because we're
-                    # going to modify the dict in-place.
+                    # This must be done with items and not iteritems because
+                    # we're going to modify the dict in-place.
                     for x,val in user_ns.items():
                         if isinstance(val,ndarray):
                             del user_ns[x]
@@ -2236,8 +2242,8 @@ python-profiler package from non-free.""")
         # set the __file__ global in the script's namespace
         prog_ns['__file__'] = filename
 
-        # pickle fix.  See interactiveshell for an explanation.  But we need to make sure
-        # that, if we overwrite __main__, we replace it at the end
+        # pickle fix.  See interactiveshell for an explanation.  But we need to
+        # make sure that, if we overwrite __main__, we replace it at the end
         main_mod_name = prog_ns['__name__']
 
         if main_mod_name == '__main__':

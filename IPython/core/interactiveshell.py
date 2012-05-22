@@ -2017,8 +2017,81 @@ class InteractiveShell(SingletonConfigurable):
         from IPython.core import history
         history.init_ipython(self)
 
+    def line_magic(self, magic_name, line, next_input=None):
+        """Execute the given line magic.
+
+        Parameters
+        ----------
+        magic_name : str
+          Name of the desired magic function, without '%' prefix.
+
+        line : str
+          The rest of the input line as a single string.
+
+        next_input : str, optional
+          Text to pre-load into the next input line.
+        """
+        # Allow setting the next input - this is used if the user does `a=abs?`.
+        # We do this first so that magic functions can override it.
+        if next_input:
+            self.set_next_input(next_input)
+
+        fn = self.find_line_magic(magic_name)
+        if fn is None:
+            error("Magic function `%s` not found." % magic_name)
+        else:
+            # Note: this is the distance in the stack to the user's frame.
+            # This will need to be updated if the internal calling logic gets
+            # refactored, or else we'll be expanding the wrong variables.
+            stack_depth = 2
+            magic_arg_s = self.var_expand(line, stack_depth)
+            # Put magic args in a list so we can call with f(*a) syntax
+            args = [magic_arg_s]
+            # Grab local namespace if we need it:
+            if getattr(fn, "needs_local_scope", False):
+                args.append(sys._getframe(stack_depth).f_locals)
+            with self.builtin_trap:
+                result = fn(*args)
+            return result
+
+    def cell_magic(self, magic_name, line, cell):
+        """Execute the given cell magic.
+        """
+        fn = self.find_cell_magic(magic_name)
+        if fn is None:
+            error("Magic function `%s` not found." % magic_name)
+        else:
+            # Note: this is the distance in the stack to the user's frame.
+            # This will need to be updated if the internal calling logic gets
+            # refactored, or else we'll be expanding the wrong variables.
+            stack_depth = 2
+            magic_arg_s = self.var_expand(line, stack_depth)
+            with self.builtin_trap:
+                result = fn(line, cell)
+            return result
+
+    def find_line_magic(self, magic_name):
+        """Find and return a line magic by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics['line'].get(magic_name)
+
+    def find_cell_magic(self, magic_name):
+        """Find and return a cell magic by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics['cell'].get(magic_name)
+
+    def find_magic(self, magic_name, magic_type='line'):
+        """Find and return a magic of the given type by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics[magic_type].get(magic_name)
+
     def magic(self, arg_s, next_input=None):
-        """Call a magic function by name.
+        """DEPRECATED. Use line_magic() instead.
+
+        Call a magic function by name.
 
         Input: a string containing the name of the magic function to call and
         any additional arguments to be passed to the magic.
@@ -2034,39 +2107,10 @@ class InteractiveShell(SingletonConfigurable):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
-        # Allow setting the next input - this is used if the user does `a=abs?`.
-        # We do this first so that magic functions can override it.
-        if next_input:
-            self.set_next_input(next_input)
-
+        # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-
-        fn = self.find_magic(magic_name)
-        if fn is None:
-            error("Magic function `%s` not found." % magic_name)
-        else:
-            magic_arg_s = self.var_expand(magic_arg_s, 1)
-            # Put magic args in a list so we can call with f(*a) syntax
-            args = [magic_arg_s]
-            # Grab local namespace if we need it:
-            if getattr(fn, "needs_local_scope", False):
-                args.append(sys._getframe(1).f_locals)
-            with self.builtin_trap:
-                result = fn(*args)
-            return result
-
-    def find_line_magic(self, magic_name):
-        """Find and return a line magic by name."""
-        return self.magics_manager.magics['line'].get(magic_name)
-
-    def find_cell_magic(self, magic_name):
-        """Find and return a cell magic by name."""
-        return self.magics_manager.magics['cell'].get(magic_name)
-
-    def find_magic(self, magic_name, magic_type='line'):
-        """Find and return a magic of the given type by name."""
-        return self.magics_manager.magics[magic_type].get(magic_name)
+        return self.line_magic(magic_name, magic_arg_s, next_input)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2436,6 +2480,12 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
+    def call_cell_magic(self, raw_cell, store_history=False):
+        line, _, cell = raw_cell.partition(os.linesep)
+        magic_name, _, line = line.partition(' ')
+        magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
+        return self.cell_magic(magic_name, line, cell)
+
     def run_cell(self, raw_cell, store_history=False, silent=False):
         """Run a complete IPython cell.
 
@@ -2456,6 +2506,9 @@ class InteractiveShell(SingletonConfigurable):
         
         if silent:
             store_history = False
+
+        if raw_cell.startswith('%%'):
+            return self.call_cell_magic(raw_cell, store_history)
 
         for line in raw_cell.splitlines():
             self.input_splitter.push(line)
@@ -2489,7 +2542,8 @@ class InteractiveShell(SingletonConfigurable):
 
                 with self.display_trap:
                     try:
-                        code_ast = self.compile.ast_parse(cell, filename=cell_name)
+                        code_ast = self.compile.ast_parse(cell,
+                                                          filename=cell_name)
                     except IndentationError:
                         self.showindentationerror()
                         if store_history:
