@@ -178,10 +178,13 @@ def compress_user(path, tilde_expand, tilde_val):
     else:
         return path
 
+
 class Bunch(object): pass
+
 
 DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
 GREEDY_DELIMS = ' \r\n'
+
 
 class CompletionSplitter(object):
     """An object to split an input line in a manner similar to readline.
@@ -194,7 +197,7 @@ class CompletionSplitter(object):
 
     What characters are used as splitting delimiters can be controlled by
     setting the `delims` attribute (this is a property that internally
-    automatically builds the necessary """
+    automatically builds the necessary regular expression)"""
 
     # Private interface
 
@@ -212,18 +215,20 @@ class CompletionSplitter(object):
 
     def __init__(self, delims=None):
         delims = CompletionSplitter._delims if delims is None else delims
-        self.set_delims(delims)
+        self.delims = delims
 
-    def set_delims(self, delims):
+    @property
+    def delims(self):
+        """Return the string of delimiter characters."""
+        return self._delims
+
+    @delims.setter
+    def delims(self, delims):
         """Set the delimiters for line splitting."""
         expr = '[' + ''.join('\\'+ c for c in delims) + ']'
         self._delim_re = re.compile(expr)
         self._delims = delims
         self._delim_expr = expr
-
-    def get_delims(self):
-        """Return the string of delimiter characters."""
-        return self._delims
 
     def split_line(self, line, cursor_pos=None):
         """Split a line of text with a cursor at the given position.
@@ -377,7 +382,7 @@ class Completer(Configurable):
 def get__all__entries(obj):
     """returns the strings in the __all__ attribute"""
     try:
-        words = getattr(obj,'__all__')
+        words = getattr(obj, '__all__')
     except:
         return []
     
@@ -390,12 +395,12 @@ class IPCompleter(Completer):
     def _greedy_changed(self, name, old, new):
         """update the splitter and readline delims when greedy is changed"""
         if new:
-            self.splitter.set_delims(GREEDY_DELIMS)
+            self.splitter.delims = GREEDY_DELIMS
         else:
-            self.splitter.set_delims(DELIMS)
+            self.splitter.delims = DELIMS
 
         if self.readline:
-            self.readline.set_completer_delims(self.splitter.get_delims())
+            self.readline.set_completer_delims(self.splitter.delims)
     
     merge_completions = CBool(True, config=True,
         help="""Whether to merge completion results into a single list
@@ -821,7 +826,7 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
-        #io.rprint('\nCOMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
+        #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
         self.matches[:] = []
