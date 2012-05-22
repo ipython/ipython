@@ -23,16 +23,13 @@ Notes
 #-----------------------------------------------------------------------------
 
 from __future__ import with_statement
-import __main__
 
 import sys
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
+from contextlib import nested
 import warnings
 
 from IPython.core import ultratb
+from IPython.core.magic import Magics, register_magics, line_magic
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.ipapp import load_default_config
 
@@ -45,21 +42,27 @@ from IPython.utils.io import ask_yes_no
 #-----------------------------------------------------------------------------
 
 # This is an additional magic that is exposed in embedded shells.
-def kill_embedded(self,parameter_s=''):
-    """%kill_embedded : deactivate for good the current embedded IPython.
+@register_magics
+class EmbeddedMagics(Magics):
 
-    This function (after asking for confirmation) sets an internal flag so that
-    an embedded IPython will never activate again.  This is useful to
-    permanently disable a shell that is being called inside a loop: once you've
-    figured out what you needed from it, you may then kill it and the program
-    will then continue to run without the interactive shell interfering again.
-    """
+    @line_magic
+    def kill_embedded(self, parameter_s=''):
+        """%kill_embedded : deactivate for good the current embedded IPython.
 
-    kill = ask_yes_no("Are you sure you want to kill this embedded instance "
-                     "(y/n)? [y/N] ",'n')
-    if kill:
-        self.embedded_active = False
-        print "This embedded IPython will not reactivate anymore once you exit."
+        This function (after asking for confirmation) sets an internal flag so
+        that an embedded IPython will never activate again.  This is useful to
+        permanently disable a shell that is being called inside a loop: once
+        you've figured out what you needed from it, you may then kill it and
+        the program will then continue to run without the interactive shell
+        interfering again.
+        """
+
+        kill = ask_yes_no("Are you sure you want to kill this embedded instance "
+                         "(y/n)? [y/N] ",'n')
+        if kill:
+            self.shell.embedded_active = False
+            print ("This embedded IPython will not reactivate anymore "
+                   "once you exit.")
 
 
 class InteractiveShellEmbed(TerminalInteractiveShell):
@@ -89,7 +92,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         )
 
         self.exit_msg = exit_msg
-        self.define_magic("kill_embedded", kill_embedded)
 
         # don't use the ipython crash handler so that user exceptions aren't
         # trapped
@@ -99,6 +101,10 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
     def init_sys_modules(self):
         pass
+
+    def init_magics(self):
+        super(InteractiveShellEmbed, self).init_magics()
+        self.register_magics(EmbeddedMagics)
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
                  stack_depth=1, global_ns=None):
