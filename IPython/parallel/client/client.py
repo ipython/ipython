@@ -1115,7 +1115,9 @@ class Client(HasTraits):
         This is the principal method with which all engine execution is performed by views.
         """
 
-        assert not self._closed, "cannot use me anymore, I'm closed!"
+        if self._closed:
+            raise RuntimeError("Client cannot be used after its sockets have been closed")
+        
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
@@ -1155,7 +1157,9 @@ class Client(HasTraits):
 
         """
 
-        assert not self._closed, "cannot use me anymore, I'm closed!"
+        if self._closed:
+            raise RuntimeError("Client cannot be used after its sockets have been closed")
+        
         # defaults:
         subheader = subheader if subheader is not None else {}
 
