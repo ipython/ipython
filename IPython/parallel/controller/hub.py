@@ -800,7 +800,7 @@ class Hub(SessionFactory):
 
         parent = msg['parent_header']
         if not parent:
-            self.log.error("iopub::invalid IOPub message: %r", msg)
+            self.log.warn("iopub::IOPub message lacks parent: %r", msg)
             return
         msg_id = parent['msg_id']
         msg_type = msg['header']['msg_type']
