@@ -39,7 +39,6 @@ import re
 
 from IPython.core.magic import Magics, register_magics, line_magic
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.traitlets import Instance
 
 #-----------------------------------------------------------------------------
 # Definitions of magic functions for use with IPython
@@ -54,7 +53,6 @@ Use activate() on a DirectView object to activate it for magics.
 class ParallelMagics(Magics):
     """A set of magics useful when controlling a parallel IPython cluster.
     """
-    active_view = Instance('IPython.parallel.client.view.DirectView')
 
     def __init__(self, shell):
         super(ParallelMagics, self).__init__(shell)
