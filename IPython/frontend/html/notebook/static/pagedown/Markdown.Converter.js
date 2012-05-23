@@ -590,7 +590,7 @@ else
                 result += " title=\"" + title + "\"";
             }
 
-            result += ">" + link_text + "</a>";
+            result += " target=\"_blank\">" + link_text + "</a>";
 
             return result;
         }
@@ -1183,7 +1183,8 @@ else
 
         function _DoAutoLinks(text) {
 
-            // note that at this point, all other URL in the text are already hyperlinked as <a href=""></a>
+            // note that at this point, all other URL in the text are already 
+            // hyperlinked as <a href="" target="_blank"></a>
             // *except* for the <http://www.foo.com> case
 
             // automatically add < and > around unadorned raw hyperlinks
@@ -1192,7 +1193,7 @@ else
 
             //  autolink anything like <http://example.com>
             
-            var replacer = function (wholematch, m1) { return "<a href=\"" + m1 + "\">" + pluginHooks.plainLinkText(m1) + "</a>"; }
+            var replacer = function (wholematch, m1) { return "<a href=\"" + m1 + "\" target=\"_blank\">" + pluginHooks.plainLinkText(m1) + "</a>"; }
             text = text.replace(/<((https?|ftp):[^'">\s]+)>/gi, replacer);
 
             // Email addresses: <address@domain.foo>
