@@ -1,4 +1,4 @@
-"""Implementation of basic magic functions.
+"""Implementation of code management magic functions.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
