@@ -18,6 +18,7 @@ from .basic import BasicMagics
 from .code import CodeMagics, MacroToEdit
 from .config import ConfigMagics
 from .execution import ExecutionMagics
+from .extension import ExtensionMagics
 from .history import HistoryMagics
 from .logging import LoggingMagics
 from .namespace import NamespaceMagics

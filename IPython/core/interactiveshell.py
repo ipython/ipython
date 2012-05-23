@@ -2007,7 +2007,7 @@ class InteractiveShell(SingletonConfigurable):
 
         self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
             m.ConfigMagics, mf.DeprecatedMagics, m.ExecutionMagics,
-            mf.ExtensionsMagics, m.HistoryMagics, m.LoggingMagics,
+            m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
             m.NamespaceMagics, m.OSMagics, mf.PylabMagics )
 
         # FIXME: Move the color initialization to the DisplayHook, which
