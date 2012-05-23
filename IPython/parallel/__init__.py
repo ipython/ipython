@@ -38,4 +38,25 @@ from .client.view import *
 from .util import interactive
 from .controller.dependency import *
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
+
+
+def bind_kernel(**kwargs):
+    """Bind an Engine's Kernel to be used as a full IPython kernel.
+    
+    This allows a running Engine to be used simultaneously as a full IPython kernel
+    with the QtConsole or other frontends.
+    
+    This function returns immediately.
+    """
+    from IPython.parallel.apps.ipengineapp import IPEngineApp
+    if IPEngineApp.initialized():
+        app = IPEngineApp.instance()
+    else:
+        raise RuntimeError("Must be called from an IPEngineApp instance")
+    
+    return app.bind_kernel(**kwargs)
+
 

@@ -230,19 +230,25 @@ class IPEngineApp(BaseParallelApplication):
         except AttributeError:
             config.EngineFactory.sshserver = d['ssh']
     
-    def listen_kernel(self):
-        """setup engine as listening Kernel, for frontends"""
+    def bind_kernel(self, **kwargs):
+        """Promote engine to listening kernel, accessible to frontends."""
         if self.kernel_app is not None:
             return
         
-        self.log.info("Opening ports for direct connections")
+        self.log.info("Opening ports for direct connections as an IPython kernel")
         
         kernel = self.kernel
         
-        app = self.kernel_app = IPKernelApp(log=self.log, config=self.config,
-                                profile_dir = self.profile_dir,
-                                session=self.engine.session,
-        )
+        kwargs.setdefault('config', self.config)
+        kwargs.setdefault('log', self.log)
+        kwargs.setdefault('profile_dir', self.profile_dir)
+        kwargs.setdefault('session', self.engine.session)
+        
+        app = self.kernel_app = IPKernelApp(**kwargs)
+        
+        # allow IPKernelApp.instance():
+        IPKernelApp._instance = app
+        
         app.init_connection_file()
         # relevant contents of init_sockets:
         
