@@ -16,6 +16,7 @@ from IPython.core.magic import Magics, register_magics
 from .basic import BasicMagics
 from .code import CodeMagics, MacroToEdit
 from .config import ConfigMagics
+from .execution import ExecutionMagics
 from .history import HistoryMagics
 from .namespace import NamespaceMagics
 
