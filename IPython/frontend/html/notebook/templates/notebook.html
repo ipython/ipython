@@ -198,6 +198,10 @@ data-notebook-id={{notebook_id}}
 
 {% block script %}
 
+<script src="{{ static_url("flot/jquery.flot.min.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("flot/jquery.flot.navigate.min.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("flot/jquery.flot.selection.min.js") }}" charset="utf-8"></script>
+
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/python/python.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
