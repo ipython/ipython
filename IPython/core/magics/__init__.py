@@ -23,6 +23,7 @@ from .history import HistoryMagics
 from .logging import LoggingMagics
 from .namespace import NamespaceMagics
 from .osm import OSMagics
+from .pylab import PylabMagics
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
