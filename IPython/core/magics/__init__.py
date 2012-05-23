@@ -13,6 +13,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.core.magic import Magics, register_magics
+from .auto import AutoMagics
 from .basic import BasicMagics
 from .code import CodeMagics, MacroToEdit
 from .config import ConfigMagics
