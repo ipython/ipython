@@ -17,7 +17,7 @@ from StringIO import StringIO
 import nose.tools as nt
 
 from IPython.core import magic
-from IPython.core import magic_functions as mf
+from IPython.core.magics import execution
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
 from IPython.testing import decorators as dec
@@ -429,7 +429,7 @@ def test_timeit_arguments():
     _ip.magic("timeit ('#')")
 
 
-@dec.skipif(mf.profile is None)
+@dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.magic("prun -q x = '\t'")
