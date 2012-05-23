@@ -15,6 +15,12 @@ import sys
 from StringIO import StringIO
 from unittest import TestCase
 
+try:
+    from importlib import invalidate_caches   # Required from Python 3.3
+except ImportError:
+    def invalidate_caches():
+        pass
+
 import nose.tools as nt
 
 from IPython.core import magic
@@ -449,6 +455,7 @@ def test_extension():
         url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
         _ip.magic("install_ext %s" % url)
         _ip.user_ns.pop('arq', None)
+        invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
         tt.assert_equal(_ip.user_ns['arq'], 185)
         _ip.magic("unload_ext daft_extension")
