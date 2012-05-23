@@ -76,7 +76,6 @@ var IPython = (function (IPython) {
             } else if (event.which === 27) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
-                IPython.pager.collapse();
                 event.preventDefault();
             }
             if (event.which === 38 && !event.shiftKey) {
