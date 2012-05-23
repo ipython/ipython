@@ -27,6 +27,7 @@ import gh_api
 basedir = os.path.join(os.path.expanduser("~"), ".ipy_pr_tests")
 repodir = os.path.join(basedir, "ipython")
 ipy_repository = 'git://github.com/ipython/ipython.git'
+ipy_http_repository = 'http://github.com/ipython/ipython.git'
 gh_project="ipython/ipython"
 
 supported_pythons = ['python2.6', 'python2.7', 'python3.1', 'python3.2']
@@ -65,10 +66,16 @@ def setup():
     
     # Check out and update the repository
     if not os.path.exists('ipython'):
-        check_call(['git', 'clone', ipy_repository])
+        try :
+            check_call(['git', 'clone', ipy_repository])
+        except CalledProcessError :
+            check_call(['git', 'clone', ipy_http_repository])
     os.chdir(repodir)
     check_call(['git', 'checkout', 'master'])
-    check_call(['git', 'pull', ipy_repository, 'master'])
+    try :
+        check_call(['git', 'pull', ipy_repository, 'master'])
+    except CalledProcessError :
+        check_call(['git', 'pull', ipy_http_repository, 'master'])
     os.chdir(basedir)
 
 missing_libs_re = re.compile(r"Tools and libraries NOT available at test time:\n"
