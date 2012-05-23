@@ -37,7 +37,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 # Local imports
 from IPython.core import pylabtools
 from IPython.config.configurable import Configurable
-from IPython.config.application import boolean_flag, catch_config_error, Application
+from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.shellapp import (
@@ -883,21 +883,9 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         on the first embed_kernel call for a given process.
     
     """
-    try:
-        from IPython.parallel.apps.ipengineapp import IPEngineApp
-    except ImportError:
-        # IPython.parallel has higher zmq dependency that IPython.zmq
-        class IPEngineApp:
-            pass
-
     # get the app if it exists, or set it up if it doesn't
-    if Application.initialized():
-        app = Application.instance()
-        if isinstance(app, IPEngineApp):
-            app.listen_kernel()
-            # return right away, because we embed in the Engine's
-            # namespace, not the calling one.
-            return
+    if IPKernelApp.initialized():
+        app = IPKernelApp.instance()
     else:
         app = IPKernelApp.instance(**kwargs)
         app.initialize([])
