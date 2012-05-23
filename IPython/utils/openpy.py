@@ -6,7 +6,6 @@ Much of the code is taken from the tokenize module in Python 3.2.
 """
 from __future__ import absolute_import
 
-import __builtin__
 import io
 from io import TextIOWrapper
 import re
@@ -190,3 +189,4 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
         return "".join(strip_encoding_cookie(text))
     else:
         return text.read()
+

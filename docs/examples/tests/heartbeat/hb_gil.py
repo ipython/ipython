@@ -1,7 +1,7 @@
 """
 Run this script in the qtconsole with one of:
 
-    %loadpy hb_gil.py
+    %load hb_gil.py
 
 or
     %run hb_gil.py
