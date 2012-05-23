@@ -10,15 +10,14 @@ To automatically restore stored variables at startup, add this to your
   c.StoreMagic.autorestore = True
 """
 
-from IPython.core.error import TryNext, UsageError
+import inspect, os, sys, textwrap
+
+from IPython.core.error import UsageError
+from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, register_magics, line_magic
 from IPython.core.plugin import Plugin
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import pickleshare
 from IPython.utils.traitlets import Bool, Instance
-
-import inspect,pickle,os,sys,textwrap
-from IPython.core.fakemodule import FakeModule
 
     
 def restore_aliases(ip):
