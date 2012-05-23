@@ -11,9 +11,10 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from IPython.core.magic import Magics, register_magics
-from history import (HistoryMagics)
 
+from IPython.core.magic import Magics, register_magics
+from basic import BasicMagics
+from history import HistoryMagics
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

@@ -2005,7 +2005,7 @@ class InteractiveShell(SingletonConfigurable):
         self.register_magic_function = self.magics_manager.register_function
         self.define_magic = self.magics_manager.define_magic
 
-        self.register_magics(mf.BasicMagics, mf.CodeMagics, mf.ConfigMagics,
+        self.register_magics(m.BasicMagics, mf.CodeMagics, mf.ConfigMagics,
              mf.ExecutionMagics, mf.NamespaceMagics, mf.AutoMagics,
              mf.OSMagics, mf.LoggingMagics, mf.ExtensionsMagics,
              mf.PylabMagics, m.HistoryMagics, mf.DeprecatedMagics)
