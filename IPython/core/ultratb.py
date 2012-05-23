@@ -558,7 +558,7 @@ class ListTB(TBTools):
                 if not value.filename: value.filename = "<string>"
                 list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
                         (Colors.normalEm,
-                         Colors.filenameEm, value.filename, Colors.normalEm,
+                         Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
                          Colors.linenoEm, value.lineno, Colors.Normal  ))
                 if value.text is not None:
                     i = 0
