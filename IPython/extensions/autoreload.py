@@ -372,6 +372,7 @@ def superreload(module, reload=reload, old_objects={}):
         old_name = module.__name__
         module.__dict__.clear()
         module.__dict__['__name__'] = old_name
+        module.__dict__['__loader__'] = old_dict['__loader__']
     except (TypeError, AttributeError, KeyError):
         pass
 
