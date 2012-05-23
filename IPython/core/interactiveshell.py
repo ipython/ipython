@@ -1993,7 +1993,6 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_magics(self):
-        from IPython.core import magic_functions as mf
         from IPython.core import magics as m
         self.magics_manager = magic.MagicsManager(shell=self,
                                    confg=self.config,
@@ -2006,7 +2005,7 @@ class InteractiveShell(SingletonConfigurable):
         self.define_magic = self.magics_manager.define_magic
 
         self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
-            m.ConfigMagics, mf.DeprecatedMagics, m.ExecutionMagics,
+            m.ConfigMagics, m.DeprecatedMagics, m.ExecutionMagics,
             m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
             m.NamespaceMagics, m.OSMagics, m.PylabMagics )
 

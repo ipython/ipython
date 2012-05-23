@@ -1,13 +1,11 @@
-"""Magic functions for InteractiveShell.
+"""Deprecated Magic functions.
 """
-
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2001 Janko Hauser <jhauser@zscout.de> and
-#  Copyright (C) 2001 Fernando Perez <fperez@colorado.edu>
-#  Copyright (C) 2008 The IPython Development Team
-
-#  Distributed under the terms of the BSD License.  The full license is in
-#  the file COPYING, distributed as part of this software.
+#  Copyright (c) 2012 The IPython Development Team.
+#
+#  Distributed under the terms of the Modified BSD License.
+#
+#  The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -20,7 +18,6 @@ from IPython.core.magic import Magics, register_magics, line_magic
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
-
 
 @register_magics
 class DeprecatedMagics(Magics):
