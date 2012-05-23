@@ -20,6 +20,7 @@ from .config import ConfigMagics
 from .execution import ExecutionMagics
 from .history import HistoryMagics
 from .namespace import NamespaceMagics
+from .osm import OSMagics
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes

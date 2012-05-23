@@ -1,4 +1,4 @@
-"""Implementation of execution-related magic functions.
+"""Implementation of magic functions that control various automatic behaviors.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (c) 2012 The IPython Development Team.
