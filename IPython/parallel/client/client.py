@@ -91,39 +91,39 @@ class ExecuteReply(object):
     
     def __repr__(self):
         pyout = self.metadata['pyout'] or {}
-        text_out = pyout.get('text/plain', '')
+        text_out = pyout.get('data', {}).get('text/plain', '')
         if len(text_out) > 32:
             text_out = text_out[:29] + '...'
         
         return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
     
     def _repr_html_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("text/html")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("text/html")
     
     def _repr_latex_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("text/latex")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("text/latex")
     
     def _repr_json_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("application/json")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("application/json")
     
     def _repr_javascript_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("application/javascript")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("application/javascript")
     
     def _repr_png_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("image/png")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/png")
     
     def _repr_jpeg_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("image/jpeg")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/jpeg")
     
     def _repr_svg_(self):
-        pyout = self.metadata['pyout'] or {}
-        return pyout.get("image/svg+xml")
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/svg+xml")
 
 
 class Metadata(dict):
@@ -834,9 +834,9 @@ class Client(HasTraits):
             elif msg_type == 'pyin':
                 md.update({'pyin' : content['code']})
             elif msg_type == 'display_data':
-                md['outputs'].append(content.get('data'))
+                md['outputs'].append(content)
             elif msg_type == 'pyout':
-                md['pyout'] = content.get('data')
+                md['pyout'] = content
             else:
                 # unhandled msg_type (status, etc.)
                 pass

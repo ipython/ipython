@@ -593,7 +593,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         er = ar.get()
         self._wait_for(lambda : bool(er.pyout))
         self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
-        self.assertEquals(er.pyout['text/plain'], '5')
+        self.assertEquals(er.pyout['data']['text/plain'], '5')
 
     def test_execute_reply_stdout(self):
         e0 = self.client[self.client.ids[0]]
@@ -610,7 +610,8 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self._wait_for(lambda : all(ar.pyout))
         
         expected = [{'text/plain' : '5'}] * len(view)
-        self.assertEquals(ar.pyout, expected)
+        mimes = [ out['data'] for out in ar.pyout ]
+        self.assertEquals(mimes, expected)
     
     def test_execute_silent(self):
         """execute does not trigger pyout with silent=True"""
@@ -645,9 +646,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
         
         self._wait_for(lambda : all(len(er.outputs) >= 5 for er in ar))
-        outs = [ {u'text/plain' : unicode(i)} for i in range(5) ]
-        expected = [outs] * len(view)
-        self.assertEquals(ar.outputs, expected)
+        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        for outputs in ar.outputs:
+            mimes = [ out['data'] for out in outputs ]
+            self.assertEquals(mimes, expected)
     
     def test_apply_displaypub(self):
         """apply tracks display_pub output"""
@@ -661,9 +663,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.apply_async(publish)
         ar.get(5)
         self._wait_for(lambda : all(len(out) >= 5 for out in ar.outputs))
-        outs = [ {u'text/plain' : unicode(j)} for j in range(5) ]
-        expected = [outs] * len(view)
-        self.assertEquals(ar.outputs, expected)
+        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        for outputs in ar.outputs:
+            mimes = [ out['data'] for out in outputs ]
+            self.assertEquals(mimes, expected)
     
     def test_execute_raises(self):
         """exceptions in execute requests raise appropriately"""
@@ -672,7 +675,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
     
     @dec.skipif_not_matplotlib
-    def test_amagic_pylab(self):
+    def test_magic_pylab(self):
         """%pylab works on engines"""
         view = self.client[-1]
         ar = view.execute("%pylab inline")
@@ -684,6 +687,8 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self._wait_for(lambda : all(ar.outputs))
         self.assertEquals(len(reply.outputs), 1)
         output = reply.outputs[0]
-        self.assertTrue("image/png" in output)
+        self.assertTrue("data" in output)
+        data = output['data']
+        self.assertTrue("image/png" in data)
         
 
