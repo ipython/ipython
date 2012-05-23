@@ -2774,10 +2774,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         except UnicodeDecodeError:
             if not py_only :
                 response = urllib.urlopen(target)
-                buffer = BytesIO(response.read())
-                text = TextIOWrapper(buffer, 'latin1', errors='replace', line_buffering=True)
-                text.mode = 'r'
-                return text.read()
+                return response.read().decode('latin1')
             raise ValueError(("'%s' seem to be unreadable.") % utarget)
 
         potential_target = [target]

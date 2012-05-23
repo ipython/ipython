@@ -2293,8 +2293,7 @@ Currently the magic system has the following functions:\n"""
         %load myMacro
         %load http://www.example.com/myscript.py
         """
-        opts,args = self.parse_options(arg_s,'y',mode='list')
-        args = " ".join(args)
+        opts,args = self.parse_options(arg_s,'y')
 
         contents = self.shell.find_user_code(args)
         l = len(contents)
