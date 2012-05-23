@@ -29,7 +29,6 @@ import sys
 import tempfile
 import types
 import urllib
-from io import BytesIO,TextIOWrapper
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
