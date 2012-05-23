@@ -13,8 +13,9 @@
 #-----------------------------------------------------------------------------
 
 from IPython.core.magic import Magics, register_magics
-from basic import BasicMagics
-from history import HistoryMagics
+from .basic import BasicMagics
+from .code import CodeMagics, MacroToEdit
+from .history import HistoryMagics
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
