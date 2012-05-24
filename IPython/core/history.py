@@ -255,15 +255,15 @@ class HistoryAccessor(Configurable):
             return reversed(list(cur)[1:])
         return reversed(list(cur))
 
-    def search(self, pattern="*", raw=True, search_raw=True,
+    def search(self, patterns=["*"], raw=True, search_raw=True,
                                                         output=False):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
 
         Parameters
         ----------
-        pattern : str
-          The wildcarded pattern to match when searching
+        pattern : list 
+          The list of wildcarded patterns to match when searching
         search_raw : bool
           If True, search the raw input, otherwise, the parsed input
         raw, output : bool
@@ -277,7 +277,9 @@ class HistoryAccessor(Configurable):
         if output:
             tosearch = "history." + tosearch
         self.writeout_cache()
-        return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
+        npatterns = len (patterns)
+        query = "WHERE " + " AND ".join(["%s GLOB ?" % tosearch for i in range(npatterns)])
+        return self._run_sql(query, patterns,
                                     raw=raw, output=output)
     
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
@@ -781,7 +783,7 @@ def magic_history(self, parameter_s = ''):
     if not self.shell.displayhook.do_full_cache:
         print('This feature is only available if numbered prompts are in use.')
         return
-    opts,args = self.parse_options(parameter_s,'noprtglf:',mode='string')
+    opts,args = self.parse_options(parameter_s,'noprtg:lf:',mode='string',list_all=True)
 
     # For brevity
     history_manager = self.shell.history_manager
@@ -822,8 +824,11 @@ def magic_history(self, parameter_s = ''):
     pattern = None
 
     if 'g' in opts:         # Glob search
-        pattern = "*" + args + "*" if args else "*"
-        hist = history_manager.search(pattern, raw=raw, output=get_output)
+        if isinstance(opts['g'],list):
+            patterns = ["*" + _tmp + "*" for _tmp in opts['g']] 
+        else:
+            patterns = ["*" + args + "*" if args else "*"]
+        hist = history_manager.search(patterns, raw=raw, output=get_output)
         print_nums = True
     elif 'l' in opts:       # Get 'tail'
         try:
@@ -913,7 +918,7 @@ def magic_rep(self, arg):
     try:                        # Variable in user namespace
         cmd = str(eval(arg, self.shell.user_ns))
     except Exception:           # Search for term in history
-        histlines = self.history_manager.search("*"+arg+"*")
+        histlines = self.history_manager.search(["*"+arg+"*"])
         for h in reversed([x[2] for x in histlines]):
             if 'rep' in h:
                 continue
@@ -942,7 +947,7 @@ def magic_rerun(self, parameter_s=''):
         hist = self.history_manager.get_tail(n)
     elif "g" in opts:       # Search
         p = "*"+opts['g']+"*"
-        hist = list(self.history_manager.search(p))
+        hist = list(self.history_manager.search([p]))
         for l in reversed(hist):
             if "rerun" not in l[2]:
                 hist = [l]     # The last match which isn't a %rerun
