@@ -495,10 +495,12 @@ def test_env():
 class CellMagicTestCase(TestCase):
 
     def check_ident(self, magic):
+        # Manually called, we get the result
         out = _ip.cell_magic(magic, 'a', 'b')
         nt.assert_equals(out, ('a','b'))
-        out = _ip.run_cell('%%' + magic +' a\nb')
-        nt.assert_equals(out, ('a','b'))
+        # Via run_cell, it goes into the user's namespace via displayhook
+        _ip.run_cell('%%' + magic +' c\nd')
+        nt.assert_equals(_ip.user_ns['_'], ('c','d'))
 
     def test_cell_magic_func_deco(self):
         "Cell magic using simple decorator"
@@ -525,12 +527,19 @@ class CellMagicTestCase(TestCase):
             def cellm3(self, line, cell):
                 return line, cell
 
+        _ip.register_magics(MyMagics)
+        self.check_ident('cellm3')
+
+    def test_cell_magic_class2(self):
+        "Cell magics declared via a class, #2"
+        @magics_class
+        class MyMagics2(Magics):
+
             @cell_magic('cellm4')
             def cellm33(self, line, cell):
                 return line, cell
-
-        _ip.register_magics(MyMagics)
-        self.check_ident('cellm3')
+            
+        _ip.register_magics(MyMagics2)
         self.check_ident('cellm4')
         # Check that nothing is registered as 'cellm33'
         c33 = _ip.find_cell_magic('cellm33')

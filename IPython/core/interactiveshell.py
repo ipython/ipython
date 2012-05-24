@@ -2027,7 +2027,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         fn = self.find_line_magic(magic_name)
         if fn is None:
-            error("Magic function `%s` not found." % magic_name)
+            error("Line magic function `%%%s` not found." % magic_name)
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
@@ -2048,7 +2048,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         fn = self.find_cell_magic(magic_name)
         if fn is None:
-            error("Magic function `%s` not found." % magic_name)
+            error("Cell magic function `%%%%%s` not found." % magic_name)
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
@@ -2475,6 +2475,11 @@ class InteractiveShell(SingletonConfigurable):
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
         return self.cell_magic(magic_name, line, cell)
 
+    def _cell_magic(self, magic_name, line):
+        cell = self._current_cell_magic_body
+        self._current_cell_magic_body = None
+        return self.cell_magic(magic_name, line, cell)
+
     def run_cell(self, raw_cell, store_history=False, silent=False):
         """Run a complete IPython cell.
 
@@ -2496,11 +2501,14 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
-        if raw_cell.startswith('%%'):
-            return self.call_cell_magic(raw_cell, store_history)
+        self.input_splitter.push(raw_cell)
 
-        for line in raw_cell.splitlines():
-            self.input_splitter.push(line)
+        # Check for cell magics, which leave state behind.  This interface is
+        # ugly, we need to do something cleaner later...  Now the logic is
+        # simply that the input_splitter remembers if there was a cell magic,
+        # and in that case we grab the cell body.
+        if self.input_splitter.cell_magic_body is not None:
+            self._current_cell_magic_body = self.input_splitter.cell_magic_body
         cell = self.input_splitter.source_reset()
 
         with self.builtin_trap:

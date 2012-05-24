@@ -55,7 +55,7 @@ Authors
 * Brian Granger
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
+#  Copyright (C) 2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -685,20 +685,23 @@ class IPythonInputSplitter(InputSplitter):
     # String with raw, untransformed input.
     source_raw = ''
 
+    cell_magic_body = None
+
     # Private attributes
     
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
     def __init__(self, input_mode=None):
-        InputSplitter.__init__(self, input_mode)
+        super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         
     def reset(self):
         """Reset the input buffer and associated state."""
-        InputSplitter.reset(self)
+        super(IPythonInputSplitter, self).reset()
         self._buffer_raw[:] = []
         self.source_raw = ''
+        self.cell_magic_body = None
 
     def source_raw_reset(self):
         """Return input and raw source and perform a full reset.
@@ -710,12 +713,46 @@ class IPythonInputSplitter(InputSplitter):
 
     def push(self, lines):
         """Push one or more lines of IPython input.
+
+        This stores the given lines and returns a status code indicating
+        whether the code forms a complete Python block or not, after processing
+        all input lines for special IPython syntax.
+
+        Any exceptions generated in compilation are swallowed, but if an
+        exception was produced, the method returns True.
+
+        Parameters
+        ----------
+        lines : string
+          One or more lines of Python input.
+
+        Returns
+        -------
+        is_complete : boolean
+          True if the current input source (the result of the current input
+        plus prior inputs) forms a complete Python execution block.  Note that
+        this value is also stored as a private attribute (_is_complete), so it
+        can be queried at any time.
         """
         if not lines:
             return super(IPythonInputSplitter, self).push(lines)
 
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
+
+        # cell magic support
+        #print('IM:', self.input_mode,'\n'+lines); print('---')  # dbg
+        #if self.input_mode == 'cell' and lines.startswith('%%'):
+        if lines.startswith('%%'):
+            # Cell magics bypass all further transformations
+            self.reset()
+            self._is_complete = is_complete = True
+            first, _, body = lines.partition('\n')
+            magic_name, _, line = first.partition(' ')
+            magic_name = magic_name.lstrip(ESC_MAGIC)
+            self.cell_magic_body = body
+            tpl = 'get_ipython()._cell_magic(%r, %r)'
+            lines = tpl % (magic_name, line)
 
         lines_list = lines.splitlines()
 
