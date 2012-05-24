@@ -136,12 +136,13 @@ class CommandChainDispatcher:
             #print "prio",prio,"cmd",cmd #dbg
             try:
                 return cmd(*args, **kw)
-            except TryNext, exc:
+            except TryNext as exc:
+                lastexc = exc
                 if exc.args or exc.kwargs:
                     args = exc.args
                     kw = exc.kwargs
         # if no function will accept it, raise TryNext up to the caller
-        raise TryNext(*args, **kw)
+        raise lastexc
 
     def __str__(self):
         return str(self.chain)
