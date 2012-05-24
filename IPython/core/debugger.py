@@ -353,7 +353,15 @@ class Pdb(OldPdb):
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
         try:
-            encoding, _ = openpy.detect_encoding(lambda :lines[:2].pop(0))
+            def readline(x):
+                x = x[:2]
+                def _readline():
+                    if x:
+                        return x.pop(0)
+                    else:
+                        raise StopIteration
+                return _readline
+            encoding, _ = openpy.detect_encoding(readline(lines))
         except SyntaxError:
             encoding = "ascii"
         start = max(start, 0)
