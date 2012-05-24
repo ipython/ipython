@@ -559,19 +559,23 @@ def _make_help_call(target, esc, lspace, next_input=None):
                 else 'pinfo'
     arg = " ".join([method, target])
     
-    if next_input:
-        tpl = '%sget_ipython().magic(%r, next_input=%r)'
-        return tpl % (lspace, arg, next_input)
-    else:
+    if next_input is None:
         return '%sget_ipython().magic(%r)' % (lspace, arg)
+    else:
+        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
+           (lspace, next_input, arg)
+
 
 _initial_space_re = re.compile(r'\s*')
+
 _help_end_re = re.compile(r"""(%?
                               [a-zA-Z_*][\w*]*        # Variable name
                               (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
                               )
                               (\?\??)$                # ? or ??""",
                               re.VERBOSE)
+
+
 def transform_help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)

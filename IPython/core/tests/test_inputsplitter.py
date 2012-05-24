@@ -466,10 +466,14 @@ syntax = \
         (u'%hist?', "get_ipython().magic({u}'pinfo %hist')"),
         (u'f*?', "get_ipython().magic({u}'psearch f*')"),
         (u'ax.*aspe*?', "get_ipython().magic({u}'psearch ax.*aspe*')"),
-        (u'a = abc?', "get_ipython().magic({u}'pinfo abc', next_input={u}'a = abc')"),
-        (u'a = abc.qe??', "get_ipython().magic({u}'pinfo2 abc.qe', next_input={u}'a = abc.qe')"),
-        (u'a = *.items?', "get_ipython().magic({u}'psearch *.items', next_input={u}'a = *.items')"),
-        (u'plot(a?', "get_ipython().magic({u}'pinfo a', next_input={u}'plot(a')"),
+        (u'a = abc?', "get_ipython().set_next_input({u}'a = abc');"
+                      "get_ipython().magic({u}'pinfo abc')"),
+        (u'a = abc.qe??', "get_ipython().set_next_input({u}'a = abc.qe');"
+                          "get_ipython().magic({u}'pinfo2 abc.qe')"),
+        (u'a = *.items?', "get_ipython().set_next_input({u}'a = *.items');"
+                          "get_ipython().magic({u}'psearch *.items')"),
+        (u'plot(a?', "get_ipython().set_next_input({u}'plot(a');"
+                     "get_ipython().magic({u}'pinfo a')"),
         (u'a*2 #comment?', 'a*2 #comment?'),
         ]],
 

@@ -2014,7 +2014,7 @@ class InteractiveShell(SingletonConfigurable):
         # even need a centralize colors management object.
         self.magic('colors %s' % self.colors)
 
-    def line_magic(self, magic_name, line, next_input=None):
+    def line_magic(self, magic_name, line):
         """Execute the given line magic.
 
         Parameters
@@ -2024,15 +2024,7 @@ class InteractiveShell(SingletonConfigurable):
 
         line : str
           The rest of the input line as a single string.
-
-        next_input : str, optional
-          Text to pre-load into the next input line.
         """
-        # Allow setting the next input - this is used if the user does `a=abs?`.
-        # We do this first so that magic functions can override it.
-        if next_input:
-            self.set_next_input(next_input)
-
         fn = self.find_line_magic(magic_name)
         if fn is None:
             error("Magic function `%s` not found." % magic_name)
@@ -2079,13 +2071,13 @@ class InteractiveShell(SingletonConfigurable):
         Returns None if the magic isn't found."""
         return self.magics_manager.magics['cell'].get(magic_name)
 
-    def find_magic(self, magic_name, magic_type='line'):
+    def find_magic(self, magic_name, magic_kind='line'):
         """Find and return a magic of the given type by name.
 
         Returns None if the magic isn't found."""
-        return self.magics_manager.magics[magic_type].get(magic_name)
+        return self.magics_manager.magics[magic_kind].get(magic_name)
 
-    def magic(self, arg_s, next_input=None):
+    def magic(self, arg_s):
         """DEPRECATED. Use line_magic() instead.
 
         Call a magic function by name.
@@ -2107,7 +2099,7 @@ class InteractiveShell(SingletonConfigurable):
         # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-        return self.line_magic(magic_name, magic_arg_s, next_input)
+        return self.line_magic(magic_name, magic_arg_s)
 
     #-------------------------------------------------------------------------
     # Things related to macros

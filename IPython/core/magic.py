@@ -44,7 +44,7 @@ from IPython.utils.warn import error, warn
 
 magics = dict(line={}, cell={})
 
-magic_types = ('line', 'cell')
+magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
 
 #-----------------------------------------------------------------------------
@@ -98,16 +98,16 @@ def record_magic(dct, mtype, mname, func):
         dct[mtype][mname] = func
 
 
-def validate_type(magic_type):
-    if magic_type not in magic_spec:
-        raise ValueError('magic_type must be one of %s, %s given' %
-                         magic_types, magic_type)
+def validate_type(magic_kind):
+    if magic_kind not in magic_spec:
+        raise ValueError('magic_kind must be one of %s, %s given' %
+                         magic_kinds, magic_kind)
 
 
-def _magic_marker(magic_type):
-    validate_type(magic_type)
+def _magic_marker(magic_kind):
+    validate_type(magic_kind)
 
-    # This is a closure to capture the magic_type.  We could also use a class,
+    # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
         call = lambda f, *a, **k: f(*a, **k)
@@ -118,13 +118,13 @@ def _magic_marker(magic_type):
             name = func.func_name
             func.magic_name = name
             retval = decorator(call, func)
-            record_magic(magics, magic_type, name, name)
+            record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, basestring):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
                 func.magic_name = name
-                record_magic(magics, magic_type, name, func.func_name)
+                record_magic(magics, magic_kind, name, func.func_name)
                 return decorator(call, func)
             retval = mark
         else:
@@ -135,10 +135,10 @@ def _magic_marker(magic_type):
     return magic_deco
 
 
-def _function_magic_marker(magic_type):
-    validate_type(magic_type)
+def _function_magic_marker(magic_kind):
+    validate_type(magic_kind)
 
-    # This is a closure to capture the magic_type.  We could also use a class,
+    # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
         call = lambda f, *a, **k: f(*a, **k)
@@ -157,16 +157,14 @@ def _function_magic_marker(magic_type):
         if callable(arg):
             # "Naked" decorator call (just @foo, no args)
             func = arg
-            #name = func.func_name
-            #func.magic_name = name
-            ip.register_magic_function(func)
+            name = func.func_name
+            ip.register_magic_function(func, magic_kind, name)
             retval = decorator(call, func)
         elif isinstance(arg, basestring):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
-                #func.magic_name = name
-                ip.register_magic_function(func)
+                ip.register_magic_function(func, magic_kind, name)
                 return decorator(call, func)
             retval = mark
         else:
@@ -254,19 +252,19 @@ class MagicsManager(Configurable):
             # Now that we have an instance, we can register it and update the
             # table of callables
             self.registry[m.__class__.__name__] = m
-            for mtype in magic_types:
+            for mtype in magic_kinds:
                 self.magics[mtype].update(m.magics[mtype])
 
-    def register_function(self, func, magic_type='line', magic_name=None):
+    def register_function(self, func, magic_kind='line', magic_name=None):
         """Expose a standalone function as magic function for ipython.
         """
 
         # Create the new method in the user_magics and register it in the
         # global table
-        validate_type(magic_type)
+        validate_type(magic_kind)
         magic_name = func.func_name if magic_name is None else magic_name
         setattr(self.user_magics, magic_name, func)
-        record_magic(self.magics, magic_type, magic_name, func)
+        record_magic(self.magics, magic_kind, magic_name, func)
 
     def define_magic(self, name, func):
         """Support for deprecated API.
@@ -320,7 +318,7 @@ class Magics(object):
         # grab.  Only now, that the instance exists, can we create the proper
         # mapping to bound methods.  So we read the info off the original names
         # table and replace each method name by the actual bound method.
-        for mtype in magic_types:
+        for mtype in magic_kinds:
             tab = self.magics[mtype]
             # must explicitly use keys, as we're mutating this puppy
             for magic_name in tab.keys():

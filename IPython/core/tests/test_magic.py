@@ -13,10 +13,15 @@ import io
 import os
 import sys
 from StringIO import StringIO
+from unittest import TestCase
 
 import nose.tools as nt
 
 from IPython.core import magic
+from IPython.core.magic import (Magics, magics_class, line_magic,
+                                cell_magic, line_cell_magic,
+                                register_line_magic, register_cell_magic,
+                                register_line_cell_magic)
 from IPython.core.magics import execution
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
