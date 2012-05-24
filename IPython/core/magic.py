@@ -3126,7 +3126,7 @@ Defaulting color scheme to 'NoColor'"""
 
     @skip_doctest
     def magic_sc(self, parameter_s=''):
-        """Shell capture - execute a shell command and capture its output.
+        """Shell capture - execute shell command and capture output (use ! as short-hand).
 
         DEPRECATED. Suboptimal, retained for backwards compatibility.
 
@@ -3240,7 +3240,7 @@ Defaulting color scheme to 'NoColor'"""
             return out
 
     def magic_sx(self, parameter_s=''):
-        """Shell execute - run a shell command and capture its output.
+        """Shell execute - run shell command and capture output (use !! as short-hand).
 
         %sx command
 
