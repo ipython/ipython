@@ -19,12 +19,10 @@ import __builtin__ as builtin_mod
 import __future__
 import bdb
 import inspect
-import imp
 import io
 import json
 import os
 import sys
-import shutil
 import re
 import time
 import gc
@@ -44,27 +42,23 @@ except ImportError:
     except ImportError:
         profile = pstats = None
 
-import IPython
 from IPython.core import debugger, oinspect
 from IPython.core.error import TryNext
 from IPython.core.error import UsageError
 from IPython.core.error import StdinNotImplementedError
-from IPython.core.fakemodule import FakeModule
-from IPython.core.profiledir import ProfileDir
 from IPython.core.macro import Macro
 from IPython.core import magic_arguments, page
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.core.pylabtools import mpl_runner
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils import openpy
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import arg_split, abbrev_cwd
 from IPython.utils.terminal import set_term_title
-from IPython.utils.text import LSString, SList, format_screen
+from IPython.utils.text import format_screen
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 from IPython.utils.ipstruct import Struct
@@ -2219,8 +2213,8 @@ Currently the magic system has the following functions:\n"""
         if not fname.endswith('.py'):
             fname += '.py'
         if os.path.isfile(fname):
-            ans = raw_input('File `%s` exists. Overwrite (y/[N])? ' % fname)
-            if ans.lower() not in ['y','yes']:
+            overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
+            if not overwrite :
                 print 'Operation cancelled.'
                 return
         try:
@@ -2271,28 +2265,55 @@ Currently the magic system has the following functions:\n"""
         return response_data['html_url']
 
     def magic_loadpy(self, arg_s):
-        """Load a .py python script into the GUI console.
-
-        This magic command can either take a local filename or a url::
-
-        %loadpy myscript.py
-        %loadpy http://www.example.com/myscript.py
+        """Alias of `%load`
+        
+        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
+        extension. So it has been renamed simply into %load. You can look at
+        `%load`'s docstring for more info.
         """
-        arg_s = unquote_filename(arg_s)
-        remote_url = arg_s.startswith(('http://', 'https://'))
-        local_url = not remote_url
-        if local_url and not arg_s.endswith('.py'):
-            # Local files must be .py; for remote URLs it's possible that the
-            # fetch URL doesn't have a .py in it (many servers have an opaque
-            # URL, such as scipy-central.org).
-            raise ValueError('%%loadpy only works with .py files: %s' % arg_s)
-        
-        # openpy takes care of finding the source encoding (per PEP 263)
-        if remote_url:
-            contents = openpy.read_py_url(arg_s, skip_encoding_cookie=True)
-        else:
-            contents = openpy.read_py_file(arg_s, skip_encoding_cookie=True)
-        
+        self.magic_load(arg_s)
+
+    def magic_load(self, arg_s):
+        """Load code into the current frontend.
+
+        Usage:\\
+          %load [options] source
+
+          where source can be a filename, URL, input history range or macro
+
+        Options:
+        --------
+          -y : Don't ask confirmation for loading source above 200 000 characters.
+
+        This magic command can either take a local filename, a URL, an history
+        range (see %history) or a macro as argument, it will prompt for
+        confirmation before loading source with more than 200 000 characters, unless
+        -y flag is passed or if the frontend does not support raw_input::
+
+        %load myscript.py
+        %load 7-27
+        %load myMacro
+        %load http://www.example.com/myscript.py
+        """
+        opts,args = self.parse_options(arg_s,'y')
+
+        contents = self.shell.find_user_code(args)
+        l = len(contents)
+
+        # 200 000 is ~ 2500 full 80 caracter lines
+        # so in average, more than 5000 lines
+        if l > 200000 and 'y' not in opts:
+            try:
+                ans = self.shell.ask_yes_no(("The text you're trying to load seems pretty big"\
+                " (%d characters). Continue (y/[N]) ?" % l), default='n' )
+            except StdinNotImplementedError:
+                #asume yes if raw input not implemented
+                ans = True
+
+            if ans is False :
+                print 'Operation cancelled.'
+                return
+
         self.set_next_input(contents)
 
     def _find_edit_target(self, args, opts, last_call):
@@ -3323,22 +3344,26 @@ Defaulting color scheme to 'NoColor'"""
                 bkms[args[0]] = args[1]
         self.db['bookmarks'] = bkms
 
+
     def magic_pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.
 
         This magic is similar to the cat utility, but it will assume the file
-        to be Python source and will show it with syntax highlighting. """
+        to be Python source and will show it with syntax highlighting.
 
-        try:
-            filename = get_py_filename(parameter_s)
-            cont = file_read(filename)
-        except IOError:
-            try:
-                cont = eval(parameter_s,self.user_ns)
-            except NameError:
-                cont = None
-        if cont is None:
-            print "Error: no such file or variable"
+        This magic command can either take a local filename, an url,
+        an history range (see %history) or a macro as argument ::
+
+        %pycat myscript.py
+        %pycat 7-27
+        %pycat myMacro
+        %pycat http://www.example.com/myscript.py
+        """
+
+        try :
+            cont = self.shell.find_user_code(parameter_s)
+        except ValueError, IOError:
+            print "Error: no such file, variable, URL, history range or macro"
             return
 
         page.page(self.shell.pycolorize(cont))
