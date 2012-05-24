@@ -78,6 +78,9 @@ ipython help notebook      # show the help for the notebook subcmd
 
 ipython profile create foo # create profile foo w/ default config files
 ipython help profile       # show the help for the profile subcmd
+
+ipython locate             # print the path to the IPython directory
+ipython locate profile foo # print the path to the directory for profile `foo`
 """
 
 #-----------------------------------------------------------------------------
@@ -191,6 +194,21 @@ aliases.update(dict(
 # Main classes and functions
 #-----------------------------------------------------------------------------
 
+
+class LocateIPythonApp(BaseIPythonApplication):
+    description = """print the path to the IPython dir"""
+    subcommands = Dict(dict(
+        profile=('IPython.core.profileapp.ProfileLocate',
+            "print the path to an IPython profile directory",
+        ),
+    ))
+    def start(self):
+        if self.subapp is not None:
+            return self.subapp.start()
+        else:
+            print self.ipython_dir
+
+
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
@@ -229,6 +247,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
         console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
             """Launch the IPython terminal-based Console."""
+        ),
+        locate=('IPython.frontend.terminal.ipapp.LocateIPythonApp',
+            LocateIPythonApp.description
         ),
     ))
 
