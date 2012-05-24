@@ -38,7 +38,7 @@ from IPython.utils.warn import error, warn
 
 # A dict we'll use for each class that has magics, used as temporary storage to
 # pass information between the @line/cell_magic method decorators and the
-# @register_magics class decorator, because the method decorators have no
+# @magics_class class decorator, because the method decorators have no
 # access to the class when they run.  See for more details:
 # http://stackoverflow.com/questions/2366713/can-a-python-decorator-of-an-instance-method-access-the-class
 
@@ -82,7 +82,7 @@ def needs_local_scope(func):
 # Class and method decorators for registering magics
 #-----------------------------------------------------------------------------
 
-def register_magics(cls):
+def magics_class(cls):
     cls.registered = True
     cls.magics = dict(line = magics['line'],
                       cell = magics['cell'])
@@ -294,7 +294,7 @@ class Magics(object):
     - Use the method decorators `@line_magic` and `@cell_magic` to decorate
     individual methods as magic functions, AND
 
-    - Use the class decorator `@register_magics` to ensure that the magic
+    - Use the class decorator `@magics_class` to ensure that the magic
     methods are properly registered at the instance level upon instance
     initialization.
 
@@ -312,7 +312,7 @@ class Magics(object):
     def __init__(self, shell):
         if not(self.__class__.registered):
             raise ValueError('Magics subclass without registration - '
-                             'did you forget to apply @register_magics?')
+                             'did you forget to apply @magics_class?')
         self.shell = shell
         self.options_table = {}
         # The method decorators are run when the instance doesn't exist yet, so

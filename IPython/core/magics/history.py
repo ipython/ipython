@@ -19,7 +19,7 @@ from io import open as io_open
 
 # Our own packages
 from IPython.core.error import StdinNotImplementedError
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 
@@ -27,7 +27,7 @@ from IPython.utils import io
 # Magics class implementation
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class HistoryMagics(Magics):
 
     @skip_doctest

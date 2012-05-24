@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 
 # Our own packages
-from IPython.core.magic import Bunch, Magics, register_magics, line_magic
+from IPython.core.magic import Bunch, Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.warn import error
 
@@ -21,7 +21,7 @@ from IPython.utils.warn import error
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class AutoMagics(Magics):
     """Magics that control various autoX behaviors."""
 

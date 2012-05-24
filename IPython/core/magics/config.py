@@ -17,14 +17,14 @@ import re
 
 # Our own packages
 from IPython.core.error import UsageError
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class ConfigMagics(Magics):
 
     def __init__(self, shell):

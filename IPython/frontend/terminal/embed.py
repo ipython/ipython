@@ -29,7 +29,7 @@ from contextlib import nested
 import warnings
 
 from IPython.core import ultratb
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.ipapp import load_default_config
 
@@ -42,7 +42,7 @@ from IPython.utils.io import ask_yes_no
 #-----------------------------------------------------------------------------
 
 # This is an additional magic that is exposed in embedded shells.
-@register_magics
+@magics_class
 class EmbeddedMagics(Magics):
 
     @line_magic

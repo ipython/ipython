@@ -406,10 +406,10 @@ def superreload(module, reload=reload, old_objects={}):
 #------------------------------------------------------------------------------
 
 from IPython.core.hooks import TryNext
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.plugin import Plugin
 
-@register_magics
+@magics_class
 class AutoreloadMagics(Magics):
     def __init__(self, *a, **kw):
         super(AutoreloadMagics, self).__init__(*a, **kw)

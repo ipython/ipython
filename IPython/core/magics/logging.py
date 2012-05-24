@@ -17,14 +17,14 @@ import os
 import sys
 
 # Our own packages
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class LoggingMagics(Magics):
     """Magics related to all logging machinery."""
 

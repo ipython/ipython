@@ -23,7 +23,7 @@ from urllib2 import urlopen
 # Our own packages
 from IPython.core.error import TryNext
 from IPython.core.macro import Macro
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -39,7 +39,7 @@ from IPython.utils.warn import warn
 class MacroToEdit(ValueError): pass
 
 
-@register_magics
+@magics_class
 class CodeMagics(Magics):
     """Magics related to code management (loading, saving, editing, ...)."""
 

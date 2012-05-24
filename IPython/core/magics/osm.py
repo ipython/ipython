@@ -25,7 +25,7 @@ from pprint import pformat
 from IPython.core import oinspect
 from IPython.core import page
 from IPython.core.error import UsageError
-from IPython.core.magic import  (Magics, compress_dhist, register_magics,
+from IPython.core.magic import  (Magics, compress_dhist, magics_class,
                                  line_magic)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
@@ -35,7 +35,7 @@ from IPython.utils.terminal import set_term_title
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
-@register_magics
+@magics_class
 class OSMagics(Magics):
     """Magics to interact with the underlying OS (shell-type functionality).
     """

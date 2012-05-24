@@ -29,7 +29,7 @@ from IPython.utils.tempdir import TemporaryDirectory
 # Test functions begin
 #-----------------------------------------------------------------------------
 
-@magic.register_magics
+@magic.magics_class
 class DummyMagics(magic.Magics): pass
 
 def test_rehashx():

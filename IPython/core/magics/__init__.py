@@ -12,7 +12,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..magic import Magics, register_magics
+from ..magic import Magics, magics_class
 from .auto import AutoMagics
 from .basic import BasicMagics
 from .code import CodeMagics, MacroToEdit
@@ -30,7 +30,7 @@ from .pylab import PylabMagics
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class UserMagics(Magics):
     """Placeholder for user-defined magics to be added at runtime.
 

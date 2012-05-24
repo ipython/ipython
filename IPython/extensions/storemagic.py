@@ -14,7 +14,7 @@ import inspect, os, sys, textwrap
 
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.plugin import Plugin
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.traitlets import Bool, Instance
@@ -53,7 +53,7 @@ def restore_data(ip):
     restore_dhist(ip)
 
 
-@register_magics
+@magics_class
 class StoreMagics(Magics):
     """Lightweight persistence for python variables.
 

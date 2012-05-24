@@ -20,7 +20,7 @@ import sys
 # Our own packages
 from IPython.core import page
 from IPython.core.error import StdinNotImplementedError
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.path import get_py_filename
@@ -29,7 +29,7 @@ from IPython.utils.path import get_py_filename
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class NamespaceMagics(Magics):
     """Magics to manage various aspects of the user's namespace.
 

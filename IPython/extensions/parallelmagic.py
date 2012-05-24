@@ -37,7 +37,7 @@ Usage
 import ast
 import re
 
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 
 #-----------------------------------------------------------------------------
@@ -49,7 +49,7 @@ Use activate() on a DirectView object to activate it for magics.
 """
 
 
-@register_magics
+@magics_class
 class ParallelMagics(Magics):
     """A set of magics useful when controlling a parallel IPython cluster.
     """

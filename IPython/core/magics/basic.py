@@ -20,7 +20,7 @@ from pprint import pformat
 
 # Our own packages
 from IPython.core.error import UsageError
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils.text import format_screen
 from IPython.core import magic_arguments, page
@@ -33,7 +33,7 @@ from IPython.utils.warn import warn, error
 # Magics class implementation
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class BasicMagics(Magics):
     """Magics that provide central IPython functionality.
 

@@ -25,7 +25,7 @@ from contextlib import nested
 from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage, default_banner
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import get_stream_enc
 from IPython.utils import py3compat
@@ -120,7 +120,7 @@ def rerun_pasted(shell, name='pasted_block'):
 # Terminal-specific magics
 #------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class TerminalMagics(Magics):
 
     @line_magic

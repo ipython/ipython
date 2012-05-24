@@ -14,14 +14,14 @@
 
 # Our own packages
 from IPython.config.application import Application
-from IPython.core.magic import Magics, register_magics, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@register_magics
+@magics_class
 class PylabMagics(Magics):
     """Magics related to matplotlib's pylab support"""
 
