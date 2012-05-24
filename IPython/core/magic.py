@@ -130,15 +130,65 @@ def _magic_marker(magic_type):
         else:
             raise ValueError("Decorator can only be called with "
                              "string or function")
-
         return retval
 
     return magic_deco
 
 
+def _function_magic_marker(magic_type):
+    validate_type(magic_type)
+
+    # This is a closure to capture the magic_type.  We could also use a class,
+    # but it's overkill for just that one bit of state.
+    def magic_deco(arg):
+        call = lambda f, *a, **k: f(*a, **k)
+
+        # Find get_ipython() in the caller's namespace
+        caller = sys._getframe(1)
+        for ns in ['f_locals', 'f_globals', 'f_builtins']:
+            get_ipython = getattr(caller, ns).get('get_ipython')
+            if get_ipython is not None:
+                break
+        else:
+            raise('Decorator can only run in context where `get_ipython` exists')
+
+        ip = get_ipython()
+
+        if callable(arg):
+            # "Naked" decorator call (just @foo, no args)
+            func = arg
+            #name = func.func_name
+            #func.magic_name = name
+            ip.register_magic_function(func)
+            retval = decorator(call, func)
+        elif isinstance(arg, basestring):
+            # Decorator called with arguments (@foo('bar'))
+            name = arg
+            def mark(func, *a, **kw):
+                #func.magic_name = name
+                ip.register_magic_function(func)
+                return decorator(call, func)
+            retval = mark
+        else:
+            raise ValueError("Decorator can only be called with "
+                             "string or function")
+        return retval
+
+    return magic_deco
+
+
+# Create the actual decorators for public use
+
+# These three are used to decorate methods in class definitions
 line_magic = _magic_marker('line')
 cell_magic = _magic_marker('cell')
 line_cell_magic = _magic_marker('line_cell')
+
+# These three decorate standalone functions and perform the decoration
+# immediately.  They can only run where get_ipython() works
+register_line_magic = _function_magic_marker('line')
+register_cell_magic = _function_magic_marker('cell')
+register_line_cell_magic = _function_magic_marker('line_cell')
 
 #-----------------------------------------------------------------------------
 # Core Magic classes

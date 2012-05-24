@@ -1,7 +1,7 @@
 """Implementation of all the magic functions built into IPython.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (c) 2012, IPython Development Team.
+#  Copyright (c) 2012 The IPython Development Team.
 #
 #  Distributed under the terms of the Modified BSD License.
 #
