@@ -261,8 +261,6 @@ class OSMagics(Magics):
           /home/tsuser/parent/child
         """
 
-        #bkms = self.shell.persist.get("bookmarks",{})
-
         oldcwd = os.getcwdu()
         numcd = re.match(r'(-)(\d+)$',parameter_s)
         # jump in directory history by number
@@ -313,15 +311,15 @@ class OSMagics(Magics):
                 raise UsageError('%cd -: No previous directory to change to.')
         # jump to bookmark if needed
         else:
-            if not os.path.isdir(ps) or opts.has_key('b'):
+            if not os.path.isdir(ps) or 'b' in opts:
                 bkms = self.shell.db.get('bookmarks', {})
 
-                if bkms.has_key(ps):
+                if ps in bkms:
                     target = bkms[ps]
                     print '(bookmark:%s) -> %s' % (ps,target)
                     ps = target
                 else:
-                    if opts.has_key('b'):
+                    if 'b' in opts:
                         raise UsageError("Bookmark '%s' not found.  "
                               "Use '%%bookmark -l' to see your bookmarks." % ps)
 
@@ -540,7 +538,7 @@ class OSMagics(Magics):
         # If all looks ok, proceed
         split = 'l' in opts
         out = self.shell.getoutput(cmd, split=split)
-        if opts.has_key('v'):
+        if 'v' in opts:
             print '%s ==\n%s' % (var,pformat(out))
         if var:
             self.shell.user_ns.update({var:out})
@@ -619,7 +617,7 @@ class OSMagics(Magics):
 
         bkms = self.shell.db.get('bookmarks',{})
 
-        if opts.has_key('d'):
+        if 'd' in opts:
             try:
                 todel = args[0]
             except IndexError:
@@ -632,19 +630,19 @@ class OSMagics(Magics):
                     raise UsageError(
                         "%%bookmark -d: Can't delete bookmark '%s'" % todel)
 
-        elif opts.has_key('r'):
+        elif 'r' in opts:
             bkms = {}
-        elif opts.has_key('l'):
+        elif 'l' in opts:
             bks = bkms.keys()
             bks.sort()
             if bks:
-                size = max(map(len,bks))
+                size = max(map(len, bks))
             else:
                 size = 0
             fmt = '%-'+str(size)+'s -> %s'
             print 'Current bookmarks:'
             for bk in bks:
-                print fmt % (bk,bkms[bk])
+                print fmt % (bk, bkms[bk])
         else:
             if not args:
                 raise UsageError("%bookmark: You must specify the bookmark name")
