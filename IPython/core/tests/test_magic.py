@@ -490,3 +490,48 @@ def test_notebook_reformat_json():
 def test_env():
     env = _ip.magic("env")
     assert isinstance(env, dict), type(env)
+
+
+class CellMagicTestCase(TestCase):
+
+    def check_ident(self, magic):
+        out = _ip.cell_magic(magic, 'a', 'b')
+        nt.assert_equals(out, ('a','b'))
+        out = _ip.run_cell('%%' + magic +' a\nb')
+        nt.assert_equals(out, ('a','b'))
+
+    def test_cell_magic_func_deco(self):
+        "Cell magic using simple decorator"
+        @register_cell_magic
+        def cellm(line, cell):
+            return line, cell
+
+        self.check_ident('cellm')
+
+    def test_cell_magic_reg(self):
+        "Cell magic manually registered"
+        def cellm(line, cell):
+            return line, cell
+
+        _ip.register_magic_function(cellm, 'cell', 'cellm2')
+        self.check_ident('cellm2')
+
+    def test_cell_magic_class(self):
+        "Cell magics declared via a class"
+        @magics_class
+        class MyMagics(Magics):
+
+            @cell_magic
+            def cellm3(self, line, cell):
+                return line, cell
+
+            @cell_magic('cellm4')
+            def cellm33(self, line, cell):
+                return line, cell
+
+        _ip.register_magics(MyMagics)
+        self.check_ident('cellm3')
+        self.check_ident('cellm4')
+        # Check that nothing is registered as 'cellm33'
+        c33 = _ip.find_cell_magic('cellm33')
+        nt.assert_equals(c33, None)
