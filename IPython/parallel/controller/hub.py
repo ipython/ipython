@@ -28,6 +28,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
+from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (
         HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
         )
@@ -441,7 +442,7 @@ class Hub(SessionFactory):
         for t in targets:
             # map raw identities to ids
             if isinstance(t, (str,unicode)):
-                t = self.by_ident.get(t, t)
+                t = self.by_ident.get(cast_bytes(t), t)
             _targets.append(t)
         targets = _targets
         bad_targets = [ t for t in targets if t not in self.ids ]
@@ -467,13 +468,13 @@ class Hub(SessionFactory):
         except ValueError:
             idents=[]
         if not idents:
-            self.log.error("Bad Monitor Message: %r", msg)
+            self.log.error("Monitor message without topic: %r", msg)
             return
         handler = self.monitor_handlers.get(switch, None)
         if handler is not None:
             handler(idents, msg)
         else:
-            self.log.error("Invalid monitor topic: %r", switch)
+            self.log.error("Unrecognized monitor topic: %r", switch)
 
 
     @util.log_errors
@@ -719,15 +720,18 @@ class Hub(SessionFactory):
             self.unassigned.remove(msg_id)
 
         header = msg['header']
-        engine_uuid = header.get('engine', None)
-        eid = self.by_ident.get(engine_uuid, None)
+        engine_uuid = header.get('engine', u'')
+        eid = self.by_ident.get(cast_bytes(engine_uuid), None)
+        
+        status = header.get('status', None)
 
         if msg_id in self.pending:
             self.log.info("task::task %r finished on %s", msg_id, eid)
             self.pending.remove(msg_id)
             self.all_completed.add(msg_id)
             if eid is not None:
-                self.completed[eid].append(msg_id)
+                if status != 'aborted':
+                    self.completed[eid].append(msg_id)
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
@@ -760,7 +764,7 @@ class Hub(SessionFactory):
         # print (content)
         msg_id = content['msg_id']
         engine_uuid = content['engine_id']
-        eid = self.by_ident[util.asbytes(engine_uuid)]
+        eid = self.by_ident[cast_bytes(engine_uuid)]
 
         self.log.info("task::task %r arrived on %r", msg_id, eid)
         if msg_id in self.unassigned:
@@ -796,7 +800,7 @@ class Hub(SessionFactory):
 
         parent = msg['parent_header']
         if not parent:
-            self.log.error("iopub::invalid IOPub message: %r", msg)
+            self.log.warn("iopub::IOPub message lacks parent: %r", msg)
             return
         msg_id = parent['msg_id']
         msg_type = msg['header']['msg_type']
@@ -850,13 +854,13 @@ class Hub(SessionFactory):
         """Register a new engine."""
         content = msg['content']
         try:
-            queue = util.asbytes(content['queue'])
+            queue = cast_bytes(content['queue'])
         except KeyError:
             self.log.error("registration::queue not specified", exc_info=True)
             return
         heart = content.get('heartbeat', None)
         if heart:
-            heart = util.asbytes(heart)
+            heart = cast_bytes(heart)
         """register a new engine, and create the socket(s) necessary"""
         eid = self._next_id
         # print (eid, queue, reg, heart)
@@ -1130,7 +1134,7 @@ class Hub(SessionFactory):
 
         # validate msg_ids
         found_ids = [ rec['msg_id'] for rec in records ]
-        invalid_ids = filter(lambda m: m in self.pending, found_ids)
+        pending_ids = [ msg_id for msg_id in found_ids if msg_id in self.pending ]
         if len(records) > len(msg_ids):
             try:
                 raise RuntimeError("DB appears to be in an inconsistent state."
@@ -1143,40 +1147,46 @@ class Hub(SessionFactory):
                 raise KeyError("No such msg(s): %r" % missing)
             except KeyError:
                 return finish(error.wrap_exception())
-        elif invalid_ids:
-            msg_id = invalid_ids[0]
+        elif pending_ids:
+            pass
+            # no need to raise on resubmit of pending task, now that we
+            # resubmit under new ID, but do we want to raise anyway?
+            # msg_id = invalid_ids[0]
+            # try:
+            #     raise ValueError("Task(s) %r appears to be inflight" % )
+            # except Exception:
+            #     return finish(error.wrap_exception())
+
+        # mapping of original IDs to resubmitted IDs
+        resubmitted = {}
+
+        # send the messages
+        for rec in records:
+            header = rec['header']
+            msg = self.session.msg(header['msg_type'])
+            msg_id = msg['msg_id']
+            msg['content'] = rec['content']
+            header.update(msg['header'])
+            msg['header'] = header
+
+            self.session.send(self.resubmit, msg, buffers=rec['buffers'])
+
+            resubmitted[rec['msg_id']] = msg_id
+            self.pending.add(msg_id)
+            msg['buffers'] = []
             try:
-                raise ValueError("Task %r appears to be inflight" % msg_id)
+                self.db.add_record(msg_id, init_record(msg))
             except Exception:
-                return finish(error.wrap_exception())
+                self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
 
-        # clear the existing records
-        now = datetime.now()
-        rec = empty_record()
-        map(rec.pop, ['msg_id', 'header', 'content', 'buffers', 'submitted'])
-        rec['resubmitted'] = now
-        rec['queue'] = 'task'
-        rec['client_uuid'] = client_id[0]
-        try:
-            for msg_id in msg_ids:
-                self.all_completed.discard(msg_id)
-                self.db.update_record(msg_id, rec)
-        except Exception:
-            self.log.error('db::db error upating record', exc_info=True)
-            reply = error.wrap_exception()
-        else:
-            # send the messages
-            for rec in records:
-                header = rec['header']
-                # include resubmitted in header to prevent digest collision
-                header['resubmitted'] = now
-                msg = self.session.msg(header['msg_type'])
-                msg['content'] = rec['content']
-                msg['header'] = header
-                msg['header']['msg_id'] = rec['msg_id']
-                self.session.send(self.resubmit, msg, buffers=rec['buffers'])
-
-        finish(dict(status='ok'))
+        finish(dict(status='ok', resubmitted=resubmitted))
+        
+        # store the new IDs in the Task DB
+        for msg_id, resubmit_id in resubmitted.iteritems():
+            try:
+                self.db.update_record(msg_id, {'resubmitted' : resubmit_id})
+            except Exception:
+                self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
 
 
     def _extract_record(self, rec):

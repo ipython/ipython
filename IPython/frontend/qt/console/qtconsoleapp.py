@@ -101,9 +101,7 @@ ipython qtconsole --pylab=inline  # start with pylab in inline plotting mode
 # start with copy of flags
 flags = dict(flags)
 qt_flags = {
-    'pure' : ({'IPythonQtConsoleApp' : {'pure' : True}},
-            "Use a pure Python kernel instead of an IPython kernel."),
-    'plain' : ({'ConsoleWidget' : {'kind' : 'plain'}},
+    'plain' : ({'IPythonQtConsoleApp' : {'plain' : True}},
             "Disable rich text support."),
 }
 qt_flags.update(boolean_flag(
@@ -180,17 +178,13 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
-    def _pure_changed(self, name, old, new):
-        kind = 'plain' if self.plain else 'rich'
+    def _plain_changed(self, name, old, new):
+        kind = 'plain' if new else 'rich'
         self.config.ConsoleWidget.kind = kind
-        if self.pure:
-            self.widget_factory = FrontendWidget
-        elif self.plain:
+        if new:
             self.widget_factory = IPythonWidget
         else:
             self.widget_factory = RichIPythonWidget
-
-    _plain_changed = _pure_changed
 
     # the factory for creating a widget
     widget_factory = Any(RichIPythonWidget)
@@ -210,7 +204,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
                                 config=self.config,
         )
         # start the kernel
-        kwargs = dict(ipython=not self.pure)
+        kwargs = dict()
         kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
         kernel_manager.start_channels()
@@ -273,16 +267,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.window.add_tab_with_frontend(self.widget)
         self.window.init_menu_bar()
 
-        self.window.setWindowTitle('Python' if self.pure else 'IPython')
+        self.window.setWindowTitle('IPython')
 
     def init_colors(self, widget):
         """Configure the coloring of the widget"""
         # Note: This will be dramatically simplified when colors
         # are removed from the backend.
-
-        if self.pure:
-            # only IPythonWidget supports styling
-            return
 
         # parse the colors arg down to current known labels
         try:

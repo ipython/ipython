@@ -132,6 +132,30 @@ class Application(SingletonConfigurable):
             new = getattr(logging, new)
             self.log_level = new
         self.log.setLevel(new)
+    
+    log_format = Unicode("[%(name)s] %(message)s", config=True,
+        help="The Logging format template",
+    )
+    log = Instance(logging.Logger)
+    def _log_default(self):
+        """Start logging for this application.
+
+        The default is to log to stdout using a StreaHandler. The log level
+        starts at loggin.WARN, but this can be adjusted by setting the
+        ``log_level`` attribute.
+        """
+        log = logging.getLogger(self.__class__.__name__)
+        log.setLevel(self.log_level)
+        if sys.executable.endswith('pythonw.exe'):
+            # this should really go to a file, but file-logging is only
+            # hooked up in parallel applications
+            _log_handler = logging.StreamHandler(open(os.devnull, 'w'))
+        else:
+            _log_handler = logging.StreamHandler()
+        _log_formatter = logging.Formatter(self.log_format)
+        _log_handler.setFormatter(_log_formatter)
+        log.addHandler(_log_handler)
+        return log
 
     # the alias map for configurables
     aliases = Dict({'log-level' : 'Application.log_level'})
@@ -169,31 +193,10 @@ class Application(SingletonConfigurable):
         if self.__class__ not in self.classes:
             self.classes.insert(0, self.__class__)
 
-        self.init_logging()
-
     def _config_changed(self, name, old, new):
         SingletonConfigurable._config_changed(self, name, old, new)
         self.log.debug('Config changed:')
         self.log.debug(repr(new))
-
-    def init_logging(self):
-        """Start logging for this application.
-
-        The default is to log to stdout using a StreaHandler. The log level
-        starts at loggin.WARN, but this can be adjusted by setting the
-        ``log_level`` attribute.
-        """
-        self.log = logging.getLogger(self.__class__.__name__)
-        self.log.setLevel(self.log_level)
-        if sys.executable.endswith('pythonw.exe'):
-            # this should really go to a file, but file-logging is only
-            # hooked up in parallel applications
-            self._log_handler = logging.StreamHandler(open(os.devnull, 'w'))
-        else:
-            self._log_handler = logging.StreamHandler()
-        self._log_formatter = logging.Formatter("[%(name)s] %(message)s")
-        self._log_handler.setFormatter(self._log_formatter)
-        self.log.addHandler(self._log_handler)
 
     @catch_config_error
     def initialize(self, argv=None):

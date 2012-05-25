@@ -781,9 +781,6 @@ class KernelManager(HasTraits):
 
         Parameters:
         -----------
-        ipython : bool, optional (default True)
-             Whether to use an IPython kernel instead of a plain Python kernel.
-
         launcher : callable, optional (default None)
              A custom function for launching the kernel process (generally a
              wrapper around ``entry_point.base_launch_kernel``). In most cases,
@@ -805,10 +802,7 @@ class KernelManager(HasTraits):
         self._launch_args = kw.copy()
         launch_kernel = kw.pop('launcher', None)
         if launch_kernel is None:
-            if kw.pop('ipython', True):
-                from ipkernel import launch_kernel
-            else:
-                from pykernel import launch_kernel
+            from ipkernel import launch_kernel
         self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
