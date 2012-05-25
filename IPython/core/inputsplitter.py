@@ -156,7 +156,8 @@ def last_blank(src):
     return src == '\n' or bool(last_blank_re.match(src))
 
 
-last_two_blanks_re = re.compile(r'^.*\n\s*\n\s*$', re.MULTILINE)
+last_two_blanks_re = re.compile(r'^\n\s*\n\s*$', re.MULTILINE)
+last_two_blanks_re2 = re.compile(r'^.+\n\s*\n\s+$', re.MULTILINE)
 
 def last_two_blanks(src):
     """Determine if the input source ends in two blanks.
@@ -168,7 +169,8 @@ def last_two_blanks(src):
     src : string
       A single or multiline string.
     """
-    return bool(last_two_blanks_re.match(src))
+    return (bool(last_two_blanks_re.match(src)) or
+            bool(last_two_blanks_re2.match(src)) )
 
 
 def remove_comments(src):

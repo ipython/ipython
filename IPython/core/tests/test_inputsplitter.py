@@ -616,17 +616,20 @@ def test_last_two_blanks():
     nt.assert_false(isp.last_two_blanks('abc'))
     nt.assert_false(isp.last_two_blanks('abc\n'))
     nt.assert_false(isp.last_two_blanks('abc\n\na'))
+    nt.assert_false(isp.last_two_blanks('abc\n \n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\n'))
 
     nt.assert_true(isp.last_two_blanks('\n\n'))
     nt.assert_true(isp.last_two_blanks('\n\n '))
     nt.assert_true(isp.last_two_blanks('\n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\n \n'))
     nt.assert_true(isp.last_two_blanks('abc\n\n '))
-    nt.assert_true(isp.last_two_blanks('abc\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
 
 
-def test_cell_magics():
-    from IPython.core import magic
+def test_cell_magics_line_mode():
 
     cell = """\
 %%cellm line
@@ -646,6 +649,32 @@ body
     sp.push('\n')
     nt.assert_true(sp.push_accepts_more()) #2
     sp.push('\n')
+    nt.assert_false(sp.push_accepts_more()) #3
+
+
+def test_cell_magics_cell_mode():
+
+    cell = """\
+%%cellm line
+body
+"""
+    sp = isp.IPythonInputSplitter(input_mode='cell')
+    sp.push(cell)
+    nt.assert_equal(sp.cell_magic_parts, ['body\n'])
+    out = sp.source
+    ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+    nt.assert_equal(out, ref)
+
+    sp.reset()
+
+    src = '%%cellm line2\n'
+    sp.push(src)
+    nt.assert_true(sp.push_accepts_more()) #1
+    src += '\n'
+    sp.push(src)
+    nt.assert_true(sp.push_accepts_more()) #2
+    src += '\n'
+    sp.push(src)
     nt.assert_false(sp.push_accepts_more()) #3
 
 
