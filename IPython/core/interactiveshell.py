@@ -2027,12 +2027,11 @@ class InteractiveShell(SingletonConfigurable):
         """
         fn = self.find_line_magic(magic_name)
         if fn is None:
-            em = "Line magic function `%%%s` not found" % magic_name
             cm = self.find_cell_magic(magic_name)
-            if cm is not None:
-                em += (' (Did you by chance mean the cell magic `%%%%%s` '
-                       'instead?).')
-            error()
+            etpl = "Line magic function `%%%s` not found%s."
+            extra = '' if cm is None else (' (But cell magic `%%%%%s` exists, '
+                                    'did you mean that instead?)' % magic_name )
+            error(etpl % (magic_name, extra))
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
@@ -2053,7 +2052,11 @@ class InteractiveShell(SingletonConfigurable):
         """
         fn = self.find_cell_magic(magic_name)
         if fn is None:
-            error("Cell magic function `%%%%%s` not found." % magic_name)
+            lm = self.find_line_magic(magic_name)
+            etpl = "Cell magic function `%%%%%s` not found%s."
+            extra = '' if lm is None else (' (But line magic `%%%s` exists, '
+                                    'did you mean that instead?)' % magic_name )
+            error(etpl % (magic_name, extra))
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
