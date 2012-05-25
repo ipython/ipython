@@ -775,8 +775,7 @@ class IPythonInputSplitter(InputSplitter):
         #print (repr(lines)+'\n+++')
         #print('raw', self._buffer_raw, 'validate', self.cell_magic_mode)
         # Only trigger this block if we're at a 'fresh' pumping start.
-        if lines.startswith('%%') and (not self.cell_magic_mode) and \
-          not self._buffer_raw:
+        if lines.startswith('%%'):
             # Cell magics bypass all further transformations
             self.cell_magic_mode = True
             first, _, body = lines.partition('\n')
@@ -791,8 +790,9 @@ class IPythonInputSplitter(InputSplitter):
             tlines = tpl % (magic_name, line)
             self._store(tlines)
             self._store(lines, self._buffer_raw, 'source_raw')
-            self._is_complete = False
-            return False
+            self._is_complete = last_two_blanks(lines)
+            #print('IC', self._is_complete) # dbg
+            return self._is_complete
 
         if self.cell_magic_mode:
             #print('c2 lines', repr(lines))  # dbg

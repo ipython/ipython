@@ -631,7 +631,7 @@ def test_last_two_blanks():
     nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
     nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
     nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
-    nt.assert_true(isp.last_two_blanks('abc\nd\ns\nds\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
 
 
 def test_cell_magics_line_mode():
