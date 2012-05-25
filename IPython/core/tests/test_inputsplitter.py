@@ -604,10 +604,25 @@ def test_last_blank():
     nt.assert_false(isp.last_blank('abc'))
     nt.assert_false(isp.last_blank('abc\n'))
     nt.assert_false(isp.last_blank('abc\na'))
+
     nt.assert_true(isp.last_blank('\n'))
     nt.assert_true(isp.last_blank('\n '))
     nt.assert_true(isp.last_blank('abc\n '))
     nt.assert_true(isp.last_blank('abc\n\n'))
+
+
+def test_last_two_blanks():
+    nt.assert_false(isp.last_two_blanks(''))
+    nt.assert_false(isp.last_two_blanks('abc'))
+    nt.assert_false(isp.last_two_blanks('abc\n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\na'))
+
+    nt.assert_true(isp.last_two_blanks('\n\n'))
+    nt.assert_true(isp.last_two_blanks('\n\n '))
+    nt.assert_true(isp.last_two_blanks('\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n'))
 
 
 def test_cell_magics():

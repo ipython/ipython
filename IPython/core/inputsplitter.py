@@ -141,6 +141,7 @@ def num_ini_spaces(s):
     else:
         return 0
 
+last_blank_re = re.compile(r'^.*\n\s+$', re.MULTILINE)
 
 def last_blank(src):
     """Determine if the input source ends in a blank.
@@ -152,9 +153,22 @@ def last_blank(src):
     src : string
       A single or multiline string.
     """
-    if not src: return False
-    ll  = src.splitlines()[-1]
-    return (ll == '') or ll.isspace()
+    return src == '\n' or bool(last_blank_re.match(src))
+
+
+last_two_blanks_re = re.compile(r'^.*\n\s*\n\s*$', re.MULTILINE)
+
+def last_two_blanks(src):
+    """Determine if the input source ends in two blanks.
+
+    A blank is either a newline or a line consisting of whitespace.
+
+    Parameters
+    ----------
+    src : string
+      A single or multiline string.
+    """
+    return bool(last_two_blanks_re.match(src))
 
 
 def remove_comments(src):
@@ -820,6 +834,76 @@ class IPythonInputSplitter(InputSplitter):
             out = push(line)
         return out
 
+
+    def _push_cell_mode(self, lines):
+        """Push in cell mode.
+
+        This means that we get the entire cell with each call.  Between resets,
+        the calls simply add more text to the input."""
+
+        if lines.startswith('%%'):
+            # Cell magics bypass all further transformations
+            self.cell_magic_mode = True
+            first, _, body = lines.partition('\n')
+            magic_name, _, line = first.partition(' ')
+            magic_name = magic_name.lstrip(ESC_MAGIC)
+            # We store the body of the cell and create a call to a method that
+            # will use this stored value. This is ugly, but it's a first cut to
+            # get it all working, as right now changing the return API of our
+            # methods would require major refactoring.
+            self.cell_magic_parts = [body]
+            tpl = 'get_ipython()._cell_magic(%r, %r)'
+            tlines = tpl % (magic_name, line)
+            self._store(tlines)
+            self._store(lines, self._buffer_raw, 'source_raw')
+            self._is_complete = last_two_blanks(lines)
+            return self._is_complete
+
+        lines_list = lines.splitlines()
+
+        transforms = [transform_ipy_prompt, transform_classic_prompt,
+                      transform_help_end, transform_escaped,
+                      transform_assign_system, transform_assign_magic]
+
+        # Transform logic
+        #
+        # We only apply the line transformers to the input if we have either no
+        # input yet, or complete input, or if the last line of the buffer ends
+        # with ':' (opening an indented block).  This prevents the accidental
+        # transformation of escapes inside multiline expressions like
+        # triple-quoted strings or parenthesized expressions.
+        #
+        # The last heuristic, while ugly, ensures that the first line of an
+        # indented block is correctly transformed.
+        #
+        # FIXME: try to find a cleaner approach for this last bit.
+
+        # In cell mode, since we're going to pump the parent class by hand line
+        # by line, we need to temporarily switch out to 'line' mode, do a
+        # single manual reset and then feed the lines one by one.  Note that
+        # this only matters if the input has more than one line.
+        self.reset()
+        self.input_mode = 'line'
+
+        # Store raw source before applying any transformations to it.  Note
+        # that this must be done *after* the reset() call that would otherwise
+        # flush the buffer.
+        self._store(lines, self._buffer_raw, 'source_raw')
+
+        try:
+            push = super(IPythonInputSplitter, self).push
+            buf = self._buffer
+            for line in lines_list:
+                if self._is_complete or not buf or \
+                       (buf and buf[-1].rstrip().endswith((':', ','))):
+                    for f in transforms:
+                        line = f(line)
+
+                out = push(line)
+        finally:
+            self.input_mode = 'cell'
+        return out
+
     def push(self, lines):
         """Push one or more lines of IPython input.
 
@@ -843,8 +927,6 @@ class IPythonInputSplitter(InputSplitter):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-        print('mode:', self.input_mode)
-        print('lines:',repr(lines))
         if not lines:
             return super(IPythonInputSplitter, self).push(lines)
 
@@ -853,9 +935,8 @@ class IPythonInputSplitter(InputSplitter):
 
         if self.input_mode == 'line':
             return self._push_line_mode(lines)
-
-        ## else:
-        ##     return self._push_cell_mode(lines)
+        else:
+            return self._push_cell_mode(lines)
 
         lines_list = lines.splitlines()
 
