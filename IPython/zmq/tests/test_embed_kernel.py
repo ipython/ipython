@@ -23,7 +23,7 @@ from subprocess import Popen, PIPE
 import nose.tools as nt
 
 from IPython.zmq.blockingkernelmanager import BlockingKernelManager
-from IPython.utils import path
+from IPython.utils import path, py3compat
 
 
 #-------------------------------------------------------------------------------
@@ -68,16 +68,18 @@ def setup_kernel(cmd):
     )
     # wait for connection file to exist, timeout after 5s
     tic = time.time()
-    while not os.path.exists(connection_file) and kernel.poll() is None and time.time() < tic + 5:
+    while not os.path.exists(connection_file) and kernel.poll() is None and time.time() < tic + 10:
         time.sleep(0.1)
+    
+    if kernel.poll() is not None:
+        o,e = kernel.communicate()
+        e = py3compat.cast_unicode(e)
+        raise IOError("Kernel failed to start:\n%s" % e)
     
     if not os.path.exists(connection_file):
         if kernel.poll() is None:
             kernel.terminate()
         raise IOError("Connection file %r never arrived" % connection_file)
-    
-    if kernel.poll() is not None:
-        raise IOError("Kernel failed to start")
     
     km = BlockingKernelManager(connection_file=connection_file)
     km.load_connection_file()
