@@ -36,6 +36,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
+from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
                                     Dict, List, Bool, Set, Any)
 from IPython.external.decorator import decorator
@@ -71,6 +72,60 @@ def spin_first(f, self, *args, **kwargs):
 # Classes
 #--------------------------------------------------------------------------
 
+
+class ExecuteReply(object):
+    """wrapper for finished Execute results"""
+    def __init__(self, msg_id, content, metadata):
+        self.msg_id = msg_id
+        self._content = content
+        self.execution_count = content['execution_count']
+        self.metadata = metadata
+    
+    def __getitem__(self, key):
+        return self.metadata[key]
+    
+    def __getattr__(self, key):
+        if key not in self.metadata:
+            raise AttributeError(key)
+        return self.metadata[key]
+    
+    def __repr__(self):
+        pyout = self.metadata['pyout'] or {}
+        text_out = pyout.get('data', {}).get('text/plain', '')
+        if len(text_out) > 32:
+            text_out = text_out[:29] + '...'
+        
+        return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
+    
+    def _repr_html_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("text/html")
+    
+    def _repr_latex_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("text/latex")
+    
+    def _repr_json_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("application/json")
+    
+    def _repr_javascript_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("application/javascript")
+    
+    def _repr_png_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/png")
+    
+    def _repr_jpeg_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/jpeg")
+    
+    def _repr_svg_(self):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        return pyout['data'].get("image/svg+xml")
+
+
 class Metadata(dict):
     """Subclass of dict for initializing metadata values.
 
@@ -97,6 +152,7 @@ class Metadata(dict):
               'pyerr' : None,
               'stdout' : '',
               'stderr' : '',
+              'outputs' : [],
             }
         self.update(md)
         self.update(dict(*args, **kwargs))
@@ -308,15 +364,19 @@ class Client(HasTraits):
         if self._cd is not None:
             if url_or_file is None:
                 url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
-        assert url_or_file is not None, "I can't find enough information to connect to a hub!"\
-            " Please specify at least one of url_or_file or profile."
+        if url_or_file is None:
+            raise ValueError(
+                "I can't find enough information to connect to a hub!"
+                " Please specify at least one of url_or_file or profile."
+            )
 
         if not util.is_url(url_or_file):
             # it's not a url, try for a file
             if not os.path.exists(url_or_file):
                 if self._cd:
                     url_or_file = os.path.join(self._cd.security_dir, url_or_file)
-                assert os.path.exists(url_or_file), "Not a valid connection file or url: %r"%url_or_file
+                if not os.path.exists(url_or_file):
+                    raise IOError("Connection file not found: %r" % url_or_file)
             with open(url_or_file) as f:
                 cfg = json.loads(f.read())
         else:
@@ -369,7 +429,7 @@ class Client(HasTraits):
             if os.path.isfile(exec_key):
                 extra_args['keyfile'] = exec_key
             else:
-                exec_key = util.asbytes(exec_key)
+                exec_key = cast_bytes(exec_key)
                 extra_args['key'] = exec_key
         self.session = Session(**extra_args)
 
@@ -467,7 +527,7 @@ class Client(HasTraits):
         if not isinstance(targets, (tuple, list, xrange)):
             raise TypeError("targets by int/slice/collection of ints only, not %s"%(type(targets)))
 
-        return [util.asbytes(self._engines[t]) for t in targets], list(targets)
+        return [cast_bytes(self._engines[t]) for t in targets], list(targets)
 
     def _connect(self, sshserver, ssh_kwargs, timeout):
         """setup all our socket connections to the cluster. This is called from
@@ -628,7 +688,30 @@ class Client(HasTraits):
                 print ("got unknown result: %s"%msg_id)
         else:
             self.outstanding.remove(msg_id)
-        self.results[msg_id] = self._unwrap_exception(msg['content'])
+
+        content = msg['content']
+        header = msg['header']
+
+        # construct metadata:
+        md = self.metadata[msg_id]
+        md.update(self._extract_metadata(header, parent, content))
+        # is this redundant?
+        self.metadata[msg_id] = md
+        
+        e_outstanding = self._outstanding_dict[md['engine_uuid']]
+        if msg_id in e_outstanding:
+            e_outstanding.remove(msg_id)
+
+        # construct result:
+        if content['status'] == 'ok':
+            self.results[msg_id] = ExecuteReply(msg_id, content, md)
+        elif content['status'] == 'aborted':
+            self.results[msg_id] = error.TaskAborted(msg_id)
+        elif content['status'] == 'resubmitted':
+            # TODO: handle resubmission
+            pass
+        else:
+            self.results[msg_id] = self._unwrap_exception(content)
 
     def _handle_apply_reply(self, msg):
         """Save the reply to an apply_request into our results."""
@@ -750,8 +833,13 @@ class Client(HasTraits):
                 md.update({'pyerr' : self._unwrap_exception(content)})
             elif msg_type == 'pyin':
                 md.update({'pyin' : content['code']})
+            elif msg_type == 'display_data':
+                md['outputs'].append(content)
+            elif msg_type == 'pyout':
+                md['pyout'] = content
             else:
-                md.update({msg_type : content.get('data', '')})
+                # unhandled msg_type (status, etc.)
+                pass
 
             # reduntant?
             self.metadata[msg_id] = md
@@ -848,14 +936,14 @@ class Client(HasTraits):
         """
         if self._notification_socket:
             self._flush_notifications()
+        if self._iopub_socket:
+            self._flush_iopub(self._iopub_socket)
         if self._mux_socket:
             self._flush_results(self._mux_socket)
         if self._task_socket:
             self._flush_results(self._task_socket)
         if self._control_socket:
             self._flush_control(self._control_socket)
-        if self._iopub_socket:
-            self._flush_iopub(self._iopub_socket)
         if self._query_socket:
             self._flush_ignored_hub_replies()
 
@@ -1024,14 +1112,16 @@ class Client(HasTraits):
 
         return result
 
-    def send_apply_message(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
+    def send_apply_request(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
                             ident=None):
         """construct and send an apply message via a socket.
 
         This is the principal method with which all engine execution is performed by views.
         """
 
-        assert not self._closed, "cannot use me anymore, I'm closed!"
+        if self._closed:
+            raise RuntimeError("Client cannot be used after its sockets have been closed")
+        
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
@@ -1051,6 +1141,43 @@ class Client(HasTraits):
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
                             subheader=subheader, track=track)
+
+        msg_id = msg['header']['msg_id']
+        self.outstanding.add(msg_id)
+        if ident:
+            # possibly routed to a specific engine
+            if isinstance(ident, list):
+                ident = ident[-1]
+            if ident in self._engines.values():
+                # save for later, in case of engine death
+                self._outstanding_dict[ident].add(msg_id)
+        self.history.append(msg_id)
+        self.metadata[msg_id]['submitted'] = datetime.now()
+
+        return msg
+
+    def send_execute_request(self, socket, code, silent=True, subheader=None, ident=None):
+        """construct and send an execute request via a socket.
+
+        """
+
+        if self._closed:
+            raise RuntimeError("Client cannot be used after its sockets have been closed")
+        
+        # defaults:
+        subheader = subheader if subheader is not None else {}
+
+        # validate arguments
+        if not isinstance(code, basestring):
+            raise TypeError("code must be text, not %s" % type(code))
+        if not isinstance(subheader, dict):
+            raise TypeError("subheader must be dict, not %s" % type(subheader))
+        
+        content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
+
+
+        msg = self.session.send(socket, "execute_request", content=content, ident=ident,
+                            subheader=subheader)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1221,12 +1348,6 @@ class Client(HasTraits):
                 raise TypeError("indices must be str or int, not %r"%id)
             theids.append(id)
 
-        for msg_id in theids:
-            self.outstanding.discard(msg_id)
-            if msg_id in self.history:
-                self.history.remove(msg_id)
-            self.results.pop(msg_id, None)
-            self.metadata.pop(msg_id, None)
         content = dict(msg_ids = theids)
 
         self.session.send(self._query_socket, 'resubmit_request', content)
@@ -1238,8 +1359,10 @@ class Client(HasTraits):
         content = msg['content']
         if content['status'] != 'ok':
             raise self._unwrap_exception(content)
+        mapping = content['resubmitted']
+        new_ids = [ mapping[msg_id] for msg_id in theids ]
 
-        ar = AsyncHubResult(self, msg_ids=theids)
+        ar = AsyncHubResult(self, msg_ids=new_ids)
 
         if block:
             ar.wait()

@@ -23,9 +23,10 @@ from zmq.devices import ThreadDevice
 from zmq.eventloop import ioloop, zmqstream
 
 from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import Set, Instance, CFloat, Integer
 
-from IPython.parallel.util import asbytes, log_errors
+from IPython.parallel.util import log_errors
 
 class Heart(object):
     """A basic heart object for responding to a HeartMonitor.
@@ -123,7 +124,7 @@ class HeartMonitor(LoggingConfigurable):
         self.responses = set()
         # print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts", self.lifetime, len(self.hearts))
-        self.pingstream.send(asbytes(str(self.lifetime)))
+        self.pingstream.send(str_to_bytes(str(self.lifetime)))
         # flush stream to force immediate socket send
         self.pingstream.flush()
 
@@ -151,8 +152,8 @@ class HeartMonitor(LoggingConfigurable):
     @log_errors
     def handle_pong(self, msg):
         "a heart just beat"
-        current = asbytes(str(self.lifetime))
-        last = asbytes(str(self.last_ping))
+        current = str_to_bytes(str(self.lifetime))
+        last = str_to_bytes(str(self.last_ping))
         if msg[1] == current:
             delta = time.time()-self.tic
             # self.log.debug("heartbeat::heart %r took %.2f ms to respond"%(msg[0], 1000*delta))

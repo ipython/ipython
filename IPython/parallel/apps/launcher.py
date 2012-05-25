@@ -23,6 +23,7 @@ import copy
 import logging
 import os
 import stat
+import sys
 import time
 
 # signal imports, handling various platforms, versions
@@ -59,8 +60,8 @@ from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import (
     Any, Integer, CFloat, List, Unicode, Dict, Instance, HasTraits, CRegExp
 )
-from IPython.utils.path import get_ipython_module_path, get_home_dir
-from IPython.utils.process import find_cmd, pycmd2argv, FindCmdError
+from IPython.utils.path import get_home_dir
+from IPython.utils.process import find_cmd, FindCmdError
 
 from .win32support import forward_read_events
 
@@ -72,18 +73,13 @@ WINDOWS = os.name == 'nt'
 # Paths to the kernel apps
 #-----------------------------------------------------------------------------
 
+cmd = "from IPython.parallel.apps.%s import launch_new_instance; launch_new_instance()"
 
-ipcluster_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.apps.ipclusterapp'
-))
+ipcluster_cmd_argv = [sys.executable, "-c", cmd % "ipclusterapp"]
 
-ipengine_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.apps.ipengineapp'
-))
+ipengine_cmd_argv = [sys.executable, "-c", cmd % "ipengineapp"]
 
-ipcontroller_cmd_argv = pycmd2argv(get_ipython_module_path(
-    'IPython.parallel.apps.ipcontrollerapp'
-))
+ipcontroller_cmd_argv = [sys.executable, "-c", cmd % "ipcontrollerapp"]
 
 #-----------------------------------------------------------------------------
 # Base launchers and errors

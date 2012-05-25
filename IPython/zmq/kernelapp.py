@@ -15,15 +15,18 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
+# Standard library imports
+import atexit
 import json
 import os
 import sys
+import signal
 
-# System library imports.
+# System library imports
 import zmq
+from zmq.eventloop import ioloop
 
-# IPython imports.
+# IPython imports
 from IPython.core.ultratb import FormattedTB
 from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases, catch_config_error
@@ -82,17 +85,18 @@ kernel_flags.update(session_flags)
 #-----------------------------------------------------------------------------
 
 class KernelApp(BaseIPythonApplication):
-    name='pykernel'
+    name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
     classes = [Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.zmq.pykernel.Kernel')
+    kernel_class = DottedObjectName('IPython.zmq.ipkernel.Kernel')
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
     session = Instance('IPython.zmq.session.Session')
     ports = Dict()
+    _full_connection_file = Unicode()
     
     # inherit config file name from parent:
     parent_appname = Unicode(config=True)
@@ -163,6 +167,8 @@ class KernelApp(BaseIPythonApplication):
             fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])
         except IOError:
             self.log.debug("Connection file not found: %s", self.connection_file)
+            # This means I own it, so I will clean it up:
+            atexit.register(self.cleanup_connection_file)
             return
         self.log.debug(u"Loading connection file %s", fname)
         with open(fname) as f:
@@ -188,6 +194,16 @@ class KernelApp(BaseIPythonApplication):
         write_connection_file(cf, ip=self.ip, key=self.session.key,
         shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
         iopub_port=self.iopub_port)
+        
+        self._full_connection_file = cf
+    
+    def cleanup_connection_file(self):
+        cf = self._full_connection_file
+        self.log.debug("cleaning up connection file: %r", cf)
+        try:
+            os.remove(cf)
+        except (IOError, OSError):
+            pass
     
     def init_connection_file(self):
         if not self.connection_file:
@@ -216,18 +232,23 @@ class KernelApp(BaseIPythonApplication):
         self.stdin_socket = context.socket(zmq.ROUTER)
         self.stdin_port = self._bind_socket(self.stdin_socket, self.stdin_port)
         self.log.debug("stdin ROUTER Channel on port: %i"%self.stdin_port)
-        
+    
+    def init_heartbeat(self):
+        """start the heart beating"""
         # heartbeat doesn't share context, because it mustn't be blocked
         # by the GIL, which is accessed by libzmq when freeing zero-copy messages
         hb_ctx = zmq.Context()
         self.heartbeat = Heartbeat(hb_ctx, (self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
+        self.heartbeat.start()
 
         # Helper to make it easier to connect to an existing kernel.
         # set log-level to critical, to make sure it is output
         self.log.critical("To connect another client to this kernel, use:")
-        
+    
+    def log_connection_info(self):
+        """display connection info, and store ports"""
         basename = os.path.basename(self.connection_file)
         if basename == self.connection_file or \
             os.path.dirname(self.connection_file) == self.profile_dir.security_dir:
@@ -267,6 +288,9 @@ class KernelApp(BaseIPythonApplication):
             displayhook_factory = import_item(str(self.displayhook_class))
             sys.displayhook = displayhook_factory(self.session, self.iopub_socket)
 
+    def init_signal(self):
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+
     def init_kernel(self):
         """Create the Kernel object itself"""
         kernel_factory = import_item(str(self.kernel_class))
@@ -286,9 +310,12 @@ class KernelApp(BaseIPythonApplication):
         self.init_session()
         self.init_poller()
         self.init_sockets()
-        # writing connection file must be *after* init_sockets
+        self.init_heartbeat()
+        # writing/displaying connection info must be *after* init_sockets/heartbeat
+        self.log_connection_info()
         self.write_connection_file()
         self.init_io()
+        self.init_signal()
         self.init_kernel()
         # flush stdout/stderr, so that anything written to these streams during
         # initialization do not get associated with the first execution request
@@ -296,11 +323,11 @@ class KernelApp(BaseIPythonApplication):
         sys.stderr.flush()
 
     def start(self):
-        self.heartbeat.start()
         if self.poller is not None:
             self.poller.start()
+        self.kernel.start()
         try:
-            self.kernel.start()
+            ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
             pass
 

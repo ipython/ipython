@@ -403,8 +403,9 @@ class HistoryManager(HistoryAccessor):
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
-        self.save_thread = HistorySavingThread(self)
-        self.save_thread.start()
+        if self.hist_file != ':memory:':
+            self.save_thread = HistorySavingThread(self)
+            self.save_thread.start()
 
         self.new_session()
 

@@ -18,6 +18,7 @@ Authors:
 
 from __future__ import division
 
+import logging
 import os
 import tempfile
 import time
@@ -226,7 +227,9 @@ class TestSQLiteBackend(TestDictBackend):
     @dec.skip_without('sqlite3')
     def create_db(self):
         location, fname = os.path.split(temp_db)
-        return SQLiteDB(location=location, fname=fname)
+        log = logging.getLogger('test')
+        log.setLevel(logging.CRITICAL)
+        return SQLiteDB(location=location, fname=fname, log=log)
     
     def tearDown(self):
         self.db._db.close()

@@ -397,7 +397,6 @@ class NotebookApp(BaseIPythonApplication):
         self.cluster_manager.update_profiles()
 
     def init_logging(self):
-        super(NotebookApp, self).init_logging()
         # This prevents double log messages because tornado use a root logger that
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
@@ -500,6 +499,7 @@ class NotebookApp(BaseIPythonApplication):
     
     @catch_config_error
     def initialize(self, argv=None):
+        self.init_logging()
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.init_webapp()

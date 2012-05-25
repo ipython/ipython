@@ -140,8 +140,6 @@ class IPythonConsoleApp(Configurable):
     frontend_flags = Any(app_flags)
     frontend_aliases = Any(app_aliases)
 
-    pure = CBool(False, config=True,
-        help="Use a pure Python kernel instead of an IPython kernel.")
     # create requested profiles by default, if they don't exist:
     auto_create = CBool(True)
     # connection info:
@@ -330,9 +328,7 @@ class IPythonConsoleApp(Configurable):
         )
         # start the kernel
         if not self.existing:
-            kwargs = dict(ipython=not self.pure)
-            kwargs['extra_arguments'] = self.kernel_argv
-            self.kernel_manager.start_kernel(**kwargs)
+            self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
         elif self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()

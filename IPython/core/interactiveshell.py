@@ -712,6 +712,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self._orig_sys_module_state['stderr'] = sys.stderr
         self._orig_sys_module_state['excepthook'] = sys.excepthook
         self._orig_sys_modules_main_name = self.user_module.__name__
+        self._orig_sys_modules_main_mod = sys.modules.get(self.user_module.__name__)
 
     def restore_sys_module_state(self):
         """Restore the state of the sys module."""
@@ -721,7 +722,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         except AttributeError:
             pass
         # Reset what what done in self.init_sys_modules
-        sys.modules[self.user_module.__name__] = self._orig_sys_modules_main_name
+        if self._orig_sys_modules_main_mod is not None:
+            sys.modules[self._orig_sys_modules_main_name] = self._orig_sys_modules_main_mod
 
     #-------------------------------------------------------------------------
     # Things related to hooks
@@ -2424,7 +2426,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
-    def run_cell(self, raw_cell, store_history=False):
+    def run_cell(self, raw_cell, store_history=False, silent=False):
         """Run a complete IPython cell.
 
         Parameters
@@ -2435,9 +2437,15 @@ class InteractiveShell(SingletonConfigurable, Magic):
           If True, the raw and translated cell will be stored in IPython's
           history. For user code calling back into IPython's machinery, this
           should be set to False.
+        silent : bool
+          If True, avoid side-effets, such as implicit displayhooks, history,
+          and logging.  silent=True forces store_history=False.
         """
         if (not raw_cell) or raw_cell.isspace():
             return
+        
+        if silent:
+            store_history = False
 
         for line in raw_cell.splitlines():
             self.input_splitter.push(line)
@@ -2462,8 +2470,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
             if store_history:
                 self.history_manager.store_inputs(self.execution_count,
                                                   cell, raw_cell)
-
-            self.logger.log(cell, raw_cell)
+            if not silent:
+                self.logger.log(cell, raw_cell)
 
             if not prefilter_failed:
                 # don't run if prefilter failed
@@ -2483,12 +2491,16 @@ class InteractiveShell(SingletonConfigurable, Magic):
                         if store_history:
                             self.execution_count += 1
                         return None
-
+                    
+                    interactivity = "none" if silent else "last_expr"
                     self.run_ast_nodes(code_ast.body, cell_name,
-                                       interactivity="last_expr")
-
+                                       interactivity=interactivity)
+                    
                     # Execute any registered post-execution functions.
-                    for func, status in self._post_execute.iteritems():
+                    # unless we are silent
+                    post_exec = [] if silent else self._post_execute.iteritems()
+                    
+                    for func, status in post_exec:
                         if self.disable_failing_post_execute and not status:
                             continue
                         try:

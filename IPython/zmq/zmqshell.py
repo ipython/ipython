@@ -19,7 +19,11 @@ from __future__ import print_function
 import inspect
 import os
 import sys
+import time
 from subprocess import Popen, PIPE
+
+# System library imports
+from zmq.eventloop import ioloop
 
 # Our own
 from IPython.core.interactiveshell import (
@@ -39,7 +43,7 @@ from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split
-from IPython.utils.traitlets import Instance, Type, Dict, CBool
+from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
 from IPython.zmq.session import extract_header
@@ -56,6 +60,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     session = Instance(Session)
     pub_socket = Instance('zmq.Socket')
     parent_header = Dict({})
+    topic = CBytes(b'displaypub')
 
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
@@ -78,7 +83,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         content['metadata'] = metadata
         self.session.send(
             self.pub_socket, u'display_data', json_clean(content),
-            parent=self.parent_header
+            parent=self.parent_header, ident=self.topic,
         )
 
     def clear_output(self, stdout=True, stderr=True, other=True):
@@ -93,7 +98,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         
         self.session.send(
             self.pub_socket, u'clear_output', content,
-            parent=self.parent_header
+            parent=self.parent_header, ident=self.topic,
         )
 
 class ZMQInteractiveShell(InteractiveShell):
@@ -114,6 +119,12 @@ class ZMQInteractiveShell(InteractiveShell):
     exiter = Instance(ZMQExitAutocall)
     def _exiter_default(self):
         return ZMQExitAutocall(self)
+    
+    def _exit_now_changed(self, name, old, new):
+        """stop eventloop when exit_now fires"""
+        if new:
+            loop = ioloop.IOLoop.instance()
+            loop.add_timeout(time.time()+0.1, loop.stop)
 
     keepkernel_on_exit = None
 
@@ -154,6 +165,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     def ask_exit(self):
         """Engage the exit actions."""
+        self.exit_now = True
         payload = dict(
             source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
             exit=True,
@@ -172,7 +184,11 @@ class ZMQInteractiveShell(InteractiveShell):
         dh = self.displayhook
         # Send exception info over pub socket for other clients than the caller
         # to pick up
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header)
+        topic = None
+        if dh.topic:
+            topic = dh.topic.replace(b'pyout', b'pyerr')
+        
+        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
