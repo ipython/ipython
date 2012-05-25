@@ -599,6 +599,41 @@ def test_escaped_paren():
     tt.check_pairs(isp.transform_escaped, syntax['escaped_paren'])
 
 
+def test_last_blank():
+    nt.assert_false(isp.last_blank(''))
+    nt.assert_false(isp.last_blank('abc'))
+    nt.assert_false(isp.last_blank('abc\n'))
+    nt.assert_false(isp.last_blank('abc\na'))
+    nt.assert_true(isp.last_blank('\n'))
+    nt.assert_true(isp.last_blank('\n '))
+    nt.assert_true(isp.last_blank('abc\n '))
+    nt.assert_true(isp.last_blank('abc\n\n'))
+
+
+def test_cell_magics():
+    from IPython.core import magic
+
+    cell = """\
+%%cellm line
+body
+"""
+    sp = isp.IPythonInputSplitter(input_mode='line')
+    sp.push(cell)
+    nt.assert_equal(sp.cell_magic_parts, ['body\n'])
+    out = sp.source
+    ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+    nt.assert_equal(out, ref)
+
+    sp.reset()
+
+    sp.push('%%cellm line2\n')
+    nt.assert_true(sp.push_accepts_more()) #1
+    sp.push('\n')
+    nt.assert_true(sp.push_accepts_more()) #2
+    sp.push('\n')
+    nt.assert_false(sp.push_accepts_more()) #3
+
+
 class IPythonInputTestCase(InputSplitterTestCase):
     """By just creating a new class whose .isp is a different instance, we
     re-run the same test battery on the new input splitter.

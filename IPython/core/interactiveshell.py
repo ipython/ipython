@@ -2027,7 +2027,12 @@ class InteractiveShell(SingletonConfigurable):
         """
         fn = self.find_line_magic(magic_name)
         if fn is None:
-            error("Line magic function `%%%s` not found." % magic_name)
+            em = "Line magic function `%%%s` not found" % magic_name
+            cm = self.find_cell_magic(magic_name)
+            if cm is not None:
+                em += (' (Did you by chance mean the cell magic `%%%%%s` '
+                       'instead?).')
+            error()
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
@@ -2469,13 +2474,9 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
-    def call_cell_magic(self, raw_cell, store_history=False):
-        line, _, cell = raw_cell.partition(os.linesep)
-        magic_name, _, line = line.partition(' ')
-        magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-        return self.cell_magic(magic_name, line, cell)
-
     def _cell_magic(self, magic_name, line):
+        """Special method to call a cell magic with the data stored in self.
+        """
         cell = self._current_cell_magic_body
         self._current_cell_magic_body = None
         return self.cell_magic(magic_name, line, cell)
@@ -2507,8 +2508,9 @@ class InteractiveShell(SingletonConfigurable):
         # ugly, we need to do something cleaner later...  Now the logic is
         # simply that the input_splitter remembers if there was a cell magic,
         # and in that case we grab the cell body.
-        if self.input_splitter.cell_magic_body is not None:
-            self._current_cell_magic_body = self.input_splitter.cell_magic_body
+        if self.input_splitter.cell_magic_parts:
+            self._current_cell_magic_body = \
+                               ''.join(self.input_splitter.cell_magic_parts)
         cell = self.input_splitter.source_reset()
 
         with self.builtin_trap:
