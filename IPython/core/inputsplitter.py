@@ -852,7 +852,7 @@ class IPythonInputSplitter(InputSplitter):
 
         This means that we get the entire cell with each call.  Between resets,
         the calls simply add more text to the input."""
-        print('lines', repr(lines)) # dbg
+        #print('lines', repr(lines)) # dbg
         if lines.startswith('%%'):
             # Cell magics bypass all further transformations
             self.cell_magic_mode = True
@@ -868,8 +868,14 @@ class IPythonInputSplitter(InputSplitter):
             tlines = tpl % (magic_name, line)
             self._store(tlines)
             self._store(lines, self._buffer_raw, 'source_raw')
-            self._is_complete = last_two_blanks(lines)
-            print('IC', self._is_complete) # dbg
+            # We can actually choose whether to allow for single blank lines
+            # here.. My first implementation did that, and then I realized it
+            # wasn't consistent with the console behavior, so I've reverted it
+            # to one line.  But I'm leaving it here so we can easily test both
+            # behaviors, I kind of liked having the extra blanks be allowed in
+            # the cell magics...
+            #self._is_complete = last_two_blanks(lines)
+            self._is_complete = last_blank(lines)
             return self._is_complete
 
         lines_list = lines.splitlines()
