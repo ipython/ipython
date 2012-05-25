@@ -141,8 +141,6 @@ def num_ini_spaces(s):
     else:
         return 0
 
-last_blank_re = re.compile(r'^.*\n\s+$', re.MULTILINE)
-
 def last_blank(src):
     """Determine if the input source ends in a blank.
 
@@ -153,11 +151,13 @@ def last_blank(src):
     src : string
       A single or multiline string.
     """
-    return src == '\n' or bool(last_blank_re.match(src))
+    if not src: return False
+    ll  = src.splitlines()[-1]
+    return (ll == '') or ll.isspace()
 
 
-last_two_blanks_re = re.compile(r'^\n\s*\n\s*$', re.MULTILINE)
-last_two_blanks_re2 = re.compile(r'^.+\n\s*\n\s+$', re.MULTILINE)
+last_two_blanks_re = re.compile(r'\n\s*\n\s*$', re.MULTILINE)
+last_two_blanks_re2 = re.compile(r'.+\n\s*\n\s+$', re.MULTILINE)
 
 def last_two_blanks(src):
     """Determine if the input source ends in two blanks.
@@ -169,8 +169,17 @@ def last_two_blanks(src):
     src : string
       A single or multiline string.
     """
-    return (bool(last_two_blanks_re.match(src)) or
-            bool(last_two_blanks_re2.match(src)) )
+    if not src: return False
+    # The logic here is tricky: I couldn't get a regexp to work and pass all
+    # the tests, so I took a different approach: split the source by lines,
+    # grab the last two and prepend '###\n' as a stand-in for whatever was in
+    # the body before the last two lines.  Then, with that structure, it's
+    # possible to analyze with two regexps.  Not the most elegant solution, but
+    # it works.  If anyone tries to change this logic, make sure to validate
+    # the whole test suite first!
+    new_src = '\n'.join(['###\n'] + src.splitlines()[-2:])
+    return (bool(last_two_blanks_re.match(new_src)) or
+            bool(last_two_blanks_re2.match(new_src)) )
 
 
 def remove_comments(src):
@@ -786,6 +795,7 @@ class IPythonInputSplitter(InputSplitter):
             return False
 
         if self.cell_magic_mode:
+            #print('c2 lines', repr(lines))  # dbg
             # Find out if the last stored block has a whitespace line as its
             # last line and also this line is whitespace, case in which we're
             # done (two contiguous blank lines signal termination).  Note that
@@ -842,7 +852,7 @@ class IPythonInputSplitter(InputSplitter):
 
         This means that we get the entire cell with each call.  Between resets,
         the calls simply add more text to the input."""
-
+        print('lines', repr(lines)) # dbg
         if lines.startswith('%%'):
             # Cell magics bypass all further transformations
             self.cell_magic_mode = True
@@ -859,6 +869,7 @@ class IPythonInputSplitter(InputSplitter):
             self._store(tlines)
             self._store(lines, self._buffer_raw, 'source_raw')
             self._is_complete = last_two_blanks(lines)
+            print('IC', self._is_complete) # dbg
             return self._is_complete
 
         lines_list = lines.splitlines()

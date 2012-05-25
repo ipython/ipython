@@ -609,6 +609,9 @@ def test_last_blank():
     nt.assert_true(isp.last_blank('\n '))
     nt.assert_true(isp.last_blank('abc\n '))
     nt.assert_true(isp.last_blank('abc\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\ne\n\n'))
+    nt.assert_true(isp.last_blank('abc \n \n \n\n'))
 
 
 def test_last_two_blanks():
@@ -627,6 +630,8 @@ def test_last_two_blanks():
     nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
     nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
     nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\ns\nds\n\n\n'))
 
 
 def test_cell_magics_line_mode():
