@@ -25,8 +25,14 @@ Notes
 from __future__ import with_statement
 
 import sys
-from contextlib import nested
 import warnings
+
+# We need to use nested to support python 2.6, once we move to >=2.7, we can
+# use the with keyword's new builtin support for nested managers
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.core import ultratb
 from IPython.core.magic import Magics, magics_class, line_magic
