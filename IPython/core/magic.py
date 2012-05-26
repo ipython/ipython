@@ -104,7 +104,40 @@ def validate_type(magic_kind):
                          magic_kinds, magic_kind)
 
 
-def _magic_marker(magic_kind):
+# The docstrings for the decorator below will be fairly similar for the two
+# types (method and function), so we generate them here once and reuse the
+# templates below.
+_docstring_template = \
+"""Decorate the given {0} as {1} magic.
+
+The decorator can be used:
+
+i) without arguments: it will create a {1} magic named as the {0} being
+decorated::
+
+    @deco
+    def foo(...)
+
+will create a {1} magic named `foo`.
+
+ii) with one string argument: which will be used as the actual name of the
+resulting magic::
+
+    @deco('bar')
+    def foo(...)
+
+will create a {1} magic named `bar`.
+"""
+
+# These two are decorator factories.  While they are conceptually very similar,
+# there are enough differences in the details that it's simpler to have them
+# written as completely standalone functions rather than trying to share code
+# and make a single one with convoluted logic.
+
+def _method_magic_marker(magic_kind):
+    """Decorator factory for methods in Magics subclasses.
+    """
+
     validate_type(magic_kind)
 
     # This is a closure to capture the magic_kind.  We could also use a class,
@@ -116,14 +149,12 @@ def _magic_marker(magic_kind):
             # "Naked" decorator call (just @foo, no args)
             func = arg
             name = func.func_name
-            func.magic_name = name
             retval = decorator(call, func)
             record_magic(magics, magic_kind, name, name)
         elif isinstance(arg, basestring):
             # Decorator called with arguments (@foo('bar'))
             name = arg
             def mark(func, *a, **kw):
-                func.magic_name = name
                 record_magic(magics, magic_kind, name, func.func_name)
                 return decorator(call, func)
             retval = mark
@@ -132,12 +163,17 @@ def _magic_marker(magic_kind):
                              "string or function")
         return retval
 
+    # Ensure the resulting decorator has a usable docstring
+    magic_deco.__doc__ = _docstring_template.format('method', magic_kind)
     return magic_deco
 
 
 def _function_magic_marker(magic_kind):
+    """Decorator factory for standalone functions.
+    """
+    
     validate_type(magic_kind)
-
+    
     # This is a closure to capture the magic_kind.  We could also use a class,
     # but it's overkill for just that one bit of state.
     def magic_deco(arg):
@@ -172,15 +208,17 @@ def _function_magic_marker(magic_kind):
                              "string or function")
         return retval
 
+    # Ensure the resulting decorator has a usable docstring
+    magic_deco.__doc__ = _docstring_template.format('function', magic_kind)
     return magic_deco
 
 
 # Create the actual decorators for public use
 
 # These three are used to decorate methods in class definitions
-line_magic = _magic_marker('line')
-cell_magic = _magic_marker('cell')
-line_cell_magic = _magic_marker('line_cell')
+line_magic = _method_magic_marker('line')
+cell_magic = _method_magic_marker('cell')
+line_cell_magic = _method_magic_marker('line_cell')
 
 # These three decorate standalone functions and perform the decoration
 # immediately.  They can only run where get_ipython() works
