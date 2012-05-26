@@ -53,15 +53,14 @@ used, and this module (and the readline module) are silently inactive.
 # proper procedure is to maintain its copyright as belonging to the Python
 # Software Foundation (in addition to my own, for all new code).
 #
-#       Copyright (C) 2008-2011 IPython Development Team
-#       Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
+#       Copyright (C) 2008 IPython Development Team
+#       Copyright (C) 2001 Fernando Perez. <fperez@colorado.edu>
 #       Copyright (C) 2001 Python Software Foundation, www.python.org
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -606,12 +605,23 @@ class IPCompleter(Completer):
         """Match magics"""
         #print 'Completer->magic_matches:',text,'lb',self.text_until_cursor # dbg
         # Get all shell magics now rather than statically, so magics loaded at
-        # runtime show up too
-        # FIXME - cell magics not implemented here yet.
-        magics = self.shell.magics_manager.lsmagic()['line']
+        # runtime show up too.
+        lsm = self.shell.magics_manager.lsmagic()
+        line_magics = lsm['line']
+        cell_magics = lsm['cell']
         pre = self.magic_escape
-        baretext = text.lstrip(pre)
-        return [ pre+m for m in magics if m.startswith(baretext)]
+        pre2 = pre+pre
+        
+        # Completion logic:
+        # - user gives %%: only do cell magics
+        # - user gives %: do both line and cell magics
+        # - no prefix: do both
+        # In other words, line magics are skipped if the user gives %% explicitly
+        bare_text = text.lstrip(pre)
+        comp = [ pre2+m for m in cell_magics if m.startswith(bare_text)]
+        if not text.startswith(pre2):
+            comp += [ pre+m for m in line_magics if m.startswith(bare_text)]
+        return comp
 
     def alias_matches(self, text):
         """Match internal system aliases"""
