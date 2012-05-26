@@ -599,90 +599,6 @@ def test_escaped_paren():
     tt.check_pairs(isp.transform_escaped, syntax['escaped_paren'])
 
 
-def test_last_blank():
-    nt.assert_false(isp.last_blank(''))
-    nt.assert_false(isp.last_blank('abc'))
-    nt.assert_false(isp.last_blank('abc\n'))
-    nt.assert_false(isp.last_blank('abc\na'))
-
-    nt.assert_true(isp.last_blank('\n'))
-    nt.assert_true(isp.last_blank('\n '))
-    nt.assert_true(isp.last_blank('abc\n '))
-    nt.assert_true(isp.last_blank('abc\n\n'))
-    nt.assert_true(isp.last_blank('abc\nd\n\n'))
-    nt.assert_true(isp.last_blank('abc\nd\ne\n\n'))
-    nt.assert_true(isp.last_blank('abc \n \n \n\n'))
-
-
-def test_last_two_blanks():
-    nt.assert_false(isp.last_two_blanks(''))
-    nt.assert_false(isp.last_two_blanks('abc'))
-    nt.assert_false(isp.last_two_blanks('abc\n'))
-    nt.assert_false(isp.last_two_blanks('abc\n\na'))
-    nt.assert_false(isp.last_two_blanks('abc\n \n'))
-    nt.assert_false(isp.last_two_blanks('abc\n\n'))
-
-    nt.assert_true(isp.last_two_blanks('\n\n'))
-    nt.assert_true(isp.last_two_blanks('\n\n '))
-    nt.assert_true(isp.last_two_blanks('\n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n '))
-    nt.assert_true(isp.last_two_blanks('abc\n\n\n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
-    nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
-    nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
-    nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
-
-
-def test_cell_magics_line_mode():
-
-    cell = """\
-%%cellm line
-body
-"""
-    sp = isp.IPythonInputSplitter(input_mode='line')
-    sp.push(cell)
-    nt.assert_equal(sp.cell_magic_parts, ['body\n'])
-    out = sp.source
-    ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
-    nt.assert_equal(out, ref)
-
-    sp.reset()
-
-    sp.push('%%cellm line2\n')
-    nt.assert_true(sp.push_accepts_more()) #1
-    sp.push('\n')
-    nt.assert_true(sp.push_accepts_more()) #2
-    sp.push('\n')
-    nt.assert_false(sp.push_accepts_more()) #3
-
-
-def test_cell_magics_cell_mode():
-
-    cell = """\
-%%cellm line
-body
-"""
-    sp = isp.IPythonInputSplitter(input_mode='cell')
-    sp.push(cell)
-    nt.assert_equal(sp.cell_magic_parts, ['body\n'])
-    out = sp.source
-    ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
-    nt.assert_equal(out, ref)
-
-    sp.reset()
-
-    src = '%%cellm line2\n'
-    sp.push(src)
-    nt.assert_true(sp.push_accepts_more()) #1
-    src += '\n'
-    sp.push(src)
-    nt.assert_true(sp.push_accepts_more()) #2
-    src += '\n'
-    sp.push(src)
-    nt.assert_false(sp.push_accepts_more()) #3
-
-
 class IPythonInputTestCase(InputSplitterTestCase):
     """By just creating a new class whose .isp is a different instance, we
     re-run the same test battery on the new input splitter.
@@ -792,3 +708,96 @@ if __name__ == '__main__':
             print 'Raw source was:\n', raw
     except EOFError:
         print 'Bye'
+
+# Tests for cell magics support
+
+def test_last_blank():
+    nt.assert_false(isp.last_blank(''))
+    nt.assert_false(isp.last_blank('abc'))
+    nt.assert_false(isp.last_blank('abc\n'))
+    nt.assert_false(isp.last_blank('abc\na'))
+
+    nt.assert_true(isp.last_blank('\n'))
+    nt.assert_true(isp.last_blank('\n '))
+    nt.assert_true(isp.last_blank('abc\n '))
+    nt.assert_true(isp.last_blank('abc\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\ne\n\n'))
+    nt.assert_true(isp.last_blank('abc \n \n \n\n'))
+
+
+def test_last_two_blanks():
+    nt.assert_false(isp.last_two_blanks(''))
+    nt.assert_false(isp.last_two_blanks('abc'))
+    nt.assert_false(isp.last_two_blanks('abc\n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\na'))
+    nt.assert_false(isp.last_two_blanks('abc\n \n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\n'))
+
+    nt.assert_true(isp.last_two_blanks('\n\n'))
+    nt.assert_true(isp.last_two_blanks('\n\n '))
+    nt.assert_true(isp.last_two_blanks('\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
+
+
+class CellModeCellMagics(unittest.TestCase):
+    sp = isp.IPythonInputSplitter(input_mode='cell')
+
+    def test_whole_cell(self):
+        src = "%%cellm line\nbody\n"
+        sp = self.sp
+        sp.push(src)
+        nt.assert_equal(sp.cell_magic_parts, ['body\n'])
+        out = sp.source
+        ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+        nt.assert_equal(out, ref)
+
+    def test_incremental(self):
+        sp = self.sp
+        src = '%%cellm line2\n'
+        sp.push(src)
+        nt.assert_true(sp.push_accepts_more()) #1
+        src += '\n'
+        sp.push(src)
+        # Note: if we ever change the logic to allow full blank lines (see
+        # _handle_cell_magic), then the following test should change to true
+        nt.assert_false(sp.push_accepts_more()) #2
+        # By now, even with full blanks allowed, a second blank should signal
+        # the end.  For now this test is only a redundancy safety, but don't
+        # delete it in case we change our mind and the previous one goes to
+        # true.
+        src += '\n'
+        sp.push(src)
+        nt.assert_false(sp.push_accepts_more()) #3
+
+    def tearDown(self):
+        self.sp.reset()
+
+
+class LineModeCellMagics(unittest.TestCase):
+    sp = isp.IPythonInputSplitter(input_mode='line')
+
+    def test_whole_cell(self):
+        src = "%%cellm line\nbody\n"
+        sp = self.sp
+        sp.push(src)
+        nt.assert_equal(sp.cell_magic_parts, ['body\n'])
+        out = sp.source
+        ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+        nt.assert_equal(out, ref)
+
+    def test_incremental(self):
+        sp = self.sp
+        sp.push('%%cellm line2\n')
+        nt.assert_true(sp.push_accepts_more()) #1
+        sp.push('\n')
+        nt.assert_false(sp.push_accepts_more()) #2
+
+    def tearDown(self):
+        self.sp.reset()

@@ -725,9 +725,13 @@ class IPythonInputSplitter(InputSplitter):
     # String with raw, untransformed input.
     source_raw = ''
 
-    cell_magic_parts = []
+    # Flag to track when we're in the middle of processing a cell magic, since
+    # the logic has to change.  In that case, we apply no transformations at
+    # all.
+    processing_cell_magic = False
 
-    cell_magic_mode = False
+    # Storage for all blocks of input that make up a cell magic
+    cell_magic_parts = []
 
     # Private attributes
 
@@ -745,7 +749,7 @@ class IPythonInputSplitter(InputSplitter):
         self._buffer_raw[:] = []
         self.source_raw = ''
         self.cell_magic_parts = []
-        self.cell_magic_mode = False
+        self.processing_cell_magic = False
 
     def source_raw_reset(self):
         """Return input and raw source and perform a full reset.
@@ -756,172 +760,55 @@ class IPythonInputSplitter(InputSplitter):
         return out, out_r
 
     def push_accepts_more(self):
-        if self.cell_magic_mode:
+        if self.processing_cell_magic:
             return not self._is_complete
         else:
             return super(IPythonInputSplitter, self).push_accepts_more()
 
-    def _push_line_mode(self, lines):
-        """Push in line mode.
-
-        This means that we only get individual 'lines' with each call, though
-        in practice each input may be multiline.  But this is in contrast to
-        cell mode, which feeds the entirety of the cell from the start with
-        each call.
+    def _handle_cell_magic(self, lines):
+        """Process lines when they start with %%, which marks cell magics.
         """
-        # cell magic support
-        #print('#'*10)
-        #print(lines+'\n---')  # dbg
-        #print (repr(lines)+'\n+++')
-        #print('raw', self._buffer_raw, 'validate', self.cell_magic_mode)
-        # Only trigger this block if we're at a 'fresh' pumping start.
-        if lines.startswith('%%'):
-            # Cell magics bypass all further transformations
-            self.cell_magic_mode = True
-            first, _, body = lines.partition('\n')
-            magic_name, _, line = first.partition(' ')
-            magic_name = magic_name.lstrip(ESC_MAGIC)
-            # We store the body of the cell and create a call to a method that
-            # will use this stored value. This is ugly, but it's a first cut to
-            # get it all working, as right now changing the return API of our
-            # methods would require major refactoring.
-            self.cell_magic_parts = [body]
-            tpl = 'get_ipython()._cell_magic(%r, %r)'
-            tlines = tpl % (magic_name, line)
-            self._store(tlines)
-            self._store(lines, self._buffer_raw, 'source_raw')
-            self._is_complete = last_two_blanks(lines)
-            #print('IC', self._is_complete) # dbg
-            return self._is_complete
-
-        if self.cell_magic_mode:
-            #print('c2 lines', repr(lines))  # dbg
-            # Find out if the last stored block has a whitespace line as its
-            # last line and also this line is whitespace, case in which we're
-            # done (two contiguous blank lines signal termination).  Note that
-            # the storage logic *enforces* that every stored block is
-            # newline-terminated, so we grab everything but the last character
-            # so we can have the body of the block alone.
-            last_block = self.cell_magic_parts[-1]
-            self._is_complete = last_blank(last_block) and lines.isspace()
-            # Only store the raw input.  For lines beyond the first one, we
-            # only store them for history purposes, and for execution we want
-            # the caller to only receive the _cell_magic() call.
-            self._store(lines, self._buffer_raw, 'source_raw')
-            self.cell_magic_parts.append(lines)
-            return self._is_complete
-
-        lines_list = lines.splitlines()
-
-        transforms = [transform_ipy_prompt, transform_classic_prompt,
-                      transform_help_end, transform_escaped,
-                      transform_assign_system, transform_assign_magic]
-
-        # Transform logic
-        #
-        # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input, or if the last line of the buffer ends
-        # with ':' (opening an indented block).  This prevents the accidental
-        # transformation of escapes inside multiline expressions like
-        # triple-quoted strings or parenthesized expressions.
-        #
-        # The last heuristic, while ugly, ensures that the first line of an
-        # indented block is correctly transformed.
-        #
-        # FIXME: try to find a cleaner approach for this last bit.
-
-        # Store raw source before applying any transformations to it.  Note
-        # that this must be done *after* the reset() call that would otherwise
-        # flush the buffer.
+        self.processing_cell_magic = True
+        first, _, body = lines.partition('\n')
+        magic_name, _, line = first.partition(' ')
+        magic_name = magic_name.lstrip(ESC_MAGIC)
+        # We store the body of the cell and create a call to a method that
+        # will use this stored value. This is ugly, but it's a first cut to
+        # get it all working, as right now changing the return API of our
+        # methods would require major refactoring.
+        self.cell_magic_parts = [body]
+        tpl = 'get_ipython()._cell_magic(%r, %r)'
+        tlines = tpl % (magic_name, line)
+        self._store(tlines)
         self._store(lines, self._buffer_raw, 'source_raw')
+        # We can actually choose whether to allow for single blank lines here
+        # during input for clients that use cell mode to decide when to stop
+        # pushing input (currently only the Qt console).
+        # My first implementation did that, and then I realized it wasn't
+        # consistent with the terminal behavior, so I've reverted it to one
+        # line.  But I'm leaving it here so we can easily test both behaviors,
+        # I kind of liked having full blank lines allowed in the cell magics...
+        #self._is_complete = last_two_blanks(lines)
+        self._is_complete = last_blank(lines)
+        return self._is_complete
 
-        push = super(IPythonInputSplitter, self).push
-        buf = self._buffer
-        for line in lines_list:
-            if self._is_complete or not buf or \
-                   (buf and buf[-1].rstrip().endswith((':', ','))):
-                for f in transforms:
-                    line = f(line)
-
-            out = push(line)
-        return out
-
-
-    def _push_cell_mode(self, lines):
-        """Push in cell mode.
-
-        This means that we get the entire cell with each call.  Between resets,
-        the calls simply add more text to the input."""
-        #print('lines', repr(lines)) # dbg
-        if lines.startswith('%%'):
-            # Cell magics bypass all further transformations
-            self.cell_magic_mode = True
-            first, _, body = lines.partition('\n')
-            magic_name, _, line = first.partition(' ')
-            magic_name = magic_name.lstrip(ESC_MAGIC)
-            # We store the body of the cell and create a call to a method that
-            # will use this stored value. This is ugly, but it's a first cut to
-            # get it all working, as right now changing the return API of our
-            # methods would require major refactoring.
-            self.cell_magic_parts = [body]
-            tpl = 'get_ipython()._cell_magic(%r, %r)'
-            tlines = tpl % (magic_name, line)
-            self._store(tlines)
-            self._store(lines, self._buffer_raw, 'source_raw')
-            # We can actually choose whether to allow for single blank lines
-            # here.. My first implementation did that, and then I realized it
-            # wasn't consistent with the console behavior, so I've reverted it
-            # to one line.  But I'm leaving it here so we can easily test both
-            # behaviors, I kind of liked having the extra blanks be allowed in
-            # the cell magics...
-            #self._is_complete = last_two_blanks(lines)
-            self._is_complete = last_blank(lines)
-            return self._is_complete
-
-        lines_list = lines.splitlines()
-
-        transforms = [transform_ipy_prompt, transform_classic_prompt,
-                      transform_help_end, transform_escaped,
-                      transform_assign_system, transform_assign_magic]
-
-        # Transform logic
-        #
-        # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input, or if the last line of the buffer ends
-        # with ':' (opening an indented block).  This prevents the accidental
-        # transformation of escapes inside multiline expressions like
-        # triple-quoted strings or parenthesized expressions.
-        #
-        # The last heuristic, while ugly, ensures that the first line of an
-        # indented block is correctly transformed.
-        #
-        # FIXME: try to find a cleaner approach for this last bit.
-
-        # In cell mode, since we're going to pump the parent class by hand line
-        # by line, we need to temporarily switch out to 'line' mode, do a
-        # single manual reset and then feed the lines one by one.  Note that
-        # this only matters if the input has more than one line.
-        self.reset()
-        self.input_mode = 'line'
-
-        # Store raw source before applying any transformations to it.  Note
-        # that this must be done *after* the reset() call that would otherwise
-        # flush the buffer.
+    def _line_mode_cell_append(self, lines):
+        """Append new content for a cell magic in line mode.
+        """
+        # Only store the raw input.  Lines beyond the first one are only only
+        # stored for history purposes; for execution the caller will grab the
+        # magic pieces from cell_magic_parts and will assemble the cell body
         self._store(lines, self._buffer_raw, 'source_raw')
-
-        try:
-            push = super(IPythonInputSplitter, self).push
-            buf = self._buffer
-            for line in lines_list:
-                if self._is_complete or not buf or \
-                       (buf and buf[-1].rstrip().endswith((':', ','))):
-                    for f in transforms:
-                        line = f(line)
-
-                out = push(line)
-        finally:
-            self.input_mode = 'cell'
-        return out
+        self.cell_magic_parts.append(lines)
+        # Find out if the last stored block has a whitespace line as its
+        # last line and also this line is whitespace, case in which we're
+        # done (two contiguous blank lines signal termination).  Note that
+        # the storage logic *enforces* that every stored block is
+        # newline-terminated, so we grab everything but the last character
+        # so we can have the body of the block alone.
+        last_block = self.cell_magic_parts[-1]
+        self._is_complete = last_blank(last_block) and lines.isspace()
+        return self._is_complete
 
     def push(self, lines):
         """Push one or more lines of IPython input.
@@ -952,11 +839,17 @@ class IPythonInputSplitter(InputSplitter):
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
 
-        if self.input_mode == 'line':
-            return self._push_line_mode(lines)
-        else:
-            return self._push_cell_mode(lines)
+        # If the entire input block is a cell magic, return after handling it
+        # as the rest of the transformation logic should be skipped.
+        if lines.startswith('%%'):
+            return self._handle_cell_magic(lines)
 
+        # In line mode, a cell magic can arrive in separate pieces
+        if self.input_mode == 'line' and self.processing_cell_magic:
+            return self._line_mode_cell_append(lines)
+
+        # The rest of the processing is for 'normal' content, i.e. IPython
+        # source that we process through our transformations pipeline.
         lines_list = lines.splitlines()
 
         transforms = [transform_ipy_prompt, transform_classic_prompt,
