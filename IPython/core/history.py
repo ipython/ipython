@@ -72,7 +72,7 @@ class HistoryAccessor(Configurable):
         
         By default, IPython will put the history database in the IPython
         profile directory.  If you would rather share one history among
-        profiles, you ca set this value in each, so that they are consistent.
+        profiles, you can set this value in each, so that they are consistent.
         
         Due to an issue with fcntl, SQLite is known to misbehave on some NFS
         mounts.  If you see IPython hanging, try setting this to something on a
