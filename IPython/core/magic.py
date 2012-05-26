@@ -29,6 +29,7 @@ from IPython.core.prefilter import ESC_MAGIC
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
+from IPython.utils.text import dedent
 from IPython.utils.traitlets import Bool, Dict, Instance
 from IPython.utils.warn import error, warn
 
@@ -110,7 +111,7 @@ def validate_type(magic_kind):
 _docstring_template = \
 """Decorate the given {0} as {1} magic.
 
-The decorator can be used:
+The decorator can be used with or without arguments, as follows.
 
 i) without arguments: it will create a {1} magic named as the {0} being
 decorated::
@@ -209,7 +210,18 @@ def _function_magic_marker(magic_kind):
         return retval
 
     # Ensure the resulting decorator has a usable docstring
-    magic_deco.__doc__ = _docstring_template.format('function', magic_kind)
+    ds = _docstring_template.format('function', magic_kind)
+
+    ds += dedent("""
+    Note: this decorator can only be used in a context where IPython is already
+    active, so that the `get_ipython()` call succeeds.  You can therefore use
+    it in your startup files loaded after IPython initializes, but *not* in the
+    IPython configuration file itself, which is executed before IPython is
+    fully up and running.  Any file located in the `startup` subdirectory of
+    your configuration profile will be OK in this sense.
+    """)
+    
+    magic_deco.__doc__ = ds
     return magic_deco
 
 
