@@ -127,7 +127,7 @@ class StoreMagics(Magics):
             vars = self.db.keys('autorestore/*')
             vars.sort()
             if vars:
-                size = max(map(len,vars))
+                size = max(map(len, vars))
             else:
                 size = 0
 
@@ -137,7 +137,7 @@ class StoreMagics(Magics):
             for var in vars:
                 justkey = os.path.basename(var)
                 # print 30 first characters from every var
-                print fmt % (justkey,repr(get(var,'<unavailable>'))[:50])
+                print fmt % (justkey, repr(get(var, '<unavailable>'))[:50])
 
         # default action - store the variable
         else:
@@ -145,17 +145,17 @@ class StoreMagics(Magics):
             if len(args) > 1 and args[1].startswith('>'):
                 fnam = os.path.expanduser(args[1].lstrip('>').lstrip())
                 if args[1].startswith('>>'):
-                    fil = open(fnam,'a')
+                    fil = open(fnam, 'a')
                 else:
-                    fil = open(fnam,'w')
+                    fil = open(fnam, 'w')
                 obj = ip.ev(args[0])
                 print "Writing '%s' (%s) to file '%s'." % (args[0],
                   obj.__class__.__name__, fnam)
 
 
-                if not isinstance (obj,basestring):
+                if not isinstance (obj, basestring):
                     from pprint import pprint
-                    pprint(obj,fil)
+                    pprint(obj, fil)
                 else:
                     fil.write(obj)
                     if not obj.endswith('\n'):

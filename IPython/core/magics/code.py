@@ -249,7 +249,7 @@ class CodeMagics(Magics):
                         filename = make_filename(args)
                         datafile = 1
                         warn('Could not find file where `%s` is defined.\n'
-                             'Opening a file named `%s`' % (args,filename))
+                             'Opening a file named `%s`' % (args, filename))
                     # Now, make sure we can actually read the source (if it was
                     # in a temp file it's gone by now).
                     if datafile:
@@ -259,8 +259,8 @@ class CodeMagics(Magics):
                         except IOError:
                             filename = make_filename(args)
                             if filename is None:
-                                warn('The file `%s` where `%s` was defined cannot '
-                                     'be read.' % (filename,data))
+                                warn('The file `%s` where `%s` was defined '
+                                     'cannot be read.' % (filename, data))
                                 return
                     use_temp = False
 

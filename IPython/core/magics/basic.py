@@ -71,7 +71,7 @@ class BasicMagics(Magics):
             mode = parameter_s.split()[0][1:]
             if mode == 'rest':
                 rest_docs = []
-        except:
+        except IndexError:
             pass
 
         magic_docs = []

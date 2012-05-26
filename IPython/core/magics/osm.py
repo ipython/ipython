@@ -316,7 +316,7 @@ class OSMagics(Magics):
 
                 if ps in bkms:
                     target = bkms[ps]
-                    print '(bookmark:%s) -> %s' % (ps,target)
+                    print '(bookmark:%s) -> %s' % (ps, target)
                     ps = target
                 else:
                     if 'b' in opts:
@@ -522,24 +522,24 @@ class OSMagics(Magics):
             .s (or .spstr): value as space-separated string.
         """
 
-        opts,args = self.parse_options(parameter_s,'lv')
+        opts,args = self.parse_options(parameter_s, 'lv')
         # Try to get a variable name and command to run
         try:
             # the variable name must be obtained from the parse_options
             # output, which uses shlex.split to strip options out.
-            var,_ = args.split('=',1)
+            var,_ = args.split('=', 1)
             var = var.strip()
             # But the command has to be extracted from the original input
             # parameter_s, not on what parse_options returns, to avoid the
             # quote stripping which shlex.split performs on it.
-            _,cmd = parameter_s.split('=',1)
+            _,cmd = parameter_s.split('=', 1)
         except ValueError:
             var,cmd = '',''
         # If all looks ok, proceed
         split = 'l' in opts
         out = self.shell.getoutput(cmd, split=split)
         if 'v' in opts:
-            print '%s ==\n%s' % (var,pformat(out))
+            print '%s ==\n%s' % (var, pformat(out))
         if var:
             self.shell.user_ns.update({var:out})
         else:

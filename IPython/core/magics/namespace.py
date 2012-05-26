@@ -448,9 +448,9 @@ class NamespaceMagics(Magics):
                     vdtype = var.dtype
 
                 if vbytes < 100000:
-                    print aformat % (vshape,vsize,vdtype,vbytes)
+                    print aformat % (vshape, vsize, vdtype, vbytes)
                 else:
-                    print aformat % (vshape,vsize,vdtype,vbytes),
+                    print aformat % (vshape, vsize, vdtype, vbytes),
                     if vbytes < Mb:
                         print '(%s kb)' % (vbytes/kb,)
                     else:
@@ -463,7 +463,7 @@ class NamespaceMagics(Magics):
                                                'backslashreplace')
                 except:
                     vstr = "<object with id %d (str() failed)>" % id(var)
-                vstr = vstr.replace('\n','\\n')
+                vstr = vstr.replace('\n', '\\n')
                 if len(vstr) < 50:
                     print vstr
                 else:

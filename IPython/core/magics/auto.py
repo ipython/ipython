@@ -109,7 +109,7 @@ class AutoMagics(Magics):
         else:
             arg = 'toggle'
 
-        if not arg in (0, 1, 2,'toggle'):
+        if not arg in (0, 1, 2, 'toggle'):
             error('Valid modes: (0->Off, 1->Smart, 2->Full')
             return
 
