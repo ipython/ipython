@@ -103,6 +103,11 @@ def run_tests(venv):
     check_call([py, 'setup.py', 'install'])
     os.chdir(basedir)
     
+    # Environment variables:
+    orig_path = os.environ["PATH"]
+    os.environ["PATH"] = os.path.join(basedir, venv, 'bin') + ':' + os.environ["PATH"]
+    os.environ.pop("PYTHONPATH", None)
+    
     iptest = os.path.join(basedir, venv, 'bin', 'iptest')
     if not os.path.exists(iptest):
         iptest = os.path.join(basedir, venv, 'bin', 'iptest3')
@@ -112,6 +117,9 @@ def run_tests(venv):
         return True, check_output([iptest], stderr=STDOUT).decode('utf-8')
     except CalledProcessError as e:
         return False, e.output.decode('utf-8')
+    finally:
+        # Restore $PATH
+        os.environ["PATH"] = orig_path
 
 def markdown_format(pr, results_urls):
     def format_result(py, passed, gist_url, missing_libraries):
