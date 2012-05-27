@@ -36,7 +36,9 @@ Usage
 
 import ast
 import re
+import sys
 
+from IPython.core.display import display
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
@@ -53,7 +55,7 @@ NO_ACTIVE_VIEW = "Use activate() on a DirectView object to use it with magics."
 class ParallelMagics(Magics):
     """A set of magics useful when controlling a parallel IPython cluster.
     """
-
+    
     # A flag showing if autopx is activated or not
     _autopx = False
     # the current view used by the magics:
@@ -66,23 +68,36 @@ class ParallelMagics(Magics):
 
         To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
+        
+        This lets you recall the results of %px computations after
+        asynchronous submission (view.block=False).
 
         Then you can do the following::
 
-            In [23]: %result
-            Out[23]: <AsyncResult: unknown>
+            In [23]: %px os.getpid()
+            Async parallel execution on engine(s): all
 
-            In [22]: ar = %result 6
+            In [24]: %result
+            [ 8] Out[10]: 60920
+            [ 9] Out[10]: 60921
+            [10] Out[10]: 60922
+            [11] Out[10]: 60923
         """
+        
         if self.active_view is None:
             raise UsageError(NO_ACTIVE_VIEW)
-
+        
+        stride = len(self.active_view)
         try:
             index = int(parameter_s)
         except:
-            index = None
-        result = self.active_view.get_result(index)
-        return result
+            index = -1
+        msg_ids = self.active_view.history[stride * index:(stride * (index + 1)) or None]
+        
+        result = self.active_view.get_result(msg_ids)
+        
+        result.get()
+        self._display_result(result)
 
     @skip_doctest
     @line_magic
@@ -106,11 +121,14 @@ class ParallelMagics(Magics):
 
         if self.active_view is None:
             raise UsageError(NO_ACTIVE_VIEW)
-        print "Parallel execution on engine(s): %s" % self.active_view.targets
-        result = self.active_view.execute(parameter_s, block=False)
+        
+        base = "Parallel" if self.active_view.block else "Async parallel"
+        print base + " execution on engine(s): %s" % self.active_view.targets
+        
+        result = self.active_view.execute(parameter_s, silent=False, block=False)
         if self.active_view.block:
             result.get()
-            self._maybe_display_output(result)
+            self._display_result(result)
 
     @skip_doctest
     @line_magic
@@ -171,18 +189,21 @@ class ParallelMagics(Magics):
 
     def _display_result(self, result):
         """Display the output of a parallel result.
-
-        If self.active_view.block is True, wait for the result
-        and display the result.  Otherwise, this is a noop.
         """
+        # flush iopub, just in case
+        rc = self.active_view.client
+        rc._flush_iopub(rc._iopub_socket)
+        
         if result._single_result:
             # single result
             stdouts = [result.stdout.rstrip()]
             stderrs = [result.stderr.rstrip()]
+            outputs = [result.outputs]
         else:
             stdouts = [s.rstrip() for s in result.stdout]
             stderrs = [s.rstrip() for s in result.stderr]
-
+            outputs = [outs for outs in result.outputs]
+        
         results = result.get_dict()
 
         targets = self.active_view.targets
@@ -190,10 +211,29 @@ class ParallelMagics(Magics):
             targets = [targets]
         elif targets == 'all':
             targets = self.active_view.client.ids
-
+        
+        # republish stdout:
         if any(stdouts):
             for eid,stdout in zip(targets, stdouts):
-                print '[stdout:%i]'%eid, stdout
+                print '[stdout:%2i]' % eid, stdout
+        
+        # republish stderr:
+        if any(stderrs):
+            for eid,stderr in zip(targets, stderrs):
+                print >> sys.stderr, '[stderr:%2i]' % eid, stderr
+        
+        # republish displaypub output
+        for eid,e_outputs in zip(targets, outputs):
+            for output in e_outputs:
+                md = output['metadata'] or {}
+                md['engine'] = eid
+                self.shell.display_pub.publish(output['source'], output['data'], md)
+        
+        # finally, add pyout:
+        for eid in targets:
+            r = results[eid]
+            if r.pyout:
+                display(r)
 
 
     def pxrun_cell(self, raw_cell, store_history=False, silent=False):
@@ -256,7 +296,7 @@ class ParallelMagics(Magics):
                         self.shell.showtraceback()
                         return True
                     else:
-                        self._maybe_display_output(result)
+                        self._display_result(result)
                 return False
 
 
