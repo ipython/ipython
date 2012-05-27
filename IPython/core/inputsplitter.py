@@ -775,7 +775,7 @@ class IPythonInputSplitter(InputSplitter):
         # get it all working, as right now changing the return API of our
         # methods would require major refactoring.
         self.cell_magic_parts = [body]
-        tpl = 'get_ipython()._cell_magic(%r, %r)'
+        tpl = 'get_ipython()._run_cached_cell_magic(%r, %r)'
         tlines = tpl % (magic_name, line)
         self._store(tlines)
         self._store(lines, self._buffer_raw, 'source_raw')

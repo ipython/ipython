@@ -759,7 +759,7 @@ class CellModeCellMagics(unittest.TestCase):
         sp.push(src)
         nt.assert_equal(sp.cell_magic_parts, ['body\n'])
         out = sp.source
-        ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+        ref = u"get_ipython()._run_cached_cell_magic(u'cellm', u'line')\n"
         nt.assert_equal(out, ref)
 
     def test_incremental(self):
@@ -793,7 +793,7 @@ class LineModeCellMagics(unittest.TestCase):
         sp.push(src)
         nt.assert_equal(sp.cell_magic_parts, ['body\n'])
         out = sp.source
-        ref = u"get_ipython()._cell_magic(u'cellm', u'line')\n"
+        ref = u"get_ipython()._run_cached_cell_magic(u'cellm', u'line')\n"
         nt.assert_equal(out, ref)
 
     def test_incremental(self):

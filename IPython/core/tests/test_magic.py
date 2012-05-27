@@ -496,7 +496,7 @@ class CellMagicTestCase(TestCase):
 
     def check_ident(self, magic):
         # Manually called, we get the result
-        out = _ip.cell_magic(magic, 'a', 'b')
+        out = _ip.run_cell_magic(magic, 'a', 'b')
         nt.assert_equals(out, ('a','b'))
         # Via run_cell, it goes into the user's namespace via displayhook
         _ip.run_cell('%%' + magic +' c\nd')

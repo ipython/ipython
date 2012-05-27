@@ -2021,7 +2021,7 @@ class InteractiveShell(SingletonConfigurable):
         # even need a centralize colors management object.
         self.magic('colors %s' % self.colors)
 
-    def line_magic(self, magic_name, line):
+    def run_line_magic(self, magic_name, line):
         """Execute the given line magic.
 
         Parameters
@@ -2054,8 +2054,19 @@ class InteractiveShell(SingletonConfigurable):
                 result = fn(*args)
             return result
 
-    def cell_magic(self, magic_name, line, cell):
+    def run_cell_magic(self, magic_name, line, cell):
         """Execute the given cell magic.
+        
+        Parameters
+        ----------
+        magic_name : str
+          Name of the desired magic function, without '%' prefix.
+
+        line : str
+          The rest of the first input line as a single string.
+
+        cell : str
+          The body of the cell as a (possibly multiline) string.
         """
         fn = self.find_cell_magic(magic_name)
         if fn is None:
@@ -2093,7 +2104,7 @@ class InteractiveShell(SingletonConfigurable):
         return self.magics_manager.magics[magic_kind].get(magic_name)
 
     def magic(self, arg_s):
-        """DEPRECATED. Use line_magic() instead.
+        """DEPRECATED. Use run_line_magic() instead.
 
         Call a magic function by name.
 
@@ -2114,7 +2125,7 @@ class InteractiveShell(SingletonConfigurable):
         # TODO: should we issue a loud deprecation warning here?
         magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-        return self.line_magic(magic_name, magic_arg_s)
+        return self.run_line_magic(magic_name, magic_arg_s)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2484,12 +2495,12 @@ class InteractiveShell(SingletonConfigurable):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
-    def _cell_magic(self, magic_name, line):
+    def _run_cached_cell_magic(self, magic_name, line):
         """Special method to call a cell magic with the data stored in self.
         """
         cell = self._current_cell_magic_body
         self._current_cell_magic_body = None
-        return self.cell_magic(magic_name, line, cell)
+        return self.run_cell_magic(magic_name, line, cell)
 
     def run_cell(self, raw_cell, store_history=False, silent=False):
         """Run a complete IPython cell.
