@@ -258,8 +258,9 @@ obj?, obj??      : Get help, or more help for object (also works as
 ?foo.*abc*       : List names in 'foo' containing 'abc' in them.
 %magic           : Information about IPython's 'magic' % functions.
 
-Magic functions are prefixed by %, and typically take their arguments without
-parentheses, quotes or even commas for convenience.
+Magic functions are prefixed by % or %%, and typically take their arguments
+without parentheses, quotes or even commas for convenience.  Line magics take a
+single % and cell magics are prefixed with two %%.
 
 Example magic function calls:
 
@@ -268,6 +269,10 @@ alias d ls -F    : Works if 'alias' not a python name
 alist = %alias   : Get list of aliases to 'alist'
 cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 %cd??            : See help AND source for magic %cd
+%timeit x=10     : time the 'x=10' statement with high precision.
+%%timeit x=2**100
+x**100           : time 'x*100' with a setup of 'x=2**100'; setup code is not
+                   counted.  This is an example of a cell magic.
 
 System commands:
 
