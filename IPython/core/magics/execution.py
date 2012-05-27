@@ -750,7 +750,7 @@ python-profiler package from non-free.""")
 
         opts, stmt = self.parse_options(line,'n:r:tcp:',
                                         posix=False, strict=False)
-        if stmt == "":
+        if stmt == "" and cell is None:
             return
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
