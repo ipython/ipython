@@ -36,8 +36,8 @@ from IPython.core import debugger, oinspect
 from IPython.core import page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic,
-                                on_off, needs_local_scope)
+from IPython.core.magic import (Magics, magics_class, line_magic, 
+                                line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.ipstruct import Struct
@@ -641,15 +641,26 @@ python-profiler package from non-free.""")
         return stats
 
     @skip_doctest
-    @line_magic
-    def timeit(self, parameter_s=''):
+    @line_cell_magic
+    def timeit(self, line='', cell=None):
         """Time execution of a Python statement or expression
 
-        Usage:\\
+        Usage, in line mode:
           %timeit [-n<N> -r<R> [-t|-c]] statement
+        or in cell mode:
+          %%timeit [-n<N> -r<R> [-t|-c]] setup_code
+          code
+          code...
 
         Time execution of a Python statement or expression using the timeit
-        module.
+        module.  This function can be used both as a line and cell magic:
+
+        - In line mode you can time a single-line statement (though multiple
+          ones can be chained with using semicolons).
+
+        - In cell mode, the statement in the first line is used as setup code
+          (executed but not timed) and the body of the cell is timed.  The cell
+          body has access to any variables created in the setup code.
 
         Options:
         -n<N>: execute the given statement <N> times in a loop. If this value
@@ -725,7 +736,7 @@ python-profiler package from non-free.""")
 
         scaling = [1, 1e3, 1e6, 1e9]
 
-        opts, stmt = self.parse_options(parameter_s,'n:r:tcp:',
+        opts, stmt = self.parse_options(line,'n:r:tcp:',
                                         posix=False, strict=False)
         if stmt == "":
             return
@@ -743,8 +754,15 @@ python-profiler package from non-free.""")
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
 
-        src = timeit.template % {'stmt': timeit.reindent(stmt, 8),
-                                 'setup': "pass"}
+        if cell is None:
+            # called as line magic
+            setup = 'pass'
+            stmt = timeit.reindent(stmt, 8)
+        else:
+            setup = timeit.reindent(stmt, 4)
+            stmt = timeit.reindent(cell, 8)
+
+        src = timeit.template % dict(stmt=stmt, setup=setup)
         # Track compilation time so it can be reported if too long
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
