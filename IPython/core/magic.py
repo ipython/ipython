@@ -260,8 +260,8 @@ class MagicsManager(Configurable):
     auto_magic = Bool
 
     _auto_status = [
-        'Automagic is OFF, % prefix IS needed for magic functions.',
-        'Automagic is ON, % prefix IS NOT needed for magic functions.']
+        'Automagic is OFF, % prefix IS needed for line magics.',
+        'Automagic is ON, % prefix IS NOT needed for line magics.']
 
     user_magics = Instance('IPython.core.magics.UserMagics')
 
