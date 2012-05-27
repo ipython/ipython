@@ -455,7 +455,8 @@ syntax = \
          (u'?x1', "get_ipython().magic({u}'pinfo x1')"),
          (u'??x2', "get_ipython().magic({u}'pinfo2 x2')"),
          (u'?a.*s', "get_ipython().magic({u}'psearch a.*s')"),
-         (u'?%hist', "get_ipython().magic({u}'pinfo %hist')"),
+         (u'?%hist1', "get_ipython().magic({u}'pinfo %hist1')"),
+         (u'?%%hist2', "get_ipython().magic({u}'pinfo %%hist2')"),
          (u'?abc = qwe', "get_ipython().magic({u}'pinfo abc')"),
          ]],
 
@@ -463,13 +464,20 @@ syntax = \
       [(i,py3compat.u_format(o)) for i,o in \
       [ (u'x3?', "get_ipython().magic({u}'pinfo x3')"),
         (u'x4??', "get_ipython().magic({u}'pinfo2 x4')"),
-        (u'%hist?', "get_ipython().magic({u}'pinfo %hist')"),
+        (u'%hist1?', "get_ipython().magic({u}'pinfo %hist1')"),
+        (u'%hist2??', "get_ipython().magic({u}'pinfo2 %hist2')"),
+        (u'%%hist3?', "get_ipython().magic({u}'pinfo %%hist3')"),
+        (u'%%hist4??', "get_ipython().magic({u}'pinfo2 %%hist4')"),
         (u'f*?', "get_ipython().magic({u}'psearch f*')"),
         (u'ax.*aspe*?', "get_ipython().magic({u}'psearch ax.*aspe*')"),
-        (u'a = abc?', "get_ipython().magic({u}'pinfo abc', next_input={u}'a = abc')"),
-        (u'a = abc.qe??', "get_ipython().magic({u}'pinfo2 abc.qe', next_input={u}'a = abc.qe')"),
-        (u'a = *.items?', "get_ipython().magic({u}'psearch *.items', next_input={u}'a = *.items')"),
-        (u'plot(a?', "get_ipython().magic({u}'pinfo a', next_input={u}'plot(a')"),
+        (u'a = abc?', "get_ipython().set_next_input({u}'a = abc');"
+                      "get_ipython().magic({u}'pinfo abc')"),
+        (u'a = abc.qe??', "get_ipython().set_next_input({u}'a = abc.qe');"
+                          "get_ipython().magic({u}'pinfo2 abc.qe')"),
+        (u'a = *.items?', "get_ipython().set_next_input({u}'a = *.items');"
+                          "get_ipython().magic({u}'psearch *.items')"),
+        (u'plot(a?', "get_ipython().set_next_input({u}'plot(a');"
+                     "get_ipython().magic({u}'pinfo a')"),
         (u'a*2 #comment?', 'a*2 #comment?'),
         ]],
 
@@ -616,7 +624,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 if raw.startswith(' '):
                     continue
 
-                isp.push(raw)
+                isp.push(raw+'\n')
                 out, out_raw = isp.source_raw_reset()
                 self.assertEqual(out.rstrip(), out_t,
                         tt.pair_fail_msg.format("inputsplitter",raw, out_t, out))
@@ -704,3 +712,87 @@ if __name__ == '__main__':
             print 'Raw source was:\n', raw
     except EOFError:
         print 'Bye'
+
+# Tests for cell magics support
+
+def test_last_blank():
+    nt.assert_false(isp.last_blank(''))
+    nt.assert_false(isp.last_blank('abc'))
+    nt.assert_false(isp.last_blank('abc\n'))
+    nt.assert_false(isp.last_blank('abc\na'))
+
+    nt.assert_true(isp.last_blank('\n'))
+    nt.assert_true(isp.last_blank('\n '))
+    nt.assert_true(isp.last_blank('abc\n '))
+    nt.assert_true(isp.last_blank('abc\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\n\n'))
+    nt.assert_true(isp.last_blank('abc\nd\ne\n\n'))
+    nt.assert_true(isp.last_blank('abc \n \n \n\n'))
+
+
+def test_last_two_blanks():
+    nt.assert_false(isp.last_two_blanks(''))
+    nt.assert_false(isp.last_two_blanks('abc'))
+    nt.assert_false(isp.last_two_blanks('abc\n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\na'))
+    nt.assert_false(isp.last_two_blanks('abc\n \n'))
+    nt.assert_false(isp.last_two_blanks('abc\n\n'))
+
+    nt.assert_true(isp.last_two_blanks('\n\n'))
+    nt.assert_true(isp.last_two_blanks('\n\n '))
+    nt.assert_true(isp.last_two_blanks('\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n '))
+    nt.assert_true(isp.last_two_blanks('abc\n\n \n \n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\n\n\n'))
+    nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
+
+
+class CellMagicsCommon(object):
+    
+    def test_whole_cell(self):
+        src = "%%cellm line\nbody\n"
+        sp = self.sp
+        sp.push(src)
+        nt.assert_equal(sp.cell_magic_parts, ['body\n'])
+        out = sp.source
+        ref = u"get_ipython()._run_cached_cell_magic({u}'cellm', {u}'line')\n"
+        nt.assert_equal(out, py3compat.u_format(ref))
+
+    def tearDown(self):
+        self.sp.reset()
+
+
+class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
+    sp = isp.IPythonInputSplitter(input_mode='cell')
+
+    def test_incremental(self):
+        sp = self.sp
+        src = '%%cellm line2\n'
+        sp.push(src)
+        nt.assert_true(sp.push_accepts_more()) #1
+        src += '\n'
+        sp.push(src)
+        # Note: if we ever change the logic to allow full blank lines (see
+        # _handle_cell_magic), then the following test should change to true
+        nt.assert_false(sp.push_accepts_more()) #2
+        # By now, even with full blanks allowed, a second blank should signal
+        # the end.  For now this test is only a redundancy safety, but don't
+        # delete it in case we change our mind and the previous one goes to
+        # true.
+        src += '\n'
+        sp.push(src)
+        nt.assert_false(sp.push_accepts_more()) #3
+
+
+class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
+    sp = isp.IPythonInputSplitter(input_mode='line')
+
+    def test_incremental(self):
+        sp = self.sp
+        sp.push('%%cellm line2\n')
+        nt.assert_true(sp.push_accepts_more()) #1
+        sp.push('\n')
+        nt.assert_false(sp.push_accepts_more()) #2
