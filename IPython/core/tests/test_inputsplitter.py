@@ -750,17 +750,23 @@ def test_last_two_blanks():
     nt.assert_true(isp.last_two_blanks('abc\nd\ne\nf\n\n\n'))
 
 
-class CellModeCellMagics(unittest.TestCase):
-    sp = isp.IPythonInputSplitter(input_mode='cell')
-
+class CellMagicsCommon(object):
+    
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         sp = self.sp
         sp.push(src)
         nt.assert_equal(sp.cell_magic_parts, ['body\n'])
         out = sp.source
-        ref = u"get_ipython()._run_cached_cell_magic(u'cellm', u'line')\n"
-        nt.assert_equal(out, ref)
+        ref = u"get_ipython()._run_cached_cell_magic({u}'cellm', {u}'line')\n"
+        nt.assert_equal(out, py3compat.u_format(ref))
+
+    def tearDown(self):
+        self.sp.reset()
+
+
+class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
+    sp = isp.IPythonInputSplitter(input_mode='cell')
 
     def test_incremental(self):
         sp = self.sp
@@ -780,21 +786,9 @@ class CellModeCellMagics(unittest.TestCase):
         sp.push(src)
         nt.assert_false(sp.push_accepts_more()) #3
 
-    def tearDown(self):
-        self.sp.reset()
 
-
-class LineModeCellMagics(unittest.TestCase):
+class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
     sp = isp.IPythonInputSplitter(input_mode='line')
-
-    def test_whole_cell(self):
-        src = "%%cellm line\nbody\n"
-        sp = self.sp
-        sp.push(src)
-        nt.assert_equal(sp.cell_magic_parts, ['body\n'])
-        out = sp.source
-        ref = u"get_ipython()._run_cached_cell_magic(u'cellm', u'line')\n"
-        nt.assert_equal(out, ref)
 
     def test_incremental(self):
         sp = self.sp
@@ -802,6 +796,3 @@ class LineModeCellMagics(unittest.TestCase):
         nt.assert_true(sp.push_accepts_more()) #1
         sp.push('\n')
         nt.assert_false(sp.push_accepts_more()) #2
-
-    def tearDown(self):
-        self.sp.reset()
