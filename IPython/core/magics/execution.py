@@ -70,15 +70,25 @@ python packages because of its non-free license. To use profiling, install the
 python-profiler package from non-free.""")
 
     @skip_doctest
-    @line_magic
-    def prun(self, parameter_s='',user_mode=1,
+    @line_cell_magic
+    def prun(self, parameter_s='', cell=None, user_mode=True,
                    opts=None,arg_lst=None,prog_ns=None):
 
         """Run a statement through the python code profiler.
 
-        Usage:
+        Usage, in line mode:
           %prun [options] statement
 
+        Usage, in cell mode:
+          %%prun [options] [statement]
+          code...
+          code...
+
+        In cell mode, the additional code lines are appended to the (possibly
+        empty) statement in the first line.  Cell mode allows you to easily
+        profile multiline blocks without having to put them in a separate
+        function.
+        
         The given statement (which doesn't require quote marks) is run via the
         python profiler in a manner similar to the profile.run() function.
         Namespaces are internally managed to work correctly; profile.run
@@ -167,8 +177,10 @@ python-profiler package from non-free.""")
 
         if user_mode:  # regular user call
             opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:q',
-                                              list_all=1, posix=False)
+                                              list_all=True, posix=False)
             namespace = self.shell.user_ns
+            if cell is not None:
+                arg_str += '\n' + cell
         else:  # called to run a program by %run -p
             try:
                 filename = get_py_filename(arg_lst[0])
@@ -516,7 +528,7 @@ python-profiler package from non-free.""")
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self.prun('', 0, opts, arg_lst, prog_ns)
+                    stats = self.prun('', None, False, opts, arg_lst, prog_ns)
                 else:
                     if 'd' in opts:
                         deb = debugger.Pdb(self.shell.colors)
