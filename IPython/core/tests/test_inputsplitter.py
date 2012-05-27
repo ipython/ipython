@@ -455,7 +455,8 @@ syntax = \
          (u'?x1', "get_ipython().magic({u}'pinfo x1')"),
          (u'??x2', "get_ipython().magic({u}'pinfo2 x2')"),
          (u'?a.*s', "get_ipython().magic({u}'psearch a.*s')"),
-         (u'?%hist', "get_ipython().magic({u}'pinfo %hist')"),
+         (u'?%hist1', "get_ipython().magic({u}'pinfo %hist1')"),
+         (u'?%%hist2', "get_ipython().magic({u}'pinfo %%hist2')"),
          (u'?abc = qwe', "get_ipython().magic({u}'pinfo abc')"),
          ]],
 
@@ -463,7 +464,10 @@ syntax = \
       [(i,py3compat.u_format(o)) for i,o in \
       [ (u'x3?', "get_ipython().magic({u}'pinfo x3')"),
         (u'x4??', "get_ipython().magic({u}'pinfo2 x4')"),
-        (u'%hist?', "get_ipython().magic({u}'pinfo %hist')"),
+        (u'%hist1?', "get_ipython().magic({u}'pinfo %hist1')"),
+        (u'%hist2??', "get_ipython().magic({u}'pinfo2 %hist2')"),
+        (u'%%hist3?', "get_ipython().magic({u}'pinfo %%hist3')"),
+        (u'%%hist4??', "get_ipython().magic({u}'pinfo2 %%hist4')"),
         (u'f*?', "get_ipython().magic({u}'psearch f*')"),
         (u'ax.*aspe*?', "get_ipython().magic({u}'psearch ax.*aspe*')"),
         (u'a = abc?', "get_ipython().set_next_input({u}'a = abc');"

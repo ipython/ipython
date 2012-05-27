@@ -60,7 +60,6 @@ Authors
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -598,7 +597,6 @@ def _make_help_call(target, esc, lspace, next_input=None):
                 else 'psearch' if '*' in target \
                 else 'pinfo'
     arg = " ".join([method, target])
-    
     if next_input is None:
         return '%sget_ipython().magic(%r)' % (lspace, arg)
     else:
@@ -608,7 +606,7 @@ def _make_help_call(target, esc, lspace, next_input=None):
 
 _initial_space_re = re.compile(r'\s*')
 
-_help_end_re = re.compile(r"""(%?
+_help_end_re = re.compile(r"""(%{0,2}
                               [a-zA-Z_*][\w*]*        # Variable name
                               (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
                               )
@@ -841,7 +839,8 @@ class IPythonInputSplitter(InputSplitter):
 
         # If the entire input block is a cell magic, return after handling it
         # as the rest of the transformation logic should be skipped.
-        if lines.startswith('%%'):
+        if lines.startswith('%%') and not \
+          (len(lines.splitlines()) == 1 and lines.endswith('?')):
             return self._handle_cell_magic(lines)
 
         # In line mode, a cell magic can arrive in separate pieces
