@@ -28,11 +28,18 @@ import runpy
 import sys
 import tempfile
 import types
-import urllib
-from io import open as io_open
+
+# We need to use nested to support python 2.6, once we move to >=2.7, we can
+# use the with keyword's new builtin support for nested managers
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
+from IPython.core import history as ipcorehist
+from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
 from IPython.core import shadowns
@@ -52,7 +59,6 @@ from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
-from IPython.core.magic import Magic
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
@@ -187,7 +193,7 @@ class ReadlineNoRecord(object):
 # Main IPython class
 #-----------------------------------------------------------------------------
 
-class InteractiveShell(SingletonConfigurable, Magic):
+class InteractiveShell(SingletonConfigurable):
     """An enhanced, interactive shell for Python."""
 
     _instance = None
@@ -380,6 +386,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
     plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
+    magics_manager = Instance('IPython.core.magic.MagicsManager')
 
     profile_dir = Instance('IPython.core.application.ProfileDir')
     @property
@@ -429,8 +436,6 @@ class InteractiveShell(SingletonConfigurable, Magic):
         self.init_history()
         self.init_encoding()
         self.init_prefilter()
-
-        Magic.__init__(self, self)
 
         self.init_syntax_highlighting()
         self.init_hooks()
@@ -588,11 +593,11 @@ class InteractiveShell(SingletonConfigurable, Magic):
         """Initialize logging in case it was requested at the command line.
         """
         if self.logappend:
-            self.magic_logstart(self.logappend + ' append')
+            self.magic('logstart %s append' % self.logappend)
         elif self.logfile:
-            self.magic_logstart(self.logfile)
+            self.magic('logstart %' % self.logfile)
         elif self.logstart:
-            self.magic_logstart()
+            self.magic('logstart')
 
     def init_builtins(self):
         # A single, static flag that we set to True.  Its presence indicates
@@ -1396,8 +1401,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # Try to see if it's magic
         if not found:
             if oname.startswith(ESC_MAGIC):
-                oname = oname[1:]
-            obj = getattr(self,'magic_'+oname,None)
+                oname = oname.lstrip(ESC_MAGIC)
+            obj = self.find_line_magic(oname)
+            if obj is None:
+                obj = self.find_cell_magic(oname)
             if obj is not None:
                 found = True
                 ospace = 'IPython internal'
@@ -1993,16 +2000,113 @@ class InteractiveShell(SingletonConfigurable, Magic):
     #-------------------------------------------------------------------------
 
     def init_magics(self):
+        from IPython.core import magics as m
+        self.magics_manager = magic.MagicsManager(shell=self,
+                                   confg=self.config,
+                                   user_magics=m.UserMagics(self))
+        self.configurables.append(self.magics_manager)
+
+        # Expose as public API from the magics manager
+        self.register_magics = self.magics_manager.register
+        self.register_magic_function = self.magics_manager.register_function
+        self.define_magic = self.magics_manager.define_magic
+
+        self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
+            m.ConfigMagics, m.DeprecatedMagics, m.ExecutionMagics,
+            m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
+            m.NamespaceMagics, m.OSMagics, m.PylabMagics )
+
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
-        self.magic_colors(self.colors)
-        # History was moved to a separate module
-        from IPython.core import history
-        history.init_ipython(self)
+        self.magic('colors %s' % self.colors)
 
-    def magic(self, arg_s, next_input=None):
-        """Call a magic function by name.
+    def run_line_magic(self, magic_name, line):
+        """Execute the given line magic.
+
+        Parameters
+        ----------
+        magic_name : str
+          Name of the desired magic function, without '%' prefix.
+
+        line : str
+          The rest of the input line as a single string.
+        """
+        fn = self.find_line_magic(magic_name)
+        if fn is None:
+            cm = self.find_cell_magic(magic_name)
+            etpl = "Line magic function `%%%s` not found%s."
+            extra = '' if cm is None else (' (But cell magic `%%%%%s` exists, '
+                                    'did you mean that instead?)' % magic_name )
+            error(etpl % (magic_name, extra))
+        else:
+            # Note: this is the distance in the stack to the user's frame.
+            # This will need to be updated if the internal calling logic gets
+            # refactored, or else we'll be expanding the wrong variables.
+            stack_depth = 2
+            magic_arg_s = self.var_expand(line, stack_depth)
+            # Put magic args in a list so we can call with f(*a) syntax
+            args = [magic_arg_s]
+            # Grab local namespace if we need it:
+            if getattr(fn, "needs_local_scope", False):
+                args.append(sys._getframe(stack_depth).f_locals)
+            with self.builtin_trap:
+                result = fn(*args)
+            return result
+
+    def run_cell_magic(self, magic_name, line, cell):
+        """Execute the given cell magic.
+        
+        Parameters
+        ----------
+        magic_name : str
+          Name of the desired magic function, without '%' prefix.
+
+        line : str
+          The rest of the first input line as a single string.
+
+        cell : str
+          The body of the cell as a (possibly multiline) string.
+        """
+        fn = self.find_cell_magic(magic_name)
+        if fn is None:
+            lm = self.find_line_magic(magic_name)
+            etpl = "Cell magic function `%%%%%s` not found%s."
+            extra = '' if lm is None else (' (But line magic `%%%s` exists, '
+                                    'did you mean that instead?)' % magic_name )
+            error(etpl % (magic_name, extra))
+        else:
+            # Note: this is the distance in the stack to the user's frame.
+            # This will need to be updated if the internal calling logic gets
+            # refactored, or else we'll be expanding the wrong variables.
+            stack_depth = 2
+            magic_arg_s = self.var_expand(line, stack_depth)
+            with self.builtin_trap:
+                result = fn(line, cell)
+            return result
+
+    def find_line_magic(self, magic_name):
+        """Find and return a line magic by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics['line'].get(magic_name)
+
+    def find_cell_magic(self, magic_name):
+        """Find and return a cell magic by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics['cell'].get(magic_name)
+
+    def find_magic(self, magic_name, magic_kind='line'):
+        """Find and return a magic of the given type by name.
+
+        Returns None if the magic isn't found."""
+        return self.magics_manager.magics[magic_kind].get(magic_name)
+
+    def magic(self, arg_s):
+        """DEPRECATED. Use run_line_magic() instead.
+
+        Call a magic function by name.
 
         Input: a string containing the name of the magic function to call and
         any additional arguments to be passed to the magic.
@@ -2018,45 +2122,10 @@ class InteractiveShell(SingletonConfigurable, Magic):
         valid Python code you can type at the interpreter, including loops and
         compound statements.
         """
-        # Allow setting the next input - this is used if the user does `a=abs?`.
-        # We do this first so that magic functions can override it.
-        if next_input:
-            self.set_next_input(next_input)
-
-        magic_name, _, magic_args = arg_s.partition(' ')
+        # TODO: should we issue a loud deprecation warning here?
+        magic_name, _, magic_arg_s = arg_s.partition(' ')
         magic_name = magic_name.lstrip(prefilter.ESC_MAGIC)
-
-        fn = getattr(self,'magic_'+magic_name,None)
-        if fn is None:
-            error("Magic function `%s` not found." % magic_name)
-        else:
-            magic_args = self.var_expand(magic_args,1)
-            # Grab local namespace if we need it:
-            if getattr(fn, "needs_local_scope", False):
-                self._magic_locals = sys._getframe(1).f_locals
-            with self.builtin_trap:
-                result = fn(magic_args)
-            # Ensure we're not keeping object references around:
-            self._magic_locals = {}
-            return result
-
-    def define_magic(self, magicname, func):
-        """Expose own function as magic function for ipython
-        
-        Example::
-
-          def foo_impl(self,parameter_s=''):
-              'My very own magic!. (Use docstrings, IPython reads them).'
-              print 'Magic function. Passed parameter is between < >:'
-              print '<%s>' % parameter_s
-              print 'The self object is:', self
-
-          ip.define_magic('foo',foo_impl)
-        """
-        im = types.MethodType(func,self)
-        old = getattr(self, "magic_" + magicname, None)
-        setattr(self, "magic_" + magicname, im)
-        return old
+        return self.run_line_magic(magic_name, magic_arg_s)
 
     #-------------------------------------------------------------------------
     # Things related to macros
@@ -2426,6 +2495,13 @@ class InteractiveShell(SingletonConfigurable, Magic):
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
 
+    def _run_cached_cell_magic(self, magic_name, line):
+        """Special method to call a cell magic with the data stored in self.
+        """
+        cell = self._current_cell_magic_body
+        self._current_cell_magic_body = None
+        return self.run_cell_magic(magic_name, line, cell)
+
     def run_cell(self, raw_cell, store_history=False, silent=False):
         """Run a complete IPython cell.
 
@@ -2447,8 +2523,15 @@ class InteractiveShell(SingletonConfigurable, Magic):
         if silent:
             store_history = False
 
-        for line in raw_cell.splitlines():
-            self.input_splitter.push(line)
+        self.input_splitter.push(raw_cell)
+
+        # Check for cell magics, which leave state behind.  This interface is
+        # ugly, we need to do something cleaner later...  Now the logic is
+        # simply that the input_splitter remembers if there was a cell magic,
+        # and in that case we grab the cell body.
+        if self.input_splitter.cell_magic_parts:
+            self._current_cell_magic_body = \
+                               ''.join(self.input_splitter.cell_magic_parts)
         cell = self.input_splitter.source_reset()
 
         with self.builtin_trap:
@@ -2479,7 +2562,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
 
                 with self.display_trap:
                     try:
-                        code_ast = self.compile.ast_parse(cell, filename=cell_name)
+                        code_ast = self.compile.ast_parse(cell,
+                                                          filename=cell_name)
                     except IndentationError:
                         self.showindentationerror()
                         if store_history:
@@ -2669,7 +2753,7 @@ class InteractiveShell(SingletonConfigurable, Magic):
           make sense in all contexts, for example a terminal ipython can't
           display figures inline.
         """
-
+        from IPython.core.pylabtools import mpl_runner
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
@@ -2685,7 +2769,8 @@ class InteractiveShell(SingletonConfigurable, Magic):
         # Now we must activate the gui pylab wants to use, and fix %run to take
         # plot updates into account
         self.enable_gui(gui)
-        self.magic_run = self._pylab_magic_run
+        self.magics_manager.registry['ExecutionMagics'].default_runner = \
+        mpl_runner(self.safe_execfile)
 
     #-------------------------------------------------------------------------
     # Utilities
@@ -2748,6 +2833,29 @@ class InteractiveShell(SingletonConfigurable, Magic):
     def show_usage(self):
         """Show a usage message"""
         page.page(IPython.core.usage.interactive_usage)
+
+    def extract_input_lines(self, range_str, raw=False):
+        """Return as a string a set of input history slices.
+
+        Parameters
+        ----------
+        range_str : string
+            The set of slices is given as a string, like "~5/6-~4/2 4:8 9",
+            since this function is for use by magic functions which get their
+            arguments as strings. The number before the / is the session
+            number: ~n goes n back from the current session.
+
+        Optional Parameters:
+          - raw(False): by default, the processed input is used.  If this is
+          true, the raw input history is used instead.
+
+        Note that slices can be called with two notations:
+
+        N:M -> standard python form, means including items N...(M-1).
+
+        N-M -> include items N..M (closed endpoint)."""
+        lines = self.history_manager.get_range_by_str(range_str, raw=raw)
+        return "\n".join(x for _, _, x in lines)
 
     def find_user_code(self, target, raw=True, py_only=False):
         """Get a code string from history, file, url, or a string or macro.

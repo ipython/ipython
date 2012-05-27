@@ -612,7 +612,7 @@ class AutoMagicChecker(PrefilterChecker):
         check_esc_chars. This just checks for automagic.  Also, before
         triggering the magic handler, make sure that there is nothing in the
         user namespace which could shadow it."""
-        if not self.shell.automagic or not hasattr(self.shell,'magic_'+line_info.ifun):
+        if not self.shell.automagic or not self.shell.find_magic(line_info.ifun):
             return None
 
         # We have a likely magic method.  Make sure we should actually call it.
@@ -807,7 +807,7 @@ class AutoHandler(PrefilterHandler):
         pre     = line_info.pre
         esc     = line_info.esc
         continue_prompt = line_info.continue_prompt
-        obj = line_info.ofind(self)['obj']
+        obj = line_info.ofind(self.shell)['obj']
         #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun,the_rest)  # dbg
 
         # This should only be active for single-line input!
@@ -891,7 +891,7 @@ class HelpHandler(PrefilterHandler):
                 line = line[:-1]
             if line:
                 #print 'line:<%r>' % line  # dbg
-                self.shell.magic_pinfo(line_info.ifun)
+                self.shell.magic('pinfo %s' % line_info.ifun)
             else:
                 self.shell.show_usage()
             return '' # Empty string is needed here!

@@ -33,7 +33,7 @@ from IPython.core import page, pylabtools
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.macro import Macro
-from IPython.core.magic import MacroToEdit
+from IPython.core.magics import MacroToEdit
 from IPython.core.payloadpage import install_payload_page
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
@@ -48,7 +48,6 @@ from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
 from IPython.zmq.session import extract_header
 from session import Session
-
 
 #-----------------------------------------------------------------------------
 # Functions and classes

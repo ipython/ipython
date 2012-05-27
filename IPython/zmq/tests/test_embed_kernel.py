@@ -25,7 +25,6 @@ import nose.tools as nt
 from IPython.zmq.blockingkernelmanager import BlockingKernelManager
 from IPython.utils import path, py3compat
 
-
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
@@ -38,6 +37,8 @@ def setup():
     
     IPYTHONDIR = tempfile.mkdtemp()
     env = dict(IPYTHONDIR=IPYTHONDIR)
+    if 'PYTHONPATH' in os.environ:
+        env['PYTHONPATH'] = os.environ['PYTHONPATH']
     save_get_ipython_dir = path.get_ipython_dir
     path.get_ipython_dir = lambda : IPYTHONDIR
 

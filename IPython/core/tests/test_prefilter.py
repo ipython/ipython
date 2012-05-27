@@ -79,7 +79,7 @@ def test_issue_114():
     msp = ip.prefilter_manager.multi_line_specials
     ip.prefilter_manager.multi_line_specials = False
     try:
-        for mgk in ip.lsmagic():
+        for mgk in ip.magics_manager.lsmagic()['line']:
             raw = template % mgk
             yield nt.assert_equals(ip.prefilter(raw), raw)
     finally:

@@ -100,17 +100,45 @@ IPython itself, plus a lot of system-type features. They are all
 prefixed with a % character, but parameters are given without
 parentheses or quotes.
 
-Example: typing ``%cd mydir`` changes your working directory to 'mydir', if it
-exists.
+Lines that begin with ``%%`` signal a *cell magic*: they take as arguments not
+only the rest of the current line, but all lines below them as well, in the
+current execution block.  Cell magics can in fact make arbitrary modifications
+to the input they receive, which need not even be valid Python code at all.
+They receive the whole block as a single string.
 
-If you have 'automagic' enabled (as it by default), you don't need
-to type in the % explicitly. IPython will scan its internal list of
-magic functions and call one if it exists. With automagic on you can
-then just type ``cd mydir`` to go to directory 'mydir'. The automagic
-system has the lowest possible precedence in name searches, so defining
-an identifier with the same name as an existing magic function will
-shadow it for automagic use. You can still access the shadowed magic
-function by explicitly using the % character at the beginning of the line.
+As a line magic example, the ``%cd`` magic works just like the OS command of
+the same name::
+
+      In [8]: %cd
+      /home/fperez
+
+The following uses the builtin ``timeit`` in cell mode::
+  
+  In [10]: %%timeit x = range(10000)
+      ...: min(x)
+      ...: max(x)
+      ...: 
+  1000 loops, best of 3: 438 us per loop
+
+In this case, ``x = range(10000)`` is called as the line argument, and the
+block with ``min(x)`` and ``max(x)`` is called as the cell body.  The
+``timeit`` magic receives both.
+  
+If you have 'automagic' enabled (as it by default), you don't need to type in
+the single ``%`` explicitly for line magics; IPython will scan its internal
+list of magic functions and call one if it exists. With automagic on you can
+then just type ``cd mydir`` to go to directory 'mydir'::
+
+      In [9]: cd mydir
+      /home/fperez/mydir
+
+Note that cell magics *always* require an explicit ``%%`` prefix, automagic
+calling only works for line magics.
+      
+The automagic system has the lowest possible precedence in name searches, so
+defining an identifier with the same name as an existing magic function will
+shadow it for automagic use. You can still access the shadowed magic function
+by explicitly using the ``%`` character at the beginning of the line.
 
 An example (with automagic on) should clarify all this:
 
@@ -137,24 +165,141 @@ An example (with automagic on) should clarify all this:
 
     /home/fperez/ipython
 
-You can define your own magic functions to extend the system. The
-following example defines a new magic command, %impall:
+Defining your own magics
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two main ways to define your own magic functions: from standalone
+functions and by inheriting from a base class provided by IPython:
+:class:`IPython.core.magic.Magics`.  Below we show code you can place in a file
+that you load from your configuration, such as any file in the ``startup``
+subdirectory of your default IPython profile.
+
+First, let us see the simplest case.  The following shows how to create a line
+magic, a cell one and one that works in both modes, using just plain functions:
 
 .. sourcecode:: python
 
+    from IPython.core.magic import (register_line_magic, register_cell_magic,
+                                    register_line_cell_magic)
+		
+    @register_line_magic
+    def lmagic(line):
+        "my line magic"
+	return line
+
+    @register_cell_magic
+    def cmagic(line, cell):
+        "my cell magic"
+        return line, cell
+
+    @register_line_cell_magic
+    def lcmagic(line, cell=None):
+        "Magic that works both as %lcmagic and as %%lcmagic"
+	if cell is None:
+	    print "Called as line magic"
+	    return line
+	else:
+	    print "Called as cell magic"
+            return line, cell
+
+    # We delete these to avoid name conflicts for automagic to work
+    del lmagic, lcmagic
+
+
+You can also create magics of all three kinds by inheriting from the
+:class:`IPython.core.magic.Magics` class.  This lets you create magics that can
+potentially hold state in between calls, and that have full access to the main
+IPython object:
+    
+.. sourcecode:: python
+		
+    # This code can be put in any Python module, it does not require IPython
+    # itself to be running already.  It only creates the magics subclass but
+    # doesn't instantiate it yet.
+    from IPython.core.magic import (Magics, magics_class, line_magic,
+                                    cell_magic, line_cell_magic)
+
+    # The class MUST call this class decorator at creation time
+    @magics_class
+    class MyMagics(Magics):
+
+        @line_magic
+        def lmagic(self, line):
+            "my line magic"
+            print "Full access to the main IPython object:", self.shell
+            print "Variables in the user namespace:", self.user_ns.keys()
+            return line
+
+        @cell_magic
+        def cmagic(self, line, cell):
+            "my cell magic"
+            return line, cell
+
+        @line_cell_magic
+        def lcmagic(self, line, cell=None):
+            "Magic that works both as %lcmagic and as %%lcmagic"
+            if cell is None:
+                print "Called as line magic"
+                return line
+            else:
+                print "Called as cell magic"
+                return line, cell
+
+
+    # In order to actually use these magics, you must register them with a
+    # running IPython.  This code must be placed in a file that is loaded once
+    # IPython is up and running:
     ip = get_ipython()
+    # You can register the class itself without instantiating it.  IPython will
+    # call the default constructor on it.
+    ip.register_magics(MyMagics)
 
-    def doimp(self, arg):
-        ip = self.api
-        ip.ex("import %s; reload(%s); from %s import *" % (arg,arg,arg) )
+If you want to create a class with a different constructor that holds
+additional state, then you should always call the parent constructor and
+instantiate the class yourself before registration:
 
-    ip.define_magic('impall', doimp)
+.. sourcecode:: python
+		
+    @magics_class
+    class StatefulMagics(Magics):
+        "Magics that hold additional state"
+	
+        def __init__(self, shell, data):
+            # You must call the parent constructor
+            super(StatefulMagics, self).__init__(shell)
+            self.data = data
+        
+        # etc...
+
+    # This class must then be registered with a manually created instance,
+    # since its constructor has different arguments from the default:
+    ip = get_ipython()
+    magics = StatefulMagics(ip, some_data)
+    ip.register_magics(magics)
+    
+
+In earlier versions, IPython had an API for the creation of line magics (cell
+magics did not exist at the time) that required you to create functions with a
+method-looking signature and to manually pass both the function and the name.
+While this API is no longer recommended, it remains indefinitely supported for
+backwards compatibility purposes.  With the old API, you'd create a magic as
+follows:
+
+.. sourcecode:: python
+
+    def func(self, line):
+        print "Line magic called with line:", line
+	print "IPython object:", self.shell
+
+    ip = get_ipython()
+    # Declare this function as the magic %mycommand
+    ip.define_magic('mycommand', func)
 
 Type ``%magic`` for more information, including a list of all available magic
 functions at any time and their docstrings. You can also type
-``%magic_function_name?`` (see :ref:`below <dynamic_object_info>` for information on
-the '?' system) to get information about any particular magic function you are
-interested in.
+``%magic_function_name?`` (see :ref:`below <dynamic_object_info>` for
+information on the '?' system) to get information about any particular magic
+function you are interested in.
 
 The API documentation for the :mod:`IPython.core.magic` module contains the full
 docstrings of all currently available magic commands.
