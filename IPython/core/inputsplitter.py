@@ -840,7 +840,7 @@ class IPythonInputSplitter(InputSplitter):
         # If the entire input block is a cell magic, return after handling it
         # as the rest of the transformation logic should be skipped.
         if lines.startswith('%%') and not \
-          (len(lines.splitlines()) == 1 and lines.endswith('?')):
+          (len(lines.splitlines()) == 1 and lines.strip().endswith('?')):
             return self._handle_cell_magic(lines)
 
         # In line mode, a cell magic can arrive in separate pieces

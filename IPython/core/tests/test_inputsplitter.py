@@ -624,7 +624,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 if raw.startswith(' '):
                     continue
 
-                isp.push(raw)
+                isp.push(raw+'\n')
                 out, out_raw = isp.source_raw_reset()
                 self.assertEqual(out.rstrip(), out_t,
                         tt.pair_fail_msg.format("inputsplitter",raw, out_t, out))
