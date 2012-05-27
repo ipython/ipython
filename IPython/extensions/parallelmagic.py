@@ -11,15 +11,15 @@ Usage
 
 ``%autopx``
 
-@AUTOPX_DOC@
+{AUTOPX_DOC}
 
 ``%px``
 
-@PX_DOC@
+{PX_DOC}
 
 ``%result``
 
-@RESULT_DOC@
+{RESULT_DOC}
 
 """
 
@@ -37,6 +37,7 @@ Usage
 import ast
 import re
 
+from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 
@@ -44,9 +45,8 @@ from IPython.testing.skipdoctest import skip_doctest
 # Definitions of magic functions for use with IPython
 #-----------------------------------------------------------------------------
 
-NO_ACTIVE_VIEW = """
-Use activate() on a DirectView object to activate it for magics.
-"""
+
+NO_ACTIVE_VIEW = "Use activate() on a DirectView object to use it with magics."
 
 
 @magics_class
@@ -54,10 +54,10 @@ class ParallelMagics(Magics):
     """A set of magics useful when controlling a parallel IPython cluster.
     """
 
-    def __init__(self, shell):
-        super(ParallelMagics, self).__init__(shell)
-        # A flag showing if autopx is activated or not
-        self.autopx = False
+    # A flag showing if autopx is activated or not
+    _autopx = False
+    # the current view used by the magics:
+    active_view = None
 
     @skip_doctest
     @line_magic
@@ -70,20 +70,12 @@ class ParallelMagics(Magics):
         Then you can do the following::
 
             In [23]: %result
-            Out[23]:
-            <Results List>
-            [0] In [6]: a = 10
-            [1] In [6]: a = 10
+            Out[23]: <AsyncResult: unknown>
 
-            In [22]: %result 6
-            Out[22]:
-            <Results List>
-            [0] In [6]: a = 10
-            [1] In [6]: a = 10
+            In [22]: ar = %result 6
         """
         if self.active_view is None:
-            print NO_ACTIVE_VIEW
-            return
+            raise UsageError(NO_ACTIVE_VIEW)
 
         try:
             index = int(parameter_s)
@@ -102,17 +94,18 @@ class ParallelMagics(Magics):
 
         Then you can do the following::
 
-            In [24]: %px a = 5
+            In [24]: %px a = os.getpid()
             Parallel execution on engine(s): all
-            Out[24]:
-            <Results List>
-            [0] In [7]: a = 5
-            [1] In [7]: a = 5
+            
+            In [25]: %px print a
+            [stdout:0] 1234
+            [stdout:1] 1235
+            [stdout:2] 1236
+            [stdout:3] 1237
         """
 
         if self.active_view is None:
-            print NO_ACTIVE_VIEW
-            return
+            raise UsageError(NO_ACTIVE_VIEW)
         print "Parallel execution on engine(s): %s" % self.active_view.targets
         result = self.active_view.execute(parameter_s, block=False)
         if self.active_view.block:
@@ -149,7 +142,7 @@ class ParallelMagics(Magics):
             In [27]: %autopx
             %autopx disabled
         """
-        if self.autopx:
+        if self._autopx:
             self._disable_autopx()
         else:
             self._enable_autopx()
@@ -159,38 +152,38 @@ class ParallelMagics(Magics):
         pxrun_cell.
         """
         if self.active_view is None:
-            print NO_ACTIVE_VIEW
-            return
+            raise UsageError(NO_ACTIVE_VIEW)
 
-        # override run_cell and run_code
+        # override run_cell
         self._original_run_cell = self.shell.run_cell
         self.shell.run_cell = self.pxrun_cell
-        self._original_run_code = self.shell.run_code
-        self.shell.run_code = self.pxrun_code
 
-        self.autopx = True
+        self._autopx = True
         print "%autopx enabled"
 
     def _disable_autopx(self):
         """Disable %autopx by restoring the original InteractiveShell.run_cell.
         """
-        if self.autopx:
+        if self._autopx:
             self.shell.run_cell = self._original_run_cell
-            self.shell.run_code = self._original_run_code
-            self.autopx = False
+            self._autopx = False
             print "%autopx disabled"
 
-    def _maybe_display_output(self, result):
-        """Maybe display the output of a parallel result.
+    def _display_result(self, result):
+        """Display the output of a parallel result.
 
         If self.active_view.block is True, wait for the result
         and display the result.  Otherwise, this is a noop.
         """
-        if isinstance(result.stdout, basestring):
+        if result._single_result:
             # single result
             stdouts = [result.stdout.rstrip()]
+            stderrs = [result.stderr.rstrip()]
         else:
             stdouts = [s.rstrip() for s in result.stdout]
+            stderrs = [s.rstrip() for s in result.stderr]
+
+        results = result.get_dict()
 
         targets = self.active_view.targets
         if isinstance(targets, int):
@@ -266,44 +259,12 @@ class ParallelMagics(Magics):
                         self._maybe_display_output(result)
                 return False
 
-    def pxrun_code(self, code_obj):
-        """drop-in replacement for InteractiveShell.run_code.
 
-        This executes code remotely, instead of in the local namespace.
-
-        See InteractiveShell.run_code for details.
-        """
-        ipself = self.shell
-        # check code object for the autopx magic
-        if 'get_ipython' in code_obj.co_names and 'magic' in code_obj.co_names \
-          and any( [ isinstance(c, basestring) and 'autopx' in c
-                     for c in code_obj.co_consts ]):
-            self._disable_autopx()
-            return False
-        else:
-            try:
-                result = self.active_view.execute(code_obj, block=False)
-            except:
-                ipself.showtraceback()
-                return True
-            else:
-                if self.active_view.block:
-                    try:
-                        result.get()
-                    except:
-                        self.shell.showtraceback()
-                        return True
-                    else:
-                        self._maybe_display_output(result)
-                return False
-
-
-__doc__ = __doc__.replace('@AUTOPX_DOC@',
-                          "        " + ParallelMagics.autopx.__doc__)
-__doc__ = __doc__.replace('@PX_DOC@',
-                          "        " + ParallelMagics.px.__doc__)
-__doc__ = __doc__.replace('@RESULT_DOC@',
-                          "        " + ParallelMagics.result.__doc__)
+__doc__ = __doc__.format(
+                AUTOPX_DOC = ' '*8 + ParallelMagics.autopx.__doc__,
+                PX_DOC = ' '*8 + ParallelMagics.px.__doc__,
+                RESULT_DOC = ' '*8 + ParallelMagics.result.__doc__
+)
 
 _loaded = False
 
