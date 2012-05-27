@@ -469,14 +469,29 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ip = get_ipython()
         v = self.client[-1]
         v.activate()
-        v['a'] = 111
-        ra = v['a']
+        data = dict(a=111,b=222)
+        v.push(data, block=True)
+
+        ip.magic('px a')
+        ip.magic('px b')
+        for idx, name in [
+                    ('', 'b'),
+                    ('-1', 'b'),
+                    ('2', 'b'),
+                    ('1', 'a'),
+                    ('-2', 'a'),
+                ]:
+            sio = StringIO()
+            savestdout = sys.stdout
+            sys.stdout = sio
+            ip.magic('result ' + idx)
+            sys.stdout.flush()
+            sys.stdout = savestdout
+            output = sio.getvalue().strip()
+            msg = "expected %s output to include %s, but got: %s" % \
+                ('%result '+idx, str(data[name]), output)
+            self.assertTrue(str(data[name]) in output, msg)
         
-        ar = ip.magic('result')
-        self.assertEquals(ar.msg_ids, [v.history[-1]])
-        self.assertEquals(ar.get(), 111)
-        ar = ip.magic('result -2')
-        self.assertEquals(ar.msg_ids, [v.history[-2]])
     
     def test_unicode_execute(self):
         """test executing unicode strings"""
