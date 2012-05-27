@@ -1401,8 +1401,10 @@ class InteractiveShell(SingletonConfigurable):
         # Try to see if it's magic
         if not found:
             if oname.startswith(ESC_MAGIC):
-                oname = oname[1:]
-            obj = self.find_magic(oname)
+                oname = oname.lstrip(ESC_MAGIC)
+            obj = self.find_line_magic(oname)
+            if obj is None:
+                obj = self.find_cell_magic(oname)
             if obj is not None:
                 found = True
                 ospace = 'IPython internal'

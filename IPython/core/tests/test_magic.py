@@ -544,3 +544,4 @@ class CellMagicTestCase(TestCase):
         # Check that nothing is registered as 'cellm33'
         c33 = _ip.find_cell_magic('cellm33')
         nt.assert_equals(c33, None)
+    

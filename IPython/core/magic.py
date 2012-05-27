@@ -172,7 +172,6 @@ def _method_magic_marker(magic_kind):
 def _function_magic_marker(magic_kind):
     """Decorator factory for standalone functions.
     """
-    
     validate_type(magic_kind)
     
     # This is a closure to capture the magic_kind.  We could also use a class,
