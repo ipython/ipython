@@ -774,7 +774,12 @@ python-profiler package from non-free.""")
             setup = timeit.reindent(stmt, 4)
             stmt = timeit.reindent(cell, 8)
 
-        src = timeit.template % dict(stmt=stmt, setup=setup)
+        # From Python 3.3, this template uses new-style string formatting.
+        if sys.version_info >= (3, 3):
+            src = timeit.template.format(stmt=stmt, setup=setup)
+        else:
+            src = timeit.template % dict(stmt=stmt, setup=setup)
+
         # Track compilation time so it can be reported if too long
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
