@@ -299,8 +299,9 @@ class MagicsManager(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    auto_magic = Bool
-
+    auto_magic = Bool(True, config=True, help=
+        "Automatically call line magics without requiring explicit % prefix")
+    
     _auto_status = [
         'Automagic is OFF, % prefix IS needed for line magics.',
         'Automagic is ON, % prefix IS NOT needed for line magics.']
@@ -330,6 +331,23 @@ class MagicsManager(Configurable):
 
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
+
+        Take one or more classes or instances of classes that subclass the main 
+        `core.Magic` class, and register them with IPython to use the magic
+        functions they provide.  The registration process will then ensure that
+        any methods that have decorated to provide line and/or cell magics will
+        be recognized with the `%x`/`%%x` syntax as a line/cell magic
+        respectively.
+
+        If classes are given, they will be instantiated with the default
+        constructor.  If your classes need a custom constructor, you should
+        instanitate them first and pass the instance.
+
+        The provided arguments can be an arbitrary mix of classes and instances.
+
+        Parameters
+        ----------
+        magic_objects : one or more classes or instances
         """
         # Start by validating them to ensure they have all had their magic
         # methods registered at the instance level
@@ -348,7 +366,30 @@ class MagicsManager(Configurable):
                 self.magics[mtype].update(m.magics[mtype])
 
     def register_function(self, func, magic_kind='line', magic_name=None):
-        """Expose a standalone function as magic function for ipython.
+        """Expose a standalone function as magic function for IPython.
+
+        This will create an IPython magic (line, cell or both) from a
+        standalone function.  The functions should have the following
+        signatures: 
+
+        * For line magics: `def f(line)`
+        * For cell magics: `def f(line, cell)`
+        * For a function that does both: `def f(line, cell=None)`
+
+        In the latter case, the function will be called with `cell==None` when
+        invoked as `%f`, and with cell as a string when invoked as `%%f`.
+
+        Parameters
+        ----------
+        func : callable
+          Function to be registered as a magic.
+
+        magic_kind : str
+          Kind of magic, one of 'line', 'cell' or 'line_cell'
+
+        magic_name : optional str
+          If given, the name the magic will have in the IPython namespace.  By
+          default, the name of the function itself is used.
         """
 
         # Create the new method in the user_magics and register it in the
@@ -359,10 +400,17 @@ class MagicsManager(Configurable):
         record_magic(self.magics, magic_kind, magic_name, func)
 
     def define_magic(self, name, func):
-        """Support for deprecated API.
+        """[Deprecated] Expose own function as magic function for IPython.
 
-        This method exists only to support the old-style definition of magics.
-        It will eventually be removed.  Deliberately not documented further.
+        Example::
+
+            def foo_impl(self, parameter_s=''):
+                'My very own magic!. (Use docstrings, IPython reads them).'
+                print 'Magic function. Passed parameter is between < >:'
+                print '<%s>' % parameter_s
+                print 'The self object is:', self
+
+            ip.define_magic('foo',foo_impl)
         """
         meth = types.MethodType(func, self.user_magics)
         setattr(self.user_magics, name, meth)
