@@ -199,13 +199,13 @@ class ParallelMagics(Magics):
             stdouts = [result.stdout.rstrip()]
             stderrs = [result.stderr.rstrip()]
             outputs = [result.outputs]
+            results = [result.get()]
         else:
             stdouts = [s.rstrip() for s in result.stdout]
             stderrs = [s.rstrip() for s in result.stderr]
-            outputs = [outs for outs in result.outputs]
+            outputs = result.outputs
+            results = result.get()
         
-        results = result.get_dict()
-
         targets = self.active_view.targets
         if isinstance(targets, int):
             targets = [targets]
@@ -230,8 +230,7 @@ class ParallelMagics(Magics):
                 self.shell.display_pub.publish(output['source'], output['data'], md)
         
         # finally, add pyout:
-        for eid in targets:
-            r = results[eid]
+        for eid,r in zip(targets, results):
             if r.pyout:
                 display(r)
 
