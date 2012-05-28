@@ -368,10 +368,11 @@ class InteractiveShell(SingletonConfigurable):
             '"\C-u": unix-line-discard',
         ], allow_none=False, config=True)
 
-    ast_node_interactivity = Unicode('last_expr', config=True, help="""
+    ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
+                                  default_value='last_expr', config=True, 
+                                  help="""
         'all', 'last', 'last_expr' or 'none'," specifying which nodes should be
-        run interactively (displaying output from expressions).
-        """)
+        run interactively (displaying output from expressions).""")
 
     # TODO: this part of prompt management should be moved to the frontends.
     # Use custom TraitTypes that convert '0'->'' and '\\n'->'\n'
