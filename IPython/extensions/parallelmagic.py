@@ -101,7 +101,34 @@ class ParallelMagics(Magics):
     @line_cell_magic
     def px(self, line='', cell=None):
         """Executes the given python command in parallel.
-
+        
+        Cell magic usage:
+        
+        %%px [-o] [-e] [--group-options=type|engine|order] [--[no]block]
+        
+        Options (%%px cell magic only):
+        
+        -o: collate outputs in oder (same as group-outputs=order)
+        
+        -e: group outputs by engine (same as group-outputs=engine)
+        
+        --group-outputs=type [default behavior]:
+            each output type (stdout, stderr, displaypub) for all engines
+            displayed together.
+        
+        --group-outputs=order:
+            The same as 'type', but individual displaypub outputs (e.g. plots)
+            will be interleaved, so it will display all of the first plots,
+            then all of the second plots, etc.
+        
+        --group-outputs=engine:
+            All of an engine's output is displayed before moving on to the next.
+        
+        --[no]block:
+            Whether or not to block for the execution to complete
+            (and display the results).  If unspecified, the active view's
+        
+        
         To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
 
