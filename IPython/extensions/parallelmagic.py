@@ -321,7 +321,8 @@ class ParallelMagics(Magics):
                         self.shell.showtraceback()
                         return True
                     else:
-                        result.display_outputs()
+                        with ipself.builtin_trap:
+                            result.display_outputs()
                 return False
 
 
