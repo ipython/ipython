@@ -36,9 +36,7 @@ Usage
 
 import ast
 import re
-import sys
 
-from IPython.core.display import display
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
@@ -64,7 +62,7 @@ class ParallelMagics(Magics):
     @skip_doctest
     @line_magic
     def result(self, parameter_s=''):
-        """Print the result of command i on all engines..
+        """Print the result of command i on all engines.
 
         To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
@@ -97,7 +95,7 @@ class ParallelMagics(Magics):
         result = self.active_view.get_result(msg_ids)
         
         result.get()
-        self._display_result(result)
+        result.display_outputs()
 
     @skip_doctest
     @line_magic
@@ -128,7 +126,7 @@ class ParallelMagics(Magics):
         result = self.active_view.execute(parameter_s, silent=False, block=False)
         if self.active_view.block:
             result.get()
-            self._display_result(result)
+            result.display_outputs()
 
     @skip_doctest
     @line_magic
@@ -186,54 +184,6 @@ class ParallelMagics(Magics):
             self.shell.run_cell = self._original_run_cell
             self._autopx = False
             print "%autopx disabled"
-
-    def _display_result(self, result):
-        """Display the output of a parallel result.
-        """
-        # flush iopub, just in case
-        rc = self.active_view.client
-        rc._flush_iopub(rc._iopub_socket)
-        
-        if result._single_result:
-            # single result
-            stdouts = [result.stdout.rstrip()]
-            stderrs = [result.stderr.rstrip()]
-            outputs = [result.outputs]
-            results = [result.get()]
-        else:
-            stdouts = [s.rstrip() for s in result.stdout]
-            stderrs = [s.rstrip() for s in result.stderr]
-            outputs = result.outputs
-            results = result.get()
-        
-        targets = self.active_view.targets
-        if isinstance(targets, int):
-            targets = [targets]
-        elif targets == 'all':
-            targets = self.active_view.client.ids
-        
-        # republish stdout:
-        if any(stdouts):
-            for eid,stdout in zip(targets, stdouts):
-                print '[stdout:%2i]' % eid, stdout
-        
-        # republish stderr:
-        if any(stderrs):
-            for eid,stderr in zip(targets, stderrs):
-                print >> sys.stderr, '[stderr:%2i]' % eid, stderr
-        
-        # republish displaypub output
-        for eid,e_outputs in zip(targets, outputs):
-            for output in e_outputs:
-                md = output['metadata'] or {}
-                md['engine'] = eid
-                self.shell.display_pub.publish(output['source'], output['data'], md)
-        
-        # finally, add pyout:
-        for eid,r in zip(targets, results):
-            if r.pyout:
-                display(r)
-
 
     def pxrun_cell(self, raw_cell, store_history=False, silent=False):
         """drop-in replacement for InteractiveShell.run_cell.
@@ -295,7 +245,7 @@ class ParallelMagics(Magics):
                         self.shell.showtraceback()
                         return True
                     else:
-                        self._display_result(result)
+                        result.display_outputs()
                 return False
 
 

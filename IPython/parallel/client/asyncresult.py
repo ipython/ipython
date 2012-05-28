@@ -21,7 +21,7 @@ from datetime import datetime
 
 from zmq import MessageTracker
 
-from IPython.core.display import clear_output
+from IPython.core.display import clear_output, display
 from IPython.external.decorator import decorator
 from IPython.parallel import error
 
@@ -377,6 +377,140 @@ class AsyncResult(object):
             sys.stdout.flush()
         print
         print "done"
+    
+    def _republish_displaypub(self, content, eid):
+        """republish individual displaypub content dicts"""
+        try:
+            ip = get_ipython()
+        except NameError:
+            # displaypub is meaningless outside IPython
+            return
+        md = content['metadata'] or {}
+        md['engine'] = eid
+        ip.display_pub.publish(content['source'], content['data'], md)
+        
+        
+    def _display_single_result(self):
+        
+        print self.stdout
+        print >> sys.stderr, self.stderr
+        
+        try:
+            get_ipython()
+        except NameError:
+            # displaypub is meaningless outside IPython
+            return
+            
+        for output in self.outputs:
+            self._republish_displaypub(output, self.engine_id)
+        
+        if self.pyout is not None:
+            display(self.get())
+    
+    @check_ready
+    def display_outputs(self, groupby="type"):
+        """republish the outputs of the computation
+        
+        Parameters
+        ----------
+        
+        groupby : str [default: type]
+            if 'type':
+                Group outputs by type (show all stdout, then all stderr, etc.):
+                
+                [stdout:1] foo
+                [stdout:2] foo
+                [stderr:1] bar
+                [stderr:2] bar
+            if 'engine':
+                Display outputs for each engine before moving on to the next:
+                
+                [stdout:1] foo
+                [stderr:1] bar
+                [stdout:2] foo
+                [stderr:2] bar
+                
+            if 'order':
+                Like 'type', but further collate individual displaypub
+                outputs.  This is meant for cases of each command producing
+                several plots, and you would like to see all of the first
+                plots together, then all of the second plots, and so on.
+        """
+        # flush iopub, just in case
+        self._client._flush_iopub(self._client._iopub_socket)
+        if self._single_result:
+            self._display_single_result()
+            return
+        
+        stdouts = [s.rstrip() for s in self.stdout]
+        stderrs = [s.rstrip() for s in self.stderr]
+        pyouts  = [p for p in self.pyout]
+        output_lists = self.outputs
+        results = self.get()
+        
+        targets = self.engine_id
+        
+        if groupby == "engine":
+            for eid,stdout,stderr,outputs,r,pyout in zip(
+                    targets, stdouts, stderrs, output_lists, results, pyouts
+                ):
+                if stdout:
+                    print '[stdout:%2i]' % eid, stdout
+                if stderr:
+                    print '[stderr:%2i]' % eid, stderr
+                
+                try:
+                    get_ipython()
+                except NameError:
+                    # displaypub is meaningless outside IPython
+                    return 
+                
+                for output in outputs:
+                    self._republish_displaypub(output, eid)
+                
+                if pyout is not None:
+                    display(r)
+        
+        elif groupby in ('type', 'order'):
+            # republish stdout:
+            if any(stdouts):
+                for eid,stdout in zip(targets, stdouts):
+                    print '[stdout:%2i]' % eid, stdout
+        
+            # republish stderr:
+            if any(stderrs):
+                for eid,stderr in zip(targets, stderrs):
+                    print >> sys.stderr, '[stderr:%2i]' % eid, stderr
+        
+            try:
+                get_ipython()
+            except NameError:
+                # displaypub is meaningless outside IPython
+                return
+            
+            if groupby == 'order':
+                output_dict = dict((eid, outputs) for eid,outputs in zip(targets, output_lists))
+                N = max(len(outputs) for outputs in output_lists)
+                for i in range(N):
+                    for eid in targets:
+                        outputs = output_dict[eid]
+                        if len(outputs) >= N:
+                            self._republish_displaypub(outputs[i], eid)
+            else:
+                # republish displaypub output
+                for eid,outputs in zip(targets, output_lists):
+                    for output in outputs:
+                        self._republish_displaypub(output, eid)
+        
+            # finally, add pyout:
+            for eid,r,pyout in zip(targets, results, pyouts):
+                if pyout is not None:
+                    display(r)
+        
+        else:
+            raise ValueError("groupby must be one of 'type', 'engine', 'collate', not %r" % groupby)
+        
+        
 
 
 class AsyncMapResult(AsyncResult):
