@@ -5,6 +5,8 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
 
 % needed for markdown enumerations to work
 \usepackage{enumerate}
@@ -58,9 +60,11 @@
  {\endMakeFramed}
 
 % Use and configure listings package for nicely formatted code
-\usepackage{listings}
+\usepackage{listingsutf8}
 \lstset{
   language=python,
+  inputencoding=utf8x,
+  extendedchars=\true,
   aboveskip=\smallskipamount,
   belowskip=\smallskipamount,
   %xleftmargin=3mm,
