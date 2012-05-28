@@ -134,6 +134,9 @@ class ParallelMagics(Magics):
         if block:
             result.get()
             result.display_outputs(groupby)
+        else:
+            # return AsyncResult only on non-blocking submission
+            return result
 
     @skip_doctest
     @cell_magic('px')
