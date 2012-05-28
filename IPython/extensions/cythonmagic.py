@@ -54,14 +54,38 @@ class CythonMagics(Magics):
 
     @cell_magic
     def cython_inline(self, line, cell):
-        """Compile and run a Cython code cell using Cython.inline."""
+        """Compile and run a Cython code cell using Cython.inline.
+
+        This magic simply passes the body of the cell to Cython.inline
+        and returns the result. If the variables `a` and `b` are defined
+        in the user's namespace, here is a simple example that returns
+        their sum::
+        
+            %%cython_inline
+            return a+b
+
+        For most purposes, we recommend the usage of the `%%cython` magic.
+        """
         locs = self.shell.user_global_ns
         globs = self.shell.user_ns
         return Cython.inline(cell, locals=locs, globals=globs)
 
     @cell_magic
     def cython_pyximport(self, line, cell):
-        """Compile and import a Cython code cell using pyximport."""
+        """Compile and import a Cython code cell using pyximport.
+
+        The contents of the cell are written to a `.pyx` file in the current
+        working directory, which is then imported using `pyximport`. This
+        magic requires a module name to be passed::
+        
+            %%cython_pyximport modulename
+            def f(x):
+                return 2.0*x
+
+        The compiled module is then imported and all of its symbols are injected into
+        the user's namespace. For most purposes, we recommend the usage of the
+        `%%cython` magic.
+        """
         module_name = line.strip()
         if not module_name:
             raise ValueError('module name must be given')
@@ -86,7 +110,19 @@ class CythonMagics(Magics):
     )
     @cell_magic
     def cython(self, line, cell):
-        """Compile and import everything from a Cython code cell."""
+        """Compile and import everything from a Cython code cell.
+
+        The contents of the cell are written to a `.pyx` file in the
+        `~/.cython/magic` using a filename with the hash of the code.
+        This file is then cythonized and compiled. The resulting module
+        is imported and all of its symbols are injected into the user's
+        namespace. The usage is similar to that of `%%cython_pyximport` but
+        you don't have to pass a module name::
+
+        %%cython
+        def f(x):
+            return 2.0*x
+        """
         args = parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
         lib_dir=os.path.expanduser('~/.cython/magic')
