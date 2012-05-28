@@ -203,8 +203,8 @@ def _method_magic_marker(magic_kind):
                 return decorator(call, func)
             retval = mark
         else:
-            raise ValueError("Decorator can only be called with "
-                             "string or function")
+            raise TypeError("Decorator can only be called with "
+                            "string or function")
         return retval
 
     # Ensure the resulting decorator has a usable docstring
@@ -229,7 +229,8 @@ def _function_magic_marker(magic_kind):
             if get_ipython is not None:
                 break
         else:
-            raise('Decorator can only run in context where `get_ipython` exists')
+            raise NameError('Decorator can only run in context where '
+                            '`get_ipython` exists')
 
         ip = get_ipython()
 
@@ -247,7 +248,7 @@ def _function_magic_marker(magic_kind):
                 return decorator(call, func)
             retval = mark
         else:
-            raise ValueError("Decorator can only be called with "
+            raise TypeError("Decorator can only be called with "
                              "string or function")
         return retval
 
