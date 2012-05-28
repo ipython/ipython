@@ -52,7 +52,6 @@ class CythonMagics(Magics):
             if not k.startswith('__'):
                 self.shell.push({k:v})
 
-    @skip_doctest
     @cell_magic
     def cython_inline(self, line, cell):
         """Compile and run a Cython code cell using Cython.inline."""
@@ -60,7 +59,6 @@ class CythonMagics(Magics):
         globs = self.shell.user_ns
         return Cython.inline(cell, locals=locs, globals=globs)
 
-    @skip_doctest
     @cell_magic
     def cython_pyximport(self, line, cell):
         """Compile and import a Cython code cell using pyximport."""
@@ -86,7 +84,6 @@ class CythonMagics(Magics):
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
-    @skip_doctest
     @cell_magic
     def cython(self, line, cell):
         """Compile and import everything from a Cython code cell."""
