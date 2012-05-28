@@ -370,14 +370,14 @@ class TestView(ClusterTestCase, ParametricTestCase):
     
     def test_magic_px_blocking(self):
         ip = get_ipython()
-        v = self.client[-1]
+        v = self.client[-1:]
         v.activate()
         v.block=True
 
         ip.magic('px a=5')
-        self.assertEquals(v['a'], 5)
+        self.assertEquals(v['a'], [5])
         ip.magic('px a=10')
-        self.assertEquals(v['a'], 10)
+        self.assertEquals(v['a'], [10])
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
@@ -392,21 +392,21 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     def test_magic_px_nonblocking(self):
         ip = get_ipython()
-        v = self.client[-1]
+        v = self.client[-1:]
         v.activate()
         v.block=False
 
         ip.magic('px a=5')
-        self.assertEquals(v['a'], 5)
+        self.assertEquals(v['a'], [5])
         ip.magic('px a=10')
-        self.assertEquals(v['a'], 10)
+        self.assertEquals(v['a'], [10])
         sio = StringIO()
         savestdout = sys.stdout
         sys.stdout = sio
         ip.magic('px print a')
         sys.stdout = savestdout
         buf = sio.getvalue()
-        self.assertFalse('[stdout:%i]'%v.targets in buf)
+        self.assertFalse('[stdout:' in buf)
         ip.magic('px 1/0')
         ar = v.get_result(-1)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
