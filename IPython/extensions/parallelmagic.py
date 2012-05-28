@@ -38,7 +38,7 @@ import ast
 import re
 
 from IPython.core.error import UsageError
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, line_cell_magic
 from IPython.testing.skipdoctest import skip_doctest
 
 #-----------------------------------------------------------------------------
@@ -98,8 +98,8 @@ class ParallelMagics(Magics):
         result.display_outputs()
 
     @skip_doctest
-    @line_magic
-    def px(self, parameter_s=''):
+    @line_cell_magic
+    def px(self, line='', cell=None):
         """Executes the given python command in parallel.
 
         To use this a :class:`DirectView` instance must be created
@@ -120,13 +120,36 @@ class ParallelMagics(Magics):
         if self.active_view is None:
             raise UsageError(NO_ACTIVE_VIEW)
         
+        # defaults:
+        block = self.active_view.block
+        groupby = 'type'
+        
+        if cell is None:
+            # line magic
+            cell = line
+        else:
+            # as a cell magic, we accept args
+            opts, _ = self.parse_options(line, 'oe', 'group-outputs=', 'block', 'noblock')
+
+            if 'group-outputs' in opts:
+                groupby = opts['group-outputs']
+            elif 'o' in opts:
+                groupby = 'order'
+            elif 'e' in opts:
+                groupby = 'engine'
+            
+            if 'block' in opts:
+                block = True
+            elif 'noblock' in opts:
+                block = False
+        
         base = "Parallel" if self.active_view.block else "Async parallel"
         print base + " execution on engine(s): %s" % self.active_view.targets
         
-        result = self.active_view.execute(parameter_s, silent=False, block=False)
-        if self.active_view.block:
+        result = self.active_view.execute(cell, silent=False, block=False)
+        if block:
             result.get()
-            result.display_outputs()
+            result.display_outputs(groupby)
 
     @skip_doctest
     @line_magic
