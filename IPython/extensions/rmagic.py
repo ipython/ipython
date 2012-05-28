@@ -107,7 +107,6 @@ class RMagics(Magics):
         To avoid this, don't name your R objects with '.'s...
 
         '''
-
         outputs = line.split(' ')
         for output in outputs:
                 self.shell.push({output:self.Rconverter(self.r(output))})
@@ -129,7 +128,6 @@ class RMagics(Magics):
               with return value passed to self.Rconverter.
 
         '''
-
         result = ri.baseenv['eval'](ri.parse(line))
         return self.Rconverter(result)
 
