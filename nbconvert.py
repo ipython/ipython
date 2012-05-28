@@ -80,11 +80,11 @@ def markdown2latex(src):
     """
     p = subprocess.Popen('pandoc -f markdown -t latex'.split(),
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    out, err = p.communicate(src)
+    out, err = p.communicate(src.encode('utf-8'))
     if err:
         print(err, file=sys.stderr)
     #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
-    return out
+    return unicode(out,'utf-8')
 
 
 def rst_directive(directive, text=''):
@@ -139,9 +139,9 @@ class Converter(object):
                 if cell.cell_type in ('markdown', 'raw'):
                     remove_fake_files_url(cell)
                 lines.extend(conv_fn(cell))
-                lines.append('')
+                lines.append(u'')
         lines.extend(self.optional_footer())
-        return '\n'.join(lines)
+        return u'\n'.join(lines)
 
     def render(self):
         "read, convert, and save self.infile"
@@ -481,12 +481,12 @@ class ConverterLaTeX(Converter):
           Name of the environment to bracket with begin/end.
 
         lines: """
-        out = [r'\begin{%s}' % environment]
+        out = [ur'\begin{%s}' % environment]
         if isinstance(lines, basestring):
             out.append(lines)
         else:  # list
             out.extend(lines)
-        out.append(r'\end{%s}' % environment)
+        out.append(ur'\end{%s}' % environment)
         return out
 
     def convert(self):
@@ -539,7 +539,7 @@ class ConverterLaTeX(Converter):
             return []
 
         # Cell codes first carry input code, we use lstlisting for that
-        lines = [r'\begin{codecell}']
+        lines = [ur'\begin{codecell}']
         
         lines.extend(self.in_env('codeinput',
                               self.in_env('lstlisting', cell.input)))
@@ -553,7 +553,7 @@ class ConverterLaTeX(Converter):
         if outlines:
             lines.extend(self.in_env('codeoutput', outlines))
 
-        lines.append(r'\end{codecell}')
+        lines.append(ur'\end{codecell}')
 
         return lines
 
