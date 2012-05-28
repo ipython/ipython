@@ -136,8 +136,8 @@ class ParallelMagics(Magics):
             result.display_outputs(groupby)
 
     @skip_doctest
-    @cell_magic
-    def parallel(self, line='', cell=None):
+    @cell_magic('px')
+    def cell_px(self, line='', cell=None):
         """Executes the given python command in parallel.
         
         Cell magic usage:
