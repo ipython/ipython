@@ -38,7 +38,7 @@ import ast
 import re
 
 from IPython.core.error import UsageError
-from IPython.core.magic import Magics, magics_class, line_magic, line_cell_magic
+from IPython.core.magic import Magics, magics_class, line_magic, cell_magic
 from IPython.testing.skipdoctest import skip_doctest
 
 #-----------------------------------------------------------------------------
@@ -98,8 +98,46 @@ class ParallelMagics(Magics):
         result.display_outputs()
 
     @skip_doctest
-    @line_cell_magic
-    def px(self, line='', cell=None):
+    @line_magic
+    def px(self, parameter_s=''):
+        """Executes the given python command in parallel.
+        
+        To use this a :class:`DirectView` instance must be created
+        and then activated by calling its :meth:`activate` method.
+
+        Then you can do the following::
+
+            In [24]: %px a = os.getpid()
+            Parallel execution on engine(s): all
+            
+            In [25]: %px print a
+            [stdout:0] 1234
+            [stdout:1] 1235
+            [stdout:2] 1236
+            [stdout:3] 1237
+        """
+        return self.parallel_execute(parameter_s)
+        
+    def parallel_execute(self, cell, block=None, groupby='type'):
+        """implementation used by %px and %%parallel"""
+
+        if self.active_view is None:
+            raise UsageError(NO_ACTIVE_VIEW)
+        
+        # defaults:
+        block = self.active_view.block if block is None else block
+        
+        base = "Parallel" if block else "Async parallel"
+        print base + " execution on engine(s): %s" % self.active_view.targets
+        
+        result = self.active_view.execute(cell, silent=False, block=False)
+        if block:
+            result.get()
+            result.display_outputs(groupby)
+
+    @skip_doctest
+    @cell_magic
+    def parallel(self, line='', cell=None):
         """Executes the given python command in parallel.
         
         Cell magic usage:
@@ -134,8 +172,8 @@ class ParallelMagics(Magics):
 
         Then you can do the following::
 
-            In [24]: %px a = os.getpid()
-            Parallel execution on engine(s): all
+            In [24]: %%parallel --noblock a = os.getpid()
+            Async parallel execution on engine(s): all
             
             In [25]: %px print a
             [stdout:0] 1234
@@ -143,40 +181,25 @@ class ParallelMagics(Magics):
             [stdout:2] 1236
             [stdout:3] 1237
         """
-
-        if self.active_view is None:
-            raise UsageError(NO_ACTIVE_VIEW)
         
-        # defaults:
-        block = self.active_view.block
+        block = None
         groupby = 'type'
-        
-        if cell is None:
-            # line magic
-            cell = line
-        else:
-            # as a cell magic, we accept args
-            opts, _ = self.parse_options(line, 'oe', 'group-outputs=', 'block', 'noblock')
+        # as a cell magic, we accept args
+        opts, _ = self.parse_options(line, 'oe', 'group-outputs=', 'block', 'noblock')
 
-            if 'group-outputs' in opts:
-                groupby = opts['group-outputs']
-            elif 'o' in opts:
-                groupby = 'order'
-            elif 'e' in opts:
-                groupby = 'engine'
+        if 'group-outputs' in opts:
+            groupby = opts['group-outputs']
+        elif 'o' in opts:
+            groupby = 'order'
+        elif 'e' in opts:
+            groupby = 'engine'
             
-            if 'block' in opts:
-                block = True
-            elif 'noblock' in opts:
-                block = False
+        if 'block' in opts:
+            block = True
+        elif 'noblock' in opts:
+            block = False
         
-        base = "Parallel" if self.active_view.block else "Async parallel"
-        print base + " execution on engine(s): %s" % self.active_view.targets
-        
-        result = self.active_view.execute(cell, silent=False, block=False)
-        if block:
-            result.get()
-            result.display_outputs(groupby)
+        return self.parallel_execute(cell, block=block, groupby=groupby)
 
     @skip_doctest
     @line_magic
