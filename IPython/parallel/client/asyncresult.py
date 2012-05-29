@@ -457,7 +457,7 @@ class AsyncResult(object):
                 if stdout:
                     print '[stdout:%2i]' % eid, stdout
                 if stderr:
-                    print '[stderr:%2i]' % eid, stderr
+                    print >> sys.stderr, '[stderr:%2i]' % eid, stderr
                 
                 try:
                     get_ipython()
