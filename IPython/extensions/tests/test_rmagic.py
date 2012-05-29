@@ -22,16 +22,15 @@ def test_pull():
     np.testing.assert_almost_equal(np.asarray(rm.r('Z')), ip.user_ns['Z'])
     np.testing.assert_almost_equal(ip.user_ns['Z'], np.arange(11,21))
 
-def test_inline():
-    rm = rmagic.RMagics(ip)
-    c = ip.run_line_magic('Rinline', 'lm(Y~X)$coef')
-    np.testing.assert_almost_equal(c, [3.2, 0.9])
+# def test_inline():
+#     rm = rmagic.RMagics(ip)
+#     c = ip.run_line_magic('Rinline', 'lm(Y~X)$coef')
+#     np.testing.assert_almost_equal(c, [3.2, 0.9])
 
 def test_cell_magic():
 
     ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
     snippet = '''
-    a=lm(y~x)
     print(summary(a))
     plot(X, Y, pch=23, bg='orange', cex=2)
     plot(Y, X)
@@ -39,6 +38,6 @@ def test_cell_magic():
     r = resid(a)
     xc = coef(a)
     '''
-    ip.run_cell_magic('R', '-i x,y -o r,xc', snippet)
+    ip.run_cell_magic('R', '-i x,y -o r,xc a=lm(y~x)', snippet)
     np.testing.assert_almost_equal(ip.user_ns['xc'], [3.2, 0.9])
     np.testing.assert_almost_equal(ip.user_ns['r'], np.array([-0.2,  0.9, -1. ,  0.1,  0.2]))

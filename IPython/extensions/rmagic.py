@@ -15,8 +15,9 @@ from getopt import getopt
 
 # numpy and rpy2 imports
 
-import rpy2.rinterface as ri
 import numpy as np
+
+import rpy2.rinterface as ri
 import rpy2.robjects as ro
 from rpy2.robjects.numpy2ri import numpy2ri
 ro.conversion.py2ri = numpy2ri
@@ -24,7 +25,8 @@ ro.conversion.py2ri = numpy2ri
 # IPython imports
 
 from IPython.core.displaypub import publish_display_data
-from IPython.core.magic import Magics, magics_class, cell_magic, line_magic
+from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
+                                line_cell_magic)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
@@ -46,7 +48,7 @@ class RMagics(Magics):
 
     def eval(self, line):
         try:
-            ri.baseenv['eval'](ri.parse(line))
+            return ri.baseenv['eval'](ri.parse(line))
         except ri.RRuntimeError as msg:
             self.output.append('ERROR parsing "%s": %s\n' % (line, msg))
             pass
@@ -58,7 +60,7 @@ class RMagics(Magics):
         self.output.append(output)
 
     def flush(self):
-        value = ''.join(self.output)
+        value = ''.join([s.decode('utf-8') for s in self.output])
         self.output = []
         return value
 
@@ -112,26 +114,6 @@ class RMagics(Magics):
                 self.shell.push({output:self.Rconverter(self.r(output))})
 
 
-    @line_magic
-    def Rinline(self, line):
-        '''
-        A line-level magic for R that executes
-        some code in R and stores the resulting
-        expression in the ipython shell.
-
-        Parameters
-        ----------
-
-        line: str
-
-              A string of Rcode to be evaluted
-              with return value passed to self.Rconverter.
-
-        '''
-        result = ri.baseenv['eval'](ri.parse(line))
-        return self.Rconverter(result)
-
-
     @magic_arguments()
     @argument(
         '-i', '--input', action='append',
@@ -162,41 +144,51 @@ class RMagics(Magics):
         '-b', '--bg',
         help='Background of png plotting device sent as an argument to *png* in R.'
         )
-    @cell_magic
-    def R(self, line, cell):
+    @argument(
+        'code',
+        nargs='*',
+        )
+    @line_cell_magic
+    def R(self, line, cell=None):
         '''
-        A cell-level magic for R.
-        The contents of the cell are evaluated using rpy2 with stdout
-        and graphics being captured and returned in the output of the cell.
+        A line_cell_magic for R that executes
+        some code in R and stores the resulting
+        expression in the ipython shell.
+
+        If the cell is None, resulting value is returned, after conversion
+        with self.Rconverter, otherwise it returns
+        None.
+
+        If the cell has contents that are published to the ipython
+        notebook, then the magic returns None. Otherwise,
+        if the resulting expressions are converted to arrays and returned.
 
         Parameters
         ----------
 
-        line: {input, output, width, height, units, pointsize, bg}
+        line: str
 
-              Optional long arguments recognized by the cell magic.
-              The first two relate to passing python objects
-              back and forth between rpy2 and python:
-              '--input' should be a comma separated list of
-              names of objects in the namespace of the shell;
-              '--output' are names of object in the R namespace
-              that are returned as arrays.
-
-              All other line are passed as arguments to
-              the png plotting device in R.
+              A string of Rcode to be evaluted
+              with return value passed to self.Rconverter.
+              Any arguments that are not named options
+              are prepended to the cell-body if cell is not None.
 
         cell: str
 
-              String of R code to be executed by rpy2.
-              Anything written to stdout of R is captured,
-              as are plots (in the form of .png files) that
-              are published via ipython's frontend
-              publishing system.
-
         '''
-        # need to get the ipython instance for assigning
 
         args = parse_argstring(self.R, line)
+
+        # arguments 'code' in line are prepended to
+        # the cell lines
+        if cell is None:
+            lines = []
+            return_output = True
+        else:
+            lines = cell.split('\n')
+            return_output = False
+
+        lines = args.code + lines
 
         if args.input:
             for input in ','.join(args.input).split(','):
@@ -208,8 +200,7 @@ class RMagics(Magics):
 
         tmpd = tempfile.mkdtemp()
         self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
-        lines = cell.split('\n')
-        [self.eval(line) for line in lines]
+        result = [self.eval(line) for line in lines]
         self.r('dev.off()')
 
         # read out all the saved .png files
@@ -222,15 +213,20 @@ class RMagics(Magics):
         mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
         mime = mimetypes[fmt]
 
+        published = False
         # publish the printed R objects, if any
-        publish_display_data('Rmagic.cell_magic', {'text/plain':self.flush()})
+        flush = self.flush()
+        if flush:
+            published = True
+            publish_display_data('RMagic.R', {'text/plain':flush})
 
         # flush text streams before sending figures, helps a little with output
         for image in images:
+            published = True
             # synchronization in the console (though it's a bandaid, not a real sln)
             sys.stdout.flush(); sys.stderr.flush()
             publish_display_data(
-                'Rmagic.cell_magic',
+                'RMagic.R',
                 {mime : image}
             )
         value = {}
@@ -247,6 +243,15 @@ class RMagics(Magics):
         # kill the temporary directory
         rmtree(tmpd)
 
+        # if there was a single line, return its value
+        # converted to a python object
+
+        if return_output and not published:
+            if len(lines) > 1:
+                return [self.Rconverter(rr) for rr in result]
+            elif lines:
+                return self.Rconverter(result[0])
+            return None
 
 _loaded = False
 def load_ipython_extension(ip):
