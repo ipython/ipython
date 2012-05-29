@@ -21,3 +21,7 @@ Other new features
   migrating to this variable is not worth the aesthetic improvement. Please use
   the historical :envvar:`IPYTHONDIR` environment variable instead.
 
+* The default value of *interactivity* passed from
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell` to
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.run_ast_nodes`
+  is now configurable.
