@@ -39,11 +39,11 @@ def extract_vars(*names,**kw):
 
         In [2]: def func(x):
            ...:     y = 1
-           ...:     print extract_vars('x','y')
+           ...:     print sorted(extract_vars('x','y').items())
            ...:
 
         In [3]: func('hello')
-        {'y': 1, 'x': 'hello'}
+        [('x', 'hello'), ('y', 1)]
     """
 
     depth = kw.get('depth',0)

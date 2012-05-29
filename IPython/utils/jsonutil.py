@@ -118,10 +118,10 @@ def json_clean(obj):
     4
     >>> json_clean(range(10))
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    >>> json_clean(dict(x=1, y=2))
-    {'y': 2, 'x': 1}
-    >>> json_clean(dict(x=1, y=2, z=[1,2,3]))
-    {'y': 2, 'x': 1, 'z': [1, 2, 3]}
+    >>> sorted(json_clean(dict(x=1, y=2)).items())
+    [('x', 1), ('y', 2)]
+    >>> sorted(json_clean(dict(x=1, y=2, z=[1,2,3])).items())
+    [('x', 1), ('y', 2), ('z', [1, 2, 3])]
     >>> json_clean(True)
     True
     """
