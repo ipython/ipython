@@ -59,8 +59,8 @@ class Struct(dict):
         >>> s.b
         30
         >>> s2 = Struct(s,c=30)
-        >>> s2.keys()
-        ['a', 'c', 'b']
+        >>> sorted(s2.keys())
+        ['a', 'b', 'c']
         """
         object.__setattr__(self, '_allownew', True)
         dict.__init__(self, *args, **kw)
@@ -161,8 +161,8 @@ class Struct(dict):
         >>> s = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s += s2
-        >>> s
-        {'a': 10, 'c': 40, 'b': 30}
+        >>> sorted(s.keys())
+        ['a', 'b', 'c']
         """
         self.merge(other)
         return self
@@ -176,8 +176,8 @@ class Struct(dict):
         >>> s1 = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s = s1 + s2
-        >>> s
-        {'a': 10, 'c': 40, 'b': 30}
+        >>> sorted(s.keys())
+        ['a', 'b', 'c']
         """
         sout = self.copy()
         sout.merge(other)
@@ -241,10 +241,8 @@ class Struct(dict):
 
         >>> s = Struct(a=10,b=30)
         >>> s2 = s.copy()
-        >>> s2
-        {'a': 10, 'b': 30}
-        >>> type(s2).__name__
-        'Struct'
+        >>> type(s2) is Struct
+        True
         """
         return Struct(dict.copy(self))
 
@@ -348,8 +346,8 @@ class Struct(dict):
         >>> s = Struct(a=10,b=30)
         >>> s2 = Struct(a=20,c=40)
         >>> s.merge(s2)
-        >>> s
-        {'a': 10, 'c': 40, 'b': 30}
+        >>> sorted(s.items())
+        [('a', 10), ('b', 30), ('c', 40)]
 
         Now, show how to specify a conflict dict:
 
@@ -357,8 +355,8 @@ class Struct(dict):
         >>> s2 = Struct(a=20,b=40)
         >>> conflict = {'update':'a','add':'b'}
         >>> s.merge(s2,conflict)
-        >>> s
-        {'a': 20, 'b': 70}
+        >>> sorted(s.items())
+        [('a', 20), ('b', 70)]
         """
 
         data_dict = dict(__loc_data__,**kw)
