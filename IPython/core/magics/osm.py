@@ -657,18 +657,21 @@ class OSMagics(Magics):
         """Show a syntax-highlighted file through a pager.
 
         This magic is similar to the cat utility, but it will assume the file
-        to be Python source and will show it with syntax highlighting. """
+        to be Python source and will show it with syntax highlighting.
 
-        try:
-            filename = get_py_filename(parameter_s)
-            cont = file_read(filename)
-        except IOError:
-            try:
-                cont = eval(parameter_s, self.shell.user_ns)
-            except NameError:
-                cont = None
-        if cont is None:
-            print "Error: no such file or variable"
+        This magic command can either take a local filename, an url,
+        an history range (see %history) or a macro as argument ::
+
+        %pycat myscript.py
+        %pycat 7-27
+        %pycat myMacro
+        %pycat http://www.example.com/myscript.py
+        """
+
+        try :
+            cont = self.shell.find_user_code(parameter_s)
+        except ValueError, IOError:
+            print "Error: no such file, variable, URL, history range or macro"
             return
 
         page.page(self.shell.pycolorize(cont))
