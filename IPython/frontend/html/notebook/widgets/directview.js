@@ -120,8 +120,6 @@ DirectViewWidget.prototype.execute = function () {
         target = '"all"';
     }
     var code = '%(widget_var)s.execute("""'+this.get_text()+'""",targets='+target+')';
-    console.log(code);
-    console.log(this.get_text());
     var msg_id = this.kernel.execute(code, callbacks, {silent: false});
     this.clear_input();
     this.code_mirror.focus();

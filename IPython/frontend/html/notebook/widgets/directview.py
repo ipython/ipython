@@ -53,22 +53,9 @@ class DirectViewWidget(JavascriptWidget):
     def execute(self, code, targets='all'):
         if targets == 'all':
             targets = self.targets
-        ar = self.dv.execute(code,block=False,targets=targets)
-        ar.wait()
-        metadata = ar.metadata
-        if isinstance(metadata, (list,tuple)):
-            for md in metadata:
-                self.publish_md(md)
-        elif isinstance(metadata, dict):
-            self.publish_md(metadata)
-
-    def publish_md(self, md):
-        if md['stdout']:
-            publish_pretty(md['stdout'],{'engine_id':md['engine_id']})
-        if md['stderr']:
-            publish_pretty(md['stderr'],{'engine_id':md['engine_id']})
-        if md['pyerr']:
-            publish_pretty(md['pyerr'],{'engine_id':md['engine_id']})
+        result = self.dv.execute(code,silent=False,block=False,targets=targets)
+        result.wait()
+        result.display_outputs()
 
 
 def interact(dv):
