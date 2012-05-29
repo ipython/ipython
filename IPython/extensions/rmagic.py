@@ -89,7 +89,7 @@ class RMagics(Magics):
     @line_magic
     def Rpull(self, line):
         '''
-        A line-level magic for R that pushes
+        A line-level magic for R that pulls
         variables from python to rpy2.
 
         Parameters
