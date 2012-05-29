@@ -152,28 +152,17 @@ class RMagics(Magics):
     def R(self, line, cell=None):
         '''
         A line_cell_magic for R that executes
-        some code in R and stores the resulting
-        expression in the ipython shell.
+        some code in R (evaluating it with rpy2) and
+        stores some of the results
+        in the ipython shell.
 
-        If the cell is None, resulting value is returned, after conversion
-        with self.Rconverter, otherwise it returns
-        None.
+        If the cell is None, the resulting value is returned,
+        after conversion with self.Rconverter
+        unless the line has contents that are published to the ipython
+        notebook (i.e. plots are create or something is printed to
+        R's stdout() connection).
 
-        If the cell has contents that are published to the ipython
-        notebook, then the magic returns None. Otherwise,
-        if the resulting expressions are converted to arrays and returned.
-
-        Parameters
-        ----------
-
-        line: str
-
-              A string of Rcode to be evaluted
-              with return value passed to self.Rconverter.
-              Any arguments that are not named options
-              are prepended to the cell-body if cell is not None.
-
-        cell: str
+        If the cell is not None, the magic returns None.
 
         '''
 
