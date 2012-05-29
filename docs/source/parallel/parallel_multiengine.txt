@@ -389,11 +389,11 @@ Parallel magic commands
 -----------------------
 
 We provide a few IPython magic commands (``%px``, ``%autopx`` and ``%result``)
-that make it more pleasant to execute Python commands on the engines
-interactively. These are simply shortcuts to :meth:`execute` and
-:meth:`get_result` of the :class:`DirectView`. The ``%px`` magic executes a single 
-Python command on the engines specified by the :attr:`targets` attribute of the
-:class:`DirectView` instance:
+that make it a bit more pleasant to execute Python commands on the engines interactively.
+These are simply shortcuts to :meth:`.DirectView.execute`
+and :meth:`.AsyncResult.display_outputs` methods repsectively.
+The ``%px`` magic executes a single Python command on the engines
+specified by the :attr:`targets` attribute of the :class:`DirectView` instance:
 
 .. sourcecode:: ipython
 
@@ -413,43 +413,127 @@ Python command on the engines specified by the :attr:`targets` attribute of the
     In [27]: %px a = numpy.random.rand(2,2)
     Parallel execution on engines: [0, 1, 2, 3]
 
-    In [28]: %px ev = numpy.linalg.eigvals(a)
+    In [28]: %px numpy.linalg.eigvals(a)
     Parallel execution on engines: [0, 1, 2, 3]
+    [ 0] Out[68]: array([ 0.77120707, -0.19448286])
+    [ 1] Out[68]: array([ 1.10815921,  0.05110369])
+    [ 2] Out[68]: array([ 0.74625527, -0.37475081])
+    [ 3] Out[68]: array([ 0.72931905,  0.07159743])
+    
+    In [29]: %px print 'hi'
+    Parallel execution on engine(s): [0, 1, 2, 3]
+    [stdout: 0] hi
+    [stdout: 1] hi
+    [stdout: 2] hi
+    [stdout: 3] hi
 
-    In [28]: dv['ev']
-    Out[28]: [ array([ 1.09522024, -0.09645227]), 
-       ....:   array([ 1.21435496, -0.35546712]), 
-       ....:   array([ 0.72180653,  0.07133042]), 
-       ....:   array([  1.46384341,   1.04353244e-04])
-       ....: ]
 
-The ``%result`` magic gets the most recent result, or takes an argument
-specifying the index of the result to be requested. It is simply a shortcut to the
-:meth:`get_result` method:
+Since engines are IPython as well, you can even run magics remotely:
 
 .. sourcecode:: ipython
+
+    In [28]: %px %pylab inline
+    Parallel execution on engine(s): [0, 1, 2, 3]
+    [stdout: 0] 
+    Welcome to pylab, a matplotlib-based Python environment...
+    For more information, type 'help(pylab)'.
+    [stdout: 1] 
+    Welcome to pylab, a matplotlib-based Python environment...
+    For more information, type 'help(pylab)'.
+    [stdout: 2] 
+    Welcome to pylab, a matplotlib-based Python environment...
+    For more information, type 'help(pylab)'.
+    [stdout: 3] 
+    Welcome to pylab, a matplotlib-based Python environment...
+    For more information, type 'help(pylab)'.
+
+And once in pylab mode with the inline backend,
+you can make plots and they will be displayed in your frontend
+if it suports the inline figures (e.g. notebook or qtconsole):
+
+.. sourcecode:: ipython
+
+    In [40]: %px plot(rand(100))
+    Parallel execution on engine(s): [0, 1, 2, 3]
+    <plot0>
+    <plot1>
+    <plot2>
+    <plot3>
+    [ 0] Out[79]: [<matplotlib.lines.Line2D at 0x10a6286d0>]
+    [ 1] Out[79]: [<matplotlib.lines.Line2D at 0x10b9476d0>]
+    [ 2] Out[79]: [<matplotlib.lines.Line2D at 0x110652750>]
+    [ 3] Out[79]: [<matplotlib.lines.Line2D at 0x10c6566d0>]
+
+
+``%%px`` Cell Magic
+*******************
+
+`%%px` can also be used as a Cell Magic, which accepts ``--[no]block`` flags,
+and a ``--group-outputs`` argument, which adjust how the outputs of multiple
+engines are presented.
+
+.. seealso::
+
+    :meth:`.AsyncResult.display_outputs` for the grouping options.
+
+.. sourcecode:: ipython
+
+    In [50]: %%px --block --group-outputs=engine
+       ....: import numpy as np
+       ....: A = np.random.random((2,2))
+       ....: ev = numpy.linalg.eigvals(A)
+       ....: print ev
+       ....: ev.max()
+       ....:
+    Parallel execution on engine(s): [0, 1, 2, 3]
+    [stdout: 0] [ 0.60640442  0.95919621]
+    [ 0] Out[73]: 0.9591962130899806
+    [stdout: 1] [ 0.38501813  1.29430871]
+    [ 1] Out[73]: 1.2943087091452372
+    [stdout: 2] [-0.85925141  0.9387692 ]
+    [ 2] Out[73]: 0.93876920456230284
+    [stdout: 3] [ 0.37998269  1.24218246]
+    [ 3] Out[73]: 1.2421824618493817
+
+``%result`` Magic
+*****************
+
+If you are using ``%px`` in non-blocking mode, you won't get output.
+You can use ``%result`` to display the outputs of the latest command,
+just as is done when ``%px`` is blocking:
+
+.. sourcecode:: ipython
+
+    In [39]: dv.block = False
     
-    In [29]: dv.apply_async(lambda : ev)
+    In [40]: %px print 'hi'
+    Async parallel execution on engine(s): [0, 1, 2, 3]
     
-    In [30]: %result
-    Out[30]: [ [ 1.28167017  0.14197338],
-       ....:    [-0.14093616  1.27877273],
-       ....:    [-0.37023573  1.06779409],
-       ....:    [ 0.83664764 -0.25602658] ]
+    In [41]: %result
+    [stdout: 0] hi
+    [stdout: 1] hi
+    [stdout: 2] hi
+    [stdout: 3] hi
+
+``%result`` simply calls :meth:`.AsyncResult.display_outputs` on the most recent request.
+You can pass integers as indices if you want a result other than the latest,
+e.g. ``%result -2``, or ``%result 0`` for the first.
+
+
+``%autopx``
+***********
 
 The ``%autopx`` magic switches to a mode where everything you type is executed
-on the engines given by the :attr:`targets` attribute:
+on the engines until you do ``%autopx`` again.
 
 .. sourcecode:: ipython
 
-    In [30]: dv.block=False
+    In [30]: dv.block=True
 
     In [31]: %autopx
-    Auto Parallel Enabled
-    Type %autopx to disable
+    %autopx enabled
 
     In [32]: max_evals = []
-    <IPython.parallel.AsyncResult object at 0x17b8a70>
 
     In [33]: for i in range(100):
        ....:     a = numpy.random.rand(10,10)
@@ -457,22 +541,15 @@ on the engines given by the :attr:`targets` attribute:
        ....:     evals = numpy.linalg.eigvals(a)
        ....:     max_evals.append(evals[0].real)
        ....:
-       ....:
-    <IPython.parallel.AsyncResult object at 0x17af8f0>
 
-    In [34]: %autopx
-    Auto Parallel Disabled
-
-    In [35]: dv.block=True
-
-    In [36]: px ans= "Average max eigenvalue is: %f"%(sum(max_evals)/len(max_evals))
-    Parallel execution on engines: [0, 1, 2, 3]
+    In [34]: print "Average max eigenvalue is: %f" % (sum(max_evals)/len(max_evals))
+    [stdout: 0] Average max eigenvalue is: 10.193101
+    [stdout: 1] Average max eigenvalue is: 10.064508
+    [stdout: 2] Average max eigenvalue is: 10.055724
+    [stdout: 3] Average max eigenvalue is: 10.086876
     
-    In [37]: dv['ans']
-    Out[37]: [ 'Average max eigenvalue is:  10.1387247332',
-       ....:   'Average max eigenvalue is:  10.2076902286',
-       ....:   'Average max eigenvalue is:  10.1891484655',
-       ....:   'Average max eigenvalue is:  10.1158837784',]
+    In [35]: %autopx
+    Auto Parallel Disabled
 
 
 Moving Python objects around
