@@ -590,16 +590,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     
     # begin execute tests
-    def _wait_for(self, f, timeout=10):
-        tic = time.time()
-        while time.time() <= tic + timeout:
-            if f():
-                return
-            time.sleep(0.1)
-            self.client.spin()
-        if not f():
-            print "Warning: Awaited condition never arrived"
-            
     
     def test_execute_reply(self):
         e0 = self.client[self.client.ids[0]]
