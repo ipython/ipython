@@ -234,7 +234,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         ip.magic('px a=10')
         self.assertEquals(v['a'], [10])
         with capture_output() as io:
-            ip.magic('px print a')
+            ar = ip.magic('px print (a)')
+        self.assertTrue(isinstance(ar, AsyncResult))
+        self.assertTrue('Async' in io.stdout)
         self.assertFalse('[stdout:' in io.stdout)
         ar = ip.magic('px 1/0')
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
