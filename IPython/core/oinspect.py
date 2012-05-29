@@ -40,6 +40,7 @@ from IPython.utils import py3compat
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
+from IPython.utils.py3compat import cast_unicode
 
 #****************************************************************************
 # Builtin color schemes
@@ -144,7 +145,7 @@ def getsource(obj,is_binary=False):
         except TypeError:
             if hasattr(obj,'__class__'):
                 src = inspect.getsource(obj.__class__)
-        return src
+        return cast_unicode(src)
 
 def getargspec(obj):
     """Get the names and default values of a function's arguments.
@@ -320,9 +321,8 @@ class Inspector:
         exception is suppressed."""
 
         try:
-            # We need a plain string here, NOT unicode!
             hdef = oname + inspect.formatargspec(*getargspec(obj))
-            return py3compat.unicode_to_str(hdef, 'ascii')
+            return cast_unicode(hdef)
         except:
             return None
 
@@ -436,7 +436,7 @@ class Inspector:
         except:
             self.noinfo('source',oname)
         else:
-            page.page(self.format(py3compat.unicode_to_str(src)))
+            page.page(self.format(src))
 
     def pfile(self, obj, oname=''):
         """Show the whole file where an object was defined."""
@@ -477,7 +477,7 @@ class Inspector:
                 title = header(title + ":") + "\n"
             else:
                 title = header((title+":").ljust(title_width))
-            out.append(title + content)
+            out.append(cast_unicode(title) + cast_unicode(content))
         return "\n".join(out)
 
     # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
@@ -537,7 +537,8 @@ class Inspector:
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
-            displayfields.append(("Source", self.format(py3compat.cast_bytes_py2(info['source']))))
+            displayfields.append(("Source", 
+                                  self.format(cast_unicode(info['source']))))
         elif info['docstring'] is not None:
             displayfields.append(("Docstring", info["docstring"]))
 
