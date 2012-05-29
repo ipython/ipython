@@ -49,7 +49,7 @@ class RMagics(Magics):
     def eval(self, line):
         try:
             return ri.baseenv['eval'](ri.parse(line))
-        except ri.RRuntimeError as msg:
+        except (ri.RRuntimeError, ValueError) as msg:
             self.output.append('ERROR parsing "%s": %s\n' % (line, msg))
             pass
 
@@ -170,14 +170,14 @@ class RMagics(Magics):
 
         # arguments 'code' in line are prepended to
         # the cell lines
-        if cell is None:
-            lines = []
+        if not cell:
+            code = ''
             return_output = True
         else:
-            lines = cell.split('\n')
+            code = cell
             return_output = False
 
-        lines = args.code + lines
+        code = ' '.join(args.code) + code
 
         if args.input:
             for input in ','.join(args.input).split(','):
@@ -189,7 +189,7 @@ class RMagics(Magics):
 
         tmpd = tempfile.mkdtemp()
         self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
-        result = [self.eval(line) for line in lines]
+        result = self.eval(code)
         self.r('dev.off()')
 
         # read out all the saved .png files
@@ -236,11 +236,7 @@ class RMagics(Magics):
         # converted to a python object
 
         if return_output and not published:
-            if len(lines) > 1:
-                return [self.Rconverter(rr) for rr in result]
-            elif lines:
-                return self.Rconverter(result[0])
-            return None
+            return self.Rconverter(result)
 
 _loaded = False
 def load_ipython_extension(ip):
