@@ -366,118 +366,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
     
-    # parallel magic tests
-    
-    def test_magic_px_blocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=True
-
-        ip.magic('px a=5')
-        self.assertEquals(v['a'], 5)
-        ip.magic('px a=10')
-        self.assertEquals(v['a'], 10)
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        # just 'print a' worst ~99% of the time, but this ensures that
-        # the stdout message has arrived when the result is finished:
-        ip.magic('px import sys,time;print (a); sys.stdout.flush();time.sleep(0.2)')
-        sys.stdout = savestdout
-        buf = sio.getvalue()
-        self.assertTrue('[stdout:' in buf, buf)
-        self.assertTrue(buf.rstrip().endswith('10'))
-        self.assertRaisesRemote(ZeroDivisionError, ip.magic, 'px 1/0')
-
-    def test_magic_px_nonblocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=False
-
-        ip.magic('px a=5')
-        self.assertEquals(v['a'], 5)
-        ip.magic('px a=10')
-        self.assertEquals(v['a'], 10)
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic('px print a')
-        sys.stdout = savestdout
-        buf = sio.getvalue()
-        self.assertFalse('[stdout:%i]'%v.targets in buf)
-        ip.magic('px 1/0')
-        ar = v.get_result(-1)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-    
-    def test_magic_autopx_blocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=True
-
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic('autopx')
-        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('b*=2')
-        ip.run_cell('print (b)')
-        ip.run_cell("b/c")
-        ip.magic('autopx')
-        sys.stdout = savestdout
-        output = sio.getvalue().strip()
-        self.assertTrue(output.startswith('%autopx enabled'))
-        self.assertTrue(output.endswith('%autopx disabled'))
-        self.assertTrue('RemoteError: ZeroDivisionError' in output)
-        ar = v.get_result(-1)
-        self.assertEquals(v['a'], 5)
-        self.assertEquals(v['b'], 20)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-
-    def test_magic_autopx_nonblocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=False
-
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic('autopx')
-        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('print (b)')
-        ip.run_cell('import time; time.sleep(0.1)')
-        ip.run_cell("b/c")
-        ip.run_cell('b*=2')
-        ip.magic('autopx')
-        sys.stdout = savestdout
-        output = sio.getvalue().strip()
-        self.assertTrue(output.startswith('%autopx enabled'))
-        self.assertTrue(output.endswith('%autopx disabled'))
-        self.assertFalse('ZeroDivisionError' in output)
-        ar = v.get_result(-2)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-        # prevent TaskAborted on pulls, due to ZeroDivisionError
-        time.sleep(0.5)
-        self.assertEquals(v['a'], 5)
-        # b*=2 will not fire, due to abort
-        self.assertEquals(v['b'], 10)
-    
-    def test_magic_result(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v['a'] = 111
-        ra = v['a']
-        
-        ar = ip.magic('result')
-        self.assertEquals(ar.msg_ids, [v.history[-1]])
-        self.assertEquals(ar.get(), 111)
-        ar = ip.magic('result -2')
-        self.assertEquals(ar.msg_ids, [v.history[-2]])
-    
     def test_unicode_execute(self):
         """test executing unicode strings"""
         v = self.client[-1]
@@ -575,16 +463,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
 
     
     # begin execute tests
-    def _wait_for(self, f, timeout=10):
-        tic = time.time()
-        while time.time() <= tic + timeout:
-            if f():
-                return
-            time.sleep(0.1)
-            self.client.spin()
-        if not f():
-            print "Warning: Awaited condition never arrived"
-            
     
     def test_execute_reply(self):
         e0 = self.client[self.client.ids[0]]

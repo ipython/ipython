@@ -77,8 +77,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         self._validate_data(source, data, metadata)
         content = {}
         content['source'] = source
-        _encode_binary(data)
-        content['data'] = data
+        content['data'] = _encode_binary(data)
         content['metadata'] = metadata
         self.session.send(
             self.pub_socket, u'display_data', json_clean(content),

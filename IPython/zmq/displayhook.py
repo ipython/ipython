@@ -31,12 +31,15 @@ class ZMQDisplayHook(object):
 
 
 def _encode_binary(format_dict):
+    encoded = format_dict.copy()
     pngdata = format_dict.get('image/png')
-    if pngdata is not None:
-        format_dict['image/png'] = encodestring(pngdata).decode('ascii')
+    if isinstance(pngdata, bytes):
+        encoded['image/png'] = encodestring(pngdata).decode('ascii')
     jpegdata = format_dict.get('image/jpeg')
-    if jpegdata is not None:
-        format_dict['image/jpeg'] = encodestring(jpegdata).decode('ascii')
+    if isinstance(jpegdata, bytes):
+        encoded['image/jpeg'] = encodestring(jpegdata).decode('ascii')
+    
+    return encoded
 
 
 class ZMQShellDisplayHook(DisplayHook):
@@ -61,8 +64,7 @@ class ZMQShellDisplayHook(DisplayHook):
         self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
-        _encode_binary(format_dict)
-        self.msg['content']['data'] = format_dict
+        self.msg['content']['data'] = _encode_binary(format_dict)
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""

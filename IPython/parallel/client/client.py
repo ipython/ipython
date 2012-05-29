@@ -33,6 +33,7 @@ import zmq
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
 
+from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
 from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
@@ -90,12 +91,38 @@ class ExecuteReply(object):
         return self.metadata[key]
     
     def __repr__(self):
-        pyout = self.metadata['pyout'] or {}
-        text_out = pyout.get('data', {}).get('text/plain', '')
+        pyout = self.metadata['pyout'] or {'data':{}}
+        text_out = pyout['data'].get('text/plain', '')
         if len(text_out) > 32:
             text_out = text_out[:29] + '...'
         
         return "<ExecuteReply[%i]: %s>" % (self.execution_count, text_out)
+    
+    def _repr_pretty_(self, p, cycle):
+        pyout = self.metadata['pyout'] or {'data':{}}
+        text_out = pyout['data'].get('text/plain', '')
+        
+        if not text_out:
+            return
+        
+        try:
+            ip = get_ipython()
+        except NameError:
+            colors = "NoColor"
+        else:
+            colors = ip.colors
+        
+        if colors == "NoColor":
+            out = normal = ""
+        else:
+            out = TermColors.Red
+            normal = TermColors.Normal
+        
+        p.text(
+            u'[%i] ' % self.metadata['engine_id'] +
+            out + u'Out[%i]: ' % self.execution_count +
+            normal + text_out
+        )
     
     def _repr_html_(self):
         pyout = self.metadata['pyout'] or {'data':{}}

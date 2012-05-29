@@ -15,6 +15,7 @@ Authors:
 import sys
 import tempfile
 import time
+from StringIO import StringIO
 
 from nose import SkipTest
 
@@ -59,6 +60,28 @@ def raiser(eclass):
     """raise an exception"""
     raise eclass()
 
+def generate_output():
+    """function for testing output
+    
+    publishes two outputs of each type, and returns
+    a rich displayable object.
+    """
+    
+    import sys
+    from IPython.core.display import display, HTML, Math
+    
+    print "stdout"
+    print >> sys.stderr, "stderr"
+    
+    display(HTML("<b>HTML</b>"))
+    
+    print "stdout2"
+    print >> sys.stderr, "stderr2"
+    
+    display(Math(r"\alpha=\beta"))
+    
+    return Math("42")
+
 # test decorator for skipping tests when libraries are unavailable
 def skip_without(*names):
     """skip a test if some names are not importable"""
@@ -72,6 +95,41 @@ def skip_without(*names):
                 raise SkipTest
         return f(*args, **kwargs)
     return skip_without_names
+
+#-------------------------------------------------------------------------------
+# Classes
+#-------------------------------------------------------------------------------
+
+class CapturedIO(object):
+    """Simple object for containing captured stdout/err StringIO objects"""
+    
+    def __init__(self, stdout, stderr):
+        self.stdout_io = stdout
+        self.stderr_io = stderr
+    
+    @property
+    def stdout(self):
+        return self.stdout_io.getvalue()
+    
+    @property
+    def stderr(self):
+        return self.stderr_io.getvalue()
+
+
+class capture_output(object):
+    """context manager for capturing stdout/err"""
+    
+    def __enter__(self):
+        self.sys_stdout = sys.stdout
+        self.sys_stderr = sys.stderr
+        stdout = sys.stdout = StringIO()
+        stderr = sys.stderr = StringIO()
+        return CapturedIO(stdout, stderr)
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stdout = self.sys_stdout
+        sys.stderr = self.sys_stderr
+
 
 class ClusterTestCase(BaseZMQTestCase):
     
@@ -117,6 +175,17 @@ class ClusterTestCase(BaseZMQTestCase):
         else:
             self.fail("should have raised a RemoteError")
             
+    def _wait_for(self, f, timeout=10):
+        """wait for a condition"""
+        tic = time.time()
+        while time.time() <= tic + timeout:
+            if f():
+                return
+            time.sleep(0.1)
+            self.client.spin()
+        if not f():
+            print "Warning: Awaited condition never arrived"
+    
     def setUp(self):
         BaseZMQTestCase.setUp(self)
         self.client = self.connect_client()

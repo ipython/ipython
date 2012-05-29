@@ -542,7 +542,7 @@ class Magics(object):
             argv = arg_split(arg_str, posix, strict)
             # Do regular option processing
             try:
-                opts,args = getopt(argv,opt_str,*long_opts)
+                opts,args = getopt(argv, opt_str, long_opts)
             except GetoptError,e:
                 raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
                                         " ".join(long_opts)))

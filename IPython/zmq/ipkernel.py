@@ -382,6 +382,8 @@ class Kernel(Configurable):
         # runlines.  We'll need to clean up this logic later.
         if shell._reply_content is not None:
             reply_content.update(shell._reply_content)
+            e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method='execute')
+            reply_content['engine_info'] = e_info
             # reset after use
             shell._reply_content = None
 
