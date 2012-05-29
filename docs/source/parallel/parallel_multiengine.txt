@@ -415,17 +415,17 @@ specified by the :attr:`targets` attribute of the :class:`DirectView` instance:
 
     In [28]: %px numpy.linalg.eigvals(a)
     Parallel execution on engines: [0, 1, 2, 3]
-    [ 0] Out[68]: array([ 0.77120707, -0.19448286])
-    [ 1] Out[68]: array([ 1.10815921,  0.05110369])
-    [ 2] Out[68]: array([ 0.74625527, -0.37475081])
-    [ 3] Out[68]: array([ 0.72931905,  0.07159743])
+    [0] Out[68]: array([ 0.77120707, -0.19448286])
+    [1] Out[68]: array([ 1.10815921,  0.05110369])
+    [2] Out[68]: array([ 0.74625527, -0.37475081])
+    [3] Out[68]: array([ 0.72931905,  0.07159743])
     
     In [29]: %px print 'hi'
     Parallel execution on engine(s): [0, 1, 2, 3]
-    [stdout: 0] hi
-    [stdout: 1] hi
-    [stdout: 2] hi
-    [stdout: 3] hi
+    [stdout:0] hi
+    [stdout:1] hi
+    [stdout:2] hi
+    [stdout:3] hi
 
 
 Since engines are IPython as well, you can even run magics remotely:
@@ -434,16 +434,16 @@ Since engines are IPython as well, you can even run magics remotely:
 
     In [28]: %px %pylab inline
     Parallel execution on engine(s): [0, 1, 2, 3]
-    [stdout: 0] 
+    [stdout:0] 
     Welcome to pylab, a matplotlib-based Python environment...
     For more information, type 'help(pylab)'.
-    [stdout: 1] 
+    [stdout:1] 
     Welcome to pylab, a matplotlib-based Python environment...
     For more information, type 'help(pylab)'.
-    [stdout: 2] 
+    [stdout:2] 
     Welcome to pylab, a matplotlib-based Python environment...
     For more information, type 'help(pylab)'.
-    [stdout: 3] 
+    [stdout:3] 
     Welcome to pylab, a matplotlib-based Python environment...
     For more information, type 'help(pylab)'.
 
@@ -459,10 +459,10 @@ if it suports the inline figures (e.g. notebook or qtconsole):
     <plot1>
     <plot2>
     <plot3>
-    [ 0] Out[79]: [<matplotlib.lines.Line2D at 0x10a6286d0>]
-    [ 1] Out[79]: [<matplotlib.lines.Line2D at 0x10b9476d0>]
-    [ 2] Out[79]: [<matplotlib.lines.Line2D at 0x110652750>]
-    [ 3] Out[79]: [<matplotlib.lines.Line2D at 0x10c6566d0>]
+    [0] Out[79]: [<matplotlib.lines.Line2D at 0x10a6286d0>]
+    [1] Out[79]: [<matplotlib.lines.Line2D at 0x10b9476d0>]
+    [2] Out[79]: [<matplotlib.lines.Line2D at 0x110652750>]
+    [3] Out[79]: [<matplotlib.lines.Line2D at 0x10c6566d0>]
 
 
 ``%%px`` Cell Magic
@@ -486,14 +486,14 @@ engines are presented.
        ....: ev.max()
        ....:
     Parallel execution on engine(s): [0, 1, 2, 3]
-    [stdout: 0] [ 0.60640442  0.95919621]
-    [ 0] Out[73]: 0.9591962130899806
-    [stdout: 1] [ 0.38501813  1.29430871]
-    [ 1] Out[73]: 1.2943087091452372
-    [stdout: 2] [-0.85925141  0.9387692 ]
-    [ 2] Out[73]: 0.93876920456230284
-    [stdout: 3] [ 0.37998269  1.24218246]
-    [ 3] Out[73]: 1.2421824618493817
+    [stdout:0] [ 0.60640442  0.95919621]
+    [0] Out[73]: 0.9591962130899806
+    [stdout:1] [ 0.38501813  1.29430871]
+    [1] Out[73]: 1.2943087091452372
+    [stdout:2] [-0.85925141  0.9387692 ]
+    [2] Out[73]: 0.93876920456230284
+    [stdout:3] [ 0.37998269  1.24218246]
+    [3] Out[73]: 1.2421824618493817
 
 ``%result`` Magic
 *****************
@@ -510,10 +510,10 @@ just as is done when ``%px`` is blocking:
     Async parallel execution on engine(s): [0, 1, 2, 3]
     
     In [41]: %result
-    [stdout: 0] hi
-    [stdout: 1] hi
-    [stdout: 2] hi
-    [stdout: 3] hi
+    [stdout:0] hi
+    [stdout:1] hi
+    [stdout:2] hi
+    [stdout:3] hi
 
 ``%result`` simply calls :meth:`.AsyncResult.display_outputs` on the most recent request.
 You can pass integers as indices if you want a result other than the latest,
@@ -543,10 +543,10 @@ on the engines until you do ``%autopx`` again.
        ....:
 
     In [34]: print "Average max eigenvalue is: %f" % (sum(max_evals)/len(max_evals))
-    [stdout: 0] Average max eigenvalue is: 10.193101
-    [stdout: 1] Average max eigenvalue is: 10.064508
-    [stdout: 2] Average max eigenvalue is: 10.055724
-    [stdout: 3] Average max eigenvalue is: 10.086876
+    [stdout:0] Average max eigenvalue is: 10.193101
+    [stdout:1] Average max eigenvalue is: 10.064508
+    [stdout:2] Average max eigenvalue is: 10.055724
+    [stdout:3] Average max eigenvalue is: 10.086876
     
     In [35]: %autopx
     Auto Parallel Disabled

@@ -455,9 +455,9 @@ class AsyncResult(object):
                     targets, stdouts, stderrs, output_lists, results, pyouts
                 ):
                 if stdout:
-                    print '[stdout:%2i]' % eid, stdout
+                    print '[stdout:%i]' % eid, stdout
                 if stderr:
-                    print >> sys.stderr, '[stderr:%2i]' % eid, stderr
+                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
                 
                 try:
                     get_ipython()
@@ -475,12 +475,12 @@ class AsyncResult(object):
             # republish stdout:
             if any(stdouts):
                 for eid,stdout in zip(targets, stdouts):
-                    print '[stdout:%2i]' % eid, stdout
+                    print '[stdout:%i]' % eid, stdout
         
             # republish stderr:
             if any(stderrs):
                 for eid,stderr in zip(targets, stderrs):
-                    print >> sys.stderr, '[stderr:%2i]' % eid, stderr
+                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
         
             try:
                 get_ipython()

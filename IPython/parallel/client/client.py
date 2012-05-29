@@ -119,8 +119,8 @@ class ExecuteReply(object):
             normal = TermColors.Normal
         
         p.text(
-            u'[%2i] ' % self.metadata['engine_id'] +
-            out + u'Out[%2i]: ' % self.execution_count +
+            u'[%i] ' % self.metadata['engine_id'] +
+            out + u'Out[%i]: ' % self.execution_count +
             normal + text_out
         )
     
