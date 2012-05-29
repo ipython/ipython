@@ -69,6 +69,15 @@ def test_magic_parse_options():
         expected = path
     nt.assert_equals(opts['f'], expected)
 
+def test_magic_parse_long_options():
+    """Magic.parse_options can handle --foo=bar long options"""
+    ip = get_ipython()
+    m = DummyMagics(ip)
+    opts, _ = m.parse_options('--foo --bar=bubble', 'a', 'foo', 'bar=')
+    nt.assert_true('foo' in opts)
+    nt.assert_true('bar' in opts)
+    nt.assert_true(opts['bar'], "bubble")
+
 
 @dec.skip_without('sqlite3')
 def doctest_hist_f():

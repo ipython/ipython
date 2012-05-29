@@ -120,21 +120,19 @@ using our :func:`psum` function:
 
     In [1]: from IPython.parallel import Client
     
-    In [2]: %load_ext parallel_magic
-    
     In [3]: c = Client(profile='mpi')
     
     In [4]: view = c[:]
     
-    In [5]: view.activate()
+    In [5]: view.activate() # enabe magics
     
     # run the contents of the file on each engine:
     In [6]: view.run('psum.py')
     
-    In [6]: px a = np.random.rand(100)
+    In [6]: %px a = np.random.rand(100)
     Parallel execution on engines: [0,1,2,3]
     
-    In [8]: px s = psum(a)
+    In [8]: %px s = psum(a)
     Parallel execution on engines: [0,1,2,3]
     
     In [9]: view['s']
