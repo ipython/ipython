@@ -144,6 +144,7 @@ have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
 have['pexpect'] = test_for('IPython.external.pexpect')
 have['pymongo'] = test_for('pymongo')
+have['pygments'] = test_for('pygments')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['qt'] = test_for('IPython.external.qt')
@@ -255,7 +256,7 @@ def make_exclude():
         exclusions.append(ipjoin('frontend', 'consoleapp.py'))
         exclusions.append(ipjoin('frontend', 'terminal', 'console'))
         exclusions.append(ipjoin('parallel'))
-    elif not have['qt']:
+    elif not have['qt'] or not have['pygments']:
         exclusions.append(ipjoin('frontend', 'qt'))
 
     if not have['pymongo']:
