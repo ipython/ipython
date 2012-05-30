@@ -128,7 +128,7 @@ class CodeMagics(Magics):
         extension. So it has been renamed simply into %load. You can look at
         `%load`'s docstring for more info.
         """
-        self.magic_load(arg_s)
+        self.load(arg_s)
 
     @line_magic
     def load(self, arg_s):
