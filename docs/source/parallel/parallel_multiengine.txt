@@ -581,8 +581,8 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
     In [41]: dview.pull(('a','b'))
     Out[41]: [ [1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453] ]
     
-    In [43]: dview.push(dict(c='speed'))
-    Out[43]: [None,None,None,None]
+    In [42]: dview.push(dict(c='speed'))
+    Out[42]: [None,None,None,None]
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
 :class:`AsyncResult` objects:
@@ -648,7 +648,6 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
     In [67]: %px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
-    Out[67]:
 
     In [68]: y = dview.gather('y')
 
