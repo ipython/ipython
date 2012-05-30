@@ -361,7 +361,7 @@ blocking mode and which engines the command is applied to. The :class:`View` cla
 arguments are not provided. Thus the following logic is used for :attr:`block` and :attr:`targets`:
 
 * If no keyword argument is provided, the instance attributes are used.
-* Keyword argument, if provided override the instance attributes for
+* The Keyword arguments, if provided overrides the instance attributes for
   the duration of a single call.
   
 The following examples demonstrate how to use the instance attributes:
