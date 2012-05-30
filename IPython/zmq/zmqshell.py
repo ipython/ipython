@@ -16,11 +16,9 @@ machinery.  This should thus be thought of as scaffolding.
 from __future__ import print_function
 
 # Stdlib
-import inspect
 import os
 import sys
 import time
-from subprocess import Popen, PIPE
 
 # System library imports
 from zmq.eventloop import ioloop
@@ -29,11 +27,11 @@ from zmq.eventloop import ioloop
 from IPython.core.interactiveshell import (
     InteractiveShell, InteractiveShellABC
 )
-from IPython.core import page, pylabtools
+from IPython.core import page
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displaypub import DisplayPublisher
-from IPython.core.macro import Macro
-from IPython.core.magics import MacroToEdit
+from IPython.core.magics import MacroToEdit, CodeMagics
+from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
@@ -41,7 +39,6 @@ from IPython.lib.kernel import (
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
-from IPython.utils.path import get_py_filename
 from IPython.utils.process import arg_split
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
@@ -99,106 +96,8 @@ class ZMQDisplayPublisher(DisplayPublisher):
             parent=self.parent_header, ident=self.topic,
         )
 
-class ZMQInteractiveShell(InteractiveShell):
-    """A subclass of InteractiveShell for ZMQ."""
-
-    displayhook_class = Type(ZMQShellDisplayHook)
-    display_pub_class = Type(ZMQDisplayPublisher)
-
-    # Override the traitlet in the parent class, because there's no point using
-    # readline for the kernel. Can be removed when the readline code is moved
-    # to the terminal frontend.
-    colors_force = CBool(True)
-    readline_use = CBool(False)
-    # autoindent has no meaning in a zmqshell, and attempting to enable it
-    # will print a warning in the absence of readline.
-    autoindent = CBool(False)
-
-    exiter = Instance(ZMQExitAutocall)
-    def _exiter_default(self):
-        return ZMQExitAutocall(self)
-    
-    def _exit_now_changed(self, name, old, new):
-        """stop eventloop when exit_now fires"""
-        if new:
-            loop = ioloop.IOLoop.instance()
-            loop.add_timeout(time.time()+0.1, loop.stop)
-
-    keepkernel_on_exit = None
-
-    # Over ZeroMQ, GUI control isn't done with PyOS_InputHook as there is no
-    # interactive input being read; we provide event loop support in ipkernel
-    from .eventloops import enable_gui
-    enable_gui = staticmethod(enable_gui)
-
-    def init_environment(self):
-        """Configure the user's environment.
-
-        """
-        env = os.environ
-        # These two ensure 'ls' produces nice coloring on BSD-derived systems
-        env['TERM'] = 'xterm-color'
-        env['CLICOLOR'] = '1'
-        # Since normal pagers don't work at all (over pexpect we don't have
-        # single-key control of the subprocess), try to disable paging in
-        # subprocesses as much as possible.
-        env['PAGER'] = 'cat'
-        env['GIT_PAGER'] = 'cat'
-        
-        # And install the payload version of page.
-        install_payload_page()
-
-    def auto_rewrite_input(self, cmd):
-        """Called to show the auto-rewritten input for autocall and friends.
-
-        FIXME: this payload is currently not correctly processed by the
-        frontend.
-        """
-        new = self.prompt_manager.render('rewrite') + cmd
-        payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
-            transformed_input=new,
-            )
-        self.payload_manager.write_payload(payload)
-
-    def ask_exit(self):
-        """Engage the exit actions."""
-        self.exit_now = True
-        payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
-            exit=True,
-            keepkernel=self.keepkernel_on_exit,
-            )
-        self.payload_manager.write_payload(payload)
-
-    def _showtraceback(self, etype, evalue, stb):
-
-        exc_content = {
-            u'traceback' : stb,
-            u'ename' : unicode(etype.__name__),
-            u'evalue' : unicode(evalue)
-        }
-
-        dh = self.displayhook
-        # Send exception info over pub socket for other clients than the caller
-        # to pick up
-        topic = None
-        if dh.topic:
-            topic = dh.topic.replace(b'pyout', b'pyerr')
-        
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
-
-        # FIXME - Hack: store exception info in shell object.  Right now, the
-        # caller is reading this info after the fact, we need to fix this logic
-        # to remove this hack.  Even uglier, we need to store the error status
-        # here, because in the main loop, the logic that sets it is being
-        # skipped because runlines swallows the exceptions.
-        exc_content[u'status'] = u'error'
-        self._reply_content = exc_content
-        # /FIXME
-
-        return exc_content
-
+@magics_class
+class KernelMagics(Magics):
     #------------------------------------------------------------------------
     # Magic overrides
     #------------------------------------------------------------------------
@@ -207,7 +106,8 @@ class ZMQInteractiveShell(InteractiveShell):
     # the magics which this class needs to implement differently from the base
     # class, or that are unique to it.
 
-    def magic_doctest_mode(self,parameter_s=''):
+    @line_magic
+    def doctest_mode(self, parameter_s=''):
         """Toggle doctest mode on and off.
 
         This mode is intended to make IPython behave as much as possible like a
@@ -253,12 +153,12 @@ class ZMQInteractiveShell(InteractiveShell):
             # turn on
             ptformatter.pprint = False
             disp_formatter.plain_text_only = True
-            shell.magic_xmode('Plain')
+            shell.magic('xmode Plain')
         else:
             # turn off
             ptformatter.pprint = dstore.rc_pprint
             disp_formatter.plain_text_only = dstore.rc_plain_text_only
-            shell.magic_xmode(dstore.xmode)
+            shell.magic("xmode " + dstore.xmode)
 
         # Store new mode and inform on console
         dstore.mode = bool(1-int(mode))
@@ -267,12 +167,16 @@ class ZMQInteractiveShell(InteractiveShell):
 
         # Send the payload back so that clients can modify their prompt display
         payload = dict(
-            source='IPython.zmq.zmqshell.ZMQInteractiveShell.magic_doctest_mode',
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.doctest_mode',
             mode=dstore.mode)
-        self.payload_manager.write_payload(payload)
+        shell.payload_manager.write_payload(payload)
+        
+    
+    _find_edit_target = CodeMagics._find_edit_target
 
     @skip_doctest
-    def magic_edit(self,parameter_s='',last_call=['','']):
+    @line_magic
+    def edit(self, parameter_s='', last_call=['','']):
         """Bring up an editor and execute the resulting code.
 
         Usage:
@@ -404,7 +308,7 @@ class ZMQInteractiveShell(InteractiveShell):
         opts,args = self.parse_options(parameter_s,'prn:')
 
         try:
-            filename, lineno, _ = self._find_edit_target(args, opts, last_call)
+            filename, lineno, _ = CodeMagics._find_edit_target(self.shell, args, opts, last_call)
         except MacroToEdit as e:
             # TODO: Implement macro editing over 2 processes.
             print("Macro editing not yet implemented in 2-process model.")
@@ -419,12 +323,13 @@ class ZMQInteractiveShell(InteractiveShell):
             'filename' : filename,
             'line_number' : lineno
         }
-        self.payload_manager.write_payload(payload)
+        self.shell.payload_manager.write_payload(payload)
 
     # A few magics that are adapted to the specifics of using pexpect and a
     # remote terminal
 
-    def magic_clear(self, arg_s):
+    @line_magic
+    def clear(self, arg_s):
         """Clear the terminal."""
         if os.name == 'posix':
             self.shell.system("clear")
@@ -433,11 +338,12 @@ class ZMQInteractiveShell(InteractiveShell):
 
     if os.name == 'nt':
         # This is the usual name in windows
-        magic_cls = magic_clear
+        cls = line_magic('cls')(clear)
 
     # Terminal pagers won't work over pexpect, but we do have our own pager
 
-    def magic_less(self, arg_s):
+    @line_magic
+    def less(self, arg_s):
         """Show a file through the pager.
 
         Files ending in .py are syntax-highlighted."""
@@ -446,25 +352,18 @@ class ZMQInteractiveShell(InteractiveShell):
             cont = self.shell.pycolorize(cont)
         page.page(cont)
 
-    magic_more = magic_less
+    more = line_magic('more')(less)
 
     # Man calls a pager, so we also need to redefine it
     if os.name == 'posix':
-        def magic_man(self, arg_s):
+        @line_magic
+        def man(self, arg_s):
             """Find the man page for the given command and display in pager."""
             page.page(self.shell.getoutput('man %s | col -b' % arg_s,
                                            split=False))
 
-    # FIXME: this is specific to the GUI, so we should let the gui app load
-    # magics at startup that are only for the gui.  Once the gui app has proper
-    # profile and configuration management, we can have it initialize a kernel
-    # with a special config file that provides these.
-    def magic_guiref(self, arg_s):
-        """Show a basic reference about the GUI console."""
-        from IPython.core.usage import gui_reference
-        page.page(gui_reference, auto_html=True)
-    
-    def magic_connect_info(self, arg_s):
+    @line_magic
+    def connect_info(self, arg_s):
         """Print information for connecting other clients to this kernel
         
         It will print the contents of this session's connection file, as well as
@@ -514,7 +413,8 @@ class ZMQInteractiveShell(InteractiveShell):
             )
         )
 
-    def magic_qtconsole(self, arg_s):
+    @line_magic
+    def qtconsole(self, arg_s):
         """Open a qtconsole connected to this kernel.
         
         Useful for connecting a qtconsole to running notebooks, for better
@@ -526,6 +426,107 @@ class ZMQInteractiveShell(InteractiveShell):
             error("Could not start qtconsole: %r" % e)
             return
 
+
+class ZMQInteractiveShell(InteractiveShell):
+    """A subclass of InteractiveShell for ZMQ."""
+
+    displayhook_class = Type(ZMQShellDisplayHook)
+    display_pub_class = Type(ZMQDisplayPublisher)
+
+    # Override the traitlet in the parent class, because there's no point using
+    # readline for the kernel. Can be removed when the readline code is moved
+    # to the terminal frontend.
+    colors_force = CBool(True)
+    readline_use = CBool(False)
+    # autoindent has no meaning in a zmqshell, and attempting to enable it
+    # will print a warning in the absence of readline.
+    autoindent = CBool(False)
+
+    exiter = Instance(ZMQExitAutocall)
+    def _exiter_default(self):
+        return ZMQExitAutocall(self)
+    
+    def _exit_now_changed(self, name, old, new):
+        """stop eventloop when exit_now fires"""
+        if new:
+            loop = ioloop.IOLoop.instance()
+            loop.add_timeout(time.time()+0.1, loop.stop)
+
+    keepkernel_on_exit = None
+
+    # Over ZeroMQ, GUI control isn't done with PyOS_InputHook as there is no
+    # interactive input being read; we provide event loop support in ipkernel
+    from .eventloops import enable_gui
+    enable_gui = staticmethod(enable_gui)
+
+    def init_environment(self):
+        """Configure the user's environment.
+
+        """
+        env = os.environ
+        # These two ensure 'ls' produces nice coloring on BSD-derived systems
+        env['TERM'] = 'xterm-color'
+        env['CLICOLOR'] = '1'
+        # Since normal pagers don't work at all (over pexpect we don't have
+        # single-key control of the subprocess), try to disable paging in
+        # subprocesses as much as possible.
+        env['PAGER'] = 'cat'
+        env['GIT_PAGER'] = 'cat'
+        
+        # And install the payload version of page.
+        install_payload_page()
+
+    def auto_rewrite_input(self, cmd):
+        """Called to show the auto-rewritten input for autocall and friends.
+
+        FIXME: this payload is currently not correctly processed by the
+        frontend.
+        """
+        new = self.prompt_manager.render('rewrite') + cmd
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.auto_rewrite_input',
+            transformed_input=new,
+            )
+        self.payload_manager.write_payload(payload)
+
+    def ask_exit(self):
+        """Engage the exit actions."""
+        self.exit_now = True
+        payload = dict(
+            source='IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            exit=True,
+            keepkernel=self.keepkernel_on_exit,
+            )
+        self.payload_manager.write_payload(payload)
+
+    def _showtraceback(self, etype, evalue, stb):
+
+        exc_content = {
+            u'traceback' : stb,
+            u'ename' : unicode(etype.__name__),
+            u'evalue' : unicode(evalue)
+        }
+
+        dh = self.displayhook
+        # Send exception info over pub socket for other clients than the caller
+        # to pick up
+        topic = None
+        if dh.topic:
+            topic = dh.topic.replace(b'pyout', b'pyerr')
+        
+        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
+
+        # FIXME - Hack: store exception info in shell object.  Right now, the
+        # caller is reading this info after the fact, we need to fix this logic
+        # to remove this hack.  Even uglier, we need to store the error status
+        # here, because in the main loop, the logic that sets it is being
+        # skipped because runlines swallows the exceptions.
+        exc_content[u'status'] = u'error'
+        self._reply_content = exc_content
+        # /FIXME
+
+        return exc_content
+
     def set_next_input(self, text):
         """Send the specified text to the frontend to be presented at the next
         input cell."""
@@ -534,6 +535,15 @@ class ZMQInteractiveShell(InteractiveShell):
             text=text
         )
         self.payload_manager.write_payload(payload)
+    
+    #-------------------------------------------------------------------------
+    # Things related to magics
+    #-------------------------------------------------------------------------
+
+    def init_magics(self):
+        super(ZMQInteractiveShell, self).init_magics()
+        self.register_magics(KernelMagics)
+
 
 
 InteractiveShellABC.register(ZMQInteractiveShell)
