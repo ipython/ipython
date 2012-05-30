@@ -62,8 +62,8 @@ class Logger(object):
 
     logmode = property(_get_mode,_set_mode)
 
-    def logstart(self,logfname=None,loghead=None,logmode=None,
-                 log_output=False,timestamp=False,log_raw_input=False):
+    def logstart(self, logfname=None, loghead=None, logmode=None,
+                 log_output=False, timestamp=False, log_raw_input=False):
         """Generate a new log-file with a default header.
 
         Raises RuntimeError if the log has already been started"""
