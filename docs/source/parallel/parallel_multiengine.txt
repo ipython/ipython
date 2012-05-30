@@ -677,7 +677,10 @@ You can also specify imports via the ``@require`` decorator.  This is a decorato
 designed for use in Dependencies, but can be used to handle remote imports as well.
 Modules or module names passed to ``@require`` will be imported before the decorated
 function is called.  If they cannot be imported, the decorated function will never
-execution, and will fail with an UnmetDependencyError.
+execute and will fail with an UnmetDependencyError.
+
+..
+    what about single engines failing to import? will none of them execute the function?
 
 .. sourcecode:: ipython
 
