@@ -249,6 +249,8 @@ blocks until the engines are done executing the command:
 You can also select blocking execution on a call-by-call basis with the :meth:`apply_sync`
 method:
 
+.. sourcecode:: ipython
+
     In [7]: dview.block=False
 
     In [8]: dview.apply_sync(lambda x: a+b+x, 27)
