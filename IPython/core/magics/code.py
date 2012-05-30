@@ -174,7 +174,8 @@ class CodeMagics(Magics):
 
         self.shell.set_next_input(contents)
 
-    def _find_edit_target(self, args, opts, last_call):
+    @staticmethod
+    def _find_edit_target(shell, args, opts, last_call):
         """Utility method used by magic_edit to find what to edit."""
 
         def make_filename(arg):
@@ -203,13 +204,13 @@ class CodeMagics(Magics):
 
         if opts_prev:
             args = '_%s' % last_call[0]
-            if not self.shell.user_ns.has_key(args):
+            if not shell.user_ns.has_key(args):
                 args = last_call[1]
 
         # use last_call to remember the state of the previous call, but don't
         # let it be clobbered by successive '-p' calls.
         try:
-            last_call[0] = self.shell.displayhook.prompt_count
+            last_call[0] = shell.displayhook.prompt_count
             if not opts_prev:
                 last_call[1] = args
         except:
@@ -227,14 +228,14 @@ class CodeMagics(Magics):
             use_temp = False
         elif args:
             # Mode where user specifies ranges of lines, like in %macro.
-            data = self.shell.extract_input_lines(args, opts_raw)
+            data = shell.extract_input_lines(args, opts_raw)
             if not data:
                 try:
                     # Load the parameter given as a variable. If not a string,
                     # process it as an object instead (below)
 
                     #print '*** args',args,'type',type(args)  # dbg
-                    data = eval(args, self.shell.user_ns)
+                    data = eval(args, shell.user_ns)
                     if not isinstance(data, basestring):
                         raise DataIsObject
 
@@ -293,7 +294,7 @@ class CodeMagics(Magics):
                     use_temp = False
 
         if use_temp:
-            filename = self.shell.mktempfile(data)
+            filename = shell.mktempfile(data)
             print 'IPython will make a temporary file named:',filename
 
         return filename, lineno, use_temp
