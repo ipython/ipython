@@ -261,7 +261,7 @@ class TaskScheduler(SessionFactory):
         
         content = msg['content']
         for uuid in content.get('engines', {}).values():
-            self._register_engine(asbytes(uuid))
+            self._register_engine(cast_bytes(uuid))
 
     
     @util.log_errors

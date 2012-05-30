@@ -923,7 +923,7 @@ class Hub(SessionFactory):
                 content=content,
                 ident=reg)
 
-        heart = util.asbytes(uuid)
+        heart = cast_bytes(uuid)
 
         if content['status'] == 'ok':
             if heart in self.heartmonitor.hearts:
