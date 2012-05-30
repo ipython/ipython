@@ -362,17 +362,6 @@ class KernelMagics(Magics):
             page.page(self.shell.getoutput('man %s | col -b' % arg_s,
                                            split=False))
 
-    # FIXME: this is specific to the GUI, so we should let the gui app load
-    # magics at startup that are only for the gui.  Once the gui app has proper
-    # profile and configuration management, we can have it initialize a kernel
-    # with a special config file that provides these.
-    
-    @line_magic
-    def guiref(self, arg_s):
-        """Show a basic reference about the GUI console."""
-        from IPython.core.usage import gui_reference
-        page.page(gui_reference, auto_html=True)
-    
     @line_magic
     def connect_info(self, arg_s):
         """Print information for connecting other clients to this kernel
