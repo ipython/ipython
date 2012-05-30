@@ -377,7 +377,7 @@ The following examples demonstrate how to use the instance attributes:
     In [19]: ar.get()
     Out[19]: [10, 10]
 
-    In [16]: dview.targets = v.client.ids # all engines (4)
+    In [20]: dview.targets = v.client.ids # all engines (4)
     
     In [21]: dview.block = True
 
