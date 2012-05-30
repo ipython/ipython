@@ -896,7 +896,7 @@ class Hub(SessionFactory):
 
         content = dict(id=eid,status='ok')
         # check if requesting available IDs:
-        if uuid in self.by_ident:
+        if cast_bytes(uuid) in self.by_ident:
             try:
                 raise KeyError("uuid %r in use" % uuid)
             except:
@@ -1014,7 +1014,7 @@ class Hub(SessionFactory):
         self.ids.add(eid)
         self.keytable[eid] = ec.uuid
         self.engines[eid] = ec
-        self.by_ident[ec.uuid] = ec.id
+        self.by_ident[cast_bytes(ec.uuid)] = ec.id
         self.queues[eid] = list()
         self.tasks[eid] = list()
         self.completed[eid] = list()

@@ -756,11 +756,11 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, reg_addr, config=Non
         ctx = zmq.Context()
         loop = ioloop.IOLoop()
     ins = ZMQStream(ctx.socket(zmq.ROUTER),loop)
-    ins.setsockopt(zmq.IDENTITY, identity+'_in')
+    ins.setsockopt(zmq.IDENTITY, identity + b'_in')
     ins.bind(in_addr)
 
     outs = ZMQStream(ctx.socket(zmq.ROUTER),loop)
-    outs.setsockopt(zmq.IDENTITY, identity+'_out')
+    outs.setsockopt(zmq.IDENTITY, identity + b'_out')
     outs.bind(out_addr)
     mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB),loop)
     mons.connect(mon_addr)

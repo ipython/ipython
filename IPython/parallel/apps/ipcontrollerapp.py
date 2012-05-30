@@ -367,7 +367,7 @@ class IPControllerApp(BaseParallelApplication):
         # IOPub relay (in a Process)
         q = mq(zmq.PUB, zmq.SUB, zmq.PUB, b'N/A',b'iopub')
         q.bind_in(f.client_url('iopub'))
-        q.setsockopt_in(zmq.IDENTITY, ident+"_iopub")
+        q.setsockopt_in(zmq.IDENTITY, ident + b"_iopub")
         q.bind_out(f.engine_url('iopub'))
         q.setsockopt_out(zmq.SUBSCRIBE, b'')
         q.connect_mon(monitor_url)

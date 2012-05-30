@@ -449,7 +449,7 @@ class Client(HasTraits):
         # configure and construct the session
         extra_args['packer'] = cfg['pack']
         extra_args['unpacker'] = cfg['unpack']
-        extra_args['key'] = cfg['exec_key']
+        extra_args['key'] = cast_bytes(cfg['exec_key'])
         
         self.session = Session(**extra_args)
 
