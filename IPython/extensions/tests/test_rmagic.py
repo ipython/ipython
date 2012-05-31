@@ -2,11 +2,9 @@ import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.extensions import rmagic
 
-ip = None
-def setup():
-    global ip
-    ip = InteractiveShell()
-    ip.magic('load_ext rmagic')
+ip = get_ipython()
+ip.magic('load_ext rmagic')
+
 
 def test_push():
     rm = rmagic.RMagics(ip)
