@@ -56,7 +56,7 @@ addflag('pdb', 'InteractiveShell.pdb',
 # which is before parsing.  This just allows the flag to be passed.
 shell_flags.update(dict(
     pydb = ({},
-        """"Use the third party 'pydb' package as debugger, instead of pdb.
+        """Use the third party 'pydb' package as debugger, instead of pdb.
         Requires that pydb is installed."""
     )
 ))
