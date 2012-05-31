@@ -90,7 +90,7 @@ class CythonMagics(Magics):
         if not module_name:
             raise ValueError('module name must be given')
         fname = module_name + '.pyx'
-        with open(fname, 'w') as f:
+        with io.open(fname, 'w', encoding='utf-8'):
             f.write(cell)
         if 'pyximport' not in sys.modules:
             import pyximport
@@ -113,7 +113,7 @@ class CythonMagics(Magics):
         """Compile and import everything from a Cython code cell.
 
         The contents of the cell are written to a `.pyx` file in the
-        `~/.cython/magic` using a filename with the hash of the code.
+        directory `IPYTHONDIR/cython` using a filename with the hash of the code.
         This file is then cythonized and compiled. The resulting module
         is imported and all of its symbols are injected into the user's
         namespace. The usage is similar to that of `%%cython_pyximport` but
@@ -125,7 +125,8 @@ class CythonMagics(Magics):
         """
         args = parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        lib_dir=os.path.expanduser('~/.cython/magic')
+        # distutils.Extension cannot handle sources that a unicode
+        lib_dir=str(os.path.join(self.shell.ipython_dir,'cython'))
         cython_include_dirs=['.']
         force=args.force
         quiet=True
@@ -145,8 +146,9 @@ class CythonMagics(Magics):
                 import numpy
                 c_include_dirs.append(numpy.get_include())
             pyx_file = os.path.join(lib_dir, module_name + '.pyx')
-            with open(pyx_file, 'w') as f:            
+            with io.open(pyx_file, 'w', encoding='utf-8'):
                 f.write(code)
+            print [pyx_file]
             extension = Extension(
                 name = module_name,
                 sources = [pyx_file],
