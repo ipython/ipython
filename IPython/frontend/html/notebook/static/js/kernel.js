@@ -262,6 +262,7 @@ var IPython = (function (IPython) {
         // complete_reply message documented here:
         //
         // http://ipython.org/ipython-doc/dev/development/messaging.html#complete
+        callbacks = callbacks || {};
         var content = {
             text : '',
             line : line,
@@ -303,7 +304,7 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype.set_callbacks_for_msg = function (msg_id, callbacks) {
-        this._msg_callbacks[msg_id] = callbacks;
+        this._msg_callbacks[msg_id] = callbacks || {};
     }
 
 
@@ -320,7 +321,7 @@ var IPython = (function (IPython) {
             }
         };
 
-        if (content.payload !== undefined) {
+        if (content.payload !== undefined && callbacks.cell !== undefined) {
             var payload = content.payload || [];
             this._handle_payload(callbacks.cell, payload);
         }
