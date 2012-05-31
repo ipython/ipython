@@ -31,27 +31,36 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
+from IPython.utils.py3compat import str_to_unicode
+
+class RMagicError(ValueError):
+    pass
 
 @magics_class
 class RMagics(Magics):
 
     def __init__(self, shell, Rconverter=np.asarray,
-                 pyconverter=np.asarray):
+                 pyconverter=np.asarray,
+                 cache_display_data=False):
         super(RMagics, self).__init__(shell)
-        ri.set_writeconsole(self.write_console)
+        self.cache_display_data = cache_display_data
 
-        # the embedded R process from rpy2
         self.r = ro.R()
         self.output = []
         self.Rconverter = Rconverter
         self.pyconverter = pyconverter
 
     def eval(self, line):
+        old_writeconsole = ri.get_writeconsole()
+        ri.set_writeconsole(self.write_console)
         try:
-            return ri.baseenv['eval'](ri.parse(line))
+            value = ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as msg:
-            self.output.append(u'ERROR parsing "%s": %s\n' % (str(line).decode('utf-8'), str(msg).decode('utf-8')))
-            pass
+            raise RMagicError('error parsing and evaluating "%s": %s\n' %
+                              (line, str_to_unicode(msg, 'utf-8')))
+        text_output = self.flush()
+        ri.set_writeconsole(old_writeconsole)
+        return text_output, value
 
     def write_console(self, output):
         '''
@@ -60,7 +69,7 @@ class RMagics(Magics):
         self.output.append(output)
 
     def flush(self):
-        value = ''.join([s.decode('utf-8') for s in self.output])
+        value = ''.join([str_to_unicode(s, 'utf-8') for s in self.output])
         self.output = []
         return value
 
@@ -157,6 +166,12 @@ class RMagics(Magics):
         help='Background of png plotting device sent as an argument to *png* in R.'
         )
     @argument(
+        '-n', '--noreturn',
+        help='Force the magic to not return anything.',
+        action='store_true',
+        default=False
+        )
+    @argument(
         'code',
         nargs='*',
         )
@@ -218,11 +233,10 @@ class RMagics(Magics):
             In [17]: W
             Out[17]: array([  5.,  20.,  25.,  50.])
 
-        If the cell is None, the resulting value is returned,
-        after conversion with self.Rconverter
-        unless the line has contents that are published to the ipython
-        notebook (i.e. plots are create or something is printed to
-        R's stdout() connection).
+        If the cell evaluates as False, the resulting value is returned
+        unless the final line prints something to the console.
+        If the final line results in a NULL value when evaluated
+        by rpy2, then None is returned.
 
         If the cell is not None, the magic returns None.
 
@@ -235,9 +249,11 @@ class RMagics(Magics):
         if not cell:
             code = ''
             return_output = True
+            line_mode = True
         else:
             code = cell
             return_output = False
+            line_mode = False
 
         code = ' '.join(args.code) + code
 
@@ -251,7 +267,18 @@ class RMagics(Magics):
 
         tmpd = tempfile.mkdtemp()
         self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
-        result = self.eval(code)
+
+        if line_mode:
+            for line in code.split(';'):
+                text_result, result = self.eval(line)
+                text_output += text_result
+            if text_result:
+                # the last line printed something to the console so we won't return it
+                return_output = False
+        else:
+            text_result, result = self.eval(code)
+            text_output += text_result
+
         self.r('dev.off()')
 
         # read out all the saved .png files
@@ -264,23 +291,17 @@ class RMagics(Magics):
         mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
         mime = mimetypes[fmt]
 
-        published = False
         # publish the printed R objects, if any
-        flush = self.flush()
-        if flush:
-            published = True
-            publish_display_data('RMagic.R', {'text/plain':flush})
+
+        display_data = []
+        if text_output:
+            display_data.append(('RMagic.R', {'text/plain':text_output}))
 
         # flush text streams before sending figures, helps a little with output
         for image in images:
-            published = True
             # synchronization in the console (though it's a bandaid, not a real sln)
             sys.stdout.flush(); sys.stderr.flush()
-            publish_display_data(
-                'RMagic.R',
-                {mime : image}
-            )
-        value = {}
+            display_data.append(('RMagic.R', {mime: image}))
 
         # kill the temporary directory
         rmtree(tmpd)
@@ -294,12 +315,20 @@ class RMagics(Magics):
                 # with self.shell, we assign the values to variables in the shell
                 self.shell.push({output:self.Rconverter(self.r(output))})
 
+        for tag, disp_d in display_data:
+            publish_display_data(tag, disp_d)
 
-        # if there was a single line, return its value
-        # converted to a python object
+        # this will keep a reference to the display_data
+        # which might be useful to other objects who happen to use
+        # this method
 
-        if return_output and not published:
-            return self.Rconverter(result)
+        if self.cache_display_data:
+            self.display_cache = display_data
+
+        # if in line mode and return_output, return the result as an ndarray
+        if return_output and not args.noreturn:
+            if result != ri.NULL:
+                return self.Rconverter(result)
 
 _loaded = False
 def load_ipython_extension(ip):
