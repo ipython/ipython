@@ -269,8 +269,9 @@ class NotebookApp(BaseIPythonApplication):
     def _ip_changed(self, name, old, new):
         if new == u'*': self.ip = u''
 
-    port = Integer(8888, config=True,
-        help="The port the notebook server will listen on."
+    port = Integer(0, config=True,
+        help=("The port the notebook server will listen on. Use 0 to try several random "
+              "ports beginning at 8888.")
     )
 
     certfile = Unicode(u'', config=True, 
@@ -422,20 +423,26 @@ class NotebookApp(BaseIPythonApplication):
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
 
-        # Try random ports centered around the default.
-        from random import randint
-        n = 50  # Max number of attempts, keep reasonably large.
-        for port in range(self.port, self.port+5) + [self.port + randint(-2*n, 2*n) for i in range(n-5)]:
-            try:
-                self.http_server.listen(port, self.ip)
-            except socket.error, e:
-                if e.errno != errno.EADDRINUSE:
-                    raise
-                self.log.info('The port %i is already in use, trying another random port.' % port)
-            else:
-                self.port = port
-                break
-    
+        if self.port:
+            self.http_server.listen(self.port, self.ip)
+        else:
+            # Try random ports centered around the default.
+            from random import randint
+            default_port = 8888
+            n = 50  # Max number of attempts, keep reasonably large.
+            available_ports = range(default_port, default_port+5) \
+                              + [default_port + randint(-2*n, 2*n) for i in range(n-5)]
+            for port in available_ports:
+                try:
+                    self.http_server.listen(port, self.ip)
+                except socket.error, e:
+                    if e.errno != errno.EADDRINUSE:
+                        raise
+                    self.log.info('The port %i is already in use, trying another random port.' % port)
+                else:
+                    self.port = port
+                    break
+
     def init_signal(self):
         # FIXME: remove this check when pyzmq dependency is >= 2.1.11
         # safely extract zmq version info:
