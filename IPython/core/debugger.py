@@ -441,11 +441,17 @@ class Pdb(OldPdb):
             tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
             tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
-            lines = linecache.getlines(filename)
+            if filename == "<string>" and hasattr(self, "_exec_filename"):
+                lines = list(open(self._exec_filename))
+            else:
+                lines = linecache.getlines(filename)
             try:
                 encoding, _ = openpy.detect_encoding(_readline(lines))
             except SyntaxError:
                 encoding = "ascii"
+            if not lines:
+                print >>io.stdout, "No src could be located using filename: %r"%filename
+                return #Bailing out, there is nothing to see here
             for lineno in range(first, last+1):
                 line = py3compat.cast_unicode(lines[lineno])
                 if not line:
