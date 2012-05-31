@@ -337,6 +337,21 @@ class InteractiveShellTestCase(unittest.TestCase):
                     namespace = 'IPython internal', obj= cmagic.__wrapped__,
                     parent = None)
         nt.assert_equal(find, info)
+    
+    def test_custom_exception(self):
+        called = []
+        def my_handler(shell, etype, value, tb, tb_offset=None):
+            called.append(etype)
+            shell.showtraceback((etype, value, tb), tb_offset=tb_offset)
+        
+        ip.set_custom_exc((ValueError,), my_handler)
+        try:
+            ip.run_cell("raise ValueError('test')")
+            # Check that this was called, and only once.
+            self.assertEqual(called, [ValueError])
+        finally:
+            # Reset the custom exception hook
+            ip.set_custom_exc((), None)
 
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
