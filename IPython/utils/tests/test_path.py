@@ -93,7 +93,7 @@ def setup_environment():
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, path.get_home_dir, IPython.__file__, os.getcwd())
+    oldstuff = (env.copy(), os.name, sys.platform, path.get_home_dir, IPython.__file__, os.getcwd())
 
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
@@ -102,7 +102,7 @@ def setup_environment():
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
-    (oldenv, os.name, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
+    (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
     os.chdir(old_wd)
     reload(path)
 
@@ -234,7 +234,11 @@ def test_get_ipython_dir_3():
     env.pop('IPYTHONDIR', None)
     env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
     ipdir = path.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.join(XDG_TEST_DIR, "ipython"))
+    if sys.platform == "darwin":
+        expected = os.path.join("someplace", ".ipython")
+    else:
+        expected = os.path.join(XDG_TEST_DIR, "ipython")
+    nt.assert_equal(ipdir, expected)
 
 @with_environment
 def test_get_ipython_dir_4():
@@ -244,9 +248,12 @@ def test_get_ipython_dir_4():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
-    xdg_ipdir = os.path.join(XDG_TEST_DIR, "ipython")
     ipdir = path.get_ipython_dir()
-    nt.assert_equal(ipdir, xdg_ipdir)
+    if sys.platform == "darwin":
+        expected = os.path.join(HOME_TEST_DIR, ".ipython")
+    else:
+        expected = os.path.join(XDG_TEST_DIR, "ipython")
+    nt.assert_equal(ipdir, expected)
 
 @with_environment
 def test_get_ipython_dir_5():
@@ -287,12 +294,13 @@ def test_get_ipython_dir_7():
 
 
 @with_environment
-def test_get_xdg_dir_1():
-    """test_get_xdg_dir_1, check xdg_dir"""
+def test_get_xdg_dir_0():
+    """test_get_xdg_dir_0, check xdg_dir"""
     reload(path)
     path._writable_dir = lambda path: True
     path.get_home_dir = lambda : 'somewhere'
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -306,6 +314,7 @@ def test_get_xdg_dir_1():
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -317,13 +326,31 @@ def test_get_xdg_dir_2():
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
     cfgdir=os.path.join(path.get_home_dir(), '.config')
-    os.makedirs(cfgdir)
+    if not os.path.exists(cfgdir):
+        os.makedirs(cfgdir)
 
     nt.assert_equal(path.get_xdg_dir(), cfgdir)
+
+@with_environment
+def test_get_xdg_dir_3():
+    """test_get_xdg_dir_3, check xdg_dir not used on OS X"""
+    reload(path)
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    os.name = "posix"
+    sys.platform = "darwin"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    if not os.path.exists(cfgdir):
+        os.makedirs(cfgdir)
+
+    nt.assert_equal(path.get_xdg_dir(), None)
 
 def test_filefind():
     """Various tests for filefind"""
