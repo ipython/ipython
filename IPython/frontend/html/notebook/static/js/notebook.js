@@ -68,6 +68,10 @@ var IPython = (function (IPython) {
             that.dirty = true;
         });
 
+        $([IPython.events]).on('set_dirty.Notebook', function (event, data) {
+            that.dirty = data.value;
+        });
+
         $([IPython.events]).on('select.Cell', function (event, data) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
