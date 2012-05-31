@@ -123,6 +123,22 @@ class Tracer(object):
 
         if colors is None:
             colors = def_colors
+
+        # The stdlib debugger internally uses a modified repr from the `repr`
+        # module, that limits the length of printed strings to a hardcoded
+        # limit of 30 characters.  That much trimming is too aggressive, let's
+        # at least raise that limit to 80 chars, which should be enough for
+        # most interactive uses.
+        try:
+            from repr import aRepr
+            aRepr.maxstring = 80
+        except:
+            # This is only a user-facing convenience, so any error we encounter
+            # here can be warned about but can be otherwise ignored.  These
+            # printouts will tell us about problems if this API changes 
+            import traceback
+            traceback.print_exc()
+
         self.debugger = Pdb(colors)
 
     def __call__(self):
