@@ -19,6 +19,7 @@ import sys
 # Our own packages
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.utils.warn import warn
+from IPython.utils.py3compat import str_to_unicode
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -96,7 +97,7 @@ class LoggingMagics(Magics):
             logfname = os.path.expanduser(logfname)
         self.shell.logfile = logfname
 
-        loghead = '# IPython log file\n\n'
+        loghead = u'# IPython log file\n\n'
         try:
             logger.logstart(logfname, loghead, logmode, log_output, timestamp,
                             log_raw_input)
@@ -121,12 +122,12 @@ class LoggingMagics(Magics):
                 log_write = logger.log_write
                 output_hist = self.shell.history_manager.output_hist
                 for n in range(1,len(input_hist)-1):
-                    log_write(input_hist[n].rstrip() + '\n')
+                    log_write(input_hist[n].rstrip() + u'\n')
                     if n in output_hist:
-                        log_write(repr(output_hist[n]),'output')
+                        log_write(str_to_unicode(repr(output_hist[n])),'output')
             else:
-                logger.log_write('\n'.join(input_hist[1:]))
-                logger.log_write('\n')
+                logger.log_write(u'\n'.join(input_hist[1:]))
+                logger.log_write(u'\n')
             if timestamp:
                 # re-enable timestamping
                 logger.timestamp = True
@@ -142,7 +143,7 @@ class LoggingMagics(Magics):
         In order to start logging again, a new %logstart call needs to be made,
         possibly (though not necessarily) with a new filename, mode and other
         options."""
-        self.logger.logstop()
+        self.shell.logger.logstop()
 
     @line_magic
     def logoff(self, parameter_s=''):
