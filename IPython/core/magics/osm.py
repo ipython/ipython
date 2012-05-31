@@ -31,7 +31,8 @@ from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.io import file_read, nlprint, source_to_unicode
+from IPython.utils.io import file_read, nlprint
+from IPython.utils.openpy import source_to_unicode
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
