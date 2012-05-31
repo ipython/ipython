@@ -410,7 +410,7 @@ Defaulting color scheme to 'NoColor'"""
             %gui gtk     # enable PyGTK event loop integration
             %gui gtk3    # enable Gtk3 event loop integration
             %gui tk      # enable Tk event loop integration
-            %gui OSX     # enable Cocoa event loop integration
+            %gui osx     # enable Cocoa event loop integration
                          # (requires %matplotlib 1.1)
             %gui         # disable all event loop integration
 
