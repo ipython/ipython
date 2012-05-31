@@ -54,9 +54,9 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
-from IPython.utils.py3compat import str_to_unicode
+from IPython.utils.py3compat import str_to_unicode, unicode_to_str
 
-class RMagicError(ValueError):
+class RMagicError(ri.RRuntimeError):
     pass
 
 @magics_class
@@ -104,9 +104,9 @@ class RMagics(Magics):
         ri.set_writeconsole(self.write_console)
         try:
             value = ri.baseenv['eval'](ri.parse(line))
-        except (ri.RRuntimeError, ValueError) as msg:
-            raise RMagicError('error parsing and evaluating "%s": %s\n' %
-                              (line, str_to_unicode(msg, 'utf-8')))
+        except (ri.RRuntimeError, ValueError) as exception:
+            raise RMagicError(unicode_to_str('parsing and evaluating line "%s". R traceback: "%s"\n' %
+                                             (line, str_to_unicode(exception.message, 'utf-8'))))
         text_output = self.flush()
         ri.set_writeconsole(old_writeconsole)
         return text_output, value
