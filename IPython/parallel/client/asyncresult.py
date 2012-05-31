@@ -391,9 +391,10 @@ class AsyncResult(object):
         
         
     def _display_single_result(self):
-        
-        print self.stdout
-        print >> sys.stderr, self.stderr
+        if self.stdout:
+            print self.stdout
+        if self.stderr:
+            print >> sys.stderr, self.stderr
         
         try:
             get_ipython()
