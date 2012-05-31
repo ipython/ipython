@@ -272,6 +272,7 @@ def make_exclude():
 
     if not have['cython']:
         exclusions.extend([ipjoin('extensions', 'cythonmagic')])
+        exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
