@@ -161,7 +161,7 @@ var IPython = (function (IPython) {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),
             'clear_output': $.proxy(this.output_area.handle_clear_output, this.output_area),
-            'cell': this
+            'set_next_input': $.proxy(this._handle_set_next_input, this)
         };
         var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false});
     };
@@ -171,6 +171,11 @@ var IPython = (function (IPython) {
         this.set_input_prompt(content.execution_count);
         this.element.removeClass("running");
         // this.dirty = true;
+    }
+
+    CodeCell.prototype._handle_set_next_input = function (text) {
+        var data = {'cell': this, 'text': text}
+        $([IPython.events]).trigger('set_next_input.Notebook', data);
     }
 
     // Basic cell manipulation.

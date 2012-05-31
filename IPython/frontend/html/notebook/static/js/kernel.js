@@ -216,7 +216,7 @@ var IPython = (function (IPython) {
         //  'execute_reply': execute_reply_callback,
         //  'output': output_callback,
         //  'clear_output': clear_output_callback,
-        //  'cell': cell
+        //  'set_next_input': set_next_input_callback
         // }
         //
         // The execute_reply_callback will be passed the content object of the execute_reply
@@ -233,8 +233,8 @@ var IPython = (function (IPython) {
         // The clear_output_callback will be passed a content object that contains
         // stdout, stderr and other fields that are booleans.
         //
-        // The cell value will contain the a cell object that the notebook can use for the
-        // set_next_input payload.
+        // The set_next_input_callback will bepassed the text that should become the next
+        // input cell.
 
         var content = {
             code : code,
@@ -321,14 +321,14 @@ var IPython = (function (IPython) {
             }
         };
 
-        if (content.payload !== undefined && callbacks.cell !== undefined) {
+        if (content.payload !== undefined) {
             var payload = content.payload || [];
-            this._handle_payload(callbacks.cell, payload);
+            this._handle_payload(callbacks, payload);
         }
     };
 
 
-    Kernel.prototype._handle_payload = function (cell, payload) {
+    Kernel.prototype._handle_payload = function (callbacks, payload) {
         var l = payload.length;
         // Payloads are handled by triggering events because we don't want the Kernel
         // to depend on the Notebook or Pager classes.
@@ -336,9 +336,10 @@ var IPython = (function (IPython) {
             if (payload[i].source === 'IPython.zmq.page.page') {
                 var data = {'text':payload[i].text}
                 $([IPython.events]).trigger('open_with_text.Pager', data);
-            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input' && cell !== undefined) {
-                var data = {'cell': cell, 'text': payload[i].text}
-                $([IPython.events]).trigger('set_next_input.Notebook', data);
+            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
+                if (callbacks.set_next_input !== undefined) {
+                    callbacks.set_next_input(payload[i].text)
+                }
             }
         };
     };
