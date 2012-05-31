@@ -51,6 +51,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -280,6 +281,11 @@ def make_exclude():
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         exclusions = [s.replace('\\','\\\\') for s in exclusions]
+    
+    # check for any exclusions that don't seem to exist:
+    for exclusion in exclusions:
+        if not os.path.exists(exclusion) and not os.path.exists(exclusion + '.py'):
+            warn("Excluding nonexistent file: %r\n" % exclusion)
 
     return exclusions
 
