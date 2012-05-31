@@ -95,13 +95,13 @@ def load_ipython_extension(ip):
 
         printable_containers = [list, tuple]
 
-        if sympy.__version__ < '0.7.1-git':
-            # set and frozen set were broken with SymPy's latex() function,
-            # but was fixed in the 0.7.1-git development version. See
-            # http://code.google.com/p/sympy/issues/detail?id=3062.
-            plaintext_formatter.for_type(cls, print_basic_unicode)
-        else:
+        # set and frozen set were broken with SymPy's latex() function, but
+        # was fixed in the 0.7.1-git development version. See
+        # http://code.google.com/p/sympy/issues/detail?id=3062.
+        if sympy.__version__ > '0.7.1':
             printable_containers += [set, frozenset]
+        else:
+            plaintext_formatter.for_type(cls, print_basic_unicode)
 
         plaintext_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_basic_unicode
