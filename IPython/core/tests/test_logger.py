@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Test IPython.core.logger"""
 
 import os.path
