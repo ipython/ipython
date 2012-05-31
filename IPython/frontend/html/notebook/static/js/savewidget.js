@@ -83,7 +83,7 @@ var IPython = (function (IPython) {
                         $(this).find('h3').html(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
-                            "except / and \\. Please enter a new notebook name:"
+                            "except :/\\. Please enter a new notebook name:"
                         );
                     } else {
                         IPython.notebook.set_notebook_name(new_name);

@@ -28,7 +28,7 @@ var IPython = (function (IPython) {
         this.control_key_active = false;
         this.notebook_id = null;
         this.notebook_name = null;
-        this.notebook_name_blacklist_re = /[\/\\]/;
+        this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
         this.style();
         this.create_elements();
