@@ -292,3 +292,10 @@ class HistoryMagics(Magics):
         print(histlines)
         print("=== Output: ===")
         self.shell.run_cell("\n".join(hist), store_history=False)
+
+    @line_magic
+    def recall(self,arg):
+        self.rerun(arg)
+
+    recall.__doc__ = rerun.__doc__
+
