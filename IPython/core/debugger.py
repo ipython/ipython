@@ -179,6 +179,22 @@ def _file_lines(fname):
         return out
 
 
+def _readline(x):
+    """helper to pop elements off list of string
+
+    call with list of strings, return readline function that will pop
+    one line off the beginning of a copy of the list with each call.
+    raise StopIteration when empty or on third call
+    """
+    x = x[:2]
+    def readline():
+        if x:
+            return x.pop(0)
+        else:
+            raise StopIteration
+    return readline
+
+
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
@@ -353,15 +369,7 @@ class Pdb(OldPdb):
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
         try:
-            def readline(x):
-                x = x[:2]
-                def _readline():
-                    if x:
-                        return x.pop(0)
-                    else:
-                        raise StopIteration
-                return _readline
-            encoding, _ = openpy.detect_encoding(readline(lines))
+            encoding, _ = openpy.detect_encoding(_readline(lines))
         except SyntaxError:
             encoding = "ascii"
         start = max(start, 0)
@@ -435,7 +443,7 @@ class Pdb(OldPdb):
             src = []
             lines = linecache.getlines(filename)
             try:
-                encoding, _ = openpy.detect_encoding(lambda :lines[:2].pop(0))
+                encoding, _ = openpy.detect_encoding(_readline(lines))
             except SyntaxError:
                 encoding = "ascii"
             for lineno in range(first, last+1):
