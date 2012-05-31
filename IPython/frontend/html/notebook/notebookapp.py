@@ -453,7 +453,7 @@ class NotebookApp(BaseIPythonApplication):
         if not success:
             self.log.critical('ERROR: the notebook server could not be started because '
                               'no available port could be found.')
-            raise RuntimeError
+            self.exit(1)
     
     def init_signal(self):
         # FIXME: remove this check when pyzmq dependency is >= 2.1.11
