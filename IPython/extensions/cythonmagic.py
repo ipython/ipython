@@ -147,7 +147,7 @@ class CythonMagics(Magics):
                 import numpy
                 c_include_dirs.append(numpy.get_include())
             pyx_file = os.path.join(lib_dir, module_name + '.pyx')
-            pyx_file = py3compat.unicode_to_str(pyx_file, encoding=sys.getfilesystemencoding())
+            pyx_file = py3compat.cast_bytes_py2(pyx_file, encoding=sys.getfilesystemencoding())
             with io.open(pyx_file, 'w', encoding='utf-8') as f:
                 f.write(code)
             extension = Extension(
