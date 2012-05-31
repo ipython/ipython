@@ -130,7 +130,7 @@ def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
     """
     if isinstance(txt, unicode):
         return txt
-    if isinstance(txt, str):
+    if isinstance(txt, bytes):
         buffer = BytesIO(txt)
     else:
         buffer = txt
