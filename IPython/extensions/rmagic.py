@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-R related magics.
+======
+Rmagic
+======
 
-Author:
-* Jonathan Taylor
+Magic command interface for interactive work with R via rpy2
+
+Usage
+=====
+
+``%R``
+
+{R_DOC}
+
+``%Rpush``
+
+{RPUSH_DOC}
+
+``%Rpull``
+
+{RPULL_DOC}
 
 """
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2012 The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
 
 import sys
 import tempfile
@@ -46,11 +69,16 @@ class RMagics(Magics):
         self.cache_display_data = cache_display_data
 
         self.r = ro.R()
-        self.output = []
+        self.Rstdout_cache = []
         self.Rconverter = Rconverter
         self.pyconverter = pyconverter
 
     def eval(self, line):
+        '''
+        Parse and evaluate a line with rpy2.
+        Returns the output to R's stdout() connection
+        and the value of eval(parse(line)).
+        '''
         old_writeconsole = ri.get_writeconsole()
         ri.set_writeconsole(self.write_console)
         try:
@@ -64,13 +92,16 @@ class RMagics(Magics):
 
     def write_console(self, output):
         '''
-        A hook to capture R's stdout.
+        A hook to capture R's stdout in a cache.
         '''
-        self.output.append(output)
+        self.Rstdout_cache.append(output)
 
     def flush(self):
-        value = ''.join([str_to_unicode(s, 'utf-8') for s in self.output])
-        self.output = []
+        '''
+        Flush R's stdout cache to a string, returning the string.
+        '''
+        value = ''.join([str_to_unicode(s, 'utf-8') for s in self.Rstdout_cache])
+        self.Rstdout_cache = []
         return value
 
     @skip_doctest
@@ -80,19 +111,19 @@ class RMagics(Magics):
         A line-level magic for R that pushes
         variables from python to rpy2. The line should be made up
         of whitespace separated variable names in the IPython
-        namespace.
+        namespace::
 
-        In [7]: import numpy as np
+            In [7]: import numpy as np
 
-        In [8]: X = np.array([4.5,6.3,7.9])
+            In [8]: X = np.array([4.5,6.3,7.9])
 
-        In [9]: X.mean()
-        Out[9]: 6.2333333333333343
+            In [9]: X.mean()
+            Out[9]: 6.2333333333333343
 
-        In [10]: %Rpush X
+            In [10]: %Rpush X
 
-        In [11]: %R mean(X)
-        Out[11]: array([ 6.23333333])
+            In [11]: %R mean(X)
+            Out[11]: array([ 6.23333333])
 
         '''
 
@@ -121,6 +152,7 @@ class RMagics(Magics):
             Out[22]:
             array(['a', '3', '4'],
                   dtype='|S1')
+
 
         Notes
         -----
@@ -233,12 +265,17 @@ class RMagics(Magics):
             In [17]: W
             Out[17]: array([  5.,  20.,  25.,  50.])
 
-        If the cell evaluates as False, the resulting value is returned
-        unless the final line prints something to the console.
-        If the final line results in a NULL value when evaluated
+        The return value is determined by these rules:
+
+        * If the cell is not None, the magic returns None.
+
+        * If the cell evaluates as False, the resulting value is returned
+        unless the final line prints something to the console, in
+        which case None is returned.
+
+        * If the final line results in a NULL value when evaluated
         by rpy2, then None is returned.
 
-        If the cell is not None, the magic returns None.
 
         '''
 
@@ -330,6 +367,13 @@ class RMagics(Magics):
         if return_output and not args.noreturn:
             if result != ri.NULL:
                 return self.Rconverter(result)
+
+__doc__ = __doc__.format(
+                R_DOC = ' '*8 + RMagics.R.__doc__,
+                RPUSH_DOC = ' '*8 + RMagics.Rpush.__doc__,
+                RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__
+)
+
 
 _loaded = False
 def load_ipython_extension(ip):
