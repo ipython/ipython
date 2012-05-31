@@ -295,7 +295,7 @@ class HistoryMagics(Magics):
 
     @line_magic
     def recall(self,arg):
-        self.rerun(arg)
+        self.rep(arg)
 
-    recall.__doc__ = rerun.__doc__
+    recall.__doc__ = rep.__doc__
 
