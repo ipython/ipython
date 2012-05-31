@@ -15,6 +15,7 @@ Parts of this code were taken from Cython.inline.
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import io
 import os, sys
 from importlib import import_module
 import imp
@@ -32,6 +33,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
+from IPython.utils import py3compat
 
 import Cython
 from Cython.Compiler.Errors import CompileError
@@ -90,7 +92,7 @@ class CythonMagics(Magics):
         if not module_name:
             raise ValueError('module name must be given')
         fname = module_name + '.pyx'
-        with io.open(fname, 'w', encoding='utf-8'):
+        with io.open(fname, 'w', encoding='utf-8') as f:
             f.write(cell)
         if 'pyximport' not in sys.modules:
             import pyximport
@@ -125,8 +127,7 @@ class CythonMagics(Magics):
         """
         args = parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        # distutils.Extension cannot handle sources that a unicode
-        lib_dir=str(os.path.join(self.shell.ipython_dir,'cython'))
+        lib_dir=os.path.join(self.shell.ipython_dir, 'cython')
         cython_include_dirs=['.']
         force=args.force
         quiet=True
@@ -146,9 +147,9 @@ class CythonMagics(Magics):
                 import numpy
                 c_include_dirs.append(numpy.get_include())
             pyx_file = os.path.join(lib_dir, module_name + '.pyx')
-            with io.open(pyx_file, 'w', encoding='utf-8'):
+            pyx_file = py3compat.unicode_to_str(pyx_file, encoding=sys.getfilesystemencoding())
+            with io.open(pyx_file, 'w', encoding='utf-8') as f:
                 f.write(code)
-            print [pyx_file]
             extension = Extension(
                 name = module_name,
                 sources = [pyx_file],

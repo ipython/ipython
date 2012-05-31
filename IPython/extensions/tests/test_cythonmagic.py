@@ -4,10 +4,11 @@
 import os
 import nose.tools as nt
 
+from IPython.utils import py3compat
 
-code = """def f(x):
+code = py3compat.str_to_unicode("""def f(x):
     return 2*x
-"""
+""")
 
 try:
     import Cython
@@ -39,7 +40,8 @@ def test_cython():
     ip = get_ipython()
     ip.run_cell_magic('cython', '', code)
     ip.ex('g = f(10)')
-    nt.assert_equals(ip.user_ns['g'], 20.0)        
+    nt.assert_equals(ip.user_ns['g'], 20.0)
+    
 
 
 

@@ -71,6 +71,7 @@ Extensions bundled with IPython
    :maxdepth: 1
 
    autoreload
+   cythonmagic
    parallelmagic
    storemagic
    sympyprinting

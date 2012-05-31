@@ -148,6 +148,7 @@ have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['qt'] = test_for('IPython.external.qt')
 have['sqlite3'] = test_for('sqlite3')
+have['cython'] = test_for('Cython')
 
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 
@@ -267,6 +268,9 @@ def make_exclude():
                            ipjoin('core', 'tests', 'test_pylabtools'),
                            ipjoin('zmq', 'pylab'),
         ])
+
+    if not have['cython']:
+        exclusions.extend([ipjoin('extensions', 'cythonmagic')])
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
