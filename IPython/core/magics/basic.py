@@ -421,7 +421,7 @@ Defaulting color scheme to 'NoColor'"""
         opts, arg = self.parse_options(parameter_s, '')
         if arg=='': arg = None
         try:
-            return self.enable_gui(arg)
+            return self.shell.enable_gui(arg)
         except Exception as e:
             # print simple error message, rather than traceback if we can't
             # hook up the GUI
