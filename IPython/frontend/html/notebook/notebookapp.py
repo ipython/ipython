@@ -20,6 +20,7 @@ Authors:
 import errno
 import logging
 import os
+import random
 import re
 import select
 import signal
@@ -96,6 +97,17 @@ def url_path_join(a,b):
         return a[:-1]+b
     else:
         return a+b
+
+def random_ports(port, n):
+    """Generate a list of n random ports near the given port.
+
+    The first 5 ports will be sequential, and the remaining n-5 will be
+    randomly selected in the range [port-2*n, port+2*n].
+    """
+    for i in range(min(5, n)):
+        yield port + i
+    for i in range(n-5):
+        yield port + random.randint(-2*n, 2*n)
 
 #-----------------------------------------------------------------------------
 # The Tornado web application
@@ -212,6 +224,7 @@ aliases = dict(ipkernel_aliases)
 aliases.update({
     'ip': 'NotebookApp.ip',
     'port': 'NotebookApp.port',
+    'port-retries': 'NotebookApp.port_retries',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
@@ -222,7 +235,7 @@ aliases.update({
 # multi-kernel evironment:
 aliases.pop('f', None)
 
-notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile',
+notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
                     u'notebook-dir']
 
 #-----------------------------------------------------------------------------
@@ -271,6 +284,9 @@ class NotebookApp(BaseIPythonApplication):
 
     port = Integer(8888, config=True,
         help="The port the notebook server will listen on."
+    )
+    port_retries = Integer(50, config=True,
+        help="The number of additional ports to try if the specified port is not available."
     )
 
     certfile = Unicode(u'', config=True, 
@@ -422,10 +438,8 @@ class NotebookApp(BaseIPythonApplication):
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
 
-        # Try random ports centered around the default.
-        from random import randint
-        n = 50  # Max number of attempts, keep reasonably large.
-        for port in range(self.port, self.port+5) + [self.port + randint(-2*n, 2*n) for i in range(n-5)]:
+        success = None
+        for port in random_ports(self.port, self.port_retries+1):
             try:
                 self.http_server.listen(port, self.ip)
             except socket.error, e:
@@ -434,7 +448,12 @@ class NotebookApp(BaseIPythonApplication):
                 self.log.info('The port %i is already in use, trying another random port.' % port)
             else:
                 self.port = port
+                success = True
                 break
+        if not success:
+            self.log.critical('ERROR: the notebook server could not be started because '
+                              'no available port could be found.')
+            raise RuntimeError
     
     def init_signal(self):
         # FIXME: remove this check when pyzmq dependency is >= 2.1.11
