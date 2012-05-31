@@ -61,10 +61,31 @@ class RMagicError(ValueError):
 
 @magics_class
 class RMagics(Magics):
+    """A set of magics useful for interactive work with R via rpy2.
+    """
 
     def __init__(self, shell, Rconverter=np.asarray,
                  pyconverter=np.asarray,
                  cache_display_data=False):
+        """
+        Parameters
+        ----------
+
+        shell : IPython shell
+
+        Rconverter : callable
+            To be called on return values from R before returning 
+            to ipython.
+
+        pyconverter : callable
+            To be called on values in ipython namespace before 
+            assigning to variables in rpy2.
+
+        cache_display_data : bool
+            If True, the published results of the final call to R are 
+            cached in the variable 'display_cache'.
+
+        """
         super(RMagics, self).__init__(shell)
         self.cache_display_data = cache_display_data
 
