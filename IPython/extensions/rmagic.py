@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 R related magics.
@@ -64,21 +65,26 @@ class RMagics(Magics):
         self.output = []
         return value
 
+    @skip_doctest
     @line_magic
     def Rpush(self, line):
         '''
         A line-level magic for R that pushes
-        variables from python to rpy2.
+        variables from python to rpy2. The line should be made up
+        of whitespace separated variable names in the IPython
+        namespace.
 
-        Parameters
-        ----------
+        In [7]: import numpy as np
 
-        line: input
+        In [8]: X = np.array([4.5,6.3,7.9])
 
-              A white space separated string of
-              names of objects in the python name space to be
-              assigned to objects of the same name in the
-              R name space.
+        In [9]: X.mean()
+        Out[9]: 6.2333333333333343
+
+        In [10]: %Rpush X
+
+        In [11]: %R mean(X)
+        Out[11]: array([ 6.23333333])
 
         '''
 
@@ -86,21 +92,30 @@ class RMagics(Magics):
         for input in inputs:
             self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
 
+    @skip_doctest
     @line_magic
     def Rpull(self, line):
         '''
         A line-level magic for R that pulls
-        variables from python to rpy2.
+        variables from python to rpy2::
 
-        Parameters
-        ----------
+            In [18]: _ = %R x = c(3,4,6.7); y = c(4,6,7); z = c('a',3,4)
 
-        line: output
+            In [19]: %Rp
+            %Rpull  %Rpush
 
-              A white space separated string of
-              names of objects in the R name space to be
-              assigned to objects of the same name in the
-              python name space.
+            In [19]: %Rpull x  y z
+
+            In [20]: x
+            Out[20]: array([ 3. ,  4. ,  6.7])
+
+            In [21]: y
+            Out[21]: array([ 4.,  6.,  7.])
+
+            In [22]: z
+            Out[22]:
+            array(['a', '3', '4'],
+                  dtype='|S1')
 
         Notes
         -----
@@ -114,6 +129,7 @@ class RMagics(Magics):
                 self.shell.push({output:self.Rconverter(self.r(output))})
 
 
+    @skip_doctest
     @magic_arguments()
     @argument(
         '-i', '--input', action='append',
@@ -155,33 +171,33 @@ class RMagics(Magics):
 
         In line mode, this will evaluate an expression and convert the returned value to a Python object.
         The return value is determined by rpy2's behaviour of returning the result of evaluating the
-        final line. Multiple R lines can be executed by joining them with semicolons.
+        final line. Multiple R lines can be executed by joining them with semicolons::
 
-        In [9]: %R X=c(1,4,5,7); sd(X); mean(X)
-        Out[9]: array([ 4.25])
+            In [9]: %R X=c(1,4,5,7); sd(X); mean(X)
+            Out[9]: array([ 4.25])
 
         As a cell, this will run a block of R code, without bringing anything back by default::
 
-        In [10]: %%R
-           ....: Y = c(2,4,3,9)
-           ....: print(summary(lm(Y~X)))
-           ....:
+            In [10]: %%R
+               ....: Y = c(2,4,3,9)
+               ....: print(summary(lm(Y~X)))
+               ....:
 
-        Call:
-        lm(formula = Y ~ X)
+            Call:
+            lm(formula = Y ~ X)
 
-        Residuals:
-            1     2     3     4
-         0.88 -0.24 -2.28  1.64
+            Residuals:
+                1     2     3     4
+             0.88 -0.24 -2.28  1.64
 
-        Coefficients:
-                    Estimate Std. Error t value Pr(>|t|)
-        (Intercept)   0.0800     2.3000   0.035    0.975
-        X             1.0400     0.4822   2.157    0.164
+            Coefficients:
+                        Estimate Std. Error t value Pr(>|t|)
+            (Intercept)   0.0800     2.3000   0.035    0.975
+            X             1.0400     0.4822   2.157    0.164
 
-        Residual standard error: 2.088 on 2 degrees of freedom
-        Multiple R-squared: 0.6993,Adjusted R-squared: 0.549
-        F-statistic: 4.651 on 1 and 2 DF,  p-value: 0.1638
+            Residual standard error: 2.088 on 2 degrees of freedom
+            Multiple R-squared: 0.6993,Adjusted R-squared: 0.549
+            F-statistic: 4.651 on 1 and 2 DF,  p-value: 0.1638
 
         In the notebook, plots are published as the output of the cell.
 
@@ -192,20 +208,19 @@ class RMagics(Magics):
         If cell is not None and line has some R code, it is prepended to
         the R code in cell.
 
-        Objects can be passed back and forth between rpy2 and python via the -i -o flags in line
+        Objects can be passed back and forth between rpy2 and python via the -i -o flags in line::
+
+            In [14]: Z = np.array([1,4,5,10])
+
+            In [15]: %R -i Z mean(Z)
+            Out[15]: array([ 5.])
 
 
-        In [14]: Z = np.array([1,4,5,10])
+            In [16]: %R -o W W=Z*mean(Z)
+            Out[16]: array([  5.,  20.,  25.,  50.])
 
-        In [15]: %R -i Z mean(Z)
-        Out[15]: array([ 5.])
-
-
-        In [16]: %R -o W W=Z*mean(Z)
-        Out[16]: array([  5.,  20.,  25.,  50.])
-
-        In [17]: W
-        Out[17]: array([  5.,  20.,  25.,  50.])
+            In [17]: W
+            Out[17]: array([  5.,  20.,  25.,  50.])
 
         If the cell is None, the resulting value is returned,
         after conversion with self.Rconverter
@@ -271,6 +286,9 @@ class RMagics(Magics):
             )
         value = {}
 
+        # kill the temporary directory
+        rmtree(tmpd)
+
         # try to turn every output into a numpy array
         # this means that output are assumed to be castable
         # as numpy arrays
@@ -280,8 +298,6 @@ class RMagics(Magics):
                 # with self.shell, we assign the values to variables in the shell
                 self.shell.push({output:self.Rconverter(self.r(output))})
 
-        # kill the temporary directory
-        rmtree(tmpd)
 
         # if there was a single line, return its value
         # converted to a python object
