@@ -151,10 +151,61 @@ class RMagics(Magics):
     @line_cell_magic
     def R(self, line, cell=None):
         '''
-        A line_cell_magic for R that executes
-        some code in R (evaluating it with rpy2) and
-        stores some of the results
-        in the ipython shell.
+        Execute code in R, and pull some of the results back into the Python namespace.
+
+        In line mode, this will evaluate an expression and convert the returned value to a Python object.
+        The return value is determined by rpy2's behaviour of returning the result of evaluating the
+        final line. Multiple R lines can be executed by joining them with semicolons.
+
+        In [9]: %R X=c(1,4,5,7); sd(X); mean(X)
+        Out[9]: array([ 4.25])
+
+        As a cell, this will run a block of R code, without bringing anything back by default::
+
+        In [10]: %%R
+           ....: Y = c(2,4,3,9)
+           ....: print(summary(lm(Y~X)))
+           ....:
+
+        Call:
+        lm(formula = Y ~ X)
+
+        Residuals:
+            1     2     3     4
+         0.88 -0.24 -2.28  1.64
+
+        Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)
+        (Intercept)   0.0800     2.3000   0.035    0.975
+        X             1.0400     0.4822   2.157    0.164
+
+        Residual standard error: 2.088 on 2 degrees of freedom
+        Multiple R-squared: 0.6993,Adjusted R-squared: 0.549
+        F-statistic: 4.651 on 1 and 2 DF,  p-value: 0.1638
+
+        In the notebook, plots are published as the output of the cell.
+
+        %R plot(X, Y)
+
+        will create a scatter plot of X bs Y.
+
+        If cell is not None and line has some R code, it is prepended to
+        the R code in cell.
+
+        Objects can be passed back and forth between rpy2 and python via the -i -o flags in line
+
+
+        In [14]: Z = np.array([1,4,5,10])
+
+        In [15]: %R -i Z mean(Z)
+        Out[15]: array([ 5.])
+
+
+        In [16]: %R -o W W=Z*mean(Z)
+        Out[16]: array([  5.,  20.,  25.,  50.])
+
+        In [17]: W
+        Out[17]: array([  5.,  20.,  25.,  50.])
 
         If the cell is None, the resulting value is returned,
         after conversion with self.Rconverter
@@ -194,7 +245,7 @@ class RMagics(Magics):
 
         # read out all the saved .png files
 
-        images = [file(imgfile).read() for imgfile in glob("%s/Rplots*png" % tmpd)]
+        images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
 
         # now publish the images
         # mimicking IPython/zmq/pylab/backend_inline.py
