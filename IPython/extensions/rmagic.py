@@ -268,6 +268,7 @@ class RMagics(Magics):
         tmpd = tempfile.mkdtemp()
         self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
 
+        text_output = ''
         if line_mode:
             for line in code.split(';'):
                 text_result, result = self.eval(line)
