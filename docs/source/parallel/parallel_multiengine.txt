@@ -249,6 +249,8 @@ blocks until the engines are done executing the command:
 You can also select blocking execution on a call-by-call basis with the :meth:`apply_sync`
 method:
 
+.. sourcecode:: ipython
+
     In [7]: dview.block=False
 
     In [8]: dview.apply_sync(lambda x: a+b+x, 27)
@@ -359,7 +361,7 @@ blocking mode and which engines the command is applied to. The :class:`View` cla
 arguments are not provided. Thus the following logic is used for :attr:`block` and :attr:`targets`:
 
 * If no keyword argument is provided, the instance attributes are used.
-* Keyword argument, if provided override the instance attributes for
+* The Keyword arguments, if provided overrides the instance attributes for
   the duration of a single call.
   
 The following examples demonstrate how to use the instance attributes:
@@ -375,7 +377,7 @@ The following examples demonstrate how to use the instance attributes:
     In [19]: ar.get()
     Out[19]: [10, 10]
 
-    In [16]: dview.targets = v.client.ids # all engines (4)
+    In [20]: dview.targets = v.client.ids # all engines (4)
     
     In [21]: dview.block = True
 
@@ -579,8 +581,8 @@ Here are some examples of how you use :meth:`push` and :meth:`pull`:
     In [41]: dview.pull(('a','b'))
     Out[41]: [ [1.03234, 3453], [1.03234, 3453], [1.03234, 3453], [1.03234, 3453] ]
     
-    In [43]: dview.push(dict(c='speed'))
-    Out[43]: [None,None,None,None]
+    In [42]: dview.push(dict(c='speed'))
+    Out[42]: [None,None,None,None]
 
 In non-blocking mode :meth:`push` and :meth:`pull` also return
 :class:`AsyncResult` objects:
@@ -646,7 +648,6 @@ basic effect using :meth:`scatter` and :meth:`gather`:
 
     In [67]: %px y = [i**10 for i in x]
     Parallel execution on engines: [0, 1, 2, 3]
-    Out[67]:
 
     In [68]: y = dview.gather('y')
 
@@ -676,7 +677,8 @@ You can also specify imports via the ``@require`` decorator.  This is a decorato
 designed for use in Dependencies, but can be used to handle remote imports as well.
 Modules or module names passed to ``@require`` will be imported before the decorated
 function is called.  If they cannot be imported, the decorated function will never
-execution, and will fail with an UnmetDependencyError.
+execute and will fail with an UnmetDependencyError. Failures of single Engines will
+be collected and raise a CompositeError, as demonstrated in the next section.
 
 .. sourcecode:: ipython
 
