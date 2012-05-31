@@ -36,9 +36,10 @@ def setup():
     global save_get_ipython_dir
     
     IPYTHONDIR = tempfile.mkdtemp()
-    env = dict(IPYTHONDIR=IPYTHONDIR)
-    if 'PYTHONPATH' in os.environ:
-        env['PYTHONPATH'] = os.environ['PYTHONPATH']
+
+    env = os.environ.copy()
+    env["IPYTHONDIR"] = IPYTHONDIR
+
     save_get_ipython_dir = path.get_ipython_dir
     path.get_ipython_dir = lambda : IPYTHONDIR
 
