@@ -591,7 +591,10 @@ class NotebookRootHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
+        km = self.application.kernel_manager
         files = nbm.list_notebooks()
+        for f in files :
+            f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated
