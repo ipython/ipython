@@ -213,10 +213,8 @@ def make_exclude():
     ipjoin = lambda *paths: pjoin('IPython', *paths)
 
     exclusions = [ipjoin('external'),
-                  pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
-                  ipjoin('testing', 'attic'),
                   # This guy is probably attic material
                   ipjoin('testing', 'mkdoctests'),
                   # Testing inputhook will need a lot of thought, to figure out
@@ -224,7 +222,6 @@ def make_exclude():
                   # loops in the picture
                   ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
-                  ipjoin('config', 'default'),
                   ipjoin('config', 'profile'),
                   ]
     if not have['sqlite3']:
