@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 """
 R related magics.
@@ -51,7 +50,7 @@ class RMagics(Magics):
         try:
             return ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as msg:
-            self.output.append('ERROR parsing "%s": %s\n' % (line, msg))
+            self.output.append(u'ERROR parsing "%s": %s\n' % (str(line).decode('utf-8'), str(msg).decode('utf-8')))
             pass
 
     def write_console(self, output):
@@ -100,9 +99,6 @@ class RMagics(Magics):
         variables from python to rpy2::
 
             In [18]: _ = %R x = c(3,4,6.7); y = c(4,6,7); z = c('a',3,4)
-
-            In [19]: %Rp
-            %Rpull  %Rpush
 
             In [19]: %Rpull x  y z
 
