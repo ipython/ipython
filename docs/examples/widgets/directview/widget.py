@@ -39,19 +39,6 @@ class JavascriptWidget(object):
         ns = get_ipython().user_ns
         ns[self.widget_var] = self
 
-    def load_file(self, fname):
-        """Read a file in the same directory as this module.
-
-        This exists to make it easy for developers of widget to put Javascript
-        source files and templates in the same directory as their Python
-        widget code. This is much better than writing the JavaScript code in
-        Python strings.
-        """
-        fname = os.path.join(os.path.dirname(__file__), fname)
-        with open(fname) as f:
-            data = f.read()
-        return data
-
     def encode_json(self, o):
         return jsonapi.dumps(o)
 

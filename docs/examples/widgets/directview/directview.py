@@ -31,7 +31,7 @@ from IPython.core.displaypub import publish_pretty
 import os, sys
 from IPython.core.display import Javascript
 
-from .widget import JavascriptWidget
+from widget import JavascriptWidget
 
 
 class DirectViewWidget(JavascriptWidget):
@@ -42,7 +42,9 @@ class DirectViewWidget(JavascriptWidget):
         super(DirectViewWidget,self).__init__()
 
     def render(self):
-        jscode = self.load_file(u'directview.js')
+        fname = os.path.join(os.path.dirname(__file__), u'directview.js')
+        with open(fname, 'r') as f:
+            jscode = f.read()
         data = {
             'widget_var': self.widget_var,
             'targets' : self.encode_json(self.targets)
