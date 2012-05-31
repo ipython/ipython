@@ -19,5 +19,7 @@
     position:relative;
     opacity: 0;
     z-index: 2;
-    width: 447px;
+    width: 295px;
+    margin-left:163px;
+    cursor: pointer;
 }
