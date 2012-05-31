@@ -30,7 +30,7 @@ import bdb
 import linecache
 import sys
 
-from IPython.utils import PyColorize
+from IPython.utils import PyColorize, py3compat
 from IPython.core import ipapi
 from IPython.utils import coloransi, io, openpy
 from IPython.core.excolors import exception_colors
@@ -374,7 +374,7 @@ class Pdb(OldPdb):
                       and tpl_line_em \
                       or tpl_line
             ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, line.decode(encoding, errors="replace"),
+                                          start + 1 + i, py3compat.cast_unicode(line),
                                           arrow = show_arrow) )
         return ''.join(ret)
 
@@ -439,7 +439,7 @@ class Pdb(OldPdb):
             except SyntaxError:
                 encoding = "ascii"
             for lineno in range(first, last+1):
-                line = lines[lineno].decode(encoding, errors="replace")
+                line = py3compat.cast_unicode(lines[lineno])
                 if not line:
                     break
 
