@@ -94,6 +94,15 @@ var IPython = (function (IPython) {
                 "Cancel": function () {
                     $(this).dialog('close');
                 }
+            },
+            open : function (event, ui) {
+                var that = $(this);
+                // Upon ENTER, click the OK button.
+                that.find('input[type="text"]').keydown(function (event, ui) {
+                    if (event.which === utils.keycodes.ENTER) {
+                        that.parent().find('button').first().click();
+                    }
+                });
             }
         });
     }
