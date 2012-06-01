@@ -4,7 +4,7 @@
 octavemagic
 ===========
 
-Magic command interface for interactive work with Octave via oct2py
+Magics for interacting with Octave via oct2py.
 
 Usage
 =====
@@ -30,17 +30,15 @@ Usage
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import sys
 import tempfile
 from glob import glob
 from shutil import rmtree
-from getopt import getopt
 
 import numpy as np
 import oct2py
 
 from IPython.core.displaypub import publish_display_data
-from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
+from IPython.core.magic import (Magics, magics_class, line_magic,
                                 line_cell_magic)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
@@ -117,6 +115,7 @@ class OctaveMagics(Magics):
         '''
         outputs = line.split(' ')
         for output in outputs:
+            output = unicode_to_str(output)
             self.shell.push({output: self.oct.get(output)})
 
 
@@ -129,6 +128,10 @@ class OctaveMagics(Magics):
     @argument(
         '-o', '--output', action='append',
         help='Names of variables to be pulled from Octave after executing cell body. Multiple names can be passed, separated by commas with no whitespace.'
+        )
+    @argument(
+        '-s', '--size', action='append',
+        help='Pixel size of plots. Default is "-s 400,250".'
         )
     @argument(
         'code',
@@ -190,10 +193,15 @@ class OctaveMagics(Magics):
 
         if args.input:
             for input in ','.join(args.input).split(','):
+                input = unicode_to_str(input)
                 self.oct.put(input, self.shell.user_ns[input])
 
         # generate plots in a temporary directory
         plot_dir = tempfile.mkdtemp()
+        if args.size is not None:
+            size = args.size[0]
+        else:
+            size = '400,240'
 
         pre_call = '''
         global __ipy_figures = [];
@@ -202,6 +210,7 @@ class OctaveMagics(Magics):
         function fig_create(src, event)
           global __ipy_figures;
           __ipy_figures(size(__ipy_figures) + 1) = src;
+          set(src, "visible", "off");
         end
 
         set(0, 'DefaultFigureCreateFcn', @fig_create);
@@ -219,11 +228,13 @@ class OctaveMagics(Magics):
         end
 
         for f = __ipy_figures
-            outfile = sprintf('%s/__ipy_oct_fig_%%03d.png', f)
-            print(f, outfile, '-dpng')
+            outfile = sprintf('%(plot_dir)s/__ipy_oct_fig_%%03d.png', f);
+            print(f, outfile, '-dpng', '-S%(size)s');
         end
 
-        ''' % plot_dir
+#        close all;
+
+        ''' % {'plot_dir': plot_dir, 'size': size}
 
         code = ' '.join((pre_call, code, post_call))
         try:
@@ -266,7 +277,7 @@ class OctaveMagics(Magics):
 
             # Unfortunately, Octave doesn't have a "None" object,
             # so we can't return any NaN outputs
-            if np.isnan(np.nan):
+            if np.isscalar(ans) and np.isnan(ans):
                 ans = None
 
             return ans
