@@ -98,7 +98,7 @@ var IPython = (function (IPython) {
             open : function (event, ui) {
                 var that = $(this);
                 // Upon ENTER, click the OK button.
-                that.keydown(function (event, ui) {
+                that.find('input[type="text"]').keydown(function (event, ui) {
                     if (event.which === 13) {
                         that.parent().find('button').first().click();
                     }
