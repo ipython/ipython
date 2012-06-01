@@ -30,6 +30,7 @@ $(document).ready(function () {
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.toolbar = new IPython.ToolBar('#toolbar')
+    IPython.tooltip = new IPython.Tooltip()
     IPython.notification_widget = new IPython.NotificationWidget('#notification')
 
     IPython.layout_manager.do_resize();
