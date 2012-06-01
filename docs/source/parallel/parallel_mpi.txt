@@ -124,7 +124,7 @@ using our :func:`psum` function:
 
     In [3]: view = c[:]
 
-    In [4]: view.activate() # enabe magics
+    In [4]: view.activate() # enable magics
 
     # run the contents of the file on each engine:
     In [5]: view.run('psum.py')
