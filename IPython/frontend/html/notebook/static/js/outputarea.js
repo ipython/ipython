@@ -275,21 +275,35 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_svg = function (svg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
-        toinsert.append(svg);
+        var img = $('<div/>');
+        img.append(svg);
+        var h = img.find('svg').attr('height');
+        var w = img.find('svg').attr('width');
+        img.width(w).height(h);
+        img.resizable({'aspectRatio': true});
+        toinsert.append(img);
         element.append(toinsert);
     };
 
 
     OutputArea.prototype.append_png = function (png, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
-        toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
+        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        img.load(function () {
+            $(this).resizable({'aspectRatio': true})
+        });
+        toinsert.append(img);
         element.append(toinsert);
     };
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
-        toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
+        var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
+        img.load(function () {
+            $(this).resizable({'aspectRatio': true})
+        });
+        toinsert.append(img);
         element.append(toinsert);
     };
 
