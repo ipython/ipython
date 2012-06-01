@@ -40,6 +40,11 @@ import warnings
 # it for actual use.  This should get into nose upstream, but its release cycle
 # is slow and we need it for our parametric tests to work correctly.
 from IPython.testing import nosepatch
+
+# Monkeypatch extra assert methods into nose.tools if they're not already there.
+# This can be dropped once we no longer test on Python 2.6
+from IPython.testing import nose_assert_methods
+
 # Now, proceed to import nose itself
 import nose.plugins.builtin
 from nose.plugins.xunit import Xunit
@@ -48,9 +53,10 @@ from nose.core import TestProgram
 
 # Our own imports
 from IPython.utils.importstring import import_item
-from IPython.utils.path import get_ipython_module_path
+from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
 from IPython.testing.plugin.ipdoctest import IPythonDoctest
@@ -149,6 +155,7 @@ have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['qt'] = test_for('IPython.external.qt')
 have['sqlite3'] = test_for('sqlite3')
+have['cython'] = test_for('Cython')
 
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 
@@ -211,10 +218,8 @@ def make_exclude():
     ipjoin = lambda *paths: pjoin('IPython', *paths)
 
     exclusions = [ipjoin('external'),
-                  pjoin('IPython_doctest_plugin'),
                   ipjoin('quarantine'),
                   ipjoin('deathrow'),
-                  ipjoin('testing', 'attic'),
                   # This guy is probably attic material
                   ipjoin('testing', 'mkdoctests'),
                   # Testing inputhook will need a lot of thought, to figure out
@@ -222,7 +227,6 @@ def make_exclude():
                   # loops in the picture
                   ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
-                  ipjoin('config', 'default'),
                   ipjoin('config', 'profile'),
                   ]
     if not have['sqlite3']:
@@ -269,12 +273,23 @@ def make_exclude():
                            ipjoin('zmq', 'pylab'),
         ])
 
+    if not have['cython']:
+        exclusions.extend([ipjoin('extensions', 'cythonmagic')])
+        exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
+
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         exclusions = [s.replace('\\','\\\\') for s in exclusions]
+    
+    # check for any exclusions that don't seem to exist:
+    parent, _ = os.path.split(get_ipython_package_dir())
+    for exclusion in exclusions:
+        fullpath = pjoin(parent, exclusion)
+        if not os.path.exists(fullpath) and not os.path.exists(fullpath + '.py'):
+            warn("Excluding nonexistent file: %r\n" % exclusion)
 
     return exclusions
 

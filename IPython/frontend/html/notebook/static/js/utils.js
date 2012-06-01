@@ -91,11 +91,38 @@ IPython.utils = (function (IPython) {
         }
     };
 
+    // some keycodes that seem to be platform/browser independant
+    var keycodes ={
+                BACKSPACE:  8,
+                TAB      :  9,
+                ENTER    : 13,
+                SHIFT    : 16,
+                CTRL     : 17,
+                CONTROL  : 17,
+                ALT      : 18,
+                ESC      : 27,
+                SPACE    : 32,
+                PGUP     : 33,
+                PGDOWN   : 34,
+                LEFT_ARROW: 37,
+                LEFTARROW: 37,
+                LEFT     : 37,
+                UP_ARROW : 38,
+                UPARROW  : 38,
+                UP       : 38,
+                RIGHT_ARROW:39,
+                RIGHTARROW:39,
+                RIGHT    : 39,
+                DOWN_ARROW: 40,
+                DOWNARROW: 40,
+                DOWN     : 40,
+    };
 
     return {
         uuid : uuid,
         fixConsole : fixConsole,
-        grow : grow
+        keycodes : keycodes,
+        grow : grow,
     };
 
 }(IPython));

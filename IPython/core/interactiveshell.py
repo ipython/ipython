@@ -1703,23 +1703,20 @@ class InteractiveShell(SingletonConfigurable):
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
             else:
-                if etype in self.custom_exceptions:
-                    stb = self.CustomTB(etype, value, tb, tb_offset)
+                if exception_only:
+                    stb = ['An exception has occurred, use %tb to see '
+                           'the full traceback.\n']
+                    stb.extend(self.InteractiveTB.get_exception_only(etype,
+                                                                     value))
                 else:
-                    if exception_only:
-                        stb = ['An exception has occurred, use %tb to see '
-                               'the full traceback.\n']
-                        stb.extend(self.InteractiveTB.get_exception_only(etype,
-                                                                         value))
-                    else:
-                        stb = self.InteractiveTB.structured_traceback(etype,
-                                                value, tb, tb_offset=tb_offset)
+                    stb = self.InteractiveTB.structured_traceback(etype,
+                                            value, tb, tb_offset=tb_offset)
 
-                        self._showtraceback(etype, value, stb)
-                        if self.call_pdb:
-                            # drop into debugger
-                            self.debugger(force=True)
-                        return
+                    self._showtraceback(etype, value, stb)
+                    if self.call_pdb:
+                        # drop into debugger
+                        self.debugger(force=True)
+                    return
 
                 # Actually show the traceback
                 self._showtraceback(etype, value, stb)

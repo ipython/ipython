@@ -22,7 +22,7 @@ from IPython.parallel.error import TimeoutError
 
 from IPython.parallel import error, Client
 from IPython.parallel.tests import add_engines
-from .clienttest import ClusterTestCase
+from .clienttest import ClusterTestCase, capture_output
 
 def setup():
     add_engines(2, total=True)
@@ -202,4 +202,63 @@ class AsyncResultTest(ClusterTestCase):
         finally:
             rc2.close()
 
+    def test_display_empty_streams_single(self):
+        """empty stdout/err are not displayed (single result)"""
+        self.minimum_engines(1)
+        
+        v = self.client[-1]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertTrue('5555' in io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+        
+    def test_display_empty_streams_type(self):
+        """empty stdout/err are not displayed (groupby type)"""
+        self.minimum_engines(1)
+        
+        v = self.client[:]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+
+    def test_display_empty_streams_engine(self):
+        """empty stdout/err are not displayed (groupby engine)"""
+        self.minimum_engines(1)
+        
+        v = self.client[:]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs('engine')
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs('engine')
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+        
 

@@ -35,7 +35,6 @@ from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
-from IPython.core import pylabtools
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
@@ -772,11 +771,6 @@ flags['pylab'] = (
 aliases = dict(kernel_aliases)
 aliases.update(shell_aliases)
 
-# it's possible we don't want short aliases for *all* of these:
-aliases.update(dict(
-    pylab='IPKernelApp.pylab',
-))
-
 #-----------------------------------------------------------------------------
 # The IPKernelApp class
 #-----------------------------------------------------------------------------
@@ -787,20 +781,13 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     aliases = Dict(aliases)
     flags = Dict(flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
-    
-    # configurables
-    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
-        config=True,
-        help="""Pre-load matplotlib and numpy for interactive use,
-        selecting a particular matplotlib backend and loop integration.
-        """
-    )
-    
+
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
         self.init_path()
         self.init_shell()
+        self.init_gui_pylab()
         self.init_extensions()
         self.init_code()
 
@@ -818,31 +805,28 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         self.kernel = kernel
         kernel.record_ports(self.ports)
         shell = kernel.shell
-        if self.pylab:
-            try:
-                gui, backend = pylabtools.find_gui_and_backend(self.pylab)
-                shell.enable_pylab(gui, import_all=self.pylab_import_all)
-            except Exception:
-                self.log.error("Pylab initialization failed", exc_info=True)
-                # print exception straight to stdout, because normally 
-                # _showtraceback associates the reply with an execution, 
-                # which means frontends will never draw it, as this exception 
-                # is not associated with any execute request.
-                
-                # replace pyerr-sending traceback with stdout
-                _showtraceback = shell._showtraceback
-                def print_tb(etype, evalue, stb):
-                    print ("Error initializing pylab, pylab mode will not "
-                           "be active", file=io.stderr)
-                    print (shell.InteractiveTB.stb2text(stb), file=io.stdout)
-                shell._showtraceback = print_tb
-                
-                # send the traceback over stdout
-                shell.showtraceback(tb_offset=0)
-                
-                # restore proper _showtraceback method
-                shell._showtraceback = _showtraceback
-                
+
+    def init_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+
+        # Provide a wrapper for :meth:`InteractiveShellApp.init_gui_pylab`
+        # to ensure that any exception is printed straight to stderr.
+        # Normally _showtraceback associates the reply with an execution,
+        # which means frontends will never draw it, as this exception
+        # is not associated with any execute request.
+
+        shell = self.shell
+        _showtraceback = shell._showtraceback
+        try:
+            # replace pyerr-sending traceback with stderr
+            def print_tb(etype, evalue, stb):
+                print ("GUI event loop or pylab initialization failed",
+                       file=io.stderr)
+                print (shell.InteractiveTB.stb2text(stb), file=io.stderr)
+            shell._showtraceback = print_tb
+            InteractiveShellApp.init_gui_pylab(self)
+        finally:
+            shell._showtraceback = _showtraceback
 
     def init_shell(self):
         self.shell = self.kernel.shell

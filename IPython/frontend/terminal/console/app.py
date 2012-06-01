@@ -52,8 +52,6 @@ flags = dict(flags)
 frontend_flags = dict(app_flags)
 # add TerminalIPApp flags:
 frontend_flags.update(term_flags)
-# pylab is not frontend-specific in two-process IPython
-frontend_flags.pop('pylab')
 # disable quick startup, as it won't propagate to the kernel anyway
 frontend_flags.pop('quick')
 # update full dict with frontend flags:

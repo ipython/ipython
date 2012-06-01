@@ -151,8 +151,8 @@ class NotebookManager(LoggingConfigurable):
                 nb = current.reads(s, u'json')
             except:
                 raise web.HTTPError(500, u'Unreadable JSON notebook.')
-        if 'name' not in nb:
-            nb.name = os.path.split(path)[-1].split(u'.')[0]
+        # Always use the filename as the notebook name.
+        nb.metadata.name = os.path.split(path)[-1].split(u'.')[0]
         return last_modified, nb
 
     def save_new_notebook(self, data, name=None, format=u'json'):
