@@ -70,7 +70,7 @@ class CodeMagics(Magics):
         raw = 'r' in opts
         ext = u'.ipy' if raw else u'.py'
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
-        if not (fname.endswith(u'.py') or fname.endswith(u'.ipy')):
+        if not fname.endswith((u'.py',u'.ipy')):
             fname += ext
         if os.path.isfile(fname):
             overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
