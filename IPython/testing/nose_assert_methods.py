@@ -9,3 +9,9 @@ def assert_in(item, collection):
 
 if not hasattr(nt, 'assert_in'):
     nt.assert_in = assert_in
+
+def assert_not_in(item, collection):
+    assert item not in collection, '%r in %r' % (item, collection)
+
+if not hasattr(nt, 'assert_not_in'):
+    nt.assert_not_in = assert_not_in
