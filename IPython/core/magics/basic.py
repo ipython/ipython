@@ -46,10 +46,10 @@ class BasicMagics(Magics):
         mman = self.shell.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
-               mesc + ('  '+mesc).join(magics['line']),
+               mesc + ('  '+mesc).join(sorted(magics['line'])),
                '',
                'Available cell magics:',
-               cesc + ('  '+cesc).join(magics['cell']),
+               cesc + ('  '+cesc).join(sorted(magics['cell'])),
                '',
                mman.auto_status()]
         return '\n'.join(out)
