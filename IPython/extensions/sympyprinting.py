@@ -62,7 +62,7 @@ def can_print_latex(o):
     can be printed with LaTeX.
     """
     import sympy
-    if isinstance(o, (list, tuple)):
+    if isinstance(o, (list, tuple, set, frozenset)):
         return all(can_print_latex(i) for i in o)
     elif isinstance(o, dict):
         return all((isinstance(i, basestring) or can_print_latex(i)) and can_print_latex(o[i]) for i in o)
@@ -85,13 +85,22 @@ _loaded = False
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
+    import sympy
     global _loaded
     if not _loaded:
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
 
-        for cls in (object, set, frozenset, str):
-            # set and frozen set are currently broken with SymPy's latex()
-            # function. See http://code.google.com/p/sympy/issues/detail?id=3062.
+        for cls in (object, str):
+            plaintext_formatter.for_type(cls, print_basic_unicode)
+
+        printable_containers = [list, tuple]
+
+        # set and frozen set were broken with SymPy's latex() function, but
+        # was fixed in the 0.7.1-git development version. See
+        # http://code.google.com/p/sympy/issues/detail?id=3062.
+        if sympy.__version__ > '0.7.1':
+            printable_containers += [set, frozenset]
+        else:
             plaintext_formatter.for_type(cls, print_basic_unicode)
 
         plaintext_formatter.for_type_by_name(
@@ -106,7 +115,7 @@ def load_ipython_extension(ip):
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
         )
-        for cls in (list, tuple, dict, int, long, float):
+        for cls in [dict, int, long, float] + printable_containers:
             png_formatter.for_type(cls, print_png)
 
         latex_formatter = ip.display_formatter.formatters['text/latex']
@@ -117,7 +126,7 @@ def load_ipython_extension(ip):
             'sympy.matrices.matrices', 'Matrix', print_latex
         )
 
-        for cls in (list, tuple):
+        for cls in printable_containers:
             # Use LaTeX only if every element is printable by latex
             latex_formatter.for_type(cls, print_latex)
 
