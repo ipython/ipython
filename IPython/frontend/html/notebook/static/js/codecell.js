@@ -137,9 +137,9 @@ var IPython = (function (IPython) {
             } else {
                 return false;
             };
-        } else if (event.keyCode === 191 && event.ctrlKey && event.type == 'keydown')  {
+        } else if (event.keyCode === key.SLASH && event.ctrlKey && event.type == 'keydown')  {
             // if Ctrl+/ is pressed then comment/uncomment selected lines.
-            for (i = editor.getCursor(true).line;i < editor.getCursor(false).line + 1; i++) {
+            for (var i = editor.getCursor(true).line;i < editor.getCursor(false).line + 1; i++) {
                 var text = editor.getLine(i);
                 if (text.indexOf("#") == 0) { //uncomment
                     editor.replaceRange(text.substring(1), {line: i, ch: 0}, {line: i, ch: text.length});
