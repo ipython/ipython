@@ -16,28 +16,92 @@ var IPython = (function (IPython) {
 
     var OutputArea = function (selector, prompt_area) {
         this.selector = selector;
-        this.element = $(selector);
+        this.wrapper = $(selector);
         this.outputs = [];
         this.collapsed = false;
+        this.scrolled = false;
         this.clear_out_timeout = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
         } else {
             this.prompt_area = prompt_area;
         };
+        this.create_elements();
         this.style();
+        this.bind_events();
+    };
+    
+    OutputArea.prototype.create_elements = function () {
+        this.element = $("<div/>");
+        this.collapse_button = $("<div/>");
+        this.prompt_overlay = $("<div/>");
+        this.wrapper.append(this.prompt_overlay);
+        this.wrapper.append(this.element);
+        this.wrapper.append(this.collapse_button);
     };
 
 
     OutputArea.prototype.style = function () {
+        this.collapse_button.hide();
+        this.prompt_overlay.hide();
+        
+        this.wrapper.addClass('output_wrapper');
         this.element.addClass('output vbox');
+        
+        this.collapse_button.button();
+        this.collapse_button.addClass('output_collapsed vbox');
+        this.collapse_button.attr('title', 'click to expand outout');
+        this.collapse_button.html('. . .');
+        
+        this.prompt_overlay.addClass('out_prompt_overlay prompt');
+        this.prompt_overlay.attr('title', 'click to expand outout; dblclick to hide output');
+        
         this.collapse();
+    };
+
+
+    OutputArea.prototype._should_scroll = function (lines) {
+        if (!lines) {
+            lines = 50;
+        }
+        // line-height from http://stackoverflow.com/questions/1185151
+        var fontSize = this.element.css('font-size');
+        var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
+        
+        return (this.element.height() > lines * lineHeight);
+    };
+
+
+    OutputArea.prototype.bind_events = function () {
+        var that = this;
+        this.prompt_overlay.dblclick(function () { that.toggle_output(); });
+        this.prompt_overlay.click(function () { that.toggle_scroll(); });
+
+        this.element.resize(function () {
+            // maybe scroll output,
+            // if it's grown large enough and hasn't already been scrolled.
+            if ( !that.scrolled && that._should_scroll()) {
+                that.scroll_area();
+            }
+        });
+        this.collapse_button.click(function () {
+            that.expand();
+        });
+        this.collapse_button.hover(function () {
+            $(this).addClass("ui-state-hover");
+        }, function () {
+            $(this).removeClass("ui-state-hover");
+        });
     };
 
 
     OutputArea.prototype.collapse = function () {
         if (!this.collapsed) {
             this.element.hide();
+            this.prompt_overlay.hide();
+            if (this.element.html()){
+                this.collapse_button.show();
+            }
             this.collapsed = true;
         };
     };
@@ -45,7 +109,9 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.expand = function () {
         if (this.collapsed) {
+            this.collapse_button.hide();
             this.element.show();
+            this.prompt_overlay.show();
             this.collapsed = false;
         };
     };
@@ -56,6 +122,38 @@ var IPython = (function (IPython) {
             this.expand();
         } else {
             this.collapse();
+        };
+    };
+
+
+    OutputArea.prototype.scroll_area = function () {
+        this.element.addClass('output_scroll');
+        this.prompt_overlay.attr('title', 'click to unscroll output; dblclick to hide');
+        this.scrolled = true;
+    };
+
+
+    OutputArea.prototype.unscroll_area = function () {
+        this.element.removeClass('output_scroll');
+        this.prompt_overlay.attr('title', 'click to scroll output; dblclick to hide');
+        this.scrolled = false;
+    };
+
+
+    OutputArea.prototype.scroll_if_long = function (lines) {
+        if (this._should_scroll(lines)) {
+            // only allow scrolling long-enough output
+            this.scroll_area();
+        };
+    };
+
+
+    OutputArea.prototype.toggle_scroll = function () {
+        if (this.scrolled) {
+            this.unscroll_area();
+        } else {
+            // only allow scrolling long-enough output
+            this.scroll_if_long(20);
         };
     };
 
@@ -132,6 +230,8 @@ var IPython = (function (IPython) {
             this.append_stream(json);
         };
         this.outputs.push(json);
+        var that = this;
+        setTimeout(function(){that.element.trigger('resize');}, 100);
     };
 
 
@@ -346,6 +446,7 @@ var IPython = (function (IPython) {
             // clear all, no need for logic
             output_div.html("");
             this.outputs = [];
+            this.unscroll_area();
             return;
         }
         // remove html output
@@ -360,7 +461,8 @@ var IPython = (function (IPython) {
         if (other) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
-
+        this.unscroll_area();
+        
         // remove cleared outputs from JSON list:
         for (var i = this.outputs.length - 1; i >= 0; i--) {
             var out = this.outputs[i];

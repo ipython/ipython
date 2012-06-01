@@ -865,6 +865,47 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.collapse_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.collapse();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.scroll_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.scroll_if_long(20);
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.expand_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.unscroll_area();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
     Notebook.prototype.clear_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
