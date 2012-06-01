@@ -15,13 +15,15 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import sys
 import time
 from datetime import datetime
 
 from zmq import MessageTracker
 
-from IPython.core.display import clear_output, display
+from IPython.core.display import clear_output, display, display_pretty
 from IPython.external.decorator import decorator
 from IPython.parallel import error
 
@@ -37,6 +39,9 @@ def _total_seconds(td):
     except AttributeError:
         # Python 2.6
         return 1e-6 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
+
+def _raw_text(s):
+    display_pretty(s, raw=True)
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -373,10 +378,10 @@ class AsyncResult(object):
         while not self.ready() and (timeout is None or time.time() - tic <= timeout):
             self.wait(interval)
             clear_output()
-            print "%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed),
+            print("%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed), end="")
             sys.stdout.flush()
-        print
-        print "done"
+        print()
+        print("done")
     
     def _republish_displaypub(self, content, eid):
         """republish individual displaypub content dicts"""
@@ -388,20 +393,31 @@ class AsyncResult(object):
         md = content['metadata'] or {}
         md['engine'] = eid
         ip.display_pub.publish(content['source'], content['data'], md)
+    
+    def _display_stream(self, text, prefix='', file=None):
+        if not text:
+            # nothing to display
+            return
+        if file is None:
+            file = sys.stdout
+        end = '' if text.endswith('\n') else '\n'
         
+        multiline = text.count('\n') > int(text.endswith('\n'))
+        if prefix and multiline and not text.startswith('\n'):
+            prefix = prefix + '\n'
+        print("%s%s" % (prefix, text), file=file, end=end)
         
+    
     def _display_single_result(self):
-        if self.stdout:
-            print self.stdout
-        if self.stderr:
-            print >> sys.stderr, self.stderr
+        self._display_stream(self.stdout)
+        self._display_stream(self.stderr, file=sys.stderr)
         
         try:
             get_ipython()
         except NameError:
             # displaypub is meaningless outside IPython
             return
-            
+        
         for output in self.outputs:
             self._republish_displaypub(output, self.engine_id)
         
@@ -443,9 +459,9 @@ class AsyncResult(object):
             self._display_single_result()
             return
         
-        stdouts = [s.rstrip() for s in self.stdout]
-        stderrs = [s.rstrip() for s in self.stderr]
-        pyouts  = [p for p in self.pyout]
+        stdouts = self.stdout
+        stderrs = self.stderr
+        pyouts  = self.pyout
         output_lists = self.outputs
         results = self.get()
         
@@ -455,16 +471,17 @@ class AsyncResult(object):
             for eid,stdout,stderr,outputs,r,pyout in zip(
                     targets, stdouts, stderrs, output_lists, results, pyouts
                 ):
-                if stdout:
-                    print '[stdout:%i]' % eid, stdout
-                if stderr:
-                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
+                self._display_stream(stdout, '[stdout:%i] ' % eid)
+                self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
                 
                 try:
                     get_ipython()
                 except NameError:
                     # displaypub is meaningless outside IPython
                     return 
+                
+                if outputs or pyout is not None:
+                    _raw_text('[output:%i]' % eid)
                 
                 for output in outputs:
                     self._republish_displaypub(output, eid)
@@ -474,14 +491,12 @@ class AsyncResult(object):
         
         elif groupby in ('type', 'order'):
             # republish stdout:
-            if any(stdouts):
-                for eid,stdout in zip(targets, stdouts):
-                    print '[stdout:%i]' % eid, stdout
+            for eid,stdout in zip(targets, stdouts):
+                self._display_stream(stdout, '[stdout:%i] ' % eid)
         
             # republish stderr:
-            if any(stderrs):
-                for eid,stderr in zip(targets, stderrs):
-                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
+            for eid,stderr in zip(targets, stderrs):
+                self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
         
             try:
                 get_ipython()
@@ -496,10 +511,13 @@ class AsyncResult(object):
                     for eid in targets:
                         outputs = output_dict[eid]
                         if len(outputs) >= N:
+                            _raw_text('[output:%i]' % eid)
                             self._republish_displaypub(outputs[i], eid)
             else:
                 # republish displaypub output
                 for eid,outputs in zip(targets, output_lists):
+                    if outputs:
+                        _raw_text('[output:%i]' % eid)
                     for output in outputs:
                         self._republish_displaypub(output, eid)
         

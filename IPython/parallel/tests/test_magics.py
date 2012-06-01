@@ -16,6 +16,7 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+import re
 import sys
 import time
 
@@ -57,9 +58,26 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             )
         out = io.stdout
         self.assertTrue('[stdout:' in out, out)
+        self.assertFalse('\n\n' in out)
         self.assertTrue(out.rstrip().endswith('10'))
         self.assertRaisesRemote(ZeroDivisionError, ip.magic, 'px 1/0')
     
+    def _check_generated_stderr(self, stderr, n):
+        expected = [
+            r'\[stderr:\d+\]',
+            '^stderr$',
+            '^stderr2$',
+        ] * n
+        
+        self.assertFalse('\n\n' in stderr, stderr)
+        lines = stderr.splitlines()
+        self.assertEquals(len(lines), len(expected), stderr)
+        for line,expect in zip(lines, expected):
+            if isinstance(expect, str):
+                expect = [expect]
+            for ex in expect:
+                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
+        
     def test_cellpx_block_args(self):
         """%%px --[no]block flags work"""
         ip = get_ipython()
@@ -97,13 +115,16 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.run_cell_magic('px', '--group-outputs=engine', 'generate_output()')
         
-        lines = io.stdout.strip().splitlines()[1:]
+        self.assertFalse('\n\n' in io.stdout)
+        lines = io.stdout.splitlines()[1:]
         expected = [
-            ('[stdout:', '] stdout'),
+            r'\[stdout:\d+\]',
+            'stdout',
             'stdout2',
-            'IPython.core.display.HTML',
-            'IPython.core.display.Math',
-            ('] Out[', 'IPython.core.display.Math')
+            r'\[output:\d+\]',
+            r'IPython\.core\.display\.HTML',
+            r'IPython\.core\.display\.Math',
+            r'Out\[\d+:\d+\]:.*IPython\.core\.display\.Math',
             ] * len(v)
         
         self.assertEquals(len(lines), len(expected), io.stdout)
@@ -111,20 +132,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
         
-        expected = [
-            ('[stderr:', '] stderr'),
-            'stderr2',
-        ] * len(v)
-        
-        lines = io.stderr.strip().splitlines()
-        self.assertEquals(len(lines), len(expected), io.stderr)
-        for line,expect in zip(lines, expected):
-            if isinstance(expect, str):
-                expect = [expect]
-            for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+        self._check_generated_stderr(io.stderr, len(v))
 
 
     def test_cellpx_groupby_order(self):
@@ -139,20 +149,24 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.run_cell_magic('px', '--group-outputs=order', 'generate_output()')
         
-        lines = io.stdout.strip().splitlines()[1:]
+        self.assertFalse('\n\n' in io.stdout)
+        lines = io.stdout.splitlines()[1:]
         expected = []
         expected.extend([
-            ('[stdout:', '] stdout'),
+            r'\[stdout:\d+\]',
+            'stdout',
             'stdout2',
         ] * len(v))
         expected.extend([
+            r'\[output:\d+\]',
             'IPython.core.display.HTML',
         ] * len(v))
         expected.extend([
+            r'\[output:\d+\]',
             'IPython.core.display.Math',
         ] * len(v))
         expected.extend([
-            ('] Out[', 'IPython.core.display.Math')
+            r'Out\[\d+:\d+\]:.*IPython\.core\.display\.Math'
         ] * len(v))
         
         self.assertEquals(len(lines), len(expected), io.stdout)
@@ -160,22 +174,11 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
         
-        expected = [
-            ('[stderr:', '] stderr'),
-            'stderr2',
-        ] * len(v)
-        
-        lines = io.stderr.strip().splitlines()
-        self.assertEquals(len(lines), len(expected), io.stderr)
-        for line,expect in zip(lines, expected):
-            if isinstance(expect, str):
-                expect = [expect]
-            for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+        self._check_generated_stderr(io.stderr, len(v))
 
-    def test_cellpx_groupby_atype(self):
+    def test_cellpx_groupby_type(self):
         """%%px --group-outputs=type"""
         ip = get_ipython()
         v = self.client[:]
@@ -187,19 +190,22 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.run_cell_magic('px', '--group-outputs=type', 'generate_output()')
         
-        lines = io.stdout.strip().splitlines()[1:]
+        self.assertFalse('\n\n' in io.stdout)
+        lines = io.stdout.splitlines()[1:]
         
         expected = []
         expected.extend([
-            ('[stdout:', '] stdout'),
+            r'\[stdout:\d+\]',
+            'stdout',
             'stdout2',
         ] * len(v))
         expected.extend([
-            'IPython.core.display.HTML',
-            'IPython.core.display.Math',
+            r'\[output:\d+\]',
+            r'IPython\.core\.display\.HTML',
+            r'IPython\.core\.display\.Math',
         ] * len(v))
         expected.extend([
-            ('] Out[', 'IPython.core.display.Math')
+            (r'Out\[\d+:\d+\]', r'IPython\.core\.display\.Math')
         ] * len(v))
         
         self.assertEquals(len(lines), len(expected), io.stdout)
@@ -207,20 +213,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             if isinstance(expect, str):
                 expect = [expect]
             for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+                self.assertTrue(re.search(ex, line) is not None, "Expected %r in %r" % (ex, line))
         
-        expected = [
-            ('[stderr:', '] stderr'),
-            'stderr2',
-        ] * len(v)
-        
-        lines = io.stderr.strip().splitlines()
-        self.assertEquals(len(lines), len(expected), io.stderr)
-        for line,expect in zip(lines, expected):
-            if isinstance(expect, str):
-                expect = [expect]
-            for ex in expect:
-                self.assertTrue(ex in line, "Expected %r in %r" % (ex, line))
+        self._check_generated_stderr(io.stderr, len(v))
 
 
     def test_px_nonblocking(self):
@@ -238,6 +233,8 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertTrue(isinstance(ar, AsyncResult))
         self.assertTrue('Async' in io.stdout)
         self.assertFalse('[stdout:' in io.stdout)
+        self.assertFalse('\n\n' in io.stdout)
+        
         ar = ip.magic('px 1/0')
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
     
@@ -256,12 +253,12 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell("b/c")
             ip.magic('autopx')
         
-        output = io.stdout.strip()
+        output = io.stdout
         
         self.assertTrue(output.startswith('%autopx enabled'), output)
-        self.assertTrue(output.endswith('%autopx disabled'), output)
+        self.assertTrue(output.rstrip().endswith('%autopx disabled'), output)
         self.assertTrue('RemoteError: ZeroDivisionError' in output, output)
-        self.assertTrue('] Out[' in output, output)
+        self.assertTrue('\nOut[' in output, output)
         self.assertTrue(': 24690' in output, output)
         ar = v.get_result(-1)
         self.assertEquals(v['a'], 5)
@@ -283,7 +280,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell('b*=2')
             ip.magic('autopx')
         
-        output = io.stdout.strip()
+        output = io.stdout.rstrip()
         
         self.assertTrue(output.startswith('%autopx enabled'))
         self.assertTrue(output.endswith('%autopx disabled'))
@@ -314,7 +311,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
                 ]:
             with capture_output() as io:
                 ip.magic('result ' + idx)
-            output = io.stdout.strip()
+            output = io.stdout
             msg = "expected %s output to include %s, but got: %s" % \
                 ('%result '+idx, str(data[name]), output)
             self.assertTrue(str(data[name]) in output, msg)
@@ -336,7 +333,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.magic("px plot(rand(100))")
         
-        self.assertTrue('] Out[' in io.stdout, io.stdout)
+        self.assertTrue('Out[' in io.stdout, io.stdout)
         self.assertTrue('matplotlib.lines' in io.stdout, io.stdout)
         
 

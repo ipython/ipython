@@ -118,10 +118,14 @@ class ExecuteReply(object):
             out = TermColors.Red
             normal = TermColors.Normal
         
+        if '\n' in text_out and not text_out.startswith('\n'):
+            # add newline for multiline reprs
+            text_out = '\n' + text_out
+        
         p.text(
-            u'[%i] ' % self.metadata['engine_id'] +
-            out + u'Out[%i]: ' % self.execution_count +
-            normal + text_out
+            out + u'Out[%i:%i]: ' % (
+                self.metadata['engine_id'], self.execution_count
+            ) + normal + text_out
         )
     
     def _repr_html_(self):
