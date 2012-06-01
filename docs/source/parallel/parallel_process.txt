@@ -68,13 +68,13 @@ hosts ``host1``-``hostn``. The following steps are then required:
    (:file:`ipcontroller-engine.json`) is located.
 
 At this point, the controller and engines will be connected. By default, the JSON files
-created by the controller are put into the :file:`~/.ipython/profile_default/security`
+created by the controller are put into the :file:`IPYTHONDIR/profile_default/security`
 directory. If the engines share a filesystem with the controller, step 2 can be skipped as
 the engines will automatically look at that location.
 
 The final step required to actually use the running controller from a client is to move
 the JSON file :file:`ipcontroller-client.json` from ``host0`` to any host where clients
-will be run. If these file are put into the :file:`~/.ipython/profile_default/security`
+will be run. If these file are put into the :file:`IPYTHONDIR/profile_default/security`
 directory of the client's host, they will be found automatically. Otherwise, the full path
 to them has to be passed to the client's constructor.
 
@@ -97,7 +97,7 @@ controller and engines in the following situations:
 .. note::
 
     Currently :command:`ipcluster` requires that the
-    :file:`~/.ipython/profile_<name>/security` directory live on a shared filesystem that is
+    :file:`IPYTHONDIR/profile_<name>/security` directory live on a shared filesystem that is
     seen by both the controller and engines. If you don't have a shared file
     system you will need to use :command:`ipcontroller` and
     :command:`ipengine` directly.
@@ -486,7 +486,7 @@ the command::
     $ ipengine
 
 The engines should start and automatically connect to the controller using the
-JSON files in :file:`~/.ipython/profile_default/security`. You are now ready to use the
+JSON files in :file:`IPYTHONDIR/profile_default/security`. You are now ready to use the
 controller and engines from IPython.
 
 .. warning:: 
@@ -519,7 +519,7 @@ slightly more complicated, but the underlying ideas are the same:
         # in ipcontroller_config.py
         HubFactory.ip = '192.168.1.16'
 
-2. Copy :file:`ipcontroller-engine.json` from :file:`~/.ipython/profile_<name>/security` on
+2. Copy :file:`ipcontroller-engine.json` from :file:`IPYTHONDIR/profile_<name>/security` on
    the controller's host to the host where the engines will run.
 3. Use :command:`ipengine` on the engine's hosts to start the engines.
 
@@ -527,7 +527,7 @@ The only thing you have to be careful of is to tell :command:`ipengine` where
 the :file:`ipcontroller-engine.json` file is located. There are two ways you
 can do this:
 
-* Put :file:`ipcontroller-engine.json` in the :file:`~/.ipython/profile_<name>/security`
+* Put :file:`ipcontroller-engine.json` in the :file:`IPYTHONDIR/profile_<name>/security`
   directory on the engine's host, where it will be found automatically.
 * Call :command:`ipengine` with the ``--file=full_path_to_the_file``
   flag.
@@ -539,7 +539,7 @@ The ``file`` flag works like this::
 .. note::
     
     If the controller's and engine's hosts all have a shared file system  
-    (:file:`~/.ipython/profile_<name>/security` is the same on all of them), then things
+    (:file:`IPYTHONDIR/profile_<name>/security` is the same on all of them), then things
     will just work!
 
 SSH Tunnels
@@ -631,7 +631,7 @@ A couple of notes:
   then you need not specify its path directly, only the profile (assumes the path exists,
   otherwise you must create it first)::
 
-    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ~/.ipython/profile_ssh/security/
+    [engine.host.n] $ scp controller.host:.ipython/profile_default/security/ipcontroller-engine.json ~/.config/ipython/profile_ssh/security/
     [engine.host.n] $ ipengine --profile=ssh
 
   Of course, if you fetch the file into the default profile, no arguments must be passed to
@@ -673,7 +673,7 @@ Log files
 
 All of the components of IPython have log files associated with them.
 These log files can be extremely useful in debugging problems with
-IPython and can be found in the directory :file:`~/.ipython/profile_<name>/log`.
+IPython and can be found in the directory :file:`IPYTHONDIR/profile_<name>/log`.
 Sending the log files to us will often help us to debug any problems.
 
 
