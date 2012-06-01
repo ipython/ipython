@@ -212,7 +212,7 @@ class AsyncResultTest(ClusterTestCase):
         with capture_output() as io:
             ar.display_outputs()
         self.assertEquals(io.stderr, '')
-        self.assertTrue('5555' in io.stdout)
+        self.assertEquals('5555\n', io.stdout)
 
         ar = v.execute("a=5")
         ar.get(5)
@@ -232,6 +232,7 @@ class AsyncResultTest(ClusterTestCase):
             ar.display_outputs()
         self.assertEquals(io.stderr, '')
         self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertFalse('\n\n' in io.stdout, io.stdout)
         self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
 
         ar = v.execute("a=5")
@@ -252,6 +253,7 @@ class AsyncResultTest(ClusterTestCase):
             ar.display_outputs('engine')
         self.assertEquals(io.stderr, '')
         self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertFalse('\n\n' in io.stdout, io.stdout)
         self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
 
         ar = v.execute("a=5")
