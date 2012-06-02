@@ -115,8 +115,7 @@ class PrefilterManager(Configurable):
     The transformers are instances of :class:`PrefilterTransformer` and have
     a single method :meth:`transform` that takes a line and returns a
     transformed line.  The transformation can be accomplished using any
-    tool, but our current ones use regular expressions for speed.  We also
-    ship :mod:`pyparsing` in :mod:`IPython.external` for use in transformers.
+    tool, but our current ones use regular expressions for speed.
 
     After all the transformers have been run, the line is fed to the checkers,
     which are instances of :class:`PrefilterChecker`.  The line is passed to
