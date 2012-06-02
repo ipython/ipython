@@ -72,19 +72,18 @@ def Rconverter(Robj):
     Robj: an R object returned from rpy2
     """
     if is_data_frame(Robj):
-        dimRobj = dimR(Robj)
-        if dimRobj != ri.NULL:
-            dimRobj = list(np.array(dimRobj))
-            if len(dimRobj) > 1:
-                try:
-                    names = np.array(Robj.do_slot('names'))
-                    Robj = np.rec.fromarrays(Robj, names = tuple(names))
-                except LookupError:
-                    pass
-    return np.asarray(Robj)
+        Robj = as_data_frame(Robj)
+        dimRobj = list(np.array(dimR(Robj)))
+        if 1 not in dimRobj:
+            Robj = np.rec.fromarrays(Robj, names = tuple(Robj.names))
+    return np.squeeze(np.asarray(Robj))
 
 is_data_frame = None
+as_data_frame = None
 dimR = None
+colnames = None
+ncol = None
+nrow = None
 
 @magics_class
 class RMagics(Magics):
@@ -113,9 +112,13 @@ class RMagics(Magics):
         self.cache_display_data = cache_display_data
 
         self.r = ro.R()
-        global is_data_frame, dimR
+        global is_data_frame, dimR, colnames, ncol, nrow, as_data_frame
         is_data_frame = self.r('is.data.frame')
+        as_data_frame = self.r('as.data.frame')
         dimR = self.r('dim')
+        colnames = self.r('colnames')
+        ncol = self.r('ncol')
+        nrow = self.r('nrow')
 
         self.Rstdout_cache = []
         self.pyconverter = pyconverter
