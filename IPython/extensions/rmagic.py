@@ -140,6 +140,7 @@ class RMagics(Magics):
         try:
             value = ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as exception:
+            self.flush() # otherwise next return seems to have copy of error
             raise RMagicError(unicode_to_str('parsing and evaluating line "%s". R traceback: "%s"\n' %
                                              (line, str_to_unicode(exception.message, 'utf-8'))))
         text_output = self.flush()
@@ -551,7 +552,7 @@ class RMagics(Magics):
 __doc__ = __doc__.format(
                 R_DOC = ' '*8 + RMagics.R.__doc__,
                 RPUSH_DOC = ' '*8 + RMagics.Rpush.__doc__,
-                RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__
+                RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__,
                 RGET_DOC = ' '*8 + RMagics.Rget.__doc__
 )
 
