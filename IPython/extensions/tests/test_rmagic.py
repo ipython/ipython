@@ -28,17 +28,17 @@ def test_Rconverter():
     ip.run_line_magic('Rpush', 'datapy')
 
     # test to see if a copy is being made
-    v = ip.run_line_magic('R', 'datapy')
-    w = ip.run_line_magic('R', 'datapy')
+    v = ip.run_line_magic('Rget', '-d datapy')
+    w = ip.run_line_magic('Rget', '-d datapy')
     np.testing.assert_almost_equal(w['x'], v['x'])
     np.testing.assert_almost_equal(w['y'], v['y'])
     nt.assert_true(np.all(w['z'] == v['z']))
     np.testing.assert_equal(id(w.data), id(v.data))
     nt.assert_equal(w.dtype, v.dtype)
 
-    ip.run_cell_magic('R', ' -o datar datar=datapy', '')
+    ip.run_cell_magic('R', ' -d datar  datar=datapy', '')
 
-    u = ip.run_line_magic('R', 'datar')
+    u = ip.run_line_magic('Rget', ' -d datar')
     np.testing.assert_almost_equal(u['x'], v['x'])
     np.testing.assert_almost_equal(u['y'], v['y'])
     nt.assert_true(np.all(u['z'] == v['z']))

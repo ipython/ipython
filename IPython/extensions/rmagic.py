@@ -21,6 +21,10 @@ Usage
 
 {RPULL_DOC}
 
+``%Rget``
+
+{RGET_DOC}
+
 """
 
 #-----------------------------------------------------------------------------
@@ -59,31 +63,41 @@ from IPython.utils.py3compat import str_to_unicode, unicode_to_str
 class RMagicError(ri.RRuntimeError):
     pass
 
-def Rconverter(Robj):
+def Rconverter(Robj, dataframe=False):
     """
     Convert an object in R's namespace to one suitable
     for ipython's namespace.
 
     For a data.frame, it tries to return a structured array.
+    It first checks for colnames, then names.
+    If all are NULL, it returns np.asarray(Robj), else
+    it tries to construct a recarray
 
     Parameters
     ----------
 
     Robj: an R object returned from rpy2
     """
-    if is_data_frame(Robj):
-        Robj = as_data_frame(Robj)
-        dimRobj = list(np.array(dimR(Robj)))
-        if 1 not in dimRobj:
-            Robj = np.rec.fromarrays(Robj, names = tuple(Robj.names))
-    return np.squeeze(np.asarray(Robj))
+    is_data_frame = ro.r('is.data.frame')
+    colnames = ro.r('colnames')
+    rownames = ro.r('rownames') # with pandas, these could be used for the index
+    names = ro.r('names')
 
-is_data_frame = None
-as_data_frame = None
-dimR = None
-colnames = None
-ncol = None
-nrow = None
+
+    if dataframe:
+        as_data_frame = ro.r('as.data.frame')
+        cols = colnames(Robj)
+        rows = rownames(Robj)
+        _names = names(Robj)
+        if cols != ri.NULL:
+            Robj = as_data_frame(Robj)
+            names = tuple(np.array(cols))
+        elif _names != ri.NULL:
+            names = tuple(np.array(_names))
+        else: # failed to find names
+            return np.asarray(Robj)
+        Robj = np.rec.fromarrays(Robj, names = names)
+    return np.asarray(Robj)
 
 @magics_class
 class RMagics(Magics):
@@ -112,13 +126,6 @@ class RMagics(Magics):
         self.cache_display_data = cache_display_data
 
         self.r = ro.R()
-        global is_data_frame, dimR, colnames, ncol, nrow, as_data_frame
-        is_data_frame = self.r('is.data.frame')
-        as_data_frame = self.r('as.data.frame')
-        dimR = self.r('dim')
-        colnames = self.r('colnames')
-        ncol = self.r('ncol')
-        nrow = self.r('nrow')
 
         self.Rstdout_cache = []
         self.pyconverter = pyconverter
@@ -183,6 +190,16 @@ class RMagics(Magics):
             self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
 
     @skip_doctest
+    @magic_arguments()
+    @argument(
+        '-d', '--as_dataframe', action='store_true',
+        default=False,
+        help='Convert objects to data.frames before returning to ipython.'
+        )
+    @argument(
+        'outputs',
+        nargs='*',
+        )
     @line_magic
     def Rpull(self, line):
         '''
@@ -205,6 +222,13 @@ class RMagics(Magics):
                   dtype='|S1')
 
 
+        If --as_dataframe, then each object is returned as a structured array
+        after first passed through "as.data.frame" in R before
+        being calling self.Rconverter. 
+        This is useful when a structured array is desired as output, or
+        when the object in R has mixed data types. 
+        See the %%R docstring for more examples.
+
         Notes
         -----
 
@@ -212,9 +236,52 @@ class RMagics(Magics):
         To avoid this, don't name your R objects with '.'s...
 
         '''
-        outputs = line.split(' ')
+        args = parse_argstring(self.Rpull, line)
+        outputs = args.outputs
         for output in outputs:
-            self.shell.push({output:self.Rconverter(self.r(output))})
+            self.shell.push({output:self.Rconverter(self.r(output),dataframe=args.as_dataframe)})
+
+    @skip_doctest
+    @magic_arguments()
+    @argument(
+        '-d', '--as_dataframe', action='store_true',
+        default=False,
+        help='Convert objects to data.frames before returning to ipython.'
+        )
+    @argument(
+        'output',
+        nargs=1,
+        type=str,
+        )
+    @line_magic
+    def Rget(self, line):
+        '''
+        Return an object from rpy2, possibly as a structured array (if possible).
+        Similar to Rpull except only one argument is accepted and the value is 
+        returned rather than pushed to self.shell.user_ns::
+
+            In [3]: dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')]
+
+            In [4]: datapy = np.array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5, 'e')], dtype=dtype)
+
+            In [5]: %R -i datapy
+
+            In [6]: %Rget datapy
+            Out[6]: 
+            array([['1', '2', '3', '4'],
+                   ['2', '3', '2', '5'],
+                   ['a', 'b', 'c', 'e']], 
+                  dtype='|S1')
+
+            In [7]: %Rget -d datapy
+            Out[7]: 
+            array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5.0, 'e')], 
+                  dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')])
+
+        '''
+        args = parse_argstring(self.Rget, line)
+        output = args.output
+        return self.Rconverter(self.r(output[0]),dataframe=args.as_dataframe)
 
 
     @skip_doctest
@@ -236,6 +303,10 @@ class RMagics(Magics):
         help='Height of png plotting device sent as an argument to *png* in R.'
         )
 
+    @argument(
+        '-d', '--dataframe', action='append',
+        help='Convert these objects to data.frames and return as structured arrays.'
+        )
     @argument(
         '-u', '--units', type=int,
         help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
@@ -327,6 +398,60 @@ class RMagics(Magics):
         * If the final line results in a NULL value when evaluated
         by rpy2, then None is returned.
 
+        The --dataframe argument will return structured arrays
+        from dataframes in R. This is useful for dataframes with
+        mixed data types. Note also that for a data.frame, 
+        if it is returned as an ndarray, it is transposed::
+
+            In [18]: dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')]
+
+            In [19]: datapy = np.array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5, 'e')], dtype=dtype)
+
+            In [20]: %%R -o datar
+            datar = datapy
+               ....: 
+
+            In [21]: datar
+            Out[21]: 
+            array([['1', '2', '3', '4'],
+                   ['2', '3', '2', '5'],
+                   ['a', 'b', 'c', 'e']], 
+                  dtype='|S1')
+
+            In [22]: %%R -d datar
+            datar = datapy
+               ....: 
+
+            In [23]: datar
+            Out[23]: 
+            array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5.0, 'e')], 
+                  dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')])
+
+        The --dataframe argument first tries colnames, then rownames, then names.
+        If all are NULL, it returns an ndarray (i.e. unstructured)::
+
+
+            In [1]: %R mydata=c(4,6,8.3); NULL
+
+            In [2]: %R -d mydata
+
+            In [3]: mydata
+            Out[3]: array([ 4. ,  6. ,  8.3])
+
+            In [4]: %R names(mydata) = c('a','b','c'); NULL
+
+            In [5]: %R -d mydata
+
+            In [6]: mydata
+            Out[6]: 
+            array((4.0, 6.0, 8.3), 
+                  dtype=[('a', '<f8'), ('b', '<f8'), ('c', '<f8')])
+
+            In [7]: %R -o mydata
+
+            In [8]: mydata
+            Out[8]: array([ 4. ,  6. ,  8.3])
+
 
         '''
 
@@ -401,7 +526,11 @@ class RMagics(Magics):
 
         if args.output:
             for output in ','.join(args.output).split(','):
-                self.shell.push({output:self.Rconverter(self.r(output))})
+                self.shell.push({output:self.Rconverter(self.r(output), dataframe=False)})
+
+        if args.dataframe:
+            for output in ','.join(args.dataframe).split(','):
+                self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
 
         for tag, disp_d in display_data:
             publish_display_data(tag, disp_d)
@@ -416,12 +545,13 @@ class RMagics(Magics):
         # if in line mode and return_output, return the result as an ndarray
         if return_output and not args.noreturn:
             if result != ri.NULL:
-                return self.Rconverter(result)
+                return self.Rconverter(result, dataframe=False)
 
 __doc__ = __doc__.format(
                 R_DOC = ' '*8 + RMagics.R.__doc__,
                 RPUSH_DOC = ' '*8 + RMagics.Rpush.__doc__,
                 RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__
+                RGET_DOC = ' '*8 + RMagics.Rget.__doc__
 )
 
 
