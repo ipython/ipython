@@ -61,19 +61,24 @@ class CodeMagics(Magics):
         then saves the lines to the filename you specify.
 
         It adds a '.py' extension to the file if you don't do so yourself, and
-        it asks for confirmation before overwriting existing files."""
+        it asks for confirmation before overwriting existing files.
+
+        If `-r` option is used, the default extension is `.ipy`.
+        """
 
         opts,args = self.parse_options(parameter_s,'r',mode='list')
+        raw = 'r' in opts
+        ext = u'.ipy' if raw else u'.py'
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
-        if not fname.endswith('.py'):
-            fname += '.py'
+        if not fname.endswith((u'.py',u'.ipy')):
+            fname += ext
         if os.path.isfile(fname):
             overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             if not overwrite :
                 print 'Operation cancelled.'
                 return
         try:
-            cmds = self.shell.find_user_code(codefrom, 'r' in opts)
+            cmds = self.shell.find_user_code(codefrom,raw)
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
