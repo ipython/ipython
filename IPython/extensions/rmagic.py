@@ -184,6 +184,10 @@ class RMagics(Magics):
         '''
         outputs = line.split(' ')
         for output in outputs:
+            if self.r("is.data.frame({0})".format(output))[0]:
+                o = np.rec.fromarrays(self.r(output), names = tuple(self.r(output).names))
+                self.shell.push({output:self.Rconverter(o)})
+            else:
                 self.shell.push({output:self.Rconverter(self.r(output))})
 
 
@@ -371,8 +375,11 @@ class RMagics(Magics):
 
         if args.output:
             for output in ','.join(args.output).split(','):
-                # with self.shell, we assign the values to variables in the shell
-                self.shell.push({output:self.Rconverter(self.r(output))})
+                if self.r("is.data.frame({0})".format(output))[0]:
+                    o = np.rec.fromarrays(self.r(output), names = tuple(self.r(output).names))
+                    self.shell.push({output:self.Rconverter(o)})
+                else:
+                    self.shell.push({output:self.Rconverter(self.r(output))})
 
         for tag, disp_d in display_data:
             publish_display_data(tag, disp_d)
