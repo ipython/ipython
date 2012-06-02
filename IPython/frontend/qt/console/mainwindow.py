@@ -563,7 +563,8 @@ class MainWindow(QtGui.QMainWindow):
 
         See Also
         --------
-        populate_all_magic_menu : generate the "All Magics..." menu
+        populate_all_line_magic_menu : generate the "All Magics..." menu
+        populate_all_cell_magic_menu : generate the "All Magics..." menu
 
         Notes
         -----
@@ -579,36 +580,51 @@ class MainWindow(QtGui.QMainWindow):
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
-    def populate_all_magic_menu(self, listofmagic=None):
+    def populate_all_magic_menu(self, listofmagic=None,cell=False):
         """Clean "All Magics..." menu and repopulate it with `listofmagic`
 
         Parameters
         ----------
         listofmagic : string,
             repr() of a list of strings, send back by the kernel
+        cell : Bool (default False)
+            is listofmagic a list of cell magic (True)
+            or a list of line magic (False)
 
         Notes
         -----
         `listofmagic`is a repr() of list because it is fed with the result of
         a 'user_expression'
         """
-        alm_magic_menu = self.all_magic_menu
+        if cell :
+            prefix='%%'
+            alm_magic_menu = self.all_cell_magic_menu
+        else :
+            prefix='%'
+            alm_magic_menu = self.all_line_magic_menu
+
         alm_magic_menu.clear()
 
-        # list of protected magic that don't like to be called without argument
-        # append '?' to the end to print the docstring when called from the menu
-        protected_magic = set(["more","less","load_ext","pycat","loadpy","load","save"])
+        protected_magic = set(["more","less","load_ext","pycat","loadpy","load","save","psource"])
         magics=re.findall('\w+', listofmagic)
         for magic in magics:
             if magic in protected_magic:
-                pmagic = '%s%s%s'%('%',magic,'?')
+                pmagic = '%s%s%s'%(prefix,magic,'?')
             else:
-                pmagic = '%s%s'%('%',magic)
+                pmagic = '%s%s'%(prefix,magic)
             xaction = QtGui.QAction(pmagic,
                 self,
                 triggered=self._make_dynamic_magic(pmagic)
                 )
             alm_magic_menu.addAction(xaction)
+
+    def populate_all_cell_magic_menu(self, listofmagic=None):
+        """ convenient method """
+        self.populate_all_magic_menu(listofmagic=listofmagic,cell=True)
+
+    def populate_all_line_magic_menu(self, listofmagic=None):
+        """ convenient method """
+        self.populate_all_magic_menu(listofmagic,cell=False)
 
     def update_all_magic_menu(self):
         """ Update the list on magic in the "All Magics..." Menu
@@ -618,11 +634,15 @@ class MainWindow(QtGui.QMainWindow):
 
         """
         # first define a callback which will get the list of all magic and put it in the menu.
-        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
+        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic()["line"].keys()',
+                self.populate_all_line_magic_menu)
+        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic()["cell"].keys()',
+                self.populate_all_cell_magic_menu)
 
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
-        self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
+        self.all_line_magic_menu = self.magic_menu.addMenu("&All line Magics")
+        self.all_cell_magic_menu = self.magic_menu.addMenu("&All cell Magics")
 
         # This action should usually not appear as it will be cleared when menu
         # is updated at first kernel response. Though, it is necessary when
@@ -630,7 +650,8 @@ class MainWindow(QtGui.QMainWindow):
         # auto updated, SO DO NOT DELETE.
         self.pop = QtGui.QAction("&Update All Magic Menu ",
             self, triggered=self.update_all_magic_menu)
-        self.add_menu_action(self.all_magic_menu, self.pop)
+        self.add_menu_action(self.all_line_magic_menu, self.pop)
+        self.add_menu_action(self.all_cell_magic_menu, self.pop)
         # we need to populate the 'Magic Menu' once the kernel has answer at
         # least once let's do it immedialy, but it's assured to works
         self.pop.trigger()
