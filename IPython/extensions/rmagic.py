@@ -59,12 +59,31 @@ from IPython.utils.py3compat import str_to_unicode, unicode_to_str
 class RMagicError(ri.RRuntimeError):
     pass
 
+def Rconverter(Robj):
+    """
+    Convert an object in R's namespace to one suitable
+    for ipython's namespace.
+
+    For a data.frame, it tries to return a structured array.
+
+    Parameters
+    ----------
+
+    Robj: an R object returned from rpy2
+    """
+    if is_data_frame(Robj):
+        names = np.array(Robj.do_slot('names'))
+        Robj = np.rec.fromarrays(Robj, names = tuple(names))
+    return np.asarray(Robj)
+
+is_data_frame = None
+
 @magics_class
 class RMagics(Magics):
     """A set of magics useful for interactive work with R via rpy2.
     """
 
-    def __init__(self, shell, Rconverter=np.asarray,
+    def __init__(self, shell, Rconverter=Rconverter,
                  pyconverter=np.asarray,
                  cache_display_data=False):
         """
@@ -72,10 +91,6 @@ class RMagics(Magics):
         ----------
 
         shell : IPython shell
-
-        Rconverter : callable
-            To be called on return values from R before returning 
-            to ipython.
 
         pyconverter : callable
             To be called on values in ipython namespace before 
@@ -90,9 +105,12 @@ class RMagics(Magics):
         self.cache_display_data = cache_display_data
 
         self.r = ro.R()
+        global is_data_frame
+        is_data_frame = self.r('is.data.frame')
+
         self.Rstdout_cache = []
-        self.Rconverter = Rconverter
         self.pyconverter = pyconverter
+        self.Rconverter = Rconverter
 
     def eval(self, line):
         '''
@@ -184,11 +202,7 @@ class RMagics(Magics):
         '''
         outputs = line.split(' ')
         for output in outputs:
-            if self.r("is.data.frame({0})".format(output))[0]:
-                o = np.rec.fromarrays(self.r(output), names = tuple(self.r(output).names))
-                self.shell.push({output:self.Rconverter(o)})
-            else:
-                self.shell.push({output:self.Rconverter(self.r(output))})
+            self.shell.push({output:self.Rconverter(self.r(output))})
 
 
     @skip_doctest
@@ -375,11 +389,7 @@ class RMagics(Magics):
 
         if args.output:
             for output in ','.join(args.output).split(','):
-                if self.r("is.data.frame({0})".format(output))[0]:
-                    o = np.rec.fromarrays(self.r(output), names = tuple(self.r(output).names))
-                    self.shell.push({output:self.Rconverter(o)})
-                else:
-                    self.shell.push({output:self.Rconverter(self.r(output))})
+                self.shell.push({output:self.Rconverter(self.r(output))})
 
         for tag, disp_d in display_data:
             publish_display_data(tag, disp_d)
