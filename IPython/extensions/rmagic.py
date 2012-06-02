@@ -83,11 +83,9 @@ def Rconverter(Robj, dataframe=False):
     rownames = ro.r('rownames') # with pandas, these could be used for the index
     names = ro.r('names')
 
-
     if dataframe:
         as_data_frame = ro.r('as.data.frame')
         cols = colnames(Robj)
-        rows = rownames(Robj)
         _names = names(Robj)
         if cols != ri.NULL:
             Robj = as_data_frame(Robj)
@@ -336,7 +334,9 @@ class RMagics(Magics):
 
         In line mode, this will evaluate an expression and convert the returned value to a Python object.
         The return value is determined by rpy2's behaviour of returning the result of evaluating the
-        final line. Multiple R lines can be executed by joining them with semicolons::
+        final line. 
+
+        Multiple R lines can be executed by joining them with semicolons::
 
             In [9]: %R X=c(1,4,5,7); sd(X); mean(X)
             Out[9]: array([ 4.25])
@@ -398,8 +398,11 @@ class RMagics(Magics):
         * If the final line results in a NULL value when evaluated
         by rpy2, then None is returned.
 
-        The --dataframe argument will return structured arrays
-        from dataframes in R. This is useful for dataframes with
+        * No attempt is made to convert the final value to a structured array.
+        Use the --dataframe flag or %Rget to push / return a structured array.
+
+        The --dataframe argument will attempt to return structured arrays. 
+        This is useful for dataframes with
         mixed data types. Note also that for a data.frame, 
         if it is returned as an ndarray, it is transposed::
 
@@ -427,9 +430,8 @@ class RMagics(Magics):
             array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5.0, 'e')], 
                   dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')])
 
-        The --dataframe argument first tries colnames, then rownames, then names.
-        If all are NULL, it returns an ndarray (i.e. unstructured)::
-
+        The --dataframe argument first tries colnames, then names.
+        If both are NULL, it returns an ndarray (i.e. unstructured)::
 
             In [1]: %R mydata=c(4,6,8.3); NULL
 
@@ -451,7 +453,6 @@ class RMagics(Magics):
 
             In [8]: mydata
             Out[8]: array([ 4. ,  6. ,  8.3])
-
 
         '''
 
