@@ -1,6 +1,7 @@
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.extensions import rmagic
+import nose.tools as nt
 
 ip = get_ipython()
 ip.magic('load_ext rmagic')
@@ -20,19 +21,39 @@ def test_pull():
     np.testing.assert_almost_equal(np.asarray(rm.r('Z')), ip.user_ns['Z'])
     np.testing.assert_almost_equal(ip.user_ns['Z'], np.arange(11,21))
 
-# def test_inline():
-#     rm = rmagic.RMagics(ip)
-#     c = ip.run_line_magic('Rinline', 'lm(Y~X)$coef')
-#     np.testing.assert_almost_equal(c, [3.2, 0.9])
+def test_Rconverter():
+    datapy= np.array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c')], 
+          dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')])
+    ip.user_ns['datapy'] = datapy
+    ip.run_line_magic('Rpush', 'datapy')
+
+    # test to see if a copy is being made
+    v = ip.run_line_magic('R', 'datapy')
+    w = ip.run_line_magic('R', 'datapy')
+    np.testing.assert_almost_equal(w['x'], v['x'])
+    np.testing.assert_almost_equal(w['y'], v['y'])
+    nt.assert_true(np.all(w['z'] == v['z']))
+    np.testing.assert_equal(id(w.data), id(v.data))
+    nt.assert_equal(w.dtype, v.dtype)
+
+    ip.run_cell_magic('R', ' -o datar datar=datapy', '')
+
+    u = ip.run_line_magic('R', 'datar')
+    np.testing.assert_almost_equal(u['x'], v['x'])
+    np.testing.assert_almost_equal(u['y'], v['y'])
+    nt.assert_true(np.all(u['z'] == v['z']))
+    np.testing.assert_equal(id(u.data), id(v.data))
+    nt.assert_equal(u.dtype, v.dtype)
+
 
 def test_cell_magic():
 
     ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
     snippet = '''
     print(summary(a))
-    plot(X, Y, pch=23, bg='orange', cex=2)
-    plot(Y, X)
-    print(summary(X))
+    plot(x, y, pch=23, bg='orange', cex=2)
+    plot(x, x)
+    print(summary(x))
     r = resid(a)
     xc = coef(a)
     '''
