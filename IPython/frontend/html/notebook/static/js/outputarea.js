@@ -275,14 +275,37 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_svg = function (svg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
+        // The <svg> tag cannot be made resizable so we wrap it in a resizable <div>.
+        // The problem with this is that we need to 1) set the initial size of the
+        // <div> based on the size of the <svg> and 2) we need to tie the size of the
+        // <div> and the <svg>.
         var img = $('<div/>');
-        img.append(svg);
-        var h = img.find('svg').attr('height');
-        var w = img.find('svg').attr('width');
-        img.width(w).height(h);
-        img.resizable({'aspectRatio': true});
+        img.html(svg);
         toinsert.append(img);
-        element.append(toinsert);
+        element.append(toinsert);        
+        svg = img.find('svg');
+        // The width and height returned here will be a string with units. Any units
+        // could be used and there is no way to reliably compute the equivalent pixels.
+        // Because of this the calls to width and height below simply pass on the unit
+        // information.
+        var w = svg.attr('width');
+        var h = svg.attr('height');
+        // Here we remove the attr versions of the width/height and set the css verions
+        // that we will be using later in the resize callback.
+        svg.removeAttr('height').removeAttr('width');
+        img.width(w).height(h);
+        svg.width(w).height(h);
+        img.resizable({
+            // We can't pass the minHeight/maxHeight options as they are required to
+            // be in pixels and we have no way to determining those numbers.
+            'autoHide': true,
+            'aspectRatio': true,
+            'resize': function () {
+                $(this).find('svg').height($(this).height());
+                $(this).find('svg').width($(this).width());
+            }
+        });
+
     };
 
 
@@ -290,7 +313,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         img.load(function () {
-            $(this).resizable({'aspectRatio': true})
+            $(this).resizable({'aspectRatio': true, 'autoHide': true})
         });
         toinsert.append(img);
         element.append(toinsert);
@@ -301,7 +324,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         img.load(function () {
-            $(this).resizable({'aspectRatio': true})
+            $(this).resizable({'aspectRatio': true, 'autoHide': true})
         });
         toinsert.append(img);
         element.append(toinsert);
