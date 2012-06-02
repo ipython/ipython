@@ -312,6 +312,28 @@ class TestClient(ClusterTestCase):
         r2 = ahr.get(1)
         self.assertFalse(r1 == r2)
 
+    def test_resubmit_header(self):
+        """resubmit shouldn't clobber the whole header"""
+        def f():
+            import random
+            return random.random()
+        v = self.client.load_balanced_view()
+        v.retries = 1
+        ar = v.apply_async(f)
+        r1 = ar.get(1)
+        # give the Hub a chance to notice:
+        self._wait_for_idle()
+        ahr = self.client.resubmit(ar.msg_ids)
+        ahr.get(1)
+        time.sleep(0.5)
+        records = self.client.db_query({'msg_id': {'$in': ar.msg_ids + ahr.msg_ids}}, keys='header')
+        h1,h2 = [ r['header'] for r in records ]
+        for key in set(h1.keys()).union(set(h2.keys())):
+            if key in ('msg_id', 'date'):
+                self.assertNotEquals(h1[key], h2[key])
+            else:
+                self.assertEquals(h1[key], h2[key])
+
     def test_resubmit_aborted(self):
         def f():
             import random
@@ -384,4 +406,3 @@ class TestClient(ClusterTestCase):
             "Shouldn't be spinning, but got wall_time=%f" % ar.wall_time
         )
     
-
