@@ -1166,7 +1166,11 @@ class Hub(SessionFactory):
             msg = self.session.msg(header['msg_type'])
             msg_id = msg['msg_id']
             msg['content'] = rec['content']
-            header.update(msg['header'])
+            
+            # use the old header, but update msg_id and timestamp
+            fresh = msg['header']
+            header['msg_id'] = fresh['msg_id']
+            header['date'] = fresh['date']
             msg['header'] = header
 
             self.session.send(self.resubmit, msg, buffers=rec['buffers'])
