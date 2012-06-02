@@ -38,10 +38,24 @@
 
 % codecell is the whole input+output set of blocks that a Code cell can
 % generate.
-\newenvironment{codecell}{%
-    \def\FrameCommand{\color{mediumgray} \vrule width 1pt \hspace{5pt}}%
-   \MakeFramed{\vspace{-0.5em}\FrameRestore}}
- {\unskip\endMakeFramed}
+
+% TODO: unfortunately, it seems that using a framed codecell environment breaks
+% the ability of the frames inside of it to be broken across pages.  This
+% causes at least the problem of having lots of empty space at the bottom of
+% pages as new frames are moved to the next page, and if a single frame is too
+% long to fit on a page, will completely stop latex from compiling the
+% document.  So unless we figure out a solution to this, we'll have to instead
+% leave the codecell env. as empty.  I'm keeping the original codecell
+% definition here (a thin vertical bar) for reference, in case we find a
+% solution to the page break issue.
+
+%% \newenvironment{codecell}{%
+%%     \def\FrameCommand{\color{mediumgray} \vrule width 1pt \hspace{5pt}}%
+%%    \MakeFramed{\vspace{-0.5em}}}
+%%  {\unskip\endMakeFramed}
+
+% For now, make this a no-op...
+\newenvironment{codecell}{}
 
  \newenvironment{codeinput}{%
    \def\FrameCommand{\colorbox{inputbackground}}%
