@@ -468,7 +468,8 @@ class CodeMagics(Magics):
         opts,args = self.parse_options(parameter_s,'prxn:')
 
         try:
-            filename, lineno, is_temp = self._find_edit_target(args, opts, last_call)
+            filename, lineno, is_temp = self._find_edit_target(self.shell, 
+                                                       args, opts, last_call)
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
             return
