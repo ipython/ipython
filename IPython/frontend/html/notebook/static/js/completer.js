@@ -116,12 +116,28 @@ var IPython = (function (IPython) {
 
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
+        var filterd_results = Array();
+        console.log('results',results)
+        //remove results from context completion
+        //that are already in kernel completion
+        for(var elm in results)
+        {
+            if(matches.indexOf(results[elm]['str']) == -1)
+            {
+                //filterd_results.push(elm);
+                console.log('adding',results[elm])
+            }
+            else
+            {
+                console.log('skipping ',results[elm]);
+            }
+        }
 
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
         for (var i = matches.length - 1; i >= 0; --i) {
-            results.unshift({
+            filterd_results.unshift({
                 str: matches[i],
                 type: "introspection",
                 from: {
@@ -136,7 +152,7 @@ var IPython = (function (IPython) {
         }
 
         // one the 2 sources results have been merge, deal with it
-        this.raw_result = results;
+        this.raw_result = filterd_results;
 
         // if empty result return
         if (!this.raw_result || !this.raw_result.length) return;
