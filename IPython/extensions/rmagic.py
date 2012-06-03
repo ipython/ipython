@@ -140,9 +140,9 @@ class RMagics(Magics):
         try:
             value = ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as exception:
-            self.flush() # otherwise next return seems to have copy of error
-            raise RMagicError(unicode_to_str('parsing and evaluating line "%s". R error message: "%s"\n' %
-                                             (line, str_to_unicode(exception.message, 'utf-8'))))
+            warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
+            raise RMagicError(unicode_to_str('parsing and evaluating line "%s".\nR error message: "%s"\n R stdout:"%s"\n' %
+                                             (line, str_to_unicode(exception.message, 'utf-8'), warning_or_other_msg)))
         text_output = self.flush()
         ri.set_writeconsole(old_writeconsole)
         return text_output, value
