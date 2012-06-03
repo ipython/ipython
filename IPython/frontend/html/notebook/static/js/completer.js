@@ -9,7 +9,20 @@ var IPython = (function (IPython) {
     var key = IPython.utils.keycodes;
 
     // what is the common start of all completions
-
+    function _existing_completion(item, completion_array)
+    {
+        if(item.substr(0,1) == '.')
+        {
+            for( var c in completion_array )
+            {
+                if(completion_array[c].substr(-item.length) == item)
+                { return true; }
+            }
+            return false;
+        }
+        else
+        {return completion_array.indexOf(item) != -1}
+    }
 
     function shared_start(B) {
         if (B.length == 1) {
@@ -117,19 +130,13 @@ var IPython = (function (IPython) {
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
         var filterd_results = Array();
-        console.log('results',results)
         //remove results from context completion
         //that are already in kernel completion
         for(var elm in results)
         {
-            if(matches.indexOf(results[elm]['str']) == -1)
+            if(_existing_completion(results[elm]['str'],matches) == false)
             {
-                //filterd_results.push(elm);
-                console.log('adding',results[elm])
-            }
-            else
-            {
-                console.log('skipping ',results[elm]);
+                filterd_results.push(results[elm]);
             }
         }
 
