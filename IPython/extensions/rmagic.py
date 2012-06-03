@@ -402,6 +402,11 @@ class RMagics(Magics):
         * No attempt is made to convert the final value to a structured array.
         Use the --dataframe flag or %Rget to push / return a structured array.
 
+        * If the -n flag is present, there is no return value.
+
+        * A trailing ';' will also result in no return value as the last
+        value in the line is an empty string.
+
         The --dataframe argument will attempt to return structured arrays. 
         This is useful for dataframes with
         mixed data types. Note also that for a data.frame, 
