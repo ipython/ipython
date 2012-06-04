@@ -41,6 +41,10 @@ var IPython = (function (IPython) {
             theme: 'ipython',
             matchBrackets: true,
             indentWithTabs: true,
+<<<<<<< HEAD
+=======
+            font-size: '1.2em',
+>>>>>>> 211f516ab558bffe3f157a0be6a37c0f0bbd01c8
             readOnly: this.read_only,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });

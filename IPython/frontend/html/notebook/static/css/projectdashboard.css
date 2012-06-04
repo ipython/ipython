@@ -6,8 +6,8 @@
  */
 
 #main_app {
-    width: 920px;
-    margin: 30px auto 0px auto;
+    width: 100%;
+    /*margin: 30px auto 0px auto;*/
 }
 
 #tabs {
