@@ -35,6 +35,7 @@ span#notebook_name {
 }
 
 .ui-menu .ui-menu-item a {
+    border: 1px solid transparent;
     padding: 2px 1.6em;
 }
 
@@ -111,6 +112,18 @@ div#pager {
     padding: 15px;
     overflow: auto;
     display: none;
+}
+
+/* .ui-widget-content is a jQuery class applied to the focused cell. */
+div.ui-widget-content {
+    border: 1px solid #aaa;
+/* We do our own highlighting of the active element using the border above, so
+ * disable the one jQuery draws using outline. */
+    outline: none;
+}
+
+.cell {
+    border: 1px solid transparent;
 }
 
 div.cell {
