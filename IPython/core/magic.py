@@ -30,7 +30,7 @@ from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
-from IPython.utils.traitlets import Bool, Dict, Instance
+from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error, warn
 
 #-----------------------------------------------------------------------------
@@ -355,10 +355,10 @@ class MagicsManager(Configurable):
         for m in magic_objects:
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
-                                 "the @register_macics class decorator")
-            if type(m) is type:
+                                 "the @register_magics class decorator")
+            if type(m) in (type, MetaHasTraits):
                 # If we're given an uninstantiated class
-                m = m(self.shell)
+                m = m(shell=self.shell)
 
             # Now that we have an instance, we can register it and update the
             # table of callables
