@@ -9,19 +9,15 @@ var IPython = (function (IPython) {
     var key = IPython.utils.keycodes;
 
     // what is the common start of all completions
-    function _existing_completion(item, completion_array)
-    {
-        if(item.substr(0,1) == '.')
-        {
-            for( var c in completion_array )
-            {
+    function _existing_completion(item, completion_array){
+        if(item.substr(0,1) == '.') {
+            for( var c in completion_array ) {
                 if(completion_array[c].substr(-item.length) == item)
                 { return true; }
             }
             return false;
         }
-        else
-        {return completion_array.indexOf(item) != -1}
+        else {return completion_array.indexOf(item) != -1}
     }
 
     function shared_start(B) {
@@ -132,12 +128,9 @@ var IPython = (function (IPython) {
         var filterd_results = Array();
         //remove results from context completion
         //that are already in kernel completion
-        for(var elm in results)
-        {
+        for(var elm in results) {
             if(_existing_completion(results[elm]['str'],matches) == false)
-            {
-                filterd_results.push(results[elm]);
-            }
+            { filterd_results.push(results[elm]); }
         }
 
         // append the introspection result, in order, at at the beginning of
