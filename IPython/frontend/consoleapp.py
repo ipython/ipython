@@ -108,6 +108,14 @@ aliases.update(app_aliases)
 # IPythonConsole
 #-----------------------------------------------------------------------------
 
+classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session]
+
+try:
+    from IPython.zmq.pylab.backend_inline import InlineBackend
+except ImportError:
+    pass
+else:
+    classes.append(InlineBackend)
 
 class IPythonConsoleApp(Configurable):
     name = 'ipython-console-mixin'
@@ -130,7 +138,7 @@ class IPythonConsoleApp(Configurable):
         
     """
 
-    classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session]
+    classes = classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     kernel_manager_class = BlockingKernelManager

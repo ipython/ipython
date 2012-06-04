@@ -56,6 +56,7 @@ from .clustermanager import ClusterManager
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
+from IPython.frontend.consoleapp import IPythonConsoleApp
 from IPython.lib.kernel import swallow_argv
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
@@ -255,8 +256,7 @@ class NotebookApp(BaseIPythonApplication):
     """
     examples = _examples
     
-    classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
-               MappingKernelManager, NotebookManager]
+    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 

@@ -96,7 +96,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     """
     examples = _examples
 
-    classes = List([IPKernelApp, ZMQTerminalInteractiveShell, Session])
+    classes = [ZMQTerminalInteractiveShell] + IPythonConsoleApp.classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)
