@@ -91,6 +91,7 @@ class OctaveMagics(Magics):
         '''
         inputs = line.split(' ')
         for input in inputs:
+            input = unicode_to_str(input)
             self.oct.put(input, self.shell.user_ns[input])
 
 
@@ -123,11 +124,14 @@ class OctaveMagics(Magics):
     @magic_arguments()
     @argument(
         '-i', '--input', action='append',
-        help='Names of input variables to be pushed to Octave. Multiple names can be passed, separated by commas with no whitespace.'
+        help='Names of input variables to be pushed to Octave. Multiple names '
+             'can be passed, separated by commas with no whitespace.'
         )
     @argument(
         '-o', '--output', action='append',
-        help='Names of variables to be pulled from Octave after executing cell body. Multiple names can be passed, separated by commas with no whitespace.'
+        help='Names of variables to be pulled from Octave after executing cell '
+             'body. Multiple names can be passed, separated by commas with no '
+             'whitespace.'
         )
     @argument(
         '-s', '--size', action='append',
@@ -209,12 +213,13 @@ class OctaveMagics(Magics):
 
         function fig_create(src, event)
           global __ipy_figures;
-          __ipy_figures(size(__ipy_figures) + 1) = src;
+          __ipy_figures(gcf()) = src;
           set(src, "visible", "off");
         end
 
         set(0, 'DefaultFigureCreateFcn', @fig_create);
 
+        close all;
         clear ans;
         '''
 
@@ -228,11 +233,11 @@ class OctaveMagics(Magics):
         end
 
         for f = __ipy_figures
-            outfile = sprintf('%(plot_dir)s/__ipy_oct_fig_%%03d.png', f);
-            print(f, outfile, '-dpng', '-S%(size)s');
+          outfile = sprintf('%(plot_dir)s/__ipy_oct_fig_%%03d.png', f);
+          try
+            print(f, outfile, '-dpng', '-tight', '-S%(size)s');
+          end
         end
-
-#        close all;
 
         ''' % {'plot_dir': plot_dir, 'size': size}
 
