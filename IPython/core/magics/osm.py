@@ -22,11 +22,13 @@ import sys
 from pprint import pformat
 
 # Our own packages
+from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
 from IPython.core.error import UsageError
-from IPython.core.magic import  (Magics, compress_dhist, magics_class,
-                                 line_magic)
+from IPython.core.magic import  (
+    Magics, compress_dhist, magics_class, line_magic, cell_magic
+)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -675,3 +677,37 @@ class OSMagics(Magics):
             return
 
         page.page(self.shell.pycolorize(cont))
+
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-f', '--force', action='store_true', default=False,
+        help='Whether to overwrite a file if it already exists'
+    )
+    @magic_arguments.argument(
+        'filename', type=unicode,
+        help='file to write'
+    )
+    @cell_magic
+    def file(self, line, cell):
+        """Write a cell to a file
+        
+        %%file [-f] filename
+        
+        Writes the contents of the cell to a file.
+        
+        Will not overwrite existing files unless `-f` is specified.
+        """
+        args = magic_arguments.parse_argstring(self.file, line)
+        args.filename = unquote_filename(args.filename)
+        
+        if os.path.exists(args.filename):
+            if args.force:
+                print("Overwriting %s" % args.filename)
+            else:
+                error("%s already exists! Force overwrite with %%%%file -f\n" % args.filename)
+                return
+        else:
+            print("Writing %s" % args.filename)
+        
+        with io.open(args.filename, 'w', encoding='utf-8') as f:
+            f.write(cell)
