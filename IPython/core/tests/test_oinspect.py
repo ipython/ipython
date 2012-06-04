@@ -14,6 +14,7 @@
 from __future__ import print_function
 
 # Stdlib imports
+import os
 
 # Third-party imports
 import nose.tools as nt
@@ -36,6 +37,26 @@ ip = get_ipython()
 #-----------------------------------------------------------------------------
 # Local utilities
 #-----------------------------------------------------------------------------
+
+# WARNING: since this test checks the line number where a function is
+# defined, if any code is inserted above, the following line will need to be
+# updated.  Do NOT insert any whitespace between the next line and the function
+# definition below.
+THIS_LINE_NUMBER = 45  # Put here the actual number of this line
+def test_find_source_lines():
+    nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
+                    THIS_LINE_NUMBER+1)
+
+
+def test_find_file():
+    nt.assert_equal(oinspect.find_file(test_find_file),
+                    os.path.abspath(__file__))
+
+
+def test_find_file_magic():
+    run = ip.find_line_magic('run')
+    nt.assert_not_equal(oinspect.find_file(run), None)
+
 
 # A few generic objects we can then inspect in the tests below
 
