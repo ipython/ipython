@@ -8,9 +8,8 @@ var IPython = (function (IPython) {
     // easyier key mapping
     var key = IPython.utils.keycodes;
 
-    function prepend_n_prc(str,n)
-    {
-        for( var i =0; i< n;i++)
+    function prepend_n_prc(str, n) {
+        for( var i =0 ; i< n ; i++)
         { str = '%'+str }
         return str;
     }
@@ -24,7 +23,7 @@ var IPython = (function (IPython) {
     }
 
     // what is the common start of all completions
-    function shared_start(B,drop_prct) {
+    function shared_start(B, drop_prct) {
         if (B.length == 1) {
             return B[0];
         }
@@ -32,15 +31,15 @@ var IPython = (function (IPython) {
         var common;
         var min_lead_prct = 10;
         for (var i = 0; i < B.length; i++) {
-            var str = B[i].str
-            var localmin = 0
+            var str = B[i].str;
+            var localmin = 0;
             if(drop_prct == true){
-                while ( str.substr(0,1) == '%') {
+                while ( str.substr(0, 1) == '%') {
                     localmin = localmin+1;
                     str = str.substring(1);
                 }
             }
-            min_lead_prct = Math.min(min_lead_prct,localmin);
+            min_lead_prct = Math.min(min_lead_prct, localmin);
             A.push(str);
         }
 
@@ -54,10 +53,10 @@ var IPython = (function (IPython) {
                 tem1 = tem1.substring(0, --s);
             }
             if (tem1 == "" || tem2.indexOf(tem1) != 0) {
-                return prepend_n_prc('',min_lead_prct);
+                return prepend_n_prc('', min_lead_prct);
             }
             return {
-                str: prepend_n_prc(tem1,min_lead_prct),
+                str: prepend_n_prc(tem1, min_lead_prct),
                 type: "computed",
                 from: B[0].from,
                 to: B[0].to
@@ -276,7 +275,7 @@ var IPython = (function (IPython) {
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
             // to erase py
-            var sh = shared_start(this.raw_result,true);
+            var sh = shared_start(this.raw_result, true);
             if (sh) {
                 this.insert(sh);
             }
