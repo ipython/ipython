@@ -165,7 +165,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     """
     examples = _examples
 
-    classes = [IPKernelApp, IPythonWidget, ZMQInteractiveShell, ProfileDir, Session]
+    classes = [IPythonWidget] + IPythonConsoleApp.classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     frontend_flags = Any(qt_flags)
