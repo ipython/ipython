@@ -2,39 +2,9 @@ from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
 from IPython.core.display import display_png
+from IPython.extensions.graphvizmagic import run_dot
 
 from sphinx.ext.inheritance_diagram import InheritanceGraph
-
-
-def run_dot(code, options=[], format='png'):
-    # mostly copied from sphinx.ext.graphviz.render_dot
-    from subprocess import Popen, PIPE
-    from sphinx.util.osutil import EPIPE, EINVAL
-
-    dot_args = ['dot'] + options + ['-T', format]
-    p = Popen(dot_args, stdout=PIPE, stdin=PIPE, stderr=PIPE)
-    wentwrong = False
-    try:
-        # Graphviz may close standard input when an error occurs,
-        # resulting in a broken pipe on communicate()
-        stdout, stderr = p.communicate(code)
-    except (OSError, IOError), err:
-        if err.errno != EPIPE:
-            raise
-        wentwrong = True
-    except IOError, err:
-        if err.errno != EINVAL:
-            raise
-        wentwrong = True
-    if wentwrong:
-        # in this case, read the standard output and standard error streams
-        # directly, to get the error message(s)
-        stdout, stderr = p.stdout.read(), p.stderr.read()
-        p.wait()
-    if p.returncode != 0:
-        raise RuntimeError('dot exited with error:\n[stderr]\n{0}'
-                           .format(stderr))
-    return stdout
 
 
 @magics_class
