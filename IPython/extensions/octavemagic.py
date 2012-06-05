@@ -70,6 +70,10 @@ class OctaveMagics(Magics):
         self._oct = oct2py.Oct2Py()
         self._plot_format = 'png'
 
+        # Allow publish_display_data to be overridden for
+        # testing purposes.
+        self._publish_display_data = publish_display_data
+
 
     def _fix_gnuplot_svg_size(self, image, size=None):
         """
@@ -320,8 +324,8 @@ class OctaveMagics(Magics):
                 output = unicode_to_str(output)
                 self.shell.push({output: self._oct.get(output)})
 
-        for tag, data in display_data:
-            publish_display_data(tag, data)
+        for source, data in display_data:
+            self._publish_display_data(source, data)
 
         if return_output:
             ans = self._oct.get('_')
