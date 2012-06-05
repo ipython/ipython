@@ -25,6 +25,7 @@ import zmq
 from nose import SkipTest
 
 from IPython.testing import decorators as dec
+from IPython.testing.ipunittest import ParametricTestCase
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -39,7 +40,7 @@ from .clienttest import ClusterTestCase, crash, wait, skip_without
 def setup():
     add_engines(3, total=True)
 
-class TestView(ClusterTestCase):
+class TestView(ClusterTestCase, ParametricTestCase):
     
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
@@ -233,7 +234,17 @@ class TestView(ClusterTestCase):
         view.scatter('a', a)
         b = view.gather('a', block=True)
         assert_array_equal(b, a)
+    
+    def test_scatter_gather_lazy(self):
+        """scatter/gather with targets='all'"""
+        view = self.client.direct_view(targets='all')
+        x = range(64)
+        view.scatter('x', x)
+        gathered = view.gather('x', block=True)
+        self.assertEquals(gathered, x)
+        
 
+    @dec.known_failure_py3
     @skip_without('numpy')
     def test_push_numpy_nocopy(self):
         import numpy
@@ -355,114 +366,6 @@ class TestView(ClusterTestCase):
         
         self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
     
-    # parallel magic tests
-    
-    def test_magic_px_blocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=True
-
-        ip.magic_px('a=5')
-        self.assertEquals(v['a'], 5)
-        ip.magic_px('a=10')
-        self.assertEquals(v['a'], 10)
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        # just 'print a' worst ~99% of the time, but this ensures that
-        # the stdout message has arrived when the result is finished:
-        ip.magic_px('import sys,time;print (a); sys.stdout.flush();time.sleep(0.2)')
-        sys.stdout = savestdout
-        buf = sio.getvalue()
-        self.assertTrue('[stdout:' in buf, buf)
-        self.assertTrue(buf.rstrip().endswith('10'))
-        self.assertRaisesRemote(ZeroDivisionError, ip.magic_px, '1/0')
-
-    def test_magic_px_nonblocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=False
-
-        ip.magic_px('a=5')
-        self.assertEquals(v['a'], 5)
-        ip.magic_px('a=10')
-        self.assertEquals(v['a'], 10)
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic_px('print a')
-        sys.stdout = savestdout
-        buf = sio.getvalue()
-        self.assertFalse('[stdout:%i]'%v.targets in buf)
-        ip.magic_px('1/0')
-        ar = v.get_result(-1)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-    
-    def test_magic_autopx_blocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=True
-
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic_autopx()
-        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('print b')
-        ip.run_cell("b/c")
-        ip.run_code(compile('b*=2', '', 'single'))
-        ip.magic_autopx()
-        sys.stdout = savestdout
-        output = sio.getvalue().strip()
-        self.assertTrue(output.startswith('%autopx enabled'))
-        self.assertTrue(output.endswith('%autopx disabled'))
-        self.assertTrue('RemoteError: ZeroDivisionError' in output)
-        ar = v.get_result(-2)
-        self.assertEquals(v['a'], 5)
-        self.assertEquals(v['b'], 20)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-
-    def test_magic_autopx_nonblocking(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v.block=False
-
-        sio = StringIO()
-        savestdout = sys.stdout
-        sys.stdout = sio
-        ip.magic_autopx()
-        ip.run_cell('\n'.join(('a=5','b=10','c=0')))
-        ip.run_cell('print b')
-        ip.run_cell("b/c")
-        ip.run_code(compile('b*=2', '', 'single'))
-        ip.magic_autopx()
-        sys.stdout = savestdout
-        output = sio.getvalue().strip()
-        self.assertTrue(output.startswith('%autopx enabled'))
-        self.assertTrue(output.endswith('%autopx disabled'))
-        self.assertFalse('ZeroDivisionError' in output)
-        ar = v.get_result(-2)
-        self.assertEquals(v['a'], 5)
-        self.assertEquals(v['b'], 20)
-        self.assertRaisesRemote(ZeroDivisionError, ar.get)
-    
-    def test_magic_result(self):
-        ip = get_ipython()
-        v = self.client[-1]
-        v.activate()
-        v['a'] = 111
-        ra = v['a']
-        
-        ar = ip.magic_result()
-        self.assertEquals(ar.msg_ids, [v.history[-1]])
-        self.assertEquals(ar.get(), 111)
-        ar = ip.magic_result('-2')
-        self.assertEquals(ar.msg_ids, [v.history[-2]])
-    
     def test_unicode_execute(self):
         """test executing unicode strings"""
         v = self.client[-1]
@@ -540,4 +443,130 @@ class TestView(ClusterTestCase):
         check = [ -1*i for i in r ]
         result = e0.map_sync(lambda x: -1*x, r)
         self.assertEquals(result, check)
+    
+    def test_len(self):
+        """len(view) makes sense"""
+        e0 = self.client[self.client.ids[0]]
+        yield self.assertEquals(len(e0), 1)
+        v = self.client[:]
+        yield self.assertEquals(len(v), len(self.client.ids))
+        v = self.client.direct_view('all')
+        yield self.assertEquals(len(v), len(self.client.ids))
+        v = self.client[:2]
+        yield self.assertEquals(len(v), 2)
+        v = self.client[:1]
+        yield self.assertEquals(len(v), 1)
+        v = self.client.load_balanced_view()
+        yield self.assertEquals(len(v), len(self.client.ids))
+        # parametric tests seem to require manual closing?
+        self.client.close()
+
+    
+    # begin execute tests
+    
+    def test_execute_reply(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        ar = e0.execute("5", silent=False)
+        er = ar.get()
+        self._wait_for(lambda : bool(er.pyout))
+        self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
+        self.assertEquals(er.pyout['data']['text/plain'], '5')
+
+    def test_execute_reply_stdout(self):
+        e0 = self.client[self.client.ids[0]]
+        e0.block = True
+        ar = e0.execute("print (5)", silent=False)
+        er = ar.get()
+        self._wait_for(lambda : bool(er.stdout))
+        self.assertEquals(er.stdout.strip(), '5')
+        
+    def test_execute_pyout(self):
+        """execute triggers pyout with silent=False"""
+        view = self.client[:]
+        ar = view.execute("5", silent=False, block=True)
+        self._wait_for(lambda : all(ar.pyout))
+        
+        expected = [{'text/plain' : '5'}] * len(view)
+        mimes = [ out['data'] for out in ar.pyout ]
+        self.assertEquals(mimes, expected)
+    
+    def test_execute_silent(self):
+        """execute does not trigger pyout with silent=True"""
+        view = self.client[:]
+        ar = view.execute("5", block=True)
+        expected = [None] * len(view)
+        self.assertEquals(ar.pyout, expected)
+    
+    def test_execute_magic(self):
+        """execute accepts IPython commands"""
+        view = self.client[:]
+        view.execute("a = 5")
+        ar = view.execute("%whos", block=True)
+        # this will raise, if that failed
+        ar.get(5)
+        self._wait_for(lambda : all(ar.stdout))
+        for stdout in ar.stdout:
+            lines = stdout.splitlines()
+            self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
+            found = False
+            for line in lines[2:]:
+                split = line.split()
+                if split == ['a', 'int', '5']:
+                    found = True
+                    break
+            self.assertTrue(found, "whos output wrong: %s" % stdout)
+    
+    def test_execute_displaypub(self):
+        """execute tracks display_pub output"""
+        view = self.client[:]
+        view.execute("from IPython.core.display import *")
+        ar = view.execute("[ display(i) for i in range(5) ]", block=True)
+        
+        self._wait_for(lambda : all(len(er.outputs) >= 5 for er in ar))
+        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        for outputs in ar.outputs:
+            mimes = [ out['data'] for out in outputs ]
+            self.assertEquals(mimes, expected)
+    
+    def test_apply_displaypub(self):
+        """apply tracks display_pub output"""
+        view = self.client[:]
+        view.execute("from IPython.core.display import *")
+        
+        @interactive
+        def publish():
+            [ display(i) for i in range(5) ]
+        
+        ar = view.apply_async(publish)
+        ar.get(5)
+        self._wait_for(lambda : all(len(out) >= 5 for out in ar.outputs))
+        expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
+        for outputs in ar.outputs:
+            mimes = [ out['data'] for out in outputs ]
+            self.assertEquals(mimes, expected)
+    
+    def test_execute_raises(self):
+        """exceptions in execute requests raise appropriately"""
+        view = self.client[-1]
+        ar = view.execute("1/0")
+        self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
+    
+    @dec.skipif_not_matplotlib
+    def test_magic_pylab(self):
+        """%pylab works on engines"""
+        view = self.client[-1]
+        ar = view.execute("%pylab inline")
+        # at least check if this raised:
+        reply = ar.get(5)
+        # include imports, in case user config
+        ar = view.execute("plot(rand(100))", silent=False)
+        reply = ar.get(5)
+        self._wait_for(lambda : all(ar.outputs))
+        self.assertEquals(len(reply.outputs), 1)
+        output = reply.outputs[0]
+        self.assertTrue("data" in output)
+        data = output['data']
+        self.assertTrue("image/png" in data)
+        
 

@@ -135,7 +135,7 @@ class ProfileList(Application):
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This options can also be specified through
-        the environment variable IPYTHON_DIR.
+        the environment variable IPYTHONDIR.
         """
     )
 

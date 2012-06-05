@@ -1670,7 +1670,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 else:
                     self.layout().setCurrentWidget(self._page_control)
         elif html:
-            self._append_plain_html(text)
+            self._append_html(text)
         else:
             self._append_plain_text(text)
 

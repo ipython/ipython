@@ -128,13 +128,20 @@ class View(HasTraits):
 
         assert not self.__class__ is View, "Don't use base View objects, use subclasses"
 
-
     def __repr__(self):
         strtargets = str(self.targets)
         if len(strtargets) > 16:
             strtargets = strtargets[:12]+'...]'
         return "<%s %s>"%(self.__class__.__name__, strtargets)
-
+    
+    def __len__(self):
+        if isinstance(self.targets, list):
+            return len(self.targets)
+        elif isinstance(self.targets, int):
+            return 1
+        else:
+            return len(self.client)
+    
     def set_flags(self, **kwargs):
         """set my attribute flags by keyword.
 
@@ -195,7 +202,7 @@ class View(HasTraits):
     @sync_results
     @save_ids
     def _really_apply(self, f, args, kwargs, block=None, **options):
-        """wrapper for client.send_apply_message"""
+        """wrapper for client.send_apply_request"""
         raise NotImplementedError("Implement in subclasses")
 
     def apply(self, f, *args, **kwargs):
@@ -533,7 +540,7 @@ class DirectView(View):
         msg_ids = []
         trackers = []
         for ident in _idents:
-            msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+            msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
                                     ident=ident)
             if track:
                 trackers.append(msg['tracker'])
@@ -546,6 +553,7 @@ class DirectView(View):
             except KeyboardInterrupt:
                 pass
         return ar
+
 
     @spin_after
     def map(self, f, *sequences, **kwargs):
@@ -590,7 +598,9 @@ class DirectView(View):
         pf = ParallelFunction(self, f, block=block, **kwargs)
         return pf.map(*sequences)
 
-    def execute(self, code, targets=None, block=None):
+    @sync_results
+    @save_ids
+    def execute(self, code, silent=True, targets=None, block=None):
         """Executes `code` on `targets` in blocking or nonblocking manner.
 
         ``execute`` is always `bound` (affects engine namespace)
@@ -604,7 +614,22 @@ class DirectView(View):
                 whether or not to wait until done to return
                 default: self.block
         """
-        return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
+        block = self.block if block is None else block
+        targets = self.targets if targets is None else targets
+
+        _idents = self.client._build_targets(targets)[0]
+        msg_ids = []
+        trackers = []
+        for ident in _idents:
+            msg = self.client.send_execute_request(self._socket, code, silent=silent, ident=ident)
+            msg_ids.append(msg['header']['msg_id'])
+        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=targets)
+        if block:
+            try:
+                ar.get()
+            except KeyboardInterrupt:
+                pass
+        return ar
 
     def run(self, filename, targets=None, block=None):
         """Execute contents of `filename` on my engine(s).
@@ -692,6 +717,9 @@ class DirectView(View):
         block = block if block is not None else self.block
         track = track if track is not None else self.track
         targets = targets if targets is not None else self.targets
+        
+        # construct integer ID list:
+        targets = self.client._build_targets(targets)[1]
 
         mapObject = Map.dists[dist]()
         nparts = len(targets)
@@ -730,6 +758,9 @@ class DirectView(View):
         mapObject = Map.dists[dist]()
         msg_ids = []
 
+        # construct integer ID list:
+        targets = self.client._build_targets(targets)[1]
+        
         for index, engineid in enumerate(targets):
             msg_ids.extend(self.pull(key, block=False, targets=engineid).msg_ids)
 
@@ -782,10 +813,10 @@ class DirectView(View):
         except NameError:
             print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
         else:
-            pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+            pmagic = ip.magics_manager.registry.get('ParallelMagics')
             if pmagic is None:
-                ip.magic_load_ext('parallelmagic')
-                pmagic = ip.plugin_manager.get_plugin('parallelmagic')
+                ip.magic('load_ext parallelmagic')
+                pmagic = ip.magics_manager.registry.get('ParallelMagics')
 
             pmagic.active_view = self
 
@@ -990,7 +1021,7 @@ class LoadBalancedView(View):
         follow = self._render_dependency(follow)
         subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
 
-        msg = self.client.send_apply_message(self._socket, f, args, kwargs, track=track,
+        msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
                                 subheader=subheader)
         tracker = None if track is False else msg['tracker']
 

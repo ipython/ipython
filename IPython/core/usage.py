@@ -39,10 +39,10 @@ Usage
     configuration, look into your `ipython_config.py` configuration file for
     details.
 
-    This file is typically installed in the `IPYTHON_DIR` directory, and there
+    This file is typically installed in the `IPYTHONDIR` directory, and there
     is a separate configuration directory for each profile. The default profile
-    directory will be located in $IPYTHON_DIR/profile_default. For Linux users,
-    IPYTHON_DIR defaults to `$HOME/.config/ipython`, and for other Unix systems
+    directory will be located in $IPYTHONDIR/profile_default. For Linux users,
+    IPYTHONDIR defaults to `$HOME/.config/ipython`, and for other Unix systems
     to `$HOME/.ipython`.  For Windows users, $HOME resolves to C:\\Documents
     and Settings\\YourUserName in most instances.
 
@@ -50,10 +50,10 @@ Usage
 
       $> ipython profile create
 
-    and start editing `IPYTHON_DIR/profile_default/ipython_config.py`
+    and start editing `IPYTHONDIR/profile_default/ipython_config.py`
 
     In IPython's documentation, we will refer to this directory as
-    `IPYTHON_DIR`, you can change its default location by creating an
+    `IPYTHONDIR`, you can change its default location by creating an
     environment variable with this name and setting it to the desired path.
 
     For more information, see the manual available in HTML and PDF in your
@@ -258,8 +258,9 @@ obj?, obj??      : Get help, or more help for object (also works as
 ?foo.*abc*       : List names in 'foo' containing 'abc' in them.
 %magic           : Information about IPython's 'magic' % functions.
 
-Magic functions are prefixed by %, and typically take their arguments without
-parentheses, quotes or even commas for convenience.
+Magic functions are prefixed by % or %%, and typically take their arguments
+without parentheses, quotes or even commas for convenience.  Line magics take a
+single % and cell magics are prefixed with two %%.
 
 Example magic function calls:
 
@@ -268,6 +269,10 @@ alias d ls -F    : Works if 'alias' not a python name
 alist = %alias   : Get list of aliases to 'alist'
 cd /usr/share    : Obvious. cd -<tab> to choose from visited dirs.
 %cd??            : See help AND source for magic %cd
+%timeit x=10     : time the 'x=10' statement with high precision.
+%%timeit x=2**100
+x**100           : time 'x*100' with a setup of 'x=2**100'; setup code is not
+                   counted.  This is an example of a cell magic.
 
 System commands:
 
@@ -533,3 +538,11 @@ default_gui_banner_parts = default_banner_parts + [gui_note]
 default_banner = ''.join(default_banner_parts)
 
 default_gui_banner = ''.join(default_gui_banner_parts)
+
+# page GUI Reference, for use as a magic:
+
+def page_guiref(arg_s=None):
+    """Show a basic reference about the GUI Console."""
+    from IPython.core import page
+    page.page(gui_reference, auto_html=True)
+

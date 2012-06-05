@@ -33,18 +33,18 @@ is not yet configurable.
    point in a multiline block, you can force its execution (without having to
    go to the bottom) with :kbd:`Shift-Enter`.
 
-``%loadpy``
-===========
+``%load``
+=========
 
-The new ``%loadpy`` magic takes any python script (must end in '.py'), and
-pastes its contents as your next input, so you can edit it before
-executing. The script may be on your machine, but you can also specify a url,
-and it will download the script from the web. This is particularly useful for
-playing with examples from documentation, such as matplotlib.
+The new ``%load`` magic (previously ``%loadpy``) takes any script, and pastes
+its contents as your next input, so you can edit it before executing. The
+script may be on your machine, but you can also specify an history range, or a
+url, and it will download the script from the web. This is particularly useful
+for playing with examples from documentation, such as matplotlib.
 
 .. sourcecode:: ipython
 
-    In [6]: %loadpy http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
+    In [6]: %load http://matplotlib.sourceforge.net/plot_directive/mpl_examples/mplot3d/contour3d_demo.py
 
     In [7]: from mpl_toolkits.mplot3d import axes3d
        ...: import matplotlib.pyplot as plt
@@ -400,9 +400,9 @@ generate this key, but the default is just to generate a new UUID. You can gener
 private key with::
 
     # generate 1024b of random data, and store in a file only you can read:
-    # (assumes IPYTHON_DIR is defined, otherwise use your IPython directory)
-    $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHON_DIR/sessionkey
-    $> chmod 600 $IPYTHON_DIR/sessionkey
+    # (assumes IPYTHONDIR is defined, otherwise use your IPython directory)
+    $> python -c "import os; print os.urandom(128).encode('base64')" > $IPYTHONDIR/sessionkey
+    $> chmod 600 $IPYTHONDIR/sessionkey
 
 The *contents* of this file will be stored in the JSON connection file, so that file
 contains everything you need to connect to and use a kernel.
@@ -411,7 +411,7 @@ To use this generated key, simply specify the ``Session.keyfile`` configurable
 in :file:`ipython_config.py` or at the command-line, as in::
 
     # instruct IPython to sign messages with that key, instead of a new UUID
-    $> ipython qtconsole --Session.keyfile=$IPYTHON_DIR/sessionkey
+    $> ipython qtconsole --Session.keyfile=$IPYTHONDIR/sessionkey
 
 .. _ssh_tunnels:
 
@@ -599,11 +599,6 @@ frontend:
   requires interactive input.  For such cases, use the terminal IPython.  This
   will not be fixed, as abandoning pexpect would significantly degrade the
   console experience.
-
-* Use of ``\b`` and ``\r`` characters in the console: these are control
-  characters that allow the cursor to move backwards on a line, and are used to
-  display things like in-place progress bars in a terminal.  We currently do
-  not support this, but it is being tracked as issue :ghissue:`629`.
 
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/download
 .. _pygments: http://pygments.org/

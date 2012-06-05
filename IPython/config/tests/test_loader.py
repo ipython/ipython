@@ -190,6 +190,14 @@ class TestArgParseKVCL(TestKeyValueCL):
         self.assertEquals(config.A.a, os.path.expanduser('~/1/2/3'))
         self.assertEquals(config.A.b, '~/1/2/3')
     
+    def test_eval(self):
+        cl = self.klass()
+        argv = ['-c', 'a=5']
+        with mute_warn():
+            config = cl.load_config(argv, aliases=dict(c='A.c'))
+        self.assertEquals(config.A.c, u"a=5")
+    
+
 class TestConfig(TestCase):
 
     def test_setget(self):

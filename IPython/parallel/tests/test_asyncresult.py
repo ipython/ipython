@@ -22,7 +22,7 @@ from IPython.parallel.error import TimeoutError
 
 from IPython.parallel import error, Client
 from IPython.parallel.tests import add_engines
-from .clienttest import ClusterTestCase
+from .clienttest import ClusterTestCase, capture_output
 
 def setup():
     add_engines(2, total=True)
@@ -154,7 +154,7 @@ class AsyncResultTest(ClusterTestCase):
         ar = v.apply_async(time.sleep, 0.25)
         self.assertRaises(TimeoutError, getattr, ar, 'serial_time')
         ar.get(2)
-        self.assertTrue(ar.serial_time < 0.5)
+        self.assertTrue(ar.serial_time < 1.)
         self.assertTrue(ar.serial_time > 0.2)
 
     def test_serial_time_multi(self):
@@ -171,8 +171,8 @@ class AsyncResultTest(ClusterTestCase):
         ar = v.apply_async(time.sleep, 0.25)
         while not ar.ready():
             time.sleep(0.01)
-            self.assertTrue(ar.elapsed < 0.3)
-        self.assertTrue(ar.elapsed < 0.3)
+            self.assertTrue(ar.elapsed < 1)
+        self.assertTrue(ar.elapsed < 1)
         ar.get(2)
 
     def test_elapsed_multi(self):
@@ -180,8 +180,8 @@ class AsyncResultTest(ClusterTestCase):
         ar = v.apply_async(time.sleep, 0.25)
         while not ar.ready():
             time.sleep(0.01)
-            self.assertTrue(ar.elapsed < 0.3)
-        self.assertTrue(ar.elapsed < 0.3)
+            self.assertTrue(ar.elapsed < 1)
+        self.assertTrue(ar.elapsed < 1)
         ar.get(2)
 
     def test_hubresult_timestamps(self):
@@ -202,4 +202,65 @@ class AsyncResultTest(ClusterTestCase):
         finally:
             rc2.close()
 
+    def test_display_empty_streams_single(self):
+        """empty stdout/err are not displayed (single result)"""
+        self.minimum_engines(1)
+        
+        v = self.client[-1]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals('5555\n', io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+        
+    def test_display_empty_streams_type(self):
+        """empty stdout/err are not displayed (groupby type)"""
+        self.minimum_engines(1)
+        
+        v = self.client[:]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertFalse('\n\n' in io.stdout, io.stdout)
+        self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs()
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+
+    def test_display_empty_streams_engine(self):
+        """empty stdout/err are not displayed (groupby engine)"""
+        self.minimum_engines(1)
+        
+        v = self.client[:]
+        ar = v.execute("print (5555)")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs('engine')
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout.count('5555'), len(v), io.stdout)
+        self.assertFalse('\n\n' in io.stdout, io.stdout)
+        self.assertEquals(io.stdout.count('[stdout:'), len(v), io.stdout)
+
+        ar = v.execute("a=5")
+        ar.get(5)
+        with capture_output() as io:
+            ar.display_outputs('engine')
+        self.assertEquals(io.stderr, '')
+        self.assertEquals(io.stdout, '')
+        
 

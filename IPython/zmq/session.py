@@ -629,7 +629,7 @@ class Session(Configurable):
         if isinstance(socket, ZMQStream):
             socket = socket.socket
         try:
-            msg_list = socket.recv_multipart(mode)
+            msg_list = socket.recv_multipart(mode, copy=copy)
         except zmq.ZMQError as e:
             if e.errno == zmq.EAGAIN:
                 # We can convert EAGAIN to None as we know in this case

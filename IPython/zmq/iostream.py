@@ -4,7 +4,7 @@ from io import StringIO
 
 from session import extract_header, Message
 
-from IPython.utils import io, text
+from IPython.utils import io, text, encoding
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -69,7 +69,7 @@ class OutStream(object):
         else:
             # Make sure that we're handling unicode
             if not isinstance(string, unicode):
-                enc = text.getdefaultencoding()
+                enc = encoding.DEFAULT_ENCODING
                 string = string.decode(enc, 'replace')
             
             self._buffer.write(string)

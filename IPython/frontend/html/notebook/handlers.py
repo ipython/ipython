@@ -30,6 +30,7 @@ from zmq.utils import jsonapi
 from IPython.external.decorator import decorator
 from IPython.zmq.session import Session
 from IPython.lib.security import passwd_check
+from IPython.utils.jsonutil import date_default
 
 try:
     from docutils.core import publish_string
@@ -385,13 +386,13 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         except KeyError:
             pass
         msg.pop('buffers')
-        return jsonapi.dumps(msg)
+        return jsonapi.dumps(msg, default=date_default)
 
     def _on_zmq_reply(self, msg_list):
         try:
             msg = self._reserialize_reply(msg_list)
-        except:
-            self.application.log.critical("Malformed message: %r" % msg_list)
+        except Exception:
+            self.application.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
             self.write_message(msg)
 
@@ -590,7 +591,10 @@ class NotebookRootHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
+        km = self.application.kernel_manager
         files = nbm.list_notebooks()
+        for f in files :
+            f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated

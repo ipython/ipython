@@ -20,8 +20,7 @@ var IPython = (function (IPython) {
         $(window).resize($.proxy(this.do_resize,this));
     };
 
-
-    LayoutManager.prototype.do_resize = function () {
+    LayoutManager.prototype.app_height = function() {
         var win = $(window);
         var w = win.width();
         var h = win.height();
@@ -38,7 +37,11 @@ var IPython = (function (IPython) {
         } else {
             toolbar_height = $('div#toolbar').outerHeight(true);
         }
-        var app_height = h-header_height-menubar_height-toolbar_height;  // content height
+        return h-header_height-menubar_height-toolbar_height;  // content height
+    }
+
+    LayoutManager.prototype.do_resize = function () {
+        var app_height = this.app_height()  // content height
 
         $('div#main_app').height(app_height);  // content+padding+border height
 

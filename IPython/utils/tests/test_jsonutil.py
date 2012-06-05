@@ -58,7 +58,8 @@ def test():
 
 def test_lambda():
     jc = json_clean(lambda : 1)
-    nt.assert_true(jc.startswith('<function <lambda> at '))
+    assert isinstance(jc, str)
+    assert '<lambda>' in jc
     json.dumps(jc)
 
 

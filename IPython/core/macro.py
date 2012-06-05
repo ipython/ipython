@@ -11,6 +11,7 @@ import re
 import sys
 
 from IPython.utils import py3compat
+from IPython.utils.encoding import DEFAULT_ENCODING
 
 coding_declaration = re.compile(r"#\s*coding[:=]\s*([-\w.]+)")
 
@@ -35,7 +36,7 @@ class Macro(object):
                 lines.append(line)
         code = "\n".join(lines)
         if isinstance(code, bytes):
-            code = code.decode(enc or sys.getdefaultencoding())
+            code = code.decode(enc or DEFAULT_ENCODING)
         self.value = code + '\n'
     
     def __str__(self):

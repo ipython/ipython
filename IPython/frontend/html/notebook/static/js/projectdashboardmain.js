@@ -30,10 +30,53 @@ $(document).ready(function () {
     IPython.cluster_list = new IPython.ClusterList('div#cluster_list');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
 
-    IPython.notebook_list.load_list();
-    IPython.cluster_list.load_list();
+    var interval_id=0;
+    // auto refresh every xx secondes, no need to be fast,
+    //  update is done at least when page get focus
+    var time_refresh = 60; // in sec
+
+    var enable_autorefresh = function(){
+        //refresh immediately , then start interval
+        if($('.upload_button').length == 0)
+        {
+            IPython.notebook_list.load_list();
+            IPython.cluster_list.load_list();
+        }
+        if (!interval_id){
+            interval_id = setInterval(function(){
+                    if($('.upload_button').length == 0)
+                    {
+                        IPython.notebook_list.load_list();
+                        IPython.cluster_list.load_list();
+                    }
+                }, time_refresh*1000);
+            }
+    }
+
+    var disable_autorefresh = function(){
+        clearInterval(interval_id);
+        interval_id = 0;
+    }
+
+    // stop autorefresh when page lose focus
+    $(window).blur(function() {
+        disable_autorefresh();
+    })
+
+    //re-enable when page get focus back
+    $(window).focus(function() {
+        enable_autorefresh();
+    });
+
+    // finally start it, it will refresh immediately
+    enable_autorefresh();
 
     IPython.page.show();
+    
+    // bound the upload method to the on change of the file select list
+    $("#alternate_upload").change(function (event){
+        IPython.notebook_list.handelFilesUpload(event,'form');
+    });
 
 });
 

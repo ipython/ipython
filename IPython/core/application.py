@@ -118,7 +118,7 @@ class BaseIPythonApplication(Application):
         The name of the IPython directory. This directory is used for logging
         configuration (through profiles), history storage, etc. The default
         is usually $HOME/.ipython. This options can also be specified through
-        the environment variable IPYTHON_DIR.
+        the environment variable IPYTHONDIR.
         """
     )
 
@@ -139,7 +139,7 @@ class BaseIPythonApplication(Application):
         """)
     
     verbose_crash = Bool(False, config=True,
-        help="""Create a massive crash report when IPython enconters what may be an
+        help="""Create a massive crash report when IPython encounters what may be an
         internal error.  The default is to append a short message to the
         usual traceback""")
 
@@ -148,7 +148,7 @@ class BaseIPythonApplication(Application):
 
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
-        # ensure even default IPYTHON_DIR exists
+        # ensure even default IPYTHONDIR exists
         if not os.path.exists(self.ipython_dir):
             self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
 
@@ -186,7 +186,7 @@ class BaseIPythonApplication(Application):
         if not os.path.exists(readme):
             path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
             shutil.copy(os.path.join(path, 'README'), readme)
-        self.log.debug("IPYTHON_DIR set to: %s" % new)
+        self.log.debug("IPYTHONDIR set to: %s" % new)
 
     def load_config_file(self, suppress_errors=True):
         """Load the config file.

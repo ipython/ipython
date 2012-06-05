@@ -20,6 +20,10 @@ import nose.tools as nt
 
 # Our own imports
 from .. import oinspect
+from IPython.core.magic import (Magics, magics_class, line_magic,
+                                cell_magic, line_cell_magic,
+                                register_line_magic, register_cell_magic,
+                                register_line_cell_magic)
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
@@ -27,6 +31,7 @@ from IPython.utils import py3compat
 #-----------------------------------------------------------------------------
 
 inspector = oinspect.Inspector()
+ip = get_ipython()
 
 #-----------------------------------------------------------------------------
 # Local utilities
@@ -46,15 +51,48 @@ class Call(object):
     def method(self, x, z=2):
         """Some method's docstring"""
 
+
 class OldStyle:
     """An old-style class for testing."""
     pass
 
+
 def f(x, y=2, *a, **kw):
     """A simple function."""
 
+
 def g(y, z=3, *a, **kw):
     pass  # no docstring
+
+
+@register_line_magic
+def lmagic(line):
+    "A line magic"
+
+
+@register_cell_magic
+def cmagic(line, cell):
+    "A cell magic"
+
+
+@register_line_cell_magic
+def lcmagic(line, cell=None):
+    "A line/cell magic"
+
+
+@magics_class
+class SimpleMagics(Magics):
+    @line_magic
+    def Clmagic(self, cline):
+        "A class-based line magic"
+        
+    @cell_magic
+    def Ccmagic(self, cline, ccell):
+        "A class-based cell magic"
+        
+    @line_cell_magic
+    def Clcmagic(self, cline, ccell=None):
+        "A class-based line/cell magic"
 
 
 def check_calltip(obj, name, call, docstring):
@@ -92,6 +130,31 @@ def test_calltip_function2():
 
 def test_calltip_builtin():
     check_calltip(sum, 'sum', None, sum.__doc__)
+
+
+def test_calltip_line_magic():
+    check_calltip(lmagic, 'lmagic', 'lmagic(line)', "A line magic")
+
+        
+def test_calltip_cell_magic():
+    check_calltip(cmagic, 'cmagic', 'cmagic(line, cell)', "A cell magic")
+
+        
+def test_calltip_line_magic():
+    check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)', 
+                  "A line/cell magic")
+        
+
+def test_class_magics():
+    cm = SimpleMagics(ip)
+    ip.register_magics(cm)
+    check_calltip(cm.Clmagic, 'Clmagic', 'Clmagic(cline)',
+                  "A class-based line magic")
+    check_calltip(cm.Ccmagic, 'Ccmagic', 'Ccmagic(cline, ccell)',
+                  "A class-based cell magic")
+    check_calltip(cm.Clcmagic, 'Clcmagic', 'Clcmagic(cline, ccell=None)',
+                  "A class-based line/cell magic")
+    
 
 def test_info():
     "Check that Inspector.info fills out various fields as expected."

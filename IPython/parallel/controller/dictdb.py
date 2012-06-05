@@ -46,7 +46,7 @@ We support a subset of mongodb operators:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-from copy import copy
+from copy import deepcopy as copy
 from datetime import datetime
 
 from IPython.config.configurable import LoggingConfigurable
@@ -129,7 +129,7 @@ class DictDB(BaseDB):
         d['msg_id'] = rec['msg_id']
         for key in keys:
             d[key] = rec[key]
-        return d
+        return copy(d)
 
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""

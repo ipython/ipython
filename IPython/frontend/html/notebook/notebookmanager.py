@@ -41,7 +41,7 @@ class NotebookManager(LoggingConfigurable):
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
         
-        For easier use of import, %run and %loadpy across notebooks, a
+        For easier use of import, %run and %load across notebooks, a
         <notebook-name>.py script will be created next to any
         <notebook-name>.ipynb on each save.  This can also be set with the
         short `--script` flag.
@@ -151,8 +151,8 @@ class NotebookManager(LoggingConfigurable):
                 nb = current.reads(s, u'json')
             except:
                 raise web.HTTPError(500, u'Unreadable JSON notebook.')
-        if 'name' not in nb:
-            nb.name = os.path.split(path)[-1].split(u'.')[0]
+        # Always use the filename as the notebook name.
+        nb.metadata.name = os.path.split(path)[-1].split(u'.')[0]
         return last_modified, nb
 
     def save_new_notebook(self, data, name=None, format=u'json'):

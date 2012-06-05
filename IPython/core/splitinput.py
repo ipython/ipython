@@ -24,6 +24,7 @@ import re
 import sys
 
 from IPython.utils import py3compat
+from IPython.utils.encoding import get_stream_enc
 
 #-----------------------------------------------------------------------------
 # Main function
@@ -43,17 +44,19 @@ from IPython.utils import py3compat
 line_split = re.compile("""
              ^(\s*)               # any leading space
              ([,;/%]|!!?|\?\??)?  # escape character or characters
-             \s*(%?[\w\.\*]*)     # function/method, possibly with leading %
+             \s*(%{0,2}[\w\.\*]*)     # function/method, possibly with leading %
                                   # to correctly treat things like '?%magic'
              (.*?$|$)             # rest of line
              """, re.VERBOSE)
+
 
 def split_user_input(line, pattern=None):
     """Split user input into initial whitespace, escape character, function part
     and the rest.
     """
     # We need to ensure that the rest of this routine deals only with unicode
-    line = py3compat.cast_unicode(line, sys.stdin.encoding or 'utf-8')
+    encoding = get_stream_enc(sys.stdin, 'utf-8')
+    line = py3compat.cast_unicode(line, encoding)
 
     if pattern is None:
         pattern = line_split
@@ -73,6 +76,7 @@ def split_user_input(line, pattern=None):
     #print 'line:<%s>' % line # dbg
     #print 'pre <%s> ifun <%s> rest <%s>' % (pre,ifun.strip(),the_rest) # dbg
     return pre, esc or '', ifun.strip(), the_rest.lstrip()
+
 
 class LineInfo(object):
     """A single line of input and associated info.
@@ -114,13 +118,11 @@ class LineInfo(object):
         else:
             self.pre_whitespace = self.pre
 
-        self._oinfo = None
-
     def ofind(self, ip):
         """Do a full, attribute-walking lookup of the ifun in the various
         namespaces for the given IPython InteractiveShell instance.
 
-        Return a dict with keys: found,obj,ospace,ismagic
+        Return a dict with keys: {found, obj, ospace, ismagic}
 
         Note: can cause state changes because of calling getattr, but should
         only be run if autocall is on and if the line hasn't matched any
@@ -129,10 +131,7 @@ class LineInfo(object):
         Does cache the results of the call, so can be called multiple times
         without worrying about *further* damaging state.
         """
-        if not self._oinfo:
-            # ip.shell._ofind is actually on the Magic class!
-            self._oinfo = ip.shell._ofind(self.ifun)
-        return self._oinfo
+        return ip._ofind(self.ifun)
 
     def __str__(self):
         return "LineInfo [%s|%s|%s|%s]" %(self.pre, self.esc, self.ifun, self.the_rest)

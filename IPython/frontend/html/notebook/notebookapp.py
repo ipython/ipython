@@ -20,6 +20,7 @@ Authors:
 import errno
 import logging
 import os
+import random
 import re
 import select
 import signal
@@ -55,6 +56,7 @@ from .clustermanager import ClusterManager
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
+from IPython.frontend.consoleapp import IPythonConsoleApp
 from IPython.lib.kernel import swallow_argv
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
@@ -96,6 +98,17 @@ def url_path_join(a,b):
         return a[:-1]+b
     else:
         return a+b
+
+def random_ports(port, n):
+    """Generate a list of n random ports near the given port.
+
+    The first 5 ports will be sequential, and the remaining n-5 will be
+    randomly selected in the range [port-2*n, port+2*n].
+    """
+    for i in range(min(5, n)):
+        yield port + i
+    for i in range(n-5):
+        yield port + random.randint(-2*n, 2*n)
 
 #-----------------------------------------------------------------------------
 # The Tornado web application
@@ -212,6 +225,7 @@ aliases = dict(ipkernel_aliases)
 aliases.update({
     'ip': 'NotebookApp.ip',
     'port': 'NotebookApp.port',
+    'port-retries': 'NotebookApp.port_retries',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
@@ -222,7 +236,7 @@ aliases.update({
 # multi-kernel evironment:
 aliases.pop('f', None)
 
-notebook_aliases = [u'port', u'ip', u'keyfile', u'certfile',
+notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
                     u'notebook-dir']
 
 #-----------------------------------------------------------------------------
@@ -242,8 +256,7 @@ class NotebookApp(BaseIPythonApplication):
     """
     examples = _examples
     
-    classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session,
-               MappingKernelManager, NotebookManager]
+    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
@@ -257,6 +270,9 @@ class NotebookApp(BaseIPythonApplication):
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
 
+    # file to be opened in the notebook server
+    file_to_run = Unicode('')
+
     # Network related information.
 
     ip = Unicode(LOCALHOST, config=True,
@@ -268,6 +284,9 @@ class NotebookApp(BaseIPythonApplication):
 
     port = Integer(8888, config=True,
         help="The port the notebook server will listen on."
+    )
+    port_retries = Integer(50, config=True,
+        help="The number of additional ports to try if the specified port is not available."
     )
 
     certfile = Unicode(u'', config=True, 
@@ -349,31 +368,15 @@ class NotebookApp(BaseIPythonApplication):
             self.log.info("Using local MathJax")
             return static_url_prefix+u"mathjax/MathJax.js"
         else:
-            self.log.info("Using MathJax from CDN")
-            hostname = "cdn.mathjax.org"
-            try:
-                # resolve mathjax cdn alias to cloudfront, because Amazon's SSL certificate
-                # only works on *.cloudfront.net
-                true_host, aliases, IPs = socket.gethostbyname_ex(hostname)
-                # I've run this on a few machines, and some put the right answer in true_host,
-                # while others gave it in the aliases list, so we check both.
-                aliases.insert(0, true_host)
-            except Exception:
-                self.log.warn("Couldn't determine MathJax CDN info")
+            if self.certfile:
+                # HTTPS: load from Rackspace CDN, because SSL certificate requires it
+                base = u"https://c328740.ssl.cf1.rackcdn.com"
             else:
-                for alias in aliases:
-                    parts = alias.split('.')
-                    # want static foo.cloudfront.net, not dynamic foo.lax3.cloudfront.net
-                    if len(parts) == 3 and alias.endswith(".cloudfront.net"):
-                        hostname = alias
-                        break
+                base = u"http://cdn.mathjax.org"
             
-            if not hostname.endswith(".cloudfront.net"):
-                self.log.error("Couldn't resolve CloudFront host, required for HTTPS MathJax.")
-                self.log.error("Loading from https://cdn.mathjax.org will probably fail due to invalid certificate.")
-                self.log.error("For unsecured HTTP access to MathJax use config:")
-                self.log.error("NotebookApp.mathjax_url='http://cdn.mathjax.org/mathjax/latest/MathJax.js'")
-            return u"https://%s/mathjax/latest/MathJax.js" % hostname
+            url = base + u"/mathjax/latest/MathJax.js"
+            self.log.info("Using MathJax from CDN: %s", url)
+            return url
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
@@ -392,6 +395,10 @@ class NotebookApp(BaseIPythonApplication):
         # Kernel should inherit default config file from frontend
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
 
+        if self.extra_args:
+            self.file_to_run = os.path.abspath(self.extra_args[0])
+            self.config.NotebookManager.notebook_dir = os.path.dirname(self.file_to_run)
+
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
@@ -406,7 +413,6 @@ class NotebookApp(BaseIPythonApplication):
         self.cluster_manager.update_profiles()
 
     def init_logging(self):
-        super(NotebookApp, self).init_logging()
         # This prevents double log messages because tornado use a root logger that
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
@@ -432,10 +438,8 @@ class NotebookApp(BaseIPythonApplication):
                               'but not using any encryption or authentication. This is highly '
                               'insecure and not recommended.')
 
-        # Try random ports centered around the default.
-        from random import randint
-        n = 50  # Max number of attempts, keep reasonably large.
-        for port in range(self.port, self.port+5) + [self.port + randint(-2*n, 2*n) for i in range(n-5)]:
+        success = None
+        for port in random_ports(self.port, self.port_retries+1):
             try:
                 self.http_server.listen(port, self.ip)
             except socket.error, e:
@@ -444,7 +448,12 @@ class NotebookApp(BaseIPythonApplication):
                 self.log.info('The port %i is already in use, trying another random port.' % port)
             else:
                 self.port = port
+                success = True
                 break
+        if not success:
+            self.log.critical('ERROR: the notebook server could not be started because '
+                              'no available port could be found.')
+            self.exit(1)
     
     def init_signal(self):
         # FIXME: remove this check when pyzmq dependency is >= 2.1.11
@@ -509,6 +518,7 @@ class NotebookApp(BaseIPythonApplication):
     
     @catch_config_error
     def initialize(self, argv=None):
+        self.init_logging()
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
         self.init_webapp()
@@ -540,9 +550,20 @@ class NotebookApp(BaseIPythonApplication):
                 browser = webbrowser.get(self.browser)
             else:
                 browser = webbrowser.get()
-            b = lambda : browser.open("%s://%s:%i%s" % (proto, ip, self.port,
-                                                           self.base_project_url),
-                                         new=2)
+
+            if self.file_to_run:
+                filename, _ = os.path.splitext(os.path.basename(self.file_to_run))
+                for nb in self.notebook_manager.list_notebooks():
+                    if filename == nb['name']:
+                        url = nb['notebook_id']
+                        break
+                else:
+                    url = ''
+            else:
+                url = ''
+            b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
+                                        self.port, self.base_project_url, url),
+                                    new=2)
             threading.Thread(target=b).start()
         try:
             ioloop.IOLoop.instance().start()

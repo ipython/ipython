@@ -105,7 +105,7 @@ object), you can actually iterate through them, and act on the results as they a
 
 .. literalinclude:: ../../examples/parallel/itermapresult.py
     :language: python
-    :lines: 20-66
+    :lines: 20-67
 
 .. seealso::
 

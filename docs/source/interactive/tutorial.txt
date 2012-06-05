@@ -35,20 +35,42 @@ Magic functions
 ===============
 
 IPython has a set of predefined 'magic functions' that you can call with a
-command line style syntax. These include:
+command line style syntax.  There are two kinds of magics, line-oriented and
+cell-oriented.  Line magics are prefixed with the ``%`` character and work much
+like OS command-line calls: they get as an argument the rest of the line, where
+arguments are passed without parentheses or quotes.  Cell magics are prefixed
+with a double ``%%``, and they are functions that get as an argument not only
+the rest of the line, but also the lines below it in a separate argument.
+
+The following examples show how to call the builtin ``timeit`` magic, both in
+line and cell mode::
+
+      In [1]: %timeit range(1000)
+      100000 loops, best of 3: 7.76 us per loop
+
+      In [2]: %%timeit x = range(10000)
+	 ...: max(x)
+	 ...: 
+      1000 loops, best of 3: 223 us per loop
+
+The builtin magics include:
 
 - Functions that work with code: ``%run``, ``%edit``, ``%save``, ``%macro``,
   ``%recall``, etc.
-- Functions which affect the shell: ``%colors``, ``%xmode``, ``%autoindent``, etc.
+- Functions which affect the shell: ``%colors``, ``%xmode``, ``%autoindent``,
+  etc.
 - Other functions such as ``%reset``, ``%timeit`` or ``%paste``.
 
-You can always call these using the % prefix, and if you're typing one on a line
-by itself, you can omit even that::
+You can always call them using the % prefix, and if you're calling a line magic
+on a line by itself, you can omit even that (cell magics must always have the
+``%%`` prefix)::
 
     run thescript.py
-    
-For more details on any magic function, call ``%somemagic?`` to read its
-docstring. To see all the available magic functions, call ``%lsmagic``.
+
+A more detailed explanation of the magic system can be obtained by calling
+``%magic``, and for more details on any magic function, call ``%somemagic?`` to
+read its docstring. To see all the available magic functions, call
+``%lsmagic``.
 
 Running and Editing
 -------------------

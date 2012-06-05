@@ -42,10 +42,11 @@ from IPython.external.decorator import decorator
 from IPython.config.application import Application
 from IPython.config.loader import Config
 from IPython.utils.traitlets import Instance, Dict, List, Set, Integer, Enum, CBytes
+from IPython.utils.py3compat import cast_bytes
 
 from IPython.parallel import error, util
 from IPython.parallel.factory import SessionFactory
-from IPython.parallel.util import connect_logger, local_logger, asbytes
+from IPython.parallel.util import connect_logger, local_logger
 
 from .dependency import Dependency
 
@@ -262,7 +263,7 @@ class TaskScheduler(SessionFactory):
             self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
-                handler(asbytes(msg['content']['queue']))
+                handler(cast_bytes(msg['content']['queue']))
             except Exception:
                 self.log.error("task::Invalid notification msg: %r", msg, exc_info=True)
 
@@ -316,7 +317,7 @@ class TaskScheduler(SessionFactory):
                 # prevent double-handling of messages
                 continue
 
-            raw_msg = lost[msg_id][0]
+            raw_msg = lost[msg_id].raw_msg
             idents,msg = self.session.feed_identities(raw_msg, copy=False)
             parent = self.session.unpack(msg[1].bytes)
             idents = [engine, idents[0]]
@@ -370,7 +371,7 @@ class TaskScheduler(SessionFactory):
         # get targets as a set of bytes objects
         # from a list of unicode objects
         targets = header.get('targets', [])
-        targets = map(asbytes, targets)
+        targets = map(cast_bytes, targets)
         targets = set(targets)
 
         retries = header.get('retries', 0)

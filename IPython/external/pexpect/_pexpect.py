@@ -352,7 +352,7 @@ class spawnb(object):
         Example log input and output to a file::
 
             child = pexpect.spawn('some_command')
-            fout = file('mylog.txt','w')
+            fout = open('mylog.txt','w')
             child.logfile = fout
 
         Example log to stdout::

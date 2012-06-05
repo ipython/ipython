@@ -13,9 +13,22 @@ import io
 import os
 import sys
 from StringIO import StringIO
+from unittest import TestCase
+
+try:
+    from importlib import invalidate_caches   # Required from Python 3.3
+except ImportError:
+    def invalidate_caches():
+        pass
 
 import nose.tools as nt
 
+from IPython.core import magic
+from IPython.core.magic import (Magics, magics_class, line_magic,
+                                cell_magic, line_cell_magic,
+                                register_line_magic, register_cell_magic,
+                                register_line_cell_magic)
+from IPython.core.magics import execution
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
 from IPython.testing import decorators as dec
@@ -27,6 +40,8 @@ from IPython.utils.tempdir import TemporaryDirectory
 # Test functions begin
 #-----------------------------------------------------------------------------
 
+@magic.magics_class
+class DummyMagics(magic.Magics): pass
 
 def test_rehashx():
     # clear up everything
@@ -51,13 +66,23 @@ def test_magic_parse_options():
     """Test that we don't mangle paths when parsing magic options."""
     ip = get_ipython()
     path = 'c:\\x'
-    opts = ip.parse_options('-f %s' % path,'f:')[0]
+    m = DummyMagics(ip)
+    opts = m.parse_options('-f %s' % path,'f:')[0]
     # argv splitting is os-dependent
     if os.name == 'posix':
         expected = 'c:x'
     else:
         expected = path
     nt.assert_equals(opts['f'], expected)
+
+def test_magic_parse_long_options():
+    """Magic.parse_options can handle --foo=bar long options"""
+    ip = get_ipython()
+    m = DummyMagics(ip)
+    opts, _ = m.parse_options('--foo --bar=bubble', 'a', 'foo', 'bar=')
+    nt.assert_true('foo' in opts)
+    nt.assert_true('bar' in opts)
+    nt.assert_true(opts['bar'], "bubble")
 
 
 @dec.skip_without('sqlite3')
@@ -284,8 +309,9 @@ def test_parse_options():
     """Tests for basic options parsing in magics."""
     # These are only the most minimal of tests, more should be added later.  At
     # the very least we check that basic text/unicode calls work OK.
-    nt.assert_equal(_ip.parse_options('foo', '')[1], 'foo')
-    nt.assert_equal(_ip.parse_options(u'foo', '')[1], u'foo')
+    m = DummyMagics(_ip)
+    nt.assert_equal(m.parse_options('foo', '')[1], 'foo')
+    nt.assert_equal(m.parse_options(u'foo', '')[1], u'foo')
 
     
 def test_dirops():
@@ -326,7 +352,7 @@ def test_reset_hard():
     _ip.run_cell("a")
     
     nt.assert_equal(monitor, [])
-    _ip.magic_reset("-f")
+    _ip.magic("reset -f")
     nt.assert_equal(monitor, [1])
     
 class TestXdel(tt.TempFileMixin):
@@ -376,11 +402,19 @@ def doctest_who():
     Out[7]: ['alpha', 'beta']
     """
 
+def test_whos():
+    """Check that whos is protected against objects where repr() fails."""
+    class A(object):
+        def __repr__(self):
+            raise Exception()
+    _ip.user_ns['a'] = A()
+    _ip.magic("whos")
+
 @py3compat.u_format
 def doctest_precision():
     """doctest for %precision
     
-    In [1]: f = get_ipython().shell.display_formatter.formatters['text/plain']
+    In [1]: f = get_ipython().display_formatter.formatters['text/plain']
     
     In [2]: %precision 5
     Out[2]: {u}'%.5f'
@@ -414,7 +448,8 @@ def test_timeit_arguments():
     "Test valid timeit arguments, should not cause SyntaxError (GH #1269)"
     _ip.magic("timeit ('#')")
 
-@dec.skipif(_ip.magic_prun == _ip.profile_missing_notice)
+
+@dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
     _ip.magic("prun -q x = '\t'")
@@ -429,6 +464,7 @@ def test_extension():
         url = os.path.join(os.path.dirname(__file__), "daft_extension.py")
         _ip.magic("install_ext %s" % url)
         _ip.user_ns.pop('arq', None)
+        invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
         tt.assert_equal(_ip.user_ns['arq'], 185)
         _ip.magic("unload_ext daft_extension")
@@ -470,3 +506,58 @@ def test_notebook_reformat_json():
 def test_env():
     env = _ip.magic("env")
     assert isinstance(env, dict), type(env)
+
+
+class CellMagicTestCase(TestCase):
+
+    def check_ident(self, magic):
+        # Manually called, we get the result
+        out = _ip.run_cell_magic(magic, 'a', 'b')
+        nt.assert_equals(out, ('a','b'))
+        # Via run_cell, it goes into the user's namespace via displayhook
+        _ip.run_cell('%%' + magic +' c\nd')
+        nt.assert_equals(_ip.user_ns['_'], ('c','d'))
+
+    def test_cell_magic_func_deco(self):
+        "Cell magic using simple decorator"
+        @register_cell_magic
+        def cellm(line, cell):
+            return line, cell
+
+        self.check_ident('cellm')
+
+    def test_cell_magic_reg(self):
+        "Cell magic manually registered"
+        def cellm(line, cell):
+            return line, cell
+
+        _ip.register_magic_function(cellm, 'cell', 'cellm2')
+        self.check_ident('cellm2')
+
+    def test_cell_magic_class(self):
+        "Cell magics declared via a class"
+        @magics_class
+        class MyMagics(Magics):
+
+            @cell_magic
+            def cellm3(self, line, cell):
+                return line, cell
+
+        _ip.register_magics(MyMagics)
+        self.check_ident('cellm3')
+
+    def test_cell_magic_class2(self):
+        "Cell magics declared via a class, #2"
+        @magics_class
+        class MyMagics2(Magics):
+
+            @cell_magic('cellm4')
+            def cellm33(self, line, cell):
+                return line, cell
+            
+        _ip.register_magics(MyMagics2)
+        self.check_ident('cellm4')
+        # Check that nothing is registered as 'cellm33'
+        c33 = _ip.find_cell_magic('cellm33')
+        nt.assert_equals(c33, None)
+    

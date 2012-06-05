@@ -1,6 +1,7 @@
-"""
-``autoreload`` is an IPython extension that reloads modules
-automatically before executing the line of code typed.
+"""IPython extension to reload modules before executing user code.
+
+``autoreload`` reloads modules automatically before entering the execution of
+code typed at the IPython prompt.
 
 This makes for example the following workflow possible:
 
@@ -20,8 +21,8 @@ This makes for example the following workflow possible:
    In [6]: some_function()
    Out[6]: 43
 
-The module was reloaded without reloading it explicitly, and the
-object imported with ``from foo import ...`` was also updated.
+The module was reloaded without reloading it explicitly, and the object
+imported with ``from foo import ...`` was also updated.
 
 Usage
 =====
@@ -84,26 +85,39 @@ Some of the known remaining caveats are:
 - Functions that are removed (eg. via monkey-patching) from a module
   before it is reloaded are not upgraded.
 
-- C extension modules cannot be reloaded, and so cannot be
-  autoreloaded.
-
+- C extension modules cannot be reloaded, and so cannot be autoreloaded.
 """
 
 skip_doctest = True
 
-# Pauli Virtanen <pav@iki.fi>, 2008.
-# Thomas Heller, 2000.
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2000 Thomas Heller
+#  Copyright (C) 2008 Pauli Virtanen <pav@iki.fi>
+#  Copyright (C) 2012  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
 #
 # This IPython module is written by Pauli Virtanen, based on the autoreload
 # code by Thomas Heller.
 
-#------------------------------------------------------------------------------
-# Autoreload functionality
-#------------------------------------------------------------------------------
-
-import time, os, threading, sys, types, imp, inspect, traceback, atexit
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+import atexit
+import imp
+import inspect
+import os
+import sys
+import threading
+import time
+import traceback
+import types
 import weakref
+
 try:
+    # Reload is not defined by default in Python3.
     reload
 except NameError:
     from imp import reload
@@ -111,13 +125,19 @@ except NameError:
 from IPython.utils import pyfile
 from IPython.utils.py3compat import PY3
 
+#------------------------------------------------------------------------------
+# Autoreload functionality
+#------------------------------------------------------------------------------
+
 def _get_compiled_ext():
     """Official way to get the extension of compiled files (.pyc or .pyo)"""
     for ext, mode, typ in imp.get_suffixes():
         if typ == imp.PY_COMPILED:
             return ext
 
+
 PY_COMPILED_EXT = _get_compiled_ext()
+
 
 class ModuleReloader(object):
     enabled = False
@@ -239,6 +259,7 @@ else:
     func_attrs = ['func_code', 'func_defaults', 'func_doc',
                   'func_closure', 'func_globals', 'func_dict']
 
+
 def update_function(old, new):
     """Upgrade the code object of a function"""
     for name in func_attrs:
@@ -246,6 +267,7 @@ def update_function(old, new):
             setattr(old, name, getattr(new, name))
         except (AttributeError, TypeError):
             pass
+
 
 def update_class(old, new):
     """Replace stuff in the __dict__ of a class, and upgrade
@@ -270,14 +292,17 @@ def update_class(old, new):
         except (AttributeError, TypeError):
             pass # skip non-writable attributes
 
+
 def update_property(old, new):
     """Replace get/set/del functions of a property"""
     update_generic(old.fdel, new.fdel)
     update_generic(old.fget, new.fget)
     update_generic(old.fset, new.fset)
 
+
 def isinstance2(a, b, typ):
     return isinstance(a, typ) and isinstance(b, typ)
+
 
 UPDATE_RULES = [
     (lambda a, b: isinstance2(a, b, type),
@@ -287,6 +312,7 @@ UPDATE_RULES = [
     (lambda a, b: isinstance2(a, b, property),
      update_property),
 ]
+
 
 if PY3:
     UPDATE_RULES.extend([(lambda a, b: isinstance2(a, b, types.MethodType),
@@ -307,11 +333,13 @@ def update_generic(a, b):
             return True
     return False
 
+
 class StrongRef(object):
     def __init__(self, obj):
         self.obj = obj
     def __call__(self):
         return self.obj
+
 
 def superreload(module, reload=reload, old_objects={}):
     """Enhanced version of the builtin reload function.
@@ -344,6 +372,7 @@ def superreload(module, reload=reload, old_objects={}):
         old_name = module.__name__
         module.__dict__.clear()
         module.__dict__['__name__'] = old_name
+        module.__dict__['__loader__'] = old_dict['__loader__']
     except (TypeError, AttributeError, KeyError):
         pass
 
@@ -377,16 +406,19 @@ def superreload(module, reload=reload, old_objects={}):
 # IPython connectivity
 #------------------------------------------------------------------------------
 
-from IPython.core.plugin import Plugin
 from IPython.core.hooks import TryNext
+from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.plugin import Plugin
 
-class AutoreloadInterface(object):
+@magics_class
+class AutoreloadMagics(Magics):
     def __init__(self, *a, **kw):
-        super(AutoreloadInterface, self).__init__(*a, **kw)
+        super(AutoreloadMagics, self).__init__(*a, **kw)
         self._reloader = ModuleReloader()
         self._reloader.check_all = False
 
-    def magic_autoreload(self, ipself, parameter_s=''):
+    @line_magic
+    def autoreload(self, parameter_s=''):
         r"""%autoreload => Reload modules automatically
 
         %autoreload
@@ -441,7 +473,8 @@ class AutoreloadInterface(object):
             self._reloader.check_all = True
             self._reloader.enabled = True
 
-    def magic_aimport(self, ipself, parameter_s='', stream=None):
+    @line_magic
+    def aimport(self, parameter_s='', stream=None):
         """%aimport => Import modules for automatic reloading.
 
         %aimport
@@ -452,9 +485,7 @@ class AutoreloadInterface(object):
 
         %aimport -foo
         Mark module 'foo' to not be autoreloaded for %autoreload 1
-
         """
-
         modname = parameter_s
         if not modname:
             to_reload = self._reloader.modules.keys()
@@ -475,9 +506,9 @@ class AutoreloadInterface(object):
             top_module, top_name = self._reloader.aimport_module(modname)
 
             # Inject module to user namespace
-            ipself.push({top_name: top_module})
+            self.shell.push({top_name: top_module})
 
-    def pre_run_code_hook(self, ipself):
+    def pre_run_code_hook(self, ip):
         if not self._reloader.enabled:
             raise TryNext
         try:
@@ -485,15 +516,17 @@ class AutoreloadInterface(object):
         except:
             pass
 
-class AutoreloadPlugin(AutoreloadInterface, Plugin):
+
+class AutoreloadPlugin(Plugin):
     def __init__(self, shell=None, config=None):
         super(AutoreloadPlugin, self).__init__(shell=shell, config=config)
+        self.auto_magics = AutoreloadMagics(shell)
+        shell.register_magics(self.auto_magics)
+        shell.set_hook('pre_run_code_hook', self.auto_magics.pre_run_code_hook)
 
-        self.shell.define_magic('autoreload', self.magic_autoreload)
-        self.shell.define_magic('aimport', self.magic_aimport)
-        self.shell.set_hook('pre_run_code_hook', self.pre_run_code_hook)
 
 _loaded = False
+
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""

@@ -34,7 +34,7 @@ TaskRecord keys:
 =============== =============== =============
 Key             Type            Description
 =============== =============== =============
-msg_id          uuid(bytes)     The msg ID
+msg_id          uuid(ascii)     The msg ID
 header          dict            The request header
 content         dict            The request content (likely empty)
 buffers         list(bytes)     buffers containing serialized request objects
@@ -43,7 +43,7 @@ client_uuid     uuid(bytes)     IDENT of client's socket
 engine_uuid     uuid(bytes)     IDENT of engine's socket
 started         datetime        time task began execution on engine
 completed       datetime        time task finished execution (success or failure) on engine
-resubmitted     datetime        time of resubmission (if applicable)
+resubmitted     uuid(ascii)     msg_id of resubmitted task (if applicable)
 result_header   dict            header for result
 result_content  dict            content for result
 result_buffers  list(bytes)     buffers containing serialized request objects

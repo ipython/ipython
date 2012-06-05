@@ -5,6 +5,7 @@
 #-----------------------------------------------------------------------------
 import nose.tools as nt
 
+from IPython.core.prefilter import AutocallChecker
 from IPython.testing import tools as tt, decorators as dec
 from IPython.testing.globalipapp import get_ipython
 
@@ -46,6 +47,21 @@ def test_autocall_binops():
         yield nt.assert_equals(ip.prefilter('f 1'),'f(1)')
         for t in ['f +1', 'f -1']:
             yield nt.assert_equals(ip.prefilter(t), t)
+
+        # Run tests again with a more permissive exclude_regexp, which will
+        # allow transformation of binary operations ('f -1' -> 'f(-1)').
+        pm = ip.prefilter_manager
+        ac = AutocallChecker(shell=pm.shell, prefilter_manager=pm,
+                             config=pm.config)
+        try:
+            ac.priority = 1
+            ac.exclude_regexp = r'^[,&^\|\*/]|^is |^not |^in |^and |^or '
+            pm.sort_checkers()
+
+            yield nt.assert_equals(ip.prefilter('f -1'), 'f(-1)')
+            yield nt.assert_equals(ip.prefilter('f +1'), 'f(+1)')
+        finally:
+            pm.unregister_checker(ac)
     finally:
         ip.magic('autocall 0')
         del ip.user_ns['f']
@@ -63,7 +79,7 @@ def test_issue_114():
     msp = ip.prefilter_manager.multi_line_specials
     ip.prefilter_manager.multi_line_specials = False
     try:
-        for mgk in ip.lsmagic():
+        for mgk in ip.magics_manager.lsmagic()['line']:
             raw = template % mgk
             yield nt.assert_equals(ip.prefilter(raw), raw)
     finally:

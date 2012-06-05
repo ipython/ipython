@@ -27,15 +27,14 @@ from IPython.external.ssh import tunnel
 from IPython.utils.traitlets import (
     Instance, Dict, Integer, Type, CFloat, Unicode, CBytes, Bool
 )
-from IPython.utils import py3compat
+from IPython.utils.py3compat import cast_bytes
 
 from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
-from IPython.parallel.util import disambiguate_url, asbytes
+from IPython.parallel.util import disambiguate_url
 
 from IPython.zmq.session import Message
-
-from .streamkernel import Kernel
+from IPython.zmq.ipkernel import Kernel
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
@@ -70,7 +69,7 @@ class EngineFactory(RegistrationFactory):
     bident = CBytes()
     ident = Unicode()
     def _ident_changed(self, name, old, new):
-        self.bident = asbytes(new)
+        self.bident = cast_bytes(new)
     using_ssh=Bool(False)
 
 
@@ -185,23 +184,27 @@ class EngineFactory(RegistrationFactory):
 
             # create iopub stream:
             iopub_addr = msg.content.iopub
-            iopub_stream = zmqstream.ZMQStream(ctx.socket(zmq.PUB), loop)
-            iopub_stream.setsockopt(zmq.IDENTITY, identity)
-            connect(iopub_stream, iopub_addr)
+            iopub_socket = ctx.socket(zmq.PUB)
+            iopub_socket.setsockopt(zmq.IDENTITY, identity)
+            connect(iopub_socket, iopub_addr)
 
-            # # Redirect input streams and set a display hook.
+            # disable history:
+            self.config.HistoryManager.hist_file = ':memory:'
+            
+            # Redirect input streams and set a display hook.
             if self.out_stream_factory:
-                sys.stdout = self.out_stream_factory(self.session, iopub_stream, u'stdout')
-                sys.stdout.topic = py3compat.cast_bytes('engine.%i.stdout' % self.id)
-                sys.stderr = self.out_stream_factory(self.session, iopub_stream, u'stderr')
-                sys.stderr.topic = py3compat.cast_bytes('engine.%i.stderr' % self.id)
+                sys.stdout = self.out_stream_factory(self.session, iopub_socket, u'stdout')
+                sys.stdout.topic = cast_bytes('engine.%i.stdout' % self.id)
+                sys.stderr = self.out_stream_factory(self.session, iopub_socket, u'stderr')
+                sys.stderr.topic = cast_bytes('engine.%i.stderr' % self.id)
             if self.display_hook_factory:
-                sys.displayhook = self.display_hook_factory(self.session, iopub_stream)
-                sys.displayhook.topic = py3compat.cast_bytes('engine.%i.pyout' % self.id)
+                sys.displayhook = self.display_hook_factory(self.session, iopub_socket)
+                sys.displayhook.topic = cast_bytes('engine.%i.pyout' % self.id)
 
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
-                    control_stream=control_stream, shell_streams=shell_streams, iopub_stream=iopub_stream,
-                    loop=loop, user_ns = self.user_ns, log=self.log)
+                    control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,
+                    loop=loop, user_ns=self.user_ns, log=self.log)
+            self.kernel.shell.display_pub.topic = cast_bytes('engine.%i.displaypub' % self.id)
             self.kernel.start()
 
 
