@@ -171,7 +171,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                      [ QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
                        QtCore.Qt.Key_V ])
 
-    _is_completing = False
+    _temp_buffer_filled = False
 
     #---------------------------------------------------------------------------
     # 'QObject' interface
@@ -850,6 +850,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             the prompt region.
         """
         # Select and remove all text below the input buffer.
+        _temp_buffer_filled = False
         cursor = self._get_prompt_cursor()
         prompt = self._continuation_prompt.lstrip()
         while cursor.movePosition(QtGui.QTextCursor.NextBlock):
@@ -894,7 +895,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
             cursor.movePosition(QtGui.QTextCursor.Left, n=len(prefix))
             self._completion_widget.show_items(cursor, items)
-            self._is_completing = True
 
 
     def _fill_temporary_buffer(self, cursor, text, html=False):
@@ -910,6 +910,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         cursor.setPosition(current_pos)
         self._control.moveCursor(QtGui.QTextCursor.End)
         self._control.setTextCursor(cursor)
+
+        _temp_buffer_filled = True
 
 
     def _context_menu_make(self, pos):
@@ -1654,8 +1656,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _keyboard_quit(self):
         """ Cancels the current editing task ala Ctrl-G in Emacs.
         """
-        if self._is_completing:
+        if self._temp_buffer_filled :
             self._cancel_completion()
+            self._clear_temporary_buffer()
         else:
             self.input_buffer = ''
 
