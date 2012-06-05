@@ -16,6 +16,7 @@ builtin.
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import io
 import os
 import re
 import sys
@@ -25,7 +26,7 @@ from pprint import pformat
 from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
-from IPython.core.error import UsageError
+from IPython.core.error import UsageError, StdinNotImplementedError
 from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic
 )
@@ -699,13 +700,24 @@ class OSMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.file, line)
         args.filename = unquote_filename(args.filename)
+        force = args.force
         
         if os.path.exists(args.filename):
-            if args.force:
-                print("Overwriting %s" % args.filename)
-            else:
-                error("%s already exists! Force overwrite with %%%%file -f\n" % args.filename)
+            if not force:
+                try:
+                    force = self.shell.ask_yes_no(
+                        "%s exists, overwrite (y/[n])?",
+                        default='n'
+                    )
+                except StdinNotImplementedError:
+                    force = True
+                
+            if not force:
+                # prompted, but still no
+                print "Force overwrite with %%file -f " + args.filename
                 return
+            
+            print("Overwriting %s" % args.filename)
         else:
             print("Writing %s" % args.filename)
         
