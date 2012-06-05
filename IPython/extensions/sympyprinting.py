@@ -54,6 +54,15 @@ def print_png(o):
     png = latex_to_png(s)
     return png
 
+
+def print_display_png(o):
+    """A function to display sympy expression using LaTex -> PNG."""
+    s = latex(o, mode='plain')
+    s = s.strip('$')
+    png = latex_to_png('$$%s$$' % s, backend='dvipng')
+    return png
+
+
 def can_print_latex(o):
     """
     Return True if type o can be printed with LaTeX.
@@ -114,6 +123,9 @@ def load_ipython_extension(ip):
 
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
+        )
+        png_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'Matrix', print_display_png
         )
         for cls in [dict, int, long, float] + printable_containers:
             png_formatter.for_type(cls, print_png)
