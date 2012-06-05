@@ -10,18 +10,7 @@ from gevent import monkey; monkey.patch_all()
 
 import os
 import sys
-
-if os.name == 'posix':
-    import select
-
-    def stdin_ready():
-        infds, outfds, erfds = select.select([sys.stdin],[],[],0)
-        if infds:
-            return True
-        else:
-            return False
-else:
-    raise RuntimeError("Not supported")
+from IPython.lib.inputhook import stdin_ready
 
 def inputhook_gevent():
     try:
