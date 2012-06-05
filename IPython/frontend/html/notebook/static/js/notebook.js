@@ -435,6 +435,8 @@ var IPython = (function (IPython) {
         var index = this.get_selected_index();
         if (index !== null && index >= 0 && (index+1) < this.ncells()) {
             this.select(index+1);
+            var cell = this.get_cell(index+1)
+            cell.code_mirror.focus()
         };
         return this;
     };
@@ -444,6 +446,10 @@ var IPython = (function (IPython) {
         var index = this.get_selected_index();
         if (index !== null && index >= 0 && (index-1) < this.ncells()) {
             this.select(index-1);
+            if(index > 0) {
+                var cell = this.get_cell(index-1)
+                cell.code_mirror.focus()
+            }
         };
         return this;
     };
@@ -942,13 +948,16 @@ var IPython = (function (IPython) {
         if (default_options.terminal) {
             cell.select_all();
         } else {
+            var next_cell;
             if ((cell_index === (that.ncells()-1)) && default_options.add_new) {
-                that.insert_cell_below('code');
+                next_cell = that.insert_cell_below('code');
                 // If we are adding a new cell at the end, scroll down to show it.
                 that.scroll_to_bottom();
             } else {
                 that.select(cell_index+1);
+                next_cell = this.get_cell(cell_index+1);
             };
+            next_cell.code_mirror.focus();
         };
         this.dirty = true;
     };
