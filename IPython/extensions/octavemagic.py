@@ -36,6 +36,7 @@ from shutil import rmtree
 
 import numpy as np
 import oct2py
+from xml.dom import minidom
 
 from IPython.core.displaypub import publish_display_data
 from IPython.core.magic import (Magics, magics_class, line_magic,
@@ -46,10 +47,13 @@ from IPython.core.magic_arguments import (
 )
 from IPython.utils.py3compat import unicode_to_str
 
-
 class OctaveMagicError(oct2py.Oct2PyError):
     pass
 
+_mimetypes = {'png' : 'image/png',
+             'svg' : 'image/svg+xml',
+             'jpg' : 'image/jpeg',
+              'jpeg': 'image/jpeg'}
 
 @magics_class
 class OctaveMagics(Magics):
@@ -59,12 +63,39 @@ class OctaveMagics(Magics):
         """
         Parameters
         ----------
-
         shell : IPython shell
 
         """
         super(OctaveMagics, self).__init__(shell)
-        self.oct = oct2py.Oct2Py()
+        self._oct = oct2py.Oct2Py()
+        self._plot_format = 'png'
+
+
+    def _fix_gnuplot_svg_size(self, image, size=None):
+        """
+        GnuPlot SVGs do not have height/width attributes.  Set
+        these to be the same as the viewBox, so that the browser
+        scales the image correctly.
+
+        Parameters
+        ----------
+        image : str
+            SVG data.
+        size : tuple of int
+            Image width, height.
+
+        """
+        (svg,) = minidom.parseString(image).getElementsByTagName('svg')
+        viewbox = svg.getAttribute('viewBox').split(' ')
+
+        if size is not None:
+            width, height = size
+        else:
+            width, height = viewbox[2:]
+
+        svg.setAttribute('width', '%dpx' % width)
+        svg.setAttribute('height', '%dpx' % height)
+        return svg.toxml()
 
 
     @skip_doctest
@@ -92,7 +123,7 @@ class OctaveMagics(Magics):
         inputs = line.split(' ')
         for input in inputs:
             input = unicode_to_str(input)
-            self.oct.put(input, self.shell.user_ns[input])
+            self._oct.put(input, self.shell.user_ns[input])
 
 
     @skip_doctest
@@ -117,7 +148,7 @@ class OctaveMagics(Magics):
         outputs = line.split(' ')
         for output in outputs:
             output = unicode_to_str(output)
-            self.shell.push({output: self.oct.get(output)})
+            self.shell.push({output: self._oct.get(output)})
 
 
     @skip_doctest
@@ -135,8 +166,13 @@ class OctaveMagics(Magics):
         )
     @argument(
         '-s', '--size', action='append',
-        help='Pixel size of plots. Default is "-s 400,250".'
+        help='Pixel size of plots, "width,height". Default is "-s 400,250".'
         )
+    @argument(
+        '-f', '--format', action='append',
+        help='Plot format (png, svg or jpg).'
+        )
+
     @argument(
         'code',
         nargs='*',
@@ -180,11 +216,16 @@ class OctaveMagics(Magics):
             In [17]: W
             Out[17]: array([  5.,  20.,  25.,  50.])
 
+        The size and format of output plots can be specified::
+
+            In [18]: %%octave -s 600,800 -f svg
+                ...: plot([1, 2, 3]);
+
         '''
         args = parse_argstring(self.octave, line)
 
         # arguments 'code' in line are prepended to the cell lines
-        if not cell:
+        if cell is None:
             code = ''
             return_output = True
             line_mode = True
@@ -198,7 +239,7 @@ class OctaveMagics(Magics):
         if args.input:
             for input in ','.join(args.input).split(','):
                 input = unicode_to_str(input)
-                self.oct.put(input, self.shell.user_ns[input])
+                self._oct.put(input, self.shell.user_ns[input])
 
         # generate plots in a temporary directory
         plot_dir = tempfile.mkdtemp()
@@ -206,6 +247,11 @@ class OctaveMagics(Magics):
             size = args.size[0]
         else:
             size = '400,240'
+
+        if args.format is not None:
+            plot_format = args.format[0]
+        else:
+            plot_format = 'png'
 
         pre_call = '''
         global __ipy_figures = [];
@@ -235,15 +281,16 @@ class OctaveMagics(Magics):
         for f = __ipy_figures
           outfile = sprintf('%(plot_dir)s/__ipy_oct_fig_%%03d.png', f);
           try
-            print(f, outfile, '-dpng', '-tight', '-S%(size)s');
+            print(f, outfile, '-d%(plot_format)s', '-tight', '-S%(size)s');
           end
         end
 
-        ''' % {'plot_dir': plot_dir, 'size': size}
+        ''' % {'plot_dir': plot_dir, 'size': size,
+               'plot_format': plot_format}
 
         code = ' '.join((pre_call, code, post_call))
         try:
-            text_output = self.oct.run(code, verbose=False)
+            text_output = self._oct.run(code, verbose=False)
         except (oct2py.Oct2PyError) as exception:
             raise OctaveMagicError('Octave could not complete execution.  '
                                    'Traceback (currently broken in oct2py): %s'
@@ -257,28 +304,27 @@ class OctaveMagics(Magics):
             display_data.append((key, {'text/plain': text_output}))
 
         # Publish images
-        fmt = 'png'
-        mimetypes = {'png' : 'image/png',
-                     'svg' : 'image/svg+xml'}
-        mime = mimetypes[fmt]
-
         images = [open(imgfile, 'rb').read() for imgfile in \
-                  glob("%s/*.png" % plot_dir)]
+                  glob("%s/*" % plot_dir)]
         rmtree(plot_dir)
 
+        plot_mime_type = _mimetypes.get(plot_format, 'image/png')
+        width, height = [int(s) for s in size.split(',')]
         for image in images:
-            display_data.append((key, {mime: image}))
+            if plot_format == 'svg':
+                image = self._fix_gnuplot_svg_size(image, size=(width, height))
+            display_data.append((key, {plot_mime_type: image}))
 
         if args.output:
             for output in ','.join(args.output).split(','):
                 output = unicode_to_str(output)
-                self.shell.push({output: self.oct.get(output)})
+                self.shell.push({output: self._oct.get(output)})
 
         for tag, data in display_data:
             publish_display_data(tag, data)
 
         if return_output:
-            ans = self.oct.get('_')
+            ans = self._oct.get('_')
 
             # Unfortunately, Octave doesn't have a "None" object,
             # so we can't return any NaN outputs
@@ -286,6 +332,7 @@ class OctaveMagics(Magics):
                 ans = None
 
             return ans
+
 
 __doc__ = __doc__.format(
     OCTAVE_DOC = ' '*8 + OctaveMagics.octave.__doc__,
