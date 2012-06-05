@@ -35,6 +35,7 @@ span#notebook_name {
 }
 
 .ui-menu .ui-menu-item a {
+    border: 1px solid transparent;
     padding: 2px 1.6em;
 }
 
@@ -111,6 +112,15 @@ div#pager {
     padding: 15px;
     overflow: auto;
     display: none;
+}
+
+div.ui-widget-content {
+    border: 1px solid #aaa;
+    outline: none;
+}
+
+.cell {
+    border: 1px solid transparent;
 }
 
 div.cell {
