@@ -682,7 +682,11 @@ class OSMagics(Magics):
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
-        help='Whether to overwrite a file if it already exists'
+        help='Force overwrite without prompting'
+    )
+    @magic_arguments.argument(
+        '-a', '--amend', action='store_true', default=False,
+        help='Open file for amending if it exists'
     )
     @magic_arguments.argument(
         'filename', type=unicode,
@@ -690,36 +694,35 @@ class OSMagics(Magics):
     )
     @cell_magic
     def file(self, line, cell):
-        """Write a cell to a file
+        """Write the contents of the cell to a file.
         
-        %%file [-f] filename
-        
-        Writes the contents of the cell to a file.
-        
-        Will not overwrite existing files unless `-f` is specified.
+        For frontends that do not support stdin (Notebook), -f is implied.
         """
         args = magic_arguments.parse_argstring(self.file, line)
         args.filename = unquote_filename(args.filename)
         force = args.force
         
         if os.path.exists(args.filename):
-            if not force:
-                try:
-                    force = self.shell.ask_yes_no(
-                        "%s exists, overwrite (y/[n])?",
-                        default='n'
-                    )
-                except StdinNotImplementedError:
-                    force = True
+            if args.amend:
+                print "Amending to %s" % args.filename
+            else:
+                if not force:
+                    try:
+                        force = self.shell.ask_yes_no(
+                            "%s exists, overwrite (y/[n])?",
+                            default='n'
+                        )
+                    except StdinNotImplementedError:
+                        force = True
                 
-            if not force:
-                # prompted, but still no
-                print "Force overwrite with %%file -f " + args.filename
-                return
-            
-            print("Overwriting %s" % args.filename)
+                if not force:
+                    # prompted, but still no
+                    print "Force overwrite with %%file -f " + args.filename
+                    return
+                print "Overwriting %s" % args.filename
         else:
-            print("Writing %s" % args.filename)
+            print "Writing %s" % args.filename
         
-        with io.open(args.filename, 'w', encoding='utf-8') as f:
+        mode = 'a' if args.amend else 'w'
+        with io.open(args.filename, mode, encoding='utf-8') as f:
             f.write(cell)
