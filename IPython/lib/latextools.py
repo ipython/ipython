@@ -41,6 +41,8 @@ def latex_to_png(s, encode=False, backend='mpl'):
     backend : {mpl, dvipng}
         Backend for producing PNG data.
 
+    None is returned when the backend cannot be used.
+
     """
     if backend == 'mpl':
         f = latex_to_png_mpl
@@ -49,13 +51,16 @@ def latex_to_png(s, encode=False, backend='mpl'):
     else:
         raise ValueError('No such backend {0}'.format(backend))
     bin_data = f(s)
-    if encode:
+    if encode and bin_data:
         bin_data = encodestring(bin_data)
     return bin_data
 
 
 def latex_to_png_mpl(s):
-    from matplotlib import mathtext
+    try:
+        from matplotlib import mathtext
+    except ImportError:
+        return None
     
     mt = mathtext.MathTextParser('bitmap')
     f = StringIO()
@@ -84,10 +89,11 @@ def latex_to_png_dvipng(s):
 
         with open(outfile) as f:
             bin_data = f.read()
+    except subprocess.CalledProcessError:
+        bin_data = None
     finally:
         shutil.rmtree(workdir)
     return bin_data
-
 
 
 _latex_header = r'''
@@ -116,7 +122,8 @@ def latex_to_html(s, alt='image'):
         The alt text to use for the HTML.
     """
     base64_data = latex_to_png(s, encode=True)
-    return _data_uri_template_png  % (base64_data, alt)
+    if base64_data:
+        return _data_uri_template_png  % (base64_data, alt)
 
 
 # From matplotlib, thanks to mdboom. Once this is in matplotlib releases, we
