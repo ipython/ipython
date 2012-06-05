@@ -312,6 +312,20 @@ class TestClient(ClusterTestCase):
         r2 = ahr.get(1)
         self.assertFalse(r1 == r2)
 
+    def test_resubmit_chain(self):
+        """resubmit resubmitted tasks"""
+        v = self.client.load_balanced_view()
+        ar = v.apply_async(lambda x: x, 'x'*1024)
+        ar.get()
+        self._wait_for_idle()
+        ars = [ar]
+        
+        for i in range(10):
+            ar = ars[-1]
+            ar2 = self.client.resubmit(ar.msg_ids)
+        
+        [ ar.get() for ar in ars ]
+
     def test_resubmit_header(self):
         """resubmit shouldn't clobber the whole header"""
         def f():

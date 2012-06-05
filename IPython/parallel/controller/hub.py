@@ -1163,7 +1163,7 @@ class Hub(SessionFactory):
         # send the messages
         for rec in records:
             header = rec['header']
-            msg = self.session.msg(header['msg_type'])
+            msg = self.session.msg(header['msg_type'], parent=header)
             msg_id = msg['msg_id']
             msg['content'] = rec['content']
             
@@ -1177,7 +1177,7 @@ class Hub(SessionFactory):
 
             resubmitted[rec['msg_id']] = msg_id
             self.pending.add(msg_id)
-            msg['buffers'] = []
+            msg['buffers'] = rec['buffers']
             try:
                 self.db.add_record(msg_id, init_record(msg))
             except Exception:
