@@ -271,9 +271,12 @@ class OctaveMagics(Magics):
 
         close all;
         clear ans;
+
+        # ___<end_pre_call>___ #
         '''
 
         post_call = '''
+        # ___<start_post_call>___ #
 
         # Save output of the last execution
         if exist("ans") == 1
@@ -296,9 +299,12 @@ class OctaveMagics(Magics):
         try:
             text_output = self._oct.run(code, verbose=False)
         except (oct2py.Oct2PyError) as exception:
+            msg = exception.message
+            msg = msg.split('# ___<end_pre_call>___ #')[1]
+            msg = msg.split('# ___<start_post_call>___ #')[0]
             raise OctaveMagicError('Octave could not complete execution.  '
                                    'Traceback (currently broken in oct2py): %s'
-                                   % exception.message)
+                                   % msg)
 
         key = 'OctaveMagic.Octave'
         display_data = []
