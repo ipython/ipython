@@ -19,14 +19,18 @@ Authors:
 
 from StringIO import StringIO
 from base64 import encodestring
+import os
+import tempfile
+import shutil
+import subprocess
 
 #-----------------------------------------------------------------------------
 # Tools
 #-----------------------------------------------------------------------------
 
 
-def latex_to_png(s, encode=False):
-    """Render a LaTeX string to PNG using matplotlib.mathtext.
+def latex_to_png(s, encode=False, backend='mpl'):
+    """Render a LaTeX string to PNG.
 
     Parameters
     ----------
@@ -34,16 +38,69 @@ def latex_to_png(s, encode=False):
         The raw string containing valid inline LaTeX.
     encode : bool, optional
         Should the PNG data bebase64 encoded to make it JSON'able.
+    backend : {mpl, dvipng}
+        Backend for producing PNG data.
+
     """
+    if backend == 'mpl':
+        f = latex_to_png_mpl
+    elif backend == 'dvipng':
+        f = latex_to_png_dvipng
+    else:
+        raise ValueError('No such backend {0}'.format(backend))
+    bin_data = f(s)
+    if encode:
+        bin_data = encodestring(bin_data)
+    return bin_data
+
+
+def latex_to_png_mpl(s):
     from matplotlib import mathtext
     
     mt = mathtext.MathTextParser('bitmap')
     f = StringIO()
     mt.to_png(f, s, fontsize=12)
-    bin_data = f.getvalue()
-    if encode:
-        bin_data = encodestring(bin_data)
+    return f.getvalue()
+
+
+def latex_to_png_dvipng(s):
+    try:
+        workdir = tempfile.mkdtemp()
+        tmpfile = os.path.join(workdir, "tmp.tex")
+        dvifile = os.path.join(workdir, "tmp.dvi")
+        outfile = os.path.join(workdir, "tmp.png")
+
+        with open(tmpfile, "w") as f:
+            f.write(_latex_header)
+            f.write(s)
+            f.write(_latex_footer)
+
+        subprocess.check_call(
+            ["latex", "-halt-on-errror", tmpfile], cwd=workdir)
+
+        subprocess.check_call(
+            ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
+             "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir)
+
+        with open(outfile) as f:
+            bin_data = f.read()
+    finally:
+        shutil.rmtree(workdir)
     return bin_data
+
+
+
+_latex_header = r'''
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{bm}
+\pagestyle{empty}
+\begin{document}
+'''
+
+_latex_footer = r'\end{document}'
 
 
 _data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
