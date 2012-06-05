@@ -259,7 +259,7 @@ class OctaveMagics(Magics):
 
         function fig_create(src, event)
           global __ipy_figures;
-          __ipy_figures(gcf()) = src;
+          __ipy_figures(size(__ipy_figures) + 1) = src;
           set(src, "visible", "off");
         end
 
