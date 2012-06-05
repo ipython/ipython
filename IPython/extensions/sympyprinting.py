@@ -45,7 +45,9 @@ def print_basic_unicode(o, p, cycle):
 
 
 def print_png(o):
-    """A function to display sympy expression using LaTex -> PNG."""
+    """
+    A function to display sympy expression using inline style LaTeX in PNG.
+    """
     s = latex(o, mode='inline')
     # mathtext does not understand certain latex flags, so we try to replace
     # them with suitable subs.
@@ -56,9 +58,13 @@ def print_png(o):
 
 
 def print_display_png(o):
-    """A function to display sympy expression using LaTex -> PNG."""
+    """
+    A function to display sympy expression using display style LaTeX in PNG.
+    """
     s = latex(o, mode='plain')
     s = s.strip('$')
+    # As matplotlib does not support display style, dvipng backend is
+    # used here.
     png = latex_to_png('$$%s$$' % s, backend='dvipng')
     return png
 
