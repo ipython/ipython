@@ -420,6 +420,16 @@ class KernelMagics(Magics):
         Useful for connecting a qtconsole to running notebooks, for better
         debugging.
         """
+        
+        # %qtconsole should imply bind_kernel for engines:
+        try:
+            from IPython.parallel import bind_kernel
+        except ImportError:
+            # technically possible, because parallel has higher pyzmq min-version
+            pass
+        else:
+            bind_kernel()
+        
         try:
             p = connect_qtconsole(argv=arg_split(arg_s, os.name=='posix'))
         except Exception as e:
