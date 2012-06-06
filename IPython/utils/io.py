@@ -17,6 +17,7 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
+from StringIO import StringIO
 
 #-----------------------------------------------------------------------------
 # Code
@@ -321,3 +322,36 @@ def raw_print_err(*args, **kw):
 # Short aliases for quick debugging, do NOT use these in production code.
 rprint = raw_print
 rprinte = raw_print_err
+
+
+class CapturedIO(object):
+    """Simple object for containing captured stdout/err StringIO objects"""
+    
+    def __init__(self, stdout, stderr):
+        self.stdout_io = stdout
+        self.stderr_io = stderr
+    
+    @property
+    def stdout(self):
+        return self.stdout_io.getvalue()
+    
+    @property
+    def stderr(self):
+        return self.stderr_io.getvalue()
+
+
+class capture_output(object):
+    """context manager for capturing stdout/err"""
+    
+    def __enter__(self):
+        self.sys_stdout = sys.stdout
+        self.sys_stderr = sys.stderr
+        stdout = sys.stdout = StringIO()
+        stderr = sys.stderr = StringIO()
+        return CapturedIO(stdout, stderr)
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        sys.stdout = self.sys_stdout
+        sys.stderr = self.sys_stderr
+
+
