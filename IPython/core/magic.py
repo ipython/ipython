@@ -321,6 +321,16 @@ class MagicsManager(Configurable):
     def auto_status(self):
         """Return descriptive string with automagic status."""
         return self._auto_status[self.auto_magic]
+    
+    def lsmagic_info(self):
+        magic_list = []
+        for m_type in self.magics :
+            for m_name,mgc in self.magics[m_type].items():
+                try :
+                    magic_list.append({'name':m_name,'type':m_type,'class':mgc.im_class.__name__})
+                except AttributeError :
+                    magic_list.append({'name':m_name,'type':m_type,'class':'Other'})
+        return magic_list
 
     def lsmagic(self):
         """Return a dict of currently available magic functions.
