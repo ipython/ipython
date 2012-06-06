@@ -260,7 +260,14 @@ class CodeMagics(Magics):
 
                     # For objects, try to edit the file where they are defined
                     try:
-                        filename = inspect.getabsfile(data)
+                        try:
+                            filename = inspect.getabsfile(data)
+                        except TypeError as e:
+                            if hasattr(data, '__class__'):
+                                data = data.__class__
+                                filename = inspect.getabsfile(data)
+                            else:
+                                raise e
                         if 'fakemodule' in filename.lower() and \
                             inspect.isclass(data):
                             # class created by %edit? Try to find source
