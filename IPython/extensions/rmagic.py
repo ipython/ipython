@@ -222,6 +222,7 @@ class RMagics(Magics):
 
             
         """
+        device = device.strip()
         if device not in ['png', 'X11', 'svg']:
             raise RMagicError("device must be one of ['png', 'X11' 'svg'], got '%s'", device)
         self.device = device
