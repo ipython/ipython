@@ -12,6 +12,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import socket
 import sys
 from threading import Thread
@@ -28,21 +29,28 @@ from IPython.utils.localinterfaces import LOCALHOST
 class Heartbeat(Thread):
     "A simple ping-pong style heartbeat that runs in a thread."
 
-    def __init__(self, context, addr=(LOCALHOST, 0)):
+    def __init__(self, context, addr=('tcp', LOCALHOST, 0)):
         Thread.__init__(self)
         self.context = context
-        self.ip, self.port = addr
+        self.transport, self.ip, self.port = addr
         if self.port == 0:
-            s = socket.socket()
-            # '*' means all interfaces to 0MQ, which is '' to socket.socket
-            s.bind(('' if self.ip == '*' else self.ip, 0))
-            self.port = s.getsockname()[1]
-            s.close()
+            if addr[0] == 'tcp':
+                s = socket.socket()
+                # '*' means all interfaces to 0MQ, which is '' to socket.socket
+                s.bind(('' if self.ip == '*' else self.ip, 0))
+                self.port = s.getsockname()[1]
+                s.close()
+            elif addr[0] == 'ipc':
+                while os.path.exists(self.ip + '-' + self.port):
+                    self.port = self.port + 1
+            else:
+                raise ValueError("Unrecognized zmq transport: %s" % addr[0])
         self.addr = (self.ip, self.port)
         self.daemon = True
 
     def run(self):
         self.socket = self.context.socket(zmq.REP)
-        self.socket.bind('tcp://%s:%i' % self.addr)
+        c = ':' if self.transport == 'tcp' else '-'
+        self.socket.bind('%s://%s' % (self.transport, self.ip) + c + str(self.port))
         zmq.device(zmq.FORWARDER, self.socket, self.socket)
 
