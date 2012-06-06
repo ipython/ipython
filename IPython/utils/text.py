@@ -660,6 +660,45 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
+#-----------------------------------------------------------------------------
+# Utils to columnize a list of string
+#-----------------------------------------------------------------------------
+def _chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
+def _find_optimal(rlist , sepsize=2 , displaywidth=80):
+    """Calculate optimal info to columnize a list of string"""
+    for nrow in range(1, len(rlist)+1) :
+        chk = [max(l) for l in _chunks(rlist, nrow) ]
+        sumlength = sum(chk)
+        ncols = len(chk)
+        if sumlength+sepsize*(ncols-1) <= displaywidth :
+            break;
+    return {'columns_numbers' : ncols,
+            'optimal_separator_width':(displaywidth - sumlength)/(ncols-1) if (ncols -1) else 0,
+            'rows_numbers' : nrow,
+            'columns_width' : chk
+           }
+
+def _get_or_default(mylist, i, default=None):
+    """return list item number, or default if don't exist"""
+    if i >= len(mylist):
+        return default
+    else :
+        return mylist[i]
+
+def compute_item_matrix(items, *args, **kwargs) :
+    """ Transform a list of strings into a nested list to columnize
+
+    Returns a tuple of (strings_matrix, dict_info)
+
+    innermost lists are rows, see columnize for options info
+    """
+    info = _find_optimal(map(len, items), *args, **kwargs)
+    nrow, ncol = info['rows_numbers'], info['columns_numbers']
+    return ([[ _get_or_default(items, c*nrow+i) for c in range(ncol) ] for i in range(nrow) ], info)
 
 def columnize(items, separator='  ', displaywidth=80):
     """ Transform a list of strings into a single string with columns.
@@ -679,58 +718,11 @@ def columnize(items, separator='  ', displaywidth=80):
     -------
     The formatted string.
     """
-    # Note: this code is adapted from columnize 0.3.2.
-    # See http://code.google.com/p/pycolumnize/
-
-    # Some degenerate cases.
-    size = len(items)
-    if size == 0:
+    if not items :
         return '\n'
-    elif size == 1:
-        return '%s\n' % items[0]
-
-    # Special case: if any item is longer than the maximum width, there's no
-    # point in triggering the logic below...
-    item_len = map(len, items) # save these, we can reuse them below
-    longest = max(item_len)
-    if longest >= displaywidth:
-        return '\n'.join(items+[''])
-
-    # Try every row count from 1 upwards
-    array_index = lambda nrows, row, col: nrows*col + row
-    for nrows in range(1, size):
-        ncols = (size + nrows - 1) // nrows
-        colwidths = []
-        totwidth = -len(separator)
-        for col in range(ncols):
-            # Get max column width for this column
-            colwidth = 0
-            for row in range(nrows):
-                i = array_index(nrows, row, col)
-                if i >= size: break
-                x, len_x = items[i], item_len[i]
-                colwidth = max(colwidth, len_x)
-            colwidths.append(colwidth)
-            totwidth += colwidth + len(separator)
-            if totwidth > displaywidth:
-                break
-        if totwidth <= displaywidth:
-            break
-
-    # The smallest number of rows computed and the max widths for each
-    # column has been obtained. Now we just have to format each of the rows.
-    string = ''
-    for row in range(nrows):
-        texts = []
-        for col in range(ncols):
-            i = row + nrows*col
-            if i >= size:
-                texts.append('')
-            else:
-                texts.append(items[i])
-        while texts and not texts[-1]:
-            del texts[-1]
-        for col in range(len(texts)):
-            texts[col] = texts[col].ljust(colwidths[col])
-        string += '%s\n' % separator.join(texts)
-    return string
+    matrix, info = compute_item_matrix(items, sepsize=len(separator), displaywidth=displaywidth)
+    #sep = ' '*min(info['optimal_separator_width'], 9)
+    fmatrix = matrix
+    fmatrix = [filter(None, x) for x in matrix]
+    sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
+    return '\n'.join(map(sjoin, fmatrix))+'\n'
