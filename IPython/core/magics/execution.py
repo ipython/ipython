@@ -33,13 +33,15 @@ except ImportError:
 
 # Our own packages
 from IPython.core import debugger, oinspect
+from IPython.core import magic_arguments
 from IPython.core import page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic, 
+from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -988,3 +990,27 @@ python-profiler package from non-free.""")
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print '=== Macro contents: ==='
         print macro,
+    
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('-o', '--out', type=str,
+        help="""The name of the variable in which to store stdout
+        
+        If unspecified: stdout is discarded
+        """
+    )
+    @magic_arguments.argument('-e', '--err', type=str,
+        help="""The name of the variable in which to store stderr
+        
+        If unspecified: stderr is discarded
+        """
+    )
+    @cell_magic
+    def capture(self, line, cell):
+        """run the cell, capturing stdout/err"""
+        args = magic_arguments.parse_argstring(self.capture, line)
+        with capture_output() as io:
+            self.shell.run_cell(cell)
+        if args.out:
+            self.shell.user_ns[args.out] = io.stdout
+        if args.err:
+            self.shell.user_ns[args.err] = io.stderr
