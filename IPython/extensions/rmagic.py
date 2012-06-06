@@ -222,9 +222,16 @@ class RMagics(Magics):
 
             
         """
-        if device not in ['png', 'X11' 'svg']:
-            raise RMagicError("device must be one of ['png', 'X11' 'svg']")
+        if device not in ['png', 'X11', 'svg']:
+            raise RMagicError("device must be one of ['png', 'X11' 'svg'], got '%s'", device)
         self.device = device
+
+    @line_magic
+    def Rdevice(self, line):
+        """
+        Change the plotting device R uses to one of ['png', 'X11', 'svg'].
+        """
+        self.set_R_plotting_device(line.strip())
 
     def eval(self, line):
         '''
@@ -633,7 +640,7 @@ class RMagics(Magics):
         elif self.device == 'svg':
             #TODO: CairoSVG and png take different arguments -- fix magic_arguments above
             svg_args = png_args
-            self.r('library(Cairo); CairoSVG("%s/Rplot.svg",%s)' % (tmpd, svg_args))
+            self.r('library(Cairo); CairoSVG("%s/Rplot.svg")' % tmpd) # ,%s)' % (tmpd, svg_args))
         elif self.device == 'X11':
             self.r('X11()')
         else:
