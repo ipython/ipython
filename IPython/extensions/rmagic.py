@@ -39,6 +39,7 @@ import tempfile
 from glob import glob
 from shutil import rmtree
 from getopt import getopt
+from os import stat
 
 # numpy and rpy2 imports
 
@@ -104,7 +105,8 @@ class RMagics(Magics):
 
     def __init__(self, shell, Rconverter=Rconverter,
                  pyconverter=np.asarray,
-                 cache_display_data=False):
+                 cache_display_data=False,
+                 device='png'):
         """
         Parameters
         ----------
@@ -119,6 +121,12 @@ class RMagics(Magics):
             If True, the published results of the final call to R are 
             cached in the variable 'display_cache'.
 
+        device : ['png', 'X11', 'svg']
+            Device to be used for plotting. 
+            Currently only "png" and "X11" are supported,
+            with 'png' and 'svg' being most useful in the notebook,
+            and 'X11' allowing interactive plots in the terminal.
+
         """
         super(RMagics, self).__init__(shell)
         self.cache_display_data = cache_display_data
@@ -128,6 +136,30 @@ class RMagics(Magics):
         self.Rstdout_cache = []
         self.pyconverter = pyconverter
         self.Rconverter = Rconverter
+
+        self.device = device
+
+    def set_R_plotting_device(self, device):
+        """
+        Set which device R should use to produce plots.
+        If device == 'svg' then the package 'Cairo' 
+        must be installed. Because Cairo forces "onefile=TRUE",
+        it is not posible to include multiple plots per cell.
+
+        Parameters
+        ----------
+
+        device : ['png', 'X11', 'svg']
+            Device to be used for plotting. 
+            Currently only "png" and "X11" are supported,
+            with 'png' and 'svg' being most useful in the notebook,
+            and 'X11' allowing interactive plots in the terminal.
+
+            
+        """
+        if device not in ['png', 'X11' 'svg']:
+            raise RMagicError("device must be one of ['png', 'X11' 'svg']")
+        self.device = device
 
     def eval(self, line):
         '''
@@ -294,17 +326,16 @@ class RMagics(Magics):
         help='Names of variables to be pushed from rpy2 to shell.user_ns after executing cell body and applying self.Rconverter. Multiple names can be passed separated only by commas with no whitespace.'
         )
     @argument(
+        '-d', '--dataframe', action='append',
+        help='Convert these objects to data.frames and return as structured arrays.'
+        )
+    @argument(
         '-w', '--width', type=int,
         help='Width of png plotting device sent as an argument to *png* in R.'
         )
     @argument(
         '-h', '--height', type=int,
         help='Height of png plotting device sent as an argument to *png* in R.'
-        )
-
-    @argument(
-        '-d', '--dataframe', action='append',
-        help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
         '-u', '--units', type=int,
@@ -486,7 +517,16 @@ class RMagics(Magics):
         # execute the R code in a temporary directory
 
         tmpd = tempfile.mkdtemp()
-        self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+        if self.device == 'png':
+            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+        elif self.device == 'svg':
+            #TODO: CairoSVG and png take different arguments -- fix magic_arguments above
+            svg_args = png_args
+            self.r('library(Cairo); CairoSVG("%s/Rplot.svg",%s)' % (tmpd, svg_args))
+        elif self.device == 'X11':
+            self.r('X11()')
+        else:
+            raise RMagicError("device must be one of ['png', 'X11' 'svg']")
 
         text_output = ''
         if line_mode:
@@ -500,15 +540,23 @@ class RMagics(Magics):
             text_result, result = self.eval(code)
             text_output += text_result
 
-        self.r('dev.off()')
+        if self.device in ['png', 'svg']:
+            self.r('dev.off()')
 
-        # read out all the saved .png files
+            # read in all the saved image files
 
-        images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
+            if self.device == 'png':
+                images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
+            else:
+                # as onefile=TRUE, there is only one .svg file
+                # by default, Cairo creates an SVG file every time R is called -- some of these are
+                # empty so we don't publish them
+                images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplot.svg" % tmpd) if stat(imgfile).st_size >= 1000]
+                #raise ValueError(imgfile)
 
         # now publish the images
         # mimicking IPython/zmq/pylab/backend_inline.py
-        fmt = 'png'
+        fmt = self.device
         mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
         mime = mimetypes[fmt]
 
