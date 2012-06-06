@@ -188,7 +188,7 @@ class RMagics(Magics):
 
         device : ['png', 'X11', 'svg']
             Device to be used for plotting. 
-            Currently only "png" and "X11" are supported,
+            Currently only "png", "X11" and "svg" are supported,
             with 'png' and 'svg' being most useful in the notebook,
             and 'X11' allowing interactive plots in the terminal.
 
@@ -224,7 +224,7 @@ class RMagics(Magics):
         """
         device = device.strip()
         if device not in ['png', 'X11', 'svg']:
-            raise RMagicError("device must be one of ['png', 'X11' 'svg'], got '%s'", device)
+            raise ValueError("device must be one of ['png', 'X11' 'svg'], got '%s'", device)
         self.device = device
 
     @line_magic
@@ -635,7 +635,9 @@ class RMagics(Magics):
         png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])
         # execute the R code in a temporary directory
 
-        tmpd = tempfile.mkdtemp()
+        if self.device in ['png', 'svg']:
+            tmpd = tempfile.mkdtemp()
+
         if self.device == 'png':
             self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd.replace('\\', '/'), png_args))
         elif self.device == 'svg':
@@ -685,13 +687,9 @@ class RMagics(Magics):
                 # by default, Cairo creates an SVG file every time R is called -- some of these are
                 # empty so we don't publish them
                 images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplot.svg" % tmpd) if stat(imgfile).st_size >= 1000]
-                #raise ValueError(imgfile)
 
         # now publish the images
         # mimicking IPython/zmq/pylab/backend_inline.py
-        fmt = self.device
-        mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
-        mime = mimetypes[fmt]
 
         # publish the printed R objects, if any
 
@@ -699,14 +697,20 @@ class RMagics(Magics):
         if text_output:
             display_data.append(('RMagic.R', {'text/plain':text_output}))
 
-        # flush text streams before sending figures, helps a little with output
-        for image in images:
-            # synchronization in the console (though it's a bandaid, not a real sln)
-            sys.stdout.flush(); sys.stderr.flush()
-            display_data.append(('RMagic.R', {mime: image}))
+        fmt = self.device
+        if fmt in ['png', 'svg']:
+            mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
+            mime = mimetypes[fmt]
 
-        # kill the temporary directory
-        rmtree(tmpd)
+            # flush text streams before sending figures, helps a little with output
+            for image in images:
+                # synchronization in the console (though it's a bandaid, not a real sln)
+                sys.stdout.flush(); sys.stderr.flush()
+                display_data.append(('RMagic.R', {mime: image}))
+
+            # kill the temporary directory
+            # which is created only for "svg" and "png"
+            rmtree(tmpd)
 
         # try to turn every output into a numpy array
         # this means that output are assumed to be castable
