@@ -22,6 +22,7 @@ Authors:
 import sys
 import re
 import webbrowser
+import ast
 from threading import Thread
 
 # System library imports
@@ -42,6 +43,8 @@ class MainWindow(QtGui.QMainWindow):
     #---------------------------------------------------------------------------
     # 'object' interface
     #---------------------------------------------------------------------------
+
+    _magic_menu_dict = {}
 
     def __init__(self, app,
                     confirm_exit=True,
@@ -592,23 +595,35 @@ class MainWindow(QtGui.QMainWindow):
         `listofmagic`is a repr() of list because it is fed with the result of
         a 'user_expression'
         """
-        alm_magic_menu = self.all_magic_menu
-        alm_magic_menu.clear()
+        for k,v in self._magic_menu_dict.items():
+            v.clear()
+        self.all_magic_menu.clear()
 
-        # list of protected magic that don't like to be called without argument
-        # append '?' to the end to print the docstring when called from the menu
-        protected_magic = set(["more","less","load_ext","pycat","loadpy","load","save"])
-        magics=re.findall('\w+', listofmagic)
-        for magic in magics:
-            if magic in protected_magic:
-                pmagic = '%s%s%s'%('%',magic,'?')
-            else:
-                pmagic = '%s%s'%('%',magic)
+
+        protected_magic = set(["more","less","load_ext","pycat","loadpy","load","save","psource"])
+        mlist=ast.literal_eval(listofmagic)
+        for magic in mlist:
+            cell = (magic['type'] == 'cell')
+            name = magic['name']
+            mclass = magic['class']
+            if cell :
+                prefix='%%'
+            else :
+                prefix='%'
+            magic_menu = self._get_magic_menu(mclass)
+
+            if name in protected_magic:
+                suffix = '?'
+            else :
+                suffix = ''
+            pmagic = '%s%s%s'%(prefix,name,suffix)
+
             xaction = QtGui.QAction(pmagic,
                 self,
                 triggered=self._make_dynamic_magic(pmagic)
                 )
-            alm_magic_menu.addAction(xaction)
+            magic_menu.addAction(xaction)
+            self.all_magic_menu.addAction(xaction)
 
     def update_all_magic_menu(self):
         """ Update the list on magic in the "All Magics..." Menu
@@ -617,12 +632,37 @@ class MainWindow(QtGui.QMainWindow):
         menu with the list received back
 
         """
-        # first define a callback which will get the list of all magic and put it in the menu.
-        self.active_frontend._silent_exec_callback('get_ipython().lsmagic()', self.populate_all_magic_menu)
+        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic_info()',
+                self.populate_all_magic_menu)
 
+    def _get_magic_menu(self,menuidentifier, menulabel=None):
+        """return a submagic menu by name, and create it if needed
+       
+        parameters:
+        -----------
+
+        menulabel : str
+            Label for the menu
+
+        Will infere the menu name from the identifier at creation if menulabel not given.
+        To do so you have too give menuidentifier as a CamelCassedString
+        """
+        menu = self._magic_menu_dict.get(menuidentifier,None)
+        if not menu :
+            if not menulabel:
+                menulabel = re.sub("([a-zA-Z]+)([A-Z][a-z])","\g<1> \g<2>",menuidentifier)
+            menu = QtGui.QMenu(menulabel,self.magic_menu)
+            self._magic_menu_dict[menuidentifier]=menu
+            self.magic_menu.insertMenu(self.magic_menu_separator,menu)
+        return menu
+
+
+        
     def init_magic_menu(self):
         self.magic_menu = self.menuBar().addMenu("&Magic")
-        self.all_magic_menu = self.magic_menu.addMenu("&All Magics")
+        self.magic_menu_separator = self.magic_menu.addSeparator()
+        
+        self.all_magic_menu = self._get_magic_menu("AllMagics", menulabel="&All Magics...")
 
         # This action should usually not appear as it will be cleared when menu
         # is updated at first kernel response. Though, it is necessary when
