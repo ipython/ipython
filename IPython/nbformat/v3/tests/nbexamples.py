@@ -88,6 +88,12 @@ ws.cells.append(new_code_cell(
         etype=u'NameError',
         evalue=u'NameError was here',
         traceback=[u'frame 0', u'frame 1', u'frame 2']
+    ),new_output(
+        output_type=u'stream',
+        output_text='foo\rbar\r\n'
+    ),new_output(
+        output_type=u'stream',
+        output_text='\rfoo\rbar\n'
     )]
 ))
 
