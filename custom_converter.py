@@ -1,15 +1,10 @@
-import os, copy
+"""
+This module gives a simple example of a custom notebook converter taht only
+captures display data and deletes the cell inputs. 
+"""
 
+import copy
 import nbconvert as nb
-import json
-from decorators import DocInherit
-
-from IPython.external import argparse
-from IPython.nbformat import current as nbformat
-from IPython.nbformat.v3.nbjson import from_dict, rejoin_lines, BytesEncoder
-from IPython.utils.text import indent
-from IPython.utils import py3compat
-
 
 class CustomNotebookConverter(nb.ConverterNotebook):
 
