@@ -44,6 +44,9 @@ from IPython.utils import py3compat
 # Utility functions
 #-----------------------------------------------------------------------------
 
+def DocInherit(f):
+    return f
+
 def remove_fake_files_url(cell):
     """Remove from the cell source the /files/ pseudo-path we use.
     """
