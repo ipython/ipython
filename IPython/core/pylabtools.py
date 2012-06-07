@@ -88,24 +88,28 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='png'):
+def print_figure(fig, fmt='svg'):
     """Convert a figure to svg or png for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes and not fig.lines:
         return
 
-    fc = fig.get_facecolor()
-    ec = fig.get_edgecolor()
-    fig.set_facecolor('white')
-    fig.set_edgecolor('white')
+    original_axes_colors = []
+    for ax in fig.axes:
+        patch = ax.patch
+        original_axes_colors.append((patch.get_facecolor(),
+                                     patch.get_edgecolor()))
+        patch.set_facecolor('none')
+        patch.set_edgecolor('none')
     try:
         bytes_io = BytesIO()
-        fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight')
+        fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight', facecolor='none', edgecolor='none')
         data = bytes_io.getvalue()
     finally:
-        fig.set_facecolor(fc)
-        fig.set_edgecolor(ec)
+        for ax, cc in zip(fig.axes, original_axes_colors):
+            ax.patch.set_facecolor(cc[0])
+            ax.patch.set_edgecolor(cc[1])
     return data
 
 

@@ -39,9 +39,9 @@ class InlineBackend(InlineBackendConfig):
     # The typical default figure size is too large for inline use,
     # so we shrink the figure size to 6x4, and tweak fonts to
     # make that fit.
-    rc = Dict({'figure.figsize': (6.0,4.0),
+    rc = Dict({'figure.figsize': (32.0,20.0),
         # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
-        'font.size': 10,
+        'font.size': 32,
         # 72 dpi matches SVG/qtconsole
         # this only affects PNG export, as SVG has no dpi setting
         'savefig.dpi': 72,
@@ -52,7 +52,7 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    figure_format = CaselessStrEnum(['svg', 'png'], default_value='png', config=True,
+    figure_format = CaselessStrEnum(['svg', 'png'], default_value='svg', config=True,
         help="The image format for figures with the inline backend.")
 
     def _figure_format_changed(self, name, old, new):
