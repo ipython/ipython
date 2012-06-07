@@ -156,6 +156,7 @@ have['qt'] = test_for('IPython.external.qt')
 have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
+have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
@@ -277,6 +278,10 @@ def make_exclude():
     if not have['cython']:
         exclusions.extend([ipjoin('extensions', 'cythonmagic')])
         exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
+
+    if not have['oct2py']:
+        exclusions.extend([ipjoin('extensions', 'octavemagic')])
+        exclusions.extend([ipjoin('extensions', 'tests', 'test_octavemagic')])
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
