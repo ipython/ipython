@@ -552,6 +552,8 @@ class ConverterQuickHTML(Converter):
 
         Returns list.
         """
+        if type(output.text) == type([]):
+            return output.text
         return [output.text]
 
     def render_display_format_html(self, output):
@@ -559,6 +561,8 @@ class ConverterQuickHTML(Converter):
 
         Returns list.
         """
+        if type(output.html) == type([]):
+            return output.html
         return [output.html]
 
     def render_display_format_latex(self, output):
@@ -583,7 +587,10 @@ class ConverterQuickHTML(Converter):
 
         Returns list.
         """
+        if type(output.javascript) == type([]):
+            return output.javascript
         return [output.javascript]
+
 
 class ConverterLaTeX(Converter):
     """Converts a notebook to a .tex file suitable for pdflatex.
