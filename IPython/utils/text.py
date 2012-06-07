@@ -742,7 +742,7 @@ def compute_item_matrix(items, *args, **kwargs) :
     """
     info = _find_optimal(map(len, items), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
-    return ([[ _get_or_default(items, c*nrow+i) for c in range(ncol) ] for i in range(nrow) ], info)
+    return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
 
 def columnize(items, separator='  ', displaywidth=80):
     """ Transform a list of strings into a single string with columns.
