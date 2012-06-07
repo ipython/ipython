@@ -150,19 +150,24 @@ class Converter(object):
         
     def __init__(self, infile):
         self.infile = infile
-        self.infile_dir = os.path.dirname(infile)
-        infile_root = os.path.splitext(infile)[0]
-        files_dir = infile_root + '_files'
+        self.infile_dir, infile_root = os.path.split(infile)
+        infile_root = os.path.splitext(infile_root)[0]
+        files_dir = os.path.join(self.infile_dir, infile_root + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
         self.files_dir = files_dir
-        self.outbase = infile_root
+        self.outbase = os.path.join(self.infile_dir, infile_root)
 
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
         """
         return getattr(self, 'render_' + cell_type, self.render_unknown)
+
+    def dispatch_format(self, format):
+        """return output_type dependent render method,  for example render_output_text
+        """
+        return getattr(self, 'render_format_' + format, self.render_unknown)
 
     def convert(self, cell_separator='\n'):
         lines = []
@@ -248,19 +253,6 @@ class Converter(object):
         Returns list."""
         raise NotImplementedError
 
-    def render_pyout(self, output):
-        """convert pyout part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
-
-
-    def render_pyerr(self, output):
-        """convert pyerr part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
-
     def _img_lines(self, img_file):
         """Return list of lines to include an image file."""
         # Note: subclasses may choose to implement format-specific _FMT_lines
@@ -274,8 +266,8 @@ class Converter(object):
         """
         lines = []
 
-        for fmt in ['png', 'svg', 'jpg', 'pdf']:
-            if fmt in output:
+        for fmt in output.keys():
+            if fmt in ['png', 'svg', 'jpg', 'pdf']:
                 img_file = self._new_figure(output[fmt], fmt)
                 # Subclasses can have format-specific render functions (e.g.,
                 # latex has to auto-convert all SVG to PDF first).
@@ -283,14 +275,10 @@ class Converter(object):
                 if not lines_fun:
                     lines_fun = self._img_lines
                 lines.extend(lines_fun(img_file))
-
+            elif fmt != 'output_type':
+                conv_fn = self.dispatch_format(fmt)
+                lines.extend(conv_fn(output))
         return lines
-
-    def render_stream(self, cell):
-        """convert stream part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
 
     def render_raw(self, cell):
         """convert a cell with raw text
@@ -314,6 +302,65 @@ class Converter(object):
         data : str
           The content of the unknown data as a single string.
         """
+        raise NotImplementedError
+
+    # These are the possible format types in an output node
+
+    def render_format_text(self, output):
+        """render the text part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_stream(self, output):
+        """render the stream part of an output
+
+        Returns list.
+
+        Identical to render_format_text
+        """
+        return self.render_format_text(output)
+
+    def render_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_format_json(self, output):
+        """render the json part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_pyout(self, output):
+        """convert pyout part of a code cell
+
+        Returns list."""
+        raise NotImplementedError
+
+
+    def render_pyerr(self, output):
+        """convert pyerr part of a code cell
+
+        Returns list."""
         raise NotImplementedError
 
 
@@ -375,17 +422,41 @@ class ConverterRST(Converter):
         return ['.. image:: %s' % img_file, '']
     
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.extend(rst_directive('.. parsed-literal::', output.text))
-
-        return lines
+    def render_format_text(self, output):
+        return rst_directive('.. parsed-literal::', output.text)
 
     @DocInherit
     def _unknown_lines(self, data):
         return rst_directive('.. warning:: Unknown cell') + [data]
+
+    def render_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: html', output.html)
+
+    def render_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. math::', output.latex)
+
+    def render_format_json(self, output):
+        """render the json part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: json', output.json)
+
+
+    def render_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: javascript', output.javascript)
 
 
 class ConverterQuickHTML(Converter):
@@ -468,18 +539,51 @@ class ConverterQuickHTML(Converter):
         return ['<img src="%s">' % img_file, '']
 
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.append(output.text)
-
-        return lines
+    def render_format_text(self, output):
+        return [output.text]
 
     @DocInherit
     def _unknown_lines(self, data):
         return ['<h2>Warning:: Unknown cell</h2>'] + self.in_tag('pre', data)
 
+
+    def render_format_text(self, output):
+        """render the text part of an output
+
+        Returns list.
+        """
+        return [output.text]
+
+    def render_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        return [output.html]
+
+    def render_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns [].
+        """
+        # quickhtml ignores latex
+        return []
+
+    def render_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        # quickhtml ignores json
+        return []
+
+
+    def render_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        return [output.javascript]
 
 class ConverterLaTeX(Converter):
     """Converts a notebook to a .tex file suitable for pdflatex.
@@ -609,15 +713,6 @@ class ConverterLaTeX(Converter):
         return self._img_lines(pdf_file)
 
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.extend(self.in_env('verbatim', output.text.strip()))
-
-        return lines
-
-    @DocInherit
     def render_markdown(self, cell):
         return [markdown2latex(cell.source)]
         
@@ -653,6 +748,46 @@ class ConverterLaTeX(Converter):
         return [r'{\vspace{5mm}\bf WARNING:: unknown cell:}'] + \
           self.in_env('verbatim', data)
 
+
+    @DocInherit
+    def render_format_text(self, output):
+        lines = []
+
+        if 'text' in output:
+            lines.extend(self.in_env('verbatim', output.text.strip()))
+
+        return lines
+
+    def render_format_html(self, output):
+        """render the html part of an output
+
+        Returns [].
+        """
+        return []
+
+    def render_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return [output.latex]
+
+    def render_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        # latex ignores json
+        return []
+
+
+    def render_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns [].
+        """
+        # latex ignores javascript
+        return []
 
 class ConverterNotebook(Converter):
     """
@@ -722,6 +857,39 @@ class ConverterNotebook(Converter):
     def render_pyerr(self, output):
         return cell_to_lines(cell)
 
+    @DocInherit
+    def render_format_text(self, output):
+        return [output.text]
+
+    def render_format_html(self, output):
+        """render the html part of an output
+
+        Returns [].
+        """
+        return [output.html]
+
+    def render_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return [output.latex]
+
+    def render_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        return [output.json]
+
+
+    def render_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns [].
+        """
+        return [output.javascript]
+
 #-----------------------------------------------------------------------------
 # Standalone conversion functions
 #-----------------------------------------------------------------------------
@@ -738,7 +906,7 @@ def rst2simplehtml(infile):
     # simplest html I could find.  This should help in making it easier to
     # paste into the blogspot html window, though I'm still having problems
     # with linebreaks there...
-    cmd_template = ("rst2html --link-stylesheet --no-xml-declaration "
+    cmd_template = ("rst2html.py --link-stylesheet --no-xml-declaration "
                     "--no-generator --no-datestamp --no-source-link "
                     "--no-toc-backlinks --no-section-numbering "
                     "--strip-comments ")
