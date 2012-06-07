@@ -777,6 +777,8 @@ class ConverterLaTeX(Converter):
 
         Returns list.
         """
+        if type(output.latex) == type([]):
+            return output.latex
         return [output.latex]
 
     def render_display_format_json(self, output):
