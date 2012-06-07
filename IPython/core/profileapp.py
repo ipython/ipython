@@ -86,7 +86,7 @@ _main_examples = """
 ipython profile create -h  # show the help string for the create subcommand
 ipython profile list -h    # show the help string for the list subcommand
 
-ipython profile locate foo # print the path to the directory for profile 'foo'
+ipython locate profile foo # print the path to the directory for profile 'foo'
 """
 
 #-----------------------------------------------------------------------------
@@ -293,7 +293,6 @@ class ProfileApp(Application):
     subcommands = Dict(dict(
         create = (ProfileCreate, ProfileCreate.description.splitlines()[0]),
         list = (ProfileList, ProfileList.description.splitlines()[0]),
-        locate = (ProfileLocate, ProfileLocate.description.splitlines()[0]),
     ))
 
     def start(self):
