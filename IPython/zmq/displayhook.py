@@ -38,7 +38,10 @@ def _encode_binary(format_dict):
     jpegdata = format_dict.get('image/jpeg')
     if isinstance(jpegdata, bytes):
         encoded['image/jpeg'] = encodestring(jpegdata).decode('ascii')
-    
+    svgdata = format_dict.get('image/svg+xml')
+    if isinstance(svgdata, bytes):
+        encoded['image/svg+xml'] = encodestring(svgdata).decode('ascii')
+
     return encoded
 
 
