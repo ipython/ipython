@@ -690,7 +690,7 @@ def _get_or_default(mylist, i, default=None):
         return mylist[i]
 
 @skip_doctest
-def compute_item_matrix(items, *args, **kwargs) :
+def compute_item_matrix(items, empty=None, *args, **kwargs) :
     """Returns a nested list, and info to columnize items
 
     Parameters :
@@ -698,6 +698,8 @@ def compute_item_matrix(items, *args, **kwargs) :
 
     items :
         list of strings to columize
+    empty : (default None)
+        default value to fill list if needed
     separator_size : int (default=2)
         How much caracters will be used as a separation between each columns.
     displaywidth : int (default=80)

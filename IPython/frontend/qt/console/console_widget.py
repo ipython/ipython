@@ -843,7 +843,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _cancel_completion(self):
         """ If text completion is progress, cancel it.
         """
-        self._completion_widget._cancel_completion()
+        self._completion_widget.cancel_completion()
 
     def _clear_temporary_buffer(self):
         """ Clears the "temporary text" buffer, i.e. all the text following

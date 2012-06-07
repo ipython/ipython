@@ -1,7 +1,116 @@
-# System library imports
-from IPython.external.qt import QtCore, QtGui
-import IPython.utils.html_utils as html_utils
+"""a navigable completer for the qtconsole"""
+# coding : utf-8
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, IPython Development Team.$
+#
+# Distributed under the terms of the Modified BSD License.$
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
+# System library imports
+import IPython.utils.text as text
+
+from IPython.external.qt import QtCore, QtGui
+
+#--------------------------------------------------------------------------
+# Return an HTML table with selected item in a special class
+#--------------------------------------------------------------------------
+def html_tableify(item_matrix, select=None, header=None , footer=None) :
+    """ returnr a string for an html table"""
+    if not item_matrix :
+        return ''
+    html_cols = []
+    tds = lambda text : u'<td>'+text+u'  </td>'
+    trs = lambda text : u'<tr>'+text+u'</tr>'
+    tds_items = [map(tds, row) for row in item_matrix]
+    if select :
+        row, col = select
+        tds_items[row][col] = u'<td class="inverted">'\
+                +item_matrix[row][col]\
+                +u'  </td>'
+    #select the right item
+    html_cols = map(trs, (u''.join(row) for row in tds_items))
+    head = ''
+    foot = ''
+    if header :
+        head = (u'<tr>'\
+            +''.join((u'<td>'+header+u'</td>')*len(item_matrix[0]))\
+            +'</tr>')
+
+    if footer : 
+        foot = (u'<tr>'\
+            +''.join((u'<td>'+footer+u'</td>')*len(item_matrix[0]))\
+            +'</tr>')
+    html = (u'<table class="completion" style="white-space:pre">'+head+(u''.join(html_cols))+foot+u'</table>')
+    return html
+
+class SlidingInterval(object): 
+    """a bound interval that follows a cursor
+    
+    internally used to scoll the completion view when the cursor 
+    try to go beyond the edges, and show '...' when rows are hidden
+    """
+    
+    _min = 0
+    _max = 1
+    _current = 0
+    def __init__(self, maximum=1, width=6, minimum=0, sticky_lenght=1):
+        """Create a new bounded interval
+        
+        any value return by this will be bound between maximum and 
+        minimum. usual width will be 'width', and sticky_length 
+        set when the return  interval should expand to max and min
+        """
+        self._min = minimum 
+        self._max = maximum
+        self._start = 0
+        self._width = width
+        self._stop = self._start+self._width+1
+        self._sticky_lenght = sticky_lenght
+        
+    @property
+    def current(self):
+        """current cursor position"""
+        return self._current
+    
+    @current.setter
+    def current(self, value):
+        """set current cursor position"""
+        current = min(max(self._min, value), self._max)
+
+        self._current = current
+
+        if current > self._stop : 
+            self._stop = current
+            self._start = current-self._width
+        elif current < self._start : 
+            self._start = current
+            self._stop = current + self._width
+
+        if abs(self._start - self._min) <= self._sticky_lenght :
+            self._start = self._min
+        
+        if abs(self._stop - self._max) <= self._sticky_lenght :
+            self._stop = self._max
+
+    @property 
+    def start(self):
+        """begiiing of interval to show"""
+        return self._start
+        
+    @property
+    def stop(self):
+        """end of interval to show"""
+        return self._stop
+
+    @property
+    def width(self):
+        return self._stop - self._start
+
+    @property 
+    def nth(self):
+        return self.current - self.start
 
 class CompletionHtml(QtGui.QWidget):
     """ A widget for tab completion,  navigable by arrow keys """
@@ -16,6 +125,8 @@ class CompletionHtml(QtGui.QWidget):
     _size = (1, 1)
     _old_cursor = None
     _start_position = 0
+    _slice_start = 0
+    _slice_len = 4
 
     def __init__(self, console_widget):
         """ Create a completion widget that is attached to the specified Qt
@@ -27,6 +138,8 @@ class CompletionHtml(QtGui.QWidget):
         self._text_edit = console_widget._control
         self._console_widget = console_widget
         self._text_edit.installEventFilter(self)
+        self._sliding_interval = None
+        self._justified_items = None
 
         # Ensure that the text edit keeps focus when widget is displayed.
         self.setFocusProxy(self._text_edit)
@@ -71,24 +184,36 @@ class CompletionHtml(QtGui.QWidget):
                         self.select_left()
                         self._update_list()
                         return True
+                    elif key in ( QtCore.Qt.Key_Escape,):
+                        self.cancel_completion()
+                        return True
                     else :
-                        self._cancel_completion()
+                        self.cancel_completion()
                 else:
-                    self._cancel_completion()
+                    self.cancel_completion()
 
             elif etype == QtCore.QEvent.FocusOut:
-                self._cancel_completion()
+                self.cancel_completion()
 
         return super(CompletionHtml, self).eventFilter(obj, event)
 
     #--------------------------------------------------------------------------
     # 'CompletionHtml' interface
     #--------------------------------------------------------------------------
-    def _cancel_completion(self):
-        """Cancel the completion, reseting internal variable, clearing buffer """
+    def cancel_completion(self):
+        """Cancel the completion
+
+        should be called when the completer have to be dismissed
+
+        This reset internal variable, clearing the temporary buffer
+        of the console where the completion are shown.
+        """
         self._consecutive_tab = 0
+        self._slice_start = 0
         self._console_widget._clear_temporary_buffer()
         self._index = (0, 0)
+        if(self._sliding_interval):
+            self._sliding_interval = None
 
     #
     #  ...  2 4 4 4 4 4 4 4 4 4 4  4  4
@@ -147,6 +272,12 @@ class CompletionHtml(QtGui.QWidget):
                            have gone before : %d:%d (%d:%d)"%(row, col, nr, nc) )
 
 
+    @property
+    def _slice_end(self):
+        end = self._slice_start+self._slice_len
+        if end > len(self._items) :
+            return None
+        return end
 
     def select_up(self):
         """move cursor up"""
@@ -176,27 +307,42 @@ class CompletionHtml(QtGui.QWidget):
             return
         self._start_position = cursor.position()
         self._consecutive_tab = 1
-        ci = html_utils.columnize_info(items, empty=' ')
-        self._items = ci['item_matrix']
-        self._size = (ci['rows_number'], ci['columns_number'])
+        items_m, ci = text.compute_item_matrix(items, empty=' ')
+        self._sliding_interval = SlidingInterval(len(items_m)-1)
+
+        self._items = items_m
+        self._size = (ci['rows_numbers'], ci['columns_numbers'])
         self._old_cursor = cursor
         self._index = (0, 0)
+        sjoin = lambda x : [ y.ljust(w, ' ') for y, w in zip(x, ci['columns_width'])]
+        self._justified_items = map(sjoin, items_m)
         self._update_list(hilight=False)
+
+
 
 
     def _update_list(self, hilight=True):
         """ update the list of completion and hilight the currently selected completion """
-        if len(self._items) > 100:
-            items = self._items[:100]
-        else :
-            items = self._items
-        items_m = items
+        self._sliding_interval.current = self._index[0]
+        head = None
+        foot = None
+        if self._sliding_interval.start > 0 : 
+            head = '...'
+
+        if self._sliding_interval.stop < self._sliding_interval._max:
+            foot = '...'
+        items_m = self._justified_items[\
+                       self._sliding_interval.start:\
+                       self._sliding_interval.stop+1\
+                                       ]
 
         self._console_widget._clear_temporary_buffer()
         if(hilight):
-            strng = html_utils.html_tableify(items_m, select=self._index)
-        else:
-            strng = html_utils.html_tableify(items_m, select=None)
+            sel = (self._sliding_interval.nth, self._index[1])
+        else :
+            sel = None
+
+        strng = html_tableify(items_m, select=sel, header=head, footer=foot)
         self._console_widget._fill_temporary_buffer(self._old_cursor, strng, html=True)
 
     #--------------------------------------------------------------------------
@@ -211,7 +357,7 @@ class CompletionHtml(QtGui.QWidget):
         item = item.strip()
         if item :
             self._current_text_cursor().insertText(item)
-        self._cancel_completion()
+        self.cancel_completion()
 
     def _current_text_cursor(self):
         """ Returns a cursor with text between the start position and the
@@ -222,5 +368,4 @@ class CompletionHtml(QtGui.QWidget):
             cursor.setPosition(self._start_position,
                                QtGui.QTextCursor.KeepAnchor)
         return cursor
-
 

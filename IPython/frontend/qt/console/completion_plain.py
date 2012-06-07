@@ -1,6 +1,15 @@
+"""a simple completer for the qtconsole"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, IPython Development Team.$
+#
+# Distributed under the terms of the Modified BSD License.$
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-------------------------------------------------------------------
+
 # System library imports
 from IPython.external.qt import QtCore, QtGui
-import IPython.utils.html_utils as html_utils
+import IPython.utils.text as text
 
 
 class CompletionPlain(QtGui.QWidget):
@@ -9,10 +18,6 @@ class CompletionPlain(QtGui.QWidget):
     #--------------------------------------------------------------------------
     # 'QObject' interface
     #--------------------------------------------------------------------------
-
-    _items = ()
-    _index = (0, 0)
-    _old_cursor = None
 
     def __init__(self, console_widget):
         """ Create a completion widget that is attached to the specified Qt
@@ -33,18 +38,17 @@ class CompletionPlain(QtGui.QWidget):
         if obj == self._text_edit:
             etype = event.type()
 
-            if etype == QtCore.QEvent.KeyPress:
-                self._cancel_completion()
+            if etype in( QtCore.QEvent.KeyPress, QtCore.QEvent.FocusOut ):
+                self.cancel_completion()
 
         return super(CompletionPlain, self).eventFilter(obj, event)
 
     #--------------------------------------------------------------------------
     # 'CompletionPlain' interface
     #--------------------------------------------------------------------------
-    def _cancel_completion(self):
+    def cancel_completion(self):
         """Cancel the completion, reseting internal variable, clearing buffer """
         self._console_widget._clear_temporary_buffer()
-        self._index = (0, 0)
 
 
     def show_items(self, cursor, items):
@@ -53,21 +57,6 @@ class CompletionPlain(QtGui.QWidget):
         """
         if not items :
             return
-
-        ci = html_utils.columnize_info(items, empty=' ')
-        self._items = ci['item_matrix']
-        self._old_cursor = cursor
-        self._update_list()
-
-
-    def _update_list(self):
-        """ update the list of completion and hilight the currently selected completion """
-        if len(self._items) > 100:
-            items = self._items[:100]
-        else :
-            items = self._items
-        items_m = items
-
-        self._console_widget._clear_temporary_buffer()
-        strng = html_utils.html_tableify(items_m, select=None)
-        self._console_widget._fill_temporary_buffer(self._old_cursor, strng, html=True)
+        self.cancel_completion()
+        strng = text.columnize(items)
+        self._console_widget._fill_temporary_buffer(cursor, strng, html=False)

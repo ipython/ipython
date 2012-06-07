@@ -134,5 +134,5 @@ class CompletionWidget(QtGui.QListWidget):
         else:
             self.hide()
 
-    def _cancel_completion(self):
+    def cancel_completion(self):
         self.hide()

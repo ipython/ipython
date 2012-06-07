@@ -105,13 +105,6 @@ qt_flags = {
             "Disable rich text support."),
 }
 
-# not quite sure on how this works
-#qt_flags.update(boolean_flag(
-#    'gui-completion', 'ConsoleWidget.gui_completion',
-#    "use a GUI widget for tab completion",
-#    "use plaintext output for completion"
-#))
-
 # and app_flags from the Console Mixin
 qt_flags.update(app_flags)
 # add frontend flags to the full set
