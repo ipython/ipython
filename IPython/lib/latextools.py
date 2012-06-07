@@ -81,11 +81,13 @@ def latex_to_png_dvipng(s):
             f.write(_latex_footer)
 
         subprocess.check_call(
-            ["latex", "-halt-on-errror", tmpfile], cwd=workdir)
+            ["latex", "-halt-on-errror", tmpfile], cwd=workdir,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         subprocess.check_call(
             ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
-             "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir)
+             "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         with open(outfile) as f:
             bin_data = f.read()
