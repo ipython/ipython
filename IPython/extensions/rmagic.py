@@ -60,7 +60,7 @@ from IPython.core.magic_arguments import (
 )
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
 
-class RMagicError(ri.RRuntimeError):
+class RInterpreterError(ri.RRuntimeError):
     """An error when running R code in a %%R magic cell."""
     def __init__(self, line, err, stdout):
         self.line = line
@@ -68,7 +68,7 @@ class RMagicError(ri.RRuntimeError):
         self.stdout = stdout.rstrip()
     
     def __unicode__(self):
-        s = 'Failed to parse and evaluate line "%s".\nR error message: "%s"' % \
+        s = 'Failed to parse and evaluate line %r.\nR error message: %r' % \
                 (self.line, self.err)
         if self.stdout and (self.stdout != self.err):
             s += '\nR stdout:\n' + self.stdout
@@ -158,7 +158,7 @@ class RMagics(Magics):
             value = ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as exception:
             warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
-            raise RMagicError(line, str_to_unicode(str(exception)), warning_or_other_msg)
+            raise RInterpreterError(line, str_to_unicode(str(exception)), warning_or_other_msg)
         text_output = self.flush()
         ri.set_writeconsole(old_writeconsole)
         return text_output, value
