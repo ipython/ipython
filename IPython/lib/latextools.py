@@ -24,6 +24,8 @@ import tempfile
 import shutil
 import subprocess
 
+from IPython.utils.process import find_cmd, FindCmdError
+
 #-----------------------------------------------------------------------------
 # Tools
 #-----------------------------------------------------------------------------
@@ -70,6 +72,11 @@ def latex_to_png_mpl(s):
 
 def latex_to_png_dvipng(s):
     try:
+        find_cmd('latex')
+        find_cmd('dvipng')
+    except FindCmdError:
+        return None
+    try:
         workdir = tempfile.mkdtemp()
         tmpfile = os.path.join(workdir, "tmp.tex")
         dvifile = os.path.join(workdir, "tmp.dvi")
@@ -91,8 +98,6 @@ def latex_to_png_dvipng(s):
 
         with open(outfile) as f:
             bin_data = f.read()
-    except subprocess.CalledProcessError:
-        bin_data = None
     finally:
         shutil.rmtree(workdir)
     return bin_data
