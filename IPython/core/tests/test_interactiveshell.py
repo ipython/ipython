@@ -240,12 +240,22 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.var_expand(u'echo $f')
     
     def test_var_expand_local(self):
+        """Test local variable expansion in !system and %magic calls"""
+        # !system
         ip.run_cell('def test():\n'
                     '    lvar = "ttt"\n'
                     '    ret = !echo {lvar}\n'
                     '    return ret[0]\n')
         res = ip.user_ns['test']()
         nt.assert_in('ttt', res)
+        
+        # %magic
+        ip.run_cell('def makemacro():\n'
+                    '    macroname = "macro_var_expand_locals"\n'
+                    '    %macro {macroname} codestr\n')
+        ip.user_ns['codestr'] = "str(12)"
+        ip.run_cell('makemacro()')
+        nt.assert_in('macro_var_expand_locals', ip.user_ns)
     
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
