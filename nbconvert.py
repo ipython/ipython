@@ -182,7 +182,8 @@ class Converter(object):
 
     def render(self):
         "read, convert, and save self.infile"
-        self.read()
+        if not hasattr(self, 'nb'):
+            self.read()
         self.output = self.convert()
         return self.save()
 
