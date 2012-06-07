@@ -239,6 +239,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         # This should not raise any exception:
         ip.var_expand(u'echo $f')
     
+    def test_var_expand_local(self):
+        ip.run_cell('def test():\n'
+                    '    lvar = "ttt"\n'
+                    '    ret = !echo {lvar}\n'
+                    '    return ret[0]\n')
+        res = ip.user_ns['test']()
+        nt.assert_in('ttt', res)
+    
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
         # SyntaxError
