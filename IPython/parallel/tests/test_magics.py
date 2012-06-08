@@ -258,7 +258,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertTrue(output.startswith('%autopx enabled'), output)
         self.assertTrue(output.rstrip().endswith('%autopx disabled'), output)
-        self.assertTrue('RemoteError: ZeroDivisionError' in output, output)
+        self.assertTrue('ZeroDivisionError' in output, output)
         self.assertTrue('\nOut[' in output, output)
         self.assertTrue(': 24690' in output, output)
         ar = v.get_result(-1)
