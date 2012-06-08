@@ -126,12 +126,24 @@ IPython.utils = (function (IPython) {
                 DOWN     : 40,
     };
 
+
+    points_to_pixels = function (points) {
+        // A reasonably good way of converting between points and pixels.
+        var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
+        $(body).append(test);
+        var pixel_per_point = test.width()/10000;
+        test.remove();
+        return Math.floor(points*pixel_per_point);
+    }
+
+
     return {
         uuid : uuid,
         fixConsole : fixConsole,
         keycodes : keycodes,
         grow : grow,
         fixCarriageReturn : fixCarriageReturn
+        points_to_pixels : points_to_pixels
     };
 
 }(IPython));
