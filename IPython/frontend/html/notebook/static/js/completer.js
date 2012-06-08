@@ -8,9 +8,15 @@ var IPython = (function (IPython) {
     // easyier key mapping
     var key = IPython.utils.keycodes;
 
+    function _existing_completion(item, completion_array){
+       for( var c in completion_array ) {
+           if(completion_array[c].substr(-item.length) == item)
+           { return true; }
+       }
+       return false;
+    }
+
     // what is the common start of all completions
-
-
     function shared_start(B) {
         if (B.length == 1) {
             return B[0];
@@ -116,12 +122,19 @@ var IPython = (function (IPython) {
 
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
+        var filterd_results = Array();
+        //remove results from context completion
+        //that are already in kernel completion
+        for(var elm in results) {
+            if(_existing_completion(results[elm]['str'], matches) == false)
+            { filterd_results.push(results[elm]); }
+        }
 
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
         for (var i = matches.length - 1; i >= 0; --i) {
-            results.unshift({
+            filterd_results.unshift({
                 str: matches[i],
                 type: "introspection",
                 from: {
@@ -136,7 +149,7 @@ var IPython = (function (IPython) {
         }
 
         // one the 2 sources results have been merge, deal with it
-        this.raw_result = results;
+        this.raw_result = filterd_results;
 
         // if empty result return
         if (!this.raw_result || !this.raw_result.length) return;
