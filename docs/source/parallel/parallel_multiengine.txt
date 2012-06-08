@@ -759,7 +759,7 @@ Parallel exceptions
 -------------------
 
 In the multiengine interface, parallel commands can raise Python exceptions,
-just like serial commands. But, it is a little subtle, because a single
+just like serial commands. But it is a little subtle, because a single
 parallel command can actually raise multiple exceptions (one for each engine
 the command was run on). To express this idea, we have a
 :exc:`CompositeError` exception class that will be raised in most cases. The
@@ -768,58 +768,32 @@ more other types of exceptions. Here is how it works:
 
 .. sourcecode:: ipython
 
-    In [76]: dview.block=True
-
-    In [77]: dview.execute('1/0')
+    In [78]: dview.block = True
+    
+    In [79]: dview.execute("1/0")
+    [0:execute]: 
     ---------------------------------------------------------------------------
-    CompositeError                            Traceback (most recent call last)
-    /home/user/<ipython-input-10-5d56b303a66c> in <module>()
-    ----> 1 dview.execute('1/0')
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /path/to/site-packages/IPython/parallel/client/view.pyc in execute(self, code, targets, block)
-        591                 default: self.block
-        592         """
-    --> 593         return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
-        594 
-        595     def run(self, filename, targets=None, block=None):
+    [1:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /home/user/<string> in _really_apply(self, f, args, kwargs, targets, block, track)
+    [2:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /path/to/site-packages/IPython/parallel/client/view.pyc in sync_results(f, self, *args, **kwargs)
-         55 def sync_results(f, self, *args, **kwargs):
-         56     """sync relevant results from self.client to our results attribute."""
-    ---> 57     ret = f(self, *args, **kwargs)
-         58     delta = self.outstanding.difference(self.client.outstanding)
-         59     completed = self.outstanding.intersection(delta)
-
-    /home/user/<string> in _really_apply(self, f, args, kwargs, targets, block, track)
-
-    /path/to/site-packages/IPython/parallel/client/view.pyc in save_ids(f, self, *args, **kwargs)
-         44     n_previous = len(self.client.history)
-         45     try:
-    ---> 46         ret = f(self, *args, **kwargs)
-         47     finally:
-         48         nmsgs = len(self.client.history) - n_previous
-
-    /path/to/site-packages/IPython/parallel/client/view.pyc in _really_apply(self, f, args, kwargs, targets, block, track)
-        529         if block:
-        530             try:
-    --> 531                 return ar.get()
-        532             except KeyboardInterrupt:
-        533                 pass
-
-    /path/to/site-packages/IPython/parallel/client/asyncresult.pyc in get(self, timeout)
-        101                 return self._result
-        102             else:
-    --> 103                 raise self._exception
-        104         else:
-        105             raise error.TimeoutError("Result not ready.")
-
-    CompositeError: one or more exceptions from call to method: _execute
-    [0:apply]: ZeroDivisionError: integer division or modulo by zero
-    [1:apply]: ZeroDivisionError: integer division or modulo by zero
-    [2:apply]: ZeroDivisionError: integer division or modulo by zero
-    [3:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
 Notice how the error message printed when :exc:`CompositeError` is raised has
 information about the individual exceptions that were raised on each engine.
@@ -828,33 +802,14 @@ If you want, you can even raise one of these original exceptions:
 .. sourcecode:: ipython
 
     In [80]: try:
-       ....:     dview.execute('1/0')
+       ....:     dview.execute('1/0', block=True)
        ....: except parallel.error.CompositeError, e:
        ....:     e.raise_exception()
-       ....:     
-       ....:     
+       ....: 
+       ....: 
     ---------------------------------------------------------------------------
-    RemoteError                               Traceback (most recent call last)
-    /home/user/<ipython-input-17-8597e7e39858> in <module>()
-          2     dview.execute('1/0')
-          3 except CompositeError as e:
-    ----> 4     e.raise_exception()
-
-    /path/to/site-packages/IPython/parallel/error.pyc in raise_exception(self, excid)
-        266             raise IndexError("an exception with index %i does not exist"%excid)
-        267         else:
-    --> 268             raise RemoteError(en, ev, etb, ei)
-        269 
-        270 
-
-    RemoteError: ZeroDivisionError(integer division or modulo by zero)
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/engine/streamkernel.py", line 330, in apply_request
-        exec code in working,working
-      File "<string>", line 1, in <module>
-      File "/path/to/site-packages/IPython/parallel/util.py", line 354, in _execute
-        exec code in globals()
-      File "<string>", line 1, in <module>
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
 If you are working in IPython, you can simple type ``%debug`` after one of
@@ -864,112 +819,56 @@ instance:
 .. sourcecode:: ipython
 
     In [81]: dview.execute('1/0')
+    [0:execute]: 
     ---------------------------------------------------------------------------
-    CompositeError                            Traceback (most recent call last)
-    /home/user/<ipython-input-10-5d56b303a66c> in <module>()
-    ----> 1 dview.execute('1/0')
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /path/to/site-packages/IPython/parallel/client/view.pyc in execute(self, code, targets, block)
-        591                 default: self.block
-        592         """
-    --> 593         return self._really_apply(util._execute, args=(code,), block=block, targets=targets)
-        594 
-        595     def run(self, filename, targets=None, block=None):
+    [1:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /home/user/<string> in _really_apply(self, f, args, kwargs, targets, block, track)
+    [2:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /path/to/site-packages/IPython/parallel/client/view.pyc in sync_results(f, self, *args, **kwargs)
-         55 def sync_results(f, self, *args, **kwargs):
-         56     """sync relevant results from self.client to our results attribute."""
-    ---> 57     ret = f(self, *args, **kwargs)
-         58     delta = self.outstanding.difference(self.client.outstanding)
-         59     completed = self.outstanding.intersection(delta)
-
-    /home/user/<string> in _really_apply(self, f, args, kwargs, targets, block, track)
-
-    /path/to/site-packages/IPython/parallel/client/view.pyc in save_ids(f, self, *args, **kwargs)
-         44     n_previous = len(self.client.history)
-         45     try:
-    ---> 46         ret = f(self, *args, **kwargs)
-         47     finally:
-         48         nmsgs = len(self.client.history) - n_previous
-
-    /path/to/site-packages/IPython/parallel/client/view.pyc in _really_apply(self, f, args, kwargs, targets, block, track)
-        529         if block:
-        530             try:
-    --> 531                 return ar.get()
-        532             except KeyboardInterrupt:
-        533                 pass
-
-    /path/to/site-packages/IPython/parallel/client/asyncresult.pyc in get(self, timeout)
-        101                 return self._result
-        102             else:
-    --> 103                 raise self._exception
-        104         else:
-        105             raise error.TimeoutError("Result not ready.")
-
-    CompositeError: one or more exceptions from call to method: _execute
-    [0:apply]: ZeroDivisionError: integer division or modulo by zero
-    [1:apply]: ZeroDivisionError: integer division or modulo by zero
-    [2:apply]: ZeroDivisionError: integer division or modulo by zero
-    [3:apply]: ZeroDivisionError: integer division or modulo by zero
+    [3:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
     
     In [82]: %debug
-    > /path/to/site-packages/IPython/parallel/client/asyncresult.py(103)get()
-        102             else:
-    --> 103                 raise self._exception
-        104         else:
+    > /.../site-packages/IPython/parallel/client/asyncresult.py(125)get()
+        124             else:
+    --> 125                 raise self._exception
+        126         else:
     
-    # With the debugger running, self._exception is the exceptions instance.  We can tab complete
-    # on it and see the extra methods that are available.
-    ipdb> self._exception.<tab>
-    e.__class__         e.__getitem__       e.__new__           e.__setstate__      e.args
-    e.__delattr__       e.__getslice__      e.__reduce__        e.__str__           e.elist
-    e.__dict__          e.__hash__          e.__reduce_ex__     e.__weakref__       e.message
-    e.__doc__           e.__init__          e.__repr__          e._get_engine_str   e.print_tracebacks
-    e.__getattribute__  e.__module__        e.__setattr__       e._get_traceback    e.raise_exception
-    ipdb> self._exception.print_tracebacks()
-    [0:apply]: 
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/engine/streamkernel.py", line 330, in apply_request
-        exec code in working,working
-      File "<string>", line 1, in <module>
-      File "/path/to/site-packages/IPython/parallel/util.py", line 354, in _execute
-        exec code in globals()
-      File "<string>", line 1, in <module>
-    ZeroDivisionError: integer division or modulo by zero
-
-
-    [1:apply]: 
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/engine/streamkernel.py", line 330, in apply_request
-        exec code in working,working
-      File "<string>", line 1, in <module>
-      File "/path/to/site-packages/IPython/parallel/util.py", line 354, in _execute
-        exec code in globals()
-      File "<string>", line 1, in <module>
-    ZeroDivisionError: integer division or modulo by zero
-
-
-    [2:apply]: 
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/engine/streamkernel.py", line 330, in apply_request
-        exec code in working,working
-      File "<string>", line 1, in <module>
-      File "/path/to/site-packages/IPython/parallel/util.py", line 354, in _execute
-        exec code in globals()
-      File "<string>", line 1, in <module>
-    ZeroDivisionError: integer division or modulo by zero
-
-
-    [3:apply]: 
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/engine/streamkernel.py", line 330, in apply_request
-        exec code in working,working
-      File "<string>", line 1, in <module>
-      File "/path/to/site-packages/IPython/parallel/util.py", line 354, in _execute
-        exec code in globals()
-      File "<string>", line 1, in <module>
+    # Here, self._exception is the CompositeError instance:
+    
+    ipdb> e = self._exception
+    ipdb> e
+    CompositeError(4)
+    
+    # we can tab-complete on e to see available methods:
+    ipdb> e.<TAB>
+    e.args               e.message            e.traceback
+    e.elist              e.msg
+    e.ename              e.print_traceback
+    e.engine_info        e.raise_exception
+    e.evalue             e.render_traceback
+    
+    # We can then display the individual tracebacks, if we want:
+    ipdb> e.print_traceback(1)
+    [1:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
 
@@ -982,21 +881,27 @@ All of this same error handling magic even works in non-blocking mode:
     In [84]: ar = dview.execute('1/0')
 
     In [85]: ar.get()
+    [0:execute]: 
     ---------------------------------------------------------------------------
-    CompositeError                            Traceback (most recent call last)
-    /home/user/<ipython-input-21-8531eb3d26fb> in <module>()
-    ----> 1 ar.get()
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    /path/to/site-packages/IPython/parallel/client/asyncresult.pyc in get(self, timeout)
-        101                 return self._result
-        102             else:
-    --> 103                 raise self._exception
-        104         else:
-        105             raise error.TimeoutError("Result not ready.")
+    [1:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
-    CompositeError: one or more exceptions from call to method: _execute
-    [0:apply]: ZeroDivisionError: integer division or modulo by zero
-    [1:apply]: ZeroDivisionError: integer division or modulo by zero
-    [2:apply]: ZeroDivisionError: integer division or modulo by zero
-    [3:apply]: ZeroDivisionError: integer division or modulo by zero
+    [2:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
+
+    [3:execute]: 
+    ---------------------------------------------------------------------------
+    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ----> 1 1/0
+    ZeroDivisionError: integer division or modulo by zero
 
