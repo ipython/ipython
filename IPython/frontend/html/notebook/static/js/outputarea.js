@@ -181,7 +181,7 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
-        var text = utils.fixConsole(json.text);
+        var text = json.text;
         var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
             // have at least one output to consider
@@ -190,8 +190,8 @@ var IPython = (function (IPython) {
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                pre = this.element.find('div.'+subclass).last().find('pre');
-                html = utils.fixCarriageReturn(
+                var pre = this.element.find('div.'+subclass).last().find('pre');
+                var html = utils.fixCarriageReturn(
                     pre.html() + utils.fixConsole(text));
                 pre.html(html);
                 return;
