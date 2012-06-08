@@ -33,7 +33,7 @@ def virtualenv(line, cell):
     if not os.path.exists(os.environ['WORKON_HOME']+'/'+line):
         print >> sys.stderr, "Environment {} does no exist.".format(line)
         return
-    env_activate_cmd = 'bash -c "source {}/{}/bin/activate && python -"'.format(os.environ['WORKON_HOME'] + ',line)
+    env_activate_cmd = 'bash -c "source {}/{}/bin/activate && python -"'.format(os.environ['WORKON_HOME'],line)
     cmd = shlex.split(env_activate_cmd)
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
     out,err = p.communicate(cell)
