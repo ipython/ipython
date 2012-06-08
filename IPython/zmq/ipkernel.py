@@ -530,8 +530,9 @@ class Kernel(Configurable):
             return
 
         # Set the parent message of the display hook and out streams.
-        self.shell.displayhook.set_parent(parent)
-        self.shell.display_pub.set_parent(parent)
+        shell = self.shell
+        shell.displayhook.set_parent(parent)
+        shell.display_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
@@ -540,7 +541,7 @@ class Kernel(Configurable):
         # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
         sub = self._make_subheader()
         try:
-            working = self.shell.user_ns
+            working = shell.user_ns
 
             prefix = "_"+str(msg_id).replace("-","")+"_"
 
@@ -558,7 +559,7 @@ class Kernel(Configurable):
             working.update(ns)
             code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
             try:
-                exec code in self.shell.user_global_ns, self.shell.user_ns
+                exec code in shell.user_global_ns, shell.user_ns
                 result = working.get(resultname)
             finally:
                 for key in ns.iterkeys():
@@ -567,14 +568,23 @@ class Kernel(Configurable):
             packed_result,buf = serialize_object(result)
             result_buf = [packed_result]+buf
         except:
-            exc_content = self._wrap_exception('apply')
-            # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.session.send(self.iopub_socket, u'pyerr', exc_content, parent=parent,
+            # invoke IPython traceback formatting
+            shell.showtraceback()
+            # FIXME - fish exception info out of shell, possibly left there by
+            # run_code.  We'll need to clean up this logic later.
+            reply_content = {}
+            if shell._reply_content is not None:
+                reply_content.update(shell._reply_content)
+                e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method='apply')
+                reply_content['engine_info'] = e_info
+                # reset after use
+                shell._reply_content = None
+            
+            self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
                                 ident=self._topic('pyerr'))
-            reply_content = exc_content
             result_buf = []
 
-            if exc_content['ename'] == 'UnmetDependency':
+            if reply_content['ename'] == 'UnmetDependency':
                 sub['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
