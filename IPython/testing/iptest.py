@@ -57,6 +57,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
@@ -372,17 +373,22 @@ class IPTester(object):
             # reliably in win32.
             # What types of problems are you having. They may be related to
             # running Python in unboffered mode. BG.
-            return os.system(' '.join(self.call_args))
+            with TemporaryDirectory() as IPYTHONDIR:
+                return os.system(' '.join(['IPYTHONDIR=%s' % IPYTHONDIR] +
+                                          self.call_args))
     else:
         def _run_cmd(self):
-            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args)
-            self.pids.append(subp.pid)
-            # If this fails, the pid will be left in self.pids and cleaned up
-            # later, but if the wait call succeeds, then we can clear the
-            # stored pid.
-            retcode = subp.wait()
-            self.pids.pop()
+            with TemporaryDirectory() as IPYTHONDIR:
+                env = os.environ.copy()
+                env['IPYTHONDIR'] = IPYTHONDIR
+                # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+                subp = subprocess.Popen(self.call_args, env=env)
+                self.pids.append(subp.pid)
+                # If this fails, the pid will be left in self.pids and cleaned up
+                # later, but if the wait call succeeds, then we can clear the
+                # stored pid.
+                retcode = subp.wait()
+                self.pids.pop()
             return retcode
 
     def run(self):
