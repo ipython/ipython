@@ -270,8 +270,32 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_svg = function (svg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
-        toinsert.append(svg);
+        // The <svg> tag cannot be made resizable so we wrap it in a resizable <div>.
+        var img = $('<div/>');
+        img.html(svg);
+        toinsert.append(img);
         element.append(toinsert);
+        var svg = img.find('svg');
+        var w = parseFloat(svg.attr('width'));
+        var h = parseFloat(svg.attr('height'));
+        var parentwidth = img.offsetParent().width();
+        /* The SVG width should be from a stylesheet, but browsers do not
+         * properly implement percent-based sizes for svg.  Maybe someday it
+         * will be possible to remove the following 3 lines and use the
+         * stylesheet instead.  The SVG will behave as though it has a fixed
+         * size determined by widthpct*(width of parent), but will NOT reflow
+         * as though you had set widthpct using a stylesheet. */
+        var widthpct = 0.6;  /* percentage of output div */
+        img.height(widthpct*parentwidth/w*h);
+        img.width(widthpct*parentwidth);
+        img.resizable({
+            'autoHide': true,
+            'aspectRatio': true,
+            'resize': function () {
+                $(this).find('svg').height($(this).height());
+                $(this).find('svg').width($(this).width());
+            }
+        });
     };
 
 

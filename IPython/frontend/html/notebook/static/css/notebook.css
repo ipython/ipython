@@ -220,9 +220,18 @@ div.output_png {
 div.output_jpeg {
 }
 
+/* Because browsers can't handle percentage-based width/height for svg, the
+ * desired width is computed in OutputArea.prototype.append_svg and applied 
+ * to the element.  Maybe someday the width statement below will work. */
+div.output_svg div.ui-resizable {
+/*  width: 60%; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
 div.output_svg svg {
     width: 100%;
-    height: 32em;
+    height: 100%;
 }
 
 div.text_cell {
