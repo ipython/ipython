@@ -228,6 +228,7 @@ class NotebookManager(LoggingConfigurable):
                     os.unlink(old_pypath)
             self.mapping[notebook_id] = new_name
             self.rev_mapping[new_name] = notebook_id
+            del self.rev_mapping[old_name]
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
