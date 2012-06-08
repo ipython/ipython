@@ -242,6 +242,10 @@ div.text_cell_render {
     color: black;
 }
 
+.CodeMirror span {
+    vertical-align: bottom;
+}
+
 .CodeMirror {
     line-height: 1.231;  /* Changed from 1em to our global default */
 }
