@@ -14,6 +14,5 @@ def setup():
     
 def test_virtualenv():
     ip = get_ipython()
-    ip.run_cell_magic('virtualenv','pypyEnv','import sys')
-    ip.ex('v = sys.version')
-    nt.assert_true('PyPy' in ip.user_ns['v'])
+    result = ip.run_cell_magic('virtualenv','pypyEnv','import sys;print sys.version')
+    nt.assert_true('PyPy' in result)
