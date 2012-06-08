@@ -181,11 +181,7 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
-        if (!utils.fixConsole(json.text)){
-            // fixConsole gives nothing (empty string, \r, etc.)
-            // so don't append any elements, which might add undesirable space
-            return;
-        }
+        var text = json.text;
         var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
             // have at least one output to consider
@@ -194,15 +190,23 @@ var IPython = (function (IPython) {
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                var text = utils.fixConsole(json.text);
-                this.element.find('div.'+subclass).last().find('pre').append(text);
+                var pre = this.element.find('div.'+subclass).last().find('pre');
+                var html = utils.fixCarriageReturn(
+                    pre.html() + utils.fixConsole(text));
+                pre.html(html);
                 return;
             }
         }
-        
+
+        if (!text.replace("\r", "")) {
+            // text is nothing (empty string, \r, etc.)
+            // so don't append any elements, which might add undesirable space
+            return;
+        }
+
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(json.text, toinsert, "output_stream "+subclass);
+        this.append_text(text, toinsert, "output_stream "+subclass);
         this.element.append(toinsert);
     };
 
@@ -260,6 +264,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
+        data = utils.fixCarriageReturn(data);
         if (extra_class){
             toinsert.addClass(extra_class);
         }
@@ -328,7 +333,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.clear_output_callback = function (stdout, stderr, other) {
         var output_div = this.element;
-        
+
         if (stdout && stderr && other){
             // clear all, no need for logic
             output_div.html("");
@@ -347,7 +352,7 @@ var IPython = (function (IPython) {
         if (other) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
-        
+
         // remove cleared outputs from JSON list:
         for (var i = this.outputs.length - 1; i >= 0; i--) {
             var out = this.outputs[i];
