@@ -142,7 +142,7 @@ IPython.utils = (function (IPython) {
         fixConsole : fixConsole,
         keycodes : keycodes,
         grow : grow,
-        fixCarriageReturn : fixCarriageReturn
+        fixCarriageReturn : fixCarriageReturn,
         points_to_pixels : points_to_pixels
     };
 
