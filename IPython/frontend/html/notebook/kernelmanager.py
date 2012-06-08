@@ -193,7 +193,7 @@ class MultiKernelManager(LoggingConfigurable):
     def create_shell_stream(self, kernel_id):
         ip = self.get_kernel_ip(kernel_id)
         ports = self.get_kernel_ports(kernel_id)
-        shell_stream = self.create_connected_stream(ip, ports['shell_port'], zmq.XREQ)
+        shell_stream = self.create_connected_stream(ip, ports['shell_port'], zmq.DEALER)
         return shell_stream
 
     def create_hb_stream(self, kernel_id):

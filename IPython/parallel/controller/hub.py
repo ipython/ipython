@@ -108,9 +108,9 @@ class EngineConnector(HasTraits):
     Attributes are:
     id (int): engine ID
     uuid (str): uuid (unused?)
-    queue (str): identity of queue's XREQ socket
-    registration (str): identity of registration XREQ socket
-    heartbeat (str): identity of heartbeat XREQ socket
+    queue (str): identity of queue's DEALER socket
+    registration (str): identity of registration DEALER socket
+    heartbeat (str): identity of heartbeat DEALER socket
     """
     id=Integer(0)
     queue=CBytes()
@@ -124,7 +124,7 @@ class HubFactory(RegistrationFactory):
 
     # port-pairs for monitoredqueues:
     hb = Tuple(Integer,Integer,config=True,
-        help="""XREQ/SUB Port pair for Engine heartbeats""")
+        help="""DEALER/SUB Port pair for Engine heartbeats""")
     def _hb_default(self):
         return tuple(util.select_random_ports(2))
 
@@ -309,7 +309,7 @@ class Hub(SessionFactory):
     session: Session object
     <removed> context: zmq context for creating new connections (?)
     queue: ZMQStream for monitoring the command queue (SUB)
-    query: ZMQStream for engine registration and client queries requests (XREP)
+    query: ZMQStream for engine registration and client queries requests (ROUTER)
     heartbeat: HeartMonitor object checking the pulse of the engines
     notifier: ZMQStream for broadcasting engine registration changes (PUB)
     db: connection to db for out of memory logging of commands
