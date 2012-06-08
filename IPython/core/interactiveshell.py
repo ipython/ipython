@@ -84,6 +84,11 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
+try:
+    from IPython.parallel.error import RemoteError
+except ImportError:
+    class RemoteError(Exception): pass
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -1711,6 +1716,10 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
+            elif issubclass(etype, RemoteError):
+                # IPython.parallel remote exceptions.
+                # Draw the remote traceback, not the local one.
+                self._showtraceback(etype, value, value.render_traceback())
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
