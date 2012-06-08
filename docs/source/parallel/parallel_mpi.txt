@@ -96,9 +96,9 @@ distributed array. Save the following text in a file called :file:`psum.py`:
     import numpy as np
 
     def psum(a):
-        s = np.sum(a)
+        locsum = np.sum(a)
         rcvBuf = np.array(0.0,'d')
-        MPI.COMM_WORLD.Allreduce([s, MPI.DOUBLE],
+        MPI.COMM_WORLD.Allreduce([locsum, MPI.DOUBLE],
             [rcvBuf, MPI.DOUBLE],
             op=MPI.SUM)
         return rcvBuf
@@ -119,24 +119,29 @@ using our :func:`psum` function:
 .. sourcecode:: ipython
 
     In [1]: from IPython.parallel import Client
-    
-    In [3]: c = Client(profile='mpi')
-    
-    In [4]: view = c[:]
-    
-    In [5]: view.activate() # enabe magics
-    
+
+    In [2]: c = Client(profile='mpi')
+
+    In [3]: view = c[:]
+
+    In [4]: view.activate() # enable magics
+
     # run the contents of the file on each engine:
-    In [6]: view.run('psum.py')
-    
-    In [6]: %px a = np.random.rand(100)
+    In [5]: view.run('psum.py')
+
+    In [6]: view.scatter('a',np.arange(16,dtype='float'))
+
+    In [7]: view['a']
+    Out[7]: [array([ 0.,  1.,  2.,  3.]),
+             array([ 4.,  5.,  6.,  7.]),
+             array([  8.,   9.,  10.,  11.]),
+             array([ 12.,  13.,  14.,  15.])]
+
+    In [7]: %px totalsum = psum(a)
     Parallel execution on engines: [0,1,2,3]
-    
-    In [8]: %px s = psum(a)
-    Parallel execution on engines: [0,1,2,3]
-    
-    In [9]: view['s']
-    Out[9]: [187.451545803,187.451545803,187.451545803,187.451545803]
+
+    In [8]: view['totalsum']
+    Out[8]: [120.0, 120.0, 120.0, 120.0]
 
 Any Python code that makes calls to MPI can be used in this manner, including
 compiled C, C++ and Fortran libraries that have been exposed to Python.

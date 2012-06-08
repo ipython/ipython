@@ -549,9 +549,67 @@ on the engines until you do ``%autopx`` again.
     [stdout:1] Average max eigenvalue is: 10.064508
     [stdout:2] Average max eigenvalue is: 10.055724
     [stdout:3] Average max eigenvalue is: 10.086876
-    
+
     In [35]: %autopx
     Auto Parallel Disabled
+
+
+Engines as Kernels
+******************
+
+Engines are really the same object as the Kernels used elsewhere in IPython,
+with the minor exception that engines connect to a controller, while regular kernels
+bind their sockets, listening for connections from a QtConsole or other frontends.
+
+Sometimes for debugging or inspection purposes, you would like a QtConsole connected
+to an engine for more direct interaction.  You can do this by first instructing
+the Engine to *also* bind its kernel, to listen for connections:
+
+.. sourcecode:: ipython
+
+    In [50]: %px from IPython.parallel import bind_kernel; bind_kernel()
+
+Then, if your engines are local, you can start a qtconsole right on the engine(s):
+
+.. sourcecode:: ipython
+
+    In [51]: %px %qtconsole
+
+Careful with this one, because if your view is of 16 engines it will start 16 QtConsoles!
+
+Or you can view just the connection info, and work out the right way to connect to the engines,
+depending on where they live and where you are:
+
+.. sourcecode:: ipython
+
+    In [51]: %px %connect_info
+    Parallel execution on engine(s): [0, 1, 2, 3]
+    [stdout:0] 
+    {
+      "stdin_port": 60387, 
+      "ip": "127.0.0.1", 
+      "hb_port": 50835, 
+      "key": "eee2dd69-7dd3-4340-bf3e-7e2e22a62542", 
+      "shell_port": 55328, 
+      "iopub_port": 58264
+    }
+
+    Paste the above JSON into a file, and connect with:
+        $> ipython <app> --existing <file>
+    or, if you are local, you can connect with just:
+        $> ipython <app> --existing kernel-60125.json 
+    or even just:
+        $> ipython <app> --existing 
+    if this is the most recent IPython session you have started.
+    [stdout:1] 
+    {
+      "stdin_port": 61869,
+    ...
+
+.. note::
+
+    ``%qtconsole`` will call :func:`bind_kernel` on an engine if it hasn't been done already,
+    so you can often skip that first step.
 
 
 Moving Python objects around
