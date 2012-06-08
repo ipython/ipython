@@ -288,12 +288,20 @@ var IPython = (function (IPython) {
         var widthpct = 0.6;  /* percentage of output div */
         img.height(widthpct*parentwidth/w*h);
         img.width(widthpct*parentwidth);
+        var svg = img.find('svg');
+        $(img).dblclick(function() { /* reset size on double click */
+            var parentwidth = img.offsetParent().width();
+            img.height(widthpct*parentwidth/w*h);
+            img.width(widthpct*parentwidth);
+            svg.width('');
+            svg.height('');
+        });
         img.resizable({
             'autoHide': true,
             'aspectRatio': true,
             'resize': function () {
-                $(this).find('svg').height($(this).height());
-                $(this).find('svg').width($(this).width());
+                svg.height($(this).height());
+                svg.width($(this).width());
             }
         });
     };
