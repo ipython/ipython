@@ -263,7 +263,7 @@ class InteractiveShell(SingletonConfigurable):
         """
     )
     disable_failing_post_execute = CBool(False, config=True,
-        help="Don't call post-execute functions that have failed in the past."""
+        help="Don't call post-execute functions that have failed in the past."
     )
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
