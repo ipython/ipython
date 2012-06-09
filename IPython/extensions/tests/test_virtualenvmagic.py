@@ -5,7 +5,7 @@ Author: Flávio Codeço Coelho - @fccoelho
 """
 
 import nose.tools as nt
-import os
+import os, shutil
 from nose import SkipTest
 import virtualenv
 
@@ -27,8 +27,8 @@ def setup():
     virtualenv.create_environment(testenv_dir)
     ip.extension_manager.load_extension('virtualenvmagic')
 
-def tear_down():
-    os.rmdir(testenv_dir)
+def teardown():
+    shutil.rmtree(testenv_dir)
 
 
 def test_virtualenv_pypy():
