@@ -47,6 +47,7 @@ from IPython.testing.skipdoctest import skip_doctest
 
 
 NO_ACTIVE_VIEW = "Use activate() on a DirectView object to use it with magics."
+NO_LAST_RESULT = "%result recalls last %px result, which has not yet been used."
 
 
 @magics_class
@@ -58,12 +59,36 @@ class ParallelMagics(Magics):
     _autopx = False
     # the current view used by the magics:
     active_view = None
-
+    # last result cache for %result
+    last_result = None
+    
     @skip_doctest
     @line_magic
-    def result(self, parameter_s=''):
-        """Print the result of command i on all engines.
+    def result(self, line=''):
+        """Print the result of the last asynchronous %px command.
 
+        Usage:
+        
+        %result [-o] [-e] [--group-options=type|engine|order]
+        
+        Options:
+        
+        -o: collate outputs in order (same as group-outputs=order)
+        
+        -e: group outputs by engine (same as group-outputs=engine)
+        
+        --group-outputs=type [default behavior]:
+            each output type (stdout, stderr, displaypub) for all engines
+            displayed together.
+        
+        --group-outputs=order:
+            The same as 'type', but individual displaypub outputs (e.g. plots)
+            will be interleaved, so it will display all of the first plots,
+            then all of the second plots, etc.
+        
+        --group-outputs=engine:
+            All of an engine's output is displayed before moving on to the next.
+        
         To use this a :class:`DirectView` instance must be created
         and then activated by calling its :meth:`activate` method.
         
@@ -81,21 +106,25 @@ class ParallelMagics(Magics):
             [10] Out[10]: 60922
             [11] Out[10]: 60923
         """
+        opts, _ = self.parse_options(line, 'oe', 'group-outputs=')
+
+        if 'group-outputs' in opts:
+            groupby = opts['group-outputs']
+        elif 'o' in opts:
+            groupby = 'order'
+        elif 'e' in opts:
+            groupby = 'engine'
+        else:
+            groupby = 'type'
         
         if self.active_view is None:
             raise UsageError(NO_ACTIVE_VIEW)
         
-        stride = len(self.active_view)
-        try:
-            index = int(parameter_s)
-        except:
-            index = -1
-        msg_ids = self.active_view.history[stride * index:(stride * (index + 1)) or None]
+        if self.last_result is None:
+            raise UsageError(NO_LAST_RESULT)
         
-        result = self.active_view.get_result(msg_ids)
-        
-        result.get()
-        result.display_outputs()
+        self.last_result.get()
+        self.last_result.display_outputs(groupby=groupby)
 
     @skip_doctest
     @line_magic
@@ -118,7 +147,7 @@ class ParallelMagics(Magics):
         """
         return self.parallel_execute(parameter_s)
         
-    def parallel_execute(self, cell, block=None, groupby='type'):
+    def parallel_execute(self, cell, block=None, groupby='type', save_name=None):
         """implementation used by %px and %%parallel"""
 
         if self.active_view is None:
@@ -128,9 +157,20 @@ class ParallelMagics(Magics):
         block = self.active_view.block if block is None else block
         
         base = "Parallel" if block else "Async parallel"
-        print base + " execution on engine(s): %s" % self.active_view.targets
+        
+        targets = self.active_view.targets
+        if isinstance(targets, list) and len(targets) > 10:
+            str_targets = str(targets[:4])[:-1] + ', ..., ' + str(targets[-4:])[1:]
+        else:
+            str_targets = str(targets)
+        print base + " execution on engine(s): %s" % str_targets
         
         result = self.active_view.execute(cell, silent=False, block=False)
+        self.last_result = result
+        
+        if save_name:
+            self.shell.user_ns[save_name] = result
+        
         if block:
             result.get()
             result.display_outputs(groupby)
@@ -145,11 +185,14 @@ class ParallelMagics(Magics):
         
         Cell magic usage:
         
-        %%px [-o] [-e] [--group-options=type|engine|order] [--[no]block]
+        %%px [-o] [-e] [--group-options=type|engine|order] [--[no]block] [--out name]
         
-        Options (%%px cell magic only):
+        Options:
         
-        -o: collate outputs in oder (same as group-outputs=order)
+        --out <name>: store the AsyncResult object for this computation
+            in the global namespace.
+        
+        -o: collate outputs in order (same as group-outputs=order)
         
         -e: group outputs by engine (same as group-outputs=engine)
         
@@ -175,10 +218,12 @@ class ParallelMagics(Magics):
 
         Then you can do the following::
 
-            In [24]: %%parallel --noblock a = os.getpid()
+            In [24]: %%px --noblock
+               ....: a = os.getpid()
             Async parallel execution on engine(s): all
             
-            In [25]: %px print a
+            In [25]: %%px
+               ....: print a
             [stdout:0] 1234
             [stdout:1] 1235
             [stdout:2] 1236
@@ -188,7 +233,7 @@ class ParallelMagics(Magics):
         block = None
         groupby = 'type'
         # as a cell magic, we accept args
-        opts, _ = self.parse_options(line, 'oe', 'group-outputs=', 'block', 'noblock')
+        opts, _ = self.parse_options(line, 'oe', 'group-outputs=', 'out=', 'block', 'noblock')
 
         if 'group-outputs' in opts:
             groupby = opts['group-outputs']
@@ -202,7 +247,9 @@ class ParallelMagics(Magics):
         elif 'noblock' in opts:
             block = False
         
-        return self.parallel_execute(cell, block=block, groupby=groupby)
+        save_name = opts.get('out')
+        
+        return self.parallel_execute(cell, block=block, groupby=groupby, save_name=save_name)
 
     @skip_doctest
     @line_magic
