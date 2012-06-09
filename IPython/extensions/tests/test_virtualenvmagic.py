@@ -19,7 +19,7 @@ def test_virtualenv_pypy():
         raise SkipTest
     ip = get_ipython()
     result = ip.run_cell_magic('virtualenv', 'pypyEnv', 'import sys;print\
-     sys.version')
+     (sys.version)')
     nt.assert_true('PyPy' in result)
 
 def test_virtualenv_python3():
@@ -29,6 +29,17 @@ def test_virtualenv_python3():
     result = ip.run_cell_magic('virtualenv', 'py3', 'import sys;print \
     (sys.version_info.major)')
     nt.assert_equals('3\n', result)
+
+def test_virtualenv_nonexisting():
+    ip = get_ipython()
+    result = ip.run_cell_magic('virtualenv', 'nonexistingenv', 'print \
+    ("hello")')
+    nt.assert_equals(None, result)
+
+def test_capturing_python_error():
+    result = ip.run_cell_magic('virtualenv', 'nonexistingenv', 'print \
+    (x)')
+    nt.assert_equals("",result)
 
 @nt.nottest
 def env_exists(env):
