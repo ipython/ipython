@@ -25,3 +25,11 @@ Other new features
   :meth:`~IPython.core.interactiveshell.InteractiveShell.run_cell` to
   :meth:`~IPython.core.interactiveshell.InteractiveShell.run_ast_nodes`
   is now configurable.
+
+Backwards incompatible changes
+------------------------------
+
+* The exception :exc:`IPython.core.error.TryNext` previously accepted
+  arguments and keyword arguments to be passed to the next implementation
+  of the hook. This feature was removed as it made error message propagation
+  difficult and violated the principle of loose coupling.

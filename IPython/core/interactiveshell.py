@@ -2179,7 +2179,7 @@ class InteractiveShell(SingletonConfigurable):
         # we explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
         # Instead, we store the exit_code in user_ns.
-        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=2))
+        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=1))
 
     def system_raw(self, cmd):
         """Call the given cmd in a subprocess using os.system
@@ -2189,7 +2189,7 @@ class InteractiveShell(SingletonConfigurable):
         cmd : str
           Command to execute.
         """
-        cmd = self.var_expand(cmd, depth=2)
+        cmd = self.var_expand(cmd, depth=1)
         # protect os.system from UNC paths on Windows, which it can't handle:
         if sys.platform == 'win32':
             from IPython.utils._process_win32 import AvoidUNCPath
@@ -2229,7 +2229,7 @@ class InteractiveShell(SingletonConfigurable):
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
-        out = getoutput(self.var_expand(cmd, depth=2))
+        out = getoutput(self.var_expand(cmd, depth=1))
         if split:
             out = SList(out.splitlines())
         else:

@@ -17,7 +17,6 @@ Parts of this code were taken from Cython.inline.
 
 import io
 import os, sys
-from importlib import import_module
 import imp
 
 try:
@@ -101,7 +100,8 @@ class CythonMagics(Magics):
             module = self._reloads[module_name]
             reload(module)
         else:
-            module = import_module(module_name)
+            __import__(module_name)
+            module = sys.modules[module_name]
             self._reloads[module_name] = module
         self._import_all(module)
 

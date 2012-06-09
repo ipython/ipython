@@ -8,17 +8,41 @@ var IPython = (function (IPython) {
     // easyier key mapping
     var key = IPython.utils.keycodes;
 
+    function prepend_n_prc(str, n) {
+        for( var i =0 ; i< n ; i++)
+        { str = '%'+str }
+        return str;
+    }
+
+    function _existing_completion(item, completion_array){
+       for( var c in completion_array ) {
+           if(completion_array[c].substr(-item.length) == item)
+           { return true; }
+       }
+       return false;
+    }
+
     // what is the common start of all completions
-
-
-    function shared_start(B) {
+    function shared_start(B, drop_prct) {
         if (B.length == 1) {
             return B[0];
         }
         var A = new Array();
+        var common;
+        var min_lead_prct = 10;
         for (var i = 0; i < B.length; i++) {
-            A.push(B[i].str);
+            var str = B[i].str;
+            var localmin = 0;
+            if(drop_prct == true){
+                while ( str.substr(0, 1) == '%') {
+                    localmin = localmin+1;
+                    str = str.substring(1);
+                }
+            }
+            min_lead_prct = Math.min(min_lead_prct, localmin);
+            A.push(str);
         }
+
         if (A.length > 1) {
             var tem1, tem2, s;
             A = A.slice(0).sort();
@@ -29,10 +53,10 @@ var IPython = (function (IPython) {
                 tem1 = tem1.substring(0, --s);
             }
             if (tem1 == "" || tem2.indexOf(tem1) != 0) {
-                return null;
+                return prepend_n_prc('', min_lead_prct);
             }
             return {
-                str: tem1,
+                str: prepend_n_prc(tem1, min_lead_prct),
                 type: "computed",
                 from: B[0].from,
                 to: B[0].to
@@ -116,12 +140,19 @@ var IPython = (function (IPython) {
 
         var cur = this.editor.getCursor();
         var results = CodeMirror.contextHint(this.editor);
+        var filterd_results = Array();
+        //remove results from context completion
+        //that are already in kernel completion
+        for(var elm in results) {
+            if(_existing_completion(results[elm]['str'], matches) == false)
+            { filterd_results.push(results[elm]); }
+        }
 
         // append the introspection result, in order, at at the beginning of
         // the table and compute the replacement range from current cursor
         // positon and matched_text length.
         for (var i = matches.length - 1; i >= 0; --i) {
-            results.unshift({
+            filterd_results.unshift({
                 str: matches[i],
                 type: "introspection",
                 from: {
@@ -136,7 +167,7 @@ var IPython = (function (IPython) {
         }
 
         // one the 2 sources results have been merge, deal with it
-        this.raw_result = results;
+        this.raw_result = filterd_results;
 
         // if empty result return
         if (!this.raw_result || !this.raw_result.length) return;
@@ -244,7 +275,7 @@ var IPython = (function (IPython) {
             //Check that shared start is not null which can append with prefixed completion
             // like %pylab , pylab have no shred start, and ff will result in py<tab><tab>
             // to erase py
-            var sh = shared_start(this.raw_result);
+            var sh = shared_start(this.raw_result, true);
             if (sh) {
                 this.insert(sh);
             }

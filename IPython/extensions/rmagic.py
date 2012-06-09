@@ -58,10 +58,27 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
-from IPython.utils.py3compat import str_to_unicode, unicode_to_str
+from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
 
-class RMagicError(ri.RRuntimeError):
-    pass
+class RInterpreterError(ri.RRuntimeError):
+    """An error when running R code in a %%R magic cell."""
+    def __init__(self, line, err, stdout):
+        self.line = line
+        self.err = err.rstrip()
+        self.stdout = stdout.rstrip()
+    
+    def __unicode__(self):
+        s = 'Failed to parse and evaluate line %r.\nR error message: %r' % \
+                (self.line, self.err)
+        if self.stdout and (self.stdout != self.err):
+            s += '\nR stdout:\n' + self.stdout
+        return s
+    
+    if PY3:
+        __str__ = __unicode__
+    else:
+        def __str__(self):
+            return unicode_to_str(unicode(self), 'utf-8')
 
 def Rconverter(Robj, dataframe=False):
     """
@@ -141,8 +158,7 @@ class RMagics(Magics):
             value = ri.baseenv['eval'](ri.parse(line))
         except (ri.RRuntimeError, ValueError) as exception:
             warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
-            raise RMagicError(unicode_to_str('parsing and evaluating line "%s".\nR error message: "%s"\n R stdout:"%s"\n' %
-                                             (line, str_to_unicode(exception.message, 'utf-8'), warning_or_other_msg)))
+            raise RInterpreterError(line, str_to_unicode(str(exception)), warning_or_other_msg)
         text_output = self.flush()
         ri.set_writeconsole(old_writeconsole)
         return text_output, value

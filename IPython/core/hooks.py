@@ -131,17 +131,15 @@ class CommandChainDispatcher:
         This will call all funcs in chain with the same args as were given to
         this function, and return the result of first func that didn't raise
         TryNext"""
-
+        last_exc = TryNext()
         for prio,cmd in self.chain:
             #print "prio",prio,"cmd",cmd #dbg
             try:
                 return cmd(*args, **kw)
-            except TryNext, exc:
-                if exc.args or exc.kwargs:
-                    args = exc.args
-                    kw = exc.kwargs
+            except TryNext as exc:
+                last_exc = exc
         # if no function will accept it, raise TryNext up to the caller
-        raise TryNext(*args, **kw)
+        raise last_exc
 
     def __str__(self):
         return str(self.chain)
