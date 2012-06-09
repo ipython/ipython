@@ -33,9 +33,7 @@ def virtualenv(line, cell):
     if not os.path.exists(os.path.join(os.environ['WORKON_HOME'], line)):
         print >> sys.stderr, "Environment {0} does not exist.".format(line)
         return
-    env_activate_cmd = 'bash -c "source {0}/{1}/bin/activate && python -"'\
-    .format(os.environ['WORKON_HOME'], line)
-    cmd = shlex.split(env_activate_cmd)
+    cmd = get_activate_cmd(line)
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
     out, err = p.communicate(cell)
     p.wait()
@@ -44,6 +42,21 @@ def virtualenv(line, cell):
     return out
 
 _loaded = False
+
+def get_activate_cmd(line):
+    """
+    Returns the correct activate command given the platform
+    """
+    if sys.platform.startswith("linux"):
+        env_activate_cmd = 'bash -c "source {0}/{1}/bin/activate && python -"'\
+    .format(os.environ['WORKON_HOME'], line)
+    elif sys.platform.startswith("win"):
+        env_activate_cmd = os.path.join(os.environ['WORKON_HOME'],line,
+        'Scripts','activate') + "; python -"
+    else:
+        raise("Platform not supported by virtualenv magic.")
+    cmd = shlex.split(env_activate_cmd)
+    return cmd
 
 
 def load_ipython_extension(ip):
