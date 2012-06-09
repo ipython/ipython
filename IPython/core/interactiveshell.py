@@ -84,11 +84,6 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
-try:
-    from IPython.parallel.error import RemoteError
-except ImportError:
-    class RemoteError(Exception): pass
-
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -1702,6 +1697,11 @@ class InteractiveShell(SingletonConfigurable):
         care of calling it if needed, so unless you are explicitly catching a
         SyntaxError exception, don't try to analyze the stack manually and
         simply call this method."""
+        try:
+            from IPython.parallel.error import RemoteError
+        except ImportError:
+            class RemoteError(Exception): pass
+
 
         try:
             try:
