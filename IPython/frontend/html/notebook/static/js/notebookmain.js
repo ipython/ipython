@@ -35,6 +35,40 @@ $(document).ready(function () {
 
     IPython.layout_manager.do_resize();
 
+    $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
+                     '<span id="test2" style="font-weight: bold;">x</span>'+
+                     '<span id="test3" style="font-style: italic;">x</span></pre></div>')
+    var nh = $('#test1').innerHeight();
+    var bh = $('#test2').innerHeight();
+    var ih = $('#test3').innerHeight();
+    var dialog = $('<div/>');
+    if(nh != bh || nh != ih) {
+        dialog.html('We have detected that your browser is using a '+
+                    '<span style="font-family: monospace;">monospace</span> font that has an '+
+                    'inconsistent size between  '+
+                    '<span style="font-family: monospace;">normal</span>, '+
+                    '<span style="font-family: monospace; font-weight: bold;">bold</span>, and '+
+                    '<span style="font-family: monospace; font-style: italic;">italic</span> '+
+                    'variants, which are used by IPython for syntax highlighting.  '+
+                    'This will cause visual artifacts.  (The font is probably "Courier New")  '+
+                    'We recommend that you configure your browser to use a different '+
+                    'monospace font.<br/><br/>'+
+                    'normal='+String(nh)+'px bold='+String(bh)+'px italic='+String(ih)+'px');
+        $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Bad fonts detected",
+            closeText: '',
+            buttons : {
+                "Ok": function () {
+                    $(this).dialog('close');
+                }
+            }
+        });
+        $('#fonttest').remove();
+    }
+
     if(IPython.read_only){
         // hide various elements from read-only view
         $('div#pager').remove();

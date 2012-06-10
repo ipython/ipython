@@ -334,3 +334,7 @@ p.dialog {
    to not honor it correctly.  Webkit browsers (Chrome, rekonq, Safari) do.
  */
 pre, code, kbd, samp { white-space: pre-wrap; }
+
+#fonttest {
+    font-family: monospace;
+}
