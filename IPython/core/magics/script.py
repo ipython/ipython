@@ -19,17 +19,49 @@ from subprocess import Popen, PIPE
 
 # Our own packages
 from IPython.config.configurable import Configurable
+from IPython.core import magic_arguments
 from IPython.core.error import UsageError
 from IPython.core.magic import  (
     Magics, magics_class, line_magic, cell_magic
 )
+from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.process import find_cmd, FindCmdError
+from IPython.utils import py3compat
+from IPython.utils.process import find_cmd, FindCmdError, arg_split
 from IPython.utils.traitlets import List, Dict
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
+
+def script_args(f):
+    """single decorator for adding script args"""
+    args = [
+        magic_arguments.argument(
+            '--out', type=str,
+            help="""The variable in which to store stdout from the script.
+            If the script is backgrounded, this will be the stdout *pipe*,
+            instead of the stderr text itself.
+            """
+        ),
+        magic_arguments.argument(
+            '--err', type=str,
+            help="""The variable in which to store stderr from the script.
+            If the script is backgrounded, this will be the stderr *pipe*,
+            instead of the stderr text itself.
+            """
+        ),
+        magic_arguments.argument(
+            '--bg', action="store_true",
+            help="""Whether to run the script in the background.
+            If given, the only way to see the output of the command is
+            with --out/err.
+            """
+        ),
+    ]
+    for arg in args:
+        f = arg(f)
+    return f
 
 @magics_class
 class ScriptMagics(Magics, Configurable):
@@ -93,6 +125,7 @@ class ScriptMagics(Magics, Configurable):
         Configurable.__init__(self, config=shell.config)
         self._generate_script_magics()
         Magics.__init__(self, shell=shell)
+        self.job_manager = BackgroundJobManager()
     
     def _generate_script_magics(self):
         cell_magics = self.magics['cell']
@@ -104,6 +137,8 @@ class ScriptMagics(Magics, Configurable):
         # expand to explicit path if necessary:
         script = self.script_paths.get(name, name)
         
+        @magic_arguments.magic_arguments()
+        @script_args
         def named_script_magic(line, cell):
             # if line, add it as cl-flags
             if line:
@@ -122,7 +157,9 @@ class ScriptMagics(Magics, Configurable):
         """.format(**locals())
         
         return named_script_magic
-
+    
+    @magic_arguments.magic_arguments()
+    @script_args
     @cell_magic("script")
     def shebang(self, line, cell):
         """Run a cell via a shell command
@@ -144,12 +181,35 @@ class ScriptMagics(Magics, Configurable):
             2
             3
         """
-        p = Popen(line, stdout=PIPE, stderr=PIPE, stdin=PIPE)
-        out,err = p.communicate(cell)
-        sys.stdout.write(out)
-        sys.stdout.flush()
-        sys.stderr.write(err)
-        sys.stderr.flush()
+        argv = arg_split(line, posix = not sys.platform.startswith('win'))
+        args, cmd = self.shebang.parser.parse_known_args(argv)
+
+        p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+
+        if args.bg:
+            if args.out:
+                self.shell.user_ns[args.out] = p.stdout
+            if args.err:
+                self.shell.user_ns[args.out] = p.stderr
+            self.job_manager.new(self._run_script, p, cell)
+            return
+        
+        out, err = p.communicate(cell)
+        out = py3compat.bytes_to_str(out)
+        err = py3compat.bytes_to_str(err)
+        if args.out:
+            self.shell.user_ns[args.out] = out
+        else:
+            sys.stdout.write(out)
+            sys.stdout.flush()
+        if args.err:
+            self.shell.user_ns[args.err] = err
+        else:
+            sys.stderr.write(err)
+            sys.stderr.flush()
     
-    # expose %%script as %%!
-    cell_magic('!')(shebang)
+    def _run_script(self, p, cell):
+        """callback for running the script in the background"""
+        p.stdin.write(cell)
+        p.stdin.close()
+        p.wait()
