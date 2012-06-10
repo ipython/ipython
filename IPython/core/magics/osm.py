@@ -681,10 +681,6 @@ class OSMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-f', '--force', action='store_true', default=False,
-        help='Force overwrite without prompting'
-    )
-    @magic_arguments.argument(
         '-a', '--amend', action='store_true', default=False,
         help='Open file for amending if it exists'
     )
@@ -699,30 +695,16 @@ class OSMagics(Magics):
         For frontends that do not support stdin (Notebook), -f is implied.
         """
         args = magic_arguments.parse_argstring(self.file, line)
-        args.filename = unquote_filename(args.filename)
-        force = args.force
+        filename = unquote_filename(args.filename)
         
-        if os.path.exists(args.filename):
+        if os.path.exists(filename):
             if args.amend:
-                print "Amending to %s" % args.filename
+                print "Amending to %s" % filename
             else:
-                if not force:
-                    try:
-                        force = self.shell.ask_yes_no(
-                            "%s exists, overwrite (y/[n])?",
-                            default='n'
-                        )
-                    except StdinNotImplementedError:
-                        force = True
-                
-                if not force:
-                    # prompted, but still no
-                    print "Force overwrite with %%file -f " + args.filename
-                    return
-                print "Overwriting %s" % args.filename
+                print "Overwriting %s" % filename
         else:
-            print "Writing %s" % args.filename
+            print "Writing %s" % filename
         
         mode = 'a' if args.amend else 'w'
-        with io.open(args.filename, mode, encoding='utf-8') as f:
+        with io.open(filename, mode, encoding='utf-8') as f:
             f.write(cell)
