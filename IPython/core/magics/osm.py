@@ -28,7 +28,7 @@ from IPython.core import oinspect
 from IPython.core import page
 from IPython.core.error import UsageError, StdinNotImplementedError
 from IPython.core.magic import  (
-    Magics, compress_dhist, magics_class, line_magic, cell_magic
+    Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
@@ -548,8 +548,8 @@ class OSMagics(Magics):
         else:
             return out
 
-    @line_magic
-    def sx(self, parameter_s=''):
+    @line_cell_magic
+    def sx(self, line='', cell=None):
         """Shell execute - run shell command and capture output (!! is short-hand).
 
         %sx command
@@ -589,10 +589,21 @@ class OSMagics(Magics):
 
         This is very useful when trying to use such lists as arguments to
         system commands."""
+        
+        if cell is None:
+            # line magic
+            return self.shell.getoutput(line)
+        else:
+            opts,args = self.parse_options(line, '', 'out=')
+            output = self.shell.getoutput(cell)
+            out_name = opts.get('out', opts.get('o'))
+            if out_name:
+                self.shell.user_ns[out_name] = output
+            else:
+                return output
 
-        if parameter_s:
-            return self.shell.getoutput(parameter_s)
-
+    system = line_cell_magic('system')(sx)
+    bang = cell_magic('!')(sx)
 
     @line_magic
     def bookmark(self, parameter_s=''):
