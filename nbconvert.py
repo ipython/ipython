@@ -22,6 +22,9 @@ import pprint
 import re
 import subprocess
 import sys
+import json
+import copy
+from shutil import rmtree
 
 inkscape = 'inkscape'
 if sys.platform == 'darwin':
@@ -34,10 +37,15 @@ from IPython.external import argparse
 from IPython.nbformat import current as nbformat
 from IPython.utils.text import indent
 from decorators import DocInherit
+from IPython.nbformat.v3.nbjson import BytesEncoder
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Utility functions
 #-----------------------------------------------------------------------------
+
+def DocInherit(f):
+    return f
 
 def remove_fake_files_url(cell):
     """Remove from the cell source the /files/ pseudo-path we use.
@@ -142,36 +150,45 @@ class Converter(object):
         
     def __init__(self, infile):
         self.infile = infile
-        self.infile_dir = os.path.dirname(infile)
-        infile_root = os.path.splitext(infile)[0]
-        files_dir = infile_root + '_files'
+        self.infile_dir, infile_root = os.path.split(infile)
+        infile_root = os.path.splitext(infile_root)[0]
+        files_dir = os.path.join(self.infile_dir, infile_root + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
         self.files_dir = files_dir
+        self.outbase = os.path.join(self.infile_dir, infile_root)
 
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
         """
         return getattr(self, 'render_' + cell_type, self.render_unknown)
 
-    def convert(self):
+    def dispatch_display_format(self, format):
+        """return output_type dependent render method,  for example render_output_text
+        """
+        return getattr(self, 'render_display_format_' + format, self.render_unknown)
+
+    def convert(self, cell_separator='\n'):
         lines = []
         lines.extend(self.optional_header())
+        converted_cells = []
         for worksheet in self.nb.worksheets:
             for cell in worksheet.cells:
                 #print(cell.cell_type)  # dbg
                 conv_fn = self.dispatch(cell.cell_type)
                 if cell.cell_type in ('markdown', 'raw'):
                     remove_fake_files_url(cell)
-                lines.extend(conv_fn(cell))
-                lines.append(u'')
+                converted_cells.append('\n'.join(conv_fn(cell)))
+        cell_lines = cell_separator.join(converted_cells).split('\n')
+        lines.extend(cell_lines)
         lines.extend(self.optional_footer())
         return u'\n'.join(lines)
 
     def render(self):
         "read, convert, and save self.infile"
-        self.read()
+        if not hasattr(self, 'nb'):
+            self.read()
         self.output = self.convert()
         return self.save()
 
@@ -180,11 +197,10 @@ class Converter(object):
         with open(self.infile) as f:
             self.nb = nbformat.read(f, 'json')
 
-    def save(self, infile=None, encoding=None):
+    def save(self, outfile=None, encoding=None):
         "read and parse notebook into self.nb"
-        if infile is None:
-            outfile = os.path.basename(self.infile)
-            outfile = os.path.splitext(outfile)[0] + '.' + self.extension
+        if outfile is None:
+            outfile = self.outbase + '.' + self.extension
         if encoding is None:
             encoding = self.default_encoding
         with open(outfile, 'w') as f:
@@ -237,19 +253,6 @@ class Converter(object):
         Returns list."""
         raise NotImplementedError
 
-    def render_pyout(self, output):
-        """convert pyout part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
-
-
-    def render_pyerr(self, output):
-        """convert pyerr part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
-
     def _img_lines(self, img_file):
         """Return list of lines to include an image file."""
         # Note: subclasses may choose to implement format-specific _FMT_lines
@@ -263,8 +266,8 @@ class Converter(object):
         """
         lines = []
 
-        for fmt in ['png', 'svg', 'jpg', 'pdf']:
-            if fmt in output:
+        for fmt in output.keys():
+            if fmt in ['png', 'svg', 'jpg', 'pdf']:
                 img_file = self._new_figure(output[fmt], fmt)
                 # Subclasses can have format-specific render functions (e.g.,
                 # latex has to auto-convert all SVG to PDF first).
@@ -272,14 +275,10 @@ class Converter(object):
                 if not lines_fun:
                     lines_fun = self._img_lines
                 lines.extend(lines_fun(img_file))
-
+            elif fmt != 'output_type':
+                conv_fn = self.dispatch_display_format(fmt)
+                lines.extend(conv_fn(output))
         return lines
-
-    def render_stream(self, cell):
-        """convert stream part of a code cell
-
-        Returns list."""
-        raise NotImplementedError
 
     def render_raw(self, cell):
         """convert a cell with raw text
@@ -295,6 +294,28 @@ class Converter(object):
         logging.warning('Unknown cell:\n%s' % data)
         return self._unknown_lines(data)
 
+    def render_stream(self, output):
+        """render the stream part of an output
+
+        Returns list.
+
+        Identical to render_display_format_text
+        """
+        return self.render_display_format_text(output)
+
+    def render_pyout(self, output):
+        """convert pyout part of a code cell
+
+        Returns list."""
+        raise NotImplementedError
+
+
+    def render_pyerr(self, output):
+        """convert pyerr part of a code cell
+
+        Returns list."""
+        raise NotImplementedError
+
     def _unknown_lines(self, data):
         """Return list of lines for an unknown cell.
 
@@ -302,6 +323,43 @@ class Converter(object):
         ----------
         data : str
           The content of the unknown data as a single string.
+        """
+        raise NotImplementedError
+
+    # These are the possible format types in an output node
+
+    def render_display_format_text(self, output):
+        """render the text part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns list.
+        """
+        raise NotImplementedError
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
         """
         raise NotImplementedError
 
@@ -364,17 +422,41 @@ class ConverterRST(Converter):
         return ['.. image:: %s' % img_file, '']
     
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.extend(rst_directive('.. parsed-literal::', output.text))
-
-        return lines
+    def render_display_format_text(self, output):
+        return rst_directive('.. parsed-literal::', output.text)
 
     @DocInherit
     def _unknown_lines(self, data):
         return rst_directive('.. warning:: Unknown cell') + [data]
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: html', output.html)
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. math::', output.latex)
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: json', output.json)
+
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        return rst_directive('.. raw:: javascript', output.javascript)
 
 
 class ConverterQuickHTML(Converter):
@@ -457,17 +539,57 @@ class ConverterQuickHTML(Converter):
         return ['<img src="%s">' % img_file, '']
 
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.append(output.text)
-
-        return lines
+    def render_display_format_text(self, output):
+        return [output.text]
 
     @DocInherit
     def _unknown_lines(self, data):
         return ['<h2>Warning:: Unknown cell</h2>'] + self.in_tag('pre', data)
+
+
+    def render_display_format_text(self, output):
+        """render the text part of an output
+
+        Returns list.
+        """
+        if type(output.text) == type([]):
+            return output.text
+        return [output.text]
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        if type(output.html) == type([]):
+            return output.html
+        return [output.html]
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns [].
+        """
+        # quickhtml ignores latex
+        return []
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        # quickhtml ignores json
+        return []
+
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        if type(output.javascript) == type([]):
+            return output.javascript
+        return [output.javascript]
 
 
 class ConverterLaTeX(Converter):
@@ -598,15 +720,6 @@ class ConverterLaTeX(Converter):
         return self._img_lines(pdf_file)
 
     @DocInherit
-    def render_stream(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.extend(self.in_env('verbatim', output.text.strip()))
-
-        return lines
-
-    @DocInherit
     def render_markdown(self, cell):
         return [markdown2latex(cell.source)]
         
@@ -641,6 +754,150 @@ class ConverterLaTeX(Converter):
     def _unknown_lines(self, data):
         return [r'{\vspace{5mm}\bf WARNING:: unknown cell:}'] + \
           self.in_env('verbatim', data)
+
+
+    @DocInherit
+    def render_display_format_text(self, output):
+        lines = []
+
+        if 'text' in output:
+            lines.extend(self.in_env('verbatim', output.text.strip()))
+
+        return lines
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns [].
+        """
+        return []
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        if type(output.latex) == type([]):
+            return output.latex
+        return [output.latex]
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        # latex ignores json
+        return []
+
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns [].
+        """
+        # latex ignores javascript
+        return []
+
+class ConverterNotebook(Converter):
+    """
+    A converter that is essentially a null-op.
+    This exists so it can be subclassed
+    for custom handlers of .ipynb files 
+    that create new .ipynb files.
+
+    What distinguishes this from JSONWriter is that
+    subclasses can specify what to do with each type of cell.
+
+    Writes out a notebook file.
+
+    """
+    extension = 'ipynb'
+
+    def __init__(self, infile, outbase):
+        Converter.__init__(self, infile)
+        self.outbase = outbase
+        rmtree(self.files_dir)
+
+    def convert(self):
+        return json.dumps(json.loads(Converter.convert(self, ',')), indent=1, sort_keys=True)
+
+    def optional_header(self):
+        s = \
+"""{
+ "metadata": {
+ "name": "%(name)s"
+ },
+ "nbformat": 3,
+ "worksheets": [
+ {
+ "cells": [""" % {'name':self.outbase}
+
+        return s.split('\n')
+
+    def optional_footer(self):
+        s = \
+"""]
+  }
+ ]
+}"""
+        return s.split('\n')
+
+    @DocInherit
+    def render_heading(self, cell):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_code(self, cell):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_markdown(self, cell):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_raw(self, cell):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_pyout(self, output):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_pyerr(self, output):
+        return cell_to_lines(cell)
+
+    @DocInherit
+    def render_display_format_text(self, output):
+        return [output.text]
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns [].
+        """
+        return [output.html]
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return [output.latex]
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns [].
+        """
+        return [output.json]
+
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns [].
+        """
+        return [output.javascript]
 
 #-----------------------------------------------------------------------------
 # Standalone conversion functions
@@ -693,6 +950,51 @@ def rst2simplehtml(infile):
             f.write('\n')
 
     return newfname
+
+#-----------------------------------------------------------------------------
+# Cell-level functions -- similar to IPython.nbformat.v3.rwbase functions
+# but at cell level instead of whole notebook level
+#-----------------------------------------------------------------------------
+
+def writes_cell(cell, **kwargs):
+    kwargs['cls'] = BytesEncoder
+    kwargs['indent'] = 3
+    kwargs['sort_keys'] = True
+    kwargs['separators'] = (',',': ')
+    if kwargs.pop('split_lines', True):
+        cell = split_lines_cell(copy.deepcopy(cell))
+    return py3compat.str_to_unicode(json.dumps(cell, **kwargs), 'utf-8')
+
+_multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
+def split_lines_cell(cell):
+    """
+    Split lines within a cell as in 
+    IPython.nbformat.v3.rwbase.split_lines
+
+    """
+    if cell.cell_type == 'code':
+        if 'input' in cell and isinstance(cell.input, basestring):
+            cell.input = (cell.input + '\n').splitlines()
+        for output in cell.outputs:
+            for key in _multiline_outputs:
+                item = output.get(key, None)
+                if isinstance(item, basestring):
+                    output[key] = (item + '\n').splitlines()
+    else: # text, heading cell
+        for key in ['source', 'rendered']:
+            item = cell.get(key, None)
+            if isinstance(item, basestring):
+                cell[key] = (item + '\n').splitlines()
+    return cell
+
+def cell_to_lines(cell):
+    '''
+    Write a cell to json, returning the split lines.
+    '''
+    split_lines_cell(cell)
+    s = writes_cell(cell).strip()
+    return s.split('\n')
+
 
 known_formats = "rst (default), html, quick-html, latex"
 
