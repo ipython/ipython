@@ -2210,7 +2210,7 @@ class InteractiveShell(SingletonConfigurable):
     # use piped system by default, because it is better behaved
     system = system_piped
 
-    def getoutput(self, cmd, split=True):
+    def getoutput(self, cmd, split=True, depth=0):
         """Get output (possibly including stderr) from a subprocess.
 
         Parameters
@@ -2219,17 +2219,20 @@ class InteractiveShell(SingletonConfigurable):
           Command to execute (can not end in '&', as background processes are
           not supported.
         split : bool, optional
-
           If True, split the output into an IPython SList.  Otherwise, an
           IPython LSString is returned.  These are objects similar to normal
           lists and strings, with a few convenience attributes for easier
           manipulation of line-based output.  You can use '?' on them for
           details.
-          """
+        depth : int, optional
+          How many frames above the caller are the local variables which should
+          be expanded in the command string? The default (0) assumes that the
+          expansion variables are in the stack frame calling this function.
+        """
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
-        out = getoutput(self.var_expand(cmd, depth=1))
+        out = getoutput(self.var_expand(cmd, depth=depth+1))
         if split:
             out = SList(out.splitlines())
         else:
