@@ -104,11 +104,7 @@ qt_flags = {
     'plain' : ({'IPythonQtConsoleApp' : {'plain' : True}},
             "Disable rich text support."),
 }
-qt_flags.update(boolean_flag(
-    'gui-completion', 'ConsoleWidget.gui_completion',
-    "use a GUI widget for tab completion",
-    "use plaintext output for completion"
-))
+
 # and app_flags from the Console Mixin
 qt_flags.update(app_flags)
 # add frontend flags to the full set
@@ -117,7 +113,6 @@ flags.update(qt_flags)
 # start with copy of front&backend aliases list
 aliases = dict(aliases)
 qt_aliases = dict(
-
     style = 'IPythonWidget.syntax_style',
     stylesheet = 'IPythonQtConsoleApp.stylesheet',
     colors = 'ZMQInteractiveShell.colors',
@@ -127,6 +122,7 @@ qt_aliases = dict(
 )
 # and app_aliases from the Console Mixin
 qt_aliases.update(app_aliases)
+qt_aliases.update({'gui-completion':'ConsoleWidget.gui_completion'})
 # add frontend aliases to the full set
 aliases.update(qt_aliases)
 
