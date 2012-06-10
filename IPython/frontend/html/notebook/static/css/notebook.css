@@ -39,6 +39,10 @@ span#notebook_name {
     padding: 2px 1.6em;
 }
 
+.ui-menu .ui-menu-item a.ui-state-focus {
+    margin: 0;
+}
+
 .ui-menu hr {
     margin: 0.3em 0;
 }
