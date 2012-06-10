@@ -24,7 +24,7 @@ import textwrap
 from string import Formatter
 
 from IPython.external.path import path
-from IPython.testing.skipdoctest import skip_doctest_py3
+from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
@@ -660,6 +660,91 @@ class DollarFormatter(FullEvalFormatter):
             # Re-yield the {foo} style pattern
             yield (txt + literal_txt[continue_from:], field_name, format_spec, conversion)
 
+#-----------------------------------------------------------------------------
+# Utils to columnize a list of string
+#-----------------------------------------------------------------------------
+def _chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in xrange(0, len(l), n):
+        yield l[i:i+n]
+
+def _find_optimal(rlist , separator_size=2 , displaywidth=80):
+    """Calculate optimal info to columnize a list of string"""
+    for nrow in range(1, len(rlist)+1) :
+        chk = map(max,_chunks(rlist, nrow))
+        sumlength = sum(chk)
+        ncols = len(chk)
+        if sumlength+separator_size*(ncols-1) <= displaywidth :
+            break;
+    return {'columns_numbers' : ncols,
+            'optimal_separator_width':(displaywidth - sumlength)/(ncols-1) if (ncols -1) else 0,
+            'rows_numbers' : nrow,
+            'columns_width' : chk
+           }
+
+def _get_or_default(mylist, i, default=None):
+    """return list item number, or default if don't exist"""
+    if i >= len(mylist):
+        return default
+    else :
+        return mylist[i]
+
+@skip_doctest
+def compute_item_matrix(items, empty=None, *args, **kwargs) :
+    """Returns a nested list, and info to columnize items
+
+    Parameters :
+    ------------
+
+    items :
+        list of strings to columize
+    empty : (default None)
+        default value to fill list if needed
+    separator_size : int (default=2)
+        How much caracters will be used as a separation between each columns.
+    displaywidth : int (default=80)
+        The width of the area onto wich the columns should enter
+
+    Returns :
+    ---------
+
+    Returns a tuple of (strings_matrix, dict_info)
+
+    strings_matrix :
+
+        nested list of string, the outer most list contains as many list as
+        rows, the innermost lists have each as many element as colums. If the
+        total number of elements in `items` does not equal the product of
+        rows*columns, the last element of some lists are filled with `None`.
+
+    dict_info :
+        some info to make columnize easier:
+
+        columns_numbers : number of columns
+        rows_numbers    : number of rows
+        columns_width   : list of with of each columns
+        optimal_separator_width : best separator width between columns
+
+    Exemple :
+    ---------
+
+    In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
+       ...: compute_item_matrix(l,displaywidth=12)
+    Out[1]:
+        ([['aaa', 'f', 'k'],
+        ['b', 'g', 'l'],
+        ['cc', 'h', None],
+        ['d', 'i', None],
+        ['eeeee', 'j', None]],
+        {'columns_numbers': 3,
+        'columns_width': [5, 1, 1],
+        'optimal_separator_width': 2,
+        'rows_numbers': 5})
+
+    """
+    info = _find_optimal(map(len, items), *args, **kwargs)
+    nrow, ncol = info['rows_numbers'], info['columns_numbers']
+    return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
 
 def columnize(items, separator='  ', displaywidth=80):
     """ Transform a list of strings into a single string with columns.
@@ -679,58 +764,9 @@ def columnize(items, separator='  ', displaywidth=80):
     -------
     The formatted string.
     """
-    # Note: this code is adapted from columnize 0.3.2.
-    # See http://code.google.com/p/pycolumnize/
-
-    # Some degenerate cases.
-    size = len(items)
-    if size == 0:
+    if not items :
         return '\n'
-    elif size == 1:
-        return '%s\n' % items[0]
-
-    # Special case: if any item is longer than the maximum width, there's no
-    # point in triggering the logic below...
-    item_len = map(len, items) # save these, we can reuse them below
-    longest = max(item_len)
-    if longest >= displaywidth:
-        return '\n'.join(items+[''])
-
-    # Try every row count from 1 upwards
-    array_index = lambda nrows, row, col: nrows*col + row
-    for nrows in range(1, size):
-        ncols = (size + nrows - 1) // nrows
-        colwidths = []
-        totwidth = -len(separator)
-        for col in range(ncols):
-            # Get max column width for this column
-            colwidth = 0
-            for row in range(nrows):
-                i = array_index(nrows, row, col)
-                if i >= size: break
-                x, len_x = items[i], item_len[i]
-                colwidth = max(colwidth, len_x)
-            colwidths.append(colwidth)
-            totwidth += colwidth + len(separator)
-            if totwidth > displaywidth:
-                break
-        if totwidth <= displaywidth:
-            break
-
-    # The smallest number of rows computed and the max widths for each
-    # column has been obtained. Now we just have to format each of the rows.
-    string = ''
-    for row in range(nrows):
-        texts = []
-        for col in range(ncols):
-            i = row + nrows*col
-            if i >= size:
-                texts.append('')
-            else:
-                texts.append(items[i])
-        while texts and not texts[-1]:
-            del texts[-1]
-        for col in range(len(texts)):
-            texts[col] = texts[col].ljust(colwidths[col])
-        string += '%s\n' % separator.join(texts)
-    return string
+    matrix, info = compute_item_matrix(items, separator_size=len(separator), displaywidth=displaywidth)
+    fmatrix = [filter(None, x) for x in matrix]
+    sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
+    return '\n'.join(map(sjoin, fmatrix))+'\n'
