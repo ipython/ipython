@@ -98,7 +98,7 @@ def xsys(self, cmd):
     """
     # We use getoutput, but we need to strip it because pexpect captures
     # the trailing newline differently from commands.getoutput
-    print(self.getoutput(cmd, split=False, _depth=1).rstrip(), end='', file=sys.stdout)
+    print(self.getoutput(cmd, split=False, depth=1).rstrip(), end='', file=sys.stdout)
     sys.stdout.flush()
 
 
