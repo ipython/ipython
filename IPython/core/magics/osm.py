@@ -435,7 +435,7 @@ class OSMagics(Magics):
     @skip_doctest
     @line_magic
     def sc(self, parameter_s=''):
-        """Shell capture - execute a shell command and capture its output.
+        """Shell capture - run shell command and capture output (DEPRECATED use !).
 
         DEPRECATED. Suboptimal, retained for backwards compatibility.
 
@@ -550,7 +550,7 @@ class OSMagics(Magics):
 
     @line_magic
     def sx(self, parameter_s=''):
-        """Shell execute - run a shell command and capture its output.
+        """Shell execute - run shell command and capture output (!! is short-hand).
 
         %sx command
 
