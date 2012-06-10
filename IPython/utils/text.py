@@ -24,7 +24,7 @@ import textwrap
 from string import Formatter
 
 from IPython.external.path import path
-from IPython.testing.skipdoctest import skip_doctest_py3
+from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
@@ -668,13 +668,13 @@ def _chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
 
-def _find_optimal(rlist , sepsize=2 , displaywidth=80):
+def _find_optimal(rlist , separator_size=2 , displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
     for nrow in range(1, len(rlist)+1) :
-        chk = [max(l) for l in _chunks(rlist, nrow) ]
+        chk = map(max,_chunks(rlist, nrow))
         sumlength = sum(chk)
         ncols = len(chk)
-        if sumlength+sepsize*(ncols-1) <= displaywidth :
+        if sumlength+separator_size*(ncols-1) <= displaywidth :
             break;
     return {'columns_numbers' : ncols,
             'optimal_separator_width':(displaywidth - sumlength)/(ncols-1) if (ncols -1) else 0,
@@ -689,12 +689,56 @@ def _get_or_default(mylist, i, default=None):
     else :
         return mylist[i]
 
+@skip_doctest
 def compute_item_matrix(items, *args, **kwargs) :
-    """ Transform a list of strings into a nested list to columnize
+    """Returns a nested list, and info to columnize items
+
+    Parameters :
+    ------------
+
+    items :
+        list of strings to columize
+    separator_size : int (default=2)
+        How much caracters will be used as a separation between each columns.
+    displaywidth : int (default=80)
+        The width of the area onto wich the columns should enter
+
+    Returns :
+    ---------
 
     Returns a tuple of (strings_matrix, dict_info)
 
-    innermost lists are rows, see columnize for options info
+    strings_matrix :
+
+        nested list of string, the outer most list contains as many list as
+        rows, the innermost lists have each as many element as colums. If the
+        total number of elements in `items` does not equal the product of
+        rows*columns, the last element of some lists are filled with `None`.
+
+    dict_info :
+        some info to make columnize easier:
+
+        columns_numbers : number of columns
+        rows_numbers    : number of rows
+        columns_width   : list of with of each columns
+        optimal_separator_width : best separator width between columns
+
+    Exemple :
+    ---------
+
+    In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
+       ...: compute_item_matrix(l,displaywidth=12)
+    Out[1]:
+        ([['aaa', 'f', 'k'],
+        ['b', 'g', 'l'],
+        ['cc', 'h', None],
+        ['d', 'i', None],
+        ['eeeee', 'j', None]],
+        {'columns_numbers': 3,
+        'columns_width': [5, 1, 1],
+        'optimal_separator_width': 2,
+        'rows_numbers': 5})
+
     """
     info = _find_optimal(map(len, items), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
@@ -720,9 +764,7 @@ def columnize(items, separator='  ', displaywidth=80):
     """
     if not items :
         return '\n'
-    matrix, info = compute_item_matrix(items, sepsize=len(separator), displaywidth=displaywidth)
-    #sep = ' '*min(info['optimal_separator_width'], 9)
-    fmatrix = matrix
+    matrix, info = compute_item_matrix(items, separator_size=len(separator), displaywidth=displaywidth)
     fmatrix = [filter(None, x) for x in matrix]
     sjoin = lambda x : separator.join([ y.ljust(w, ' ') for y, w in zip(x, info['columns_width'])])
     return '\n'.join(map(sjoin, fmatrix))+'\n'
