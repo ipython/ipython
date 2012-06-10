@@ -301,20 +301,13 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         data = dict(a=111,b=222)
         v.push(data, block=True)
 
-        ip.magic('px a')
-        ip.magic('px b')
-        for idx, name in [
-                    ('', 'b'),
-                    ('-1', 'b'),
-                    ('2', 'b'),
-                    ('1', 'a'),
-                    ('-2', 'a'),
-                ]:
+        for name in ('a', 'b'):
+            ip.magic('px ' + name)
             with capture_output() as io:
-                ip.magic('result ' + idx)
+                ip.magic('pxresult')
             output = io.stdout
             msg = "expected %s output to include %s, but got: %s" % \
-                ('%result '+idx, str(data[name]), output)
+                ('%pxresult', str(data[name]), output)
             self.assertTrue(str(data[name]) in output, msg)
         
     @dec.skipif_not_matplotlib
@@ -336,5 +329,17 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertTrue('Out[' in io.stdout, io.stdout)
         self.assertTrue('matplotlib.lines' in io.stdout, io.stdout)
+    
+    def test_pxconfig(self):
+        ip = get_ipython()
+        rc = self.client
+        v = rc.activate(-1, '_tst')
+        self.assertEquals(v.targets, rc.ids[-1])
+        ip.magic("%pxconfig_tst -t :")
+        self.assertEquals(v.targets, rc.ids)
+        ip.magic("%pxconfig_tst --block")
+        self.assertEquals(v.block, True)
+        ip.magic("%pxconfig_tst --noblock")
+        self.assertEquals(v.block, False)
         
 

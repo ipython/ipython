@@ -32,6 +32,7 @@ import zmq
 
 from IPython.config.configurable import MultipleInstanceError
 from IPython.core.application import BaseIPythonApplication
+from IPython.core.profiledir import ProfileDir, ProfileDirError
 
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
@@ -50,7 +51,6 @@ from IPython.parallel import util
 from IPython.zmq.session import Session, Message
 
 from .asyncresult import AsyncResult, AsyncHubResult
-from IPython.core.profiledir import ProfileDir, ProfileDirError
 from .view import DirectView, LoadBalancedView
 
 if sys.version_info[0] >= 3:
@@ -480,6 +480,18 @@ class Client(HasTraits):
         self._queue_handlers = {'execute_reply' : self._handle_execute_reply,
                                 'apply_reply' : self._handle_apply_reply}
         self._connect(sshserver, ssh_kwargs, timeout)
+        
+        # last step: setup magics, if we are in IPython:
+        
+        try:
+            ip = get_ipython()
+        except NameError:
+            return
+        else:
+            if 'px' not in ip.magics_manager.magics:
+                # in IPython but we are the first Client.
+                # activate a default view for parallel magics.
+                self.activate()
 
     def __del__(self):
         """cleanup sockets, but _not_ context."""
@@ -904,6 +916,29 @@ class Client(HasTraits):
         self._flush_notifications()
         # always copy:
         return list(self._ids)
+
+    def activate(self, targets='all', suffix=''):
+        """Create a DirectView and register it with IPython magics
+        
+        Defines the magics `%px, %autopx, %pxresult, %%px`
+        
+        Parameters
+        ----------
+        
+        targets: int, list of ints, or 'all'
+            The engines on which the view's magics will run
+        suffix: str [default: '']
+            The suffix, if any, for the magics.  This allows you to have
+            multiple views associated with parallel magics at the same time.
+            
+            e.g. ``rc.activate(targets=0, suffix='0')`` will give you
+            the magics ``%px0``, ``%pxresult0``, etc. for running magics just
+            on engine 0.
+        """
+        view = self.direct_view(targets)
+        view.block = True
+        view.activate(suffix)
+        return view
 
     def close(self):
         if self._closed:

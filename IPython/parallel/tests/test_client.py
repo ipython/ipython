@@ -24,6 +24,7 @@ from tempfile import mktemp
 
 import zmq
 
+from IPython import parallel
 from IPython.parallel.client import client as clientmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult
@@ -420,3 +421,16 @@ class TestClient(ClusterTestCase):
             "Shouldn't be spinning, but got wall_time=%f" % ar.wall_time
         )
     
+    def test_activate(self):
+        ip = get_ipython()
+        magics = ip.magics_manager.magics
+        self.assertTrue('px' in magics['line'])
+        self.assertTrue('px' in magics['cell'])
+        v0 = self.client.activate(-1, '0')
+        self.assertTrue('px0' in magics['line'])
+        self.assertTrue('px0' in magics['cell'])
+        self.assertEquals(v0.targets, self.client.ids[-1])
+        v0 = self.client.activate('all', 'all')
+        self.assertTrue('pxall' in magics['line'])
+        self.assertTrue('pxall' in magics['cell'])
+        self.assertEquals(v0.targets, 'all')
