@@ -2210,7 +2210,7 @@ class InteractiveShell(SingletonConfigurable):
     # use piped system by default, because it is better behaved
     system = system_piped
 
-    def getoutput(self, cmd, split=True):
+    def getoutput(self, cmd, split=True, _depth=0):
         """Get output (possibly including stderr) from a subprocess.
 
         Parameters
@@ -2229,7 +2229,7 @@ class InteractiveShell(SingletonConfigurable):
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
-        out = getoutput(self.var_expand(cmd, depth=1))
+        out = getoutput(self.var_expand(cmd, depth=_depth+1))
         if split:
             out = SList(out.splitlines())
         else:
