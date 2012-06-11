@@ -4,6 +4,7 @@
 import os
 import nose.tools as nt
 
+from IPython.testing import decorators as dec
 from IPython.utils import py3compat
 
 code = py3compat.str_to_unicode("""def f(x):
@@ -43,8 +44,9 @@ def test_cython():
     ip.run_cell_magic('cython', '', code)
     ip.ex('g = f(10)')
     nt.assert_equals(ip.user_ns['g'], 20.0)
-    
 
+
+@dec.skip_win32
 def test_extlibs():
     code = py3compat.str_to_unicode("""
 from libc.math cimport sin
