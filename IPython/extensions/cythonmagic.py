@@ -107,6 +107,18 @@ class CythonMagics(Magics):
 
     @magic_arguments()
     @argument(
+        '-c', '--compile-args', action='append', default=[],
+        help="Extra flag to pass to compiler via the `extra_compile_args` Extension flag (can be called  multiple times)."
+    )
+    @argument(
+        '-l', '--lib', action='append', default=[],
+        help="Add a library to link the extension against (can be called  multiple times)."
+    )
+    @argument(
+        '-i', '--include', action='append', default=[],
+        help="Add a path to the list of include directories (can be called  multiple times)."
+    )
+    @argument(
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
@@ -127,10 +139,10 @@ class CythonMagics(Magics):
         """
         args = parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        lib_dir=os.path.join(self.shell.ipython_dir, 'cython')
-        cython_include_dirs=['.']
-        force=args.force
-        quiet=True
+        lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
+        cython_include_dirs = ['.']
+        force = args.force
+        quiet = True
         ctx = Context(cython_include_dirs, default_options)
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
@@ -141,8 +153,7 @@ class CythonMagics(Magics):
             os.makedirs(lib_dir)
 
         if force or not os.path.isfile(module_path):
-            cflags = []
-            c_include_dirs = []
+            c_include_dirs = args.include
             if 'numpy' in code:
                 import numpy
                 c_include_dirs.append(numpy.get_include())
@@ -154,7 +165,8 @@ class CythonMagics(Magics):
                 name = module_name,
                 sources = [pyx_file],
                 include_dirs = c_include_dirs,
-                extra_compile_args = cflags
+                extra_compile_args = args.compile_args,
+                libraries = args.lib,
             )
             dist = Distribution()
             config_files = dist.find_config_files()
