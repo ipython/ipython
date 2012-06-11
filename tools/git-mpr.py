@@ -6,37 +6,32 @@ Usage:
 """
 from __future__ import print_function
 
-import re
-import requests
 import argparse
-from subprocess import call, check_call, check_output, CalledProcessError
-import sys
+from subprocess import check_call, CalledProcessError
 
 import gh_api
 
 ipy_repository = 'git://github.com/ipython/ipython.git'
-gh_project="ipython/ipython"
-not_merged={}
+gh_project = "ipython/ipython"
+not_merged = {}
 
-
-def merge_branch(repo, branch, owner, mergeable):
+def merge_branch(repo, branch ):
     """try to merge the givent branch into the current one
     
     If something does not goes smoothly, merge is aborted
     
     Returns True if merge sucessfull, False otherwise
     """
-    merged_branch = "%s-%s" % (owner, branch)
     # Delete the branch first
     try :
-        check_call(['git', 'pull','--no-edit',repo, branch])
+        check_call(['git', 'pull', '--no-edit', repo, branch])
     except CalledProcessError :
         check_call(['git', 'merge', '--abort'])
         return False
     return True
 
 
-def merge_pr(num,github_api=3):
+def merge_pr(num, github_api=3):
     """ try to merge the branch of PR `num` into current branch
     
     github_api : use github api v2 (to bypass https and issues with proxy) to find the
@@ -48,17 +43,13 @@ def merge_pr(num,github_api=3):
     pr = gh_api.get_pull_request(gh_project, num, github_api)
     if github_api == 2:
         repo = pr['head']['repository']['url']
-        owner = pr['head']['user']['name']
     elif github_api == 3 :
         repo = pr['head']['repo']['clone_url']
-        owner = pr['head']['repo']['owner']['login']
 
 
     branch = pr['head']['ref']
     mergeable = merge_branch(repo=repo, 
                  branch=branch,
-                 owner=owner,
-                 mergeable=pr['mergeable'],
               )
     if not mergeable :
         cmd = "git pull "+repo+" "+branch
@@ -78,7 +69,7 @@ def main(*args):
                 and continue to the next if any.
                 """
             )
-    parser.add_argument('-v2','--githubapiv2', action='store_const', const=2)
+    parser.add_argument('-v2', '--githubapiv2', action='store_const', const=2)
 
     grp = parser.add_mutually_exclusive_group()
     grp.add_argument(
@@ -98,7 +89,6 @@ def main(*args):
             help="The pull request numbers",
             nargs='*',
             metavar='pr-number')
-    not_merged = {}; 
     args = parser.parse_args()
     if args.githubapiv2 == 2 :
         github_api = 2
@@ -108,7 +98,7 @@ def main(*args):
     if(args.list):
         pr_list = gh_api.get_pulls_list(gh_project, github_api)
         for pr in pr_list :
-            mergeable = gh_api.get_pull_request(gh_project, pr['number'],github_api=github_api)['mergeable']
+            mergeable = gh_api.get_pull_request(gh_project, pr['number'], github_api=github_api)['mergeable']
 
             ismgb = u"√" if mergeable else " "
             print(u"* #{number} [{ismgb}]:  {title}".format(
@@ -129,8 +119,8 @@ def main(*args):
     if not_merged :
         print('*************************************************************************************')
         print('the following branch have not been merged automatically, considere doing it by hand :')
-        for num,cmd in not_merged.items() :
-            print( "PR {num}: {cmd}".format(num=num,cmd=cmd))
+        for num, cmd in not_merged.items() :
+            print( "PR {num}: {cmd}".format(num=num, cmd=cmd))
         print('*************************************************************************************')
 
 if __name__ == '__main__':
