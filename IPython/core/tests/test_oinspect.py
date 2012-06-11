@@ -283,3 +283,8 @@ def test_getdoc():
     nt.assert_equal(oinspect.getdoc(a), "standard docstring")
     nt.assert_equal(oinspect.getdoc(b), "custom docstring")
     nt.assert_equal(oinspect.getdoc(c), "standard docstring")
+
+def test_pdef():
+    # See gh-1914
+    def foo(): pass
+    inspector.pdef(foo, 'foo')
