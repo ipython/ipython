@@ -91,6 +91,7 @@ ESC_SH_CAP = '!!'    # Send line to system shell and capture output
 ESC_HELP   = '?'     # Find information about object
 ESC_HELP2  = '??'    # Find extra-detailed information about object
 ESC_MAGIC  = '%'     # Call magic function
+ESC_MAGIC2 = '%%'    # Call cell-magic function
 ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
 ESC_QUOTE2 = ';'     # Quote all args as a single string, call
 ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
