@@ -753,6 +753,13 @@ be collected and raise a CompositeError, as demonstrated in the next section.
        ....:     time.sleep(t)
        ....:     return t
 
+.. note::
+
+    :func:`sync_imports` does not allow ``import foo as bar`` syntax,
+    because the assignment represented by the ``as bar`` part is not
+    available to the import hook.
+
+
 .. _parallel_exceptions:
 
 Parallel exceptions
