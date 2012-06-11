@@ -53,6 +53,7 @@ As part of the great refactoring of the notebook's JavaScript, the completer
 has been partially rewritten. Completions are now sourced both from object
 introspection and analyse of surrounding code, allowing to get a even limited
 completion on code not executed, or even while the kernel is busy.
+(:ghpull:`1711`)
 
 Notebook tooltip improvement
 ----------------------------
