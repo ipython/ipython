@@ -777,7 +777,7 @@ class VerboseTB(TBTools):
             #print '*** record:',file,lnum,func,lines,index  # dbg
             if not file:
                 file = '?'
-            elif not(file.startswith("<") and file.endswith(">")):
+            elif not(file.startswith(str("<")) and file.endswith(str(">"))):
                 # Guess that filenames like <string> aren't real filenames, so
                 # don't call abspath on them.                    
                 try:
