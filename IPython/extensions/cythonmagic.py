@@ -115,7 +115,7 @@ class CythonMagics(Magics):
         help="Add a library to link the extension against (can be called  multiple times)."
     )
     @argument(
-        '-i', '--include', action='append', default=[],
+        '-I', '--include', action='append', default=[],
         help="Add a path to the list of include directories (can be called  multiple times)."
     )
     @argument(
