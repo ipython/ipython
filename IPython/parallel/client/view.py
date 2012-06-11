@@ -60,8 +60,6 @@ def sync_results(f, self, *args, **kwargs):
     delta = self.outstanding.difference(self.client.outstanding)
     completed = self.outstanding.intersection(delta)
     self.outstanding = self.outstanding.difference(completed)
-    for msg_id in completed:
-        self.results[msg_id] = self.client.results[msg_id]
     return ret
 
 @decorator
@@ -122,6 +120,7 @@ class View(HasTraits):
 
     def __init__(self, client=None, socket=None, **flags):
         super(View, self).__init__(client=client, _socket=socket)
+        self.results = client.results
         self.block = client.block
 
         self.set_flags(**flags)
