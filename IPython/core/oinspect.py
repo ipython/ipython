@@ -246,12 +246,16 @@ def find_file(obj):
     fname : str
       The absolute path to the file where the object was defined.
     """
+    # get source if obj was decorated with @decorator
+    if hasattr(obj, '__wrapped__'):
+        obj = obj.__wrapped__
+    
     try:
         fname = inspect.getabsfile(obj)
     except TypeError:
         # For an instance, the file that matters is where its class was
         # declared.
-        if hasattr(obj,'__class__'):
+        if hasattr(obj, '__class__'):
             try:
                 fname = inspect.getabsfile(obj.__class__)
             except TypeError:
@@ -259,10 +263,6 @@ def find_file(obj):
                 fname = None
     except:
         fname = None
-    else:
-        if fname.endswith('<string>') and hasattr(obj, '__wrapped__'):
-            # Analyze decorated functions and methods correctly
-            fname = inspect.getabsfile(obj.__wrapped__)
     return fname
 
 
@@ -282,19 +282,17 @@ def find_source_lines(obj):
     lineno : int
       The line number where the object definition starts.
     """
+    # get source if obj was decorated with @decorator
+    if hasattr(obj, '__wrapped__'):
+        obj = obj.__wrapped__
+    
     try:
         try:
             lineno = inspect.getsourcelines(obj)[1]
         except TypeError:
             # For instances, try the class object like getsource() does
-            if hasattr(obj,'__class__'):
+            if hasattr(obj, '__class__'):
                 lineno = inspect.getsourcelines(obj.__class__)[1]
-                # Adjust the inspected object so getabsfile() below works
-                obj = obj.__class__
-        except IOError:
-            if hasattr(obj, '__wrapped__'):
-                obj = obj.__wrapped__
-                lineno = inspect.getsourcelines(obj)[1]
     except:
         return None
 
