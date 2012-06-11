@@ -79,7 +79,7 @@ class NamespaceMagics(Magics):
           In [3]: %pdef urllib.urlopen
           urllib.urlopen(url, data=None, proxies=None)
         """
-        self._inspect('pdef',parameter_s, namespaces)
+        self.shell._inspect('pdef',parameter_s, namespaces)
 
     @line_magic
     def pdoc(self, parameter_s='', namespaces=None):
@@ -87,12 +87,12 @@ class NamespaceMagics(Magics):
 
         If the given object is a class, it will print both the class and the
         constructor docstrings."""
-        self._inspect('pdoc',parameter_s, namespaces)
+        self.shell._inspect('pdoc',parameter_s, namespaces)
 
     @line_magic
     def psource(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the source code for an object."""
-        self._inspect('psource',parameter_s, namespaces)
+        self.shell._inspect('psource',parameter_s, namespaces)
 
     @line_magic
     def pfile(self, parameter_s=''):
@@ -108,7 +108,7 @@ class NamespaceMagics(Magics):
         viewer."""
 
         # first interpret argument as an object name
-        out = self._inspect('pfile',parameter_s)
+        out = self.shell._inspect('pfile',parameter_s)
         # if not, try the input as a filename
         if out == 'not found':
             try:
