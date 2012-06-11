@@ -54,11 +54,11 @@ def test_find_source_lines():
 # A couple of utilities to ensure these tests work the same from a source or a
 # binary install
 def pyfile(fname):
-    return re.sub('.py[co]$', '.py', fname)
+    return os.path.normcase(re.sub('.py[co]$', '.py', fname))
 
 
 def match_pyfiles(f1, f2):
-    nt.assert_equal(os.path.normcase(pyfile(f1)), os.path.normcase(pyfile(f2)))
+    nt.assert_equal(pyfile(f1), pyfile(f2))
 
 
 def test_find_file():
