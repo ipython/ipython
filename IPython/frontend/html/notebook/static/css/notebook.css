@@ -242,9 +242,16 @@ div.text_cell_render {
     color: black;
 }
 
-.CodeMirror span {
-    vertical-align: bottom;
-}
+/* The following gets added to the <head> if it is detected that the user has a
+ * monospace font with inconsistent normal/bold/italic height.  See
+ * notebookmain.js.  Such fonts will have keywords vertically offset with
+ * respect to the rest of the text.  The user should select a better font. 
+ * See: https://github.com/ipython/ipython/issues/1503
+ *
+ * .CodeMirror span {
+ *      vertical-align: bottom;
+ * }
+ */
 
 .CodeMirror {
     line-height: 1.231;  /* Changed from 1em to our global default */
