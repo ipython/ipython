@@ -79,7 +79,7 @@ import sys
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
-from IPython.core.prefilter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.utils import generics
 from IPython.utils import io
 from IPython.utils.dir2 import dir2

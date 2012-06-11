@@ -20,8 +20,8 @@ from pprint import pformat
 
 # Our own packages
 from IPython.core.error import UsageError
+from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.prefilter import ESC_MAGIC
 from IPython.utils.text import format_screen
 from IPython.core import magic_arguments, page
 from IPython.testing.skipdoctest import skip_doctest
