@@ -58,7 +58,7 @@ def pyfile(fname):
 
 
 def match_pyfiles(f1, f2):
-    nt.assert_equal(pyfile(f1), pyfile(f2))
+    nt.assert_equal(os.path.normcase(pyfile(f1)), os.path.normcase(pyfile(f2)))
 
 
 def test_find_file():
