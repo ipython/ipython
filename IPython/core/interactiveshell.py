@@ -56,12 +56,12 @@ from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
-from IPython.core.prefilter import PrefilterManager, ESC_MAGIC, ESC_CELL_MAGIC
+from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
@@ -1349,7 +1349,7 @@ class InteractiveShell(SingletonConfigurable):
         oname = oname.strip()
         #print '1- oname: <%r>' % oname  # dbg
         if not oname.startswith(ESC_MAGIC) and \
-            not oname.startswith(ESC_CELL_MAGIC) and \
+            not oname.startswith(ESC_MAGIC2) and \
             not py3compat.isidentifier(oname, dotted=True):
             return dict(found=False)
 
@@ -1409,8 +1409,8 @@ class InteractiveShell(SingletonConfigurable):
         # Try to see if it's magic
         if not found:
             obj = None
-            if oname.startswith(ESC_CELL_MAGIC):
-                oname = oname.lstrip(ESC_CELL_MAGIC)
+            if oname.startswith(ESC_MAGIC2):
+                oname = oname.lstrip(ESC_MAGIC2)
                 obj = self.find_cell_magic(oname)
             elif oname.startswith(ESC_MAGIC):
                 oname = oname.lstrip(ESC_MAGIC)

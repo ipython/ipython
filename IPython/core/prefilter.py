@@ -31,6 +31,16 @@ import re
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
+from IPython.core.inputsplitter import (
+    ESC_SHELL,
+    ESC_SH_CAP,
+    ESC_HELP,
+    ESC_MAGIC,
+    ESC_MAGIC2,
+    ESC_QUOTE,
+    ESC_QUOTE2,
+    ESC_PAREN,
+)
 from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.core import page
@@ -43,17 +53,6 @@ from IPython.utils.autoattr import auto_attr
 #-----------------------------------------------------------------------------
 # Global utilities, errors and constants
 #-----------------------------------------------------------------------------
-
-# Warning, these cannot be changed unless various regular expressions
-# are updated in a number of places.  Not great, but at least we told you.
-ESC_SHELL  = '!'
-ESC_SH_CAP = '!!'
-ESC_HELP   = '?'
-ESC_MAGIC  = '%'
-ESC_CELL_MAGIC = ESC_MAGIC * 2
-ESC_QUOTE  = ','
-ESC_QUOTE2 = ';'
-ESC_PAREN  = '/'
 
 
 class PrefilterError(Exception):
