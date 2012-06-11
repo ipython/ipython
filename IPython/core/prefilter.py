@@ -50,6 +50,7 @@ ESC_SHELL  = '!'
 ESC_SH_CAP = '!!'
 ESC_HELP   = '?'
 ESC_MAGIC  = '%'
+ESC_CELL_MAGIC = ESC_MAGIC * 2
 ESC_QUOTE  = ','
 ESC_QUOTE2 = ';'
 ESC_PAREN  = '/'
