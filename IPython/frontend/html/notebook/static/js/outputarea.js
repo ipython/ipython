@@ -54,7 +54,7 @@ var IPython = (function (IPython) {
         this.collapse_button.html('. . .');
         
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
-        this.prompt_overlay.attr('title', 'click to expand outout; dblclick to hide output');
+        this.prompt_overlay.attr('title', 'click to expand outout; double click to hide output');
         
         this.collapse();
     };
@@ -128,14 +128,14 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.scroll_area = function () {
         this.element.addClass('output_scroll');
-        this.prompt_overlay.attr('title', 'click to unscroll output; dblclick to hide');
+        this.prompt_overlay.attr('title', 'click to unscroll output; double click to hide');
         this.scrolled = true;
     };
 
 
     OutputArea.prototype.unscroll_area = function () {
         this.element.removeClass('output_scroll');
-        this.prompt_overlay.attr('title', 'click to scroll output; dblclick to hide');
+        this.prompt_overlay.attr('title', 'click to scroll output; double click to hide');
         this.scrolled = false;
     };
 
