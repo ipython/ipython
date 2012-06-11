@@ -26,6 +26,7 @@ itself from the command line. There are two ways of running this script:
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import glob
 import os
 import os.path as path
 import signal
@@ -293,7 +294,7 @@ def make_exclude():
     parent, _ = os.path.split(get_ipython_package_dir())
     for exclusion in exclusions:
         fullpath = pjoin(parent, exclusion)
-        if not os.path.exists(fullpath) and not os.path.exists(fullpath + '.py'):
+        if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
             warn("Excluding nonexistent file: %r\n" % exclusion)
 
     return exclusions
