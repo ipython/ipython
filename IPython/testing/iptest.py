@@ -298,6 +298,9 @@ def make_exclude():
     # check for any exclusions that don't seem to exist:
     parent, _ = os.path.split(get_ipython_package_dir())
     for exclusion in exclusions:
+        if exclusion.endswith(('deathrow', 'quarantine')):
+            # ignore deathrow/quarantine, which exist in dev, but not install
+            continue
         fullpath = pjoin(parent, exclusion)
         if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
             warn("Excluding nonexistent file: %r\n" % exclusion)
