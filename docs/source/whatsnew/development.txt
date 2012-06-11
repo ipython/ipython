@@ -36,6 +36,25 @@ Interactive tab completion for the Qt console
 
 (Add description & screenshots) (:ghpull:`1851`)
 
+
+Completer improvement
+---------------------
+
+One of the great feature of IPython is the ability to inspect live element and
+provide useful completion to the user, this one base of interactive
+exploration of data. To make this process even more user-friendly the completers
+of both the QTconsole and the Notebook has been reworked.
+
+The Qtconsole --gui-completion flag came with a new `ncurses` flavor, activated
+by default, which allows to cycle through the available completion by pressing
+tab, and to navigate the with the arrow keys.(:ghpull:`1851`)
+
+As part of the great refactoring of the notebook's JavaScript, the completer
+has been partially rewritten. Completions are now sourced both from object
+introspection and analyse of surrounding code, allowing to get a even limited
+completion on code not executed, or even while the kernel is busy.
+
+
 Other new features
 ------------------
 
