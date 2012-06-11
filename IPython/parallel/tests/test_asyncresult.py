@@ -18,11 +18,12 @@ Authors:
 
 import time
 
-from IPython.parallel.error import TimeoutError
+from IPython.utils.io import capture_output
 
+from IPython.parallel.error import TimeoutError
 from IPython.parallel import error, Client
 from IPython.parallel.tests import add_engines
-from .clienttest import ClusterTestCase, capture_output
+from .clienttest import ClusterTestCase
 
 def setup():
     add_engines(2, total=True)
