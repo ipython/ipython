@@ -662,3 +662,35 @@ def test_script_defaults():
             pass
         else:
             nt.assert_in(cmd, ip.magics_manager.magics['cell'])
+
+
+@magics_class
+class FooFoo(Magics):
+    """class with both %foo and %%foo magics"""
+    @line_magic('foo')
+    def line_foo(self, line):
+        "I am line foo"
+        pass
+            
+    @cell_magic("foo")
+    def cell_foo(self, line, cell):
+        "I am cell foo, not line foo"
+        pass
+
+def test_line_cell_info():
+    """%%foo and %foo magics are distinguishable to inspect"""
+    ip = get_ipython()
+    ip.magics_manager.register(FooFoo)
+    oinfo = ip.object_inspect('foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    
+    oinfo = ip.object_inspect('%%foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    nt.assert_equals(oinfo['docstring'], FooFoo.cell_foo.__doc__)
+
+    oinfo = ip.object_inspect('%foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    nt.assert_equals(oinfo['docstring'], FooFoo.line_foo.__doc__)
