@@ -328,26 +328,50 @@ class CapturedIO(object):
     """Simple object for containing captured stdout/err StringIO objects"""
     
     def __init__(self, stdout, stderr):
-        self.stdout_io = stdout
-        self.stderr_io = stderr
+        self._stdout = stdout
+        self._stderr = stderr
     
     @property
     def stdout(self):
-        return self.stdout_io.getvalue()
+        if not self._stdout:
+            return ''
+        return self._stdout.getvalue()
     
     @property
     def stderr(self):
-        return self.stderr_io.getvalue()
+        if not self._stderr:
+            return ''
+        return self._stderr.getvalue()
+    
+    def show(self):
+        """write my output to sys.stdout/err as appropriate"""
+        sys.stdout.write(self.stdout)
+        sys.stderr.write(self.stderr)
+        sys.stdout.flush()
+        sys.stderr.flush()
+    
+    __call__ = show
 
 
 class capture_output(object):
     """context manager for capturing stdout/err"""
+    stdout = True
+    stderr = True
+    
+    def __init__(self, stdout=True, stderr=True):
+        self.stdout = stdout
+        self.stderr = stderr
     
     def __enter__(self):
         self.sys_stdout = sys.stdout
         self.sys_stderr = sys.stderr
-        stdout = sys.stdout = StringIO()
-        stderr = sys.stderr = StringIO()
+        
+        stdout = stderr = False
+        if self.stdout:
+            stdout = sys.stdout = StringIO()
+        if self.stderr:
+            stderr = sys.stderr = StringIO()
+        
         return CapturedIO(stdout, stderr)
     
     def __exit__(self, exc_type, exc_value, traceback):

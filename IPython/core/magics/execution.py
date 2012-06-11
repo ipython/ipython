@@ -992,25 +992,31 @@ python-profiler package from non-free.""")
         print macro,
     
     @magic_arguments.magic_arguments()
-    @magic_arguments.argument('-o', '--out', type=str,
-        help="""The name of the variable in which to store stdout
+    @magic_arguments.argument('output', type=str, default='', nargs='?',
+        help="""The name of the variable in which to store output.
+        This is a utils.io.CapturedIO object with stdout/err attributes
+        for the text of the captured output.
         
-        If unspecified: stdout is discarded
+        CapturedOutput also has a show() method for displaying the output,
+        and __call__ as well, so you can use that to quickly display the
+        output.
+        
+        If unspecified, captured output is discarded.
         """
     )
-    @magic_arguments.argument('-e', '--err', type=str,
-        help="""The name of the variable in which to store stderr
-        
-        If unspecified: stderr is discarded
-        """
+    @magic_arguments.argument('--no-stderr', action="store_true",
+        help="""Don't capture stderr."""
+    )
+    @magic_arguments.argument('--no-stdout', action="store_true",
+        help="""Don't capture stdout."""
     )
     @cell_magic
     def capture(self, line, cell):
         """run the cell, capturing stdout/err"""
         args = magic_arguments.parse_argstring(self.capture, line)
-        with capture_output() as io:
+        out = not args.no_stdout
+        err = not args.no_stderr
+        with capture_output(out, err) as io:
             self.shell.run_cell(cell)
-        if args.out:
-            self.shell.user_ns[args.out] = io.stdout
-        if args.err:
-            self.shell.user_ns[args.err] = io.stderr
+        if args.output:
+            self.shell.user_ns[args.output] = io
