@@ -54,6 +54,23 @@ has been partially rewritten. Completions are now sourced both from object
 introspection and analyse of surrounding code, allowing to get a even limited
 completion on code not executed, or even while the kernel is busy.
 
+Notebook tooltip improvement
+----------------------------
+
+Being able to get non obstructive help is important whether you are a python
+beginner or a experienced developer learning new python library. This is the
+reason why the  new tooltip that ships with the notebook get some new
+functionality.
+
+You can still invoked it after an opening bracket, or after a space following a
+comma in function argument (yes it forces you to be pep8 compliant), but
+several tab press in a row will now give different behaviour.
+
+You can discover this interactively one of the first introduction notebook, to
+see how to expand the tooltip size to see more of the docstring, prevent it
+from being dismissed and still see the kwargs list while typing function
+argument. Or finally sending the displayed help to the pager at the bottom of
+the screen to have a permanent help.
 
 Other new features
 ------------------
