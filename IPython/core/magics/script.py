@@ -185,7 +185,8 @@ class ScriptMagics(Magics, Configurable):
         args, cmd = self.shebang.parser.parse_known_args(argv)
 
         p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
-
+        
+        cell = cell.encode('utf8', 'replace')
         if args.bg:
             if args.out:
                 self.shell.user_ns[args.out] = p.stdout
