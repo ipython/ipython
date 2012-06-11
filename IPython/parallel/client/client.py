@@ -1134,8 +1134,26 @@ class Client(HasTraits):
             raise error
 
     @spin_first
-    def shutdown(self, targets=None, restart=False, hub=False, block=None):
-        """Terminates one or more engine processes, optionally including the hub."""
+    def shutdown(self, targets='all', restart=False, hub=False, block=None):
+        """Terminates one or more engine processes, optionally including the hub.
+        
+        Parameters
+        ----------
+        
+        targets: list of ints or 'all' [default: all]
+            Which engines to shutdown.
+        hub: bool [default: False]
+            Whether to include the Hub.  hub=True implies targets='all'.
+        block: bool [default: self.block]
+            Whether to wait for clean shutdown replies or not.
+        restart: bool [default: False]
+            NOT IMPLEMENTED
+            whether to restart engines after shutting them down.
+        """
+        
+        if restart:
+            raise NotImplementedError("Engine restart is not yet implemented")
+        
         block = self.block if block is None else block
         if hub:
             targets = 'all'
