@@ -1,48 +1,21 @@
-.TH IPCLUSTER 1 "July 15, 2011" "" ""
+.TH IPCLUSTER 1 "June 10, 2012" "" ""
 .SH NAME
-\fBipcluster \- IPython parallel computing cluster control tool
+\fBipcluster \- start a cluster for IPython parallel computing
 .SH SYNOPSIS
-.nf
-.fam C
-\fBipcluster\fP {\fmpiexec,local,mpirun,pbs,ssh\fP} [\fIoptions\fP]
-.fam T
-.fi
+
+.B ipcluster subcommand
+.RI [ options ]
+
 .SH DESCRIPTION
-ipcluster is a control tool for IPython's parallel computing functions.
+Start an IPython cluster for parallel computing.
 
-IPython cluster startup. This starts a controller and engines using various
-approaches. Use the IPYTHONDIR environment variable to change your IPython
-directory from the default of ~/.ipython or ~/.config/ipython. The log and security
-subdirectories of your IPython directory will be used by this script for log
-files and security files.
-.SH POSITIONAL ARGUMENTS
+For more information on how to use ipcluster, see 'ipcluster --help',
+or 'ipcluster --help-all' for all available command-line options.
 
-The first positional argument should be one of: {start, stop, engines},
-which are the available subcommands.
-
-For detailed help on each, type "ipcluster CMD \-\-help". Briefly:
-
-  start         start an IPython cluster
-  stop          stop a running IPython cluster
-  engines       add a number of engines to a running cluster
-.SH OPTIONS
-.TP
-.B
-\-h, \-\-help
-show help message and exit
-.SH EXAMPLE
-ipcluster start \-\-n=4
-
-This command will start 4 IPython engines on the local computer.
-.SH SEE ALSO
+.SH "SEE ALSO"
 .BR ipython(1),
 .BR ipcontroller(1),
-.BR ipengine(1)
+.BR ipengine(1),
 .br
-.SH AUTHOR
-\fBipcluster\fP is a tool that ships with IPython, created by
-the IPython Development Team.
-.PP
-This manual page was written by Stephan Peijnik <debian@sp.or.at>,
-for the Debian project (but may be used by others).  Modified by Fernando Perez
-<Fernando.Perez@berkeley.edu> for inclusion in IPython.
+.SH AUTHORS
+\fBipcluster\fP ships with IPython, maintained by the IPython Development Team.

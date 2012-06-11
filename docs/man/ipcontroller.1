@@ -1,164 +1,21 @@
-.TH IPCONTROLLER 1 "October 29, 2008" "" ""
+.TH IPCONTROLLER 1 "June 10, 2012" "" ""
 .SH NAME
-\fBipcontroller \- IPython parallel computing controller control tool
+\fBipcontroller \- start a controller for IPython parallel computing
+
 .SH SYNOPSIS
-.nf
-.fam C
-\fBipengine\fP [\fIoptions\fP]
-.fam T
-.fi
+.B ipcontroller
+.RI [ options ]
+
 .SH DESCRIPTION
-ipcontroller is a control tool for IPython's parallel computing functions.
-.SH OPTIONS
-.TP
-.B
-\-h, \-\-help
-show this help message and exit
-.TP
-.B
-.TP
-.B \-\-no\-secure
-Don't authenticate messages.
-.TP
-.B \-\-usethreads
-Use threads instead of processes for the schedulers
-.TP
-.B \-\-init
-Initialize profile with default config files
-.TP
-.B \-\-log\-to\-file
-send log output to a file
-.TP
-.B \-\-reuse
-reuse existing json connection files
-.TP
-.B \-\-mongodb
-use the MongoDB backend
-.TP
-.B \-\-quiet
-set log level to logging.CRITICAL (minimize logging output)
-.TP
-.B \-\-debug
-set log level to logging.DEBUG (maximize logging output)
-.TP
-.B \-\-sqlitedb
-use the SQLiteDB backend
-.TP
-.B \-\-dictdb
-use the in-memory DictDB backend
-.TP
-.B \-\-secure
-Use HMAC digests for authentication of messages.
-.TP
-.B \-\-profile=<Unicode> (BaseIPythonApplication.profile)
-Default: u'default'
-The IPython profile to use.
-.TP
-.B \-\-hwm=<Int> (TaskScheduler.hwm)
-Default: 0
-.br
-specify the High Water Mark (HWM) for the downstream socket in the Task
-scheduler. This is the maximum number of allowed outstanding tasks on each
-engine.
-.TP
-.B \-\-secure=<Bool> (IPControllerApp.secure)
-Default: True
-Whether to use HMAC digests for extra message authentication.
-.TP
-.B \-\-ip=<Unicode> (HubFactory.ip)
-Default: '127.0.0.1'
-The IP address for registration.  This is generally either '127.0.0.1' for
-loopback only or '*' for all interfaces. [default: '127.0.0.1']
-.TP
-.B \-\-log\-url=<Unicode> (BaseParallelApplication.log_url)
-Default: ''
-The ZMQ URL of the iplogger to aggregate logging.
-.TP
-.B \-\-work\-dir=<Unicode> (BaseParallelApplication.work_dir)
-Default: u'/Users/minrk/dev/ip/mine/docs/man'
-Set the working dir for the process.
-.TP
-.B \-\-port=<Int> (HubFactory.regport)
-Default: 0
-The port on which the Hub listens for registration.
-.TP
-.B \-\-profile\-dir=<Unicode> (ProfileDir.location)
-Default: u''
-Set the profile location directly. This overrides the logic used by the
-`profile` option.
-.TP
-.B \-\-ident=<CBytes> (Session.session)
-Default: ''
-The UUID identifying this session.
-.TP
-.B \-\-log\-to\-file=<Bool> (BaseParallelApplication.log_to_file)
-Default: False
-whether to log to a file
-.TP
-.B \-\-ipython\-dir=<Unicode> (BaseIPythonApplication.ipython_dir)
-Default: u'/Users/minrk/.ipython'
-The name of the IPython directory. This directory is used for logging
-configuration (through profiles), history storage, etc. The default is
-usually $HOME/.ipython. This options can also be specified through the
-environment variable IPYTHONDIR.
-.TP
-.B \-\-url=<Unicode> (HubFactory.url)
-Default: ''
-The 0MQ url used for registration. This sets transport, ip, and port in one
-variable. For example: url='tcp://127.0.0.1:12345' or url='epgm://*:90210'
-.TP
-.B \-\-user=<Unicode> (Session.username)
-Default: 'minrk'
-Username for the Session. Default is your system username.
-.TP
-.B \-\-ping=<CFloat> (HeartMonitor.period)
-Default: 1000
-The frequency at which the Hub pings the engines for heartbeats  (in ms)
-.TP
-.B \-\-log\-level=<Enum> (Application.log_level)
-Default: 30
-Choices: (0, 10, 20, 30, 40, 50, 'DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL')
-Set the log level by value or name.
-.TP
-.B \-\-location=<Unicode> (IPControllerApp.location)
-Default: u''
-The external IP or domain name of the Controller, used for disambiguating
-engine and client connections.
-.TP
-.B \-\-clean\-logs=<Bool> (BaseParallelApplication.clean_logs)
-Default: False
-whether to cleanup old logfiles before starting
-.TP
-.B \-\-scheme=<Enum> (TaskScheduler.scheme_name)
-Default: 'leastload'
-Choices: ('leastload', 'pure', 'lru', 'plainrandom', 'weighted', 'twobin')
-select the task scheduler scheme  [default: Python LRU] Options are: 'pure',
-\&'lru', 'plainrandom', 'weighted', 'twobin','leastload'
-.TP
-.B \-\-keyfile=<Unicode> (Session.keyfile)
-Default: ''
-path to file containing execution key.
-.TP
-.B \-\-transport=<Unicode> (HubFactory.transport)
-Default: 'tcp'
-The 0MQ transport for communications.  This will likely be the default of
-\&'tcp', but other values include 'ipc', 'epgm', 'inproc'.
-.TP
-.B \-\-ssh=<Unicode> (IPControllerApp.ssh_server)
-Default: u''
-ssh url for clients to use when connecting to the Controller processes. It
-should be of the form: [user@]server[:port]. The Controller's listening
-addresses must be accessible from the ssh server
-.SH SEE ALSO
+ipcontroller starts a controller for the IPython cluster
+
+For more information on how to use ipcontroller, see 'ipcontroller --help',
+or 'ipcontroller --help-all' for all available command-line options.
+
+.SH "SEE ALSO"
 .BR ipython(1),
-.BR ipcluster(1),
-.BR ipengine(1)
+.BR ipengine(1),
+.BR ipcluster(1)
 .br
-.SH AUTHOR
-\fBipcontroller\fP is a tool that ships with IPython, created by
-the IPython Development Team.
-.PP
-This manual page was written by Stephan Peijnik <debian@sp.or.at>,
-for the Debian project (but may be used by others).  Modified by Fernando Perez
-<Fernando.Perez@berkeley.edu> for inclusion in IPython, and updated by
-Min Ragan-Kelley <benjaminrk@gmail.com> for 0.11.
+.SH AUTHORS
+\fBipcontroller\fP ships with IPython, maintained by the IPython Development Team.
