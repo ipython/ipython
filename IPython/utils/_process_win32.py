@@ -125,9 +125,13 @@ def system(cmd):
     """
     # The controller provides interactivity with both
     # stdin and stdout
-    import _process_win32_controller
-    _process_win32_controller.system(cmd)
+    #import _process_win32_controller
+    #_process_win32_controller.system(cmd)
 
+    with AvoidUNCPath() as path:
+        if path is not None:
+            cmd = '"pushd %s &&"%s' % (path, cmd)
+        return process_handler(cmd, _system_body)
 
 def getoutput(cmd):
     """Return standard output of executing cmd in a shell.
