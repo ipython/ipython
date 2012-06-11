@@ -236,6 +236,11 @@ def make_exclude():
         exclusions.append(ipjoin('core', 'history'))
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
+    
+    # FIXME: temporarily disable autoreload tests, as they can produce
+    # spurious failures in subsequent tests (cythonmagic).
+    exclusions.append(ipjoin('extensions', 'autoreload'))
+    exclusions.append(ipjoin('extensions', 'tests', 'test_autoreload'))
 
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
