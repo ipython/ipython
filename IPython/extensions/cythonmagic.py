@@ -108,15 +108,15 @@ class CythonMagics(Magics):
     @magic_arguments()
     @argument(
         '-c', '--compile-args', action='append', default=[],
-        help="Extra flag to pass to compiler via the `extra_compile_args` Extension flag (can be called  multiple times)."
+        help="Extra flags to pass to compiler via the `extra_compile_args` Extension flag (can be specified  multiple times)."
     )
     @argument(
         '-l', '--lib', action='append', default=[],
-        help="Add a library to link the extension against (can be called  multiple times)."
+        help="Add a library to link the extension against (can be specified  multiple times)."
     )
     @argument(
         '-I', '--include', action='append', default=[],
-        help="Add a path to the list of include directories (can be called  multiple times)."
+        help="Add a path to the list of include directories (can be specified  multiple times)."
     )
     @argument(
         '-f', '--force', action='store_true', default=False,
