@@ -191,7 +191,11 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 79 && that.control_key_active) {
                 // Toggle output = o
-                that.toggle_output();
+                if (event.shiftKey){
+                    that.toggle_output_scroll();
+                } else {
+                    that.toggle_output();
+                }
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 83 && that.control_key_active) {
@@ -862,6 +866,12 @@ var IPython = (function (IPython) {
         var i = this.index_or_selected(index);
         this.get_cell(i).toggle_output();
         this.dirty = true;
+    };
+
+
+    Notebook.prototype.toggle_output_scroll = function (index) {
+        var i = this.index_or_selected(index);
+        this.get_cell(i).toggle_output_scroll();
     };
 
 
