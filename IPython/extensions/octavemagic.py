@@ -6,6 +6,11 @@ octavemagic
 
 Magics for interacting with Octave via oct2py.
 
+.. note::
+
+  The ``oct2py`` module needs to be installed separately, and in turn depends
+  on ``h5py``.  Both can be obtained using ``easy_install`` or ``pip``.
+
 Usage
 =====
 
@@ -169,11 +174,11 @@ class OctaveMagics(Magics):
              'whitespace.'
         )
     @argument(
-        '-s', '--size', action='append',
+        '-s', '--size', action='store',
         help='Pixel size of plots, "width,height". Default is "-s 400,250".'
         )
     @argument(
-        '-f', '--format', action='append',
+        '-f', '--format', action='store',
         help='Plot format (png, svg or jpg).'
         )
 
@@ -248,12 +253,12 @@ class OctaveMagics(Magics):
         # generate plots in a temporary directory
         plot_dir = tempfile.mkdtemp()
         if args.size is not None:
-            size = args.size[0]
+            size = args.size
         else:
             size = '400,240'
 
         if args.format is not None:
-            plot_format = args.format[0]
+            plot_format = args.format
         else:
             plot_format = 'png'
 
@@ -292,8 +297,7 @@ class OctaveMagics(Magics):
           end
         end
 
-        ''' % {'plot_dir': plot_dir, 'size': size,
-               'plot_format': plot_format}
+        ''' % locals()
 
         code = ' '.join((pre_call, code, post_call))
         try:
