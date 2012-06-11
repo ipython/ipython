@@ -24,6 +24,7 @@ from urllib2 import urlopen
 from IPython.core.error import TryNext
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
 from IPython.utils import py3compat
@@ -259,8 +260,8 @@ class CodeMagics(Magics):
                         raise MacroToEdit(data)
 
                     # For objects, try to edit the file where they are defined
-                    try:
-                        filename = inspect.getabsfile(data)
+                    filename = find_file(data)
+                    if filename:
                         if 'fakemodule' in filename.lower() and \
                             inspect.isclass(data):
                             # class created by %edit? Try to find source
@@ -270,7 +271,7 @@ class CodeMagics(Magics):
                             for attr in attrs:
                                 if not inspect.ismethod(attr):
                                     continue
-                                filename = inspect.getabsfile(attr)
+                                filename = find_file(attr)
                                 if filename and \
                                   'fakemodule' not in filename.lower():
                                     # change the attribute to be the edit
@@ -279,7 +280,7 @@ class CodeMagics(Magics):
                                     break
 
                         datafile = 1
-                    except TypeError:
+                    if filename is None:
                         filename = make_filename(args)
                         datafile = 1
                         warn('Could not find file where `%s` is defined.\n'
@@ -287,10 +288,9 @@ class CodeMagics(Magics):
                     # Now, make sure we can actually read the source (if it was
                     # in a temp file it's gone by now).
                     if datafile:
-                        try:
-                            if lineno is None:
-                                lineno = inspect.getsourcelines(data)[1]
-                        except IOError:
+                        if lineno is None:
+                            lineno = find_source_lines(data)
+                        if lineno is None:
                             filename = make_filename(args)
                             if filename is None:
                                 warn('The file `%s` where `%s` was defined '
