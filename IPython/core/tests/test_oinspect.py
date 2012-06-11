@@ -15,6 +15,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import os
+import re
 
 # Third-party imports
 import nose.tools as nt
@@ -44,15 +45,24 @@ ip = get_ipython()
 # defined, if any code is inserted above, the following line will need to be
 # updated.  Do NOT insert any whitespace between the next line and the function
 # definition below.
-THIS_LINE_NUMBER = 47  # Put here the actual number of this line
+THIS_LINE_NUMBER = 48  # Put here the actual number of this line
 def test_find_source_lines():
     nt.assert_equal(oinspect.find_source_lines(test_find_source_lines), 
                     THIS_LINE_NUMBER+1)
 
 
+# A couple of utilities to ensure these tests work the same from a source or a
+# binary install
+def pyfile(fname):
+    return re.sub('.py[co]$', '.py', fname)
+
+
+def match_pyfiles(f1, f2):
+    nt.assert_equal(pyfile(f1), pyfile(f2))
+
+
 def test_find_file():
-    nt.assert_equal(oinspect.find_file(test_find_file),
-                    os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(test_find_file), os.path.abspath(__file__))
 
 
 def test_find_file_decorated1():
@@ -67,8 +77,7 @@ def test_find_file_decorated1():
     def f(x):
         "My docstring"
     
-    nt.assert_equal(oinspect.find_file(f),
-                    os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     nt.assert_equal(f.__doc__, "My docstring")
 
 
@@ -82,8 +91,7 @@ def test_find_file_decorated2():
     def f(x):
         "My docstring 2"
     
-    nt.assert_equal(oinspect.find_file(f),
-                    os.path.abspath(__file__))
+    match_pyfiles(oinspect.find_file(f), os.path.abspath(__file__))
     nt.assert_equal(f.__doc__, "My docstring 2")
     
 
