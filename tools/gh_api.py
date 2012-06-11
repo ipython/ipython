@@ -84,7 +84,7 @@ def get_pull_request(project, num, github_api=3):
         url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=project, num=num)
     response = requests.get(url)
     response.raise_for_status()
-    if httpv2 :
+    if github_api == 2 :
         return json.loads(response.text)['pull']
     return json.loads(response.text)
 
@@ -99,6 +99,6 @@ def get_pulls_list(project, github_api=3):
         url = "http://github.com/api/v2/json/pulls/{project}".format(project=project)
     response = requests.get(url)
     response.raise_for_status()
-    if httpv2 :
+    if github_api == 2 :
         return json.loads(response.text)['pulls']
     return json.loads(response.text)
