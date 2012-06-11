@@ -331,6 +331,9 @@ class CapturedIO(object):
         self._stdout = stdout
         self._stderr = stderr
     
+    def __str__(self):
+        return self.stdout
+    
     @property
     def stdout(self):
         if not self._stdout:
