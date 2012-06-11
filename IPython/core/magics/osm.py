@@ -16,17 +16,20 @@ builtin.
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import io
 import os
 import re
 import sys
 from pprint import pformat
 
 # Our own packages
+from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
-from IPython.core.error import UsageError
-from IPython.core.magic import  (Magics, compress_dhist, magics_class,
-                                 line_magic)
+from IPython.core.error import UsageError, StdinNotImplementedError
+from IPython.core.magic import  (
+    Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
+)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -432,7 +435,7 @@ class OSMagics(Magics):
     @skip_doctest
     @line_magic
     def sc(self, parameter_s=''):
-        """Shell capture - execute a shell command and capture its output.
+        """Shell capture - run shell command and capture output (DEPRECATED use !).
 
         DEPRECATED. Suboptimal, retained for backwards compatibility.
 
@@ -545,9 +548,9 @@ class OSMagics(Magics):
         else:
             return out
 
-    @line_magic
-    def sx(self, parameter_s=''):
-        """Shell execute - run a shell command and capture its output.
+    @line_cell_magic
+    def sx(self, line='', cell=None):
+        """Shell execute - run shell command and capture output (!! is short-hand).
 
         %sx command
 
@@ -586,10 +589,21 @@ class OSMagics(Magics):
 
         This is very useful when trying to use such lists as arguments to
         system commands."""
+        
+        if cell is None:
+            # line magic
+            return self.shell.getoutput(line)
+        else:
+            opts,args = self.parse_options(line, '', 'out=')
+            output = self.shell.getoutput(cell)
+            out_name = opts.get('out', opts.get('o'))
+            if out_name:
+                self.shell.user_ns[out_name] = output
+            else:
+                return output
 
-        if parameter_s:
-            return self.shell.getoutput(parameter_s)
-
+    system = line_cell_magic('system')(sx)
+    bang = cell_magic('!')(sx)
 
     @line_magic
     def bookmark(self, parameter_s=''):
@@ -675,3 +689,33 @@ class OSMagics(Magics):
             return
 
         page.page(self.shell.pycolorize(cont))
+
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-a', '--amend', action='store_true', default=False,
+        help='Open file for amending if it exists'
+    )
+    @magic_arguments.argument(
+        'filename', type=unicode,
+        help='file to write'
+    )
+    @cell_magic
+    def file(self, line, cell):
+        """Write the contents of the cell to a file.
+        
+        For frontends that do not support stdin (Notebook), -f is implied.
+        """
+        args = magic_arguments.parse_argstring(self.file, line)
+        filename = unquote_filename(args.filename)
+        
+        if os.path.exists(filename):
+            if args.amend:
+                print "Amending to %s" % filename
+            else:
+                print "Overwriting %s" % filename
+        else:
+            print "Writing %s" % filename
+        
+        mode = 'a' if args.amend else 'w'
+        with io.open(filename, mode, encoding='utf-8') as f:
+            f.write(cell)
