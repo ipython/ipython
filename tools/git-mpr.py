@@ -49,9 +49,10 @@ def merge_pr(num,github_api=3):
     if github_api == 2:
         repo = pr['head']['repository']['url']
         owner = pr['head']['user']['name']
-    elif github_api == 2 :
+    elif github_api == 3 :
         repo = pr['head']['repo']['clone_url']
         owner = pr['head']['repo']['owner']['login']
+
 
     branch = pr['head']['ref']
     mergeable = merge_branch(repo=repo, 
