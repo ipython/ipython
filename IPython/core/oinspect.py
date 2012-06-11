@@ -354,7 +354,7 @@ class Inspector:
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
             obj = obj.__init__
-        elif type(obj) is types.InstanceType:
+        elif (not py3compat.PY3) and type(obj) is types.InstanceType:
             obj = obj.__call__
 
         output = self._getdef(obj,oname)
