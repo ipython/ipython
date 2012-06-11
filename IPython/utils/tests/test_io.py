@@ -20,7 +20,7 @@ from subprocess import Popen, PIPE
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
-from IPython.utils.io import Tee
+from IPython.utils.io import Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print
 
 #-----------------------------------------------------------------------------
@@ -73,3 +73,13 @@ def test_io_init():
         # __class__ is a reference to the class object in Python 3, so we can't
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
+
+def test_capture_output():
+    """capture_output() context works"""
+    
+    with capture_output() as io:
+        print 'hi, stdout'
+        print >> sys.stderr, 'hi, stderr'
+    
+    nt.assert_equals(io.stdout, 'hi, stdout\n')
+    nt.assert_equals(io.stderr, 'hi, stderr\n')

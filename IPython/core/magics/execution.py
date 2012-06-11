@@ -33,13 +33,15 @@ except ImportError:
 
 # Our own packages
 from IPython.core import debugger, oinspect
+from IPython.core import magic_arguments
 from IPython.core import page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic, 
+from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -988,3 +990,33 @@ python-profiler package from non-free.""")
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print '=== Macro contents: ==='
         print macro,
+    
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('output', type=str, default='', nargs='?',
+        help="""The name of the variable in which to store output.
+        This is a utils.io.CapturedIO object with stdout/err attributes
+        for the text of the captured output.
+        
+        CapturedOutput also has a show() method for displaying the output,
+        and __call__ as well, so you can use that to quickly display the
+        output.
+        
+        If unspecified, captured output is discarded.
+        """
+    )
+    @magic_arguments.argument('--no-stderr', action="store_true",
+        help="""Don't capture stderr."""
+    )
+    @magic_arguments.argument('--no-stdout', action="store_true",
+        help="""Don't capture stdout."""
+    )
+    @cell_magic
+    def capture(self, line, cell):
+        """run the cell, capturing stdout/err"""
+        args = magic_arguments.parse_argstring(self.capture, line)
+        out = not args.no_stdout
+        err = not args.no_stderr
+        with capture_output(out, err) as io:
+            self.shell.run_cell(cell)
+        if args.output:
+            self.shell.user_ns[args.output] = io
