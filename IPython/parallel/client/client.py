@@ -184,6 +184,7 @@ class Metadata(dict):
               'stdout' : '',
               'stderr' : '',
               'outputs' : [],
+              'outputs_ready' : False,
             }
         self.update(md)
         self.update(dict(*args, **kwargs))
@@ -880,6 +881,10 @@ class Client(HasTraits):
                 md['outputs'].append(content)
             elif msg_type == 'pyout':
                 md['pyout'] = content
+            elif msg_type == 'status':
+                # idle message comes after all outputs
+                if content['execution_state'] == 'idle':
+                    md['outputs_ready'] = True
             else:
                 # unhandled msg_type (status, etc.)
                 pass
