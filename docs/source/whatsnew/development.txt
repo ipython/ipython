@@ -9,6 +9,15 @@ Redesigned IPython notebook user interface
 
 (Add description & screenshots of the many changes to the notebook)
 
+Improved tooltips
+~~~~~~~~~~~~~~~~~
+
+The object tooltips have gained some new functionality. By pressing tab several
+times, you can expand them to see more of a docstring, keep them visible as you
+fill in a function's parameters, or transfer the information to the pager at the
+bottom of the screen. For the details, look at the example notebook
+:file:`01_notebook_introduction.ipynb`.
+
 Cell magics
 -----------
 
@@ -31,10 +40,23 @@ Another handy cell magic makes it easy to write short text files: ``%%file
 To allow these features, the API for magic functions has been refactored and
 made more powerful (:ghpull:`1732`).
 
-Interactive tab completion for the Qt console
----------------------------------------------
+Tab completer improvements
+--------------------------
 
-(Add description & screenshots) (:ghpull:`1851`)
+Useful tab-completion based on live inspection of objects is one of the most
+popular features of IPython. To make this process even more user-friendly, the
+completers of both the Qt console and the Notebook have been reworked.
+
+The Qt console comes with a new ncurses-like tab completer, activated by
+default, which lets you cycle through the available completions by pressing tab,
+or select a completion with the arrow keys (:ghpull:`1851`).
+
+(Screenshot?)
+
+In the notebook, completions are now sourced both from object introspection and
+analysis of surrounding code, so limited completions can be offered for
+variables defined in the current cell, or while the kernel is busy 
+(:ghpull:`1711`).
 
 Other new features
 ------------------
