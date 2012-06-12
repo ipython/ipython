@@ -159,6 +159,25 @@ class TestClient(ClusterTestCase):
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.close()
     
+    def test_get_execute_result(self):
+        """test getting execute results from the Hub."""
+        c = clientmod.Client(profile='iptest')
+        t = c.ids[-1]
+        cell = '\n'.join([
+            'import time',
+            'time.sleep(0.25)',
+            '5'
+        ])
+        ar = c[t].execute("import time; time.sleep(1)", silent=False)
+        # give the monitor time to notice the message
+        time.sleep(.25)
+        ahr = self.client.get_result(ar.msg_ids)
+        self.assertTrue(isinstance(ahr, AsyncHubResult))
+        self.assertEquals(ahr.get().pyout, ar.get().pyout)
+        ar2 = self.client.get_result(ar.msg_ids)
+        self.assertFalse(isinstance(ar2, AsyncHubResult))
+        c.close()
+    
     def test_ids_list(self):
         """test client.ids"""
         ids = self.client.ids

@@ -184,6 +184,10 @@ class DictDB(BaseDB):
         msg_ids = self._records.keys()
         return sorted(msg_ids, key=lambda m: self._records[m]['submitted'])
 
+NODATA = KeyError("NoDB backend doesn't store any data. "
+"Start the Controller with a DB backend to enable resubmission / result persistence."
+)
+
 class NoDB(DictDB):
     """A blackhole db backend that actually stores no information.
     
@@ -197,7 +201,7 @@ class NoDB(DictDB):
         pass
     
     def get_record(self, msg_id):
-        raise KeyError("NoDB does not support record access")
+        raise NODATA
     
     def update_record(self, msg_id, record):
         pass
@@ -209,8 +213,8 @@ class NoDB(DictDB):
         pass
     
     def find_records(self, check, keys=None):
-        raise KeyError("NoDB does not store information")
+        raise NODATA
     
     def get_history(self):
-        raise KeyError("NoDB does not store information")
+        raise NODATA
 
