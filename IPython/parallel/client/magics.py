@@ -61,14 +61,22 @@ def exec_args(f):
     args = [
         magic_arguments.argument('-b', '--block', action="store_const",
             const=True, dest='block',
-            help="use blocking (sync) execution"
+            help="use blocking (sync) execution",
         ),
         magic_arguments.argument('-a', '--noblock', action="store_const",
             const=False, dest='block',
-            help="use non-blocking (async) execution"
+            help="use non-blocking (async) execution",
         ),
         magic_arguments.argument('-t', '--targets', type=str,
-        help="specify the targets on which to execute"
+            help="specify the targets on which to execute",
+        ),
+        magic_arguments.argument('--verbose', action="store_const",
+            const=True, dest="set_verbose",
+            help="print a message at each execution",
+        ),
+        magic_arguments.argument('--no-verbose', action="store_const",
+            const=False, dest="set_verbose",
+            help="don't print any messages",
         ),
     ]
     for a in args:
@@ -130,6 +138,8 @@ class ParallelMagics(Magics):
     view = None
     # last result cache for %pxresult
     last_result = None
+    # verbose flag
+    verbose = False
     
     def __init__(self, shell, view, suffix=''):
         self.view = view
@@ -171,6 +181,8 @@ class ParallelMagics(Magics):
             self.view.targets = self._eval_target_str(args.targets)
         if args.block is not None:
             self.view.block = args.block
+        if args.set_verbose is not None:
+            self.verbose = args.set_verbose
 
     @magic_arguments.magic_arguments()
     @output_args
@@ -234,7 +246,8 @@ class ParallelMagics(Magics):
             str_targets = str(targets[:4])[:-1] + ', ..., ' + str(targets[-4:])[1:]
         else:
             str_targets = str(targets)
-        print base + " execution on engine(s): %s" % str_targets
+        if self.verbose:
+            print base + " execution on engine(s): %s" % str_targets
         
         result = self.view.execute(cell, silent=False, block=False)
         self.last_result = result

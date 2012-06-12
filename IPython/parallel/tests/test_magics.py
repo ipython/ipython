@@ -88,7 +88,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         for block in (True, False):
             v.block = block
-            
+            ip.magic("pxconfig --verbose")
             with capture_output() as io:
                 ip.run_cell_magic("px", "", "1")
             if block:
@@ -117,7 +117,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=engine', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         expected = [
             r'\[stdout:\d+\]',
             'stdout',
@@ -151,7 +151,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=order', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         expected = []
         expected.extend([
             r'\[stdout:\d+\]',
@@ -192,7 +192,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=type', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         
         expected = []
         expected.extend([
@@ -229,6 +229,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertEquals(v['a'], [5])
         ip.magic('px a=10')
         self.assertEquals(v['a'], [10])
+        ip.magic('pxconfig --verbose')
         with capture_output() as io:
             ar = ip.magic('px print (a)')
         self.assertTrue(isinstance(ar, AsyncResult))
@@ -354,6 +355,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         rc = self.client
         view = rc.activate(rc.ids)
         self.assertEquals(view.targets, rc.ids)
+        ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
             with capture_output() as io:
                 try:
@@ -371,6 +373,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         view = rc.activate(rc.ids)
         view.block = False
         self.assertEquals(view.targets, rc.ids)
+        ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
             with capture_output() as io:
                 try:
