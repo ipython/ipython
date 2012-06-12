@@ -666,6 +666,15 @@ class OSMagics(Magics):
                 bkms[args[0]] = args[1]
         self.shell.db['bookmarks'] = bkms
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-n', '--no-pager', action='store_true', default=False,
+        help='Do not use pager.  Print the file.'
+    )
+    @magic_arguments.argument(
+        'source', nargs='*',
+        help='Local file name, an URL, an history range, or a macro.'
+    )
     @line_magic
     def pycat(self, parameter_s=''):
         """Show a syntax-highlighted file through a pager.
@@ -681,14 +690,19 @@ class OSMagics(Magics):
         %pycat myMacro
         %pycat http://www.example.com/myscript.py
         """
+        args = magic_arguments.parse_argstring(self.pycat, parameter_s)
 
         try :
-            cont = self.shell.find_user_code(parameter_s)
+            cont = self.shell.find_user_code(" ".join(args.source))
         except ValueError, IOError:
             print "Error: no such file, variable, URL, history range or macro"
             return
 
-        page.page(self.shell.pycolorize(cont))
+        colorized = self.shell.pycolorize(cont)
+        if args.no_pager:
+            print colorized,
+        else:
+            page.page(colorized)
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
