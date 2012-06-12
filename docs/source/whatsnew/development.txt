@@ -9,6 +9,15 @@ Redesigned IPython notebook user interface
 
 (Add description & screenshots of the many changes to the notebook)
 
+Improved tooltips
+~~~~~~~~~~~~~~~~~
+
+The object tooltips have gained some new functionality. By pressing tab several
+times, you can expand them to see more of a docstring, keep them visible as you
+fill in a function's parameters, or transfer the information to the pager at the
+bottom of the screen. For the details, look at the example notebook
+:file:`01_notebook_introduction.ipynb`.
+
 Cell magics
 -----------
 
@@ -31,47 +40,23 @@ Another handy cell magic makes it easy to write short text files: ``%%file
 To allow these features, the API for magic functions has been refactored and
 made more powerful (:ghpull:`1732`).
 
-Interactive tab completion for the Qt console
----------------------------------------------
+Tab completer improvements
+--------------------------
 
-(Add description & screenshots) (:ghpull:`1851`)
+Useful tab-completion based on live inspection of objects is one of the most
+popular features of IPython. To make this process even more user-friendly, the
+completers of both the Qt console and the Notebook have been reworked.
 
+The Qt console comes with a new ncurses-like tab completer, activated by
+default, which lets you cycle through the available completions by pressing tab,
+or select a completion with the arrow keys (:ghpull:`1851`).
 
-Completer improvement
----------------------
+(Screenshot?)
 
-One of the great feature of IPython is the ability to inspect live element and
-provide useful completion to the user, this one base of interactive
-exploration of data. To make this process even more user-friendly the completers
-of both the QTconsole and the Notebook has been reworked.
-
-The Qtconsole --gui-completion flag came with a new `ncurses` flavor, activated
-by default, which allows to cycle through the available completion by pressing
-tab, and to navigate the with the arrow keys.(:ghpull:`1851`)
-
-As part of the great refactoring of the notebook's JavaScript, the completer
-has been partially rewritten. Completions are now sourced both from object
-introspection and analyse of surrounding code, allowing to get a even limited
-completion on code not executed, or even while the kernel is busy.
-(:ghpull:`1711`)
-
-Notebook tooltip improvement
-----------------------------
-
-Being able to get non obstructive help is important whether you are a python
-beginner or a experienced developer learning new python library. This is the
-reason why the  new tooltip that ships with the notebook get some new
-functionality.
-
-You can still invoked it after an opening bracket, or after a space following a
-comma in function argument (yes it forces you to be pep8 compliant), but
-several tab press in a row will now give different behaviour.
-
-You can discover this interactively one of the first introduction notebook, to
-see how to expand the tooltip size to see more of the docstring, prevent it
-from being dismissed and still see the kwargs list while typing function
-argument. Or finally sending the displayed help to the pager at the bottom of
-the screen to have a permanent help.
+In the notebook, completions are now sourced both from object introspection and
+analysis of surrounding code, so limited completions can be offered for
+variables defined in the current cell, or while the kernel is busy 
+(:ghpull:`1711`).
 
 Other new features
 ------------------
