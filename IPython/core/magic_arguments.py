@@ -50,7 +50,13 @@ arguments::
 from IPython.external import argparse
 from IPython.core.error import UsageError
 from IPython.utils.process import arg_split
+from IPython.utils.text import dedent
 
+class MagicHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    """ A HelpFormatter which dedents but otherwise preserves indentation.
+    """
+    def _fill_text(self, text, width, indent):
+        return argparse.RawDescriptionHelpFormatter._fill_text(self, dedent(text), width, indent)
 
 class MagicArgumentParser(argparse.ArgumentParser):
     """ An ArgumentParser tweaked for use by IPython magics.
@@ -62,7 +68,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
                  epilog=None,
                  version=None,
                  parents=None,
-                 formatter_class=argparse.HelpFormatter,
+                 formatter_class=MagicHelpFormatter,
                  prefix_chars='-',
                  argument_default=None,
                  conflict_handler='error',
