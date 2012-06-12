@@ -41,7 +41,8 @@ somewhere in your configuration files or ipython command line.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-import os, bisect
+import os
+import operator
 import subprocess
 import sys
 
@@ -146,7 +147,8 @@ class CommandChainDispatcher:
 
     def add(self, func, priority=0):
         """ Add a func to the cmd chain with given priority """
-        bisect.insort(self.chain,(priority,func))
+        self.chain.append((priority, func))
+        self.chain.sort(key=operator.itemgetter(0))
 
     def __iter__(self):
         """ Return all objects in chain.
