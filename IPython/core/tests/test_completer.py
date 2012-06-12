@@ -290,6 +290,8 @@ def test_func_kw_completions():
     # Simulate completing with cursor right after b (pos==10):
     s, matches = c.complete(None,'myfunc(1,b)', 10)
     nt.assert_in('b=', matches)
+    s, matches = c.complete(None,'myfunc(a="escaped\\")string",b')
+    nt.assert_in('b=', matches)
 
 
 def test_line_magics():
