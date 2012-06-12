@@ -809,6 +809,13 @@ class IPythonInputSplitter(InputSplitter):
         self._is_complete = last_blank(last_block) and lines.isspace()
         return self._is_complete
 
+    def transform_cell(self, cell):
+        """Process and translate a cell of input.
+        """
+        self.reset()
+        self.push(cell)
+        return self.source_reset()
+
     def push(self, lines):
         """Push one or more lines of IPython input.
 

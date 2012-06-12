@@ -767,14 +767,14 @@ python-profiler package from non-free.""")
         # this code has tight coupling to the inner workings of timeit.Timer,
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
-
+        transform  = self.shell.input_splitter.transform_cell
         if cell is None:
             # called as line magic
             setup = 'pass'
-            stmt = timeit.reindent(stmt, 8)
+            stmt = timeit.reindent(transform(stmt), 8)
         else:
-            setup = timeit.reindent(stmt, 4)
-            stmt = timeit.reindent(cell, 8)
+            setup = timeit.reindent(transform(stmt), 4)
+            stmt = timeit.reindent(transform(cell), 8)
 
         # From Python 3.3, this template uses new-style string formatting.
         if sys.version_info >= (3, 3):
