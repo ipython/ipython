@@ -23,6 +23,7 @@ from .extension import ExtensionMagics
 from .history import HistoryMagics
 from .logging import LoggingMagics
 from .namespace import NamespaceMagics
+from .notebook import NotebookMagics
 from .osm import OSMagics
 from .pylab import PylabMagics
 from .script import ScriptMagics
