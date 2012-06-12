@@ -40,6 +40,7 @@ def _writable_dir(path):
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
 if sys.platform == 'win32':
+    @py3compat.u_format
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
 
@@ -47,7 +48,7 @@ if sys.platform == 'win32':
         --------
 
         >>> get_long_path_name('c:\\docume~1')
-        u'c:\\\\Documents and Settings'
+        {u}'c:\\\\Documents and Settings'
 
         """
         try:
