@@ -154,7 +154,7 @@ def getoutput(cmd):
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:
-        out = ''
+        out = b''
     return py3compat.bytes_to_str(out)
 
 try:
