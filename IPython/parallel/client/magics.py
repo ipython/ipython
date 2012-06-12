@@ -189,10 +189,10 @@ class ParallelMagics(Magics):
             Async parallel execution on engine(s): all
 
             In [24]: %pxresult
-            [ 8] Out[10]: 60920
-            [ 9] Out[10]: 60921
-            [10] Out[10]: 60922
-            [11] Out[10]: 60923
+            Out[8:10]: 60920
+            Out[9:10]: 60921
+            Out[10:10]: 60922
+            Out[11:10]: 60923
         """
         args = magic_arguments.parse_argstring(self.result, line)
         
