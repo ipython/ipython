@@ -1543,11 +1543,15 @@ class Client(HasTraits):
                 if rec.get('received'):
                     md['received'] = rec['received']
                 md.update(iodict)
-
+                
                 if rcontent['status'] == 'ok':
-                    res,buffers = util.unserialize_object(buffers)
+                    if header['msg_type'] == 'apply_reply':
+                        res,buffers = util.unserialize_object(buffers)
+                    elif header['msg_type'] == 'execute_reply':
+                        res = ExecuteReply(msg_id, rcontent, md)
+                    else:
+                        raise KeyError("unhandled msg type: %r" % header[msg_type])
                 else:
-                    print rcontent
                     res = self._unwrap_exception(rcontent)
                     failures.append(res)
 
@@ -1555,7 +1559,7 @@ class Client(HasTraits):
                 content[msg_id] = res
 
         if len(theids) == 1 and failures:
-                raise failures[0]
+            raise failures[0]
 
         error.collect_exceptions(failures, "result_status")
         return content

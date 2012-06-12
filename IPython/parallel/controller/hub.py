@@ -824,8 +824,15 @@ class Hub(SessionFactory):
             d['pyerr'] = content
         elif msg_type == 'pyin':
             d['pyin'] = content['code']
+        elif msg_type in ('display_data', 'pyout'):
+            d[msg_type] = content
+        elif msg_type == 'status':
+            pass
         else:
-            d[msg_type] = content.get('data', '')
+            self.log.warn("unhandled iopub msg_type: %r", msg_type)
+
+        if not d:
+            return
 
         try:
             self.db.update_record(msg_id, d)
