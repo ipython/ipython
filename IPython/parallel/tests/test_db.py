@@ -45,23 +45,23 @@ def setup():
     temp_db = tempfile.NamedTemporaryFile(suffix='.db').name
 
 
-class TestDictBackend(TestCase):
+class TaskDBTest:
     def setUp(self):
         self.session = Session()
         self.db = self.create_db()
         self.load_records(16)
     
     def create_db(self):
-        return DictDB()
+        raise NotImplementedError
     
-    def load_records(self, n=1):
+    def load_records(self, n=1, buffer_size=100):
         """load n records for testing"""
         #sleep 1/10 s, to ensure timestamp is different to previous calls
         time.sleep(0.1)
         msg_ids = []
         for i in range(n):
             msg = self.session.msg('apply_request', content=dict(a=5))
-            msg['buffers'] = []
+            msg['buffers'] = [os.urandom(buffer_size)]
             rec = init_record(msg)
             msg_id = msg['header']['msg_id']
             msg_ids.append(msg_id)
@@ -228,7 +228,72 @@ class TestDictBackend(TestCase):
         self.assertEquals(rec2['header']['msg_id'], msg_id)
 
 
-class TestSQLiteBackend(TestDictBackend):
+class TestDictBackend(TaskDBTest, TestCase):
+    
+    def create_db(self):
+        return DictDB()
+    
+    def test_cull_count(self):
+        self.db = self.create_db() # skip the load-records init from setUp
+        self.db.record_limit = 20
+        self.db.cull_fraction = 0.2
+        self.load_records(20)
+        self.assertEquals(len(self.db.get_history()), 20)
+        self.load_records(1)
+        # 0.2 * 20 = 4, 21 - 4 = 17
+        self.assertEquals(len(self.db.get_history()), 17)
+        self.load_records(3)
+        self.assertEquals(len(self.db.get_history()), 20)
+        self.load_records(1)
+        self.assertEquals(len(self.db.get_history()), 17)
+        
+        for i in range(100):
+            self.load_records(1)
+            self.assertTrue(len(self.db.get_history()) >= 17)
+            self.assertTrue(len(self.db.get_history()) <= 20)
+
+    def test_cull_size(self):
+        self.db = self.create_db() # skip the load-records init from setUp
+        self.db.size_limit = 1000
+        self.db.cull_fraction = 0.2
+        self.load_records(100, buffer_size=10)
+        self.assertEquals(len(self.db.get_history()), 100)
+        self.load_records(1, buffer_size=0)
+        self.assertEquals(len(self.db.get_history()), 101)
+        self.load_records(1, buffer_size=1)
+        # 0.2 * 100 = 20, 101 - 20 = 81
+        self.assertEquals(len(self.db.get_history()), 81)
+    
+    def test_cull_size_drop(self):
+        """dropping records updates tracked buffer size"""
+        self.db = self.create_db() # skip the load-records init from setUp
+        self.db.size_limit = 1000
+        self.db.cull_fraction = 0.2
+        self.load_records(100, buffer_size=10)
+        self.assertEquals(len(self.db.get_history()), 100)
+        self.db.drop_record(self.db.get_history()[-1])
+        self.assertEquals(len(self.db.get_history()), 99)
+        self.load_records(1, buffer_size=5)
+        self.assertEquals(len(self.db.get_history()), 100)
+        self.load_records(1, buffer_size=5)
+        self.assertEquals(len(self.db.get_history()), 101)
+        self.load_records(1, buffer_size=1)
+        self.assertEquals(len(self.db.get_history()), 81)
+
+    def test_cull_size_update(self):
+        """updating records updates tracked buffer size"""
+        self.db = self.create_db() # skip the load-records init from setUp
+        self.db.size_limit = 1000
+        self.db.cull_fraction = 0.2
+        self.load_records(100, buffer_size=10)
+        self.assertEquals(len(self.db.get_history()), 100)
+        msg_id = self.db.get_history()[-1]
+        self.db.update_record(msg_id, dict(result_buffers = [os.urandom(10)], buffers=[]))
+        self.assertEquals(len(self.db.get_history()), 100)
+        self.db.update_record(msg_id, dict(result_buffers = [os.urandom(11)], buffers=[]))
+        self.assertEquals(len(self.db.get_history()), 79)
+
+class TestSQLiteBackend(TaskDBTest, TestCase):
 
     @dec.skip_without('sqlite3')
     def create_db(self):
