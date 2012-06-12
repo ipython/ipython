@@ -692,10 +692,10 @@ class IPCompleter(Completer):
         try: regexp = self.__funcParamsRegex
         except AttributeError:
             regexp = self.__funcParamsRegex = re.compile(r'''
-                '.*?' |    # single quoted strings or
-                ".*?" |    # double quoted strings or
-                \w+   |    # identifier
-                \S         # other characters
+                '.*?(?<!\\)' |    # single quoted strings or
+                ".*?(?<!\\)" |    # double quoted strings or
+                \w+          |    # identifier
+                \S                # other characters
                 ''', re.VERBOSE | re.DOTALL)
         # 1. find the nearest identifier that comes before an unclosed
         # parenthesis before the cursor
