@@ -308,15 +308,21 @@ class Kernel(Configurable):
                             {u'code':code, u'execution_count': execution_count},
                             parent=parent, ident=self._topic('pyin')
         )
-
-    def execute_request(self, stream, ident, parent):
-
+    
+    def _publish_status(self, status, parent=None):
+        """send status (busy/idle) on IOPub"""
         self.session.send(self.iopub_socket,
                           u'status',
-                          {u'execution_state':u'busy'},
+                          {u'execution_state': status},
                           parent=parent,
                           ident=self._topic('status'),
                           )
+        
+
+    def execute_request(self, stream, ident, parent):
+        """handle an execute_request"""
+        
+        self._publish_status(u'busy', parent)
         
         try:
             content = parent[u'content']
@@ -433,11 +439,7 @@ class Kernel(Configurable):
         if not silent and reply_msg['content']['status'] == u'error':
             self._abort_queues()
 
-        self.session.send(self.iopub_socket,
-                          u'status',
-                          {u'execution_state':u'idle'},
-                          parent=parent,
-                          ident=self._topic('status'))
+        self._publish_status(u'idle', parent)
 
     def complete_request(self, stream, ident, parent):
         txt, matches = self._complete(parent)
@@ -529,6 +531,8 @@ class Kernel(Configurable):
             self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
 
+        self._publish_status(u'busy', parent)
+        
         # Set the parent message of the display hook and out streams.
         shell = self.shell
         shell.displayhook.set_parent(parent)
@@ -598,6 +602,8 @@ class Kernel(Configurable):
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
                     parent=parent, ident=ident,buffers=result_buf, subheader=sub)
+
+        self._publish_status(u'idle', parent)
 
     #---------------------------------------------------------------------------
     # Control messages
