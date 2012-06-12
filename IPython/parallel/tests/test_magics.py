@@ -341,5 +341,37 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertEquals(v.block, True)
         ip.magic("%pxconfig_tst --noblock")
         self.assertEquals(v.block, False)
-        
+    
+    def test_cellpx_targets(self):
+        """%%px --targets doesn't change defaults"""
+        ip = get_ipython()
+        rc = self.client
+        view = rc.activate(rc.ids)
+        self.assertEquals(view.targets, rc.ids)
+        for cell in ("pass", "1/0"):
+            with capture_output() as io:
+                try:
+                    ip.run_cell_magic("px", "--targets all", cell)
+                except pmod.RemoteError:
+                    pass
+            self.assertTrue('engine(s): all' in io.stdout)
+            self.assertEquals(view.targets, rc.ids)
+
+
+    def test_cellpx_block(self):
+        """%%px --block doesn't change default"""
+        ip = get_ipython()
+        rc = self.client
+        view = rc.activate(rc.ids)
+        view.block = False
+        self.assertEquals(view.targets, rc.ids)
+        for cell in ("pass", "1/0"):
+            with capture_output() as io:
+                try:
+                    ip.run_cell_magic("px", "--block", cell)
+                except pmod.RemoteError:
+                    pass
+            self.assertFalse('Async' in io.stdout)
+            self.assertFalse(view.block)
+
 
