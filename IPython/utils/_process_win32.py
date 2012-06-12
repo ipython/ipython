@@ -155,7 +155,7 @@ def getoutput(cmd):
 
     if out is None:
         out = ''
-    return out
+    return py3compat.bytes_to_str(out)
 
 try:
     CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW
