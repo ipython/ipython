@@ -450,6 +450,19 @@ def test_timeit_arguments():
     _ip.magic("timeit ('#')")
 
 
+def test_timeit_cell():
+    "Test %%timeit called in cell mode"
+    from IPython.core.magic import register_line_magic
+
+    @register_line_magic
+    def lmagic(line):
+        ip = get_ipython()
+        ip.user_ns['lmagic_out'] = line
+
+    _ip.run_cell_magic('timeit', '-n1 -r1', '%lmagic my line')
+    nt.assert_equal(_ip.user_ns['lmagic_out'], 'my line')
+    
+
 @dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
