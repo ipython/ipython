@@ -371,7 +371,7 @@ class InteractiveShell(SingletonConfigurable):
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
                                   default_value='last_expr', config=True, 
                                   help="""
-        'all', 'last', 'last_expr' or 'none'," specifying which nodes should be
+        'all', 'last', 'last_expr' or 'none', specifying which nodes should be
         run interactively (displaying output from expressions).""")
 
     # TODO: this part of prompt management should be moved to the frontends.
