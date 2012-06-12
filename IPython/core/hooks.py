@@ -42,7 +42,6 @@ somewhere in your configuration files or ipython command line.
 #*****************************************************************************
 
 import os
-import operator
 import subprocess
 import sys
 
@@ -148,7 +147,7 @@ class CommandChainDispatcher:
     def add(self, func, priority=0):
         """ Add a func to the cmd chain with given priority """
         self.chain.append((priority, func))
-        self.chain.sort(key=operator.itemgetter(0))
+        self.chain.sort(key=lambda x: x[0])
 
     def __iter__(self):
         """ Return all objects in chain.
