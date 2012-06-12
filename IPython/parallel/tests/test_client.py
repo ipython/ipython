@@ -24,6 +24,7 @@ from tempfile import mktemp
 
 import zmq
 
+from IPython import parallel
 from IPython.parallel.client import client as clientmod
 from IPython.parallel import error
 from IPython.parallel import AsyncResult, AsyncHubResult
@@ -284,16 +285,16 @@ class TestClient(ClusterTestCase):
         """wait for an engine to become idle, according to the Hub"""
         rc = self.client
         
-        # timeout 2s, polling every 100ms
-        for i in range(20):
-            qs = rc.queue_status()
+        # timeout 5s, polling every 100ms
+        qs = rc.queue_status()
+        for i in range(50):
             if qs['unassigned'] or any(qs[eid]['tasks'] for eid in rc.ids):
                 time.sleep(0.1)
+                qs = rc.queue_status()
             else:
                 break
         
         # ensure Hub up to date:
-        qs = rc.queue_status()
         self.assertEquals(qs['unassigned'], 0)
         for eid in rc.ids:
             self.assertEquals(qs[eid]['tasks'], 0)
@@ -420,3 +421,16 @@ class TestClient(ClusterTestCase):
             "Shouldn't be spinning, but got wall_time=%f" % ar.wall_time
         )
     
+    def test_activate(self):
+        ip = get_ipython()
+        magics = ip.magics_manager.magics
+        self.assertTrue('px' in magics['line'])
+        self.assertTrue('px' in magics['cell'])
+        v0 = self.client.activate(-1, '0')
+        self.assertTrue('px0' in magics['line'])
+        self.assertTrue('px0' in magics['cell'])
+        self.assertEquals(v0.targets, self.client.ids[-1])
+        v0 = self.client.activate('all', 'all')
+        self.assertTrue('pxall' in magics['line'])
+        self.assertTrue('pxall' in magics['cell'])
+        self.assertEquals(v0.targets, 'all')

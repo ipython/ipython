@@ -1697,6 +1697,11 @@ class InteractiveShell(SingletonConfigurable):
         care of calling it if needed, so unless you are explicitly catching a
         SyntaxError exception, don't try to analyze the stack manually and
         simply call this method."""
+        try:
+            from IPython.parallel.error import RemoteError
+        except ImportError:
+            class RemoteError(Exception): pass
+
 
         try:
             try:
@@ -1711,6 +1716,10 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
+            elif issubclass(etype, RemoteError):
+                # IPython.parallel remote exceptions.
+                # Draw the remote traceback, not the local one.
+                self._showtraceback(etype, value, value.render_traceback())
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
