@@ -21,13 +21,21 @@ import bdb
 import signal
 import sys
 import time
+from cStringIO import StringIO
+import base64
 
 from Queue import Empty
+
+try:
+    import PIL
+except ImportError:
+    PIL = None
 
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
+from IPython.utils.traitlets import List
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.console.completer import ZMQCompleter
@@ -36,7 +44,18 @@ from IPython.frontend.terminal.console.completer import ZMQCompleter
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
-    
+
+    image_handler = List([], allow_none=False, config=True, help=
+        """
+        Handlers for image type output.  This is useful, for example,
+        when connecting to the kernel in which pylab inline backend is
+        activated.  Handlers in the list is tried one-by-one and first
+        available handler is used.  Currently IPython only supports
+        handler `PIL`.  IPython shell pops up window to show image
+        when the kernel sends image (e.g., when you plot a graph).
+        """
+    )
+
     def __init__(self, *args, **kwargs):
         self.km = kwargs.pop('kernel_manager')
         self.session_id = self.km.session.session
@@ -163,6 +182,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 elif msg_type == 'pyout':
                     self.execution_count = int(sub_msg["content"]["execution_count"])
                     format_dict = sub_msg["content"]["data"]
+                    self.handle_rich_data(format_dict)
                     # taken from DisplayHook.__call__:
                     hook = self.displayhook
                     hook.start_displayhook()
@@ -170,6 +190,21 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     hook.write_format_data(format_dict)
                     hook.log_output(format_dict)
                     hook.finish_displayhook()
+
+                elif msg_type == 'display_data':
+                    self.handle_rich_data(sub_msg["content"]["data"])
+
+    def handle_rich_data(self, data):
+        if 'image/png' in data:
+            self.handle_image(data['image/png'])
+        elif 'image/jpeg' in data:
+            self.handle_image(data['image/jpeg'])
+
+    def handle_image(self, string):
+        if 'PIL' in self.image_handler and PIL:
+            data = base64.decodestring(string)
+            img = PIL.Image.open(StringIO(data))
+            img.show()
 
     def handle_stdin_request(self, timeout=0.1):
         """ Method to capture raw_input
