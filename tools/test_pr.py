@@ -128,7 +128,7 @@ def run_tests(venv):
         # Restore $PATH
         os.environ["PATH"] = orig_path
 
-def markdown_format(pr, results_urls):
+def markdown_format(pr, results_urls, unavailable_pythons):
     def format_result(py, passed, gist_url, missing_libraries):
         s = "* %s: " % py
         if passed:
@@ -151,11 +151,11 @@ def markdown_format(pr, results_urls):
              "Not available for testing: " + ", ".join(unavailable_pythons)] 
     return "\n".join(lines)
 
-def post_results_comment(pr, results, num):
-    body = markdown_format(pr, results)
+def post_results_comment(pr, results, num, unavailable_pythons=unavailable_pythons):
+    body = markdown_format(pr, results, unavailable_pythons)
     gh_api.post_issue_comment(gh_project, num, body)
 
-def print_results(pr, results_urls):
+def print_results(pr, results_urls, unavailable_pythons=unavailable_pythons):
     print("\n")
     if pr['mergeable']:
         print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
@@ -174,7 +174,7 @@ def print_results(pr, results_urls):
 
 def dump_results(num, results, pr):
     with open(os.path.join(basedir, 'lastresults.pkl'), 'wb') as f:
-        pickle.dump((num, results, pr), f)
+        pickle.dump((num, results, pr, unavailable_pythons), f)
 
 def load_results():
     with open(os.path.join(basedir, 'lastresults.pkl'), 'rb') as f:
