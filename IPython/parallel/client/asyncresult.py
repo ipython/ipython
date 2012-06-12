@@ -158,7 +158,7 @@ class AsyncResult(object):
                 self._success = True
             finally:
                 self._metadata = map(self._client.metadata.get, self.msg_ids)
-                self._wait_for_outputs()
+                self._wait_for_outputs(10)
             
 
 
