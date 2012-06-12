@@ -249,7 +249,8 @@ def find_file(obj):
     # get source if obj was decorated with @decorator
     if hasattr(obj, '__wrapped__'):
         obj = obj.__wrapped__
-    
+
+    fname = None
     try:
         fname = inspect.getabsfile(obj)
     except TypeError:
@@ -260,9 +261,9 @@ def find_file(obj):
                 fname = inspect.getabsfile(obj.__class__)
             except TypeError:
                 # Can happen for builtins
-                fname = None
+                pass
     except:
-        fname = None
+        pass
     return fname
 
 
