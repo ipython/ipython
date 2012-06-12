@@ -60,8 +60,6 @@ def sync_results(f, self, *args, **kwargs):
     delta = self.outstanding.difference(self.client.outstanding)
     completed = self.outstanding.intersection(delta)
     self.outstanding = self.outstanding.difference(completed)
-    for msg_id in completed:
-        self.results[msg_id] = self.client.results[msg_id]
     return ret
 
 @decorator
@@ -122,6 +120,7 @@ class View(HasTraits):
 
     def __init__(self, client=None, socket=None, **flags):
         super(View, self).__init__(client=client, _socket=socket)
+        self.results = client.results
         self.block = client.block
 
         self.set_flags(**flags)
@@ -792,33 +791,37 @@ class DirectView(View):
         return self.client.kill(targets=targets, block=block)
 
     #----------------------------------------
-    # activate for %px,%autopx magics
+    # activate for %px, %autopx, etc. magics
     #----------------------------------------
-    def activate(self):
-        """Make this `View` active for parallel magic commands.
 
-        IPython has a magic command syntax to work with `MultiEngineClient` objects.
-        In a given IPython session there is a single active one.  While
-        there can be many `Views` created and used by the user,
-        there is only one active one.  The active `View` is used whenever
-        the magic commands %px and %autopx are used.
-
-        The activate() method is called on a given `View` to make it
-        active.  Once this has been done, the magic commands can be used.
+    def activate(self, suffix=''):
+        """Activate IPython magics associated with this View
+        
+        Defines the magics `%px, %autopx, %pxresult, %%px, %pxconfig`
+        
+        Parameters
+        ----------
+        
+        suffix: str [default: '']
+            The suffix, if any, for the magics.  This allows you to have
+            multiple views associated with parallel magics at the same time.
+            
+            e.g. ``rc[::2].activate(suffix='_even')`` will give you
+            the magics ``%px_even``, ``%pxresult_even``, etc. for running magics 
+            on the even engines.
         """
-
+        
+        from IPython.parallel.client.magics import ParallelMagics
+        
         try:
             # This is injected into __builtins__.
             ip = get_ipython()
         except NameError:
-            print "The IPython parallel magics (%result, %px, %autopx) only work within IPython."
-        else:
-            pmagic = ip.magics_manager.registry.get('ParallelMagics')
-            if pmagic is None:
-                ip.magic('load_ext parallelmagic')
-                pmagic = ip.magics_manager.registry.get('ParallelMagics')
-
-            pmagic.active_view = self
+            print "The IPython parallel magics (%px, etc.) only work within IPython."
+            return
+        
+        M = ParallelMagics(ip, self, suffix)
+        ip.magics_manager.register(M)
 
 
 @skip_doctest

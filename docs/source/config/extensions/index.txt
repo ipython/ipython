@@ -72,7 +72,6 @@ Extensions bundled with IPython
 
    autoreload
    cythonmagic
-   parallelmagic
    rmagic
    storemagic
    sympyprinting

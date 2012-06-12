@@ -469,7 +469,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("5", silent=False)
         er = ar.get()
-        self._wait_for(lambda : bool(er.pyout))
         self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
         self.assertEquals(er.pyout['data']['text/plain'], '5')
 
@@ -478,14 +477,12 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("print (5)", silent=False)
         er = ar.get()
-        self._wait_for(lambda : bool(er.stdout))
         self.assertEquals(er.stdout.strip(), '5')
         
     def test_execute_pyout(self):
         """execute triggers pyout with silent=False"""
         view = self.client[:]
         ar = view.execute("5", silent=False, block=True)
-        self._wait_for(lambda : all(ar.pyout))
         
         expected = [{'text/plain' : '5'}] * len(view)
         mimes = [ out['data'] for out in ar.pyout ]
@@ -505,7 +502,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("%whos", block=True)
         # this will raise, if that failed
         ar.get(5)
-        self._wait_for(lambda : all(ar.stdout))
         for stdout in ar.stdout:
             lines = stdout.splitlines()
             self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
@@ -523,7 +519,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view.execute("from IPython.core.display import *")
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
         
-        self._wait_for(lambda : all(len(er.outputs) >= 5 for er in ar))
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
@@ -540,7 +535,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = view.apply_async(publish)
         ar.get(5)
-        self._wait_for(lambda : all(len(out) >= 5 for out in ar.outputs))
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
@@ -562,7 +556,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # include imports, in case user config
         ar = view.execute("plot(rand(100))", silent=False)
         reply = ar.get(5)
-        self._wait_for(lambda : all(ar.outputs))
         self.assertEquals(len(reply.outputs), 1)
         output = reply.outputs[0]
         self.assertTrue("data" in output)

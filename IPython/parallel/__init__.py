@@ -36,8 +36,9 @@ from .client.asyncresult import *
 from .client.client import Client
 from .client.remotefunction import *
 from .client.view import *
-from .util import interactive
 from .controller.dependency import *
+from .error import *
+from .util import interactive
 
 #-----------------------------------------------------------------------------
 # Functions

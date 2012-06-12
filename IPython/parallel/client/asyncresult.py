@@ -158,6 +158,8 @@ class AsyncResult(object):
                 self._success = True
             finally:
                 self._metadata = map(self._client.metadata.get, self.msg_ids)
+                self._wait_for_outputs(10)
+            
 
 
     def successful(self):
@@ -424,6 +426,19 @@ class AsyncResult(object):
         if self.pyout is not None:
             display(self.get())
     
+    def _wait_for_outputs(self, timeout=-1):
+        """wait for the 'status=idle' message that indicates we have all outputs
+        """
+        if not self._success:
+            # don't wait on errors
+            return
+        tic = time.time()
+        while not all(md['outputs_ready'] for md in self._metadata):
+            time.sleep(0.01)
+            self._client._flush_iopub(self._client._iopub_socket)
+            if timeout >= 0 and time.time() > tic + timeout:
+                break
+    
     @check_ready
     def display_outputs(self, groupby="type"):
         """republish the outputs of the computation
@@ -453,8 +468,6 @@ class AsyncResult(object):
                 several plots, and you would like to see all of the first
                 plots together, then all of the second plots, and so on.
         """
-        # flush iopub, just in case
-        self._client._flush_iopub(self._client._iopub_socket)
         if self._single_result:
             self._display_single_result()
             return
@@ -619,7 +632,6 @@ class AsyncMapResult(AsyncResult):
                 yield r
 
 
-
 class AsyncHubResult(AsyncResult):
     """Class to wrap pending results that must be requested from the Hub.
 
@@ -627,6 +639,10 @@ class AsyncHubResult(AsyncResult):
     so use `AsyncHubResult.wait()` sparingly.
     """
 
+    def _wait_for_outputs(self, timeout=None):
+        """no-op, because HubResults are never incomplete"""
+        return
+    
     def wait(self, timeout=-1):
         """wait for result to complete."""
         start = time.time()
