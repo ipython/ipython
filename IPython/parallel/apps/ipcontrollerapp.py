@@ -110,10 +110,11 @@ flags.update({
     'nodb' : ({'HubFactory' : {'db_class' : 'IPython.parallel.controller.dictdb.NoDB'}},
                     """use dummy DB backend, which doesn't store any information.
                     
-                    This can be used to prevent growth of the memory footprint of the Hub
-                    in cases where its record-keeping is not required.  Requesting results
-                    of tasks submitted by other clients, db_queries, and task resubmission
-                    will not be available."""),
+                    This is the default as of IPython 0.13.
+                    
+                    To enable delayed or repeated retrieval of results from the Hub,
+                    select one of the true db backends.
+                    """),
     'reuse' : ({'IPControllerApp' : {'reuse_files' : True}},
                     'reuse existing json connection files')
 })
@@ -137,7 +138,6 @@ aliases = dict(
 )
 aliases.update(base_aliases)
 aliases.update(session_aliases)
-
 
 class IPControllerApp(BaseParallelApplication):
 

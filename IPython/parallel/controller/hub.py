@@ -119,6 +119,13 @@ class EngineConnector(HasTraits):
     heartbeat=CBytes()
     pending=Set()
 
+_db_shortcuts = {
+    'sqlitedb' : 'IPython.parallel.controller.sqlitedb.SQLiteDB',
+    'mongodb'  : 'IPython.parallel.controller.mongodb.MongoDB',
+    'dictdb'   : 'IPython.parallel.controller.dictdb.DictDB',
+    'nodb'     : 'IPython.parallel.controller.dictdb.NoDB',
+}
+
 class HubFactory(RegistrationFactory):
     """The Configurable for setting up a Hub."""
 
@@ -181,8 +188,17 @@ class HubFactory(RegistrationFactory):
 
     monitor_url = Unicode('')
 
-    db_class = DottedObjectName('IPython.parallel.controller.dictdb.DictDB',
-        config=True, help="""The class to use for the DB backend""")
+    db_class = DottedObjectName('NoDB',
+        config=True, help="""The class to use for the DB backend
+        
+        Options include:
+        
+        SQLiteDB: SQLite
+        MongoDB : use MongoDB
+        DictDB  : in-memory storage (fastest, but be mindful of memory growth of the Hub)
+        NoDB    : disable database altogether (default)
+        
+        """)
 
     # not configurable
     db = Instance('IPython.parallel.controller.dictdb.BaseDB')
@@ -258,9 +274,9 @@ class HubFactory(RegistrationFactory):
         sub = ZMQStream(sub, loop)
 
         # connect the db
-        self.log.info('Hub using DB backend: %r'%(self.db_class.split()[-1]))
-        # cdir = self.config.Global.cluster_dir
-        self.db = import_item(str(self.db_class))(session=self.session.session,
+        db_class = _db_shortcuts.get(self.db_class.lower(), self.db_class)
+        self.log.info('Hub using DB backend: %r', (db_class.split('.')[-1]))
+        self.db = import_item(str(db_class))(session=self.session.session,
                                             config=self.config, log=self.log)
         time.sleep(.25)
         try:
@@ -824,8 +840,15 @@ class Hub(SessionFactory):
             d['pyerr'] = content
         elif msg_type == 'pyin':
             d['pyin'] = content['code']
+        elif msg_type in ('display_data', 'pyout'):
+            d[msg_type] = content
+        elif msg_type == 'status':
+            pass
         else:
-            d[msg_type] = content.get('data', '')
+            self.log.warn("unhandled iopub msg_type: %r", msg_type)
+
+        if not d:
+            return
 
         try:
             self.db.update_record(msg_id, d)
