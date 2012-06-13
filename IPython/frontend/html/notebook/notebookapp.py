@@ -407,7 +407,6 @@ class NotebookApp(BaseIPythonApplication):
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
-        # Create a KernelManager and start a kernel.
         self.kernel_manager = MappingKernelManager(
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
