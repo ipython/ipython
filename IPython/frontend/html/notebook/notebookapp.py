@@ -396,8 +396,13 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
 
         if self.extra_args:
-            self.file_to_run = os.path.abspath(self.extra_args[0])
-            self.config.NotebookManager.notebook_dir = os.path.dirname(self.file_to_run)
+            f = os.path.abspath(self.extra_args[0])
+            if os.path.isdir(f):
+                nbdir = f
+            else:
+                self.file_to_run = f
+                nbdir = os.path.dirname(f)
+            self.config.NotebookManager.notebook_dir = nbdir
 
     def init_configurables(self):
         # force Session default to be secure
@@ -408,6 +413,7 @@ class NotebookApp(BaseIPythonApplication):
             connection_dir = self.profile_dir.security_dir,
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+        self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
         self.notebook_manager.list_notebooks()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()
@@ -544,7 +550,7 @@ class NotebookApp(BaseIPythonApplication):
              (proto, ip, self.port,self.base_project_url) )
         info("Use Control-C to stop this server and shut down all kernels.")
 
-        if self.open_browser:
+        if self.open_browser or self.file_to_run:
             ip = self.ip or '127.0.0.1'
             if self.browser:
                 browser = webbrowser.get(self.browser)
