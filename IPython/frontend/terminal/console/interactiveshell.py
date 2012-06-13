@@ -21,7 +21,7 @@ import bdb
 import signal
 import sys
 import time
-from cStringIO import StringIO
+from io import BytesIO
 import base64
 
 from Queue import Empty
@@ -203,7 +203,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def handle_image(self, string):
         if 'PIL' in self.image_handler and PIL:
             data = base64.decodestring(string)
-            img = PIL.Image.open(StringIO(data))
+            img = PIL.Image.open(BytesIO(data))
             img.show()
 
     def handle_stdin_request(self, timeout=0.1):
