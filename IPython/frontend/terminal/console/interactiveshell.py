@@ -231,6 +231,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         for mime in ['image/png', 'image/jpeg', 'image/svg+xml']:
             if mime in data:
                 self.handle_image(data, mime)
+                return
 
     def handle_image(self, data, mime):
         handler = getattr(
