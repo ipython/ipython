@@ -58,6 +58,12 @@ def script_args(f):
             with --out/err.
             """
         ),
+        magic_arguments.argument(
+            '--proc', type=str,
+            help="""The variable in which to store Popen instance.
+            This is used only when --bg option is given.
+            """
+        ),
     ]
     for arg in args:
         f = arg(f)
@@ -193,6 +199,8 @@ class ScriptMagics(Magics, Configurable):
             if args.err:
                 self.shell.user_ns[args.err] = p.stderr
             self.job_manager.new(self._run_script, p, cell)
+            if args.proc:
+                self.shell.user_ns[args.proc] = p
             return
         
         out, err = p.communicate(cell)
