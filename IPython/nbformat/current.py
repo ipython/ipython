@@ -55,13 +55,18 @@ def parse_json(s, **kwargs):
 
 def parse_py(s, **kwargs):
     """Parse a string into a (nbformat, string) tuple."""
-    pattern = r'# <nbformat>(?P<nbformat>\d+)</nbformat>'
+    nbf = current_nbformat
+    nbm = current_nbformat_minor
+    
+    pattern = r'# <nbformat>(?P<nbformat>\d+[\.\d+]*)</nbformat>'
     m = re.search(pattern,s)
     if m is not None:
-        nbf = int(m.group('nbformat'))
-    else:
-        nbf = current_nbformat
-    return nbf, s
+        digits = m.group('nbformat').split('.')
+        nbf = int(digits[0])
+        if len(digits) > 1:
+            nbm = int(digits[1])
+
+    return nbf, nbm, s
 
 
 def reads_json(s, **kwargs):
@@ -87,8 +92,7 @@ def writes_json(nb, **kwargs):
 
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
-    nbf, s = parse_py(s, **kwargs)
-    nbf = nbf
+    nbf, nbm, s = parse_py(s, **kwargs)
     if nbf == 2:
         nb = v2.to_notebook_py(s, **kwargs)
     elif nbf == 3:
