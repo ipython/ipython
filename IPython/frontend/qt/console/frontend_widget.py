@@ -178,7 +178,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        if self._page_control.hasFocus():
+        if self._page_control is not None and self._page_control.hasFocus():
             self._page_control.copy()
         elif self._control.hasFocus():
             text = self._control.textCursor().selection().toPlainText()
