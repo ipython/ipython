@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
             that.update_document_title();
         });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
-            that.set_save_status('');
+            that.set_save_status('Last Save Failed!');
         });
     };
 
