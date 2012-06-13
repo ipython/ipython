@@ -365,7 +365,7 @@ class IPControllerApp(BaseParallelApplication):
             scheme = TaskScheduler.scheme_name.get_default_value()
         # Task Queue (in a Process)
         if scheme == 'pure':
-            self.log.warn("task::using pure XREQ Task scheduler")
+            self.log.warn("task::using pure DEALER Task scheduler")
             q = mq(zmq.ROUTER, zmq.DEALER, zmq.PUB, b'intask', b'outtask')
             # q.setsockopt_out(zmq.HWM, hub.hwm)
             q.bind_in(hub.client_info['task'][1])
