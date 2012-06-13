@@ -21,7 +21,7 @@ import sys
 from urllib2 import urlopen
 
 # Our own packages
-from IPython.core.error import TryNext
+from IPython.core.error import TryNext, StdinNotImplementedError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
@@ -57,6 +57,9 @@ class CodeMagics(Magics):
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
+          
+          -f: force overwrite.  If file exists, %save will prompt for overwrite
+          unless -f is given.
 
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
@@ -67,14 +70,19 @@ class CodeMagics(Magics):
         If `-r` option is used, the default extension is `.ipy`.
         """
 
-        opts,args = self.parse_options(parameter_s,'r',mode='list')
+        opts,args = self.parse_options(parameter_s,'fr',mode='list')
         raw = 'r' in opts
+        force = 'f' in opts
         ext = u'.ipy' if raw else u'.py'
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
         if not fname.endswith((u'.py',u'.ipy')):
             fname += ext
-        if os.path.isfile(fname):
-            overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
+        if os.path.isfile(fname) and not force:
+            try:
+                overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
+            except StdinNotImplementedError:
+                print "File `%s` exists. Use `%%save -f %s` to force overwrite" % (fname, parameter_s)
+                return
             if not overwrite :
                 print 'Operation cancelled.'
                 return
