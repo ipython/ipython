@@ -28,7 +28,8 @@ from IPython.nbformat import v1
 from IPython.nbformat.v3 import (
     NotebookNode,
     new_code_cell, new_text_cell, new_notebook, new_output, new_worksheet,
-    parse_filename, new_metadata, new_author, new_heading_cell, nbformat
+    parse_filename, new_metadata, new_author, new_heading_cell, nbformat,
+    nbformat_minor,
 )
 
 #-----------------------------------------------------------------------------
@@ -36,6 +37,8 @@ from IPython.nbformat.v3 import (
 #-----------------------------------------------------------------------------
 
 current_nbformat = nbformat
+current_nbformat_minor = nbformat_minor
+
 
 
 class NBFormatError(Exception):
@@ -45,8 +48,9 @@ class NBFormatError(Exception):
 def parse_json(s, **kwargs):
     """Parse a string into a (nbformat, dict) tuple."""
     d = json.loads(s, **kwargs)
-    nbf = d.get('nbformat',1)
-    return nbf, d
+    nbf = d.get('nbformat', 1)
+    nbm = d.get('nbformat_minor', 0)
+    return nbf, nbm, d
 
 
 def parse_py(s, **kwargs):
@@ -62,9 +66,7 @@ def parse_py(s, **kwargs):
 
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
-    nbf, d = parse_json(s, **kwargs)
-    # cast int for reading - 3.x notebooks should be readable on 3.0, etc.
-    nbf = int(nbf)
+    nbf, minor, d = parse_json(s, **kwargs)
     if nbf == 1:
         nb = v1.to_notebook_json(d, **kwargs)
         nb = v3.convert_to_this_nbformat(nb, orig_version=1)
@@ -73,6 +75,7 @@ def reads_json(s, **kwargs):
         nb = v3.convert_to_this_nbformat(nb, orig_version=2)
     elif nbf == 3:
         nb = v3.to_notebook_json(d, **kwargs)
+        nb = v3.convert_to_this_nbformat(nb, orig_version=3, orig_minor=minor)
     else:
         raise NBFormatError('Unsupported JSON nbformat version: %i' % nbf)
     return nb
@@ -85,8 +88,7 @@ def writes_json(nb, **kwargs):
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbf, s = parse_py(s, **kwargs)
-    # cast int for reading - 3.x notebooks should be readable on 3.0, etc.
-    nbf = int(nbf)
+    nbf = nbf
     if nbf == 2:
         nb = v2.to_notebook_py(s, **kwargs)
     elif nbf == 3:

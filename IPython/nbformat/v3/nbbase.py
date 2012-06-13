@@ -31,7 +31,8 @@ from IPython.utils.ipstruct import Struct
 #-----------------------------------------------------------------------------
 
 # Change this when incrementing the nbformat version
-nbformat = 3.0
+nbformat = 3
+nbformat_minor = 0
 
 class NotebookNode(Struct):
     pass
@@ -158,6 +159,7 @@ def new_notebook(name=None, metadata=None, worksheets=None):
     """Create a notebook by name, id and a list of worksheets."""
     nb = NotebookNode()
     nb.nbformat = nbformat
+    nb.nbformat_minor = nbformat_minor
     if worksheets is None:
         nb.worksheets = []
     else:
