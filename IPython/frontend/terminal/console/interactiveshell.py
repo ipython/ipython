@@ -21,21 +21,18 @@ import bdb
 import signal
 import sys
 import time
+import tempfile
+import subprocess
 from io import BytesIO
 import base64
 
 from Queue import Empty
 
-try:
-    import PIL
-except ImportError:
-    PIL = None
-
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
-from IPython.utils.traitlets import List
+from IPython.utils.traitlets import List, Enum, Any
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.console.completer import ZMQCompleter
@@ -45,14 +42,50 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
 
-    image_handler = List([], allow_none=False, config=True, help=
+    image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
+                         config=True, help=
         """
-        Handlers for image type output.  This is useful, for example,
+        Handler for image type output.  This is useful, for example,
         when connecting to the kernel in which pylab inline backend is
-        activated.  Handlers in the list is tried one-by-one and first
-        available handler is used.  Currently IPython only supports
-        handler `PIL`.  IPython shell pops up window to show image
-        when the kernel sends image (e.g., when you plot a graph).
+        activated.  There are four handlers defined.  'PIL': Use
+        Python Imaging Library to popup image; 'stream': Use an
+        external program to show the image.  Image will be fed into
+        the STDIN of the program.  You will need to configure
+        `stream_image_handler`; 'tempfile': Use an external program to
+        show the image.  Image will be saved in a temporally file and
+        the program is called with the temporally file.  You will need
+        to configure `tempfile_image_handler`; 'callable': You can set
+        any Python callable which is called with the image data.  You
+        will need to configure `callable_image_handler`.
+        """
+    )
+
+    stream_image_handler = List(config=True, help=
+        """
+        Command to invoke an image viewer program when you are using
+        'stream' image handler.  This option is a list of string where
+        the first element is the command itself and reminders are the
+        options for the command.  Raw image data is given as STDIN to
+        the program.
+        """
+    )
+
+    tempfile_image_handler = List(config=True, help=
+        """
+        Command to invoke an image viewer program when you are using
+        'tempfile' image handler.  This option is a list of string
+        where the first element is the command itself and reminders
+        are the options for the command.  You can use {file} in the
+        string to represent the location of the generated image file.
+        """
+    )
+
+    callable_image_handler = Any(config=True, help=
+        """
+        Callable object called via 'callable' image handler with one
+        argument, `data`, which is `msg["content"]["data"]` where
+        `msg` is the message from iopub channel.  For exmaple, you can
+        find base64 encoded PNG data as `data['image/png']`.
         """
     )
 
@@ -195,16 +228,44 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     self.handle_rich_data(sub_msg["content"]["data"])
 
     def handle_rich_data(self, data):
-        if 'image/png' in data:
-            self.handle_image(data['image/png'])
-        elif 'image/jpeg' in data:
-            self.handle_image(data['image/jpeg'])
+        for mime in ['image/png', 'image/jpeg', 'image/svg+xml']:
+            if mime in data:
+                self.handle_image(data, mime)
 
-    def handle_image(self, string):
-        if 'PIL' in self.image_handler and PIL:
-            data = base64.decodestring(string)
-            img = PIL.Image.open(BytesIO(data))
-            img.show()
+    def handle_image(self, data, mime):
+        handler = getattr(
+            self, 'handle_image_{0}'.format(self.image_handler), None)
+        if handler:
+            handler(data, mime)
+
+    def handle_image_PIL(self, data, mime):
+        if mime not in ('image/png', 'image/jpeg'):
+            return
+        import PIL
+        raw = base64.decodestring(data[mime])
+        img = PIL.Image.open(BytesIO(raw))
+        img.show()
+
+    def handle_image_stream(self, data, mime):
+        raw = base64.decodestring(data[mime])
+        proc = subprocess.Popen(
+            self.stream_image_handler, stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc.communicate(raw)
+
+    def handle_image_tempfile(self, data, mime):
+        raw = base64.decodestring(data[mime])
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(raw)
+            f.flush()
+            fmt = dict(file=f.name)
+            args = [s.format(**fmt) for s in self.tempfile_image_handler]
+            subprocess.Popen(
+                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ).communicate()
+
+    def handle_image_callable(self, data, mime):
+        self.callable_image_handler(data)
 
     def handle_stdin_request(self, timeout=0.1):
         """ Method to capture raw_input
