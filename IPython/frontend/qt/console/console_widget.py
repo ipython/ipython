@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------
 
 # Standard library imports
-from os.path import commonprefix
+import os.path
 import re
 import sys
 from textwrap import dedent
@@ -16,6 +16,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
+from IPython.core.inputsplitter import ESC_SEQUENCES
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
@@ -26,9 +27,31 @@ from completion_html import CompletionHtml
 from completion_plain import CompletionPlain
 from kill_ring import QtKillRing
 
+
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+def commonprefix(items):
+    """Given a list of pathnames, returns the longest common leading component
+
+    Same function as os.path.commonprefix, but don't considere prefix made of
+    special caracters like #!$%... see
+
+    IPython.core.inputsplitter import ESC_SEQUENCES
+    """
+    # the last item will always have the least leading % symbol
+    prefixes = ''.join(ESC_SEQUENCES)
+    get_prefix = lambda x : x[0:-len(x.lstrip(prefixes))]
+    # min / max are first/last in alphabetical order
+    first_prefix = get_prefix(min(items))
+    last_prefix = get_prefix(max(items))
+
+    # common suffix is (common prefix of reversed items) reversed
+    prefix = os.path.commonprefix((first_prefix[::-1], last_prefix[::-1]))[::-1]
+
+    items = [ s.lstrip(prefixes) for s in items ]
+    return prefix+os.path.commonprefix(items)
 
 def is_letter_or_number(char):
     """ Returns whether the specified unicode character is a letter or a number.
