@@ -63,6 +63,8 @@ def parse_py(s, **kwargs):
 def reads_json(s, **kwargs):
     """Read a JSON notebook from a string and return the NotebookNode object."""
     nbf, d = parse_json(s, **kwargs)
+    # cast int for reading - 3.x notebooks should be readable on 3.0, etc.
+    nbf = int(nbf)
     if nbf == 1:
         nb = v1.to_notebook_json(d, **kwargs)
         nb = v3.convert_to_this_nbformat(nb, orig_version=1)
@@ -83,6 +85,8 @@ def writes_json(nb, **kwargs):
 def reads_py(s, **kwargs):
     """Read a .py notebook from a string and return the NotebookNode object."""
     nbf, s = parse_py(s, **kwargs)
+    # cast int for reading - 3.x notebooks should be readable on 3.0, etc.
+    nbf = int(nbf)
     if nbf == 2:
         nb = v2.to_notebook_py(s, **kwargs)
     elif nbf == 3:

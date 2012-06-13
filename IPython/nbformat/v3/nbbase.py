@@ -31,7 +31,7 @@ from IPython.utils.ipstruct import Struct
 #-----------------------------------------------------------------------------
 
 # Change this when incrementing the nbformat version
-nbformat = 3
+nbformat = 3.0
 
 class NotebookNode(Struct):
     pass
