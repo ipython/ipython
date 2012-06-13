@@ -51,7 +51,14 @@ The Qt console comes with a new ncurses-like tab completer, activated by
 default, which lets you cycle through the available completions by pressing tab,
 or select a completion with the arrow keys (:ghpull:`1851`).
 
-(Screenshot?)
+.. figure:: ../_static/ipy_o13_qtconsole_completer.png
+    :width: 400px
+    :alt: ncurses-like completer, with highlighted selection.
+    :align: center
+    :target: ../_static/ipy_o13_qtconsole_completer.png
+
+    The new improved Qt console's ncurses-like completer allows to easily
+    navigate thought long list of completions.
 
 In the notebook, completions are now sourced both from object introspection and
 analysis of surrounding code, so limited completions can be offered for
