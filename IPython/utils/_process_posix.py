@@ -36,7 +36,7 @@ def _find_cmd(cmd):
     """Find the full path to a command using which."""
 
     path = sp.Popen(['/usr/bin/env', 'which', cmd],
-                    stdout=sp.PIPE).communicate()[0]
+                    stdout=sp.PIPE, stderr=sp.PIPE).communicate()[0]
     return py3compat.bytes_to_str(path)
 
 
