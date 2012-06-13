@@ -33,9 +33,9 @@ def patch_pyzmq():
     
     # fix missing DEALER/ROUTER aliases in pyzmq < 2.1.9
     if not hasattr(zmq, 'DEALER'):
-        zmq.DEALER = zmq.XREQ
+        zmq.DEALER = zmq.DEALER
     if not hasattr(zmq, 'ROUTER'):
-        zmq.ROUTER = zmq.XREP
+        zmq.ROUTER = zmq.ROUTER
     
     # fallback on stdlib json if jsonlib is selected, because jsonlib breaks things.
     # jsonlib support is removed from pyzmq >= 2.2.0

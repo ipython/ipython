@@ -112,9 +112,9 @@ class KernelApp(BaseIPythonApplication):
     ip = Unicode(LOCALHOST, config=True,
         help="Set the IP or interface on which the kernel will listen.")
     hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
-    shell_port = Integer(0, config=True, help="set the shell (XREP) port [default: random]")
+    shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
     iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (XREQ) port [default: random]")
+    stdin_port = Integer(0, config=True, help="set the stdin (DEALER) port [default: random]")
     connection_file = Unicode('', config=True, 
     help="""JSON file in which to store connection info [default: kernel-<pid>.json]
     

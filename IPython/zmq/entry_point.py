@@ -31,7 +31,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The path to the file to write
 
     shell_port : int, optional
-        The port to use for XREP channel.
+        The port to use for ROUTER channel.
 
     iopub_port : int, optional
         The port to use for the SUB channel.
