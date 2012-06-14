@@ -1,7 +1,6 @@
 # -*- coding: utf-8
 """Tests for prompt generation."""
 
-import tempfile
 import unittest
 
 import os
@@ -10,6 +9,7 @@ import nose.tools as nt
 from IPython.testing import tools as tt, decorators as dec
 from IPython.core.prompts import PromptManager
 from IPython.testing.globalipapp import get_ipython
+from IPython.utils.tempdir import TemporaryDirectory
 
 ip = get_ipython()
 
@@ -64,14 +64,11 @@ class PromptTests(unittest.TestCase):
         self.pm.in_template = r'\#>'
         self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
     
-    def test_render_unicode(self):
-        td = tempfile.mkdtemp(u'ünicødé')
+    def test_render_unicode_cwd(self):
         save = os.getcwdu()
-        os.chdir(td)
-        self.pm.in_template = r'\w [\#]'
-        try:
+        with TemporaryDirectory(u'ünicødé') as td:
+            os.chdir(td)
+            self.pm.in_template = r'\w [\#]'
             p = self.pm.render('in', color=False)
             self.assertEquals(p, u"%s [%i]" % (os.getcwdu(), ip.execution_count))
-        finally:
-            os.chdir(save)
-            os.rmdir(td)
+        os.chdir(save)
