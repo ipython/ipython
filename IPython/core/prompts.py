@@ -95,10 +95,7 @@ class LazyEvaluate(object):
         return self.func(*self.args, **self.kwargs)
     
     def __str__(self):
-        s = self()
-        if isinstance(s, unicode):
-            return py3compat.unicode_to_str(s)
-        return str(s)
+        return str(self())
     
     def __unicode__(self):
         return unicode(self())

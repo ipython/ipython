@@ -77,7 +77,7 @@ class PromptTests(unittest.TestCase):
     def test_lazy_eval_unicode(self):
         u = u'ünicødé'
         lz = LazyEvaluate(lambda : u)
-        self.assertEquals(str(lz), py3compat.unicode_to_str(u))
+        # str(lz) would fail
         self.assertEquals(unicode(lz), u)
         self.assertEquals(format(lz), u)
     
@@ -85,10 +85,9 @@ class PromptTests(unittest.TestCase):
         u = u'ünicødé'
         b = u.encode('utf8')
         lz = LazyEvaluate(lambda : b)
+        # unicode(lz) would fail
         self.assertEquals(str(lz), str(b))
         self.assertEquals(format(lz), str(b))
-        if not py3compat.PY3:
-            self.assertRaises(UnicodeDecodeError, unicode, lz)
     
     def test_lazy_eval_float(self):
         f = 0.503
