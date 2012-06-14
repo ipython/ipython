@@ -202,7 +202,7 @@ div.out_prompt_overlay {
 div.out_prompt_overlay:hover {
   /* use inner shadow to get border that is computed the same on WebKit/FF */
   box-shadow: inset 0 0 1px #000;
-  background: rgba(200, 200, 255, 0.5);
+  background: rgba(240, 240, 240, 0.5);
 }
 
 div.output_prompt {
