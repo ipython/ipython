@@ -711,3 +711,14 @@ def test_line_cell_info():
     nt.assert_true(oinfo['found'])
     nt.assert_true(oinfo['ismagic'])
     nt.assert_equals(oinfo['docstring'], FooFoo.line_foo.__doc__)
+
+def test_multiple_magics():
+    ip = get_ipython()
+    foo1 = FooFoo(ip)
+    foo2 = FooFoo(ip)
+    mm = ip.magics_manager
+    mm.register(foo1)
+    nt.assert_true(mm.magics['line']['foo'].im_self is foo1)
+    mm.register(foo2)
+    nt.assert_true(mm.magics['line']['foo'].im_self is foo2)
+    
