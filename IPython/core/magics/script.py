@@ -15,6 +15,8 @@
 import os
 import re
 import sys
+import signal
+import time
 from subprocess import Popen, PIPE
 
 # Our own packages
@@ -56,6 +58,12 @@ def script_args(f):
             help="""Whether to run the script in the background.
             If given, the only way to see the output of the command is
             with --out/err.
+            """
+        ),
+        magic_arguments.argument(
+            '--proc', type=str,
+            help="""The variable in which to store Popen instance.
+            This is used only when --bg option is given.
             """
         ),
     ]
@@ -193,9 +201,32 @@ class ScriptMagics(Magics, Configurable):
             if args.err:
                 self.shell.user_ns[args.err] = p.stderr
             self.job_manager.new(self._run_script, p, cell)
+            if args.proc:
+                self.shell.user_ns[args.proc] = p
             return
         
-        out, err = p.communicate(cell)
+        try:
+            out, err = p.communicate(cell)
+        except KeyboardInterrupt:
+            try:
+                p.send_signal(signal.SIGINT)
+                time.sleep(0.1)
+                if p.poll() is not None:
+                    print "Process is interrupted."
+                    return
+                p.terminate()
+                time.sleep(0.1)
+                if p.poll() is not None:
+                    print "Process is terminated."
+                    return
+                p.kill()
+                print "Process is killed."
+            except OSError:
+                pass
+            except Exception as e:
+                print "Error while terminating subprocess (pid=%i): %s" \
+                    % (p.pid, e)
+            return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
         if args.out:
