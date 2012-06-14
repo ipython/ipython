@@ -95,13 +95,16 @@ class LazyEvaluate(object):
         return self.func(*self.args, **self.kwargs)
     
     def __str__(self):
-        return py3compat.cast_bytes_py2(self())
+        s = self()
+        if isinstance(s, unicode):
+            return py3compat.unicode_to_str(s)
+        return str(s)
     
     def __unicode__(self):
-        return py3compat.cast_unicode(self())
+        return unicode(self())
     
     def __format__(self, format_spec):
-        return format(unicode(self), format_spec)
+        return format(unicode(self()), format_spec)
 
 def multiple_replace(dict, text):
     """ Replace in 'text' all occurences of any key in the given
