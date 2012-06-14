@@ -30,7 +30,7 @@ from string import Formatter
 
 from IPython.config.configurable import Configurable
 from IPython.core import release
-from IPython.utils import coloransi
+from IPython.utils import coloransi, py3compat
 from IPython.utils.traitlets import (Unicode, Instance, Dict, Bool, Int)
 
 #-----------------------------------------------------------------------------
@@ -95,7 +95,13 @@ class LazyEvaluate(object):
         return self.func(*self.args, **self.kwargs)
     
     def __str__(self):
-        return str(self())
+        return py3compat.cast_bytes_py2(self())
+    
+    def __unicode__(self):
+        return py3compat.cast_unicode(self())
+    
+    def __format__(self, format_spec):
+        return format(unicode(self), format_spec)
 
 def multiple_replace(dict, text):
     """ Replace in 'text' all occurences of any key in the given
@@ -202,7 +208,7 @@ def cwd_filt(depth):
     $HOME is always replaced with '~'.
     If depth==0, the full path is returned."""
 
-    cwd = os.getcwd().replace(HOME,"~")
+    cwd = os.getcwdu().replace(HOME,"~")
     out = os.sep.join(cwd.split(os.sep)[-depth:])
     return out or os.sep
 
@@ -212,7 +218,7 @@ def cwd_filt2(depth):
     $HOME is always replaced with '~'.
     If depth==0, the full path is returned."""
 
-    full_cwd = os.getcwd()
+    full_cwd = os.getcwdu()
     cwd = full_cwd.replace(HOME,"~").split(os.sep)
     if '~' in cwd and len(cwd) == depth+1:
         depth += 1
@@ -228,9 +234,9 @@ def cwd_filt2(depth):
 #-----------------------------------------------------------------------------
 
 lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
-                   'cwd': LazyEvaluate(os.getcwd),
-                   'cwd_last': LazyEvaluate(lambda: os.getcwd().split(os.sep)[-1]),
-                   'cwd_x': [LazyEvaluate(lambda: os.getcwd().replace("%s","~"))] +\
+                   'cwd': LazyEvaluate(os.getcwdu),
+                   'cwd_last': LazyEvaluate(lambda: os.getcwdu().split(os.sep)[-1]),
+                   'cwd_x': [LazyEvaluate(lambda: os.getcwdu().replace("%s","~"))] +\
                             [LazyEvaluate(cwd_filt, x) for x in range(1,6)],
                    'cwd_y': [LazyEvaluate(cwd_filt2, x) for x in range(6)]
                    }
