@@ -1697,11 +1697,6 @@ class InteractiveShell(SingletonConfigurable):
         care of calling it if needed, so unless you are explicitly catching a
         SyntaxError exception, don't try to analyze the stack manually and
         simply call this method."""
-        try:
-            from IPython.parallel.error import RemoteError
-        except ImportError:
-            class RemoteError(Exception): pass
-
 
         try:
             try:
@@ -1709,6 +1704,13 @@ class InteractiveShell(SingletonConfigurable):
             except ValueError:
                 self.write_err('No traceback available to show.\n')
                 return
+            
+            # this import must be done *after* the above call,
+            # to avoid affecting the exc_info
+            try:
+                from IPython.parallel.error import RemoteError
+            except ImportError:
+                class RemoteError(Exception): pass
 
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
