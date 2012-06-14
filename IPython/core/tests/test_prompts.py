@@ -1,7 +1,10 @@
+# -*- coding: utf-8
 """Tests for prompt generation."""
 
+import tempfile
 import unittest
 
+import os
 import nose.tools as nt
 
 from IPython.testing import tools as tt, decorators as dec
@@ -60,3 +63,15 @@ class PromptTests(unittest.TestCase):
     def test_render(self):
         self.pm.in_template = r'\#>'
         self.assertEqual(self.pm.render('in',color=False), '%d>' % ip.execution_count)
+    
+    def test_render_unicode(self):
+        td = tempfile.mkdtemp(u'ünicødé')
+        save = os.getcwdu()
+        os.chdir(td)
+        self.pm.in_template = r'\w [\#]'
+        try:
+            p = self.pm.render('in', color=False)
+            self.assertEquals(p, u"%s [%i]" % (os.getcwdu(), ip.execution_count))
+        finally:
+            os.chdir(save)
+            os.rmdir(td)
