@@ -135,13 +135,13 @@ def multiple_replace(dict, text):
 # - I also need to split up the color schemes from the prompt specials
 # somehow.  I don't have a clean design for that quite yet.
 
-HOME = os.environ.get("HOME","//////:::::ZZZZZ,,,~~~")
+HOME = py3compat.str_to_unicode(os.environ.get("HOME","//////:::::ZZZZZ,,,~~~"))
 
 # We precompute a few more strings here for the prompt_specials, which are
 # fixed once ipython starts.  This reduces the runtime overhead of computing
 # prompt strings.
-USER           = os.environ.get("USER")
-HOSTNAME       = socket.gethostname()
+USER           = py3compat.str_to_unicode(os.environ.get("USER"))
+HOSTNAME       = py3compat.str_to_unicode(socket.gethostname())
 HOSTNAME_SHORT = HOSTNAME.split(".")[0]
 ROOT_SYMBOL    = "#" if (os.name=='nt' or os.getuid()==0) else "$"
 
