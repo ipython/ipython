@@ -104,7 +104,7 @@ class LazyEvaluate(object):
         return unicode(self())
     
     def __format__(self, format_spec):
-        return format(unicode(self()), format_spec)
+        return format(self(), format_spec)
 
 def multiple_replace(dict, text):
     """ Replace in 'text' all occurences of any key in the given
