@@ -7,8 +7,9 @@ import os
 import nose.tools as nt
 
 from IPython.testing import tools as tt, decorators as dec
-from IPython.core.prompts import PromptManager
+from IPython.core.prompts import PromptManager, LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
+from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
 ip = get_ipython()
@@ -72,3 +73,23 @@ class PromptTests(unittest.TestCase):
             p = self.pm.render('in', color=False)
             self.assertEquals(p, u"%s [%i]" % (os.getcwdu(), ip.execution_count))
         os.chdir(save)
+    
+    def test_lazy_eval_unicode(self):
+        u = u'ünicødé'
+        lz = LazyEvaluate(lambda : u)
+        self.assertEquals(str(lz), py3compat.unicode_to_str(u))
+        self.assertEquals(unicode(lz), u)
+        self.assertEquals(format(lz), u)
+    
+    def test_lazy_eval_nonascii_bytes(self):
+        u = u'ünicødé'
+        b = u.encode('utf8')
+        lz = LazyEvaluate(lambda : b)
+        if py3compat.PY3:
+            self.assertEquals(str(lz), str(b))
+            self.assertEquals(format(lz), str(b))
+        else:
+            self.assertEquals(str(lz), b)
+            self.assertRaises(UnicodeDecodeError, unicode, lz)
+            self.assertRaises(UnicodeDecodeError, format, lz)
+    
