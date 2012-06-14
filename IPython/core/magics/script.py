@@ -15,6 +15,8 @@
 import os
 import re
 import sys
+import signal
+import time
 from subprocess import Popen, PIPE
 
 # Our own packages
@@ -203,7 +205,22 @@ class ScriptMagics(Magics, Configurable):
                 self.shell.user_ns[args.proc] = p
             return
         
-        out, err = p.communicate(cell)
+        try:
+            out, err = p.communicate(cell)
+        except KeyboardInterrupt:
+            p.send_signal(signal.SIGINT)
+            time.sleep(0.1)
+            if p.poll() is not None:
+                print "Process is interrupted."
+                return
+            p.terminate()
+            time.sleep(0.1)
+            if p.poll() is not None:
+                print "Process is terminated."
+                return
+            p.kill()
+            print "Process is killed."
+            return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
         if args.out:
