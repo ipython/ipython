@@ -208,18 +208,21 @@ class ScriptMagics(Magics, Configurable):
         try:
             out, err = p.communicate(cell)
         except KeyboardInterrupt:
-            p.send_signal(signal.SIGINT)
-            time.sleep(0.1)
-            if p.poll() is not None:
-                print "Process is interrupted."
-                return
-            p.terminate()
-            time.sleep(0.1)
-            if p.poll() is not None:
-                print "Process is terminated."
-                return
-            p.kill()
-            print "Process is killed."
+            try:
+                p.send_signal(signal.SIGINT)
+                time.sleep(0.1)
+                if p.poll() is not None:
+                    print "Process is interrupted."
+                    return
+                p.terminate()
+                time.sleep(0.1)
+                if p.poll() is not None:
+                    print "Process is terminated."
+                    return
+                p.kill()
+                print "Process is killed."
+            except:
+                print "Failed to kill process properly (pid={0})".format(p.pid)
             return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
