@@ -98,8 +98,8 @@ var IPython = (function (IPython) {
             " or if the url does not look right, there could be an error in the" +
             " server's configuration.";
         } else {
- 	    this.start_channels();
- 	}
+            this.start_channels();
+ 	    }
         var dialog = $('<div/>');
         dialog.html(msg);
         parent_item.append(dialog);
