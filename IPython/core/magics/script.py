@@ -221,8 +221,11 @@ class ScriptMagics(Magics, Configurable):
                     return
                 p.kill()
                 print "Process is killed."
-            except:
-                print "Failed to kill process properly (pid={0})".format(p.pid)
+            except OSError:
+                pass
+            except Exception as e:
+                print "Error while terminating subprocess (pid=%i): %s" \
+                    % (p.pid, e)
             return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
