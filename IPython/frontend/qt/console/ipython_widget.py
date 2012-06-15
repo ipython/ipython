@@ -20,7 +20,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.core.inputsplitter import IPythonInputSplitter, \
-    transform_ipy_prompt
+    transform_ipy_prompt, ESCAPE_RE
 from IPython.utils.traitlets import Bool, Unicode
 from frontend_widget import FrontendWidget
 import styles
@@ -158,10 +158,20 @@ class IPythonWidget(FrontendWidget):
                     chop_length = sum(map(len, parts[:sep_count])) + sep_count
                     matches = [ match[chop_length:] for match in matches ]
                     offset -= chop_length
+            
+            # If the completed text starts with an escape sequence (e.g. %),
+            # we'll ignore that for generating the common prefix to fill in. So
+            # we move the offset so it's filled from after the escape sequence.
+            strip_escape_prefix = False
+            if len(matches) > 1:
+                m = ESCAPE_RE.match(text)
+                if m:
+                    strip_escape_prefix = True
+                    offset -= len(m.group(0))
 
             # Move the cursor to the start of the match and complete.
             cursor.movePosition(QtGui.QTextCursor.Left, n=offset)
-            self._complete_with_items(cursor, matches)
+            self._complete_with_items(cursor, matches, strip_escape_prefix)
 
     def _handle_execute_reply(self, msg):
         """ Reimplemented to support prompt requests.

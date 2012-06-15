@@ -16,6 +16,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
+from IPython.core.inputsplitter import ESCAPE_RE
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
@@ -875,7 +876,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._control.setUndoRedoEnabled(False)
             self._control.setUndoRedoEnabled(True)
 
-    def _complete_with_items(self, cursor, items):
+    def _complete_with_items(self, cursor, items, strip_escape_prefix=False):
         """ Performs completion with 'items' at the specified cursor location.
         """
         self._cancel_completion()
@@ -887,7 +888,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         elif len(items) > 1:
             current_pos = self._control.textCursor().position()
-            prefix = commonprefix(items)
+            # If required, clean up escape characters like %
+            if strip_escape_prefix:
+                prefix_items = [ESCAPE_RE.sub("", match) for match in items]
+            else:
+                prefix_items = items
+            prefix = commonprefix(prefix_items)
             if prefix:
                 cursor.setPosition(current_pos, QtGui.QTextCursor.KeepAnchor)
                 cursor.insertText(prefix)
