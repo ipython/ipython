@@ -96,6 +96,9 @@ ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
 ESC_QUOTE2 = ';'     # Quote all args as a single string, call
 ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
 
+ESCAPE_RE = re.compile("^[" + ESC_SHELL + ESC_HELP + ESC_MAGIC + ESC_QUOTE + \
+                    ESC_QUOTE2 + ESC_PAREN + "]+")
+
 #-----------------------------------------------------------------------------
 # Utilities
 #-----------------------------------------------------------------------------
