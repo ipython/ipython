@@ -236,7 +236,7 @@ def cwd_filt2(depth):
 lazily_evaluate = {'time': LazyEvaluate(time.strftime, "%H:%M:%S"),
                    'cwd': LazyEvaluate(os.getcwdu),
                    'cwd_last': LazyEvaluate(lambda: os.getcwdu().split(os.sep)[-1]),
-                   'cwd_x': [LazyEvaluate(lambda: os.getcwdu().replace("%s","~"))] +\
+                   'cwd_x': [LazyEvaluate(lambda: os.getcwdu().replace(HOME,"~"))] +\
                             [LazyEvaluate(cwd_filt, x) for x in range(1,6)],
                    'cwd_y': [LazyEvaluate(cwd_filt2, x) for x in range(6)]
                    }

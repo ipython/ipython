@@ -98,3 +98,13 @@ class PromptTests(unittest.TestCase):
         self.assertEquals(format(lz), str(f))
         self.assertEquals(format(lz, '.1'), '0.5')
     
+    def test_cwd_x(self):
+        self.pm.in_template = r"\X0"
+        save = os.getcwdu()
+        os.chdir(os.path.expanduser('~'))
+        p = self.pm.render('in', color=False)
+        try:
+            self.assertEquals(p, '~')
+        finally:
+            os.chdir(save)
+    
