@@ -267,6 +267,9 @@ var IPython = (function (IPython) {
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_text(data.input);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                this.code_mirror.clearHistory();
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);

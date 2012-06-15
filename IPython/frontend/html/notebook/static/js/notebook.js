@@ -602,6 +602,9 @@ var IPython = (function (IPython) {
                     text = '';
                 }
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -623,6 +626,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -645,6 +651,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -667,6 +676,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -693,6 +705,9 @@ var IPython = (function (IPython) {
                 target_cell.set_level(level);
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
