@@ -78,7 +78,6 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.setDocumentMode(True)
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
-        self.tab_widget.currentChanged.connect(self.update_restart_checkbox)
 
         self.setCentralWidget(self.tab_widget)
         # hide tab bar at first, since we have no tabs:
@@ -562,6 +561,7 @@ class MainWindow(QtGui.QMainWindow):
             )
 
         self.add_menu_action(self.kernel_menu, self.confirm_restart_kernel_action)
+        self.tab_widget.currentChanged.connect(self.update_restart_checkbox)
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on active frontend.
