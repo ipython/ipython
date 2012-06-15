@@ -11,6 +11,7 @@ Authors:
 * Fernando Perez
 * Bussonnier Matthias
 * Thomas Kluyver
+* Paul Ivanov
 
 """
 
@@ -77,6 +78,7 @@ class MainWindow(QtGui.QMainWindow):
         self.tab_widget.setDocumentMode(True)
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested[int].connect(self.close_tab)
+        self.tab_widget.currentChanged.connect(self.update_restart_checkbox)
 
         self.setCentralWidget(self.tab_widget)
         # hide tab bar at first, since we have no tabs:
@@ -844,12 +846,11 @@ class MainWindow(QtGui.QMainWindow):
     def toggle_confirm_restart_active_frontend(self):
         widget = self.active_frontend
         widget.confirm_restart = not widget.confirm_restart
-        # XXX: whenever tabs are switched, the checkbox may not be
-        # representative of the state of the active widget. The next line
-        # ensures that at least after toggling, the checkbox represents the
-        # state this widget is in.
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
+    def update_restart_checkbox(self):
+        widget = self.active_frontend
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_active_frontend(self):
         widget = self.active_frontend
