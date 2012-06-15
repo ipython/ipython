@@ -113,8 +113,8 @@ Now, start an IPython cluster::
     <parallel_process>`.
 
 Finally, connect to the cluster and use this function interactively. In this
-case, we create a random array on each engine and sum up all the random arrays
-using our :func:`psum` function:
+case, we create a distributed array and sum up all its elements in a distributed
+manner using our :func:`psum` function:
 
 .. sourcecode:: ipython
 
