@@ -75,8 +75,9 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         Command to invoke an image viewer program when you are using
         'tempfile' image handler.  This option is a list of string
         where the first element is the command itself and reminders
-        are the options for the command.  You can use {file} in the
-        string to represent the location of the generated image file.
+        are the options for the command.  You can use {file} and
+        {format} in the string to represent the location of the
+        generated image file and image format.
         """
     )
 
@@ -85,7 +86,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
         `msg` is the message from iopub channel.  For exmaple, you can
-        find base64 encoded PNG data as `data['image/png']`.
+        find base64 encoded PNG data as `data['image/png']`. You can
+        use {format} in the string to represent the image format.
         """
     )
 
@@ -227,6 +229,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 elif msg_type == 'display_data':
                     self.handle_rich_data(sub_msg["content"]["data"])
 
+    _imagemime = {
+        'image/png': 'png',
+        'image/jpeg': 'jpeg',
+        'image/svg+xml': 'svg',
+    }
+
     def handle_rich_data(self, data):
         for mime in ['image/png', 'image/jpeg', 'image/svg+xml']:
             if mime in data:
@@ -249,17 +257,22 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
     def handle_image_stream(self, data, mime):
         raw = base64.decodestring(data[mime])
+        imageformat = self._imagemime[mime]
+        fmt = dict(format=imageformat)
+        args = [s.format(**fmt) for s in self.stream_image_handler]
         proc = subprocess.Popen(
-            self.stream_image_handler, stdin=subprocess.PIPE,
+            args, stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         proc.communicate(raw)
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime])
-        with tempfile.NamedTemporaryFile() as f:
+        imageformat = self._imagemime[mime]
+        ext = '.{0}'.format(imageformat)
+        with tempfile.NamedTemporaryFile(suffix=ext) as f:
             f.write(raw)
             f.flush()
-            fmt = dict(file=f.name)
+            fmt = dict(file=f.name, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
             subprocess.Popen(
                 args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
