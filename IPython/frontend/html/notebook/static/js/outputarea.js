@@ -283,9 +283,30 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_png = function (png, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
-        img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
-        });
+        setTimeout(function () {
+            img.resizable({
+                aspectRatio: true,
+                autoHide: true,
+                start: function(evt, ui) {
+                    var wrapper = $(evt.target);
+                    var original_height = ui.originalSize.height;
+                    var original_width = ui.originalSize.width;
+                    if (original_height == 0 || original_width == 0) {
+                        // protect against weird case of zero size;
+                        return;
+                    }
+                    // only do this once:
+                    wrapper.unbind("resizestart");
+                    wrapper.dblclick(function () {
+                        // resize wrapper & image together for some reason:
+                        wrapper.height(original_height);
+                        img.height(original_height);
+                        wrapper.width(original_width);
+                        img.width(original_width);
+                    });
+                }
+            });
+        }, 250);
         toinsert.append(img);
         element.append(toinsert);
     };
@@ -294,9 +315,30 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_jpeg = function (jpeg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
-        img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
-        });
+        setTimeout(function () {
+            img.resizable({
+                aspectRatio: true,
+                autoHide: true,
+                start: function(evt, ui) {
+                    var wrapper = $(evt.target);
+                    var original_height = ui.originalSize.height;
+                    var original_width = ui.originalSize.width;
+                    if (original_height == 0 || original_width == 0) {
+                        // protect against weird case of zero size;
+                        return;
+                    }
+                    // only do this once:
+                    wrapper.unbind("resizestart");
+                    wrapper.dblclick(function () {
+                        // resize wrapper & image together for some reason:
+                        wrapper.height(original_height);
+                        img.height(original_height);
+                        wrapper.width(original_width);
+                        img.width(original_width);
+                    });
+                }
+            });
+        }, 250);
         toinsert.append(img);
         element.append(toinsert);
     };
