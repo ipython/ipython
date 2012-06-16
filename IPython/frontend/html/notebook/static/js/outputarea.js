@@ -284,7 +284,14 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
+            var h = $(this).height();
+            var w = $(this).width()
+            $(this).resizable({
+                'aspectRatio': true,
+                'autoHide': true,
+                'minHeight': h,
+                'minWidth': w
+            });
         });
         toinsert.append(img);
         element.append(toinsert);
@@ -295,7 +302,14 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
+            var h = $(this).height();
+            var w = $(this).width()
+            $(this).resizable({
+                'aspectRatio': true,
+                'autoHide': true,
+                'minHeight': h,
+                'minWidth': w
+            });
         });
         toinsert.append(img);
         element.append(toinsert);
