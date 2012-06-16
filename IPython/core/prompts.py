@@ -137,6 +137,10 @@ def multiple_replace(dict, text):
 
 HOME = py3compat.str_to_unicode(os.environ.get("HOME","//////:::::ZZZZZ,,,~~~"))
 
+# This is needed on FreeBSD, and maybe other systems which symlink /home to
+# /usr/home, but retain the $HOME variable as pointing to /home
+HOME = os.path.realpath(HOME)
+
 # We precompute a few more strings here for the prompt_specials, which are
 # fixed once ipython starts.  This reduces the runtime overhead of computing
 # prompt strings.
