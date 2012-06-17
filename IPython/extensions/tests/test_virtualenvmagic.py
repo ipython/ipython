@@ -70,7 +70,7 @@ def env_exists(env):
     """
     if 'WORKON_HOME' not in os.environ:
         return False
-    if os.path.exists(os.environ['WORKON_HOME'] + '/' + env):
+    if os.path.exists(os.path.join(os.environ['WORKON_HOME'], env)):
         return True
     else:
         return False
