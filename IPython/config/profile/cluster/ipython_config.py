@@ -17,9 +17,3 @@ if hasattr(app, 'exec_lines'):
 else:
     app.exec_lines = [lines]
 
-# Load the parallelmagic extension to enable %result, %px, %autopx magics.
-if hasattr(app, 'extensions'):
-    app.extensions.append('parallelmagic')
-else:
-    app.extensions = ['parallelmagic']
-

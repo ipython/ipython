@@ -73,8 +73,32 @@ def post_gist(content, description='', filename='file', auth=False):
     response_data = json.loads(response.text)
     return response_data['html_url']
     
-def get_pull_request(project, num):
-    url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=project, num=num)
+def get_pull_request(project, num, github_api=3):
+    """get pull request info  by number
+
+    github_api : version of github api to use
+    """
+    if github_api==2 :
+        url = "http://github.com/api/v2/json/pulls/{project}/{num}".format(project=project, num=num)
+    elif github_api == 3:
+        url = "https://api.github.com/repos/{project}/pulls/{num}".format(project=project, num=num)
     response = requests.get(url)
     response.raise_for_status()
+    if github_api == 2 :
+        return json.loads(response.text)['pull']
+    return json.loads(response.text)
+
+def get_pulls_list(project, github_api=3):
+    """get pull request list
+
+    github_api : version of github api to use
+    """
+    if github_api == 3 :
+        url = "https://api.github.com/repos/{project}/pulls".format(project=project)
+    else :
+        url = "http://github.com/api/v2/json/pulls/{project}".format(project=project)
+    response = requests.get(url)
+    response.raise_for_status()
+    if github_api == 2 :
+        return json.loads(response.text)['pulls']
     return json.loads(response.text)

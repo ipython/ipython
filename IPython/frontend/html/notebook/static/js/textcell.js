@@ -158,6 +158,9 @@ var IPython = (function (IPython) {
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                this.code_mirror.clearHistory();
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();

@@ -13,6 +13,14 @@ commands (that e.g. don't understand / as path separator). These can
 do some useful tricks on their own, though (like use 'mglob' patterns).
 
 Not to be confused with ipipe commands (ils etc.) that also start with i.
+
+QUARANTINE, NEEDS UPDATING TO THE NEW IPYTHON API TO WORK
+
+this depends on mglob that used to be in externals,
+if this code is updated to run again with current IPython, you may need to
+reintroduce that file back. In doing so, look for the possibility of achieving
+the same effect only with the standard library (which may have improved by now,
+since we currently depend on Python 2.6).
 """
 
 from IPython.core import ipapi

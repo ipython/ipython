@@ -31,6 +31,16 @@ import re
 from IPython.core.alias import AliasManager
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
+from IPython.core.inputsplitter import (
+    ESC_SHELL,
+    ESC_SH_CAP,
+    ESC_HELP,
+    ESC_MAGIC,
+    ESC_MAGIC2,
+    ESC_QUOTE,
+    ESC_QUOTE2,
+    ESC_PAREN,
+)
 from IPython.core.macro import Macro
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.core import page
@@ -43,16 +53,6 @@ from IPython.utils.autoattr import auto_attr
 #-----------------------------------------------------------------------------
 # Global utilities, errors and constants
 #-----------------------------------------------------------------------------
-
-# Warning, these cannot be changed unless various regular expressions
-# are updated in a number of places.  Not great, but at least we told you.
-ESC_SHELL  = '!'
-ESC_SH_CAP = '!!'
-ESC_HELP   = '?'
-ESC_MAGIC  = '%'
-ESC_QUOTE  = ','
-ESC_QUOTE2 = ';'
-ESC_PAREN  = '/'
 
 
 class PrefilterError(Exception):
@@ -115,8 +115,7 @@ class PrefilterManager(Configurable):
     The transformers are instances of :class:`PrefilterTransformer` and have
     a single method :meth:`transform` that takes a line and returns a
     transformed line.  The transformation can be accomplished using any
-    tool, but our current ones use regular expressions for speed.  We also
-    ship :mod:`pyparsing` in :mod:`IPython.external` for use in transformers.
+    tool, but our current ones use regular expressions for speed.
 
     After all the transformers have been run, the line is fed to the checkers,
     which are instances of :class:`PrefilterChecker`.  The line is passed to

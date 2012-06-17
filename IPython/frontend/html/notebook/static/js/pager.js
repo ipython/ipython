@@ -117,7 +117,7 @@ var IPython = (function (IPython) {
 
     Pager.prototype.append_text = function (text) {
         var toinsert = $("<div/>").addClass("output_area output_stream");
-        toinsert.append($('<pre/>').html(utils.fixConsole(text)));
+        toinsert.append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
         this.pager_element.append(toinsert);
     };
 

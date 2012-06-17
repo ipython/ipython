@@ -28,13 +28,14 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 cell_magic, line_cell_magic,
                                 register_line_magic, register_cell_magic,
                                 register_line_cell_magic)
-from IPython.core.magics import execution
+from IPython.core.magics import execution, script
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.process import find_cmd
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -449,10 +450,27 @@ def test_timeit_arguments():
     _ip.magic("timeit ('#')")
 
 
+def test_timeit_special_syntax():
+    "Test %%timeit with IPython special syntax"
+    from IPython.core.magic import register_line_magic
+
+    @register_line_magic
+    def lmagic(line):
+        ip = get_ipython()
+        ip.user_ns['lmagic_out'] = line
+
+    # line mode test
+    _ip.run_line_magic('timeit', '-n1 -r1 %lmagic my line')
+    nt.assert_equal(_ip.user_ns['lmagic_out'], 'my line')
+    # cell mode test
+    _ip.run_cell_magic('timeit', '-n1 -r1', '%lmagic my line2')
+    nt.assert_equal(_ip.user_ns['lmagic_out'], 'my line2')
+    
+
 @dec.skipif(execution.profile is None)
 def test_prun_quotes():
     "Test that prun does not clobber string escapes (GH #1302)"
-    _ip.magic("prun -q x = '\t'")
+    _ip.magic(r"prun -q x = '\t'")
     nt.assert_equal(_ip.user_ns['x'], '\t')
 
 def test_extension():
@@ -560,4 +578,136 @@ class CellMagicTestCase(TestCase):
         # Check that nothing is registered as 'cellm33'
         c33 = _ip.find_cell_magic('cellm33')
         nt.assert_equals(c33, None)
+
+def test_file():
+    """Basic %%file"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, 'file1')
+        ip.run_cell_magic("file", fname, u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line2', s)
+
+def test_file_unicode():
+    """%%file with unicode cell"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, 'file1')
+        ip.run_cell_magic("file", fname, u'\n'.join([
+            u'liné1',
+            u'liné2',
+        ]))
+        with io.open(fname, encoding='utf-8') as f:
+            s = f.read()
+        nt.assert_in(u'liné1\n', s)
+        nt.assert_in(u'liné2', s)
+
+def test_file_amend():
+    """%%file -a amends files"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, 'file2')
+        ip.run_cell_magic("file", fname, u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        ip.run_cell_magic("file", "-a %s" % fname, u'\n'.join([
+            'line3',
+            'line4',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line3\n', s)
+        
     
+def test_script_config():
+    ip = get_ipython()
+    ip.config.ScriptMagics.script_magics = ['whoda']
+    sm = script.ScriptMagics(shell=ip)
+    nt.assert_in('whoda', sm.magics['cell'])
+
+@dec.skip_win32
+def test_script_out():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
+    nt.assert_equals(ip.user_ns['output'], 'hi\n')
+
+@dec.skip_win32
+def test_script_err():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
+    nt.assert_equals(ip.user_ns['error'], 'hello\n')
+
+@dec.skip_win32
+def test_script_out_err():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--out output --err error sh", "echo 'hi'\necho 'hello' >&2")
+    nt.assert_equals(ip.user_ns['output'], 'hi\n')
+    nt.assert_equals(ip.user_ns['error'], 'hello\n')
+
+@dec.skip_win32
+def test_script_bg_out():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
+    nt.assert_equals(ip.user_ns['output'].read(), b'hi\n')
+
+@dec.skip_win32
+def test_script_bg_err():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
+    nt.assert_equals(ip.user_ns['error'].read(), b'hello\n')
+
+@dec.skip_win32
+def test_script_bg_out_err():
+    ip = get_ipython()
+    ip.run_cell_magic("script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2")
+    nt.assert_equals(ip.user_ns['output'].read(), b'hi\n')
+    nt.assert_equals(ip.user_ns['error'].read(), b'hello\n')
+
+def test_script_defaults():
+    ip = get_ipython()
+    for cmd in ['sh', 'bash', 'perl', 'ruby']:
+        try:
+            find_cmd(cmd)
+        except Exception:
+            pass
+        else:
+            nt.assert_in(cmd, ip.magics_manager.magics['cell'])
+
+
+@magics_class
+class FooFoo(Magics):
+    """class with both %foo and %%foo magics"""
+    @line_magic('foo')
+    def line_foo(self, line):
+        "I am line foo"
+        pass
+            
+    @cell_magic("foo")
+    def cell_foo(self, line, cell):
+        "I am cell foo, not line foo"
+        pass
+
+def test_line_cell_info():
+    """%%foo and %foo magics are distinguishable to inspect"""
+    ip = get_ipython()
+    ip.magics_manager.register(FooFoo)
+    oinfo = ip.object_inspect('foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    
+    oinfo = ip.object_inspect('%%foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    nt.assert_equals(oinfo['docstring'], FooFoo.cell_foo.__doc__)
+
+    oinfo = ip.object_inspect('%foo')
+    nt.assert_true(oinfo['found'])
+    nt.assert_true(oinfo['ismagic'])
+    nt.assert_equals(oinfo['docstring'], FooFoo.line_foo.__doc__)

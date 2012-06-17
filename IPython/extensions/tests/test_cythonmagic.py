@@ -4,6 +4,7 @@
 import os
 import nose.tools as nt
 
+from IPython.testing import decorators as dec
 from IPython.utils import py3compat
 
 code = py3compat.str_to_unicode("""def f(x):
@@ -15,19 +16,21 @@ try:
 except:
     __test__ = False
 
+ip = get_ipython()
+
+
 def setup():
-    ip = get_ipython()
     ip.extension_manager.load_extension('cythonmagic')
 
+
 def test_cython_inline():
-    ip = get_ipython()
     ip.ex('a=10; b=20')
     result = ip.run_cell_magic('cython_inline','','return a+b')
     nt.assert_equals(result, 30)
 
+
 def test_cython_pyximport():
     module_name = '_test_cython_pyximport'
-    ip = get_ipython()
     ip.run_cell_magic('cython_pyximport', module_name, code)
     ip.ex('g = f(10)')
     nt.assert_equals(ip.user_ns['g'], 20.0)
@@ -36,12 +39,20 @@ def test_cython_pyximport():
     except OSError:
         pass
 
+
 def test_cython():
-    ip = get_ipython()
     ip.run_cell_magic('cython', '', code)
     ip.ex('g = f(10)')
     nt.assert_equals(ip.user_ns['g'], 20.0)
+
+
+@dec.skip_win32
+def test_extlibs():
+    code = py3compat.str_to_unicode("""
+from libc.math cimport sin
+x = sin(0.0)
+    """)
+    ip.user_ns['x'] = 1
+    ip.run_cell_magic('cython', '-l m', code)
+    nt.assert_equals(ip.user_ns['x'], 0)
     
-
-
-

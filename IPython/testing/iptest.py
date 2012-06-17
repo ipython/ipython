@@ -26,6 +26,7 @@ itself from the command line. There are two ways of running this script:
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import glob
 import os
 import os.path as path
 import signal
@@ -148,16 +149,18 @@ have = {}
 
 have['curses'] = test_for('_curses')
 have['matplotlib'] = test_for('matplotlib')
+have['numpy'] = test_for('numpy')
 have['pexpect'] = test_for('IPython.external.pexpect')
 have['pymongo'] = test_for('pymongo')
 have['pygments'] = test_for('pygments')
-have['wx'] = test_for('wx')
-have['wx.aui'] = test_for('wx.aui')
 have['qt'] = test_for('IPython.external.qt')
+have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
-
+have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
+have['wx'] = test_for('wx')
+have['wx.aui'] = test_for('wx.aui')
 
 if os.name == 'nt':
     min_zmq = (2,1,7)
@@ -234,6 +237,11 @@ def make_exclude():
         exclusions.append(ipjoin('core', 'history'))
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
+    
+    # FIXME: temporarily disable autoreload tests, as they can produce
+    # spurious failures in subsequent tests (cythonmagic).
+    exclusions.append(ipjoin('extensions', 'autoreload'))
+    exclusions.append(ipjoin('extensions', 'tests', 'test_autoreload'))
 
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
@@ -277,8 +285,16 @@ def make_exclude():
         exclusions.extend([ipjoin('extensions', 'cythonmagic')])
         exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
 
+    if not have['oct2py']:
+        exclusions.extend([ipjoin('extensions', 'octavemagic')])
+        exclusions.extend([ipjoin('extensions', 'tests', 'test_octavemagic')])
+
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
+
+    if not have['rpy2'] or not have['numpy']:
+        exclusions.append(ipjoin('extensions', 'rmagic'))
+        exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
@@ -287,8 +303,11 @@ def make_exclude():
     # check for any exclusions that don't seem to exist:
     parent, _ = os.path.split(get_ipython_package_dir())
     for exclusion in exclusions:
+        if exclusion.endswith(('deathrow', 'quarantine')):
+            # ignore deathrow/quarantine, which exist in dev, but not install
+            continue
         fullpath = pjoin(parent, exclusion)
-        if not os.path.exists(fullpath) and not os.path.exists(fullpath + '.py'):
+        if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
             warn("Excluding nonexistent file: %r\n" % exclusion)
 
     return exclusions

@@ -181,7 +181,7 @@ class ZMQSocketChannel(Thread):
 
 
 class ShellSocketChannel(ZMQSocketChannel):
-    """The XREQ channel for issues request/replies to the kernel.
+    """The DEALER channel for issues request/replies to the kernel.
     """
 
     command_queue = None

@@ -138,17 +138,6 @@ If you want to store the alias so that it will always be available, do '%store p
  Alias stored: psftp (0, 'c:\\opt\\PuTTY\\psftp.exe')
  ...
 
-mglob
------
-
-Provide the magic function %mglob, which makes it easier (than the 'find' command) to collect (possibly recursive) file lists. Examples::
-
- [c:/ipython]|9> mglob *.py
- [c:/ipython]|10> mglob *.py rec:*.txt
- [c:/ipython]|19> workfiles = %mglob !.svn/ !.hg/ !*_Data/ !*.bak rec:.
-
-Note that the first 2 calls will put the file list in result history (_, _9, _10), and the last one will assign it to 'workfiles'.
-
 
 Prompt customization
 ====================

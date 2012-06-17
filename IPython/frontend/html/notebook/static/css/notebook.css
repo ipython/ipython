@@ -39,6 +39,10 @@ span#notebook_name {
     padding: 2px 1.6em;
 }
 
+.ui-menu .ui-menu-item a.ui-state-focus {
+    margin: 0;
+}
+
 .ui-menu hr {
     margin: 0.3em 0;
 }
@@ -256,6 +260,10 @@ div.text_cell_render {
     color: black;
 }
 
+.CodeMirror span {
+    vertical-align: bottom;
+}
+
 .CodeMirror {
     line-height: 1.231;  /* Changed from 1em to our global default */
 }
@@ -291,7 +299,7 @@ div.cell.ui-widget-content {
 .completions {
     position: absolute;
     z-index: 10;
-    overflow: auto;
+    overflow: hidden;
     border: 1px solid grey;
 }
 
@@ -301,6 +309,7 @@ div.cell.ui-widget-content {
     border: none;
     padding: 0px;
     margin: 0px;
+    overflow: auto;
     font-family: monospace;
 }
 
@@ -351,3 +360,7 @@ p.dialog {
    to not honor it correctly.  Webkit browsers (Chrome, rekonq, Safari) do.
  */
 pre, code, kbd, samp { white-space: pre-wrap; }
+
+#fonttest {
+    font-family: monospace;
+}

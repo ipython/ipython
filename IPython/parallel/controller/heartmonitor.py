@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
-A multi-heart Heartbeat system using PUB and XREP sockets. pings are sent out on the PUB,
-and hearts are tracked based on their XREQ identities.
+A multi-heart Heartbeat system using PUB and ROUTER sockets. pings are sent out on the PUB,
+and hearts are tracked based on their DEALER identities.
 
 Authors:
 
@@ -34,9 +34,9 @@ class Heart(object):
     Device model for responding to heartbeats.
 
     It simply builds a threadsafe zmq.FORWARDER Device, defaulting to using
-    SUB/XREQ for in/out.
+    SUB/DEALER for in/out.
 
-    You can specify the XREQ's IDENTITY via the optional heart_id argument."""
+    You can specify the DEALER's IDENTITY via the optional heart_id argument."""
     device=None
     id=None
     def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.DEALER, heart_id=None):
@@ -62,7 +62,7 @@ class Heart(object):
 class HeartMonitor(LoggingConfigurable):
     """A basic HeartMonitor class
     pingstream: a PUB stream
-    pongstream: an XREP stream
+    pongstream: an ROUTER stream
     period: the period of the heartbeat in milliseconds"""
 
     period = Integer(3000, config=True,
@@ -171,11 +171,11 @@ if __name__ == '__main__':
     context = zmq.Context()
     pub = context.socket(zmq.PUB)
     pub.bind('tcp://127.0.0.1:5555')
-    xrep = context.socket(zmq.ROUTER)
-    xrep.bind('tcp://127.0.0.1:5556')
+    router = context.socket(zmq.ROUTER)
+    router.bind('tcp://127.0.0.1:5556')
 
     outstream = zmqstream.ZMQStream(pub, loop)
-    instream = zmqstream.ZMQStream(xrep, loop)
+    instream = zmqstream.ZMQStream(router, loop)
 
     hb = HeartMonitor(loop, outstream, instream)
 

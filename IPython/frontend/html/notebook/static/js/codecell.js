@@ -61,11 +61,11 @@ var IPython = (function (IPython) {
         // handlers and is used to provide custom key handling. Its return
         // value is used to determine if CodeMirror should ignore the event:
         // true = ignore, false = don't ignore.
-        
+
         if (this.read_only){
             return false;
         }
-        
+
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
@@ -90,7 +90,7 @@ var IPython = (function (IPython) {
                 event.stop();
                 return false;
             } else {
-                return true; 
+                return true;
             };
         } else if (event.which === key.ESC) {
             IPython.tooltip.remove_and_cancel_tooltip(true);
@@ -102,7 +102,7 @@ var IPython = (function (IPython) {
                 event.stop();
                 return false;
             } else {
-                return true; 
+                return true;
             };
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
@@ -267,6 +267,9 @@ var IPython = (function (IPython) {
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_text(data.input);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                this.code_mirror.clearHistory();
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);

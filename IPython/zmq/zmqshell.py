@@ -40,6 +40,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.process import arg_split
+from IPython.utils import py3compat
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
@@ -420,11 +421,42 @@ class KernelMagics(Magics):
         Useful for connecting a qtconsole to running notebooks, for better
         debugging.
         """
+        
+        # %qtconsole should imply bind_kernel for engines:
+        try:
+            from IPython.parallel import bind_kernel
+        except ImportError:
+            # technically possible, because parallel has higher pyzmq min-version
+            pass
+        else:
+            bind_kernel()
+        
         try:
             p = connect_qtconsole(argv=arg_split(arg_s, os.name=='posix'))
         except Exception as e:
             error("Could not start qtconsole: %r" % e)
             return
+
+def safe_unicode(e):
+    """unicode(e) with various fallbacks. Used for exceptions, which may not be
+    safe to call unicode() on.
+    """
+    try:
+        return unicode(e)
+    except UnicodeError:
+        pass
+
+    try:
+        return py3compat.str_to_unicode(str(e))
+    except UnicodeError:
+        pass
+
+    try:
+        return py3compat.str_to_unicode(repr(e))
+    except UnicodeError:
+        pass
+
+    return u'Unrecoverably corrupt evalue'
 
 
 class ZMQInteractiveShell(InteractiveShell):
@@ -504,7 +536,7 @@ class ZMQInteractiveShell(InteractiveShell):
         exc_content = {
             u'traceback' : stb,
             u'ename' : unicode(etype.__name__),
-            u'evalue' : unicode(evalue)
+            u'evalue' : safe_unicode(evalue)
         }
 
         dh = self.displayhook
