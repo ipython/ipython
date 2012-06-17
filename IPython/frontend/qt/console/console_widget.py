@@ -32,25 +32,29 @@ from kill_ring import QtKillRing
 # Functions
 #-----------------------------------------------------------------------------
 
+ESCAPE_CHARS = ''.join(ESC_SEQUENCES)
+ESCAPE_RE = re.compile("^["+ESCAPE_CHARS+"]+")
+
 def commonprefix(items):
-    """Given a list of pathnames, returns the longest common leading component
+    """Get common prefix for completions
 
-    Same function as os.path.commonprefix, but don't considere prefix made of
-    special caracters like #!$%... see
+    Return the longest common prefix of a list of strings, but with special
+    treatment of escape characters that might precede commands in IPython,
+    such as %magic functions. Used in tab completion.
 
-    IPython.core.inputsplitter import ESC_SEQUENCES
+    For a more general function, see os.path.commonprefix
     """
     # the last item will always have the least leading % symbol
-    prefixes = ''.join(ESC_SEQUENCES)
-    get_prefix = lambda x : x[0:-len(x.lstrip(prefixes))]
     # min / max are first/last in alphabetical order
-    first_prefix = get_prefix(min(items))
-    last_prefix = get_prefix(max(items))
-
+    first_match  = ESCAPE_RE.match(min(items))
+    last_match  = ESCAPE_RE.match(max(items))
     # common suffix is (common prefix of reversed items) reversed
-    prefix = os.path.commonprefix((first_prefix[::-1], last_prefix[::-1]))[::-1]
+    if first_match and last_match:
+        prefix = os.path.commonprefix((first_match.group(0)[::-1], last_match.group(0)[::-1]))[::-1]
+    else:
+        prefix = ''
 
-    items = [ s.lstrip(prefixes) for s in items ]
+    items = [s.lstrip(ESCAPE_CHARS) for s in items]
     return prefix+os.path.commonprefix(items)
 
 def is_letter_or_number(char):
