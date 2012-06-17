@@ -1025,6 +1025,27 @@ var IPython = (function (IPython) {
                 new_cell.fromJSON(cell_data);
             };
         };
+        if (data.worksheets.length > 1) {
+            var dialog = $('<div/>');
+            dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
+            "but this version of IPython can only handle the first.  " +
+            "If you save this notebook, worksheets after the first will be lost."
+            );
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Multiple worksheets",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+        }
     };
 
 
