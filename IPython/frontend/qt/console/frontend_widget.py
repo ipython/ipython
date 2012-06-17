@@ -98,6 +98,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     clear_on_kernel_restart = Bool(True, config=True,
         help="Whether to clear the console when the kernel is restarted")
 
+    confirm_restart = Bool(True, config=True,
+        help="Whether to ask for user confirmation when restarting kernel")
+
     # Emitted when a user visible 'execute_request' has been submitted to the
     # kernel from the FrontendWidget. Contains the code to be executed.
     executing = QtCore.Signal(object)
@@ -615,10 +618,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # Prompt the user to restart the kernel. Un-pause the heartbeat if
             # they decline. (If they accept, the heartbeat will be un-paused
             # automatically when the kernel is restarted.)
-            buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
-            result = QtGui.QMessageBox.question(self, 'Restart kernel?',
-                                                message, buttons)
-            if result == QtGui.QMessageBox.Yes:
+            if self.confirm_restart:
+                buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+                result = QtGui.QMessageBox.question(self, 'Restart kernel?',
+                                                    message, buttons)
+                do_restart = result == QtGui.QMessageBox.Yes
+            else:
+                # confirm_restart is False, so we don't need to ask user
+                # anything, just do the restart
+                do_restart = True
+            if do_restart:
                 try:
                     self.kernel_manager.restart_kernel(now=now)
                 except RuntimeError:
