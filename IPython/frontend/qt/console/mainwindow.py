@@ -11,6 +11,7 @@ Authors:
 * Fernando Perez
 * Bussonnier Matthias
 * Thomas Kluyver
+* Paul Ivanov
 
 """
 
@@ -536,14 +537,14 @@ class MainWindow(QtGui.QMainWindow):
 
         ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
 
-        self.interrupt_kernel_action = QtGui.QAction("Interrupt current Kernel",
+        self.interrupt_kernel_action = QtGui.QAction("&Interrupt current Kernel",
             self,
             triggered=self.interrupt_kernel_active_frontend,
             shortcut=ctrl+"+C",
             )
         self.add_menu_action(self.kernel_menu, self.interrupt_kernel_action)
 
-        self.restart_kernel_action = QtGui.QAction("Restart current Kernel",
+        self.restart_kernel_action = QtGui.QAction("&Restart current Kernel",
             self,
             triggered=self.restart_kernel_active_frontend,
             shortcut=ctrl+"+.",
@@ -551,6 +552,16 @@ class MainWindow(QtGui.QMainWindow):
         self.add_menu_action(self.kernel_menu, self.restart_kernel_action)
 
         self.kernel_menu.addSeparator()
+
+        self.confirm_restart_kernel_action = QtGui.QAction("&Confirm kernel restart",
+            self,
+            checkable=True,
+            checked=self.active_frontend.confirm_restart,
+            triggered=self.toggle_confirm_restart_active_frontend
+            )
+
+        self.add_menu_action(self.kernel_menu, self.confirm_restart_kernel_action)
+        self.tab_widget.currentChanged.connect(self.update_restart_checkbox)
 
     def _make_dynamic_magic(self,magic):
         """Return a function `fun` that will execute `magic` on active frontend.
@@ -831,6 +842,15 @@ class MainWindow(QtGui.QMainWindow):
 
     def interrupt_kernel_active_frontend(self):
         self.active_frontend.request_interrupt_kernel()
+
+    def toggle_confirm_restart_active_frontend(self):
+        widget = self.active_frontend
+        widget.confirm_restart = not widget.confirm_restart
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
+
+    def update_restart_checkbox(self):
+        widget = self.active_frontend
+        self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def cut_active_frontend(self):
         widget = self.active_frontend
