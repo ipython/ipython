@@ -47,14 +47,13 @@ def get_activate_cmd(line):
     """
     Returns the correct activate command given the platform
     """
-    if sys.platform.startswith("linux"):
-        env_activate_cmd = 'bash -c "source {0}/{1}/bin/activate && python -"'\
-    .format(os.environ['WORKON_HOME'], line)
-    elif sys.platform.startswith("win"):
+    if sys.platform.startswith("win"):
         env_activate_cmd = os.path.join(os.environ['WORKON_HOME'],line,
         'Scripts','activate') + "; python -"
     else:
-        raise("Platform not supported by virtualenv magic.")
+        env_activate_cmd = 'bash -c "source {0}/{1}/bin/activate && python -"'\
+    .format(os.environ['WORKON_HOME'], line)
+
     cmd = shlex.split(env_activate_cmd)
     return cmd
 
