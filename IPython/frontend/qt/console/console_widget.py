@@ -5,7 +5,7 @@
 #-----------------------------------------------------------------------------
 
 # Standard library imports
-from os.path import commonprefix
+import os.path
 import re
 import sys
 from textwrap import dedent
@@ -16,6 +16,7 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
+from IPython.core.inputsplitter import ESC_SEQUENCES
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
@@ -26,9 +27,35 @@ from completion_html import CompletionHtml
 from completion_plain import CompletionPlain
 from kill_ring import QtKillRing
 
+
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+ESCAPE_CHARS = ''.join(ESC_SEQUENCES)
+ESCAPE_RE = re.compile("^["+ESCAPE_CHARS+"]+")
+
+def commonprefix(items):
+    """Get common prefix for completions
+
+    Return the longest common prefix of a list of strings, but with special
+    treatment of escape characters that might precede commands in IPython,
+    such as %magic functions. Used in tab completion.
+
+    For a more general function, see os.path.commonprefix
+    """
+    # the last item will always have the least leading % symbol
+    # min / max are first/last in alphabetical order
+    first_match  = ESCAPE_RE.match(min(items))
+    last_match  = ESCAPE_RE.match(max(items))
+    # common suffix is (common prefix of reversed items) reversed
+    if first_match and last_match:
+        prefix = os.path.commonprefix((first_match.group(0)[::-1], last_match.group(0)[::-1]))[::-1]
+    else:
+        prefix = ''
+
+    items = [s.lstrip(ESCAPE_CHARS) for s in items]
+    return prefix+os.path.commonprefix(items)
 
 def is_letter_or_number(char):
     """ Returns whether the specified unicode character is a letter or a number.
