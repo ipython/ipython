@@ -8,27 +8,31 @@ import nose.tools as nt
 import os, shutil
 from nose import SkipTest
 import virtualenv
+from IPython.utils.tempdir import TemporaryDirectory
 
 home_dir = os.getenv('HOME')
-venv_dir = os.path.join(home_dir,'Envs/') if not "WORKON_HOME" \
+user_venv_dir = os.path.join(home_dir,'Envs/') if not "WORKON_HOME" \
     in os.environ else os.getenv("WORKON_HOME")
 if not os.path.exists(os.path.join(home_dir,'Envs/')):
     os.mkdir(os.path.join(home_dir,'Envs/'))
 
-testenv_dir = os.path.join(venv_dir,'testenv')
-if not os.path.exists(os.path.join(venv_dir,'testenv')):
-    os.mkdir(os.path.join(venv_dir,'testenv'))
+global testenv_dir
 
 
 
 def setup():
+    global testenv_dir
     ip = get_ipython()
-    #creating a testing virtual
-    virtualenv.create_environment(testenv_dir)
+    #creating a testing virtualenv
+    testenv_dir = TemporaryDirectory()
+    os.environ['WORKON_HOME'] = testenv_dir.name
+    virtualenv.create_environment(os.path.join(testenv_dir.name,'testenv'))
     ip.extension_manager.load_extension('virtualenvmagic')
 
 def teardown():
-    shutil.rmtree(testenv_dir)
+    del os.environ['WORKON_HOME']
+    testenv_dir.cleanup()
+
 
 
 def test_virtualenv_pypy():
