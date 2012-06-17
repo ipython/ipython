@@ -155,6 +155,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.fromJSON = function (data) {
+        IPython.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
@@ -170,7 +171,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.toJSON = function () {
-        var data = {};
+        var data = IPython.Cell.prototype.toJSON.apply(this);
         data.cell_type = this.cell_type;
         data.source = this.get_text();
         return data;

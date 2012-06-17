@@ -22,6 +22,7 @@ var IPython = (function (IPython) {
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.tooltip_on_tab = true;
+        this.collapsed = false;
         IPython.Cell.apply(this, arguments);
     };
 
@@ -200,17 +201,20 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.collapse = function () {
-    this.output_area.collapse();
+        this.collapsed = true;
+        this.output_area.collapse();
     };
 
 
     CodeCell.prototype.expand = function () {
-    this.output_area.expand();
+        this.collapsed = false;
+        this.output_area.expand();
     };
 
 
     CodeCell.prototype.toggle_output = function () {
-    this.output_area.toggle_output();
+        this.collapsed = Boolean(1 - this.collapsed);
+        this.output_area.toggle_output();
     };
 
 
@@ -264,6 +268,7 @@ var IPython = (function (IPython) {
     // JSON serialization
 
     CodeCell.prototype.fromJSON = function (data) {
+        IPython.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === 'code') {
             if (data.input !== undefined) {
                 this.set_text(data.input);
@@ -289,7 +294,7 @@ var IPython = (function (IPython) {
 
 
     CodeCell.prototype.toJSON = function () {
-        var data = {};
+        var data = IPython.Cell.prototype.toJSON.apply(this);
         data.input = this.get_text();
         data.cell_type = 'code';
         if (this.input_prompt_number) {

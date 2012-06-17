@@ -19,6 +19,7 @@ var IPython = (function (IPython) {
         this.read_only = false;
         this.selected = false;
         this.element = null;
+        this.metadata = {};
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
@@ -90,10 +91,16 @@ var IPython = (function (IPython) {
 
 
     Cell.prototype.toJSON = function () {
+        var data = {};
+        data.metadata = this.metadata;
+        return data;
     };
 
 
     Cell.prototype.fromJSON = function (data) {
+        if (data.metadata !== undefined) {
+            this.metadata = data.metadata;
+        }
     };
 
 
