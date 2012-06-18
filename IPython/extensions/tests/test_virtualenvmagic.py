@@ -35,26 +35,10 @@ def teardown():
 
 
 
-def test_virtualenv_pypy():
-    if not env_exists('pypyEnv'):
-        raise SkipTest("Environment pypyEnv not found, skipping test")
-    ip = get_ipython()
-    result = ip.run_cell_magic('virtualenv', 'pypyEnv', 'import sys;print\
-     (sys.version)')
-    nt.assert_true('PyPy' in result)
-
-def test_virtualenv_python3():
-    if not env_exists('py3'):
-        raise SkipTest("Environment py3 not found, skipping test")
-    ip = get_ipython()
-    result = ip.run_cell_magic('virtualenv', 'py3', 'import sys;print \
-    (sys.version_info.major)')
-    nt.assert_equals('3\n', result)
-
 def test_virtualenv_testenv():
     ip = get_ipython()
-    result = ip.run_cell_magic('virtualenv', 'testenv', 'print("hello")')
-    nt.assert_equals('hello\n', result)
+    result = ip.run_cell_magic('virtualenv', 'testenv', 'import sys;print(sys.path)')
+    nt.assert_equals('tmp', os.path.split(eval(result)[1])[0].split(os.path.sep)[1])
 
 def test_virtualenv_nonexisting():
     ip = get_ipython()
