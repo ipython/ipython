@@ -849,6 +849,8 @@ class MainWindow(QtGui.QMainWindow):
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
     def update_restart_checkbox(self):
+        if self.active_frontend is None:
+            return
         widget = self.active_frontend
         self.confirm_restart_kernel_action.setChecked(widget.confirm_restart)
 
