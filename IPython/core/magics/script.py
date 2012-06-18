@@ -18,6 +18,7 @@ import sys
 import signal
 import time
 from subprocess import Popen, PIPE
+import atexit
 
 # Our own packages
 from IPython.config.configurable import Configurable
@@ -135,6 +136,7 @@ class ScriptMagics(Magics, Configurable):
         Magics.__init__(self, shell=shell)
         self.job_manager = BackgroundJobManager()
         self.bg_processes = []
+        atexit.register(self.kill_bg_processes)
 
     def __del__(self):
         self.kill_bg_processes()
