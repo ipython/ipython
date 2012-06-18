@@ -158,6 +158,15 @@ var IPython = (function (IPython) {
         this.element.find('#toggle_output').click(function () {
             IPython.notebook.toggle_output();
         });
+        this.element.find('#collapse_all_output').click(function () {
+            IPython.notebook.collapse_all_output();
+        });
+        this.element.find('#scroll_all_output').click(function () {
+            IPython.notebook.scroll_all_output();
+        });
+        this.element.find('#expand_all_output').click(function () {
+            IPython.notebook.expand_all_output();
+        });
         this.element.find('#clear_all_output').click(function () {
             IPython.notebook.clear_all_output();
         });

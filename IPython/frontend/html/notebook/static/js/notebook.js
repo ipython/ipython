@@ -194,7 +194,11 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 79 && that.control_key_active) {
                 // Toggle output = o
-                that.toggle_output();
+                if (event.shiftKey){
+                    that.toggle_output_scroll();
+                } else {
+                    that.toggle_output();
+                }
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 83 && that.control_key_active) {
@@ -879,6 +883,53 @@ var IPython = (function (IPython) {
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).toggle_output();
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.toggle_output_scroll = function (index) {
+        var i = this.index_or_selected(index);
+        this.get_cell(i).toggle_output_scroll();
+    };
+
+
+    Notebook.prototype.collapse_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.collapse();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.scroll_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.scroll_if_long(20);
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.expand_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.unscroll_area();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
         this.dirty = true;
     };
 
