@@ -134,6 +134,10 @@ class ScriptMagics(Magics, Configurable):
         self._generate_script_magics()
         Magics.__init__(self, shell=shell)
         self.job_manager = BackgroundJobManager()
+        self.bg_processes = []
+
+    def __del__(self):
+        self.kill_bg_processes()
     
     def _generate_script_magics(self):
         cell_magics = self.magics['cell']
@@ -196,6 +200,7 @@ class ScriptMagics(Magics, Configurable):
         
         cell = cell.encode('utf8', 'replace')
         if args.bg:
+            self.bg_processes.append(p)
             if args.out:
                 self.shell.user_ns[args.out] = p.stdout
             if args.err:
@@ -245,3 +250,26 @@ class ScriptMagics(Magics, Configurable):
         p.stdin.write(cell)
         p.stdin.close()
         p.wait()
+
+    def kill_bg_processes(self):
+        """Kill all BG processes which are still running."""
+        for p in self.bg_processes:
+            if p.poll() is None:
+                try:
+                    p.send_signal(signal.SIGINT)
+                except:
+                    pass
+        time.sleep(0.1)
+        for p in self.bg_processes:
+            if p.poll() is None:
+                try:
+                    p.terminate()
+                except:
+                    pass
+        time.sleep(0.1)
+        for p in self.bg_processes:
+            if p.poll() is None:
+                try:
+                    p.kill()
+                except:
+                    pass
