@@ -36,7 +36,6 @@ def virtualenv(line, cell):
     cmd = get_activate_cmd(line)
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
     out, err = p.communicate(cell)
-    p.wait()
     if err:
         print >> sys.stderr, err
     return out
