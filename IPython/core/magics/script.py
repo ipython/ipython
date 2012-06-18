@@ -251,7 +251,8 @@ class ScriptMagics(Magics, Configurable):
         p.stdin.close()
         p.wait()
 
-    def kill_bg_processes(self):
+    @line_magic("killbgscripts")
+    def kill_bg_processes(self, dummy=None):
         """Kill all BG processes which are still running."""
         for p in self.bg_processes:
             if p.poll() is None:
