@@ -35,6 +35,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m o', help: 'toggle output'},
+            {key: 'Ctrl-m O', help: 'toggle output scroll'},
             {key: 'Ctrl-m l', help: 'toggle line numbers'},
             {key: 'Ctrl-m s', help: 'save notebook'},
             {key: 'Ctrl-m j', help: 'move cell down'},

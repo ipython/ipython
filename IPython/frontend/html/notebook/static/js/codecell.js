@@ -218,6 +218,11 @@ var IPython = (function (IPython) {
     };
 
 
+    CodeCell.prototype.toggle_output_scroll = function () {
+    this.output_area.toggle_scroll();
+    };
+
+
     CodeCell.prototype.set_input_prompt = function (number) {
         this.input_prompt_number = number;
         var ns = number || "&nbsp;";
