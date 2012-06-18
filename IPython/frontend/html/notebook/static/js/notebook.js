@@ -25,11 +25,14 @@ var IPython = (function (IPython) {
         this.paste_enabled = false;
         this.dirty = false;
         this.metadata = {};
+        // single worksheet for now
+        this.worksheet_metadata = {};
         this.control_key_active = false;
         this.notebook_id = null;
         this.notebook_name = null;
         this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
+        this.nbformat_minor = 0 // Increment this when changing the nbformat
         this.style();
         this.create_elements();
         this.bind_events();
@@ -1018,6 +1021,9 @@ var IPython = (function (IPython) {
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
+            if (worksheet.metadata) {
+                this.worksheet_metadata = worksheet.metadata;
+            }
             var new_cells = worksheet.cells;
             ncells = new_cells.length;
             var cell_data = null;
@@ -1034,6 +1040,27 @@ var IPython = (function (IPython) {
                 new_cell.fromJSON(cell_data);
             };
         };
+        if (data.worksheets.length > 1) {
+            var dialog = $('<div/>');
+            dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
+            "but this version of IPython can only handle the first.  " +
+            "If you save this notebook, worksheets after the first will be lost."
+            );
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Multiple worksheets",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+        }
     };
 
 
@@ -1046,7 +1073,10 @@ var IPython = (function (IPython) {
         };
         var data = {
             // Only handle 1 worksheet for now.
-            worksheets : [{cells:cell_array}],
+            worksheets : [{
+                cells: cell_array,
+                metadata: this.worksheet_metadata
+            }],
             metadata : this.metadata
         };
         return data;
@@ -1057,6 +1087,7 @@ var IPython = (function (IPython) {
         var data = this.toJSON();
         data.metadata.name = this.notebook_name;
         data.nbformat = this.nbformat;
+        data.nbformat_minor = this.nbformat_minor;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1133,6 +1164,31 @@ var IPython = (function (IPython) {
                 },
                 width: 400
             });
+        } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
+            var that = this;
+            var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
+            var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
+            msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
+            this_vs + ".  You can still work with this notebook, but some features " +
+            "introduced in later notebook versions may not be available."
+            
+            var dialog = $('<div/>');
+            dialog.html(msg);
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Newer Notebook",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+            
         }
         // Create the kernel after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
