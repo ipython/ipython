@@ -9,7 +9,6 @@ Configuration and customization
 
    overview.txt
    extensions/index.txt
-   plugins.txt
    ipython.txt
    editors.txt
    old.txt
