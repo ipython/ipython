@@ -380,12 +380,37 @@ var IPython = (function (IPython) {
     };
 
 
+    OutputArea.prototype._dblclick_to_reset_size = function (img) {
+        // schedule wrapping image in resizable after a delay,
+        // so we don't end up calling resize on a zero-size object
+        var that = this;
+        setTimeout(function () {
+            var h0 = img.height();
+            var w0 = img.width();
+            if (!(h0 && w0)) {
+                // zero size, schedule another timeout
+                that._dblclick_to_reset_size(img);
+                return
+            }
+            img.resizable({
+                aspectRatio: true,
+                autoHide: true
+            });
+            img.dblclick(function () {
+                // resize wrapper & image together for some reason:
+                img.parent().height(h0);
+                img.height(h0);
+                img.parent().width(w0);
+                img.width(w0);
+            });
+        }, 250);
+    }
+
+
     OutputArea.prototype.append_png = function (png, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
-        img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
-        });
+        this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
     };
@@ -394,9 +419,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_jpeg = function (jpeg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
-        img.load(function () {
-            $(this).resizable({'aspectRatio': true, 'autoHide': true})
-        });
+        this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
     };
