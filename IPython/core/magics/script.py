@@ -205,7 +205,7 @@ class ScriptMagics(Magics, Configurable):
                 self.shell.user_ns[args.out] = p.stdout
             if args.err:
                 self.shell.user_ns[args.err] = p.stderr
-            self.job_manager.new(self._run_script, p, cell)
+            self.job_manager.new(self._run_script, p, cell, daemon=True)
             if args.proc:
                 self.shell.user_ns[args.proc] = p
             return
