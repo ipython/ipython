@@ -26,7 +26,7 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, List, Dict, Bool
+from IPython.utils.traitlets import Unicode, List, Dict, Bool, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -37,6 +37,16 @@ class NotebookManager(LoggingConfigurable):
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
         The directory to use for notebooks.
     """)
+    def _notebook_dir_changed(self, name, old, new):
+        """do a bit of validation of the notebook dir"""
+        if os.path.exists(new) and not os.path.isdir(new):
+            raise TraitError("notebook dir %r is not a directory" % new)
+        if not os.path.exists(new):
+            self.log.info("Creating notebook dir %s", new)
+            try:
+                os.mkdir(new)
+            except:
+                raise TraitError("Couldn't create notebook dir %r" % new)
     
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
