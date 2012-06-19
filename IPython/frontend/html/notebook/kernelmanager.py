@@ -87,10 +87,21 @@ class MultiKernelManager(LoggingConfigurable):
                     config=self.config,
         )
         km.start_kernel(**kwargs)
-        # start the shell channel, needed for graceful restart
+        # start just the shell channel, needed for graceful restart
         km.start_channels(shell=True, sub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
         return kernel_id
+
+    def shutdown_kernel(self, kernel_id):
+        """Shutdown a kernel by its kernel uuid.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel to shutdown.
+        """
+        self.get_kernel(kernel_id).shutdown_kernel()
+        del self._kernels[kernel_id]
 
     def kill_kernel(self, kernel_id):
         """Kill a kernel by its kernel uuid.
@@ -268,6 +279,13 @@ class MappingKernelManager(MultiKernelManager):
         else:
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
+
+    def shutdown_kernel(self, kernel_id):
+        """Shutdown a kernel and remove its notebook association."""
+        self._check_kernel_id(kernel_id)
+        super(MappingKernelManager, self).shutdown_kernel(kernel_id)
+        self.delete_mapping_for_kernel(kernel_id)
+        self.log.info("Kernel shutdown: %s" % kernel_id)
 
     def kill_kernel(self, kernel_id):
         """Kill a kernel and remove its notebook association."""
