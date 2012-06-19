@@ -254,7 +254,12 @@ class ScriptMagics(Magics, Configurable):
         p.wait()
 
     @line_magic("killbgscripts")
-    def kill_bg_processes(self, dummy=None):
+    def killbgscripts(self, _nouse_=''):
+        """Kill all BG processes started by %%script and its family."""
+        self.kill_bg_processes()
+        print "All background processes were killed."
+
+    def kill_bg_processes(self):
         """Kill all BG processes which are still running."""
         for p in self.bg_processes:
             if p.poll() is None:
