@@ -344,7 +344,7 @@ class KernelHandler(AuthenticatedHandler):
     @web.authenticated
     def delete(self, kernel_id):
         km = self.application.kernel_manager
-        km.kill_kernel(kernel_id)
+        km.shutdown_kernel(kernel_id)
         self.set_status(204)
         self.finish()
 
