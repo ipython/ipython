@@ -1,0 +1,14 @@
+# http://travis-ci.org/#!/ipython/ipython
+language: python
+python:
+    - 2.6
+    - 2.7
+    - 3.2
+before_install:
+    - pip install --use-mirrors numpy
+    - easy_install -q pyzmq
+install:
+    - python setup.py install -q 
+script:
+    - if [[ $TRAVIS_PYTHON_VERSION == '2.'* ]]; then iptest -w /tmp; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == '3.'* ]]; then iptest3 -w /tmp; fi
