@@ -203,6 +203,7 @@ class ScriptMagics(Magics, Configurable):
         cell = cell.encode('utf8', 'replace')
         if args.bg:
             self.bg_processes.append(p)
+            self._gc_bg_processes()
             if args.out:
                 self.shell.user_ns[args.out] = p.stdout
             if args.err:
@@ -281,3 +282,7 @@ class ScriptMagics(Magics, Configurable):
                     p.kill()
                 except:
                     pass
+        self._gc_bg_processes()
+
+    def _gc_bg_processes(self):
+        self.bg_processes = [p for p in self.bg_processes if p.poll() is None]
