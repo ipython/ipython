@@ -469,13 +469,19 @@ class Magics(object):
         # grab.  Only now, that the instance exists, can we create the proper
         # mapping to bound methods.  So we read the info off the original names
         # table and replace each method name by the actual bound method.
+        # But we mustn't clobber the *class* mapping, in case of multiple instances.
+        class_magics = self.magics
+        self.magics = {}
         for mtype in magic_kinds:
-            tab = self.magics[mtype]
-            # must explicitly use keys, as we're mutating this puppy
-            for magic_name in tab.keys():
-                meth_name = tab[magic_name]
+            tab = self.magics[mtype] = {}
+            cls_tab = class_magics[mtype]
+            for magic_name, meth_name in cls_tab.iteritems():
                 if isinstance(meth_name, basestring):
+                    # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
+                else:
+                    # it's the real thing
+                    tab[magic_name] = meth_name
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
