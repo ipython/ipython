@@ -185,7 +185,7 @@ Currently the magic system has the following functions:""",
         raw = 'r' in opts
 
         oname = args and args or '_'
-        info = self._ofind(oname)
+        info = self.shell._ofind(oname)
         if info['found']:
             txt = (raw and str or pformat)( info['obj'] )
             page.page(txt)
