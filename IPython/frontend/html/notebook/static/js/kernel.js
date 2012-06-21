@@ -36,13 +36,16 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype._get_msg = function (msg_type, content) {
+        var uuid = utils.uuid()
         var msg = {
             header : {
-                msg_id : utils.uuid(),
+                msg_id : uuid,
                 username : this.username,
                 session : this.session_id,
                 msg_type : msg_type
             },
+            msg_id : uuid,
+            msg_type : msg_type,
             content : content,
             parent_header : {}
         };
