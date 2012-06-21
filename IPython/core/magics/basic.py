@@ -80,7 +80,7 @@ class BasicMagics(Magics):
 
         for mtype in ('line', 'cell'):
             escape = escapes[mtype]
-            for fname, fn in magics[mtype].iteritems():
+            for fname, fn in sorted(magics[mtype].items()):
 
                 if mode == 'brief':
                     # only first line
