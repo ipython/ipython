@@ -101,8 +101,6 @@ class BasicMagics(Magics):
             return
         else:
             magic_docs = format_screen(magic_docs)
-        if mode == 'brief':
-            return magic_docs
 
         out = ["""
 IPython's 'magic' functions
@@ -294,7 +292,7 @@ Defaulting color scheme to 'NoColor'"""
     def quickref(self,arg):
         """ Show a quick reference sheet """
         from IPython.core.usage import quick_reference
-        qr = quick_reference + self.magic('-brief')
+        qr = quick_reference + self._magic_docs(brief=True)
         page.page(qr)
 
     @line_magic
