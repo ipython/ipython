@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2008 The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -14,99 +14,195 @@ var IPython = (function (IPython) {
     var ToolBar = function (selector) {
         this.selector = selector;
         if (this.selector !== undefined) {
+            this.construct();
+            this.addDropDownList();
             this.element = $(selector);
             this.style();
             this.bind_events();
         }
     };
 
+    // add a group of button into the current toolbar.
+    //
+    // First argument : Mandatory
+    //      list of dict as argument, each dict should contain
+    //      3 mandatory keys and values :
+    //      'label' : string -- the text to show on hover
+    //      'icon'  : string -- the jQuery-ui icon to add on this button
+    //      'callback' : function -- the callback to execute on a click
+    //
+    //      and optionnaly an 'id' key that is assigned to the button element
+    //
+    // Second Argument, optionnal,
+    //      string reprensenting the id to give to the button group.
+    //
+    // Example
+    //
+    // IPython.toolbar.addButtonsGroup([
+    //  {'label':'my button',
+    //   'icon':'ui-icon-disk',
+    //   'callback':function(){alert('hoho'),
+    //   'id' : 'my_button_id',                 // this is optionnal
+    //   }
+    //  },
+    //  {'label':'my second button',
+    //   'icon':'ui-icon-scissors',
+    //   'callback':function(){alert('be carefull I cut')}
+    //  }
+    //  ],
+    //  "my_button_group_id"
+    //  )
+    //
+    ToolBar.prototype.addButtonsGroup = function(list, group_id){
+        var span_group = $('<span/>');
+        if( group_id != undefined )
+            span_group.attr('id',group_id)
+        for(var el in list)
+        {
+            var button  = $('<button/>').button({
+                icons : {primary: list[el]['icon']},
+                text : false,
+                label: list[el]['label'],
+                });
+            var id = list[el]['id'];
+            if( id != undefined )
+                button.attr('id',id);
+            var fun = list[el]['callback']
+            button.click(fun);
+            span_group.append(button);
+        }
+        span_group.buttonset();
+        $(this.selector).append(span_group)
+    }
 
     ToolBar.prototype.style = function () {
         this.element.addClass('border-box-sizing').
-            addClass('ui-widget ui-widget-content').
+            addClass('ui-widget ui-widget-content toolbar').
             css('border-top-style','none').
             css('border-left-style','none').
             css('border-right-style','none');
-        this.element.find('#cell_type').addClass('ui-widget ui-widget-content');
-        this.element.find('#save_b').button({
-            icons : {primary: 'ui-icon-disk'},
-            text : false
-        });
-        this.element.find('#cut_b').button({
-            icons: {primary: 'ui-icon-scissors'},
-            text : false
-        });
-        this.element.find('#copy_b').button({
-            icons: {primary: 'ui-icon-copy'},
-            text : false
-        });
-        this.element.find('#paste_b').button({
-            icons: {primary: 'ui-icon-clipboard'},
-            text : false
-        });
-        this.element.find('#cut_copy_paste').buttonset();
-        this.element.find('#move_up_b').button({
-            icons: {primary: 'ui-icon-arrowthick-1-n'},
-            text : false
-        });
-        this.element.find('#move_down_b').button({
-            icons: {primary: 'ui-icon-arrowthick-1-s'},
-            text : false
-        });
-        this.element.find('#move_up_down').buttonset();
-        this.element.find('#insert_above_b').button({
-            icons: {primary: 'ui-icon-arrowthickstop-1-n'},
-            text : false
-        });
-        this.element.find('#insert_below_b').button({
-            icons: {primary: 'ui-icon-arrowthickstop-1-s'},
-            text : false
-        });
-        this.element.find('#insert_above_below').buttonset();
-        this.element.find('#run_b').button({
-            icons: {primary: 'ui-icon-play'},
-            text : false
-        });
-        this.element.find('#interrupt_b').button({
-            icons: {primary: 'ui-icon-stop'},
-            text : false
-        });
-        this.element.find('#run_int').buttonset();
     };
 
+    ToolBar.prototype.addDropDownList = function()
+    {
+        var select = $(this.selector)
+            .append($('<select/>')
+                .attr('id','cell_type')
+                .addClass('ui-widget ui-widget-content')
+                    .append($('<option/>').attr('value','code').text('Code'))
+                    .append($('<option/>').attr('value','markdown').text('Markdown'))
+                    .append($('<option/>').attr('value','raw').text('Raw Text'))
+                    .append($('<option/>').attr('value','heading1').text('Heading 1'))
+                    .append($('<option/>').attr('value','heading2').text('Heading 2'))
+                    .append($('<option/>').attr('value','heading3').text('Heading 3'))
+                    .append($('<option/>').attr('value','heading4').text('Heading 4'))
+                    .append($('<option/>').attr('value','heading5').text('Heading 5'))
+                    .append($('<option/>').attr('value','heading6').text('Heading 6'))
+                    .append($('<option/>').attr('value','heading7').text('Heading 7'))
+                    .append($('<option/>').attr('value','heading8').text('Heading 8'))
+                );
+    }
 
+    ToolBar.prototype.construct = function() {
+        this.addButtonsGroup([
+                {
+                    'id':'save_b',
+                    'label':'Save',
+                    'icon':'ui-icon-disk',
+                    'callback':function(){
+                        IPython.notebook.save_notebook();
+                        },
+                },
+            ]);
+        this.addButtonsGroup([
+                {
+                    'id':'cut_b',
+                    'label':'Cut Cell',
+                    'icon':'ui-icon-scissors',
+                    'callback':function(){
+                        IPython.notebook.cut_cell();
+                        },
+                },
+                {
+                    'id':'copy_b',
+                    'label':'Copy Cell',
+                    'icon':'ui-icon-copy',
+                    'callback':function(){
+                        IPython.notebook.copy_cell();
+                        },
+                },
+                {
+                    'id':'paste_b',
+                    'label':'Paste Cell',
+                    'icon':'ui-icon-clipboard',
+                    'callback':function(){
+                        IPython.notebook.paste_cell();
+                        },
+                },
+            ],'cut_copy_paste');
+
+        this.addButtonsGroup([
+                {
+                    'id':'move_up_b',
+                    'label':'Move Cell Up',
+                    'icon':'ui-icon-arrowthick-1-n',
+                    'callback':function(){
+                        IPython.notebook.move_cell_up();
+                        },
+                },
+                {
+                    'id':'move_down_b',
+                    'label':'Move Cell Down',
+                    'icon':'ui-icon-arrowthick-1-s',
+                    'callback':function(){
+                        IPython.notebook.move_cell_down();
+                        },
+                },
+            ],'move_up_down');
+        
+        this.addButtonsGroup([
+                {
+                    'id':'insert_above_b',
+                    'label':'Insert Cell Above',
+                    'icon':'ui-icon-arrowthickstop-1-n',
+                    'callback':function(){
+                        IPython.notebook.insert_cell_above('code');
+                        },
+                },
+                {
+                    'id':'insert_below_b',
+                    'label':'Insert Cell Below',
+                    'icon':'ui-icon-arrowthickstop-1-s',
+                    'callback':function(){
+                        IPython.notebook.insert_cell_below('code');
+                        },
+                },
+            ],'insert_above_below');
+
+        this.addButtonsGroup([
+                {
+                    'id':'run_b',
+                    'label':'Run Cell',
+                    'icon':'ui-icon-play',
+                    'callback':function(){
+                    IPython.notebook.execute_selected_cell();
+                        },
+                },
+                {
+                    'id':'interrupt_b',
+                    'label':'Interrupt',
+                    'icon':'ui-icon-stop',
+                    'callback':function(){
+                        IPython.notebook.kernel.interrupt();
+                        },
+                },
+            ],'run_int');
+
+
+    }
     ToolBar.prototype.bind_events = function () {
         var that = this;
-        this.element.find('#save_b').click(function () {
-            IPython.notebook.save_notebook();
-        });
-        this.element.find('#cut_b').click(function () {
-            IPython.notebook.cut_cell();
-        });
-        this.element.find('#copy_b').click(function () {
-            IPython.notebook.copy_cell();
-        });
-        this.element.find('#paste_b').click(function () {
-            IPython.notebook.paste_cell();
-        });
-        this.element.find('#move_up_b').click(function () {
-            IPython.notebook.move_cell_up();
-        });
-        this.element.find('#move_down_b').click(function () {
-            IPython.notebook.move_cell_down();
-        });
-        this.element.find('#insert_above_b').click(function () {
-            IPython.notebook.insert_cell_above('code');
-        });
-        this.element.find('#insert_below_b').click(function () {
-            IPython.notebook.insert_cell_below('code');
-        });
-        this.element.find('#run_b').click(function () {
-            IPython.notebook.execute_selected_cell();
-        });
-        this.element.find('#interrupt_b').click(function () {
-            IPython.notebook.kernel.interrupt();
-        });
+        
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
