@@ -363,21 +363,9 @@ class IPTester(object):
         # (on posix only, since win32 has no os.kill)
         self.pids = []
 
-    if sys.platform == 'win32':
-        def _run_cmd(self):
-            # On Windows, use os.system instead of subprocess.call, because I
-            # was having problems with subprocess and I just don't know enough
-            # about win32 to debug this reliably.  Os.system may be the 'old
-            # fashioned' way to do it, but it works just fine.  If someone
-            # later can clean this up that's fine, as long as the tests run
-            # reliably in win32.
-            # What types of problems are you having. They may be related to
-            # running Python in unboffered mode. BG.
-            with TemporaryDirectory() as IPYTHONDIR:
-                return os.system(' '.join(['IPYTHONDIR=%s' % IPYTHONDIR] +
-                                          self.call_args))
-    else:
-        def _run_cmd(self):
+    def run(self):
+        """Run the stored commands"""
+        try:
             with TemporaryDirectory() as IPYTHONDIR:
                 env = os.environ.copy()
                 env['IPYTHONDIR'] = IPYTHONDIR
@@ -389,17 +377,11 @@ class IPTester(object):
                 # stored pid.
                 retcode = subp.wait()
                 self.pids.pop()
-            return retcode
-
-    def run(self):
-        """Run the stored commands"""
-        try:
-            retcode = self._run_cmd()
         except:
             import traceback
             traceback.print_exc()
             return 1  # signal failure
-        
+
         if self.coverage_xml:
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
