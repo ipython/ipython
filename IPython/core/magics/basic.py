@@ -59,6 +59,24 @@ class BasicMagics(Magics):
         """List currently available magic functions."""
         print(self._lsmagic())
 
+    def _magic_docs(self, brief=False, rest=False):
+        """Return docstrings from magic functions."""
+        mman = self.shell.magics_manager
+        docs = mman.lsmagic_docs(brief, missing='No documentation')
+
+        if rest:
+            format_string = '**%s%s**::\n\n\t%s\n\n'
+        else:
+            format_string = '%s%s:\n\t%s\n'
+
+        return ''.join(
+            [format_string % (ESC_MAGIC, fname, fndoc)
+             for fname, fndoc in sorted(docs['line'].items())]
+            +
+            [format_string % (ESC_MAGIC*2, fname, fndoc)
+             for fname, fndoc in sorted(docs['cell'].items())]
+        )
+
     @line_magic
     def magic(self, parameter_s=''):
         """Print information about the magic function system.
@@ -74,37 +92,9 @@ class BasicMagics(Magics):
         except IndexError:
             pass
 
-        magic_docs = []
-        escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC*2)
-        magics = self.shell.magics_manager.magics
-
-        for mtype in ('line', 'cell'):
-            escape = escapes[mtype]
-            for fname, fn in sorted(magics[mtype].items()):
-
-                if mode == 'brief':
-                    # only first line
-                    if fn.__doc__:
-                        fndoc = fn.__doc__.split('\n',1)[0]
-                    else:
-                        fndoc = 'No documentation'
-                else:
-                    if fn.__doc__:
-                        fndoc = fn.__doc__.rstrip()
-                    else:
-                        fndoc = 'No documentation'
-
-                if mode == 'rest':
-                    rest_docs.append('**%s%s**::\n\n\t%s\n\n' %
-                                     (escape, fname, fndoc))
-                else:
-                    magic_docs.append('%s%s:\n\t%s\n' %
-                                      (escape, fname, fndoc))
-
-        magic_docs = ''.join(magic_docs)
-
-        if mode == 'rest':
-            return "".join(rest_docs)
+        brief = (mode == 'brief')
+        rest = (mode == 'rest')
+        magic_docs = self._magic_docs(brief, rest)
 
         if mode == 'latex':
             print(self.format_latex(magic_docs))

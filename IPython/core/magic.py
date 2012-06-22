@@ -340,6 +340,30 @@ class MagicsManager(Configurable):
         """
         return self.magics
 
+    def lsmagic_docs(self, brief=False, missing=''):
+        """Return dict of documentation of magic functions.
+
+        The return dict has the keys 'line' and 'cell', corresponding to the
+        two types of magics we support. Each value is a dict keyed by magic
+        name whose value is the function docstring. If a docstring is
+        unavailable, the value of `missing` is used instead.
+
+        If brief is True, only the first line of each docstring will be returned.
+        """
+        docs = {}
+        for m_type in self.magics:
+            m_docs = {}
+            for m_name, m_func in self.magics[m_type].iteritems():
+                if m_func.__doc__:
+                    if brief:
+                        m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
+                    else:
+                        m_docs[m_name] = m_func.__doc__.rstrip()
+                else:
+                    m_docs[m_name] = missing
+            docs[m_type] = m_docs
+        return docs
+
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
 
