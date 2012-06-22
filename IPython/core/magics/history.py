@@ -193,6 +193,7 @@ class HistoryMagics(Magics):
         return self.history(arg)
 
     hist.__doc__ = history.__doc__
+    hist._magic_alias = 'history'
 
     @line_magic
     def rep(self, arg):
@@ -298,4 +299,4 @@ class HistoryMagics(Magics):
         self.rep(arg)
 
     recall.__doc__ = rep.__doc__
-
+    recall._magic_alias = 'rep'
