@@ -25,7 +25,7 @@ from getopt import getopt, GetoptError
 from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
@@ -47,6 +47,7 @@ magics = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
+magic_escapes = {'line': ESC_MAGIC, 'cell': ESC_MAGIC2}
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
@@ -353,12 +354,18 @@ class MagicsManager(Configurable):
         docs = {}
         for m_type in self.magics:
             m_docs = {}
+            escape = magic_escapes[m_type]
             for m_name, m_func in self.magics[m_type].iteritems():
-                if m_func.__doc__:
+                if hasattr(m_func, '_magic_alias'):
+                    doc = "Alias for `%s%s`." % (escape, m_func._magic_alias)
+                else:
+                    doc = m_func.__doc__
+
+                if doc:
                     if brief:
-                        m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
+                        m_docs[m_name] = doc.split('\n', 1)[0]
                     else:
-                        m_docs[m_name] = m_func.__doc__.rstrip()
+                        m_docs[m_name] = doc.rstrip()
                 else:
                     m_docs[m_name] = missing
             docs[m_type] = m_docs
