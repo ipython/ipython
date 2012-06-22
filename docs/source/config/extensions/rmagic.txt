@@ -1,7 +1,7 @@
 .. _extensions_rmagic:
 
 ===========
-Rmagic
+rmagic
 ===========
 
 .. automodule:: IPython.extensions.rmagic
