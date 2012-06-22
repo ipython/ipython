@@ -323,11 +323,6 @@ class CodeMagics(Magics):
         mfile.close()
         self.shell.user_ns[mname] = Macro(mvalue)
 
-    @line_magic
-    def ed(self, parameter_s=''):
-        """Alias to %edit."""
-        return self.edit(parameter_s)
-
     @skip_doctest
     @line_magic
     def edit(self, parameter_s='',last_call=['','']):
@@ -519,3 +514,8 @@ class CodeMagics(Magics):
                     return
                 else:
                     self.shell.showtraceback()
+    @line_magic
+    def ed(self, parameter_s=''):
+        return self.edit(parameter_s)
+    ed.__doc__ = edit.__doc__
+    ed._magic_alias = 'edit'
