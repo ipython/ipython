@@ -125,8 +125,8 @@ messages upon deserialization to the following form for convenience::
       # but the Python implementation copies them to the top level.
       'msg_id' : uuid,
       'msg_type' : str,
-      'parent_header' : dict
-      'content' : dict
+      'parent_header' : dict,
+      'content' : dict,
     }
 
 All messages sent to or received by any IPython process should have this
@@ -554,7 +554,7 @@ Message type: ``object_info_reply``::
     # that no source was found.
     'source' : str,
     }
-'
+
     
 Complete
 --------
