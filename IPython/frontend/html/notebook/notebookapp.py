@@ -551,10 +551,11 @@ class NotebookApp(BaseIPythonApplication):
 
         if self.open_browser or self.file_to_run:
             ip = self.ip or '127.0.0.1'
-            if self.browser:
-                browser = webbrowser.get(self.browser)
-            else:
-                browser = webbrowser.get()
+            try:
+                browser = webbrowser.get(self.browser or None)
+            except webbrowser.Error as e:
+                self.log.warn('No web browser found: %s.' % e)
+                browser = None
 
             if self.file_to_run:
                 filename, _ = os.path.splitext(os.path.basename(self.file_to_run))
@@ -566,10 +567,10 @@ class NotebookApp(BaseIPythonApplication):
                     url = ''
             else:
                 url = ''
-            b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
-                                        self.port, self.base_project_url, url),
-                                    new=2)
-            threading.Thread(target=b).start()
+            if browser:
+                b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
+                    self.port, self.base_project_url, url), new=2)
+                threading.Thread(target=b).start()
         try:
             ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:
