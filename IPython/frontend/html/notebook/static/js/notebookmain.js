@@ -43,8 +43,8 @@ $(document).ready(function () {
     var ih = $('#test3').innerHeight();
     if(nh != bh || nh != ih) {
         $('head').append('<style>.CodeMirror span { vertical-align: bottom; }</style>');
-        $('#fonttest').remove();
     }
+    $('#fonttest').remove();
 
     if(IPython.read_only){
         // hide various elements from read-only view
