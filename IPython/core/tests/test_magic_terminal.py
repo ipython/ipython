@@ -179,3 +179,13 @@ class PasteTestCase(TestCase):
         nt.assert_equal(ip.user_ns['b'], 200)
         nt.assert_equal(out, code+"\n## -- End pasted text --\n")
 
+    def test_paste_leading_commas(self):
+        "Test multiline strings with leading commas"
+        tm = ip.magics_manager.registry['TerminalMagics']
+        s = '''\                        
+a = """
+,1,2,3
+"""'''
+        ip.user_ns.pop('foo', None)
+        tm.store_or_execute(s, 'foo')
+        nt.assert_in('foo', ip.user_ns)
