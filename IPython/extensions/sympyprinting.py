@@ -11,7 +11,7 @@ pretty-printed.
 
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2008  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -45,7 +45,9 @@ def print_basic_unicode(o, p, cycle):
 
 
 def print_png(o):
-    """A function to display sympy expression using LaTex -> PNG."""
+    """
+    A function to display sympy expression using inline style LaTeX in PNG.
+    """
     s = latex(o, mode='inline')
     # mathtext does not understand certain latex flags, so we try to replace
     # them with suitable subs.
@@ -53,6 +55,19 @@ def print_png(o):
     s = s.replace('\\overline', '\\bar')
     png = latex_to_png(s)
     return png
+
+
+def print_display_png(o):
+    """
+    A function to display sympy expression using display style LaTeX in PNG.
+    """
+    s = latex(o, mode='plain')
+    s = s.strip('$')
+    # As matplotlib does not support display style, dvipng backend is
+    # used here.
+    png = latex_to_png('$$%s$$' % s, backend='dvipng')
+    return png
+
 
 def can_print_latex(o):
     """
@@ -114,6 +129,9 @@ def load_ipython_extension(ip):
 
         png_formatter.for_type_by_name(
             'sympy.core.basic', 'Basic', print_png
+        )
+        png_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'Matrix', print_display_png
         )
         for cls in [dict, int, long, float] + printable_containers:
             png_formatter.for_type(cls, print_png)

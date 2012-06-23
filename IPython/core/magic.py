@@ -25,12 +25,12 @@ from getopt import getopt, GetoptError
 from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.prefilter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
-from IPython.utils.traitlets import Bool, Dict, Instance
+from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error, warn
 
 #-----------------------------------------------------------------------------
@@ -321,6 +321,16 @@ class MagicsManager(Configurable):
     def auto_status(self):
         """Return descriptive string with automagic status."""
         return self._auto_status[self.auto_magic]
+    
+    def lsmagic_info(self):
+        magic_list = []
+        for m_type in self.magics :
+            for m_name,mgc in self.magics[m_type].items():
+                try :
+                    magic_list.append({'name':m_name,'type':m_type,'class':mgc.im_class.__name__})
+                except AttributeError :
+                    magic_list.append({'name':m_name,'type':m_type,'class':'Other'})
+        return magic_list
 
     def lsmagic(self):
         """Return a dict of currently available magic functions.
@@ -355,10 +365,10 @@ class MagicsManager(Configurable):
         for m in magic_objects:
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
-                                 "the @register_macics class decorator")
-            if type(m) is type:
+                                 "the @register_magics class decorator")
+            if type(m) in (type, MetaHasTraits):
                 # If we're given an uninstantiated class
-                m = m(self.shell)
+                m = m(shell=self.shell)
 
             # Now that we have an instance, we can register it and update the
             # table of callables

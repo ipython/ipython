@@ -565,12 +565,15 @@ class TerminalInteractiveShell(InteractiveShell):
 
         if self.has_readline:
             self.set_readline_completer()
+        
+        # raw_input expects str, but we pass it unicode sometimes
+        prompt = py3compat.cast_bytes_py2(prompt)
 
         try:
             line = py3compat.str_to_unicode(self.raw_input_original(prompt))
         except ValueError:
             warn("\n********\nYou or a %run:ed script called sys.stdin.close()"
-                 " or sys.stdout.close()!\nExiting IPython!")
+                 " or sys.stdout.close()!\nExiting IPython!\n")
             self.ask_exit()
             return ""
 

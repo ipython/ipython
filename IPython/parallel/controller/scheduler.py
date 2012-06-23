@@ -609,7 +609,7 @@ class TaskScheduler(SessionFactory):
         # first, relay result to client
         engine = idents[0]
         client = idents[1]
-        # swap_ids for XREP-XREP mirror
+        # swap_ids for ROUTER-ROUTER mirror
         raw_msg[:2] = [client,engine]
         # print (map(str, raw_msg[:4]))
         self.client_stream.send_multipart(raw_msg, copy=False)

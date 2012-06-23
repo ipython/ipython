@@ -39,6 +39,10 @@ span#notebook_name {
     padding: 2px 1.6em;
 }
 
+.ui-menu .ui-menu-item a.ui-state-focus {
+    margin: 0;
+}
+
 .ui-menu hr {
     margin: 0.3em 0;
 }
@@ -281,7 +285,7 @@ div.text_cell_render {
 .completions {
     position: absolute;
     z-index: 10;
-    overflow: auto;
+    overflow: hidden;
     border: 1px solid grey;
 }
 
@@ -291,6 +295,7 @@ div.text_cell_render {
     border: none;
     padding: 0px;
     margin: 0px;
+    overflow: auto;
     font-family: monospace;
 }
 

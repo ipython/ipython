@@ -5,8 +5,7 @@
 #-----------------------------------------------------------------------------
 
 # Standard library imports
-import os
-from os.path import commonprefix
+import os.path
 import re
 import sys
 from textwrap import dedent
@@ -17,17 +16,46 @@ from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
+from IPython.core.inputsplitter import ESC_SEQUENCES
 from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
 from IPython.utils.traitlets import Bool, Enum, Integer, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
 from completion_widget import CompletionWidget
+from completion_html import CompletionHtml
+from completion_plain import CompletionPlain
 from kill_ring import QtKillRing
+
 
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
+ESCAPE_CHARS = ''.join(ESC_SEQUENCES)
+ESCAPE_RE = re.compile("^["+ESCAPE_CHARS+"]+")
+
+def commonprefix(items):
+    """Get common prefix for completions
+
+    Return the longest common prefix of a list of strings, but with special
+    treatment of escape characters that might precede commands in IPython,
+    such as %magic functions. Used in tab completion.
+
+    For a more general function, see os.path.commonprefix
+    """
+    # the last item will always have the least leading % symbol
+    # min / max are first/last in alphabetical order
+    first_match  = ESCAPE_RE.match(min(items))
+    last_match  = ESCAPE_RE.match(max(items))
+    # common suffix is (common prefix of reversed items) reversed
+    if first_match and last_match:
+        prefix = os.path.commonprefix((first_match.group(0)[::-1], last_match.group(0)[::-1]))[::-1]
+    else:
+        prefix = ''
+
+    items = [s.lstrip(ESCAPE_CHARS) for s in items]
+    return prefix+os.path.commonprefix(items)
 
 def is_letter_or_number(char):
     """ Returns whether the specified unicode character is a letter or a number.
@@ -65,10 +93,19 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         non-positive number disables text truncation (not recommended).
         """
     )
-    gui_completion = Bool(False, config=True,
-        help="""
-        Use a list widget instead of plain text output for tab completion.
-        """
+    gui_completion = Enum(['plain', 'droplist', 'ncurses'], config=True,
+                    default_value = 'ncurses',
+                    help="""
+                    The type of completer to use. Valid values are:
+
+                    'plain'   : Show the availlable completion as a text list
+                                Below the editting area.
+                    'droplist': Show the completion in a drop down list navigable
+                                by the arrow keys, and from which you can select
+                                completion by pressing Return.
+                    'ncurses' : Show the completion as a text list which is navigable by
+                                `tab` and arrow keys.
+                    """
     )
     # NOTE: this value can only be specified during initialization.
     kind = Enum(['plain', 'rich'], default_value='plain', config=True,
@@ -137,12 +174,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     font_changed = QtCore.Signal(QtGui.QFont)
 
     #------ Protected class variables ------------------------------------------
-    
+
     # control handles
     _control = None
     _page_control = None
     _splitter = None
-    
+
     # When the control key is down, these keys are mapped.
     _ctrl_down_remap = { QtCore.Qt.Key_B : QtCore.Qt.Key_Left,
                          QtCore.Qt.Key_F : QtCore.Qt.Key_Right,
@@ -160,6 +197,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     _shortcuts = set(_ctrl_down_remap.keys() +
                      [ QtCore.Qt.Key_C, QtCore.Qt.Key_G, QtCore.Qt.Key_O,
                        QtCore.Qt.Key_V ])
+
+    _temp_buffer_filled = False
 
     #---------------------------------------------------------------------------
     # 'QObject' interface
@@ -211,7 +250,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         # information for subclasses; they should be considered read-only.
         self._append_before_prompt_pos = 0
         self._ansi_processor = QtAnsiCodeProcessor()
-        self._completion_widget = CompletionWidget(self._control)
+        if self.gui_completion == 'ncurses':
+            self._completion_widget = CompletionHtml(self)
+        elif self.gui_completion == 'droplist':
+            self._completion_widget = CompletionWidget(self)
+        elif self.gui_completion == 'plain':
+            self._completion_widget = CompletionPlain(self)
+
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
@@ -228,7 +273,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self._reading = False
         self._reading_callback = None
         self._tab_width = 8
-        self._text_completing_pos = 0
 
         # Set a monospaced font.
         self.reset_font()
@@ -823,18 +867,17 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         self._append_custom(self._insert_plain_text, text, before_prompt)
 
-    def _cancel_text_completion(self):
+    def _cancel_completion(self):
         """ If text completion is progress, cancel it.
         """
-        if self._text_completing_pos:
-            self._clear_temporary_buffer()
-            self._text_completing_pos = 0
+        self._completion_widget.cancel_completion()
 
     def _clear_temporary_buffer(self):
         """ Clears the "temporary text" buffer, i.e. all the text following
             the prompt region.
         """
         # Select and remove all text below the input buffer.
+        _temp_buffer_filled = False
         cursor = self._get_prompt_cursor()
         prompt = self._continuation_prompt.lstrip()
         while cursor.movePosition(QtGui.QTextCursor.NextBlock):
@@ -862,7 +905,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _complete_with_items(self, cursor, items):
         """ Performs completion with 'items' at the specified cursor location.
         """
-        self._cancel_text_completion()
+        self._cancel_completion()
 
         if len(items) == 1:
             cursor.setPosition(self._control.textCursor().position(),
@@ -877,19 +920,26 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 cursor.insertText(prefix)
                 current_pos = cursor.position()
 
-            if self.gui_completion:
-                cursor.movePosition(QtGui.QTextCursor.Left, n=len(prefix))
-                self._completion_widget.show_items(cursor, items)
-            else:
-                cursor.beginEditBlock()
-                self._append_plain_text('\n')
-                self._page(self._format_as_columns(items))
-                cursor.endEditBlock()
+            cursor.movePosition(QtGui.QTextCursor.Left, n=len(prefix))
+            self._completion_widget.show_items(cursor, items)
 
-                cursor.setPosition(current_pos)
-                self._control.moveCursor(QtGui.QTextCursor.End)
-                self._control.setTextCursor(cursor)
-                self._text_completing_pos = current_pos
+
+    def _fill_temporary_buffer(self, cursor, text, html=False):
+        """fill the area below the active editting zone with text"""
+
+        current_pos = self._control.textCursor().position()
+
+        cursor.beginEditBlock()
+        self._append_plain_text('\n')
+        self._page(text, html=html)
+        cursor.endEditBlock()
+
+        cursor.setPosition(current_pos)
+        self._control.moveCursor(QtGui.QTextCursor.End)
+        self._control.setTextCursor(cursor)
+
+        _temp_buffer_filled = True
+
 
     def _context_menu_make(self, pos):
         """ Creates a context menu for the given QPoint (in widget coordinates).
@@ -951,7 +1001,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         control.viewport().installEventFilter(self)
 
         # Connect signals.
-        control.cursorPositionChanged.connect(self._cursor_position_changed)
         control.customContextMenuRequested.connect(
             self._custom_context_menu_requested)
         control.copyAvailable.connect(self.copy_available)
@@ -1021,7 +1070,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             intercepted = True
 
             # Special handling when tab completing in text mode.
-            self._cancel_text_completion()
+            self._cancel_completion()
 
             if self._in_buffer(position):
                 # Special handling when a reading a line of raw input.
@@ -1634,8 +1683,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _keyboard_quit(self):
         """ Cancels the current editing task ala Ctrl-G in Emacs.
         """
-        if self._text_completing_pos:
-            self._cancel_text_completion()
+        if self._temp_buffer_filled :
+            self._cancel_completion()
+            self._clear_temporary_buffer()
         else:
             self.input_buffer = ''
 
@@ -1852,24 +1902,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         # maximumBlockCount() text truncation.
         if diff < 0 and document.blockCount() == document.maximumBlockCount():
             scrollbar.setValue(scrollbar.value() + diff)
-
-    def _cursor_position_changed(self):
-        """ Clears the temporary buffer based on the cursor position.
-        """
-        if self._text_completing_pos:
-            document = self._control.document()
-            if self._text_completing_pos < document.characterCount():
-                cursor = self._control.textCursor()
-                pos = cursor.position()
-                text_cursor = self._control.textCursor()
-                text_cursor.setPosition(self._text_completing_pos)
-                if pos < self._text_completing_pos or \
-                        cursor.blockNumber() > text_cursor.blockNumber():
-                    self._clear_temporary_buffer()
-                    self._text_completing_pos = 0
-            else:
-                self._clear_temporary_buffer()
-                self._text_completing_pos = 0
 
     def _custom_context_menu_requested(self, pos):
         """ Shows a context menu at the given QPoint (in widget coordinates).

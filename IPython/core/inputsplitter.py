@@ -91,9 +91,14 @@ ESC_SH_CAP = '!!'    # Send line to system shell and capture output
 ESC_HELP   = '?'     # Find information about object
 ESC_HELP2  = '??'    # Find extra-detailed information about object
 ESC_MAGIC  = '%'     # Call magic function
+ESC_MAGIC2 = '%%'    # Call cell-magic function
 ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
 ESC_QUOTE2 = ';'     # Quote all args as a single string, call
 ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
+
+ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
+                 ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,\
+                 ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -807,6 +812,13 @@ class IPythonInputSplitter(InputSplitter):
         last_block = self.cell_magic_parts[-1]
         self._is_complete = last_blank(last_block) and lines.isspace()
         return self._is_complete
+
+    def transform_cell(self, cell):
+        """Process and translate a cell of input.
+        """
+        self.reset()
+        self.push(cell)
+        return self.source_reset()
 
     def push(self, lines):
         """Push one or more lines of IPython input.

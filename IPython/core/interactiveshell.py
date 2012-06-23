@@ -56,12 +56,12 @@ from IPython.core.extensions import ExtensionManager
 from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
-from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.plugin import PluginManager
-from IPython.core.prefilter import PrefilterManager, ESC_MAGIC
+from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
@@ -263,7 +263,7 @@ class InteractiveShell(SingletonConfigurable):
         """
     )
     disable_failing_post_execute = CBool(False, config=True,
-        help="Don't call post-execute functions that have failed in the past."""
+        help="Don't call post-execute functions that have failed in the past."
     )
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
@@ -371,7 +371,7 @@ class InteractiveShell(SingletonConfigurable):
     ast_node_interactivity = Enum(['all', 'last', 'last_expr', 'none'],
                                   default_value='last_expr', config=True, 
                                   help="""
-        'all', 'last', 'last_expr' or 'none'," specifying which nodes should be
+        'all', 'last', 'last_expr' or 'none', specifying which nodes should be
         run interactively (displaying output from expressions).""")
 
     # TODO: this part of prompt management should be moved to the frontends.
@@ -1348,7 +1348,9 @@ class InteractiveShell(SingletonConfigurable):
         """
         oname = oname.strip()
         #print '1- oname: <%r>' % oname  # dbg
-        if not py3compat.isidentifier(oname.lstrip(ESC_MAGIC), dotted=True):
+        if not oname.startswith(ESC_MAGIC) and \
+            not oname.startswith(ESC_MAGIC2) and \
+            not py3compat.isidentifier(oname, dotted=True):
             return dict(found=False)
 
         alias_ns = None
@@ -1406,11 +1408,18 @@ class InteractiveShell(SingletonConfigurable):
 
         # Try to see if it's magic
         if not found:
-            if oname.startswith(ESC_MAGIC):
-                oname = oname.lstrip(ESC_MAGIC)
-            obj = self.find_line_magic(oname)
-            if obj is None:
+            obj = None
+            if oname.startswith(ESC_MAGIC2):
+                oname = oname.lstrip(ESC_MAGIC2)
                 obj = self.find_cell_magic(oname)
+            elif oname.startswith(ESC_MAGIC):
+                oname = oname.lstrip(ESC_MAGIC)
+                obj = self.find_line_magic(oname)
+            else:
+                # search without prefix, so run? will find %run?
+                obj = self.find_line_magic(oname)
+                if obj is None:
+                    obj = self.find_cell_magic(oname)
             if obj is not None:
                 found = True
                 ospace = 'IPython internal'
@@ -1695,6 +1704,13 @@ class InteractiveShell(SingletonConfigurable):
             except ValueError:
                 self.write_err('No traceback available to show.\n')
                 return
+            
+            # this import must be done *after* the above call,
+            # to avoid affecting the exc_info
+            try:
+                from IPython.parallel.error import RemoteError
+            except ImportError:
+                class RemoteError(Exception): pass
 
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
@@ -1702,6 +1718,10 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
+            elif issubclass(etype, RemoteError):
+                # IPython.parallel remote exceptions.
+                # Draw the remote traceback, not the local one.
+                self._showtraceback(etype, value, value.render_traceback())
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
@@ -2017,7 +2037,8 @@ class InteractiveShell(SingletonConfigurable):
         self.register_magics(m.AutoMagics, m.BasicMagics, m.CodeMagics,
             m.ConfigMagics, m.DeprecatedMagics, m.ExecutionMagics,
             m.ExtensionMagics, m.HistoryMagics, m.LoggingMagics,
-            m.NamespaceMagics, m.OSMagics, m.PylabMagics )
+            m.NamespaceMagics, m.OSMagics, m.PylabMagics, m.ScriptMagics,
+        )
 
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
@@ -2179,7 +2200,7 @@ class InteractiveShell(SingletonConfigurable):
         # we explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
         # Instead, we store the exit_code in user_ns.
-        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=2))
+        self.user_ns['_exit_code'] = system(self.var_expand(cmd, depth=1))
 
     def system_raw(self, cmd):
         """Call the given cmd in a subprocess using os.system
@@ -2189,7 +2210,7 @@ class InteractiveShell(SingletonConfigurable):
         cmd : str
           Command to execute.
         """
-        cmd = self.var_expand(cmd, depth=2)
+        cmd = self.var_expand(cmd, depth=1)
         # protect os.system from UNC paths on Windows, which it can't handle:
         if sys.platform == 'win32':
             from IPython.utils._process_win32 import AvoidUNCPath
@@ -2210,7 +2231,7 @@ class InteractiveShell(SingletonConfigurable):
     # use piped system by default, because it is better behaved
     system = system_piped
 
-    def getoutput(self, cmd, split=True):
+    def getoutput(self, cmd, split=True, depth=0):
         """Get output (possibly including stderr) from a subprocess.
 
         Parameters
@@ -2219,17 +2240,20 @@ class InteractiveShell(SingletonConfigurable):
           Command to execute (can not end in '&', as background processes are
           not supported.
         split : bool, optional
-
           If True, split the output into an IPython SList.  Otherwise, an
           IPython LSString is returned.  These are objects similar to normal
           lists and strings, with a few convenience attributes for easier
           manipulation of line-based output.  You can use '?' on them for
           details.
-          """
+        depth : int, optional
+          How many frames above the caller are the local variables which should
+          be expanded in the command string? The default (0) assumes that the
+          expansion variables are in the stack frame calling this function.
+        """
         if cmd.rstrip().endswith('&'):
             # this is *far* from a rigorous test
             raise OSError("Background processes not supported.")
-        out = getoutput(self.var_expand(cmd, depth=2))
+        out = getoutput(self.var_expand(cmd, depth=depth+1))
         if split:
             out = SList(out.splitlines())
         else:
