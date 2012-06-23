@@ -82,51 +82,43 @@ def strip_email_quotes(raw_lines):
     return '\n'.join(lines) + '\n'
 
 
-# These two functions are needed by the %paste/%cpaste magics.  In practice
-# they are basically methods (they take the shell as their first argument), but
-# we leave them as standalone functions because eventually the magics
-# themselves will become separate objects altogether.  At that point, the
-# magics will have access to the shell object, and these functions can be made
-# methods of the magic object, but not of the shell.
-
-def store_or_execute(shell, block, name):
-    """ Execute a block, or store it in a variable, per the user's request.
-    """
-    # Dedent and prefilter so what we store matches what is executed by
-    # run_cell.
-    b = shell.prefilter(textwrap.dedent(block))
-
-    if name:
-        # If storing it for further editing, run the prefilter on it
-        shell.user_ns[name] = SList(b.splitlines())
-        print "Block assigned to '%s'" % name
-    else:
-        shell.user_ns['pasted_block'] = b
-        shell.run_cell(b)
-
-
-def rerun_pasted(shell, name='pasted_block'):
-    """ Rerun a previously pasted command.
-    """
-    b = shell.user_ns.get(name)
-
-    # Sanity checks
-    if b is None:
-        raise UsageError('No previous pasted block available')
-    if not isinstance(b, basestring):
-        raise UsageError(
-            "Variable 'pasted_block' is not a string, can't execute")
-
-    print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
-    shell.run_cell(b)
-
-
 #------------------------------------------------------------------------
 # Terminal-specific magics
 #------------------------------------------------------------------------
 
 @magics_class
 class TerminalMagics(Magics):
+
+    def store_or_execute(self, block, name):
+        """ Execute a block, or store it in a variable, per the user's request.
+        """
+        # Dedent and prefilter so what we store matches what is executed by
+        # run_cell.
+        b = self.shell.prefilter(textwrap.dedent(block))
+
+        if name:
+            # If storing it for further editing, run the prefilter on it
+            self.shell.user_ns[name] = SList(b.splitlines())
+            print "Block assigned to '%s'" % name
+        else:
+            self.shell.user_ns['pasted_block'] = b
+            self.shell.run_cell(b)
+
+
+    def rerun_pasted(self, name='pasted_block'):
+        """ Rerun a previously pasted command.
+        """
+        b = self.shell.user_ns.get(name)
+
+        # Sanity checks
+        if b is None:
+            raise UsageError('No previous pasted block available')
+        if not isinstance(b, basestring):
+            raise UsageError(
+                "Variable 'pasted_block' is not a string, can't execute")
+
+        print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+        self.shell.run_cell(b)
 
     @line_magic
     def autoindent(self, parameter_s = ''):
@@ -181,12 +173,12 @@ class TerminalMagics(Magics):
 
         opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
         if 'r' in opts:
-            rerun_pasted(self.shell)
+            self.rerun_pasted()
             return
 
         sentinel = opts.get('s', '--')
         block = strip_email_quotes(get_pasted_lines(sentinel))
-        store_or_execute(self.shell, block, name)
+        self.store_or_execute(block, name)
 
     @line_magic
     def paste(self, parameter_s=''):
@@ -222,7 +214,7 @@ class TerminalMagics(Magics):
         """
         opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
-            rerun_pasted(self.shell)
+            self.rerun_pasted()
             return
         try:
             text = self.shell.hooks.clipboard_get()
@@ -243,7 +235,7 @@ class TerminalMagics(Magics):
                 write('\n')
             write("## -- End pasted text --\n")
 
-        store_or_execute(self.shell, block, name)
+        self.store_or_execute(block, name)
 
     # Class-level: add a '%cls' magic only on Windows
     if sys.platform == 'win32':
