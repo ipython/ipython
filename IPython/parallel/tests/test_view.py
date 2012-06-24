@@ -44,11 +44,11 @@ def setup():
 class TestView(ClusterTestCase, ParametricTestCase):
     
     def setUp(self):
-        super(TestView, self).setUp()
         # On Win XP, wait for resource cleanup, else parallel test group fails
         if platform.system() == "Windows" and platform.win32_ver()[0] == "XP":
             # 1 sec fails. 1.5 sec seems ok. Using 2 sec for margin of safety
             time.sleep(2)
+        super(TestView, self).setUp()
 
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
