@@ -522,13 +522,13 @@ class Inspector:
         
         # Base class for old-style instances
         if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
-            displayfield.append(("Base Class", info['base_class'].rstrip()))
+            displayfields.append(("Base Class", info['base_class'].rstrip()))
         
         add_fields(self.pinfo_fields2)
         
         # Namespace
         if info['namespace'] != 'Interactive':
-            displayfield.append(("Namespace", info['namespace'].rstrip()))
+            displayfields.append(("Namespace", info['namespace'].rstrip()))
 
         add_fields(self.pinfo_fields3)
         
