@@ -23,7 +23,7 @@ import subprocess
 from ConfigParser import ConfigParser
 
 from IPython.core import release
-from IPython.utils import py3compat, _sysinfo
+from IPython.utils import py3compat, _sysinfo, encoding
 
 #-----------------------------------------------------------------------------
 # Code
@@ -91,6 +91,7 @@ def pkg_info(pkg_path):
         sys_platform=sys.platform,
         platform=platform.platform(),
         os_name=os.name,
+        default_encoding=encoding.DEFAULT_ENCODING,
         )
 
 
