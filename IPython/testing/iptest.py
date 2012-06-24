@@ -27,6 +27,7 @@ itself from the command line. There are two ways of running this script:
 
 # Stdlib
 import glob
+import multiprocessing
 import os
 import os.path as path
 import signal
@@ -57,6 +58,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
@@ -362,41 +364,31 @@ class IPTester(object):
         # (on posix only, since win32 has no os.kill)
         self.pids = []
 
-    if sys.platform == 'win32':
-        def _run_cmd(self):
-            # On Windows, use os.system instead of subprocess.call, because I
-            # was having problems with subprocess and I just don't know enough
-            # about win32 to debug this reliably.  Os.system may be the 'old
-            # fashioned' way to do it, but it works just fine.  If someone
-            # later can clean this up that's fine, as long as the tests run
-            # reliably in win32.
-            # What types of problems are you having. They may be related to
-            # running Python in unboffered mode. BG.
-            return os.system(' '.join(self.call_args))
-    else:
-        def _run_cmd(self):
-            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args)
-            self.pids.append(subp.pid)
-            # If this fails, the pid will be left in self.pids and cleaned up
-            # later, but if the wait call succeeds, then we can clear the
-            # stored pid.
-            retcode = subp.wait()
-            self.pids.pop()
-            return retcode
-
     def run(self):
         """Run the stored commands"""
         try:
-            retcode = self._run_cmd()
+            with TemporaryDirectory() as IPYTHONDIR:
+                env = os.environ.copy()
+                env['IPYTHONDIR'] = IPYTHONDIR
+                # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+                subp = subprocess.Popen(self.call_args, env=env,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.STDOUT)
+                self.pids.append(subp.pid)
+                # If this fails, the pid will be left in self.pids and cleaned up
+                # later, but if the wait call succeeds, then we can clear the
+                # stored pid.
+                out = subp.communicate()[0]
+                retcode = subp.returncode
+                self.pids.pop()
         except:
             import traceback
             traceback.print_exc()
             return 1  # signal failure
-        
+
         if self.coverage_xml:
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
-        return retcode
+        return retcode, out
 
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
@@ -485,6 +477,14 @@ def run_iptest():
     # Now nose can run
     TestProgram(argv=argv, addplugins=plugins)
 
+def _run_test(args):
+    """Run a test group."""
+    name, runner = args
+    res, out = runner.run()
+    print '*'*70
+    print 'IPython test group:', name
+    print out
+    return res
 
 def run_iptestall():
     """Run the entire IPython test suite by calling nose and trial.
@@ -508,11 +508,13 @@ def run_iptestall():
     # Run all test runners, tracking execution time
     failed = []
     t_start = time.time()
+    print '*'*70
+    print "Running tests; results will be displayed as each test group finishes."
+
+    p = multiprocessing.Pool()
     try:
-        for (name, runner) in runners:
-            print '*'*70
-            print 'IPython test group:',name
-            res = runner.run()
+        res = p.map(_run_test, runners)
+        for (name, runner), res in zip(runners, res):
             if res:
                 failed.append( (name, runner) )
     finally:
