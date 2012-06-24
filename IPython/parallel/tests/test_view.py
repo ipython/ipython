@@ -17,6 +17,7 @@ Authors:
 #-------------------------------------------------------------------------------
 
 import sys
+import platform
 import time
 from tempfile import mktemp
 from StringIO import StringIO
@@ -42,6 +43,13 @@ def setup():
 
 class TestView(ClusterTestCase, ParametricTestCase):
     
+    def setUp(self):
+        super(TestView, self).setUp()
+        # On Win XP, wait for resource cleanup, else parallel test group fails
+        if platform.system() == "Windows" and platform.win32_ver()[0] == "XP":
+            # 1 sec fails. 1.5 sec seems ok. Using 2 sec for margin of safety
+            time.sleep(2)
+
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
         raise SkipTest("crash tests disabled, due to undesirable crash reports")
