@@ -113,10 +113,10 @@ def install():
     mkshortcut(python, 'IPython engine', link, cmd, workdir)
 
     link = pjoin(ip_start_menu, 'ipythonqt.lnk')
-    cmdbase = suffix(pjoin(scripts, 'ipython')) + '-qtconsole'
+    cmdbase = suffix(pjoin(scripts, 'ipython'))
     if have_setuptools:
-        cmdbase += '-script.pyw'
-    cmd = '"%s"' % cmdbase
+        cmdbase += '-script.py'
+    cmd = '"%s" qtconsole' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
 
     # FIXME: These below are commented out because we don't ship the html built
