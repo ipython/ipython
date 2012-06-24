@@ -997,7 +997,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         # Create the underlying control.
         if self.custom_control:
-            control = self.custom_control
+            control = self.custom_control()
         elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
@@ -1036,7 +1036,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Creates and connects the underlying paging widget.
         """
         if self.custom_page_control:
-            control = self.custom_page_control
+            control = self.custom_page_control()
         elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
