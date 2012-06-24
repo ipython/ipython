@@ -16,6 +16,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import sys
 import unittest
 
 from IPython.testing.decorators import skipif
@@ -127,7 +128,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         hist = self.rl_hist_entries(ip.readline, 3)
         expected = [u'line0', u'l€ne1\nline2', u'l€ne3\nline4']
         # perform encoding, in case of casting due to ASCII locale
-        expected = [ py3compat.unicode_to_str(e) for e in expected ]
+        enc = sys.stdin.encoding or "utf-8"
+        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
         self.assertEquals(hist, expected)
 
 
@@ -164,5 +166,6 @@ class InteractiveShellTestCase(unittest.TestCase):
         # expect no empty cells in history
         expected = [u'line0', u'l€ne1\nline2', u'l€ne3', u'line4']
         # perform encoding, in case of casting due to ASCII locale
-        expected = [ py3compat.unicode_to_str(e) for e in expected ]
+        enc = sys.stdin.encoding or "utf-8"
+        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
         self.assertEquals(hist, expected)
