@@ -286,7 +286,7 @@ def test_get_ipython_dir_6():
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
     path._writable_dir = lambda path: True
-    home_dir = os.path.expanduser('~')
+    home_dir = os.path.normpath(os.path.expanduser('~'))
     env['IPYTHONDIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
