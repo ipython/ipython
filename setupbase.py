@@ -318,9 +318,7 @@ def find_scripts(entry_points=False, suffix=''):
             'iptest%s = IPython.testing.iptest:main',
             'irunner%s = IPython.lib.irunner:main'
         ]]
-        gui_scripts = [s % suffix for s in [
-            'ipython%s-qtconsole = IPython.frontend.qt.console.qtconsoleapp:main',
-        ]]
+        gui_scripts = []
         scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
     else:
         parallel_scripts = pjoin('IPython','parallel','scripts')
