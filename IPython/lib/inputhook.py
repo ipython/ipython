@@ -20,6 +20,7 @@ except ImportError:
     ctypes = None
 import os
 import sys
+from distutils.version import LooseVersion as V
 
 from IPython.utils.warn import warn
 
@@ -200,6 +201,13 @@ class InputHookManager(object):
             import wx
             app = wx.App(redirect=False, clearSigInt=False)
         """
+        import wx
+        
+        wx_version = V(wx.__version__).version
+        
+        if wx_version < [2, 8]:
+            raise ValueError("requires wxPython >= 2.8, but you have %s" % wx.__version__)
+        
         from IPython.lib.inputhookwx import inputhook_wx
         self.set_inputhook(inputhook_wx)
         self._current_gui = GUI_WX
