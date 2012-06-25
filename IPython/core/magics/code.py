@@ -135,16 +135,6 @@ class CodeMagics(Magics):
         return response_data['html_url']
 
     @line_magic
-    def loadpy(self, arg_s):
-        """Alias of `%load`
-
-        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
-        extension. So it has been renamed simply into %load. You can look at
-        `%load`'s docstring for more info.
-        """
-        self.load(arg_s)
-
-    @line_magic
     def load(self, arg_s):
         """Load code into the current frontend.
 
@@ -187,6 +177,17 @@ class CodeMagics(Magics):
                 return
 
         self.shell.set_next_input(contents)
+
+    @line_magic
+    def loadpy(self, arg_s):
+        self.load(arg_s)
+
+    loadpy.__doc__ = load.__doc__ + """
+        `%loadpy` has gained some flexibility and droped the requirement of a `.py`
+        extension. So it has been renamed simply into %load. You can look at
+        `%load`'s docstring for more info.
+        """
+    loadpy._magic_alias = 'load'
 
     @staticmethod
     def _find_edit_target(shell, args, opts, last_call):
@@ -322,11 +323,6 @@ class CodeMagics(Magics):
         mvalue = mfile.read()
         mfile.close()
         self.shell.user_ns[mname] = Macro(mvalue)
-
-    @line_magic
-    def ed(self, parameter_s=''):
-        """Alias to %edit."""
-        return self.edit(parameter_s)
 
     @skip_doctest
     @line_magic
@@ -519,3 +515,8 @@ class CodeMagics(Magics):
                     return
                 else:
                     self.shell.showtraceback()
+    @line_magic
+    def ed(self, parameter_s=''):
+        return self.edit(parameter_s)
+    ed.__doc__ = edit.__doc__
+    ed._magic_alias = 'edit'
