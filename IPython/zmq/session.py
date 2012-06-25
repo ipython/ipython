@@ -331,7 +331,7 @@ class Session(Configurable):
         if not callable(new):
             raise TypeError("unpacker must be callable, not %s"%type(new))
     
-    copy_threshold = Int(2**12, config=True,
+    copy_threshold = Int(2**16, config=True,
         help="Threshold (in bytes) beyond which a buffer should be sent without copying.")
 
     def __init__(self, **kwargs):
