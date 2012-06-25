@@ -278,11 +278,11 @@ class InteractiveShellApp(Configurable):
         try:
             if os.path.isfile(full_filename):
                 self.log.info("Running file in user namespace: %s" % full_filename)
-		if full_filename.endswith('.ipy'):
-		    self.shell.safe_execfile_ipy(full_filename)
-		else:
-		    # default to python, even without extension
-		    self.shell.safe_execfile(full_filename, self.shell.user_ns)
+                if full_filename.endswith('.ipy'):
+                    self.shell.safe_execfile_ipy(full_filename)
+                else:
+                    # default to python, even without extension
+                    self.shell.safe_execfile(full_filename, self.shell.user_ns)
         finally:
             sys.argv = save_argv
 

@@ -2419,9 +2419,9 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
-	    # Ensure that __file__ is always defined to match Python behavior
-	    save_fname = self.user_ns.get('__file__',None)
-	    self.user_ns['__file__'] = fname
+            # Ensure that __file__ is always defined to match Python behavior
+            save_fname = self.user_ns.get('__file__',None)
+            self.user_ns['__file__'] = fname
             try:
                 py3compat.execfile(fname,*where)
             except SystemExit, status:
@@ -2470,9 +2470,9 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
-	    # Ensure that __file__ is always defined to match Python behavior
-	    save_fname = self.user_ns.get('__file__',None)
-	    self.user_ns['__file__'] = fname
+            # Ensure that __file__ is always defined to match Python behavior
+            save_fname = self.user_ns.get('__file__',None)
+            self.user_ns['__file__'] = fname
             try:
                 with open(fname) as thefile:
                     # self.run_cell currently captures all exceptions
