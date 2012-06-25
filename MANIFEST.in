@@ -12,6 +12,7 @@ graft scripts
 # Load main dir but exclude things we don't want in the distro
 graft IPython
 prune IPython/deathrow
+prune IPython/external/js
 prune IPython/frontend/html/notebook/static/mathjax
 
 # Include some specific files and data resources we need
