@@ -567,7 +567,7 @@ class Session(Configurable):
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
         longest = max([ len(s) for s in to_send ])
-        copy = (longest > self.copy_threshold)
+        copy = (longest < self.copy_threshold)
         
         if buffers and track and not copy:
             # only really track when we are doing zero-copy buffers
