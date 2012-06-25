@@ -283,6 +283,30 @@ class TestView(ClusterTestCase, ParametricTestCase):
             C = view.apply_sync(lambda x:x, B)
             assert_array_equal(B,C)
     
+    @skip_without('numpy')
+    def test_push_pull_recarray(self):
+        """push/pull recarrays"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+        
+        view = self.client[-1]
+        
+        R = numpy.array([
+            (1, 'hi', 0.),
+            (2**30, 'there', 2.5),
+            (-99999, 'world', -12345.6789),
+        ], [('n', int), ('s', '|S10'), ('f', float)])
+        
+        view['RR'] = R
+        R2 = view['RR']
+        
+        r_dtype, r_shape = view.apply_sync(interactive(lambda : (RR.dtype, RR.shape)))
+        self.assertEquals(r_dtype, R.dtype)
+        self.assertEquals(r_shape, R.shape)
+        self.assertEquals(R2.dtype, R.dtype)
+        self.assertEquals(R2.shape, R.shape)
+        assert_array_equal(R2, R)
+    
     def test_map(self):
         view = self.client[:]
         def f(x):
