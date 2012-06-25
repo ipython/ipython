@@ -470,7 +470,7 @@ class NotebookApp(BaseIPythonApplication):
             if 'dev' in zmq.__version__:
                 zmq_v.append(999)
             zmq_v = tuple(zmq_v)
-        if zmq_v >= (2,1,9):
+        if zmq_v >= (2,1,9) and not sys.platform.startswith('win'):
             # This won't work with 2.1.7 and
             # 2.1.9-10 will log ugly 'Interrupted system call' messages,
             # but it will work
@@ -496,6 +496,8 @@ class NotebookApp(BaseIPythonApplication):
         
         A second ^C, or answering 'y' within 5s will cause shutdown,
         otherwise original SIGINT handler will be restored.
+        
+        This doesn't work on Windows.
         """
         # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
         time.sleep(0.1)
