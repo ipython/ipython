@@ -108,7 +108,7 @@ class CannedFunction(CannedObject):
 class CannedArray(CannedObject):
     def __init__(self, obj):
         self.shape = obj.shape
-        self.dtype = obj.dtype
+        self.dtype = obj.dtype.descr if obj.dtype.fields else obj.dtype.str
         if sum(obj.shape) == 0:
             # just pickle it
             self.buffers = [pickle.dumps(obj, -1)]
