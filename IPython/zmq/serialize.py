@@ -34,8 +34,7 @@ except:
 from IPython.utils import py3compat
 from IPython.utils.pickleutil import (
     can, uncan, can_sequence, uncan_sequence, CannedObject
-) 
-from IPython.utils.newserialized import serialize, unserialize
+)
 
 if py3compat.PY3:
     buffer = memoryview
