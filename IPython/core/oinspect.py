@@ -480,12 +480,15 @@ class Inspector:
 
     # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
     pinfo_fields1 = [("Type", "type_name"),
-                    ("Base Class", "base_class"),
-                    ("String Form", "string_form"),
-                    ("Namespace", "namespace"),
-                    ("Length", "length"),
+                    ]
+                    
+    pinfo_fields2 = [("String Form", "string_form"),
+                    ]
+
+    pinfo_fields3 = [("Length", "length"),
                     ("File", "file"),
-                    ("Definition", "definition")]
+                    ("Definition", "definition"),
+                    ]
 
     pinfo_fields_obj = [("Class Docstring", "class_docstring"),
                         ("Constructor Docstring","init_docstring"),
@@ -509,11 +512,26 @@ class Inspector:
         info = self.info(obj, oname=oname, formatter=formatter,
                             info=info, detail_level=detail_level)
         displayfields = []
-        for title, key in self.pinfo_fields1:
-            field = info[key]
-            if field is not None:
-                displayfields.append((title, field.rstrip()))
+        def add_fields(fields):
+            for title, key in fields:
+                field = info[key]
+                if field is not None:
+                    displayfields.append((title, field.rstrip()))
+        
+        add_fields(self.pinfo_fields1)
+        
+        # Base class for old-style instances
+        if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
+            displayfields.append(("Base Class", info['base_class'].rstrip()))
+        
+        add_fields(self.pinfo_fields2)
+        
+        # Namespace
+        if info['namespace'] != 'Interactive':
+            displayfields.append(("Namespace", info['namespace'].rstrip()))
 
+        add_fields(self.pinfo_fields3)
+        
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
@@ -534,10 +552,7 @@ class Inspector:
 
         # Info for objects:
         else:
-            for title, key in self.pinfo_fields_obj:
-                field = info[key]
-                if field is not None:
-                    displayfields.append((title, field.rstrip()))
+            add_fields(self.pinfo_fields_obj)
 
         # Finally send to printer/pager:
         if displayfields:
