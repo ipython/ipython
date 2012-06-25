@@ -287,7 +287,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             (1, 'hi', 0.),
             (2**30, 'there', 2.5),
             (-99999, 'world', -12345.6789),
-        ], [('n', int), ('s', str), ('f', float)])
+        ], [('n', int), ('s', '|S10'), ('f', float)])
         
         view['RR'] = R
         R2 = view['RR']
