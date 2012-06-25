@@ -182,10 +182,24 @@ class PasteTestCase(TestCase):
     def test_paste_leading_commas(self):
         "Test multiline strings with leading commas"
         tm = ip.magics_manager.registry['TerminalMagics']
-        s = '''\                        
+        s = '''\
 a = """
 ,1,2,3
 """'''
         ip.user_ns.pop('foo', None)
         tm.store_or_execute(s, 'foo')
         nt.assert_in('foo', ip.user_ns)
+
+
+    def test_paste_trailing_question(self):
+        "Test pasting sources with trailing question marks"
+        tm = ip.magics_manager.registry['TerminalMagics']
+        s = '''\
+def funcfoo():
+   if True: #am i true?
+       return 'fooresult'
+'''
+        ip.user_ns.pop('funcfoo', None)
+        tm.store_or_execute(s, 'foosrc')
+        nt.assert_in('foosrc', ip.user_ns)
+        nt.assert_equals(ip.user_ns['funcfoo'](), 'fooresult')
