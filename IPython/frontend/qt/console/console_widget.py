@@ -158,6 +158,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
     override_shortcuts = Bool(False)
+    
+    # ------ Custom Qt Widgets -------------------------------------------------
+    
+    # For other projects to easily override the Qt widgets used by the console
+    # (e.g. Spyder)
+    custom_control = None
+    custom_page_control = None
 
     #------ Signals ------------------------------------------------------------
 
@@ -989,7 +996,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Creates and connects the underlying text widget.
         """
         # Create the underlying control.
-        if self.kind == 'plain':
+        if self.custom_control:
+            control = self.custom_control()
+        elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
@@ -1026,7 +1035,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _create_page_control(self):
         """ Creates and connects the underlying paging widget.
         """
-        if self.kind == 'plain':
+        if self.custom_page_control:
+            control = self.custom_page_control()
+        elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
