@@ -20,8 +20,7 @@ from pprint import pformat
 
 # Our own packages
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen
 from IPython.core import magic_arguments, page
 from IPython.testing.skipdoctest import skip_doctest
@@ -41,8 +40,8 @@ class BasicMagics(Magics):
     are all part of the base 'IPython experience'."""
 
     def _lsmagic(self):
-        mesc = ESC_MAGIC
-        cesc = mesc*2
+        mesc = magic_escapes['line']
+        cesc = magic_escapes['cell']
         mman = self.shell.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
@@ -70,10 +69,10 @@ class BasicMagics(Magics):
             format_string = '%s%s:\n\t%s\n'
 
         return ''.join(
-            [format_string % (ESC_MAGIC, fname, fndoc)
+            [format_string % (magic_escapes['line'], fname, fndoc)
              for fname, fndoc in sorted(docs['line'].items())]
             +
-            [format_string % (ESC_MAGIC*2, fname, fndoc)
+            [format_string % (magic_escapes['cell'], fname, fndoc)
              for fname, fndoc in sorted(docs['cell'].items())]
         )
 
