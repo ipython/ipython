@@ -32,20 +32,6 @@ from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 #-----------------------------------------------------------------------------
 
 class FileNotebookManager(BaseNotebookManager):
-
-    notebook_dir = Unicode(os.getcwdu(), config=True, help="""
-        The directory to use for notebooks.
-    """)
-    def _notebook_dir_changed(self, name, old, new):
-        """do a bit of validation of the notebook dir"""
-        if os.path.exists(new) and not os.path.isdir(new):
-            raise TraitError("notebook dir %r is not a directory" % new)
-        if not os.path.exists(new):
-            self.log.info("Creating notebook dir %s", new)
-            try:
-                os.mkdir(new)
-            except:
-                raise TraitError("Couldn't create notebook dir %r" % new)
     
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
@@ -86,19 +72,19 @@ class FileNotebookManager(BaseNotebookManager):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
-        notebook_id = super(BaseNotebookManager, self).new_notebook_id(name)
+        notebook_id = super(FileNotebookManager, self).new_notebook_id(name)
         self.rev_mapping[name] = notebook_id
         return notebook_id
 
     def delete_notebook_id(self, notebook_id):
         """Delete a notebook's id in the mapping."""
-        super(BaseNotebookManager, self).delete_notebook_id(notebook_id)
         name = self.mapping[notebook_id]
+        super(FileNotebookManager, self).delete_notebook_id(notebook_id)
         del self.rev_mapping[name]
 
     def notebook_exists(self, notebook_id):
         """Does a notebook exist?"""
-        exists = super(BaseNotebookManager, self).notebook_exists(notebook_id)
+        exists = super(FileNotebookManager, self).notebook_exists(notebook_id)
         if not exists:
             return False
         path = self.get_path_by_name(self.mapping[notebook_id])
@@ -205,3 +191,6 @@ class FileNotebookManager(BaseNotebookManager):
             else:
                 i = i+1
         return name
+
+    def log_info(self):
+        self.log.info("Serving notebooks from local directory: %s", self.notebook_manager.notebook_dir)

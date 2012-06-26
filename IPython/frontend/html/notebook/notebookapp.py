@@ -408,7 +408,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.notebookmanager.NotebookManager',
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.filenbmanager.FileNotebookManager',
         config=True,
         help='The notebook manager class to use.')
 
@@ -440,7 +440,7 @@ class NotebookApp(BaseIPythonApplication):
         )
         kls = import_item(self.notebook_manager_class)
         self.notebook_manager = kls(config=self.config, log=self.log)
-        self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
+        self.notebook_manager.log_info()
         self.notebook_manager.load_notebook_names()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()

@@ -16,19 +16,40 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import os
 import uuid
 
 from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
-from IPython.utils.traitlets import List, Dict
+from IPython.utils.traitlets import List, Dict, Unicode, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 class BaseNotebookManager(LoggingConfigurable):
+
+    # Todo:
+    # The notebook_dir attribute is used to mean a couple of different things:
+    # 1. Where the notebooks are stored if FileNotebookManager is used.
+    # 2. The cwd of the kernel for a project.
+    # Right now we use this attribute in a number of different places and
+    # we are going to have to disentagle all of this. 
+    notebook_dir = Unicode(os.getcwdu(), config=True, help="""
+        The directory to use for notebooks.
+    """)
+    def _notebook_dir_changed(self, name, old, new):
+        """do a bit of validation of the notebook dir"""
+        if os.path.exists(new) and not os.path.isdir(new):
+            raise TraitError("notebook dir %r is not a directory" % new)
+        if not os.path.exists(new):
+            self.log.info("Creating notebook dir %s", new)
+            try:
+                os.mkdir(new)
+            except:
+                raise TraitError("Couldn't create notebook dir %r" % new)
 
     allowed_formats = List([u'json',u'py'])
 
@@ -179,3 +200,6 @@ class BaseNotebookManager(LoggingConfigurable):
         nb.metadata.name = name
         notebook_id = self.write_notebook_object(nb)
         return notebook_id
+
+    def log_info(self):
+        self.log.info("Serving notebooks")

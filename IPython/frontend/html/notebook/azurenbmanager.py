@@ -49,7 +49,7 @@ class AzureNotebookManager(BaseNotebookManager):
         return BlobService(account_name=self.account_name, account_key=self.account_key)
 
     def __init__(self, **kwargs):
-        super(BaseNotebookManager,self).__init__(**kwargs)
+        super(AzureNotebookManager, self).__init__(**kwargs)
         self._update_service_host_base(self.blob_service_host_base)
         self._create_container()
 
@@ -138,3 +138,6 @@ class AzureNotebookManager(BaseNotebookManager):
             raise web.HTTPError(400, u'Unexpected error while deleting notebook: %s' % e)
         else:
             self.delete_notebook_id(notebook_id)
+
+    def log_info(self):
+        self.log.info("Serving notebooks from Azure storage: %s, %s", self.account_name, self.container)
