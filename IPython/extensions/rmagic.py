@@ -229,7 +229,7 @@ class RMagics(Magics):
         if device == 'svg':
             try:
                 self.r('library(Cairo)')
-            except RMagicError:
+            except ri.RRuntimeError:
                 raise RMagicError("unable to load Cairo package -- check to see if it has been installed")
         self.device = device
 
