@@ -553,6 +553,8 @@ def long_substr(data):
             for j in range(len(data[0])-i+1):
                 if j > len(substr) and all(data[0][i:i+j] in x for x in data):
                     substr = data[0][i:i+j]
+    else:
+        substr = data[0]
     return substr
 
 
