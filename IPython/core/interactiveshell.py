@@ -84,6 +84,22 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
+# FIXME: do this in a function to avoid circular dependencies
+# A better solution is to remove IPython.parallel.error,
+# and place those classes in IPython.core.error.
+
+class RemoteError(Exception):
+    pass
+
+def _import_remote_error():
+    global RemoteError
+    try:
+        from IPython.parallel.error import RemoteError
+    except:
+        pass
+
+_import_remote_error()
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -1705,13 +1721,6 @@ class InteractiveShell(SingletonConfigurable):
                 self.write_err('No traceback available to show.\n')
                 return
             
-            # this import must be done *after* the above call,
-            # to avoid affecting the exc_info
-            try:
-                from IPython.parallel.error import RemoteError
-            except ImportError:
-                class RemoteError(Exception): pass
-
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
                 # line, there may be SyntaxError cases with imported code.
