@@ -190,9 +190,8 @@ class HistoryMagics(Magics):
     # For a long time we've had %hist as well as %history
     @line_magic
     def hist(self, arg):
+        '''Alias to %history.'''
         return self.history(arg)
-
-    hist.__doc__ = history.__doc__
 
     @line_magic
     def rep(self, arg):
@@ -295,7 +294,6 @@ class HistoryMagics(Magics):
 
     @line_magic
     def recall(self,arg):
+        '''Alias to %rep.'''
         self.rep(arg)
-
-    recall.__doc__ = rep.__doc__
 
