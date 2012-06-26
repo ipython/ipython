@@ -688,7 +688,7 @@ class FooFoo(Magics):
     def line_foo(self, line):
         "I am line foo"
         pass
-            
+
     @cell_magic("foo")
     def cell_foo(self, line, cell):
         "I am cell foo, not line foo"
@@ -721,4 +721,23 @@ def test_multiple_magics():
     nt.assert_true(mm.magics['line']['foo'].im_self is foo1)
     mm.register(foo2)
     nt.assert_true(mm.magics['line']['foo'].im_self is foo2)
-    
+
+def test_alias_magic():
+    """Test %alias_magic."""
+    ip = get_ipython()
+    mm = ip.magics_manager
+
+    # Basic operation: both cell and line magics are created, if possible.
+    ip.run_line_magic('alias_magic', 'timeit_alias timeit')
+    nt.assert_true('timeit_alias' in mm.magics['line'])
+    nt.assert_true('timeit_alias' in mm.magics['cell'])
+
+    # --cell is specified, line magic not created.
+    ip.run_line_magic('alias_magic', '--cell timeit_cell_alias timeit')
+    nt.assert_false('timeit_cell_alias' in mm.magics['line'])
+    nt.assert_true('timeit_cell_alias' in mm.magics['cell'])
+
+    # Test that line alias is created successfully.
+    ip.run_line_magic('alias_magic', '--line env_alias env')
+    nt.assert_equal(ip.run_line_magic('env', ''),
+                    ip.run_line_magic('env_alias', ''))
