@@ -35,7 +35,6 @@ def check_cpaste(code, should_fail=False):
     if not hasattr(src, 'encoding'):
         # IPython expects stdin to have an encoding attribute
         src.encoding = None
-    src.write('\n')
     src.write(code)
     src.write('\n--\n')
     src.seek(0)
@@ -58,30 +57,30 @@ PY31 = sys.version_info[:2] == (3,1)
 def test_cpaste():
     """Test cpaste magic"""
 
-    def run():
+    def runf():
         """Marker function: sets a flag when executed.
         """
         _ip.user_ns['code_ran'] = True
-        return 'run' # return string so '+ run()' doesn't result in success
+        return 'runf' # return string so '+ runf()' doesn't result in success
 
-    tests = {'pass': ["run()",
-                      "In [1]: run()",
-                      "In [1]: if 1:\n   ...:     run()",
-                      "> > > run()",
-                      ">>> run()",
-                      "   >>> run()",
+    tests = {'pass': ["runf()",
+                      "In [1]: runf()",
+                      "In [1]: if 1:\n   ...:     runf()",
+                      "> > > runf()",
+                      ">>> runf()",
+                      "   >>> runf()",
                       ],
 
-             'fail': ["1 + run()",
+             'fail': ["1 + runf()",
              ]}
     
     # I don't know why this is failing specifically on Python 3.1. I've
     # checked it manually interactively, but we don't care enough about 3.1
     # to spend time fiddling with the tests, so we just skip it.
     if not PY31:
-        tests['fail'].append("++ run()")
+        tests['fail'].append("++ runf()")
 
-    _ip.user_ns['run'] = run
+    _ip.user_ns['runf'] = runf
 
     for code in tests['pass']:
         check_cpaste(code)
@@ -108,13 +107,15 @@ class PasteTestCase(TestCase):
        
     def test_paste(self):
         ip.user_ns.pop('x', None)
-        self.paste('x=1')
+        self.paste('x = 1')
         nt.assert_equal(ip.user_ns['x'], 1)
+        ip.user_ns.pop('x')
 
     def test_paste_pyprompt(self):
         ip.user_ns.pop('x', None)
         self.paste('>>> x=2')
         nt.assert_equal(ip.user_ns['x'], 2)
+        ip.user_ns.pop('x')
 
     def test_paste_py_multi(self):
         self.paste("""
@@ -122,45 +123,44 @@ class PasteTestCase(TestCase):
         >>> y = []
         >>> for i in x:
         ...     y.append(i**2)
-        ...
+        ... 
         """)
         nt.assert_equal(ip.user_ns['x'], [1,2,3])
         nt.assert_equal(ip.user_ns['y'], [1,4,9])
 
     def test_paste_py_multi_r(self):
         "Now, test that self.paste -r works"
-        ip.user_ns.pop('x', None)
+        nt.assert_equal(ip.user_ns.pop('x'), [1,2,3])
+        nt.assert_equal(ip.user_ns.pop('y'), [1,4,9])
         nt.assert_false('x' in ip.user_ns)
         ip.magic('paste -r')
         nt.assert_equal(ip.user_ns['x'], [1,2,3])
+        nt.assert_equal(ip.user_ns['y'], [1,4,9])
 
     def test_paste_email(self):
         "Test pasting of email-quoted contents"
-        self.paste("""
+        self.paste("""\
         >> def foo(x):
         >>     return x + 1
-        >> x = foo(1.1)
-        """)
-        nt.assert_equal(ip.user_ns['x'], 2.1)
+        >> xx = foo(1.1)""")
+        nt.assert_equal(ip.user_ns['xx'], 2.1)
 
     def test_paste_email2(self):
         "Email again; some programs add a space also at each quoting level"
-        self.paste("""
+        self.paste("""\
         > > def foo(x):
         > >     return x + 1
-        > > x = foo(2.1)
-        """)
-        nt.assert_equal(ip.user_ns['x'], 3.1)
+        > > yy = foo(2.1)     """)
+        nt.assert_equal(ip.user_ns['yy'], 3.1)
 
     def test_paste_email_py(self):
         "Email quoting of interactive input"
-        self.paste("""
+        self.paste("""\
         >> >>> def f(x):
         >> ...   return x+1
-        >> ...
-        >> >>> x = f(2.5)
-        """)
-        nt.assert_equal(ip.user_ns['x'], 3.5)
+        >> ... 
+        >> >>> zz = f(2.5)      """)
+        nt.assert_equal(ip.user_ns['zz'], 3.5)
 
     def test_paste_echo(self):
         "Also test self.paste echoing, by temporarily faking the writer"
@@ -200,6 +200,5 @@ def funcfoo():
        return 'fooresult'
 '''
         ip.user_ns.pop('funcfoo', None)
-        tm.store_or_execute(s, 'foosrc')
-        nt.assert_in('foosrc', ip.user_ns)
+        self.paste(s)
         nt.assert_equals(ip.user_ns['funcfoo'](), 'fooresult')
