@@ -576,19 +576,19 @@ def strip_email_quotes(text):
         In [2]: strip_email_quotes('> > text')
         Out[2]: 'text'
 
-        In [3]: strip_email_quotes('> > text\n> > more')
-        Out[3]: 'text\nmore'
+        In [3]: strip_email_quotes('> > text\\n> > more')
+        Out[3]: 'text\\nmore'
 
     Note how only the common prefix that appears in all lines is stripped::
 
-        In [4]: strip_email_quotes('> > text\n> > more\n> more...')
-        Out[4]: '> text\n> more\nmore...'
+        In [4]: strip_email_quotes('> > text\\n> > more\\n> more...')
+        Out[4]: '> text\\n> more\\nmore...'
 
     So if any line has no quote marks ('>') , then none are stripped from any
     of them ::
     
-        In [5]: strip_email_quotes('> > text\n> > more\nlast different')
-        Out[5]: '> > text\n> > more\nlast different'
+        In [5]: strip_email_quotes('> > text\\n> > more\\nlast different')
+        Out[5]: '> > text\\n> > more\\nlast different'
     """
     lines = text.splitlines()
     matches = set()
