@@ -40,6 +40,7 @@ from glob import glob
 from shutil import rmtree
 from getopt import getopt
 from os import stat
+from copy import copy
 
 # numpy and rpy2 imports
 
@@ -57,7 +58,7 @@ from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
                                 line_cell_magic)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
-    argument, magic_arguments, parse_argstring
+    argument, magic_arguments, parse_argstring, argument_group
 )
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str
 
@@ -338,6 +339,13 @@ class RMagics(Magics):
         help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
+        '-n', '--noreturn',
+        help='Force the magic to not return anything.',
+        action='store_true',
+        default=False
+        )
+    @argument_group("Plot", "Arguments to plotting device")
+    @argument(
         '-w', '--width', type=int,
         help='Width of png plotting device sent as an argument to *png* in R.'
         )
@@ -346,22 +354,23 @@ class RMagics(Magics):
         help='Height of png plotting device sent as an argument to *png* in R.'
         )
     @argument(
-        '-u', '--units', type=int,
-        help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
-        )
-    @argument(
         '-p', '--pointsize', type=int,
-        help='Pointsize of png plotting device sent as an argument to *png* in R.'
+        help="Pointsize of png plotting device sent as an argument to plotting device in R."
         )
     @argument(
         '-b', '--bg',
-        help='Background of png plotting device sent as an argument to *png* in R.'
+        help='Background of png plotting device sent as an argument to plotting device in R.'
+        )
+    @argument_group("PNG", "PNG specific arguments")
+    @argument(
+        '-u', '--units',
+        help='Units of png plotting device sent as an argument to `png` in R.',
+        choices=["px", "in", "cm", "mm"]
         )
     @argument(
-        '-n', '--noreturn',
-        help='Force the magic to not return anything.',
-        action='store_true',
-        default=False
+        '--res',
+        help='Resolution for png plotting device sent as an argument to `png` in R.',
+        type=int
         )
     @argument(
         'code',
@@ -520,19 +529,26 @@ class RMagics(Magics):
             for input in ','.join(args.input).split(','):
                 self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
 
-        png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
-        png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])
+        plotting_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize', 'res']])
+        if plotting_argdict['units']:
+            plotting_argdict['units'] = repr(plotting_argdict['units'])
+        plotting_args = ','.join(['%s=%s' % (o,v) for o, v in plotting_argdict.items() if v is not None])
         # execute the R code in a temporary directory
 
         if self.device in ['png', 'svg']:
             tmpd = tempfile.mkdtemp()
 
         if self.device == 'png':
-            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, plotting_args))
         elif self.device == 'svg':
-            #TODO: CairoSVG and png take different arguments -- fix magic_arguments above
-            svg_args = png_args
-            self.r('library(Cairo); CairoSVG("%s/Rplot.svg")' % tmpd) # ,%s)' % (tmpd, svg_args))
+            # check to see if svg is available via the CairoSVG package
+            try:
+                self.r('library(Cairo)')
+            except RMagicError:
+                raise RMagicError("unable to load Cairo package -- check to see if it has been installed")
+            if self.device == 'svg' and args.units is not None or args.res is not None:
+                raise RMagicError("CairoSVG device does not take a 'units' argument or 'res' argument")
+            self.r('library(Cairo); CairoSVG("%s/Rplot.svg", %s)' % (tmpd, plotting_args))
         elif self.device == 'X11':
             self.r('X11()')
         else:
