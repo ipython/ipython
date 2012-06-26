@@ -62,7 +62,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype._should_scroll = function (lines) {
         if (!lines) {
-            lines = 50;
+            lines = 100;
         }
         // line-height from http://stackoverflow.com/questions/1185151
         var fontSize = this.element.css('font-size');
