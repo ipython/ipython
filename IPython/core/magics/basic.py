@@ -19,9 +19,9 @@ import sys
 from pprint import pformat
 
 # Our own packages
+from IPython.core import magic_arguments
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
-from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen
 from IPython.core import magic_arguments, page
 from IPython.testing.skipdoctest import skip_doctest
@@ -40,9 +40,91 @@ class BasicMagics(Magics):
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-l', '--line', action='store_true',
+        help="""Create a line magic alias."""
+    )
+    @magic_arguments.argument(
+        '-c', '--cell', action='store_true',
+        help="""Create a cell magic alias."""
+    )
+    @magic_arguments.argument(
+        'name',
+        help="""Name of the magic to be created."""
+    )
+    @magic_arguments.argument(
+        'target',
+        help="""Name of the existing line or cell magic."""
+    )
+    @line_magic
+    def alias_magic(self, line=''):
+        """Create an alias for an existing line or cell magic.
+
+        Examples
+        --------
+        ::
+          In [1]: %alias_magic t timeit
+
+          In [2]: %t -n1 pass
+          1 loops, best of 3: 954 ns per loop
+
+          In [3]: %%t -n1
+             ...: pass
+             ...:
+          1 loops, best of 3: 954 ns per loop
+
+          In [4]: %alias_magic --cell whereami pwd
+          UsageError: Cell magic function `%%pwd` not found.
+          In [5]: %alias_magic --line whereami pwd
+
+          In [6]: %whereami
+          Out[6]: u'/home/testuser'
+        """
+        args = magic_arguments.parse_argstring(self.alias_magic, line)
+        shell = self.shell
+        escs = ''.join(magic_escapes.values())
+
+        target = args.target.lstrip(escs)
+        name = args.name.lstrip(escs)
+
+        # Find the requested magics.
+        m_line = shell.find_magic(target, 'line')
+        m_cell = shell.find_magic(target, 'cell')
+        if args.line and m_line is None:
+            raise UsageError('Line magic function `%s%s` not found.' %
+                             (magic_escapes['line'], target))
+        if args.cell and m_cell is None:
+            raise UsageError('Cell magic function `%s%s` not found.' %
+                             (magic_escapes['cell'], target))
+
+        # If --line and --cell are not specified, default to the ones
+        # that are available.
+        if not args.line and not args.cell:
+            if not m_line and not m_cell:
+                raise UsageError(
+                    'No line or cell magic with name `%s` found.' % target
+                )
+            args.line = bool(m_line)
+            args.cell = bool(m_cell)
+
+        if args.line:
+            def wrapper(line): return m_line(line)
+            wrapper.__name__ = str(name)
+            wrapper.__doc__ = "Alias for `%s%s`." % \
+                              (magic_escapes['line'], target)
+            shell.register_magic_function(wrapper, 'line', name)
+
+        if args.cell:
+            def wrapper(line, cell): return m_cell(line, cell)
+            wrapper.__name__ = str(name)
+            wrapper.__doc__ = "Alias for `%s%s`." % \
+                              (magic_escapes['cell'], target)
+            shell.register_magic_function(wrapper, 'cell', name)
+
     def _lsmagic(self):
-        mesc = ESC_MAGIC
-        cesc = mesc*2
+        mesc = magic_escapes['line']
+        cesc = magic_escapes['cell']
         mman = self.shell.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
@@ -70,10 +152,10 @@ class BasicMagics(Magics):
             format_string = '%s%s:\n\t%s\n'
 
         return ''.join(
-            [format_string % (ESC_MAGIC, fname, fndoc)
+            [format_string % (magic_escapes['line'], fname, fndoc)
              for fname, fndoc in sorted(docs['line'].items())]
             +
-            [format_string % (ESC_MAGIC*2, fname, fndoc)
+            [format_string % (magic_escapes['cell'], fname, fndoc)
              for fname, fndoc in sorted(docs['cell'].items())]
         )
 

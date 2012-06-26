@@ -25,7 +25,7 @@ from getopt import getopt, GetoptError
 from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
@@ -47,6 +47,7 @@ magics = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
+magic_escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
