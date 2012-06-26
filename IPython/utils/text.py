@@ -488,6 +488,7 @@ def format_screen(strng):
     strng = par_re.sub('',strng)
     return strng
 
+
 def dedent(text):
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
@@ -514,6 +515,7 @@ def dedent(text):
     rest = textwrap.dedent(rest)
     return '\n'.join([first, rest])
 
+
 def wrap_paragraphs(text, ncols=80):
     """Wrap multiple paragraphs to fit a specified width.
 
@@ -538,6 +540,39 @@ def wrap_paragraphs(text, ncols=80):
             p = textwrap.fill(p, ncols)
         out_ps.append(p)
     return out_ps
+
+
+def long_substr(data):
+    """Return the longest common substring in a list of strings.
+    
+    Credit: http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
+    """
+    substr = ''
+    if len(data) > 1 and len(data[0]) > 0:
+        for i in range(len(data[0])):
+            for j in range(len(data[0])-i+1):
+                if j > len(substr) and all(data[0][i:i+j] in x for x in data):
+                    substr = data[0][i:i+j]
+    return substr
+
+
+def strip_email_quotes(text):
+    """Strip leading email quotation characters ('>').
+    """
+    lines = text.splitlines()
+    matches = set()
+    for line in lines:
+        prefix = re.match(r'^(\s*>[ >]*)', line)
+        if prefix:
+            matches.add(prefix.group(1))
+        else:
+            break
+    else:
+        prefix = long_substr(list(matches))
+        if prefix:
+            strip = len(prefix)
+            text = '\n'.join([ ln[strip:] for ln in lines])
+    return text
 
 
 class EvalFormatter(Formatter):
