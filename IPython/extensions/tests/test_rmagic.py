@@ -3,6 +3,7 @@ from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
 from IPython.utils.py3compat import PY3
 from rpy2 import rinterface
+from itertools import product
 import nose.tools as nt
 
 if PY3:
@@ -93,6 +94,7 @@ def test_Rconverter():
 def test_cell_magic():
 
     ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
+
     snippet = '''
     print(summary(a))
     plot(x, y, pch=23, bg='orange', cex=2)
@@ -124,3 +126,36 @@ def test_rmagic_localscope():
         ip.run_line_magic,
         "R",
         "-i var_not_defined 1+1")
+
+
+def test_plotting_args():
+
+    # png
+
+    ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
+
+    cell = '''
+    plot(x, y, pch=23, bg='orange', cex=2)
+    '''
+    
+    png_px_args = [' '.join(('--units=px',w,h,p)) for 
+                   w, h, p in product(['--width=400 ',''],
+                                      ['--height=400',''],
+                                      ['-p=10', ''])]
+
+    for line in png_px_args:
+        ip.run_line_magic('Rdevice', 'png')
+        yield ip.run_cell_magic, 'R', line, cell
+
+    basic_args = [' '.join((w,h,p)) for w, h, p in product(['--width=6 ',''],
+                                                           ['--height=6',''],
+                                                           ['-p=10', ''])]
+
+    for line in basic_args:
+        ip.run_line_magic('Rdevice', 'svg')
+        yield ip.run_cell_magic, 'R', line, cell
+
+    png_args = ['--units=in --res=1 ' + s for s in basic_args]
+    for line in png_args:
+        ip.run_line_magic('Rdevice', 'png')
+        yield ip.run_cell_magic, 'R', line, cell
