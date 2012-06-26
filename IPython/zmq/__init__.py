@@ -1,5 +1,5 @@
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2011  The IPython Development Team
+#  Copyright (C) 2010  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING.txt, distributed as part of this software.
@@ -66,3 +66,8 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
 
 check_for_zmq('2.1.4')
 patch_pyzmq()
+
+from .blockingkernelmanager import BlockingKernelManager
+from .kernelmanager import *
+from .session import Session
+
