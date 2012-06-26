@@ -59,7 +59,28 @@ class BasicMagics(Magics):
     )
     @line_magic
     def alias_magic(self, line=''):
-        """Create an alias for an existing line or cell magic."""
+        """Create an alias for an existing line or cell magic.
+
+        Examples
+        --------
+        ::
+          In [1]: %alias_magic t timeit
+
+          In [2]: %t -n1 pass
+          1 loops, best of 3: 954 ns per loop
+
+          In [3]: %%t -n1
+             ...: pass
+             ...:
+          1 loops, best of 3: 954 ns per loop
+
+          In [4]: %alias_magic --cell whereami pwd
+          UsageError: Cell magic function `%%pwd` not found.
+          In [5]: %alias_magic --line whereami pwd
+
+          In [6]: %whereami
+          Out[6]: u'/home/testuser'
+        """
         args = magic_arguments.parse_argstring(self.alias_magic, line)
         shell = self.shell
         escs = ''.join(magic_escapes.values())
