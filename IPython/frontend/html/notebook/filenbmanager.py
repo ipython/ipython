@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2011  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -19,20 +19,19 @@ Authors:
 import datetime
 import io
 import os
-import uuid
 import glob
 
 from tornado import web
 
-from IPython.config.configurable import LoggingConfigurable
+from .basenbmanager import BaseNotebookManager
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, List, Dict, Bool, TraitError
+from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class NotebookManager(LoggingConfigurable):
+class FileNotebookManager(BaseNotebookManager):
 
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
         The directory to use for notebooks.
@@ -59,24 +58,21 @@ class NotebookManager(LoggingConfigurable):
     )
     
     filename_ext = Unicode(u'.ipynb')
-    allowed_formats = List([u'json',u'py'])
 
-    # Map notebook_ids to notebook names
-    mapping = Dict()
     # Map notebook names to notebook_ids
     rev_mapping = Dict()
 
-    def list_notebooks(self):
-        """List all notebooks in the notebook dir.
-
-        This returns a list of dicts of the form::
-
-            dict(notebook_id=notebook,name=name)
-        """
+    def get_notebook_names(self):
+        """List all notebook names in the notebook dir."""
         names = glob.glob(os.path.join(self.notebook_dir,
                                        '*' + self.filename_ext))
         names = [os.path.splitext(os.path.basename(name))[0]
                  for name in names]
+        return names
+
+    def list_notebooks(self):
+        """List all notebooks in the notebook dir."""
+        names = self.get_notebook_names()
 
         data = []
         for name in names:
@@ -90,30 +86,20 @@ class NotebookManager(LoggingConfigurable):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
-        # TODO: the following will give stable urls for notebooks, but unless
-        # the notebooks are immediately redirected to their new urls when their
-        # filemname changes, nasty inconsistencies result.  So for now it's
-        # disabled and instead we use a random uuid4() call.  But we leave the
-        # logic here so that we can later reactivate it, whhen the necessary
-        # url redirection code is written.
-        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
-        #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
-        
-        notebook_id = unicode(uuid.uuid4())
-        
-        self.mapping[notebook_id] = name
+        notebook_id = super(BaseNotebookManager, self).new_notebook_id(name)
         self.rev_mapping[name] = notebook_id
         return notebook_id
 
     def delete_notebook_id(self, notebook_id):
-        """Delete a notebook's id only. This doesn't delete the actual notebook."""
+        """Delete a notebook's id in the mapping."""
+        super(BaseNotebookManager, self).delete_notebook_id(notebook_id)
         name = self.mapping[notebook_id]
-        del self.mapping[notebook_id]
         del self.rev_mapping[name]
 
     def notebook_exists(self, notebook_id):
         """Does a notebook exist?"""
-        if notebook_id not in self.mapping:
+        exists = super(BaseNotebookManager, self).notebook_exists(notebook_id)
+        if not exists:
             return False
         path = self.get_path_by_name(self.mapping[notebook_id])
         return os.path.isfile(path)
@@ -132,22 +118,7 @@ class NotebookManager(LoggingConfigurable):
         path = os.path.join(self.notebook_dir, filename)
         return path       
 
-    def get_notebook(self, notebook_id, format=u'json'):
-        """Get the representation of a notebook in format by notebook_id."""
-        format = unicode(format)
-        if format not in self.allowed_formats:
-            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-        last_modified, nb = self.get_notebook_object(notebook_id)
-        kwargs = {}
-        if format == 'json':
-            # don't split lines for sending over the wire, because it
-            # should match the Python in-memory format.
-            kwargs['split_lines'] = False
-        data = current.writes(nb, format, **kwargs)
-        name = nb.get('name','notebook')
-        return last_modified, name, data
-
-    def get_notebook_object(self, notebook_id):
+    def read_notebook_object(self, notebook_id):
         """Get the NotebookNode representation of a notebook by notebook_id."""
         path = self.find_path(notebook_id)
         if not os.path.isfile(path):
@@ -165,60 +136,27 @@ class NotebookManager(LoggingConfigurable):
         nb.metadata.name = os.path.splitext(os.path.basename(path))[0]
         return last_modified, nb
 
-    def save_new_notebook(self, data, name=None, format=u'json'):
-        """Save a new notebook and return its notebook_id.
-
-        If a name is passed in, it overrides any values in the notebook data
-        and the value in the data is updated to use that value.
-        """
-        if format not in self.allowed_formats:
-            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-
-        try:
-            nb = current.reads(data.decode('utf-8'), format)
-        except:
-            raise web.HTTPError(400, u'Invalid JSON data')
-
-        if name is None:
-            try:
-                name = nb.metadata.name
-            except AttributeError:
-                raise web.HTTPError(400, u'Missing notebook name')
-        nb.metadata.name = name
-
-        notebook_id = self.new_notebook_id(name)
-        self.save_notebook_object(notebook_id, nb)
-        return notebook_id
-
-    def save_notebook(self, notebook_id, data, name=None, format=u'json'):
-        """Save an existing notebook by notebook_id."""
-        if format not in self.allowed_formats:
-            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-
-        try:
-            nb = current.reads(data.decode('utf-8'), format)
-        except:
-            raise web.HTTPError(400, u'Invalid JSON data')
-
-        if name is not None:
-            nb.metadata.name = name
-        self.save_notebook_object(notebook_id, nb)
-
-    def save_notebook_object(self, notebook_id, nb):
+    def write_notebook_object(self, nb, notebook_id=None):
         """Save an existing notebook object by notebook_id."""
-        if notebook_id not in self.mapping:
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        old_name = self.mapping[notebook_id]
         try:
             new_name = nb.metadata.name
         except AttributeError:
             raise web.HTTPError(400, u'Missing notebook name')
+
+        if notebook_id is None:
+            notebook_id = self.new_notebook_id(new_name)
+
+        if notebook_id not in self.mapping:
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+
+        old_name = self.mapping[notebook_id]
         path = self.get_path_by_name(new_name)
         try:
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
+
         # save .py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
@@ -228,6 +166,7 @@ class NotebookManager(LoggingConfigurable):
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
         
+        # remove old files if the name changed
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
@@ -239,6 +178,8 @@ class NotebookManager(LoggingConfigurable):
             self.mapping[notebook_id] = new_name
             self.rev_mapping[new_name] = notebook_id
             del self.rev_mapping[old_name]
+        
+        return notebook_id
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
@@ -263,24 +204,4 @@ class NotebookManager(LoggingConfigurable):
                 break
             else:
                 i = i+1
-        return path, name
-
-    def new_notebook(self):
-        """Create a new notebook and return its notebook_id."""
-        path, name = self.increment_filename('Untitled')
-        notebook_id = self.new_notebook_id(name)
-        metadata = current.new_metadata(name=name)
-        nb = current.new_notebook(metadata=metadata)
-        with open(path,'w') as f:
-            current.write(nb, f, u'json')
-        return notebook_id
-
-    def copy_notebook(self, notebook_id):
-        """Copy an existing notebook and return its notebook_id."""
-        last_mod, nb = self.get_notebook_object(notebook_id)
-        name = nb.metadata.name + '-Copy'
-        path, name = self.increment_filename(name)
-        nb.metadata.name = name
-        notebook_id = self.new_notebook_id(name)
-        self.save_notebook_object(notebook_id, nb)
-        return notebook_id
+        return name

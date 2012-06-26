@@ -66,7 +66,11 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
-from IPython.utils.traitlets import Dict, Unicode, Integer, List, Enum, Bool
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import (
+    Dict, Unicode, Integer, List, Enum, Bool,
+    DottedObjectName
+)
 from IPython.utils import py3compat
 from IPython.utils.path import filefind
 
@@ -404,6 +408,10 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.notebookmanager.NotebookManager',
+        config=True,
+        help='The notebook manager class to use.')
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         if argv is None:
@@ -430,9 +438,10 @@ class NotebookApp(BaseIPythonApplication):
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
-        self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+        kls = import_item(self.notebook_manager_class)
+        self.notebook_manager = kls(config=self.config, log=self.log)
         self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
-        self.notebook_manager.list_notebooks()
+        self.notebook_manager.load_notebook_names()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()
 
