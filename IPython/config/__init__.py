@@ -1,6 +1,6 @@
 # encoding: utf-8
-
-__docformat__ = "restructuredtext en"
+"""Configuration management classes and modules based on our Traitlets model.
+"""
 
 #-------------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -12,3 +12,4 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+from .loader import Config
