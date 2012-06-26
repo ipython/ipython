@@ -83,7 +83,7 @@ class TerminalMagics(Magics):
         super(TerminalMagics, self).__init__(shell)
         self.input_splitter = IPythonInputSplitter(input_mode='line')
 
-    def cleanup_input(block):
+    def cleanup_input(self, block):
         """Apply all possible IPython cleanups to an input block.
 
         This means:
