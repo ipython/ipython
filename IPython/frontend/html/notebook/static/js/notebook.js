@@ -95,6 +95,9 @@ var IPython = (function (IPython) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
                 event.preventDefault();
+            } else if (event.which === key.SHIFT) {
+                // ignore shift keydown
+                return true;
             }
             if (event.which === key.UPARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
