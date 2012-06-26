@@ -226,6 +226,11 @@ class RMagics(Magics):
         device = device.strip()
         if device not in ['png', 'X11', 'svg']:
             raise ValueError("device must be one of ['png', 'X11' 'svg'], got '%s'", device)
+        if device == 'svg':
+            try:
+                self.r('library(Cairo)')
+            except RMagicError:
+                raise RMagicError("unable to load Cairo package -- check to see if it has been installed")
         self.device = device
 
     @line_magic
@@ -658,10 +663,6 @@ class RMagics(Magics):
             self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd.replace('\\', '/'), plotting_args))
         elif self.device == 'svg':
             # check to see if svg is available via the CairoSVG package
-            try:
-                self.r('library(Cairo)')
-            except RMagicError:
-                raise RMagicError("unable to load Cairo package -- check to see if it has been installed")
             if self.device == 'svg' and args.units is not None or args.res is not None:
                 raise RMagicError("CairoSVG device does not take a 'units' argument or 'res' argument")
             self.r('library(Cairo); CairoSVG("%s/Rplot.svg", %s)' % (tmpd, plotting_args))
