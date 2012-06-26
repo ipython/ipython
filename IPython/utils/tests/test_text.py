@@ -144,11 +144,11 @@ def test_strip_email():
     src = """\
         >> >>> def f(x):
         >> ...   return x+1
-        >> ...
+        >> ... 
         >> >>> zz = f(2.5)"""
     cln = """\
 >>> def f(x):
 ...   return x+1
-...
+... 
 >>> zz = f(2.5)"""
     nt.assert_equals(text.strip_email_quotes(src), cln)
