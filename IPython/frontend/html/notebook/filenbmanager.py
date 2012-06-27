@@ -193,4 +193,4 @@ class FileNotebookManager(BaseNotebookManager):
         return name
 
     def log_info(self):
-        self.log.info("Serving notebooks from local directory: %s", self.notebook_manager.notebook_dir)
+        self.log.info("Serving notebooks from local directory: %s", self.notebook_dir)
