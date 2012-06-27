@@ -78,6 +78,10 @@ var IPython = (function (IPython) {
         this.prompt_overlay.click(function () { that.toggle_scroll(); });
 
         this.element.resize(function () {
+            // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
+            if ( $.browser.mozilla ) {
+                return;
+            }
             // maybe scroll output,
             // if it's grown large enough and hasn't already been scrolled.
             if ( !that.scrolled && that._should_scroll()) {
