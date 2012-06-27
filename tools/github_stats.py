@@ -89,6 +89,11 @@ latter case, it is used as a time before the present."""
     allclosed = get_paged_request(url)
     # allclosed = get_issues(project=project, state='closed', pulls=pulls, since=period)
     filtered = [i for i in allclosed if _parse_datetime(i['closed_at']) > period]
+    
+    # exclude rejected PRs
+    if pulls:
+        filtered = [ pr for pr in filtered if pr['merged_at'] ]
+    
     return filtered
 
 
@@ -103,7 +108,7 @@ def report(issues, show_urls=False):
     # titles may have unicode in them, so we must encode everything below
     if show_urls:
         for i in issues:
-            role = 'ghpull' if 'merged' in i else 'ghissue'
+            role = 'ghpull' if 'merged_at' in i else 'ghissue'
             print('* :%s:`%d`: %s' % (role, i['number'],
                                         i['title'].encode('utf-8')))
     else:
