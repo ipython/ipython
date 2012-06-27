@@ -351,7 +351,7 @@ class IPTester(object):
             raise ValueError("Section not found", self.params)
         
         if '--with-xunit' in self.call_args:
-            self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
+            self.call_args.append('--xunit-file="%s"' % path.abspath(sect+'.xunit.xml'))
         
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
