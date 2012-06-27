@@ -53,6 +53,7 @@ from nose import SkipTest
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
@@ -376,7 +377,9 @@ class IPTester(object):
                 # Enclose in quotes if necessary and legal
                 if ' ' in arg and os.path.isfile(arg) and arg[0] != '"':
                     self.call_args[ndx] = '"%s"' % arg
-            return os.system(' '.join(self.call_args))
+            call_args = [py3compat.cast_unicode(x) for x in self.call_args]
+            cmd = py3compat.unicode_to_str(u' '.join(call_args))
+            return os.system(cmd)
     else:
         def _run_cmd(self):
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
@@ -543,7 +546,8 @@ def run_iptestall():
             print '-'*40
             print 'Runner failed:',name
             print 'You may wish to rerun this one individually, with:'
-            print ' '.join(failed_runner.call_args)
+            failed_call_args = [py3compat.cast_unicode(x) for x in failed_runner.call_args]
+            print u' '.join(failed_call_args)
             print
         # Ensure that our exit code indicates failure
         sys.exit(1)
