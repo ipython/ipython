@@ -41,6 +41,8 @@ def restore_bytes(nb):
                         output.png = str_to_bytes(output.png, 'ascii')
                     if 'jpeg' in output:
                         output.jpeg = str_to_bytes(output.jpeg, 'ascii')
+                    if 'svg' in output:
+                        output.svg = str_to_bytes(output.svg, 'ascii')
     return nb
 
 # output keys that are likely to have multiline values
@@ -135,6 +137,11 @@ def base64_decode(nb):
                         if isinstance(output.jpeg, unicode):
                             output.jpeg = output.jpeg.encode('ascii')
                         output.jpeg = decodestring(output.jpeg)
+                    if 'svg' in output:
+                        if isinstance(output.svg, unicode):
+                            output.svg = output.svg.encode('ascii')
+                        output.svg = decodestring(output.svg)
+
     return nb
 
 
@@ -153,6 +160,9 @@ def base64_encode(nb):
                         output.png = encodestring(output.png).decode('ascii')
                     if 'jpeg' in output:
                         output.jpeg = encodestring(output.jpeg).decode('ascii')
+                    if 'svg' in output:
+                        output.svg = encodestring(output.svg).decode('ascii')
+
     return nb
 
 

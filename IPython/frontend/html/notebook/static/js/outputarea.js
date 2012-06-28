@@ -379,7 +379,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_svg = function (svg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
-        toinsert.append(svg);
+        toinsert.append($("<img/>").attr('src','data:image/svg+xml;base64,'+svg));
         element.append(toinsert);
     };
 

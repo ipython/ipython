@@ -1,6 +1,7 @@
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.extensions import rmagic
+from itertools import product
 import nose.tools as nt
 
 ip = get_ipython()
@@ -49,6 +50,7 @@ def test_Rconverter():
 def test_cell_magic():
 
     ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
+
     snippet = '''
     print(summary(a))
     plot(x, y, pch=23, bg='orange', cex=2)
@@ -60,3 +62,37 @@ def test_cell_magic():
     ip.run_cell_magic('R', '-i x,y -o r,xc a=lm(y~x)', snippet)
     np.testing.assert_almost_equal(ip.user_ns['xc'], [3.2, 0.9])
     np.testing.assert_almost_equal(ip.user_ns['r'], np.array([-0.2,  0.9, -1. ,  0.1,  0.2]))
+
+def test_plotting_args():
+
+    # png
+
+    ip.push({'x':np.arange(5), 'y':np.array([3,5,4,6,7])})
+
+    cell = '''
+    plot(x, y, pch=23, bg='orange', cex=2)
+    '''
+    
+    png_px_args = [' '.join(('--units=px',w,h,p)) for 
+                   w, h, p in product(['--width=400 ',''],
+                                      ['--height=400',''],
+                                      ['-p=10', ''])]
+
+    for line in png_px_args:
+        ip.run_line_magic('Rdevice', 'png')
+        yield ip.run_cell_magic, 'R', line, cell
+
+    basic_args = [' '.join((w,h,p)) for w, h, p in product(['--width=6 ',''],
+                                                           ['--height=6',''],
+                                                           ['-p=10', ''])]
+
+    for line in basic_args:
+        ip.run_line_magic('Rdevice', 'svg')
+        yield ip.run_cell_magic, 'R', line, cell
+
+    png_args = ['--units=in --res=1 ' + s for s in basic_args]
+    for line in png_args:
+        ip.run_line_magic('Rdevice', 'png')
+        yield ip.run_cell_magic, 'R', line, cell
+
+
