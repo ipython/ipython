@@ -1,8 +1,8 @@
 import __builtin__
 import sys
-from base64 import encodestring
 
 from IPython.core.displayhook import DisplayHook
+from IPython.utils.jsonutil import encode_images
 from IPython.utils.traitlets import Instance, Dict
 from session import extract_header, Session
 
@@ -30,18 +30,6 @@ class ZMQDisplayHook(object):
         self.parent_header = extract_header(parent)
 
 
-def _encode_binary(format_dict):
-    encoded = format_dict.copy()
-    pngdata = format_dict.get('image/png')
-    if isinstance(pngdata, bytes):
-        encoded['image/png'] = encodestring(pngdata).decode('ascii')
-    jpegdata = format_dict.get('image/jpeg')
-    if isinstance(jpegdata, bytes):
-        encoded['image/jpeg'] = encodestring(jpegdata).decode('ascii')
-    
-    return encoded
-
-
 class ZMQShellDisplayHook(DisplayHook):
     """A displayhook subclass that publishes data using ZeroMQ. This is intended
     to work with an InteractiveShell instance. It sends a dict of different
@@ -64,7 +52,7 @@ class ZMQShellDisplayHook(DisplayHook):
         self.msg['content']['execution_count'] = self.prompt_count
 
     def write_format_data(self, format_dict):
-        self.msg['content']['data'] = _encode_binary(format_dict)
+        self.msg['content']['data'] = encode_images(format_dict)
 
     def finish_displayhook(self):
         """Finish up all displayhook activities."""
