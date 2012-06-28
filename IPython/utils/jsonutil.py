@@ -14,6 +14,7 @@
 import re
 import sys
 import types
+from base64 import encodestring
 from datetime import datetime
 
 from IPython.utils import py3compat
@@ -88,6 +89,24 @@ def date_default(obj):
     else:
         raise TypeError("%r is not JSON serializable"%obj)
 
+
+# constants for identifying png/jpeg data
+PNG = b'\x89PNG\r\n\x1a\n'
+JPEG = b'\xff\xd8'
+
+def encode_images(format_dict):
+    """b64-encodes images in a displaypub format dict
+    
+    Perhaps this should be handled in json_clean itself?
+    """
+    encoded = format_dict.copy()
+    pngdata = format_dict.get('image/png')
+    if isinstance(pngdata, bytes) and pngdata[:8] == PNG:
+        encoded['image/png'] = encodestring(pngdata).decode('ascii')
+    jpegdata = format_dict.get('image/jpeg')
+    if isinstance(jpegdata, bytes) and jpegdata[:2] == JPEG:
+        encoded['image/jpeg'] = encodestring(jpegdata).decode('ascii')
+    return encoded
 
 
 def json_clean(obj):
