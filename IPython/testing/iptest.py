@@ -352,7 +352,13 @@ class IPTester(object):
             raise ValueError("Section not found", self.params)
         
         if '--with-xunit' in self.call_args:
-            self.call_args.append('--xunit-file="%s"' % path.abspath(sect+'.xunit.xml'))
+            
+            self.call_args.append('--xunit-file')
+            # FIXME: when Windows uses subprocess.call, these extra quotes are unnecessary:
+            xunit_file = path.abspath(sect+'.xunit.xml')
+            if sys.platform == 'win32':
+                xunit_file = '"%s"' % xunit_file
+            self.call_args.append(xunit_file)
         
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
