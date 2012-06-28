@@ -98,6 +98,21 @@ def encode_images(format_dict):
     """b64-encodes images in a displaypub format dict
     
     Perhaps this should be handled in json_clean itself?
+    
+    Parameters
+    ----------
+    
+    format_dict : dict
+        A dictionary of display data keyed by mime-type
+    
+    Returns
+    -------
+    
+    format_dict : dict
+        A copy of the same dictionary,
+        but binary image data ('image/png' or 'image/jpeg')
+        is base64-encoded.
+    
     """
     encoded = format_dict.copy()
     pngdata = format_dict.get('image/png')
