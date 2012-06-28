@@ -29,7 +29,7 @@ def check_cpaste(code, should_fail=False):
     """Execute code via 'cpaste' and ensure it was executed, unless
     should_fail is set.
     """
-    _ip.user_ns['code_ran'] = False
+    ip.user_ns['code_ran'] = False
 
     src = StringIO()
     if not hasattr(src, 'encoding'):
@@ -45,10 +45,10 @@ def check_cpaste(code, should_fail=False):
     try:
         context = tt.AssertPrints if should_fail else tt.AssertNotPrints
         with context("Traceback (most recent call last)"):
-                _ip.magic('cpaste')
+                ip.magic('cpaste')
 
         if not should_fail:
-            assert _ip.user_ns['code_ran']
+            assert ip.user_ns['code_ran']
     finally:
         sys.stdin = stdin_save
 
@@ -60,7 +60,7 @@ def test_cpaste():
     def runf():
         """Marker function: sets a flag when executed.
         """
-        _ip.user_ns['code_ran'] = True
+        ip.user_ns['code_ran'] = True
         return 'runf' # return string so '+ runf()' doesn't result in success
 
     tests = {'pass': ["runf()",
@@ -80,7 +80,7 @@ def test_cpaste():
     if not PY31:
         tests['fail'].append("++ runf()")
 
-    _ip.user_ns['runf'] = runf
+    ip.user_ns['runf'] = runf
 
     for code in tests['pass']:
         check_cpaste(code)
