@@ -28,9 +28,14 @@ class OutStream(object):
         self.name = name
         self.parent_header = {}
         self._new_buffer()
+        self.metadata = {}
 
     def set_parent(self, parent):
         self.parent_header = extract_header(parent)
+
+    def set_metadata(self, metadata):
+        self.flush()
+        self.metadata = metadata
 
     def close(self):
         self.pub_socket = None
@@ -43,6 +48,8 @@ class OutStream(object):
             data = self._buffer.getvalue()
             if data:
                 content = {u'name':self.name, u'data':data}
+                if self.metadata:
+                    content['metadata'] = self.metadata
                 msg = self.session.send(self.pub_socket, u'stream', content=content,
                                        parent=self.parent_header, ident=self.topic)
 
