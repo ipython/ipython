@@ -36,11 +36,12 @@ var IPython = (function (IPython) {
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));
         var input_area = $('<div/>').addClass('input_area box-flex1');
+        var ro = this.read_only || IPython.notebook.read_only;
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: 'python',
             theme: 'ipython',
-            readOnly: this.read_only,
+            readOnly: ro ? 'nocursor': false,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);
