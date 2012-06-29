@@ -226,15 +226,15 @@ var IPython = (function (IPython) {
         // http://ipython.org/ipython-doc/dev/development/messaging.html#execute
         //
         // The output_callback will be passed msg_type ('stream','display_data','pyout','pyerr')
-        // of the output and the content object of the PUB/SUB channel that contains the
+        // of the output and the content and header objects of the PUB/SUB channel that contains the
         // output:
         //
         // http://ipython.org/ipython-doc/dev/development/messaging.html#messages-on-the-pub-sub-socket
         //
         // The clear_output_callback will be passed a content object that contains
-        // stdout, stderr and other fields that are booleans.
+        // stdout, stderr and other fields that are booleans, as well as the header object.
         //
-        // The set_next_input_callback will bepassed the text that should become the next
+        // The set_next_input_callback will be passed the text that should become the next
         // input cell.
 
         var content = {
@@ -350,6 +350,7 @@ var IPython = (function (IPython) {
         reply = $.parseJSON(e.data);
         var content = reply.content;
         var msg_type = reply.header.msg_type;
+        var header = reply.header;
         var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
         if (msg_type !== 'status' && callbacks === undefined) {
             // Message not from one of this notebook's cells and there are no
@@ -360,7 +361,7 @@ var IPython = (function (IPython) {
         if (output_types.indexOf(msg_type) >= 0) {
             var cb = callbacks['output'];
             if (cb !== undefined) {
-                cb(msg_type, content);
+                cb(msg_type, content, header);
             }
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
@@ -374,7 +375,7 @@ var IPython = (function (IPython) {
         } else if (msg_type === 'clear_output') {
             var cb = callbacks['clear_output'];
             if (cb !== undefined) {
-                cb(content);
+                cb(content, header);
             }
         };
     };
