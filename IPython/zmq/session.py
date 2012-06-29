@@ -49,7 +49,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode)
+                                        DottedObjectName, CUnicode, Dict)
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -292,6 +292,9 @@ class Session(Configurable):
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
 
+    subheader = Dict({}, config=True,
+        help="""Subheader dictionary, which serves as the default subheader fields for each message.""")
+
     # message signature related traits:
     
     key = CBytes(b'', config=True,
@@ -416,8 +419,9 @@ class Session(Configurable):
         msg['msg_type'] = header['msg_type']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
         msg['content'] = {} if content is None else content
-        sub = {} if subheader is None else subheader
-        msg['header'].update(sub)
+        msg['header'].update(self.subheader)
+        if subheader is not None:
+            msg['header'].update(subheader)
         return msg
 
     def sign(self, msg_list):
