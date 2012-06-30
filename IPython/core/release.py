@@ -124,9 +124,7 @@ author_email = 'ipython-dev@scipy.org'
 
 url = 'http://ipython.org'
 
-# This will only be valid for actual releases sent to PyPI, but that's OK since
-# those are the ones we want pip/easy_install to be able to find.
-download_url = 'http://archive.ipython.org/release/%s' % version
+download_url = 'https://github.com/ipython/ipython/downloads'
 
 platforms = ['Linux','Mac OSX','Windows XP/2000/NT/Vista/7']
 
