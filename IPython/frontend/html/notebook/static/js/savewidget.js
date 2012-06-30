@@ -33,14 +33,16 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.bind_events = function () {
         var that = this;
-        this.element.find('span#notebook_name').click(function () {
-            that.rename_notebook();
-        });
-        this.element.find('span#notebook_name').hover(function () {
-            $(this).addClass("ui-state-hover");
-        }, function () {
-            $(this).removeClass("ui-state-hover");
-        });
+        if( IPython.read_only == false) {
+            this.element.find('span#notebook_name').click(function () {
+                that.rename_notebook();
+            });
+            this.element.find('span#notebook_name').hover(function () {
+                $(this).addClass("ui-state-hover");
+            }, function () {
+                $(this).removeClass("ui-state-hover");
+            });
+        }
         $([IPython.events]).on('notebook_loaded.Notebook', function () {
             that.set_last_saved();
             that.update_notebook_name();
