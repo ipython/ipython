@@ -12,6 +12,7 @@ import re
 import sys
 
 from datetime import datetime, timedelta
+from subprocess import check_output
 from urllib import urlopen
 
 #-----------------------------------------------------------------------------
@@ -124,15 +125,27 @@ if __name__ == "__main__":
     show_urls = True
 
     # By default, search one month back
+    tag = None
     if len(sys.argv) > 1:
-        days = int(sys.argv[1])
+        try:
+            days = int(sys.argv[1])
+        except:
+            tag = sys.argv[1]
     else:
-        days = 30
+        tag = check_output(['git', 'describe', '--abbrev=0']).strip()
+    
+    if tag:
+        cmd = ['git', 'log', '-1', '--format=%ai', tag]
+        tagday, tz = check_output(cmd).strip().rsplit(' ', 1)
+        since = datetime.strptime(tagday, "%Y-%m-%d %H:%M:%S")
+    else:
+        since = datetime.now() - timedelta(days=days)
 
+    print("fetching GitHub stats since %s (tag: %s)" % (since, tag), file=sys.stderr)
     # turn off to play interactively without redownloading, use %run -i
     if 1:
-        issues = issues_closed_since(timedelta(days=days), pulls=False)
-        pulls = issues_closed_since(timedelta(days=days), pulls=True)
+        issues = issues_closed_since(since, pulls=False)
+        pulls = issues_closed_since(since, pulls=True)
 
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)
@@ -140,12 +153,34 @@ if __name__ == "__main__":
     
     n_issues, n_pulls = map(len, (issues, pulls))
     n_total = n_issues + n_pulls
-
+    
     # Print summary report we can directly include into release notes.
-    print("GitHub stats for the last  %d days." % days)
-    print("We closed a total of %d issues, %d pull requests and %d regular \n"
-          "issues; this is the full list (generated with the script \n"
-          "`tools/github_stats.py`):" % (n_total, n_pulls, n_issues))
+    print()
+    since_day = since.strftime("%Y/%m/%d")
+    today = datetime.today().strftime("%Y/%m/%d")
+    print("GitHub stats for %s - %s (tag: %s)" % (since_day, today, tag))
+    print()
+    print("These lists are automatically generated, and may be incomplete or contain duplicates.")
+    print()
+    if tag:
+        # print git info, in addition to GitHub info:
+        since_tag = tag+'..'
+        cmd = ['git', 'log', '--oneline', since_tag]
+        ncommits = len(check_output(cmd).splitlines())
+        
+        author_cmd = ['git', 'log', '--format=* %aN', since_tag]
+        all_authors = check_output(author_cmd).splitlines()
+        unique_authors = sorted(set(all_authors))
+        
+        print("The following %i authors contributed %i commits." % (len(unique_authors), ncommits))
+        print()
+        print('\n'.join(unique_authors))
+        print()
+        
+    print()
+    print("We closed a total of %d issues, %d pull requests and %d regular issues;\n"
+          "this is the full list (generated with the script \n"
+          ":file:`tools/github_stats.py`):" % (n_total, n_pulls, n_issues))
     print()
     print('Pull Requests (%d):\n' % n_pulls)
     report(pulls, show_urls)
