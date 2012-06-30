@@ -98,6 +98,7 @@ class PromptTests(unittest.TestCase):
         self.assertEquals(format(lz), str(f))
         self.assertEquals(format(lz, '.1'), '0.5')
     
+    @dec.skip_win32
     def test_cwd_x(self):
         self.pm.in_template = r"\X0"
         save = os.getcwdu()
