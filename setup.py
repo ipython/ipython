@@ -52,6 +52,7 @@ from glob import glob
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
+from distutils.command.upload import upload
 
 # On Python 3, we need distribute (new setuptools) to do the 2to3 conversion
 if PY3:
@@ -169,6 +170,31 @@ setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
+
+#---------------------------------------------------------------------------
+# custom upload_wininst command
+#---------------------------------------------------------------------------
+
+class UploadWindowsInstallers(upload):
+    
+    description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
+    user_options = upload.user_options + [
+        ('files=', 'f', 'exe file (or glob) to upload')
+    ]
+    def initialize_options(self):
+        upload.initialize_options(self)
+        meta = self.distribution.metadata
+        base = '{name}-{version}'.format(
+            name=meta.get_name(),
+            version=meta.get_version()
+        )
+        self.files = os.path.join('dist', '%s.*.exe' % base)
+    
+    def run(self):
+        for dist_file in glob(self.files):
+            self.upload_file('bdist_wininst', 'any', dist_file)
+
+setup_args['cmdclass']['upload_wininst'] = UploadWindowsInstallers
 
 #---------------------------------------------------------------------------
 # Handle scripts, dependencies, and setuptools specific things

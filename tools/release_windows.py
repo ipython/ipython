@@ -25,9 +25,8 @@ github = '--github' in sys.argv
 
 cmd_t = "{py} setup.py bdist_wininst --plat-name={plat}"
 
-if '--pypi' in sys.argv:
-    raise NotImplementedError("pypi upload doesn't work yet")
-    cmd_t += ' upload'
+pypi = '--pypi' in sys.argv
+pypi_cmd_t = "python setup.py upload_wininst -f {fname}"
 
 for py in ['python', 'python3']:
     # deliberately mangle the name,
@@ -45,6 +44,8 @@ for py in ['python', 'python3']:
                                '.py{v}-{plat}.exe'.format(**locals())
         )
         os.rename(orig, mangled)
+        if pypi:
+            sh(pypi_cmd_t.format(fname=mangled))
         if github and gh_api:
             print ("Uploading %s to GitHub" % mangled)
             desc = "IPython Installer for Python {v}.x on {plat}".format(**locals())
