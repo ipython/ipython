@@ -145,6 +145,7 @@ def find_package_data():
     package_data = {
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.testing' : ['*.txt'],
+        'IPython.testing.plugin' : ['*.txt'],
         'IPython.frontend.html.notebook' : ['templates/*'] + static_data,
         'IPython.frontend.qt.console' : ['resources/icon/*.svg'],
     }
