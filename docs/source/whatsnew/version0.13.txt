@@ -75,9 +75,8 @@ down any running kernels (:ghpull:`1739`):
 Cluster management
 ~~~~~~~~~~~~~~~~~~
 
-The notebook dashboard can now also start and stop clusters, and you can
-override the number of engines started.  There is a new tab in the dashboard
-user interface:
+The notebook dashboard can now also start and stop clusters, thansk to a new
+tab in the dashboard user interface:
 
 .. image:: ../_static/ipy_013_dashboard_cluster.png
     :width: 460px
@@ -85,9 +84,9 @@ user interface:
     :align: center
     :target: ../_static/ipy_013_dashboard_cluster.png
 
-This tab allows you, for each profile you have configured, to start and stop a
-cluster (and optionally override the default number of engines corresponding to
-that configuration).  While this hides all error reporting, once you have a
+This interface allows, for each profile you have configured, to start and stop
+a cluster (and optionally override the default number of engines corresponding
+to that configuration).  While this hides all error reporting, once you have a
 configuration that you know works smoothly, it is a very convenient interface
 for controlling your parallel resources.
 
@@ -152,20 +151,23 @@ bottom of the screen. For the details, look at the example notebook
 
 Other improvements to the Notebook
 ----------------------------------
-   
+
+These are some other notable small improvements to the notebook, in addition to
+many bug fixes and minor changes to add polish and robustness throughout:
+
 * The notebook pager (the area at the bottom) is now resizeable by dragging its
   divider handle, a feature that had been requested many times by just about
   anyone who had used the notebook system.  :ghpull:`1705`.
-
-* If a notebook directory is specified with ``--notebook-dir`` (or with the
-  corresponding configuration flag ``NotebookManager.notebook_dir``), all
-  kernels start in this directory.
 
 * It is now possible to open notebooks directly from the command line; for
   example: ``ipython notebook path/`` will automatically set ``path/`` as the
   notebook directory, and ``ipython notebook path/foo.ipynb`` will further
   start with the ``foo.ipynb`` notebook opened.  :ghpull:`1686`.
   
+* If a notebook directory is specified with ``--notebook-dir`` (or with the
+  corresponding configuration flag ``NotebookManager.notebook_dir``), all
+  kernels start in this directory.
+
 * Fix codemirror clearing of cells with ``Ctrl-Z``; :ghpull:`1965`.
   
 * Text (markdown) cells now line wrap correctly in the notebook, making them
@@ -174,16 +176,16 @@ Other improvements to the Notebook
 * PNG and JPEG figures returned from plots can be interactively resized in the
   notebook, by dragging them from their lower left corner. :ghpull:`1832`.
 
-* Clear In[] prompt numbers on "Clear All Output".  For more
-  version-control-friendly `.ipynb` files, this strips the `In[]` prompt
-  numbers when doing a "Clear all output".  This reduces the amount of noise in
+* Clear ``In []`` prompt numbers on "Clear All Output".  For more
+  version-control-friendly ``.ipynb`` files, we now strip all prompt numbers
+  when doing a "Clear all output".  This reduces the amount of noise in
   commit-to-commit diffs that would otherwise show the (highly variable) prompt
   number changes. :ghpull:`1621`.
 
-* The notebook server now requires *two* consecutive ``Ctrl-C`` to stop within 5
-  seconds (or an interactive confirmation).  This makes it less likely that you
-  will accidentally kill a long-running server by typing ``Ctrl-C`` in the
-  wrong terminal.  :ghpull:`1609`.
+* The notebook server now requires *two* consecutive ``Ctrl-C`` within 5
+  seconds (or an interactive confirmation) to terminate operation.  This makes
+  it less likely that you will accidentally kill a long-running server by
+  typing ``Ctrl-C`` in the wrong terminal.  :ghpull:`1609`.
 
 * Using ``Ctrl-S`` (or ``Cmd-S`` on a Mac) actually saves the notebook rather
   than providing the fairly useless browser html save dialog.  :ghpull:`1334`.
@@ -201,8 +203,9 @@ objects to standalone, independent objects instead of being the mixin class
 we'd had since the beginning of IPython (:ghpull:`1732`).  Now, a separate base
 class is provided in :class:`IPython.core.magic.Magics` that users can subclass
 to create their own magics.  Decorators are also provided to create magics from
-simple functions without the need for object orientation.
-    
+simple functions without the need for object orientation.  Please see the
+:ref:`magic` docs for further details.
+
 All builtin magics now exist in a few subclasses that group together related
 functionality, and the new :mod:`IPython.core.magics` package has been created
 to organize this into smaller files.
@@ -260,7 +263,7 @@ interpreter installed):
   
 * ``%%sh``: run cell body using sh.
   
-* ``%%sx``: capture cell output running the code with the system shell (cell
+* ``%%sx``: run cell with system shell and capture process output (cell
   extension of ``%sx``).
   
 * ``%%system``: run cell with system shell (``%%!`` is an alias to this).
@@ -280,7 +283,7 @@ that provide specialized magics.  These typically require additional software
 to run and must be manually loaded via ``%load_ext <extension name>``, but are
 extremely useful.  The following extensions are provided:
 
-**Cython magics (extension :ref:`cythonmagic <extensions_cythonmagic>`)**
+**Cython magics** (extension :ref:`cythonmagic <extensions_cythonmagic>`)
     This extension provides magics to automatically build and compile Python
     extension modules using the Cython_ language. You must install Cython
     separately, as well as a C compiler, for this to work.  The examples
@@ -295,7 +298,7 @@ extremely useful.  The following extensions are provided:
 
 .. _cython: http://cython.org
 
-**Octave magics (extension :ref:`octavemagic <extensions_octavemagic>`)**
+**Octave magics** (extension :ref:`octavemagic <extensions_octavemagic>`)
     This extension provides several magics that support calling code written in
     the Octave_ language for numerical computing.  You can execute single-lines
     or whole blocks of Octave code, capture both output and figures inline
@@ -315,7 +318,7 @@ extremely useful.  The following extensions are provided:
 .. _oct2py: http://pypi.python.org/pypi/oct2py
 .. _h5py: http://code.google.com/p/h5py
 
-**R magics (extension :ref:`rmagic <extensions_rmagic>`)**
+**R magics** (extension :ref:`rmagic <extensions_rmagic>`)
     This extension provides several magics that support calling code written in
     the R_ language for statistical data analysis.  You can execute
     single-lines or whole blocks of R code, capture both output and figures
@@ -467,20 +470,20 @@ Kernel/Engine unification
 
 This is mostly work 'under the hood', but it is actually a *major* achievement
 for the project that has deep implications in the long term: at last, we have
-unified the main object that execute as the user's interactive shell (which
-we refer to as the *IPython kernel*) with the objects that run in all the
-worker nodes of the parallel computing facilities (the *IPython engines*).
-Ever since the first implementation of IPython's parallel code back in 2006, we
-had wanted to have these two roles be played by the same machinery, but a
-number of technical reasons had prevented that from being true.
+unified the main object that executes as the user's interactive shell (which we
+refer to as the *IPython kernel*) with the objects that run in all the worker
+nodes of the parallel computing facilities (the *IPython engines*).  Ever since
+the first implementation of IPython's parallel code back in 2006, we had wanted
+to have these two roles be played by the same machinery, but a number of
+technical reasons had prevented that from being true.
 
 In this release we have now merged them, and this has a number of important
 consequences:
 
-* It is possible to connect any of our clients (qtconsole or terminal console)
-  to any individual parallel engine, with the *exact* behavior of working at a
-  'regular' IPython console/qtconsole.  This makes debugging, plotting, etc. in
-  parallel scenarios vastly easier.
+* It is now possible to connect any of our clients (qtconsole or terminal
+  console) to any individual parallel engine, with the *exact* behavior of
+  working at a 'regular' IPython console/qtconsole.  This makes debugging,
+  plotting, etc. in parallel scenarios vastly easier.
 
 * Parallel engines can always execute arbitrary 'IPython code', that is, code
   that has magics, shell extensions, etc.  In combination with the ``%%px``
