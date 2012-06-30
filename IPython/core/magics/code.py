@@ -513,7 +513,7 @@ class CodeMagics(Magics):
         if is_temp:
             try:
                 return open(filename).read()
-            except IOError,msg:
+            except IOError as msg:
                 if msg.filename == filename:
                     warn('File not found. Did you forget to save?')
                     return

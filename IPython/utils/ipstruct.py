@@ -121,7 +121,7 @@ class Struct(dict):
                 )
         try:
             self.__setitem__(key, value)
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __getattr__(self, key):

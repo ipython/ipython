@@ -34,7 +34,7 @@ def read_no_interrupt(p):
 
     try:
         return p.read()
-    except IOError, err:
+    except IOError as err:
         if err.errno != errno.EINTR:
             raise
 

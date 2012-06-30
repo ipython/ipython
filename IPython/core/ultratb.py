@@ -875,7 +875,7 @@ class VerboseTB(TBTools):
             except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
-            except tokenize.TokenError,msg:
+            except tokenize.TokenError as msg:
                 _m = ("An unexpected error occurred while tokenizing input\n"
                       "The following traceback may be corrupted or invalid\n"
                       "The error message is: %s\n" % msg)

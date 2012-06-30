@@ -201,7 +201,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "for i in range(5):\n"
                "   try:\n"
                "       ip.magic('run %s')\n"
-               "   except NameError, e:\n"
+               "   except NameError as e:\n"
                "       print i;break\n" % empty.fname)
         self.mktmp(py3compat.doctest_refactor_print(src))
         _ip.magic('run %s' % self.fname)

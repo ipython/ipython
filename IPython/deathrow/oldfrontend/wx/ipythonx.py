@@ -5,7 +5,7 @@ ipython.
 
 try:
     import wx
-except ImportError, e:
+except ImportError as e:
     e.args[0] = """%s
 ________________________________________________________________________________
 You need wxPython to run this application.

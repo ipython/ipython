@@ -447,7 +447,7 @@ class NotebookApp(BaseIPythonApplication):
         for port in random_ports(self.port, self.port_retries+1):
             try:
                 self.http_server.listen(port, self.ip)
-            except socket.error, e:
+            except socket.error as e:
                 if e.errno != errno.EADDRINUSE:
                     raise
                 self.log.info('The port %i is already in use, trying another random port.' % port)
