@@ -98,6 +98,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     clear_on_kernel_restart = Bool(True, config=True,
         help="Whether to clear the console when the kernel is restarted")
 
+    confirm_restart = Bool(True, config=True,
+        help="Whether to ask for user confirmation when restarting kernel")
+
     # Emitted when a user visible 'execute_request' has been submitted to the
     # kernel from the FrontendWidget. Contains the code to be executed.
     executing = QtCore.Signal(object)
@@ -178,7 +181,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def copy(self):
         """ Copy the currently selected text to the clipboard, removing prompts.
         """
-        if self._page_control.hasFocus():
+        if self._page_control is not None and self._page_control.hasFocus():
             self._page_control.copy()
         elif self._control.hasFocus():
             text = self._control.textCursor().selection().toPlainText()
@@ -335,11 +338,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         expr : string
             valid string to be executed by the kernel.
         callback : function
-            function accepting one arguement, as a string. The string will be
+            function accepting one argument, as a string. The string will be
             the `repr` of the result of evaluating `expr`
 
-        The `callback` is called with the 'repr()' of the result of `expr` as
-        first argument. To get the object, do 'eval()' onthe passed value.
+        The `callback` is called with the `repr()` of the result of `expr` as
+        first argument. To get the object, do `eval()` on the passed value.
 
         See Also
         --------
@@ -347,8 +350,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         """
 
-        # generate uuid, which would be used as a indication of wether or not
-        # the unique request originate from here (can use msg id ?)
+        # generate uuid, which would be used as an indication of whether or
+        # not the unique request originated from here (can use msg id ?)
         local_uuid = str(uuid.uuid1())
         msg_id = self.kernel_manager.shell_channel.execute('',
             silent=True, user_expressions={ local_uuid:expr })
@@ -356,7 +359,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
 
     def _handle_exec_callback(self, msg):
-        """Execute `callback` corresonding to `msg` reply, after ``_silent_exec_callback``
+        """Execute `callback` corresponding to `msg` reply, after ``_silent_exec_callback``
 
         Parameters
         ----------
@@ -365,7 +368,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         Notes
         -----
-        This fonction will look for a `callback` associated with the
+        This function will look for a `callback` associated with the
         corresponding message id. Association has been made by
         `_silent_exec_callback`. `callback` is then called with the `repr()`
         of the value of corresponding `user_expressions` as argument.
@@ -615,10 +618,16 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             # Prompt the user to restart the kernel. Un-pause the heartbeat if
             # they decline. (If they accept, the heartbeat will be un-paused
             # automatically when the kernel is restarted.)
-            buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
-            result = QtGui.QMessageBox.question(self, 'Restart kernel?',
-                                                message, buttons)
-            if result == QtGui.QMessageBox.Yes:
+            if self.confirm_restart:
+                buttons = QtGui.QMessageBox.Yes | QtGui.QMessageBox.No
+                result = QtGui.QMessageBox.question(self, 'Restart kernel?',
+                                                    message, buttons)
+                do_restart = result == QtGui.QMessageBox.Yes
+            else:
+                # confirm_restart is False, so we don't need to ask user
+                # anything, just do the restart
+                do_restart = True
+            if do_restart:
                 try:
                     self.kernel_manager.restart_kernel(now=now)
                 except RuntimeError:

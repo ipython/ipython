@@ -125,9 +125,13 @@ def system(cmd):
     """
     # The controller provides interactivity with both
     # stdin and stdout
-    import _process_win32_controller
-    _process_win32_controller.system(cmd)
+    #import _process_win32_controller
+    #_process_win32_controller.system(cmd)
 
+    with AvoidUNCPath() as path:
+        if path is not None:
+            cmd = '"pushd %s &&"%s' % (path, cmd)
+        return process_handler(cmd, _system_body)
 
 def getoutput(cmd):
     """Return standard output of executing cmd in a shell.
@@ -150,8 +154,8 @@ def getoutput(cmd):
         out = process_handler(cmd, lambda p: p.communicate()[0], STDOUT)
 
     if out is None:
-        out = ''
-    return out
+        out = b''
+    return py3compat.bytes_to_str(out)
 
 try:
     CommandLineToArgvW = ctypes.windll.shell32.CommandLineToArgvW

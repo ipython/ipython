@@ -155,9 +155,13 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.fromJSON = function (data) {
+        IPython.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                this.code_mirror.clearHistory();
                 this.set_rendered(data.rendered || '');
                 this.rendered = false;
                 this.render();
@@ -167,7 +171,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.toJSON = function () {
-        var data = {};
+        var data = IPython.Cell.prototype.toJSON.apply(this);
         data.cell_type = this.cell_type;
         data.source = this.get_text();
         return data;

@@ -75,7 +75,7 @@ from IPython.utils import py3compat
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
-_profile_regex = r"(?P<profile>[a-zA-Z0-9]+)"
+_profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
 
 
@@ -396,18 +396,23 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
 
         if self.extra_args:
-            self.file_to_run = os.path.abspath(self.extra_args[0])
-            self.config.NotebookManager.notebook_dir = os.path.dirname(self.file_to_run)
+            f = os.path.abspath(self.extra_args[0])
+            if os.path.isdir(f):
+                nbdir = f
+            else:
+                self.file_to_run = f
+                nbdir = os.path.dirname(f)
+            self.config.NotebookManager.notebook_dir = nbdir
 
     def init_configurables(self):
         # force Session default to be secure
         default_secure(self.config)
-        # Create a KernelManager and start a kernel.
         self.kernel_manager = MappingKernelManager(
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
         self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+        self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
         self.notebook_manager.list_notebooks()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()
@@ -465,7 +470,7 @@ class NotebookApp(BaseIPythonApplication):
             if 'dev' in zmq.__version__:
                 zmq_v.append(999)
             zmq_v = tuple(zmq_v)
-        if zmq_v >= (2,1,9):
+        if zmq_v >= (2,1,9) and not sys.platform.startswith('win'):
             # This won't work with 2.1.7 and
             # 2.1.9-10 will log ugly 'Interrupted system call' messages,
             # but it will work
@@ -491,6 +496,8 @@ class NotebookApp(BaseIPythonApplication):
         
         A second ^C, or answering 'y' within 5s will cause shutdown,
         otherwise original SIGINT handler will be restored.
+        
+        This doesn't work on Windows.
         """
         # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
         time.sleep(0.1)
@@ -532,9 +539,9 @@ class NotebookApp(BaseIPythonApplication):
         """
         self.log.info('Shutting down kernels')
         km = self.kernel_manager
-        # copy list, since kill_kernel deletes keys
+        # copy list, since shutdown_kernel deletes keys
         for kid in list(km.kernel_ids):
-            km.kill_kernel(kid)
+            km.shutdown_kernel(kid)
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
@@ -544,12 +551,13 @@ class NotebookApp(BaseIPythonApplication):
              (proto, ip, self.port,self.base_project_url) )
         info("Use Control-C to stop this server and shut down all kernels.")
 
-        if self.open_browser:
+        if self.open_browser or self.file_to_run:
             ip = self.ip or '127.0.0.1'
-            if self.browser:
-                browser = webbrowser.get(self.browser)
-            else:
-                browser = webbrowser.get()
+            try:
+                browser = webbrowser.get(self.browser or None)
+            except webbrowser.Error as e:
+                self.log.warn('No web browser found: %s.' % e)
+                browser = None
 
             if self.file_to_run:
                 filename, _ = os.path.splitext(os.path.basename(self.file_to_run))
@@ -561,10 +569,10 @@ class NotebookApp(BaseIPythonApplication):
                     url = ''
             else:
                 url = ''
-            b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
-                                        self.port, self.base_project_url, url),
-                                    new=2)
-            threading.Thread(target=b).start()
+            if browser:
+                b = lambda : browser.open("%s://%s:%i%s%s" % (proto, ip,
+                    self.port, self.base_project_url, url), new=2)
+                threading.Thread(target=b).start()
         try:
             ioloop.IOLoop.instance().start()
         except KeyboardInterrupt:

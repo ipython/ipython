@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
             that.update_document_title();
         });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
-            that.set_save_status('');
+            that.set_save_status('Last Save Failed!');
         });
     };
 
@@ -83,7 +83,7 @@ var IPython = (function (IPython) {
                         $(this).find('h3').html(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
-                            "except / and \\. Please enter a new notebook name:"
+                            "except :/\\. Please enter a new notebook name:"
                         );
                     } else {
                         IPython.notebook.set_notebook_name(new_name);

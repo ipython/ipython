@@ -10,6 +10,7 @@ Using IPython for parallel computing
    parallel_intro.txt
    parallel_process.txt
    parallel_multiengine.txt
+   magics.txt
    parallel_task.txt
    asyncresult.txt
    parallel_mpi.txt

@@ -188,11 +188,17 @@ class RemoteError(KernelError):
         return "<Remote[%s]:%s(%s)>"%(engineid, self.ename, self.evalue)
 
     def __str__(self):
-        sig = "%s(%s)"%(self.ename, self.evalue)
-        if self.traceback:
-            return sig + '\n' + self.traceback
-        else:
-            return sig
+        return "%s(%s)" % (self.ename, self.evalue)
+    
+    def render_traceback(self):
+        """render traceback to a list of lines"""
+        return (self.traceback or "No traceback available").splitlines()
+
+    def print_traceback(self, excid=None):
+        """print my traceback"""
+        print('\n'.join(self.render_traceback()))
+
+    
 
 
 class TaskRejectError(KernelError):
@@ -243,21 +249,28 @@ class CompositeError(RemoteError):
 
     def __repr__(self):
         return "CompositeError(%i)"%len(self.elist)
-
-    def print_tracebacks(self, excid=None):
+    
+    def render_traceback(self, excid=None):
+        """render one or all of my tracebacks to a list of lines"""
+        lines = []
         if excid is None:
             for (en,ev,etb,ei) in self.elist:
-                print (self._get_engine_str(ei))
-                print (etb or 'No traceback available')
-                print ()
+                lines.append(self._get_engine_str(ei))
+                lines.extend((etb or 'No traceback available').splitlines())
+                lines.append('')
         else:
             try:
                 en,ev,etb,ei = self.elist[excid]
             except:
                 raise IndexError("an exception with index %i does not exist"%excid)
             else:
-                print (self._get_engine_str(ei))
-                print (etb or 'No traceback available')
+                lines.append(self._get_engine_str(ei))
+                lines.extend((etb or 'No traceback available').splitlines())
+        
+        return lines
+    
+    def print_traceback(self, excid=None):
+        print('\n'.join(self.render_traceback(excid)))
 
     def raise_exception(self, excid=0):
         try:

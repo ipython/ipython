@@ -281,7 +281,7 @@ configuration, and by default, all profiles will be stored in the so called
 "IPython directory". The location of this directory is determined by the
 following algorithm:
 
-* If the ``ipython_dir`` command line flag is given, its value is used.
+* If the ``ipython-dir`` command line flag is given, its value is used.
 
 * If not, the value returned by :func:`IPython.utils.path.get_ipython_dir`
   is used. This function will first look at the :envvar:`IPYTHONDIR`
@@ -323,6 +323,25 @@ and you will have a default :file:`ipython_config.py` in your IPython directory
 under :file:`profile_default`. If you want the default config files for the
 :mod:`IPython.parallel` applications, add ``--parallel`` to the end of the
 command-line args.
+
+
+Locating these files
+--------------------
+
+From the command-line, you can quickly locate the IPYTHONDIR or a specific
+profile with:
+
+.. sourcecode:: bash
+
+    $> ipython locate
+    /home/you/.ipython
+    
+    $> ipython locate profile foo
+    /home/you/.ipython/profile_foo
+
+These map to the utility functions: :func:`IPython.utils.path.get_ipython_dir`
+and :func:`IPython.utils.path.locate_profile` respectively.
+
 
 .. _Profiles:
 

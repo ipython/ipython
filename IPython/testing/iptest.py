@@ -26,6 +26,7 @@ itself from the command line. There are two ways of running this script:
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import glob
 import os
 import os.path as path
 import signal
@@ -52,6 +53,7 @@ from nose import SkipTest
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
@@ -156,6 +158,7 @@ have['qt'] = test_for('IPython.external.qt')
 have['rpy2'] = test_for('rpy2')
 have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
+have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
@@ -235,6 +238,11 @@ def make_exclude():
         exclusions.append(ipjoin('core', 'history'))
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
+    
+    # FIXME: temporarily disable autoreload tests, as they can produce
+    # spurious failures in subsequent tests (cythonmagic).
+    exclusions.append(ipjoin('extensions', 'autoreload'))
+    exclusions.append(ipjoin('extensions', 'tests', 'test_autoreload'))
 
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
@@ -248,8 +256,7 @@ def make_exclude():
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
 
     if not have['pexpect']:
-        exclusions.extend([ipjoin('scripts', 'irunner'),
-                           ipjoin('lib', 'irunner'),
+        exclusions.extend([ipjoin('lib', 'irunner'),
                            ipjoin('lib', 'tests', 'test_irunner'),
                            ipjoin('frontend', 'terminal', 'console'),
                            ])
@@ -278,6 +285,10 @@ def make_exclude():
         exclusions.extend([ipjoin('extensions', 'cythonmagic')])
         exclusions.extend([ipjoin('extensions', 'tests', 'test_cythonmagic')])
 
+    if not have['oct2py']:
+        exclusions.extend([ipjoin('extensions', 'octavemagic')])
+        exclusions.extend([ipjoin('extensions', 'tests', 'test_octavemagic')])
+
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
 
@@ -292,8 +303,11 @@ def make_exclude():
     # check for any exclusions that don't seem to exist:
     parent, _ = os.path.split(get_ipython_package_dir())
     for exclusion in exclusions:
+        if exclusion.endswith(('deathrow', 'quarantine')):
+            # ignore deathrow/quarantine, which exist in dev, but not install
+            continue
         fullpath = pjoin(parent, exclusion)
-        if not os.path.exists(fullpath) and not os.path.exists(fullpath + '.py'):
+        if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
             warn("Excluding nonexistent file: %r\n" % exclusion)
 
     return exclusions
@@ -337,7 +351,13 @@ class IPTester(object):
             raise ValueError("Section not found", self.params)
         
         if '--with-xunit' in self.call_args:
-            self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
+            
+            self.call_args.append('--xunit-file')
+            # FIXME: when Windows uses subprocess.call, these extra quotes are unnecessary:
+            xunit_file = path.abspath(sect+'.xunit.xml')
+            if sys.platform == 'win32':
+                xunit_file = '"%s"' % xunit_file
+            self.call_args.append(xunit_file)
         
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
@@ -358,7 +378,13 @@ class IPTester(object):
             # reliably in win32.
             # What types of problems are you having. They may be related to
             # running Python in unboffered mode. BG.
-            return os.system(' '.join(self.call_args))
+            for ndx, arg in enumerate(self.call_args):
+                # Enclose in quotes if necessary and legal
+                if ' ' in arg and os.path.isfile(arg) and arg[0] != '"':
+                    self.call_args[ndx] = '"%s"' % arg
+            call_args = [py3compat.cast_unicode(x) for x in self.call_args]
+            cmd = py3compat.unicode_to_str(u' '.join(call_args))
+            return os.system(cmd)
     else:
         def _run_cmd(self):
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
@@ -406,7 +432,7 @@ def make_runners():
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils', 'nbformat' ]
+                     'testing', 'utils', 'nbformat' ]
 
     if have['zmq']:
         nose_pkg_names.append('zmq')
@@ -525,7 +551,8 @@ def run_iptestall():
             print '-'*40
             print 'Runner failed:',name
             print 'You may wish to rerun this one individually, with:'
-            print ' '.join(failed_runner.call_args)
+            failed_call_args = [py3compat.cast_unicode(x) for x in failed_runner.call_args]
+            print u' '.join(failed_call_args)
             print
         # Ensure that our exit code indicates failure
         sys.exit(1)

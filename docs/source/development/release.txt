@@ -14,7 +14,15 @@ Most of the release process is automated by the :file:`release` script in the
    of commits (get the previous release name from the tag list with ``git
    tag``)::
 
-   git log --pretty=format:"* %an" PREV_RELEASE... | sort | uniq
+        git log --format="* %aN" $PREV_RELEASE... | sort -u
+
+   .. note::
+
+        use::
+
+            git log --format="%aN <%aE>" $PREV_RELEASE... | sort -u -f
+        
+        To find duplicates and update :file:`.mailmap`
 
 #. Run :file:`build_release`, which does all the file checking and building
    that the real release script will do.  This will let you do test

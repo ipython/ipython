@@ -98,8 +98,9 @@ var IPython = (function (IPython) {
             " or if the url does not look right, there could be an error in the" +
             " server's configuration.";
         } else {
-            msg = "Websocket connection closed unexpectedly." +
-            " The kernel will no longer be responsive.";
+            IPython.notification_widget.set_message('Reconnecting Websockets', 1000);
+            this.start_channels();
+            return;
         }
         var dialog = $('<div/>');
         dialog.html(msg);

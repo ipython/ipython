@@ -675,6 +675,17 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
                 self.assertEqual(out.rstrip(), out_t.rstrip())
                 self.assertEqual(out_raw.rstrip(), raw.rstrip())
 
+    def test_syntax_multiline_cell(self):
+        isp = self.isp
+        for example in syntax_ml.itervalues():
+            
+            out_t_parts = []
+            for line_pairs in example:
+                raw = '\n'.join(r for r, _ in line_pairs)
+                out_t = '\n'.join(t for _,t in line_pairs)
+                out = isp.transform_cell(raw)
+                # Match ignoring trailing whitespace
+                self.assertEqual(out.rstrip(), out_t.rstrip())
 
 #-----------------------------------------------------------------------------
 # Main - use as a script, mostly for developer experiments

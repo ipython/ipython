@@ -25,11 +25,14 @@ var IPython = (function (IPython) {
         this.paste_enabled = false;
         this.dirty = false;
         this.metadata = {};
+        // single worksheet for now
+        this.worksheet_metadata = {};
         this.control_key_active = false;
         this.notebook_id = null;
         this.notebook_name = null;
-        this.notebook_name_blacklist_re = /[\/\\]/;
+        this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
+        this.nbformat_minor = 0 // Increment this when changing the nbformat
         this.style();
         this.create_elements();
         this.bind_events();
@@ -92,6 +95,9 @@ var IPython = (function (IPython) {
                 // Intercept escape at highest level to avoid closing 
                 // websocket connection with firefox
                 event.preventDefault();
+            } else if (event.which === key.SHIFT) {
+                // ignore shift keydown
+                return true;
             }
             if (event.which === key.UPARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
@@ -191,7 +197,11 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 79 && that.control_key_active) {
                 // Toggle output = o
-                that.toggle_output();
+                if (event.shiftKey){
+                    that.toggle_output_scroll();
+                } else {
+                    that.toggle_output();
+                }
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 83 && that.control_key_active) {
@@ -602,6 +612,9 @@ var IPython = (function (IPython) {
                     text = '';
                 }
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -623,6 +636,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -645,6 +661,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -667,6 +686,9 @@ var IPython = (function (IPython) {
                 // The edit must come before the set_text.
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -693,6 +715,9 @@ var IPython = (function (IPython) {
                 target_cell.set_level(level);
                 target_cell.edit();
                 target_cell.set_text(text);
+                // make this value the starting point, so that we can only undo
+                // to this state, instead of a blank cell
+                target_cell.code_mirror.clearHistory();
                 source_element.remove();
                 this.dirty = true;
             };
@@ -865,6 +890,53 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.toggle_output_scroll = function (index) {
+        var i = this.index_or_selected(index);
+        this.get_cell(i).toggle_output_scroll();
+    };
+
+
+    Notebook.prototype.collapse_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.collapse();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.scroll_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.scroll_if_long(20);
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
+    Notebook.prototype.expand_all_output = function () {
+        var ncells = this.ncells();
+        var cells = this.get_cells();
+        for (var i=0; i<ncells; i++) {
+            if (cells[i] instanceof IPython.CodeCell) {
+                cells[i].output_area.expand();
+                cells[i].output_area.unscroll_area();
+            }
+        };
+        // this should not be set if the `collapse` key is removed from nbformat
+        this.dirty = true;
+    };
+
+
     Notebook.prototype.clear_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -1003,6 +1075,9 @@ var IPython = (function (IPython) {
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
+            if (worksheet.metadata) {
+                this.worksheet_metadata = worksheet.metadata;
+            }
             var new_cells = worksheet.cells;
             ncells = new_cells.length;
             var cell_data = null;
@@ -1019,6 +1094,27 @@ var IPython = (function (IPython) {
                 new_cell.fromJSON(cell_data);
             };
         };
+        if (data.worksheets.length > 1) {
+            var dialog = $('<div/>');
+            dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
+            "but this version of IPython can only handle the first.  " +
+            "If you save this notebook, worksheets after the first will be lost."
+            );
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Multiple worksheets",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+        }
     };
 
 
@@ -1031,7 +1127,10 @@ var IPython = (function (IPython) {
         };
         var data = {
             // Only handle 1 worksheet for now.
-            worksheets : [{cells:cell_array}],
+            worksheets : [{
+                cells: cell_array,
+                metadata: this.worksheet_metadata
+            }],
             metadata : this.metadata
         };
         return data;
@@ -1042,6 +1141,7 @@ var IPython = (function (IPython) {
         var data = this.toJSON();
         data.metadata.name = this.notebook_name;
         data.nbformat = this.nbformat;
+        data.nbformat_minor = this.nbformat_minor;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1118,6 +1218,31 @@ var IPython = (function (IPython) {
                 },
                 width: 400
             });
+        } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
+            var that = this;
+            var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
+            var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
+            msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
+            this_vs + ".  You can still work with this notebook, but some features " +
+            "introduced in later notebook versions may not be available."
+            
+            var dialog = $('<div/>');
+            dialog.html(msg);
+            this.element.append(dialog);
+            dialog.dialog({
+                resizable: false,
+                modal: true,
+                title: "Newer Notebook",
+                closeText: "",
+                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                buttons : {
+                    "OK": function () {
+                        $(this).dialog('close');
+                    }
+                },
+                width: 400
+            });
+            
         }
         // Create the kernel after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.

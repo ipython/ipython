@@ -17,6 +17,7 @@ Authors:
 #-------------------------------------------------------------------------------
 
 import sys
+import platform
 import time
 from tempfile import mktemp
 from StringIO import StringIO
@@ -42,6 +43,13 @@ def setup():
 
 class TestView(ClusterTestCase, ParametricTestCase):
     
+    def setUp(self):
+        # On Win XP, wait for resource cleanup, else parallel test group fails
+        if platform.system() == "Windows" and platform.win32_ver()[0] == "XP":
+            # 1 sec fails. 1.5 sec seems ok. Using 2 sec for margin of safety
+            time.sleep(2)
+        super(TestView, self).setUp()
+
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
         raise SkipTest("crash tests disabled, due to undesirable crash reports")
@@ -275,6 +283,30 @@ class TestView(ClusterTestCase, ParametricTestCase):
             C = view.apply_sync(lambda x:x, B)
             assert_array_equal(B,C)
     
+    @skip_without('numpy')
+    def test_push_pull_recarray(self):
+        """push/pull recarrays"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+        
+        view = self.client[-1]
+        
+        R = numpy.array([
+            (1, 'hi', 0.),
+            (2**30, 'there', 2.5),
+            (-99999, 'world', -12345.6789),
+        ], [('n', int), ('s', '|S10'), ('f', float)])
+        
+        view['RR'] = R
+        R2 = view['RR']
+        
+        r_dtype, r_shape = view.apply_sync(interactive(lambda : (RR.dtype, RR.shape)))
+        self.assertEquals(r_dtype, R.dtype)
+        self.assertEquals(r_shape, R.shape)
+        self.assertEquals(R2.dtype, R.dtype)
+        self.assertEquals(R2.shape, R.shape)
+        assert_array_equal(R2, R)
+    
     def test_map(self):
         view = self.client[:]
         def f(x):
@@ -469,7 +501,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("5", silent=False)
         er = ar.get()
-        self._wait_for(lambda : bool(er.pyout))
         self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
         self.assertEquals(er.pyout['data']['text/plain'], '5')
 
@@ -478,14 +509,12 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("print (5)", silent=False)
         er = ar.get()
-        self._wait_for(lambda : bool(er.stdout))
         self.assertEquals(er.stdout.strip(), '5')
         
     def test_execute_pyout(self):
         """execute triggers pyout with silent=False"""
         view = self.client[:]
         ar = view.execute("5", silent=False, block=True)
-        self._wait_for(lambda : all(ar.pyout))
         
         expected = [{'text/plain' : '5'}] * len(view)
         mimes = [ out['data'] for out in ar.pyout ]
@@ -505,7 +534,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("%whos", block=True)
         # this will raise, if that failed
         ar.get(5)
-        self._wait_for(lambda : all(ar.stdout))
         for stdout in ar.stdout:
             lines = stdout.splitlines()
             self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
@@ -523,7 +551,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view.execute("from IPython.core.display import *")
         ar = view.execute("[ display(i) for i in range(5) ]", block=True)
         
-        self._wait_for(lambda : all(len(er.outputs) >= 5 for er in ar))
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
@@ -540,7 +567,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = view.apply_async(publish)
         ar.get(5)
-        self._wait_for(lambda : all(len(out) >= 5 for out in ar.outputs))
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
@@ -562,7 +588,6 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # include imports, in case user config
         ar = view.execute("plot(rand(100))", silent=False)
         reply = ar.get(5)
-        self._wait_for(lambda : all(ar.outputs))
         self.assertEquals(len(reply.outputs), 1)
         output = reply.outputs[0]
         self.assertTrue("data" in output)

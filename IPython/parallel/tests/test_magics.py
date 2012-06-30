@@ -25,6 +25,7 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
+from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -33,7 +34,7 @@ from IPython.parallel.util import interactive
 
 from IPython.parallel.tests import add_engines
 
-from .clienttest import ClusterTestCase, capture_output, generate_output
+from .clienttest import ClusterTestCase, generate_output
 
 def setup():
     add_engines(3, total=True)
@@ -87,7 +88,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         for block in (True, False):
             v.block = block
-            
+            ip.magic("pxconfig --verbose")
             with capture_output() as io:
                 ip.run_cell_magic("px", "", "1")
             if block:
@@ -116,7 +117,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=engine', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         expected = [
             r'\[stdout:\d+\]',
             'stdout',
@@ -150,7 +151,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=order', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         expected = []
         expected.extend([
             r'\[stdout:\d+\]',
@@ -191,7 +192,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             ip.run_cell_magic('px', '--group-outputs=type', 'generate_output()')
         
         self.assertFalse('\n\n' in io.stdout)
-        lines = io.stdout.splitlines()[1:]
+        lines = io.stdout.splitlines()
         
         expected = []
         expected.extend([
@@ -228,6 +229,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertEquals(v['a'], [5])
         ip.magic('px a=10')
         self.assertEquals(v['a'], [10])
+        ip.magic('pxconfig --verbose')
         with capture_output() as io:
             ar = ip.magic('px print (a)')
         self.assertTrue(isinstance(ar, AsyncResult))
@@ -257,7 +259,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertTrue(output.startswith('%autopx enabled'), output)
         self.assertTrue(output.rstrip().endswith('%autopx disabled'), output)
-        self.assertTrue('RemoteError: ZeroDivisionError' in output, output)
+        self.assertTrue('ZeroDivisionError' in output, output)
         self.assertTrue('\nOut[' in output, output)
         self.assertTrue(': 24690' in output, output)
         ar = v.get_result(-1)
@@ -300,20 +302,13 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         data = dict(a=111,b=222)
         v.push(data, block=True)
 
-        ip.magic('px a')
-        ip.magic('px b')
-        for idx, name in [
-                    ('', 'b'),
-                    ('-1', 'b'),
-                    ('2', 'b'),
-                    ('1', 'a'),
-                    ('-2', 'a'),
-                ]:
+        for name in ('a', 'b'):
+            ip.magic('px ' + name)
             with capture_output() as io:
-                ip.magic('result ' + idx)
+                ip.magic('pxresult')
             output = io.stdout
             msg = "expected %s output to include %s, but got: %s" % \
-                ('%result '+idx, str(data[name]), output)
+                ('%pxresult', str(data[name]), output)
             self.assertTrue(str(data[name]) in output, msg)
         
     @dec.skipif_not_matplotlib
@@ -335,5 +330,57 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertTrue('Out[' in io.stdout, io.stdout)
         self.assertTrue('matplotlib.lines' in io.stdout, io.stdout)
-        
+    
+    def test_pxconfig(self):
+        ip = get_ipython()
+        rc = self.client
+        v = rc.activate(-1, '_tst')
+        self.assertEquals(v.targets, rc.ids[-1])
+        ip.magic("%pxconfig_tst -t :")
+        self.assertEquals(v.targets, rc.ids)
+        ip.magic("%pxconfig_tst -t ::2")
+        self.assertEquals(v.targets, rc.ids[::2])
+        ip.magic("%pxconfig_tst -t 1::2")
+        self.assertEquals(v.targets, rc.ids[1::2])
+        ip.magic("%pxconfig_tst -t 1")
+        self.assertEquals(v.targets, 1)
+        ip.magic("%pxconfig_tst --block")
+        self.assertEquals(v.block, True)
+        ip.magic("%pxconfig_tst --noblock")
+        self.assertEquals(v.block, False)
+    
+    def test_cellpx_targets(self):
+        """%%px --targets doesn't change defaults"""
+        ip = get_ipython()
+        rc = self.client
+        view = rc.activate(rc.ids)
+        self.assertEquals(view.targets, rc.ids)
+        ip.magic('pxconfig --verbose')
+        for cell in ("pass", "1/0"):
+            with capture_output() as io:
+                try:
+                    ip.run_cell_magic("px", "--targets all", cell)
+                except pmod.RemoteError:
+                    pass
+            self.assertTrue('engine(s): all' in io.stdout)
+            self.assertEquals(view.targets, rc.ids)
+
+
+    def test_cellpx_block(self):
+        """%%px --block doesn't change default"""
+        ip = get_ipython()
+        rc = self.client
+        view = rc.activate(rc.ids)
+        view.block = False
+        self.assertEquals(view.targets, rc.ids)
+        ip.magic('pxconfig --verbose')
+        for cell in ("pass", "1/0"):
+            with capture_output() as io:
+                try:
+                    ip.run_cell_magic("px", "--block", cell)
+                except pmod.RemoteError:
+                    pass
+            self.assertFalse('Async' in io.stdout)
+            self.assertFalse(view.block)
+
 

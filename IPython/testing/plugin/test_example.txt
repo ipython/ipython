@@ -9,7 +9,7 @@ as a test::
 
     >>> 1+1
     2
-    >>> print "hello"
+    >>> print ("hello")
     hello
 
 More than one example works::

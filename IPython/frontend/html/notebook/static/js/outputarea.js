@@ -16,28 +16,96 @@ var IPython = (function (IPython) {
 
     var OutputArea = function (selector, prompt_area) {
         this.selector = selector;
-        this.element = $(selector);
+        this.wrapper = $(selector);
         this.outputs = [];
         this.collapsed = false;
+        this.scrolled = false;
         this.clear_out_timeout = null;
         if (prompt_area === undefined) {
             this.prompt_area = true;
         } else {
             this.prompt_area = prompt_area;
         };
+        this.create_elements();
         this.style();
+        this.bind_events();
+    };
+    
+    OutputArea.prototype.create_elements = function () {
+        this.element = $("<div/>");
+        this.collapse_button = $("<div/>");
+        this.prompt_overlay = $("<div/>");
+        this.wrapper.append(this.prompt_overlay);
+        this.wrapper.append(this.element);
+        this.wrapper.append(this.collapse_button);
     };
 
 
     OutputArea.prototype.style = function () {
+        this.collapse_button.hide();
+        this.prompt_overlay.hide();
+        
+        this.wrapper.addClass('output_wrapper');
         this.element.addClass('output vbox');
+        
+        this.collapse_button.button();
+        this.collapse_button.addClass('output_collapsed vbox');
+        this.collapse_button.attr('title', 'click to expand outout');
+        this.collapse_button.html('. . .');
+        
+        this.prompt_overlay.addClass('out_prompt_overlay prompt');
+        this.prompt_overlay.attr('title', 'click to expand outout; double click to hide output');
+        
         this.collapse();
+    };
+
+
+    OutputArea.prototype._should_scroll = function (lines) {
+        if (!lines) {
+            lines = 100;
+        }
+        // line-height from http://stackoverflow.com/questions/1185151
+        var fontSize = this.element.css('font-size');
+        var lineHeight = Math.floor(parseInt(fontSize.replace('px','')) * 1.5);
+        
+        return (this.element.height() > lines * lineHeight);
+    };
+
+
+    OutputArea.prototype.bind_events = function () {
+        var that = this;
+        this.prompt_overlay.dblclick(function () { that.toggle_output(); });
+        this.prompt_overlay.click(function () { that.toggle_scroll(); });
+
+        this.element.resize(function () {
+            // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
+            if ( $.browser.mozilla ) {
+                return;
+            }
+            // maybe scroll output,
+            // if it's grown large enough and hasn't already been scrolled.
+            if ( !that.scrolled && that._should_scroll()) {
+                that.scroll_area();
+            }
+        });
+        this.collapse_button.click(function () {
+            that.expand();
+        });
+        this.collapse_button.hover(function () {
+            $(this).addClass("ui-state-hover");
+        }, function () {
+            $(this).removeClass("ui-state-hover");
+        });
     };
 
 
     OutputArea.prototype.collapse = function () {
         if (!this.collapsed) {
             this.element.hide();
+            this.prompt_overlay.hide();
+            if (this.element.html()){
+                this.collapse_button.show();
+            }
             this.collapsed = true;
         };
     };
@@ -45,7 +113,9 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.expand = function () {
         if (this.collapsed) {
+            this.collapse_button.hide();
             this.element.show();
+            this.prompt_overlay.show();
             this.collapsed = false;
         };
     };
@@ -56,6 +126,38 @@ var IPython = (function (IPython) {
             this.expand();
         } else {
             this.collapse();
+        };
+    };
+
+
+    OutputArea.prototype.scroll_area = function () {
+        this.element.addClass('output_scroll');
+        this.prompt_overlay.attr('title', 'click to unscroll output; double click to hide');
+        this.scrolled = true;
+    };
+
+
+    OutputArea.prototype.unscroll_area = function () {
+        this.element.removeClass('output_scroll');
+        this.prompt_overlay.attr('title', 'click to scroll output; double click to hide');
+        this.scrolled = false;
+    };
+
+
+    OutputArea.prototype.scroll_if_long = function (lines) {
+        if (this._should_scroll(lines)) {
+            // only allow scrolling long-enough output
+            this.scroll_area();
+        };
+    };
+
+
+    OutputArea.prototype.toggle_scroll = function () {
+        if (this.scrolled) {
+            this.unscroll_area();
+        } else {
+            // only allow scrolling long-enough output
+            this.scroll_if_long(20);
         };
     };
 
@@ -132,6 +234,8 @@ var IPython = (function (IPython) {
             this.append_stream(json);
         };
         this.outputs.push(json);
+        var that = this;
+        setTimeout(function(){that.element.trigger('resize');}, 100);
     };
 
 
@@ -181,11 +285,7 @@ var IPython = (function (IPython) {
         if (json.stream == undefined){
             json.stream = 'stdout';
         }
-        if (!utils.fixConsole(json.text)){
-            // fixConsole gives nothing (empty string, \r, etc.)
-            // so don't append any elements, which might add undesirable space
-            return;
-        }
+        var text = json.text;
         var subclass = "output_"+json.stream;
         if (this.outputs.length > 0){
             // have at least one output to consider
@@ -194,15 +294,23 @@ var IPython = (function (IPython) {
                 // latest output was in the same stream,
                 // so append directly into its pre tag
                 // escape ANSI & HTML specials:
-                var text = utils.fixConsole(json.text);
-                this.element.find('div.'+subclass).last().find('pre').append(text);
+                var pre = this.element.find('div.'+subclass).last().find('pre');
+                var html = utils.fixCarriageReturn(
+                    pre.html() + utils.fixConsole(text));
+                pre.html(html);
                 return;
             }
         }
-        
+
+        if (!text.replace("\r", "")) {
+            // text is nothing (empty string, \r, etc.)
+            // so don't append any elements, which might add undesirable space
+            return;
+        }
+
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(json.text, toinsert, "output_stream "+subclass);
+        this.append_text(text, toinsert, "output_stream "+subclass);
         this.element.append(toinsert);
     };
 
@@ -260,6 +368,7 @@ var IPython = (function (IPython) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
+        data = utils.fixCarriageReturn(data);
         if (extra_class){
             toinsert.addClass(extra_class);
         }
@@ -275,16 +384,47 @@ var IPython = (function (IPython) {
     };
 
 
+    OutputArea.prototype._dblclick_to_reset_size = function (img) {
+        // schedule wrapping image in resizable after a delay,
+        // so we don't end up calling resize on a zero-size object
+        var that = this;
+        setTimeout(function () {
+            var h0 = img.height();
+            var w0 = img.width();
+            if (!(h0 && w0)) {
+                // zero size, schedule another timeout
+                that._dblclick_to_reset_size(img);
+                return
+            }
+            img.resizable({
+                aspectRatio: true,
+                autoHide: true
+            });
+            img.dblclick(function () {
+                // resize wrapper & image together for some reason:
+                img.parent().height(h0);
+                img.height(h0);
+                img.parent().width(w0);
+                img.width(w0);
+            });
+        }, 250);
+    }
+
+
     OutputArea.prototype.append_png = function (png, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
-        toinsert.append($("<img/>").attr('src','data:image/png;base64,'+png));
+        var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        this._dblclick_to_reset_size(img);
+        toinsert.append(img);
         element.append(toinsert);
     };
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
-        toinsert.append($("<img/>").attr('src','data:image/jpeg;base64,'+jpeg));
+        var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
+        this._dblclick_to_reset_size(img);
+        toinsert.append(img);
         element.append(toinsert);
     };
 
@@ -328,11 +468,12 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.clear_output_callback = function (stdout, stderr, other) {
         var output_div = this.element;
-        
+
         if (stdout && stderr && other){
             // clear all, no need for logic
             output_div.html("");
             this.outputs = [];
+            this.unscroll_area();
             return;
         }
         // remove html output
@@ -347,6 +488,7 @@ var IPython = (function (IPython) {
         if (other) {
             output_div.find("div.output_subarea").not("div.output_stderr").not("div.output_stdout").parent().remove();
         }
+        this.unscroll_area();
         
         // remove cleared outputs from JSON list:
         for (var i = this.outputs.length - 1; i >= 0; i--) {

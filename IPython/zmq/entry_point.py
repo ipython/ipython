@@ -31,7 +31,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The path to the file to write
 
     shell_port : int, optional
-        The port to use for XREP channel.
+        The port to use for ROUTER channel.
 
     iopub_port : int, optional
         The port to use for the SUB channel.
@@ -89,7 +89,8 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     
 
 def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
-                        executable=None, independent=False, extra_arguments=[]):
+                        executable=None, independent=False, extra_arguments=[],
+                        cwd=None):
     """ Launches a localhost kernel, binding to the specified ports.
 
     Parameters
@@ -115,8 +116,11 @@ def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
         when this process dies. Note that in this case it is still good practice
         to kill kernels manually before exiting.
 
-    extra_arguments = list, optional
+    extra_arguments : list, optional
         A list of extra arguments to pass when executing the launch code.
+    
+    cwd : path, optional
+        The working dir of the kernel process (default: cwd of this process).
 
     Returns
     -------
@@ -190,10 +194,10 @@ def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
     else:
         if independent:
             proc = Popen(arguments, preexec_fn=lambda: os.setsid(),
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd)
         else:
             proc = Popen(arguments + ['--parent=1'],
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd)
 
     # Clean up pipes created to work around Popen bug.
     if redirect_in:

@@ -35,6 +35,17 @@ $(document).ready(function () {
 
     IPython.layout_manager.do_resize();
 
+    $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
+                     '<span id="test2" style="font-weight: bold;">x</span>'+
+                     '<span id="test3" style="font-style: italic;">x</span></pre></div>')
+    var nh = $('#test1').innerHeight();
+    var bh = $('#test2').innerHeight();
+    var ih = $('#test3').innerHeight();
+    if(nh != bh || nh != ih) {
+        $('head').append('<style>.CodeMirror span { vertical-align: bottom; }</style>');
+    }
+    $('#fonttest').remove();
+
     if(IPython.read_only){
         // hide various elements from read-only view
         $('div#pager').remove();

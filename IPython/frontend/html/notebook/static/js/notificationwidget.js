@@ -85,10 +85,10 @@ var IPython = (function (IPython) {
             that.set_message("Saving notebook",500);
         });
         $([IPython.events]).on('notebook_saved.Notebook', function () {
-            that.set_message("Notebook saved",500);
+            that.set_message("Notebook saved",2000);
         });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
-            that.set_message("Notebook save failed",500);
+            that.set_message("Notebook save failed",2000);
         });
     };
 
