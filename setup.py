@@ -52,7 +52,6 @@ from glob import glob
 if os.path.exists('MANIFEST'): os.remove('MANIFEST')
 
 from distutils.core import setup
-from distutils.command.upload import upload
 
 # On Python 3, we need distribute (new setuptools) to do the 2to3 conversion
 if PY3:
@@ -166,14 +165,16 @@ packages = find_packages()
 package_data = find_package_data()
 data_files = find_data_files()
 
-setup_args['cmdclass'] = {'build_py': record_commit_info('IPython')}
 setup_args['packages'] = packages
 setup_args['package_data'] = package_data
 setup_args['data_files'] = data_files
 
 #---------------------------------------------------------------------------
-# custom upload_wininst command
+# custom distutils commands
 #---------------------------------------------------------------------------
+# imports here, so they are after setuptools import if there was one
+from distutils.command.sdist import sdist
+from distutils.command.upload import upload
 
 class UploadWindowsInstallers(upload):
     
@@ -194,7 +195,11 @@ class UploadWindowsInstallers(upload):
         for dist_file in glob(self.files):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
-setup_args['cmdclass']['upload_wininst'] = UploadWindowsInstallers
+setup_args['cmdclass'] = {
+    'build_py': record_commit_info('IPython'),
+    'sdist' : record_commit_info('IPython', sdist),
+    'upload_wininst' : UploadWindowsInstallers,
+}
 
 #---------------------------------------------------------------------------
 # Handle scripts, dependencies, and setuptools specific things
