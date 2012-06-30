@@ -489,12 +489,12 @@ consequences:
   
 * It is possible to embed not only an interactive shell with the
   :func:`IPython.embed` call as always, but now you can also embed a *kernel*
-  with :func:``IPython.embed_kernel()`.  Embedding an IPython kernel in an
+  with :func:`IPython.embed_kernel()`.  Embedding an IPython kernel in an
   application is useful when you want to use :func:`IPython.embed` but don't
   have a terminal attached on stdin and stdout.
 
 * The new :func:`IPython.parallel.bind_kernel` allows you to promote Engines to
-  listening Kernels, and connect QtConsoles directly to an Engine and debug it
+  listening Kernels, and connect QtConsoles to an Engine and debug it
   directly.
 
 In addition, having a single core object through our entire architecture also
