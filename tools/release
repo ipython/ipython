@@ -49,8 +49,7 @@ cd(ipdir)
 sh('./setup.py register')
 
 # Upload all files
-for cmd in [sdists, eggs] + win_builds:
-    sh(cmd + ' upload')
+sh(sdists + ' upload')
 cd(distdir)
 print( 'Uploading distribution files...')
 
