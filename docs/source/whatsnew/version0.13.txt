@@ -13,7 +13,7 @@ authors comprising over 1740 commits.
 
 The amount of work included in this release is so large, that we can only cover
 here the main highlights; please see our :ref:`detailed release statistics
-<issues_list_013>` for links to every issue and pull request closed on github
+<issues_list_013>` for links to every issue and pull request closed on GitHub.
 
 
 Major Notebook improvements: new user interface and more
@@ -29,7 +29,7 @@ toolbar with icons.  Both the toolbar and the header above the menu can be
 collapsed to leave an unobstructed working area:
 
 .. image:: ../_static/ipy_013_notebook_spectrogram.png
-    :width: 400px
+    :width: 460px
     :alt: New user interface for Notebook
     :align: center
     :target: ../_static/ipy_013_notebook_spectrogram.png
@@ -43,7 +43,7 @@ output region completely, and a double-click will hide it completely.  This
 figure shows both the scrolled and hidden modes:
 
 .. image:: ../_static/ipy_013_notebook_long_out.png
-    :width: 400px
+    :width: 460px
     :alt: Scrolling and hiding of long output in the notebook.
     :align: center
     :target: ../_static/ipy_013_notebook_long_out.png
@@ -60,7 +60,7 @@ notebook dashboard now auto-refreshes its contents and offers buttons to shut
 down any running kernels (:ghpull:`1739`):
 
 .. image:: ../_static/ipy_013_dashboard.png
-    :width: 400px
+    :width: 460px
     :alt: Improved dashboard
     :align: center
     :target: ../_static/ipy_013_dashboard.png
@@ -74,7 +74,7 @@ override the number of engines started.  There is a new tab in the dashboard
 user interface:
 
 .. image:: ../_static/ipy_013_dashboard_cluster.png
-    :width: 400px
+    :width: 460px
     :alt: Cluster management from the notebook dashboard
     :align: center
     :target: ../_static/ipy_013_dashboard_cluster.png
@@ -101,7 +101,7 @@ can merge it for full production use as soon as possible.
 .. note::
 
    v3 notebooks can *not* be read by older versions of IPython, but we provide
-   a `simple script`__ that you can use in case you need to export a v3
+   a `simple script`_ that you can use in case you need to export a v3
    notebook to share with a v2 user.
 
 .. _simple script: https://gist.github.com/1935808
@@ -122,7 +122,7 @@ to the user, with callbacks in Javascript executing calls to the Kernel.  This
 will enable many interactive elements to be added by users in notebooks.
 
 An example of this capability has been provided as a proof of concept in
-`docs/examples/widgets` that lets you directly communicate with one or more
+:file:`docs/examples/widgets` that lets you directly communicate with one or more
 parallel engines, acting as a mini-console for parallel debugging and
 introspection.
 
@@ -137,7 +137,7 @@ bottom of the screen. For the details, look at the example notebook
 :file:`01_notebook_introduction.ipynb`.
 
 .. figure:: ../_static/ipy_013_notebook_tooltip.png
-    :width: 400px
+    :width: 460px
     :alt: Improved tooltips in the notebook.
     :align: center
     :target: ../_static/ipy_013_notebook_tooltip.png
@@ -183,7 +183,7 @@ Other improvements to the Notebook
   than providing the fairly useless browser html save dialog.  :ghpull:`1334`.
   
 * Allow accessing local files from the notebook (in urls), by serving any local
-  file as the url ``files/<relativepath``.  This makes it possible to, for
+  file as the url ``files/<relativepath>``.  This makes it possible to, for
   example, embed local images in a notebook.  :ghpull:`1211`.
 
       
@@ -257,14 +257,14 @@ interpreter installed):
 * ``%%sx``: capture cell output running the code with the system shell (cell
   extension of ``%sx``).
   
-* ``%%system``: run cell with system shell (similar to ``%%!``)
+* ``%%system``: run cell with system shell (``%%!`` is an alias to this).
   
 * ``%%timeit``: time the execution of the cell (extension of ``%timeit``).
 
 This is what some of the script-related magics look like in action:
 
 .. image:: ../_static/ipy_013_notebook_script_cells.png
-    :width: 400px
+    :width: 460px
     :alt: Cluster management from the notebook dashboard
     :align: center
     :target: ../_static/ipy_013_notebook_script_cells.png
@@ -289,7 +289,7 @@ default, which lets you cycle through the available completions by pressing tab,
 or select a completion with the arrow keys (:ghpull:`1851`).
 
 .. figure:: ../_static/ipy_013_qtconsole_completer.png
-    :width: 400px
+    :width: 460px
     :alt: ncurses-like completer, with highlighted selection.
     :align: center
     :target: ../_static/ipy_013_qtconsole_completer.png
@@ -306,7 +306,7 @@ variables defined in the current cell, or while the kernel is busy
 We have implemented a new configurable flag to control tab completion on
 modules that provide the ``__all__`` attribute::
 
-  IPCompleter.limit_to__all__= Boolean.
+  IPCompleter.limit_to__all__= Boolean
 
 This instructs the completer to honor ``__all__`` for the completion.
 Specifically, when completing on ``object.<tab>``, if True: only those names
@@ -319,8 +319,6 @@ Improvements to the Qt console
 
 * changes for easier integration into other projects such as Spyder_.
 
-.. _spyder: https://code.google.com/p/spyderlib
-
 * Improved menus with a new Magic menu that is organized by magic groups (this
   was made possible by the reorganization of the magic system
   internals). :ghpull:`1782`.
@@ -330,6 +328,9 @@ Improvements to the Qt console
   
 * Allow the native display of jpeg image in the qtconsole. :ghpull:`1643`.
 
+.. _spyder: https://code.google.com/p/spyderlib
+
+
   
 Parallel
 --------
@@ -337,7 +338,7 @@ Parallel
 The parallel tools have been improved and fine-tuned on multiple fronts.  Now,
 the creation of an :class:`IPython.parallel.Client` object automatically
 activates a line and cell magic function ``px`` that sends its code to all the
-engines. Further magics can be easily created with the :meth:`Client.activate`
+engines. Further magics can be easily created with the :meth:`.Client.activate`
 method, to conveniently execute code on any subset of engines. :ghpull:`1893`.
 
 The ``%%px`` cell magic can also be given an optional targets argument, as well
@@ -351,7 +352,7 @@ read.  Now, IPython directly reports the remote exceptions without showing any
 of the internal execution parts:
 
 .. image::  ../_static/ipy_013_par_tb.png
-    :width: 400px
+    :width: 460px
     :alt: Improved parallel exceptions.
     :align: center
     :target: ../_static/ipy_013_par_tb.png
@@ -392,7 +393,7 @@ Add sugar methods/properties to AsyncResult that are generically useful
     * ``len(ar)`` = # of tasks
     * ``ar.wait_interactive()``: prints progress
     
-Added ``Client.spin_thread(interval)`` / ``stop_spin_thread()`` for running
+Added :meth:`.Client.spin_thread` / :meth:`~.Client.stop_spin_thread` for running
 spin in a background thread, to keep zmq queue clear.  This can be used to
 ensure that timing information is as accurate as possible (at the cost of
 having a background thread active).
@@ -402,17 +403,22 @@ predictable/intuitive behavior, if often slower, and thus a more logical
 default.  Users whose workloads require maximum throughput and are largely
 homogeneous in time per task can make the optimization themselves, but now the
 behavior will be less surprising to new users. :ghpull:`1294`.
-    
+
 
 Kernel/Engine unification
 -------------------------
 
-:func:`IPython.parallel.bind_kernel`
-      
-Add IPython.embed_kernel() as a public API.
-Embedding an IPython kernel in an application is useful when you want to use
-IPython.embed() but don't have a terminal attached on stdin and stdout. 1640
+:ghpull:`1640`
 
+Add :func:`IPython.embed_kernel()` as a public API.
+Embedding an IPython kernel in an application is useful when you want to use
+IPython.embed() but don't have a terminal attached on stdin and stdout.
+
+:func:`IPython.parallel.bind_kernel` allows you to promote Engines to listening Kernels,
+and connect QtConsoles directly to an Engine and debug it directly.
+
+This also means that Engines are now fully IPython, allowing access to magics,
+etc. in your parallel execution.
 
 
 Official Public API
