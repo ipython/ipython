@@ -205,8 +205,8 @@ This cleanup was the last major piece of deep refactoring needed from the
 original 2001 codebase.
     
 We have also introduced a new type of magic function, prefixed with `%%`
-instead of `%`, which operates at the cell level.  A cell magic receives two
-arguments: the line it is called on (like a line magic) and the body of the
+instead of `%`, which operates at the whole-cell level.  A cell magic receives
+two arguments: the line it is called on (like a line magic) and the body of the
 cell below it.
     
 Cell magics are most natural in the notebook, but they also work in the
@@ -272,9 +272,62 @@ This is what some of the script-related magics look like in action:
 In addition, we have also a number of :ref:`extensions <extensions_overview>`
 that provide specialized magics.  These typically require additional software
 to run and must be manually loaded via ``%load_ext <extension name>``, but are
-extremely useful.  In particular, we want to highlight a few:
+extremely useful.  The following extensions are provided:
+
+Cython magics (extension :ref:`octavemagic <extensions_cythonmagic>`)
+    This extension provides magics to automatically build and compile Python
+    extension modules using the Cython_ language. You must install Cython
+    separately, as well as a C compiler, for this to work.  The examples
+    directory in the source distribution ships with a full notebook
+    demonstrating these capabilities:
+
+.. image:: ../_static/ipy_013_notebook_cythonmagic.png
+    :width: 460px
+    :alt: Cython magic
+    :align: center
+    :target: ../_static/ipy_013_notebook_cythonmagic.png
+
+.. _cython: http://cython.org
+
+Octave magics (extension :ref:`octavemagic <extensions_octavemagic>`)
+    This extension provides several magics that support calling code written in
+    the Octave_ language for numerical computing.  You can execute single-lines
+    or whole blocks of Octave code, capture both output and figures inline
+    (just like matplotlib plots), and have variables automatically converted
+    between the two languages.  To use this extension, you must have Octave
+    installed as well as the oct2py_ and h5py_ packages.  The examples
+    directory in the source distribution ships with a full notebook
+    demonstrating these capabilities:
+
+.. image:: ../_static/ipy_013_notebook_octavemagic.png
+    :width: 460px
+    :alt: Octave magic
+    :align: center
+    :target: ../_static/ipy_013_notebook_octavemagic.png
+
+.. _octave: http://www.gnu.org/software/octave
+.. _oct2py: http://pypi.python.org/pypi/oct2py
+.. _h5py: http://code.google.com/p/h5py
 
 
+R magics (extension :ref:`rmagic <extensions_rmagic>`)
+    This extension provides several magics that support calling code written in
+    the R_ language for statistical data analysis.  You can execute
+    single-lines or whole blocks of R code, capture both output and figures
+    inline (just like matplotlib plots), and have variables automatically
+    converted between the two languages.  To use this extension, you must have
+    R installed as well as the rpy2_ package that bridges Python and R.  The
+    examples directory in the source distribution ships with a full notebook
+    demonstrating these capabilities:
+
+.. image:: ../_static/ipy_013_notebook_rmagic.png
+    :width: 460px
+    :alt: R magic
+    :align: center
+    :target: ../_static/ipy_013_notebook_rmagic.png
+
+.. _R: http://www.r-project.org
+.. _rpy2: http://rpy.sourceforge.net/rpy2.html
 
 
 Tab completer improvements
