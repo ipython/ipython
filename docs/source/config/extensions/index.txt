@@ -103,6 +103,7 @@ Extensions bundled with IPython
 
    autoreload
    cythonmagic
+   octavemagic
    rmagic
    storemagic
    sympyprinting
