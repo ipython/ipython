@@ -274,7 +274,7 @@ that provide specialized magics.  These typically require additional software
 to run and must be manually loaded via ``%load_ext <extension name>``, but are
 extremely useful.  The following extensions are provided:
 
-Cython magics (extension :ref:`octavemagic <extensions_cythonmagic>`)
+**Cython magics (extension :ref:`cythonmagic <extensions_cythonmagic>`)**
     This extension provides magics to automatically build and compile Python
     extension modules using the Cython_ language. You must install Cython
     separately, as well as a C compiler, for this to work.  The examples
@@ -289,7 +289,7 @@ Cython magics (extension :ref:`octavemagic <extensions_cythonmagic>`)
 
 .. _cython: http://cython.org
 
-Octave magics (extension :ref:`octavemagic <extensions_octavemagic>`)
+**Octave magics (extension :ref:`octavemagic <extensions_octavemagic>`)**
     This extension provides several magics that support calling code written in
     the Octave_ language for numerical computing.  You can execute single-lines
     or whole blocks of Octave code, capture both output and figures inline
@@ -309,8 +309,7 @@ Octave magics (extension :ref:`octavemagic <extensions_octavemagic>`)
 .. _oct2py: http://pypi.python.org/pypi/oct2py
 .. _h5py: http://code.google.com/p/h5py
 
-
-R magics (extension :ref:`rmagic <extensions_rmagic>`)
+**R magics (extension :ref:`rmagic <extensions_rmagic>`)**
     This extension provides several magics that support calling code written in
     the R_ language for statistical data analysis.  You can execute
     single-lines or whole blocks of R code, capture both output and figures
@@ -370,7 +369,12 @@ attribute is ignored. :ghpull:`1529`.
 Improvements to the Qt console
 ------------------------------
 
-* changes for easier integration into other projects such as Spyder_.
+The Qt console continues to receive improvements and refinements, despite the
+fact that it is by now a fairly mature and robust component.  Lots of small
+polish has gone into it, here are a few highlights:
+
+* A number of changes were made to the underlying code for easier integration
+  into other projects such as Spyder_ (:ghpull:`2007`, :ghpull:`2024`).
 
 * Improved menus with a new Magic menu that is organized by magic groups (this
   was made possible by the reorganization of the magic system
@@ -379,7 +383,7 @@ Improvements to the Qt console
 * Allow for restarting kernels without clearing the qtconsole, while leaving a
   visible indication that the kernel has restarted. :ghpull:`1681`.
   
-* Allow the native display of jpeg image in the qtconsole. :ghpull:`1643`.
+* Allow the native display of jpeg images in the qtconsole. :ghpull:`1643`.
 
 .. _spyder: https://code.google.com/p/spyderlib
 
@@ -410,7 +414,6 @@ of the internal execution parts:
     :align: center
     :target: ../_static/ipy_013_par_tb.png
 
-
 The parallel tools now default to using ``NoDB`` as the storage backend for
 intermediate results.  This means that the default usage case will have a
 significantly reduced memory footprint, though certain advanced features are
@@ -421,7 +424,7 @@ other actions with complex display.  The ``px`` magic has now both line and cell
 modes, and in cell mode finer control has been added about how to collate
 output from multiple engines. :ghpull:`1768`.
 
-Incremental improvements to SSH launchers:
+There have also been incremental improvements to the SSH launchers:
     
 * add to_send/fetch steps for moving connection files around.
   
@@ -430,14 +433,9 @@ Incremental improvements to SSH launchers:
   *remotely*.
     
 This makes the SSHLauncher usable on machines without shared filesystems.
-    
-When sending files, the destination directory must *already exist* - that is,
-`ipython profile create` may be necessary on the remote system, before the
-security dir exists for putting the connection file the first
-time. :ghpull:`1634`.
 
-Add sugar methods/properties to AsyncResult that are generically useful
-(:ghpull:`1548`):
+A number of 'sugar' methods/properties were added to AsyncResult that are
+quite useful (:ghpull:`1548`) for everday work:
     
     * ``ar.wall_time`` = received - submitted
     * ``ar.serial_time`` = sum of serial computation time
@@ -446,9 +444,9 @@ Add sugar methods/properties to AsyncResult that are generically useful
     * ``len(ar)`` = # of tasks
     * ``ar.wait_interactive()``: prints progress
     
-Added :meth:`.Client.spin_thread` / :meth:`~.Client.stop_spin_thread` for running
-spin in a background thread, to keep zmq queue clear.  This can be used to
-ensure that timing information is as accurate as possible (at the cost of
+Added :meth:`.Client.spin_thread` / :meth:`~.Client.stop_spin_thread` for
+running spin in a background thread, to keep zmq queue clear.  This can be used
+to ensure that timing information is as accurate as possible (at the cost of
 having a background thread active).
 
 Set TaskScheduler.hwm default to 1 instead of 0.  1 has more
@@ -461,18 +459,49 @@ behavior will be less surprising to new users. :ghpull:`1294`.
 Kernel/Engine unification
 -------------------------
 
-:ghpull:`1640`
+This is mostly work 'under the hood', but it is actually a *major* achievement
+for the project that has deep implications in the long term: at last, we have
+unified the main object that execute as the user's interactive shell (which
+we refer to as the *IPython kernel*) with the objects that run in all the
+worker nodes of the parallel computing facilities (the *IPython engines*).
+Ever since the first implementation of IPython's parallel code back in 2006, we
+had wanted to have these two roles be played by the same machinery, but a
+number of technical reasons had prevented that from being true.
 
-Add :func:`IPython.embed_kernel()` as a public API.
-Embedding an IPython kernel in an application is useful when you want to use
-IPython.embed() but don't have a terminal attached on stdin and stdout.
+In this release we have now merged them, and this has a number of important
+consequences:
 
-:func:`IPython.parallel.bind_kernel` allows you to promote Engines to listening Kernels,
-and connect QtConsoles directly to an Engine and debug it directly.
+* It is possible to connect any of our clients (qtconsole or terminal console)
+  to any individual parallel engine, with the *exact* behavior of working at a
+  'regular' IPython console/qtconsole.  This makes debugging, plotting, etc. in
+  parallel scenarios vastly easier.
 
-This also means that Engines are now fully IPython, allowing access to magics,
-etc. in your parallel execution.
+* Parallel engines can always execute arbitrary 'IPython code', that is, code
+  that has magics, shell extensions, etc.  In combination with the ``%%px``
+  magics, it is thus extremely natural for example to send to all engines a
+  block of Cython or R code to be executed via the new Cython and R magics. For
+  example, this snippet would send the R block to all active engines in a
+  cluster::
 
+    %%px
+    %%R
+    ... R code goes here
+  
+* It is possible to embed not only an interactive shell with the
+  :func:`IPython.embed` call as always, but now you can also embed a *kernel*
+  with :func:``IPython.embed_kernel()`.  Embedding an IPython kernel in an
+  application is useful when you want to use :func:`IPython.embed` but don't
+  have a terminal attached on stdin and stdout.
+
+* The new :func:`IPython.parallel.bind_kernel` allows you to promote Engines to
+  listening Kernels, and connect QtConsoles directly to an Engine and debug it
+  directly.
+
+In addition, having a single core object through our entire architecture also
+makes the project conceptually cleaner, easier to maintain and more robust.
+This took a lot of work to get in place, but we are thrilled to have this major
+piece of architecture finally where we'd always wanted it to be.
+  
 
 Official Public API
 -------------------
