@@ -7,13 +7,19 @@ Release 0.13
 
 IPython 0.13 contains several major new features, as well as a large amount of
 bug and regression fixes.  The previous version (0.12) was released on December
-19 2011, so this release cycle was roughly 6 months long, during which we
-closed a total of 373 pull requests and 742 issues, with contributions from 62
-authors comprising over 1740 commits.
+19 2011, and in this development cycle we had:
+
+- ~6 months of work.
+- 373 pull requests merged.
+- 742 issues closed (non-pull requests).
+- contributions from 62 authors.
+- 1760 commits.
+- a diff of 114226 lines.
 
 The amount of work included in this release is so large, that we can only cover
 here the main highlights; please see our :ref:`detailed release statistics
-<issues_list_013>` for links to every issue and pull request closed on GitHub.
+<issues_list_013>` for links to every issue and pull request closed on GitHub
+as well as a full list of individual contributors.
 
 
 Major Notebook improvements: new user interface and more

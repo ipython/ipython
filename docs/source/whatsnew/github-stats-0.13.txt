@@ -6,11 +6,12 @@ Issues closed in the 0.13 development cycle
 Issues closed in 0.13
 ---------------------
 
-GitHub stats since 0.12 (2011/12/19 - 2012/06/29)
+GitHub stats since IPython 0.12 (2011/12/19 - 2012/06/30)
 
-These lists are automatically generated, and may be incomplete or contain duplicates.
+These lists are automatically generated, and may be incomplete or contain
+duplicates.
 
-The following 62 authors contributed 1745 commits for 0.13:
+The following 62 authors contributed 1760 commits.
 
 * Aaron Culich
 * Aaron Meurer
@@ -68,7 +69,7 @@ The following 62 authors contributed 1745 commits for 0.13:
 * Timo Paulssen
 * Toby Gilham
 * Tony S Yu
-* W\. Trevor King
+* W. Trevor King
 * Walter Doerwald
 * anatoly techtonik
 * fawce
