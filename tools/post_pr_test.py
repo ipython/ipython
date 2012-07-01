@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Post the results of a pull request test to Github.
 """
+from __future__ import print_function
 from test_pr import load_results, post_logs, post_results_comment, print_results
 
 num, results, pr, unavailable_pythons = load_results()

@@ -9,6 +9,7 @@ Meant to be run on Windows
 
 Requires that you have python and python3 on your PATH
 """
+from __future__ import print_function
 
 import glob
 import os
@@ -41,6 +42,6 @@ for py in ['python', 'python3']:
         sh(cmd)
         if github and gh_api:
             exe = glob.glob(os.path.join("dist", "ipython-*{v}-{plat}.exe".format(**locals())))[0]
-            print ("Uploading %s to GitHub" % exe)
+            print(("Uploading %s to GitHub" % exe))
             desc = "IPython Installer for Python {v}.x on {plat}".format(**locals())
             gh_api.post_download('ipython/ipython', exe, description=desc)

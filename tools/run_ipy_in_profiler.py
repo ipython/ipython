@@ -4,6 +4,7 @@
 I (fperez) tried it quickly and it doesn't work in its current form.  Either it
 needs to be fixed and documented or removed.
 """
+from __future__ import print_function
 
 import cProfile as profile
 import sys
@@ -11,7 +12,7 @@ import sys
 
 def main():
     import IPython.ipapi
-    print "Entering ipython for profiling. Type 'Exit' for profiler report"
+    print("Entering ipython for profiling. Type 'Exit' for profiler report")
     IPython.ipapi.launch_new_instance()
 
 if len(sys.argv) == 1:
