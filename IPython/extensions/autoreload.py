@@ -105,6 +105,8 @@ skip_doctest = True
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
+
 import atexit
 import imp
 import inspect
@@ -244,8 +246,8 @@ class ModuleReloader(object):
                 if py_filename in self.failed:
                     del self.failed[py_filename]
             except:
-                print >> sys.stderr, "[autoreload of %s failed: %s]" % (
-                        modname, traceback.format_exc(1))
+                print("[autoreload of %s failed: %s]" % (
+                        modname, traceback.format_exc(1)), file=sys.stderr)
                 self.failed[py_filename] = pymtime
 
 #------------------------------------------------------------------------------

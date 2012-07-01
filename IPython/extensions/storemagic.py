@@ -20,6 +20,7 @@ To automatically restore stored variables at startup, add this to your
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Stdlib
 import inspect, os, sys, textwrap
@@ -52,8 +53,8 @@ def refresh_variables(ip):
         try:
             obj = db[key]
         except KeyError:
-            print "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey
-            print "The error was:", sys.exc_info()[0]
+            print("Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey)
+            print("The error was:", sys.exc_info()[0])
         else:
             #print "restored",justkey,"=",obj #dbg
             ip.user_ns[justkey] = obj
@@ -147,13 +148,13 @@ class StoreMagics(Magics):
             else:
                 size = 0
 
-            print 'Stored variables and their in-db values:'
+            print('Stored variables and their in-db values:')
             fmt = '%-'+str(size)+'s -> %s'
             get = db.get
             for var in vars:
                 justkey = os.path.basename(var)
                 # print 30 first characters from every var
-                print fmt % (justkey, repr(get(var, '<unavailable>'))[:50])
+                print(fmt % (justkey, repr(get(var, '<unavailable>'))[:50]))
 
         # default action - store the variable
         else:
@@ -165,8 +166,8 @@ class StoreMagics(Magics):
                 else:
                     fil = open(fnam, 'w')
                 obj = ip.ev(args[0])
-                print "Writing '%s' (%s) to file '%s'." % (args[0],
-                  obj.__class__.__name__, fnam)
+                print("Writing '%s' (%s) to file '%s'." % (args[0],
+                  obj.__class__.__name__, fnam))
 
 
                 if not isinstance (obj, basestring):
@@ -192,23 +193,23 @@ class StoreMagics(Magics):
                     staliases = db.get('stored_aliases',{})
                     staliases[ name ] = cmd
                     db['stored_aliases'] = staliases
-                    print "Alias stored: %s (%s)" % (name, cmd)
+                    print("Alias stored: %s (%s)" % (name, cmd))
                     return
                 else:
                     raise UsageError("Unknown variable '%s'" % args[0])
 
             else:
                 if isinstance(inspect.getmodule(obj), FakeModule):
-                    print textwrap.dedent("""\
+                    print(textwrap.dedent("""\
                     Warning:%s is %s
                     Proper storage of interactively declared classes (or instances
                     of those classes) is not possible! Only instances
                     of classes in real modules on file system can be %%store'd.
-                    """ % (args[0], obj) )
+                    """ % (args[0], obj) ))
                     return
                 #pickled = pickle.dumps(obj)
                 self.db[ 'autorestore/' + args[0] ] = obj
-                print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
+                print("Stored '%s' (%s)" % (args[0], obj.__class__.__name__))
 
 
 class StoreMagic(Plugin):
