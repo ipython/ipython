@@ -15,7 +15,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
 
-    var CodeCell = function (kernel) {
+    var CodeCell = function (kernel,dict) {
         // The kernel doesn't have to be set at creation time, in that case
         // it will be null and set_kernel has to be called later.
         this.kernel = kernel || null;
@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.tooltip_on_tab = true;
         this.collapsed = false;
-        IPython.Cell.apply(this, arguments);
+        IPython.Cell.apply(this, dict);
     };
 
 
@@ -36,12 +36,11 @@ var IPython = (function (IPython) {
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));
         var input_area = $('<div/>').addClass('input_area box-flex1');
-        var ro = this.read_only || IPython.notebook.read_only;
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: 'python',
             theme: 'ipython',
-            readOnly: ro ? 'nocursor': false,
+            readOnly: this.read_only ? 'nocursor': false,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);

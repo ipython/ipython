@@ -14,9 +14,10 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
 
-    var Cell = function (read_only) {
-        this.placeholder = this.placeholder || '';
-        this.read_only = read_only || IPython.read_only;
+    var Cell = function (dict) {
+        dict = dict ||{}; // create empty dict if function without argument
+        this.placeholder = dict.placeholder || '';
+        this.read_only = dict.read_only || false;
         this.selected = false;
         this.element = null;
         this.metadata = {};
@@ -36,7 +37,7 @@ var IPython = (function (IPython) {
     Cell.prototype.bind_events = function () {
         var that = this;
 
-        if (this.read_only || (IPython.notebook != undefined && IPython.notebook.read_only))
+        if (this.read_only)
             return;
         // We trigger events so that Cell doesn't have to depend on Notebook.
         that.element.click(function (event) {
