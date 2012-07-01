@@ -40,6 +40,9 @@ class InlineBackend(InlineBackendConfig):
     # so we shrink the figure size to 6x4, and tweak fonts to
     # make that fit.
     rc = Dict({'figure.figsize': (6.0,4.0),
+        # play nicely with white background in the Qt and notebook frontend
+        'figure.facecolor': 'white',
+        'figure.edgecolor': 'white',
         # 12pt labels get cutoff on 6x4 logplots, so use 10pt.
         'font.size': 10,
         # 72 dpi matches SVG/qtconsole
