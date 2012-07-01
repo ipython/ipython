@@ -14,6 +14,7 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import imp
 import sys
@@ -467,9 +468,9 @@ class DirectView(View):
                 modules.add(key)
                 if not quiet:
                     if fromlist:
-                        print "importing %s from %s on engine(s)"%(','.join(fromlist), name)
+                        print("importing %s from %s on engine(s)"%(','.join(fromlist), name))
                     else:
-                        print "importing %s on engine(s)"%name
+                        print("importing %s on engine(s)"%name)
                 results.append(self.apply_async(remote_import, name, fromlist, level))
             # restore override
             __builtin__.__import__ = save_import
@@ -817,7 +818,7 @@ class DirectView(View):
             # This is injected into __builtins__.
             ip = get_ipython()
         except NameError:
-            print "The IPython parallel magics (%px, etc.) only work within IPython."
+            print("The IPython parallel magics (%px, etc.) only work within IPython.")
             return
         
         M = ParallelMagics(ip, self, suffix)

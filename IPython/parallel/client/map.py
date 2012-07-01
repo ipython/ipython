@@ -23,8 +23,10 @@ Authors:
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
-
 from __future__ import division
+from __future__ import print_function
+
+
 
 import types
 from itertools import islice
@@ -64,7 +66,7 @@ class Map:
         
         # Test for error conditions here
         if p<0 or p>=q:
-          print "No partition exists."
+          print("No partition exists.")
           return
           
         remainder = len(seq)%q
