@@ -1232,7 +1232,7 @@ if __name__ == "__main__":
     try:
         print(spam(1, (2, 3)))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print('')
 
     handler = VerboseTB()
@@ -1240,6 +1240,6 @@ if __name__ == "__main__":
     try:
         print(spam(1, (2, 3)))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print('')
 
