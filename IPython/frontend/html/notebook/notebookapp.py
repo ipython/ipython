@@ -140,15 +140,6 @@ class NotebookWebApplication(web.Application):
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
             (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
         ]
-        settings = dict(
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
-            cookie_secret=os.urandom(1024),
-            login_url="/login",
-        )
-
-        # allow custom overrides for the tornado web app.
-        settings.update(settings_overrides)
 
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn
@@ -160,6 +151,16 @@ class NotebookWebApplication(web.Application):
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
         
+        settings = dict(
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            cookie_secret=os.urandom(1024),
+            login_url="%s/login"%(base_project_url.rstrip('/')),
+        )
+
+        # allow custom overrides for the tornado web app.
+        settings.update(settings_overrides)
+
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
