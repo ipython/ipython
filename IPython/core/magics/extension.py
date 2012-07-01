@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Stdlib
 import os
@@ -45,12 +46,12 @@ class ExtensionMagics(Magics):
             filename = self.shell.extension_manager.install_extension(args,
                                                                  opts.get('n'))
         except ValueError as e:
-            print e
+            print(e)
             return
 
         filename = os.path.basename(filename)
-        print "Installed %s. To use it, type:" % filename
-        print "  %%load_ext %s" % os.path.splitext(filename)[0]
+        print("Installed %s. To use it, type:" % filename)
+        print("  %%load_ext %s" % os.path.splitext(filename)[0])
 
 
     @line_magic

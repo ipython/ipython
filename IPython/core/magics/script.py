@@ -10,6 +10,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Stdlib
 import os
@@ -220,20 +221,20 @@ class ScriptMagics(Magics, Configurable):
                 p.send_signal(signal.SIGINT)
                 time.sleep(0.1)
                 if p.poll() is not None:
-                    print "Process is interrupted."
+                    print("Process is interrupted.")
                     return
                 p.terminate()
                 time.sleep(0.1)
                 if p.poll() is not None:
-                    print "Process is terminated."
+                    print("Process is terminated.")
                     return
                 p.kill()
-                print "Process is killed."
+                print("Process is killed.")
             except OSError:
                 pass
             except Exception as e:
-                print "Error while terminating subprocess (pid=%i): %s" \
-                    % (p.pid, e)
+                print("Error while terminating subprocess (pid=%i): %s" \
+                    % (p.pid, e))
             return
         out = py3compat.bytes_to_str(out)
         err = py3compat.bytes_to_str(err)
@@ -258,7 +259,7 @@ class ScriptMagics(Magics, Configurable):
     def killbgscripts(self, _nouse_=''):
         """Kill all BG processes started by %%script and its family."""
         self.kill_bg_processes()
-        print "All background processes were killed."
+        print("All background processes were killed.")
 
     def kill_bg_processes(self):
         """Kill all BG processes which are still running."""

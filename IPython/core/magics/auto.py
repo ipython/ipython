@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Our own packages
 from IPython.core.magic import Bunch, Magics, magics_class, line_magic
@@ -57,7 +58,7 @@ class AutoMagics(Magics):
         else:
             val = not mman.auto_magic
         mman.auto_magic = val
-        print '\n' + self.shell.magics_manager.auto_status()
+        print('\n' + self.shell.magics_manager.auto_status())
 
     @skip_doctest
     @line_magic
@@ -125,4 +126,4 @@ class AutoMagics(Magics):
                 except AttributeError:
                     self.shell.autocall = self._magic_state.autocall_save = 1
 
-        print "Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall]
+        print("Automatic calling is:",['OFF','Smart','Full'][self.shell.autocall])
