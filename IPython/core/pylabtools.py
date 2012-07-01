@@ -18,6 +18,7 @@ Authors
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 from io import BytesIO
@@ -71,7 +72,7 @@ def getfigs(*fig_nums):
         for num in fig_nums:
             f = Gcf.figs.get(num)
             if f is None:
-                print('Warning: figure %s not available.' % num)
+                print(('Warning: figure %s not available.' % num))
             else:
                 figs.append(f.canvas.figure)
         return figs
@@ -332,9 +333,9 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     if shell is not None:
         configure_inline_support(shell, backend, user_ns)
         
-    print """
+    print("""
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
-For more information, type 'help(pylab)'.""" % backend
+For more information, type 'help(pylab)'.""" % backend)
     # flush stdout, just to be safe
     sys.stdout.flush()
     

@@ -21,6 +21,7 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import __builtin__
 
@@ -179,7 +180,7 @@ class DisplayHook(Configurable):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
-        print >>io.stdout, result_repr
+        print(result_repr, file=io.stdout)
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""

@@ -15,6 +15,7 @@ reference the name under which an object is being read.
 #*****************************************************************************
 
 __all__ = ['Inspector','InspectColors']
+from __future__ import print_function
 
 # stdlib modules
 import __builtin__
@@ -335,11 +336,11 @@ class Inspector:
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""
-        print 'No %s found' % msg,
+        print('No %s found' % msg, end=' ')
         if oname:
-            print 'for %s' % oname
+            print('for %s' % oname)
         else:
-            print
+            print()
 
     def pdef(self, obj, oname=''):
         """Print the definition header for any callable object.
@@ -347,7 +348,7 @@ class Inspector:
         If the object is a class, print the constructor information."""
 
         if not callable(obj):
-            print 'Object is not callable.'
+            print('Object is not callable.')
             return
 
         header = ''
@@ -362,7 +363,7 @@ class Inspector:
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print >>io.stdout, header,self.format(output),
+            print(header,self.format(output), end=' ', file=io.stdout)
 
     # In Python 3, all classes are new-style, so they all have __init__.
     @skip_doctest_py3
@@ -449,9 +450,9 @@ class Inspector:
         # is defined, as long as the file isn't binary and is actually on the
         # filesystem.
         if ofile.endswith(('.so', '.dll', '.pyd')):
-            print 'File %r is binary, not printing.' % ofile
+            print('File %r is binary, not printing.' % ofile)
         elif not os.path.isfile(ofile):
-            print 'File %r does not exist, not printing.' % ofile
+            print('File %r does not exist, not printing.' % ofile)
         else:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses

@@ -14,6 +14,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 # Stdlib
 import os
 import re
@@ -510,8 +511,8 @@ class Magics(object):
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
-        print 'Error in arguments:'
-        print oinspect.getdoc(func)
+        print('Error in arguments:')
+        print(oinspect.getdoc(func))
 
     def format_latex(self, strng):
         """Format a string for latex inclusion."""

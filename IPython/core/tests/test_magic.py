@@ -291,7 +291,7 @@ def doctest_time():
     Wall time: 0.00 s
     
     In [11]: def f(kmjy):
-       ....:    %time print 2*kmjy
+       ....:    %time print(2*kmjy)
        
     In [12]: f(3)
     6
