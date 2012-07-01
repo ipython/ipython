@@ -6,6 +6,7 @@ Authors
 -------
 * MinRK
 """
+from __future__ import print_function
 import networkx as nx
 from random import randint, random
 from IPython import parallel
@@ -89,7 +90,7 @@ def main(nodes, edges):
     
     client = parallel.Client()
     view = client.load_balanced_view()
-    print("submitting %i tasks with %i dependencies"%(nodes,edges))
+    print(("submitting %i tasks with %i dependencies"%(nodes,edges)))
     results = submit_jobs(view, G, jobs)
     print("waiting for results")
     view.wait()

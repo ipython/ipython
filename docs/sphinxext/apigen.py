@@ -17,6 +17,7 @@ NOTE: this is a modified version of a script originally shipped with the
 PyMVPA project, which we've adapted for NIPY use.  PyMVPA is an MIT-licensed
 project."""
 
+from __future__ import print_function
 # Stdlib imports
 import os
 import re
@@ -206,7 +207,7 @@ class ApiDocWriter(object):
         # get the names of all classes and functions
         functions, classes = self._parse_module(uri)
         if not len(functions) and not len(classes):
-            print 'WARNING: Empty -',uri  # dbg
+            print('WARNING: Empty -',uri)  # dbg
             return ''
 
         # Make a shorter version of the uri that omits the package name for

@@ -1,6 +1,7 @@
 """Extract reference documentation from the NumPy source tree.
 
 """
+from __future__ import print_function
 
 import inspect
 import textwrap
@@ -414,9 +415,9 @@ class FunctionDoc(NumpyDocString):
         try:
             NumpyDocString.__init__(self, doc)
         except ValueError as e:
-            print '*'*78
-            print "ERROR: '%s' while parsing `%s`" % (e, self._f)
-            print '*'*78
+            print('*'*78)
+            print("ERROR: '%s' while parsing `%s`" % (e, self._f))
+            print('*'*78)
             #print "Docstring follows:"
             #print doclines
             #print '='*78
@@ -452,7 +453,7 @@ class FunctionDoc(NumpyDocString):
 
         if self._role:
             if not roles.has_key(self._role):
-                print "Warning: invalid role %s" % self._role
+                print("Warning: invalid role %s" % self._role)
             out += '.. %s:: %s\n    \n\n' % (roles.get(self._role,''),
                                              func_name)
 

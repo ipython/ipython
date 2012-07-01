@@ -1,6 +1,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import subprocess
 import sys
@@ -44,7 +45,7 @@ class InternalIPKernel(object):
         print("\n***Variables in User namespace***")
         for k, v in self.namespace.iteritems():
             if k not in self._init_keys and not k.startswith('_'):
-                print('%s -> %r' % (k, v))
+                print(('%s -> %r' % (k, v)))
         sys.stdout.flush()
 
     def new_qt_console(self, evt=None):

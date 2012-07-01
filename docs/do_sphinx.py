@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Script to build documentation using Sphinx.
 """
+from __future__ import print_function
 
 import fileinput,os,sys
 
@@ -59,7 +60,7 @@ if sys.platform != 'win32':
         elif 'makechapterhead' in line:
             # Already have altered manual.cls: don't need to again.
             unmodified=False
-        print line,
+        print(line, end=' ')
 
     # Copying the makefile produced by sphinx...
     oscmd('pdflatex ipython.tex')

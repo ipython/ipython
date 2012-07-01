@@ -10,6 +10,7 @@ Authors
  * Min Ragan-Kelley
 
 """
+from __future__ import print_function
 import time
 
 from numpy import exp, zeros, newaxis, sqrt, arange
@@ -196,8 +197,8 @@ class WaveSolver(object):
         while t <= tstop:
             t_old = t;  t += dt
             if verbose:
-                print('solving (%s version) at t=%g' % \
-                      (implementation['inner'], t))
+                print(('solving (%s version) at t=%g' % \
+                      (implementation['inner'], t)))
             # update all inner points:
             if implementation['inner'] == 'scalar':
                 for i in xrange(1, nx):
@@ -251,9 +252,9 @@ class WaveSolver(object):
             u_2, u_1, u = u_1, u, u_2
 
         t1 = time.time()
-        print('my_id=%2d, dt=%g, %s version, slice_copy=%s, net Wtime=%g'\
+        print(('my_id=%2d, dt=%g, %s version, slice_copy=%s, net Wtime=%g'\
               %(partitioner.my_id,dt,implementation['inner'],\
-                partitioner.slice_copy,t1-t0))
+                partitioner.slice_copy,t1-t0)))
         # save the us
         self.us = u,u_1,u_2
         # check final results; compute discrete L2-norm of the solution

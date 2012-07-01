@@ -11,6 +11,7 @@ Holding the GIL for too long could disrupt the heartbeat.
 See Issue #1260: https://github.com/ipython/ipython/issues/1260
 
 """
+from __future__ import print_function
 
 import sys
 import time
@@ -25,7 +26,7 @@ def gilsleep(t):
     ])
     while True:
         inline(code, quiet=True, t=t)
-        print(time.time())
+        print((time.time()))
         sys.stdout.flush() # this is important
 
 gilsleep(5)

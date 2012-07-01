@@ -3,6 +3,7 @@
 
 This only works for a local cluster, because the filenames are local paths.
 """
+from __future__ import print_function
 
 
 import os
@@ -54,7 +55,7 @@ if __name__ == '__main__':
     freqs = wordfreq(text)
     toc = time.time()
     print_wordfreq(freqs, 10)
-    print("Took %.3f s to calcluate"%(toc-tic))
+    print(("Took %.3f s to calcluate"%(toc-tic)))
     
     
     # The parallel version
@@ -75,6 +76,6 @@ if __name__ == '__main__':
     pfreqs = pwordfreq(view,fnames)
     toc = time.time()
     print_wordfreq(freqs)
-    print("Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets)))
+    print(("Took %.3f s to calcluate on %i engines"%(toc-tic, len(view.targets))))
     # cleanup split files
     map(os.remove, fnames)
