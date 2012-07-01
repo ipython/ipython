@@ -102,6 +102,7 @@
     :license: BSD License.
 """
 from __future__ import with_statement
+from __future__ import print_function
 from contextlib import contextmanager
 import sys
 import types
@@ -729,6 +730,6 @@ if __name__ == '__main__':
             self.list = ["blub", "blah", self]
 
         def get_foo(self):
-            print "foo"
+            print("foo")
 
     pprint(Foo(), verbose=True)

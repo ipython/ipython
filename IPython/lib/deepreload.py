@@ -23,6 +23,7 @@ re-implementation of hierarchical module import.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+from __future__ import print_function
 
 import __builtin__
 from contextlib import contextmanager
@@ -167,7 +168,7 @@ def import_submodule(mod, subname, fullname):
     if fullname in found_now and fullname in sys.modules:
         m = sys.modules[fullname]
     else:
-        print 'Reloading', fullname
+        print('Reloading', fullname)
         found_now[fullname] = 1
         oldm = sys.modules.get(fullname, None)
 
