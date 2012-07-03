@@ -113,7 +113,7 @@ class TestClient(ClusterTestCase):
         # add a couple more engines, and try again
         self.add_engines(2)
         n2 = len(self.client.ids)
-        self.assertNotEquals(n2, n1)
+        self.assertNotEqual(n2, n1)
         
         # apply
         r = v.apply_sync(lambda : 1)
@@ -184,7 +184,7 @@ class TestClient(ClusterTestCase):
         self.assertEqual(ids, self.client._ids)
         self.assertFalse(ids is self.client._ids)
         ids.remove(ids[-1])
-        self.assertNotEquals(ids, self.client._ids)
+        self.assertNotEqual(ids, self.client._ids)
     
     def test_queue_status(self):
         ids = self.client.ids
@@ -364,7 +364,7 @@ class TestClient(ClusterTestCase):
         h1,h2 = [ r['header'] for r in records ]
         for key in set(h1.keys()).union(set(h2.keys())):
             if key in ('msg_id', 'date'):
-                self.assertNotEquals(h1[key], h2[key])
+                self.assertNotEqual(h1[key], h2[key])
             else:
                 self.assertEqual(h1[key], h2[key])
 

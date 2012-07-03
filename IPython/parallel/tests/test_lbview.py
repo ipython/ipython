@@ -74,7 +74,7 @@ class TestLoadBalancedView(ClusterTestCase):
         # list comprehension uses __iter__
         astheycame = [ r for r in amr ]
         # Ensure that at least one result came out of order:
-        self.assertNotEquals(astheycame, reference, "should not have preserved order")
+        self.assertNotEqual(astheycame, reference, "should not have preserved order")
         self.assertEqual(sorted(astheycame, reverse=True), reference, "result corrupted")
 
     def test_map_ordered(self):
