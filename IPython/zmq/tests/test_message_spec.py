@@ -68,12 +68,12 @@ def execute(code='', **kwargs):
     list(validate_message(reply, 'execute_reply', msg_id))
     busy = sub.get_msg(timeout=2)
     list(validate_message(busy, 'status', msg_id))
-    nt.assert_equals(busy['content']['execution_state'], 'busy')
+    nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
         pyin = sub.get_msg(timeout=2)
         list(validate_message(pyin, 'pyin', msg_id))
-        nt.assert_equals(pyin['content']['code'], code)
+        nt.assert_equal(pyin['content']['code'], code)
     
     return msg_id, reply['content']
 
@@ -245,7 +245,7 @@ def validate_message(msg, msg_type=None, parent=None):
     """
     RMessage().check(msg)
     if msg_type:
-        yield nt.assert_equals(msg['msg_type'], msg_type)
+        yield nt.assert_equal(msg['msg_type'], msg_type)
     if parent:
         yield nt.assert_equal(msg['parent_header']['msg_id'], parent)
     content = msg['content']
@@ -280,7 +280,7 @@ def test_execute_silent():
     status = KM.sub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
-    nt.assert_equals(status['content']['execution_state'], 'idle')
+    nt.assert_equal(status['content']['execution_state'], 'idle')
 
     yield nt.assert_raises(Empty, KM.sub_channel.get_msg, timeout=0.1)
     count = reply['execution_count']
@@ -291,11 +291,11 @@ def test_execute_silent():
     status = KM.sub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
-    yield nt.assert_equals(status['content']['execution_state'], 'idle')
+    yield nt.assert_equal(status['content']['execution_state'], 'idle')
     
     yield nt.assert_raises(Empty, KM.sub_channel.get_msg, timeout=0.1)
     count_2 = reply['execution_count']
-    yield nt.assert_equals(count_2, count)
+    yield nt.assert_equal(count_2, count)
 
 
 @dec.parametric
@@ -303,8 +303,8 @@ def test_execute_error():
     flush_channels()
     
     msg_id, reply = execute(code='1/0')
-    yield nt.assert_equals(reply['status'], 'error')
-    yield nt.assert_equals(reply['ename'], 'ZeroDivisionError')
+    yield nt.assert_equal(reply['status'], 'error')
+    yield nt.assert_equal(reply['ename'], 'ZeroDivisionError')
     
     pyerr = KM.sub_channel.get_msg(timeout=2)
     for tst in validate_message(pyerr, 'pyerr', msg_id):
@@ -322,7 +322,7 @@ def test_execute_inc():
     
     msg_id, reply = execute(code='x=2')
     count_2 = reply['execution_count']
-    nt.assert_equals(count_2, count+1)
+    nt.assert_equal(count_2, count+1)
 
 
 def test_user_variables():
@@ -330,7 +330,7 @@ def test_user_variables():
 
     msg_id, reply = execute(code='x=1', user_variables=['x'])
     user_variables = reply['user_variables']
-    nt.assert_equals(user_variables, {u'x' : u'1'})
+    nt.assert_equal(user_variables, {u'x' : u'1'})
 
 
 def test_user_expressions():
@@ -338,7 +338,7 @@ def test_user_expressions():
 
     msg_id, reply = execute(code='x=1', user_expressions=dict(foo='x+1'))
     user_expressions = reply['user_expressions']
-    nt.assert_equals(user_expressions, {u'foo' : u'2'})
+    nt.assert_equal(user_expressions, {u'foo' : u'2'})
 
 
 @dec.parametric
@@ -387,7 +387,7 @@ def test_oinfo_detail():
     yield nt.assert_true(content['found'])
     argspec = content['argspec']
     yield nt.assert_true(isinstance(argspec, dict), "expected non-empty argspec dict, got %r" % argspec)
-    yield nt.assert_equals(argspec['defaults'], [0])
+    yield nt.assert_equal(argspec['defaults'], [0])
 
 
 @dec.parametric
@@ -434,8 +434,8 @@ def test_stream():
     for tst in validate_message(stdout, 'stream', msg_id):
         yield tst
     content = stdout['content']
-    yield nt.assert_equals(content['name'], u'stdout')
-    yield nt.assert_equals(content['data'], u'hi\n')
+    yield nt.assert_equal(content['name'], u'stdout')
+    yield nt.assert_equal(content['data'], u'hi\n')
 
 
 @dec.parametric
@@ -448,5 +448,5 @@ def test_display_data():
     for tst in validate_message(display, 'display_data', parent=msg_id):
         yield tst
     data = display['content']['data']
-    yield nt.assert_equals(data['text/plain'], u'1')
+    yield nt.assert_equal(data['text/plain'], u'1')
 

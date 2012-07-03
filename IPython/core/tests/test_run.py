@@ -150,7 +150,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         self.run_tmpfile()
         _ip = get_ipython()
         p2 = _ip.prompt_manager.render('in2').strip()
-        nt.assert_equals(p2[:3], '...')
+        nt.assert_equal(p2[:3], '...')
         
     def test_run_profile( self ):
         """Test that the option -p, which invokes the profiler, do not

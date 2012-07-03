@@ -256,12 +256,12 @@ def ipexec_validate(fname, expected_out, expected_err='',
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
-            nt.assert_equals(err.strip(), expected_err.strip())
+            nt.assert_equal(err.strip(), expected_err.strip())
         else:
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
     # If no errors or output on stderr was expected, match stdout
-    nt.assert_equals(out.strip(), expected_out.strip())
+    nt.assert_equal(out.strip(), expected_out.strip())
 
 
 class TempFileMixin(object):

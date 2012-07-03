@@ -30,7 +30,7 @@ from IPython.testing import tools as tt
 
 def test_find_cmd_python():
     """Make sure we find sys.exectable for python."""
-    nt.assert_equals(find_cmd('python'), sys.executable)
+    nt.assert_equal(find_cmd('python'), sys.executable)
 
     
 @dec.skip_win32

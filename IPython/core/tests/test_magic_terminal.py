@@ -201,4 +201,4 @@ def funcfoo():
 '''
         ip.user_ns.pop('funcfoo', None)
         self.paste(s)
-        nt.assert_equals(ip.user_ns['funcfoo'](), 'fooresult')
+        nt.assert_equal(ip.user_ns['funcfoo'](), 'fooresult')

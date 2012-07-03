@@ -59,7 +59,7 @@ def test_indentation():
     gotoutput = pretty.pretty(MyList(range(count)))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
 
-    nt.assert_equals(gotoutput, expectedoutput)
+    nt.assert_equal(gotoutput, expectedoutput)
 
 
 def test_dispatch():
@@ -70,7 +70,7 @@ def test_dispatch():
     gotoutput = pretty.pretty(MyDict())
     expectedoutput = "MyDict(...)"
 
-    nt.assert_equals(gotoutput, expectedoutput)
+    nt.assert_equal(gotoutput, expectedoutput)
 
 
 def test_callability_checking():
@@ -81,4 +81,4 @@ def test_callability_checking():
     gotoutput = pretty.pretty(Dummy2())
     expectedoutput = "Dummy1(...)"
 
-    nt.assert_equals(gotoutput, expectedoutput)
+    nt.assert_equal(gotoutput, expectedoutput)
