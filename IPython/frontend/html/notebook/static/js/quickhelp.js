@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
             {key: 'Ctrl-Enter', help: 'run cell in-place'},
+            {key: 'Alt-Enter', help: 'run cell, insert below'},
             {key: 'Ctrl-m x', help: 'cut cell'},
             {key: 'Ctrl-m c', help: 'copy cell'},
             {key: 'Ctrl-m v', help: 'paste cell'},
