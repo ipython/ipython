@@ -459,6 +459,105 @@ class ConverterRST(Converter):
         return rst_directive('.. raw:: javascript', output.javascript)
 
 
+class ConverterMarkdown(Converter):
+    extension = 'md'
+
+    @DocInherit
+    def render_heading(self, cell):
+        return ['{0} {1}'.format('#'*cell.level, cell.source), '']
+
+    @DocInherit
+    def render_code(self, cell):
+        if not cell.input:
+            return []
+        lines = []
+        #lines.append('----')
+        lines.extend(['*In[%s]:*' % cell.prompt_number, ''])
+        lines.extend([indent(cell.input), ''])
+        if cell.outputs:
+            lines.extend(['==>', ''])
+        for output in cell.outputs:
+            conv_fn = self.dispatch(output.output_type)
+            lines.extend(conv_fn(output))
+
+        #lines.append('----')
+        lines.append('')
+        return lines
+
+    @DocInherit
+    def render_markdown(self, cell):
+        return [cell.source, '']
+        #return [markdown2rst(cell.source)]
+
+    @DocInherit
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return [indent(cell.source), '']
+        else:
+            return [cell.source, '']
+
+    @DocInherit
+    def render_pyout(self, output):
+        lines = []
+        #lines.extend(['*Out[%s]:*' % output.prompt_number, ''])
+
+        # output is a dictionary like object with type as a key
+        if 'latex' in output:
+            pass
+
+        if 'text' in output:
+            lines.extend([indent(output.text)])
+
+        lines.append('')
+        return lines
+
+    @DocInherit
+    def render_pyerr(self, output):
+        # Note: a traceback is a *list* of frames.
+        return [indent(remove_ansi('\n'.join(output.traceback))), '']
+
+    @DocInherit
+    def _img_lines(self, img_file):
+        return ['', '![image](%s)' % img_file, '']
+    
+    @DocInherit
+    def render_display_format_text(self, output):
+        return [indent(output.text)]
+
+    @DocInherit
+    def _unknown_lines(self, data):
+        return ['Warning: Unknown cell', data]
+
+    def render_display_format_html(self, output):
+        """render the html part of an output
+
+        Returns list.
+        """
+        return [output.html]
+
+    def render_display_format_latex(self, output):
+        """render the latex part of an output
+
+        Returns list.
+        """
+        return ['LaTeX::', indent(output.latex)]
+
+    def render_display_format_json(self, output):
+        """render the json part of an output
+
+        Returns list.
+        """
+        return ['JSON:', indent(output.json)]
+
+
+    def render_display_format_javascript(self, output):
+        """render the javascript part of an output
+
+        Returns list.
+        """
+        return ['JavaScript:', indent(output.javascript)]
+
+
 class ConverterQuickHTML(Converter):
     extension = 'html'
 
@@ -996,7 +1095,7 @@ def cell_to_lines(cell):
     return s.split('\n')
 
 
-known_formats = "rst (default), html, quick-html, latex"
+known_formats = "rst (default), html, quick-html, latex, markdown"
 
 def main(infile, format='rst'):
     """Convert a notebook to html in one step"""
@@ -1005,6 +1104,9 @@ def main(infile, format='rst'):
     # printed in in the catch-all else, as well as in the help
     if format == 'rst':
         converter = ConverterRST(infile)
+        converter.render()
+    elif format == 'markdown':
+        converter = ConverterMarkdown(infile)
         converter.render()
     elif format == 'html':
         #Currently, conversion to html is a 2 step process, nb->rst->html
