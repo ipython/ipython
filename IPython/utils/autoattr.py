@@ -117,7 +117,7 @@ class OneTimeProperty(object):
             the value of this computation.
             """
        self.getter = func
-       self.name = func.func_name
+       self.name = func.__name__
 
    def __get__(self,obj,type=None):
        """This will be called on attribute access on the class or instance. """

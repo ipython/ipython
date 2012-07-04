@@ -242,6 +242,8 @@ if 'setuptools' in sys.modules:
                 'lib2to3.fixes.fix_ne',
                 'lib2to3.fixes.fix_print',
                 'lib2to3.fixes.fix_apply',
+                'lib2to3.fixes.fix_exitfunc',
+                'lib2to3.fixes.fix_funcattrs',
                 ]
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}

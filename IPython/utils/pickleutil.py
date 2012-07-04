@@ -62,8 +62,8 @@ class CannedFunction(CannedObject):
 
     def __init__(self, f):
         self._checkType(f)
-        self.code = f.func_code
-        self.defaults = f.func_defaults
+        self.code = f.__code__
+        self.defaults = f.__defaults__
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
 
@@ -148,4 +148,4 @@ def uncanSequence(obj, g=None):
 
 
 def rebindFunctionGlobals(f, glbls):
-    return FunctionType(f.func_code, glbls)
+    return FunctionType(f.__code__, glbls)

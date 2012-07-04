@@ -22,7 +22,7 @@ from compiler.consts import CO_GENERATOR
 
 def isgenerator(func):
     try:
-        return func.func_code.co_flags & CO_GENERATOR != 0
+        return func.__code__.co_flags & CO_GENERATOR != 0
     except AttributeError:
         return False
 
