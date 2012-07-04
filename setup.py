@@ -234,6 +234,12 @@ if 'setuptools' in sys.modules:
     
     if PY3:
         setuptools_extra_args['use_2to3'] = True
+        # we try to make a 2.6, 2.7, and 3.1 to 3.3 python compatible code
+        # so we explicitely disable some 2to3 fixes to be sure we ain't forgetting
+        # anything.
+        setuptools_extra_args['use_2to3_exclude_fixers'] = [
+                'lib2to3.fixes.fix_except',
+                ]
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}
         setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
