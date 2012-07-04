@@ -489,6 +489,7 @@ def test_extension():
         assert 'arq' not in _ip.user_ns
     finally:
         _ip.ipython_dir = orig_ipython_dir
+        tmpdir.cleanup()
         
 def test_notebook_export_json():
     with TemporaryDirectory() as td:
