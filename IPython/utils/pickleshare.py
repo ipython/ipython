@@ -85,7 +85,7 @@ class PickleShareDB(collections.MutableMapping):
         pickled = pickle.dump(value,fil.open('wb'), protocol=2)
         try:
             self.cache[fil] = (value,fil.mtime)
-        except OSError,e:
+        except OSError as e:
             if e.errno != 2:
                 raise
 

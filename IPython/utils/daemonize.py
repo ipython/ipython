@@ -19,7 +19,7 @@ def daemonize():
     for i in range(3):
         try:
             os.dup2(null, i)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EBADF:
                 raise
     os.close(null)

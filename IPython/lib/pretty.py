@@ -551,7 +551,7 @@ def _dict_pprinter_factory(start, end, basetype=None):
         keys = obj.keys()
         try:
             keys.sort()
-        except Exception, e:
+        except Exception as e:
             # Sometimes the keys don't sort.
             pass
         for idx, key in enumerate(keys):

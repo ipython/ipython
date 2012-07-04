@@ -1796,7 +1796,7 @@ class ifilter(Pipe):
                 ok += 1
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 if self.errors == "drop":
                     pass # Ignore errors
                 elif self.errors == "keep":
@@ -1869,7 +1869,7 @@ class ieval(Pipe):
                 yield do(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 if self.errors == "drop":
                     pass # Ignore errors
                 elif self.errors == "keep":
@@ -2040,7 +2040,7 @@ class iless(Display):
                     pager.write("\n")
             finally:
                 pager.close()
-        except Exception, exc:
+        except Exception as exc:
             print "%s: %s" % (exc.__class__.__name__, str(exc))
 
 
@@ -2187,7 +2187,7 @@ class idump(Display):
                     value = attr.value(item)
                 except (KeyboardInterrupt, SystemExit):
                     raise
-                except Exception, exc:
+                except Exception as exc:
                     value = exc
                 (align, width, text) = xformat(value, "cell", self.maxattrlength)
                 colwidths[attr] = max(colwidths[attr], width)

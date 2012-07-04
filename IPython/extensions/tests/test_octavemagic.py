@@ -8,7 +8,7 @@ try:
     import numpy.testing as npt
 
     from IPython.extensions import octavemagic
-except Exception, e:
+except Exception as e:
     __test__ = False
 
 global octave

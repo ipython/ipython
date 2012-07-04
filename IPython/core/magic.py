@@ -584,7 +584,7 @@ class Magics(object):
             # Do regular option processing
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
-            except GetoptError,e:
+            except GetoptError as e:
                 raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
                                         " ".join(long_opts)))
             for o,a in opts:

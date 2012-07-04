@@ -113,7 +113,7 @@ class NamespaceMagics(Magics):
         if out == 'not found':
             try:
                 filename = get_py_filename(parameter_s)
-            except IOError,msg:
+            except IOError as msg:
                 print msg
                 return
             page.page(self.shell.inspector.format(open(filename).read()))

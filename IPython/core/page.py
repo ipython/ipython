@@ -221,7 +221,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 pager.write(strng)
                 pager.close()
                 retval = pager.close()  # success returns None
-            except IOError,msg:  # broken pipe when user quits
+            except IOError as msg:  # broken pipe when user quits
                 if msg.args == (32,'Broken pipe'):
                     retval = None
                 else:
