@@ -34,7 +34,7 @@ try:
 except:
     from IPython.utils.nested_context import nested
 
-from IPython.core import ultratb
+from IPython.core import ultratb, compilerop
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.ipapp import load_default_config
@@ -162,7 +162,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             print self.exit_msg
 
     def mainloop(self, local_ns=None, module=None, stack_depth=0,
-                 display_banner=None, global_ns=None):
+                 display_banner=None, global_ns=None, compile_flags=None):
         """Embeds IPython into a running python program.
 
         Input:
@@ -179,6 +179,11 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
           allows an intermediate caller to make sure that this function gets
           the namespace from the intended level in the stack.  By default (0)
           it will get its locals and globals from the immediate caller.
+
+          - compile_flags: A bit field identifying the __future__ features
+          that are enabled, as passed to the builtin `compile` function. If
+          given as None, they are automatically taken from the scope where the
+          shell was called.
 
         Warning: it's possible to use this in a program which is being run by
         IPython itself (via %run), but some funny things will happen (a few
@@ -202,11 +207,15 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             if module is None:
                 global_ns = call_frame.f_globals
                 module = sys.modules[global_ns['__name__']]
+            if compile_flags is None:
+                compile_flags = (call_frame.f_code.co_flags &
+                                 compilerop.PyCF_MASK)
         
         # Save original namespace and module so we can restore them after 
         # embedding; otherwise the shell doesn't shut down correctly.
         orig_user_module = self.user_module
         orig_user_ns = self.user_ns
+        orig_compile_flags = self.compile.flags
         
         # Update namespaces and fire up interpreter
         
@@ -221,6 +230,9 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         if local_ns is not None:
             self.user_ns = local_ns
             self.init_user_ns()
+
+        # Compiler flags
+        self.compile.flags = compile_flags
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
@@ -247,6 +259,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         # Restore original namespace so shell can shut down when we exit.
         self.user_module = orig_user_module
         self.user_ns = orig_user_ns
+        self.compile.flags = orig_compile_flags
 
 _embedded_shell = None
 

@@ -28,11 +28,24 @@ Authors
 from __future__ import print_function
 
 # Stdlib imports
+import __future__
 from ast import PyCF_ONLY_AST
 import codeop
+import functools
 import hashlib
 import linecache
+import operator
 import time
+
+#-----------------------------------------------------------------------------
+# Constants
+#-----------------------------------------------------------------------------
+
+# Roughtly equal to PyCF_MASK | PyCF_MASK_OBSOLETE as defined in pythonrun.h,
+# this is used as a bitmask to extract future-related code flags.
+PyCF_MASK = functools.reduce(operator.or_,
+                             (getattr(__future__, fname).compiler_flag
+                              for fname in __future__.all_feature_names))
 
 #-----------------------------------------------------------------------------
 # Local utilities
