@@ -235,7 +235,7 @@ if 'setuptools' in sys.modules:
     if PY3:
         setuptools_extra_args['use_2to3'] = True
         # we try to make a 2.6, 2.7, and 3.1 to 3.3 python compatible code
-        # so we explicitely disable some 2to3 fixes to be sure we ain't forgetting
+        # so we explicitly disable some 2to3 fixes to be sure we aren't forgetting
         # anything.
         setuptools_extra_args['use_2to3_exclude_fixers'] = [
                 'lib2to3.fixes.fix_except',
