@@ -36,7 +36,7 @@ def make_link_node(rawtext, app, type, slug, options):
             raise AttributeError
         if not base.endswith('/'):
             base += '/'
-    except AttributeError, err:
+    except AttributeError as err:
         raise ValueError('github_project_url configuration value is not set (%s)' % str(err))
 
     ref = base + type + '/' + slug + '/'
@@ -133,7 +133,7 @@ def ghcommit_role(name, rawtext, text, lineno, inliner, options={}, content=[]):
             raise AttributeError
         if not base.endswith('/'):
             base += '/'
-    except AttributeError, err:
+    except AttributeError as err:
         raise ValueError('github_project_url configuration value is not set (%s)' % str(err))
 
     ref = base + text
