@@ -906,7 +906,7 @@ class InteractiveShell(SingletonConfigurable):
     def _set_call_pdb(self,val):
 
         if val not in (0,1,False,True):
-            raise ValueError,'new call_pdb value must be boolean'
+            raise ValueError('new call_pdb value must be boolean')
 
         # store value in instance
         self._call_pdb = val

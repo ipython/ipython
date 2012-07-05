@@ -244,8 +244,8 @@ class DisplayHook(Configurable):
 
     def flush(self):
         if not self.do_full_cache:
-            raise ValueError,"You shouldn't have reached the cache flush "\
-                  "if full caching is not enabled!"
+            raise ValueError("You shouldn't have reached the cache flush "
+                             "if full caching is not enabled!")
         # delete auto-generated vars from global namespace
 
         for n in range(1,self.prompt_count + 1):
