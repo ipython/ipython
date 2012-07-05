@@ -469,11 +469,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_alias()
         self.init_builtins()
 
-        # pre_config_initialization
-
-        # The next section should contain everything that was in ipmaker.
-        self.init_logstart()
-
         # The following was in post_config_initialization
         self.init_inspector()
         # init_readline() must come before init_io(), because init_io uses
@@ -502,6 +497,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_displayhook()
         self.init_reload_doctest()
         self.init_magics()
+        self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
         self.init_plugin_manager()
@@ -617,7 +613,7 @@ class InteractiveShell(SingletonConfigurable):
         if self.logappend:
             self.magic('logstart %s append' % self.logappend)
         elif self.logfile:
-            self.magic('logstart %' % self.logfile)
+            self.magic('logstart %s' % self.logfile)
         elif self.logstart:
             self.magic('logstart')
 
