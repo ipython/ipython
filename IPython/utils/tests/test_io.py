@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 
@@ -33,7 +34,7 @@ def test_tee_simple():
     chan = StringIO()
     text = 'Hello'
     tee = Tee(chan, channel='stdout')
-    print >> chan, text
+    print(text, file=chan)
     nt.assert_equal(chan.getvalue(), text+"\n")
 
 
@@ -48,7 +49,7 @@ class TeeTestCase(dec.ParametricTestCase):
         setattr(sys, channel, trap)
 
         tee = Tee(chan, channel=channel)
-        print >> chan, text,
+        print(text, end='', file=chan)
         setattr(sys, channel, std_ori)
         trap_val = trap.getvalue()
         nt.assert_equals(chan.getvalue(), text)
@@ -78,8 +79,8 @@ def test_capture_output():
     """capture_output() context works"""
     
     with capture_output() as io:
-        print 'hi, stdout'
-        print >> sys.stderr, 'hi, stderr'
+        print('hi, stdout')
+        print('hi, stderr', file=sys.stderr)
     
     nt.assert_equals(io.stdout, 'hi, stdout\n')
     nt.assert_equals(io.stderr, 'hi, stderr\n')

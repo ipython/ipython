@@ -11,6 +11,7 @@ Authors:
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 import tempfile
@@ -70,13 +71,13 @@ def generate_output():
     import sys
     from IPython.core.display import display, HTML, Math
     
-    print "stdout"
-    print >> sys.stderr, "stderr"
+    print("stdout")
+    print("stderr", file=sys.stderr)
     
     display(HTML("<b>HTML</b>"))
     
-    print "stdout2"
-    print >> sys.stderr, "stderr2"
+    print("stdout2")
+    print("stderr2", file=sys.stderr)
     
     display(Math(r"\alpha=\beta"))
     
@@ -154,7 +155,7 @@ class ClusterTestCase(BaseZMQTestCase):
             time.sleep(0.1)
             self.client.spin()
         if not f():
-            print "Warning: Awaited condition never arrived"
+            print("Warning: Awaited condition never arrived")
     
     def setUp(self):
         BaseZMQTestCase.setUp(self)
