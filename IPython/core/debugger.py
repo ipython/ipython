@@ -455,7 +455,7 @@ class Pdb(OldPdb):
                 else:
                     first = max(1, int(x) - 5)
             except:
-                print '*** Error in argument:', `arg`
+                print '*** Error in argument:', repr(arg)
                 return
         elif self.lineno is None:
             first = max(1, self.curframe.f_lineno - 5)

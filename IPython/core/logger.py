@@ -117,7 +117,7 @@ class Logger(object):
                     for f in old:
                         root, ext = os.path.splitext(f)
                         num = int(ext[1:-1])+1
-                        os.rename(f, root+'.'+`num`.zfill(3)+'~')
+                        os.rename(f, root+'.'+repr(num).zfill(3)+'~')
                 os.rename(self.logfname, self.logfname+'.001~')
             self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 

@@ -188,7 +188,7 @@ class DisplayHook(Configurable):
         if result is not self.shell.user_ns['_oh']:
             if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
                 warn('Output cache limit (currently '+
-                      `self.cache_size`+' entries) hit.\n'
+                      repr(self.cache_size)+' entries) hit.\n'
                      'Flushing cache and resetting history counter...\n'
                      'The only history variables available will be _,__,___ and _1\n'
                      'with the current result.')
@@ -208,7 +208,7 @@ class DisplayHook(Configurable):
             # hackish access to top-level  namespace to create _1,_2... dynamically
             to_main = {}
             if self.do_full_cache:
-                new_result = '_'+`self.prompt_count`
+                new_result = '_'+repr(self.prompt_count)
                 to_main[new_result] = result
                 self.shell.push(to_main, interactive=False)
                 self.shell.user_ns['_oh'][self.prompt_count] = result
@@ -248,7 +248,7 @@ class DisplayHook(Configurable):
         # delete auto-generated vars from global namespace
 
         for n in range(1,self.prompt_count + 1):
-            key = '_'+`n`
+            key = '_'+repr(n)
             try:
                 del self.shell.user_ns[key]
             except: pass

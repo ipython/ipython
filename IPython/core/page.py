@@ -250,7 +250,7 @@ def page_file(fname, start=0, pager_cmd=None):
                 start -= 1
             page(open(fname).read(),start)
         except:
-            print 'Unable to show file',`fname`
+            print 'Unable to show file',repr(fname)
 
 
 def get_pager_cmd(pager_cmd=None):
