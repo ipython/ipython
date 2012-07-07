@@ -140,6 +140,8 @@ class BackgroundJobManager(object):
         In both cases, the result is stored in the job.result field of the
         background job object.
 
+        You can set `daemon` attribute of the thread by giving the keyword
+        argument `daemon`.
 
         Notes and caveats:
 
@@ -181,7 +183,9 @@ class BackgroundJobManager(object):
             job = BackgroundJobExpr(func_or_exp, glob, loc)
         else:
             raise TypeError('invalid args for new job')
-        
+
+        if kwargs.get('daemon', False):
+            job.daemon = True
         job.num = len(self.all)+1 if self.all else 0
         self.running.append(job)
         self.all[job.num] = job

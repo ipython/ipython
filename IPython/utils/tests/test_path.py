@@ -159,9 +159,8 @@ def test_get_home_dir_4():
     """get_home_dir() still works if $HOME is not set"""
 
     if 'HOME' in env: del env['HOME']
-    # this should still succeed, but we don't know what the answer should be
-    home = path.get_home_dir(True)
-    nt.assert_true(path._writable_dir(home))
+    # this should still succeed, but we don't care what the answer is
+    home = path.get_home_dir(False)
 
 @with_environment
 def test_get_home_dir_5():
@@ -287,7 +286,7 @@ def test_get_ipython_dir_6():
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
     path._writable_dir = lambda path: True
-    home_dir = os.path.expanduser('~')
+    home_dir = os.path.normpath(os.path.expanduser('~'))
     env['IPYTHONDIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))

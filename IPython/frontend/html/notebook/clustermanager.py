@@ -80,7 +80,7 @@ class ClusterManager(LoggingConfigurable):
             for profile in list_profiles_in(path):
                 pd = self.get_profile_dir(profile, path)
                 if profile not in self.profiles:
-                    self.log.debug("Overwriting profile %s" % profile)
+                    self.log.debug("Adding cluster profile '%s'" % profile)
                     self.profiles[profile] = {
                         'profile': profile,
                         'profile_dir': pd,

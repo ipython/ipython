@@ -161,7 +161,7 @@ class LineFrontEndBase(FrontEndBase):
                 is_complete = codeop.compile_command(clean_string,
                             "<string>", "exec")
                 self.release_output()
-            except Exception, e:
+            except Exception as e:
                 # XXX: Hack: return True so that the
                 # code gets executed and the error captured.
                 is_complete = True

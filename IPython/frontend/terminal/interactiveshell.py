@@ -29,6 +29,7 @@ except:
 
 from IPython.core.error import TryNext, UsageError
 from IPython.core.usage import interactive_usage, default_banner
+from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
@@ -37,7 +38,7 @@ from IPython.utils import py3compat
 from IPython.utils.terminal import toggle_set_term_title, set_term_title
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.warn import warn, error
-from IPython.utils.text import num_ini_spaces, SList
+from IPython.utils.text import num_ini_spaces, SList, strip_email_quotes
 from IPython.utils.traitlets import Integer, CBool, Unicode
 
 #-----------------------------------------------------------------------------
@@ -72,61 +73,105 @@ def get_pasted_lines(sentinel, l_input=py3compat.input):
             return
 
 
-def strip_email_quotes(raw_lines):
-    """ Strip email quotation marks at the beginning of each line.
-
-    We don't do any more input transofrmations here because the main shell's
-    prefiltering handles other cases.
-    """
-    lines = [re.sub(r'^\s*(\s?>)+', '', l) for l in raw_lines]
-    return '\n'.join(lines) + '\n'
-
-
-# These two functions are needed by the %paste/%cpaste magics.  In practice
-# they are basically methods (they take the shell as their first argument), but
-# we leave them as standalone functions because eventually the magics
-# themselves will become separate objects altogether.  At that point, the
-# magics will have access to the shell object, and these functions can be made
-# methods of the magic object, but not of the shell.
-
-def store_or_execute(shell, block, name):
-    """ Execute a block, or store it in a variable, per the user's request.
-    """
-    # Dedent and prefilter so what we store matches what is executed by
-    # run_cell.
-    b = shell.prefilter(textwrap.dedent(block))
-
-    if name:
-        # If storing it for further editing, run the prefilter on it
-        shell.user_ns[name] = SList(b.splitlines())
-        print "Block assigned to '%s'" % name
-    else:
-        shell.user_ns['pasted_block'] = b
-        shell.run_cell(b)
-
-
-def rerun_pasted(shell, name='pasted_block'):
-    """ Rerun a previously pasted command.
-    """
-    b = shell.user_ns.get(name)
-
-    # Sanity checks
-    if b is None:
-        raise UsageError('No previous pasted block available')
-    if not isinstance(b, basestring):
-        raise UsageError(
-            "Variable 'pasted_block' is not a string, can't execute")
-
-    print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
-    shell.run_cell(b)
-
-
 #------------------------------------------------------------------------
 # Terminal-specific magics
 #------------------------------------------------------------------------
 
 @magics_class
 class TerminalMagics(Magics):
+    def __init__(self, shell):
+        super(TerminalMagics, self).__init__(shell)
+        self.input_splitter = IPythonInputSplitter(input_mode='line')
+
+    def cleanup_input(self, block):
+        """Apply all possible IPython cleanups to an input block.
+
+        This means:
+
+        - remove any global leading whitespace (dedent)
+        - remove any email quotes ('>') if they are present in *all* lines
+        - apply all static inputsplitter transforms and break into sub-blocks
+        - apply prefilter() to each sub-block that is a single line.
+
+        Parameters
+        ----------
+        block : str
+          A possibly multiline input string of code.
+
+        Returns
+        -------
+        transformed block : str
+          The input, with all transformations above applied.
+        """
+        # We have to effectively implement client-side the loop that is done by
+        # the terminal frontend, and furthermore do it on a block that can
+        # possibly contain multiple statments pasted in one go.
+
+        # First, run the input through the block splitting code.  We should
+        # eventually make this a self-contained method in the inputsplitter.
+        isp = self.input_splitter
+        isp.reset()
+        b = textwrap.dedent(block)
+
+        # Remove email quotes first.  These must be consistently applied to
+        # *all* lines to be removed
+        b = strip_email_quotes(b)
+
+        # Split the input into independent sub-blocks so we can later do
+        # prefiltering (which must be done *only* to single-line inputs)
+        blocks = []
+        last_block = []
+        for line in b.splitlines():
+            isp.push(line)
+            last_block.append(line)
+            if not isp.push_accepts_more():
+                blocks.append(isp.source_reset())
+                last_block = []
+        if last_block:
+            blocks.append('\n'.join(last_block))
+
+        # Now, apply prefiltering to any one-line block to match the behavior
+        # of the interactive terminal
+        final_blocks = []
+        for block in blocks:
+            lines = block.splitlines()
+            if len(lines) == 1:
+                final_blocks.append(self.shell.prefilter(lines[0]))
+            else:
+                final_blocks.append(block)
+
+        # We now have the final version of the input code as a list of blocks,
+        # with all inputsplitter transformations applied and single-line blocks
+        # run through prefilter.  For further processing, turn into a single
+        # string as the rest of our apis use string inputs.
+        return '\n'.join(final_blocks)
+        
+    def store_or_execute(self, block, name):
+        """ Execute a block, or store it in a variable, per the user's request.
+        """
+        b = self.cleanup_input(block)
+        if name:
+            # If storing it for further editing
+            self.shell.user_ns[name] = SList(b.splitlines())
+            print "Block assigned to '%s'" % name
+        else:
+            self.shell.user_ns['pasted_block'] = b
+            self.shell.run_cell(b)
+
+    def rerun_pasted(self, name='pasted_block'):
+        """ Rerun a previously pasted command.
+        """
+        b = self.shell.user_ns.get(name)
+
+        # Sanity checks
+        if b is None:
+            raise UsageError('No previous pasted block available')
+        if not isinstance(b, basestring):
+            raise UsageError(
+                "Variable 'pasted_block' is not a string, can't execute")
+
+        print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+        self.shell.run_cell(b)
 
     @line_magic
     def autoindent(self, parameter_s = ''):
@@ -178,15 +223,14 @@ class TerminalMagics(Magics):
           :--
           Hello world!
         """
-
         opts, name = self.parse_options(parameter_s, 'rs:', mode='string')
         if 'r' in opts:
-            rerun_pasted(self.shell)
+            self.rerun_pasted()
             return
 
         sentinel = opts.get('s', '--')
-        block = strip_email_quotes(get_pasted_lines(sentinel))
-        store_or_execute(self.shell, block, name)
+        block = '\n'.join(get_pasted_lines(sentinel))
+        self.store_or_execute(block, name)
 
     @line_magic
     def paste(self, parameter_s=''):
@@ -205,7 +249,7 @@ class TerminalMagics(Magics):
 
         You can also pass a variable name as an argument, e.g. '%paste foo'.
         This assigns the pasted block to variable 'foo' as string, without
-        dedenting or executing it (preceding >>> and + is still stripped)
+        executing it (preceding >>> and + is still stripped).
 
         Options
         -------
@@ -222,11 +266,10 @@ class TerminalMagics(Magics):
         """
         opts, name = self.parse_options(parameter_s, 'rq', mode='string')
         if 'r' in opts:
-            rerun_pasted(self.shell)
+            self.rerun_pasted()
             return
         try:
-            text = self.shell.hooks.clipboard_get()
-            block = strip_email_quotes(text.splitlines())
+            block = self.shell.hooks.clipboard_get()
         except TryNext as clipboard_exc:
             message = getattr(clipboard_exc, 'args')
             if message:
@@ -243,7 +286,7 @@ class TerminalMagics(Magics):
                 write('\n')
             write("## -- End pasted text --\n")
 
-        store_or_execute(self.shell, block, name)
+        self.store_or_execute(block, name)
 
     # Class-level: add a '%cls' magic only on Windows
     if sys.platform == 'win32':

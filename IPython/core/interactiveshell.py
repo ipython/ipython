@@ -84,6 +84,22 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
+# FIXME: do this in a function to avoid circular dependencies
+# A better solution is to remove IPython.parallel.error,
+# and place those classes in IPython.core.error.
+
+class RemoteError(Exception):
+    pass
+
+def _import_remote_error():
+    global RemoteError
+    try:
+        from IPython.parallel.error import RemoteError
+    except:
+        pass
+
+_import_remote_error()
+
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -453,11 +469,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_alias()
         self.init_builtins()
 
-        # pre_config_initialization
-
-        # The next section should contain everything that was in ipmaker.
-        self.init_logstart()
-
         # The following was in post_config_initialization
         self.init_inspector()
         # init_readline() must come before init_io(), because init_io uses
@@ -486,6 +497,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_displayhook()
         self.init_reload_doctest()
         self.init_magics()
+        self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
         self.init_plugin_manager()
@@ -601,7 +613,7 @@ class InteractiveShell(SingletonConfigurable):
         if self.logappend:
             self.magic('logstart %s append' % self.logappend)
         elif self.logfile:
-            self.magic('logstart %' % self.logfile)
+            self.magic('logstart %s' % self.logfile)
         elif self.logstart:
             self.magic('logstart')
 
@@ -1705,13 +1717,6 @@ class InteractiveShell(SingletonConfigurable):
                 self.write_err('No traceback available to show.\n')
                 return
             
-            # this import must be done *after* the above call,
-            # to avoid affecting the exc_info
-            try:
-                from IPython.parallel.error import RemoteError
-            except ImportError:
-                class RemoteError(Exception): pass
-
             if etype is SyntaxError:
                 # Though this won't be called by syntax errors in the input
                 # line, there may be SyntaxError cases with imported code.
@@ -2445,7 +2450,7 @@ class InteractiveShell(SingletonConfigurable):
         with prepended_to_syspath(dname):
             try:
                 py3compat.execfile(fname,*where)
-            except SystemExit, status:
+            except SystemExit as status:
                 # If the call was made with 0 or None exit status (sys.exit(0)
                 # or sys.exit() ), don't bother showing a traceback, as both of
                 # these are considered normal by the OS:

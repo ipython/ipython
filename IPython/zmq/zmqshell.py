@@ -38,12 +38,12 @@ from IPython.lib.kernel import (
 )
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
-from IPython.utils.jsonutil import json_clean
+from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
-from IPython.zmq.displayhook import ZMQShellDisplayHook, _encode_binary
+from IPython.zmq.displayhook import ZMQShellDisplayHook
 from IPython.zmq.session import extract_header
 from session import Session
 
@@ -75,7 +75,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
         self._validate_data(source, data, metadata)
         content = {}
         content['source'] = source
-        content['data'] = _encode_binary(data)
+        content['data'] = encode_images(data)
         content['metadata'] = metadata
         self.session.send(
             self.pub_socket, u'display_data', json_clean(content),

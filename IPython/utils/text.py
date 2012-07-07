@@ -488,6 +488,7 @@ def format_screen(strng):
     strng = par_re.sub('',strng)
     return strng
 
+
 def dedent(text):
     """Equivalent of textwrap.dedent that ignores unindented first line.
 
@@ -513,6 +514,7 @@ def dedent(text):
     # dedent everything but the first line
     rest = textwrap.dedent(rest)
     return '\n'.join([first, rest])
+
 
 def wrap_paragraphs(text, ncols=80):
     """Wrap multiple paragraphs to fit a specified width.
@@ -540,6 +542,70 @@ def wrap_paragraphs(text, ncols=80):
     return out_ps
 
 
+def long_substr(data):
+    """Return the longest common substring in a list of strings.
+    
+    Credit: http://stackoverflow.com/questions/2892931/longest-common-substring-from-more-than-two-strings-python
+    """
+    substr = ''
+    if len(data) > 1 and len(data[0]) > 0:
+        for i in range(len(data[0])):
+            for j in range(len(data[0])-i+1):
+                if j > len(substr) and all(data[0][i:i+j] in x for x in data):
+                    substr = data[0][i:i+j]
+    else:
+        substr = data[0]
+    return substr
+
+
+def strip_email_quotes(text):
+    """Strip leading email quotation characters ('>').
+
+    Removes any combination of leading '>' interspersed with whitespace that
+    appears *identically* in all lines of the input text.
+
+    Parameters
+    ----------
+    text : str
+
+    Examples
+    --------
+
+    Simple uses::
+
+        In [2]: strip_email_quotes('> > text')
+        Out[2]: 'text'
+
+        In [3]: strip_email_quotes('> > text\\n> > more')
+        Out[3]: 'text\\nmore'
+
+    Note how only the common prefix that appears in all lines is stripped::
+
+        In [4]: strip_email_quotes('> > text\\n> > more\\n> more...')
+        Out[4]: '> text\\n> more\\nmore...'
+
+    So if any line has no quote marks ('>') , then none are stripped from any
+    of them ::
+    
+        In [5]: strip_email_quotes('> > text\\n> > more\\nlast different')
+        Out[5]: '> > text\\n> > more\\nlast different'
+    """
+    lines = text.splitlines()
+    matches = set()
+    for line in lines:
+        prefix = re.match(r'^(\s*>[ >]*)', line)
+        if prefix:
+            matches.add(prefix.group(1))
+        else:
+            break
+    else:
+        prefix = long_substr(list(matches))
+        if prefix:
+            strip = len(prefix)
+            text = '\n'.join([ ln[strip:] for ln in lines])
+    return text
+
+
 class EvalFormatter(Formatter):
     """A String Formatter that allows evaluation of simple expressions.
     
@@ -563,6 +629,7 @@ class EvalFormatter(Formatter):
     def get_field(self, name, args, kwargs):
         v = eval(name, kwargs)
         return v, name
+
 
 @skip_doctest_py3
 class FullEvalFormatter(Formatter):
@@ -621,6 +688,7 @@ class FullEvalFormatter(Formatter):
 
         return u''.join(py3compat.cast_unicode(s) for s in result)
 
+
 @skip_doctest_py3
 class DollarFormatter(FullEvalFormatter):
     """Formatter allowing Itpl style $foo replacement, for names and attribute
@@ -663,10 +731,12 @@ class DollarFormatter(FullEvalFormatter):
 #-----------------------------------------------------------------------------
 # Utils to columnize a list of string
 #-----------------------------------------------------------------------------
+
 def _chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
+
 
 def _find_optimal(rlist , separator_size=2 , displaywidth=80):
     """Calculate optimal info to columnize a list of string"""
@@ -682,12 +752,14 @@ def _find_optimal(rlist , separator_size=2 , displaywidth=80):
             'columns_width' : chk
            }
 
+
 def _get_or_default(mylist, i, default=None):
     """return list item number, or default if don't exist"""
     if i >= len(mylist):
         return default
     else :
         return mylist[i]
+
 
 @skip_doctest
 def compute_item_matrix(items, empty=None, *args, **kwargs) :
@@ -745,6 +817,7 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     info = _find_optimal(map(len, items), *args, **kwargs)
     nrow, ncol = info['rows_numbers'], info['columns_numbers']
     return ([[ _get_or_default(items, c*nrow+i, default=empty) for c in range(ncol) ] for i in range(nrow) ], info)
+
 
 def columnize(items, separator='  ', displaywidth=80):
     """ Transform a list of strings into a single string with columns.

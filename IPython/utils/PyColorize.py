@@ -282,7 +282,7 @@ If no filename is given, or if filename is -, read standard input."""
     else:
         try:
             stream = open(fname)
-        except IOError,msg:
+        except IOError as msg:
             print >> sys.stderr, msg
             sys.exit(1)
 
@@ -294,7 +294,7 @@ If no filename is given, or if filename is -, read standard input."""
         try:
             # write colorized version to stdout
             parser.format(stream.read(),scheme=opts.scheme_name)
-        except IOError,msg:
+        except IOError as msg:
             # if user reads through a pager and quits, don't print traceback
             if msg.args != (32,'Broken pipe'):
                 raise

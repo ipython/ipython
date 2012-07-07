@@ -353,9 +353,9 @@ class InputSplitter(object):
         -------
         is_complete : boolean
           True if the current input source (the result of the current input
-        plus prior inputs) forms a complete Python execution block.  Note that
-        this value is also stored as a private attribute (_is_complete), so it
-        can be queried at any time.
+          plus prior inputs) forms a complete Python execution block.  Note that
+          this value is also stored as a private attribute (``_is_complete``), so it
+          can be queried at any time.
         """
         if self.input_mode == 'cell':
             self.reset()

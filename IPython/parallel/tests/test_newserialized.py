@@ -90,14 +90,14 @@ class CanningTestCase(TestCase):
         self.assertEquals(td, 'ndarray')
         md = ser1.getMetadata()
         self.assertEquals(md['shape'], a.shape)
-        self.assertEquals(md['dtype'], a.dtype.str)
+        self.assertEquals(md['dtype'], a.dtype)
         buff = ser1.getData()
         self.assertEquals(buff, buffer(a))
         s = ns.Serialized(buff, td, md)
         final = ns.unserialize(s)
         self.assertEquals(buffer(a), buffer(final))
         self.assertTrue((a==final).all())
-        self.assertEquals(a.dtype.str, final.dtype.str)
+        self.assertEquals(a.dtype, final.dtype)
         self.assertEquals(a.shape, final.shape)
         # test non-copying:
         a[2] = 1e9

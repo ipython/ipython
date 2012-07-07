@@ -17,6 +17,7 @@ Authors:
 #-------------------------------------------------------------------------------
 
 import sys
+import platform
 import time
 from tempfile import mktemp
 from StringIO import StringIO
@@ -42,6 +43,13 @@ def setup():
 
 class TestView(ClusterTestCase, ParametricTestCase):
     
+    def setUp(self):
+        # On Win XP, wait for resource cleanup, else parallel test group fails
+        if platform.system() == "Windows" and platform.win32_ver()[0] == "XP":
+            # 1 sec fails. 1.5 sec seems ok. Using 2 sec for margin of safety
+            time.sleep(2)
+        super(TestView, self).setUp()
+
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
         raise SkipTest("crash tests disabled, due to undesirable crash reports")
@@ -274,6 +282,30 @@ class TestView(ClusterTestCase, ParametricTestCase):
             B = A.astype(dt)
             C = view.apply_sync(lambda x:x, B)
             assert_array_equal(B,C)
+    
+    @skip_without('numpy')
+    def test_push_pull_recarray(self):
+        """push/pull recarrays"""
+        import numpy
+        from numpy.testing.utils import assert_array_equal
+        
+        view = self.client[-1]
+        
+        R = numpy.array([
+            (1, 'hi', 0.),
+            (2**30, 'there', 2.5),
+            (-99999, 'world', -12345.6789),
+        ], [('n', int), ('s', '|S10'), ('f', float)])
+        
+        view['RR'] = R
+        R2 = view['RR']
+        
+        r_dtype, r_shape = view.apply_sync(interactive(lambda : (RR.dtype, RR.shape)))
+        self.assertEquals(r_dtype, R.dtype)
+        self.assertEquals(r_shape, R.shape)
+        self.assertEquals(R2.dtype, R.dtype)
+        self.assertEquals(R2.shape, R.shape)
+        assert_array_equal(R2, R)
     
     def test_map(self):
         view = self.client[:]

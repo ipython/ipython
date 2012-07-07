@@ -53,6 +53,7 @@ from nose import SkipTest
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
@@ -231,6 +232,11 @@ def make_exclude():
                   ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
                   ipjoin('config', 'profile'),
+                  # The notebook 'static' directory contains JS, css and other
+                  # files for web serving.  Occasionally projects may put a .py
+                  # file in there (MathJax ships a conf.py), so we might as
+                  # well play it safe and skip the whole thing.
+                  ipjoin('frontend', 'html', 'notebook', 'static')
                   ]
     if not have['sqlite3']:
         exclusions.append(ipjoin('core', 'tests', 'test_history'))
@@ -255,8 +261,7 @@ def make_exclude():
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
 
     if not have['pexpect']:
-        exclusions.extend([ipjoin('scripts', 'irunner'),
-                           ipjoin('lib', 'irunner'),
+        exclusions.extend([ipjoin('lib', 'irunner'),
                            ipjoin('lib', 'tests', 'test_irunner'),
                            ipjoin('frontend', 'terminal', 'console'),
                            ])
@@ -351,7 +356,13 @@ class IPTester(object):
             raise ValueError("Section not found", self.params)
         
         if '--with-xunit' in self.call_args:
-            self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
+            
+            self.call_args.append('--xunit-file')
+            # FIXME: when Windows uses subprocess.call, these extra quotes are unnecessary:
+            xunit_file = path.abspath(sect+'.xunit.xml')
+            if sys.platform == 'win32':
+                xunit_file = '"%s"' % xunit_file
+            self.call_args.append(xunit_file)
         
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
@@ -372,7 +383,13 @@ class IPTester(object):
             # reliably in win32.
             # What types of problems are you having. They may be related to
             # running Python in unboffered mode. BG.
-            return os.system(' '.join(self.call_args))
+            for ndx, arg in enumerate(self.call_args):
+                # Enclose in quotes if necessary and legal
+                if ' ' in arg and os.path.isfile(arg) and arg[0] != '"':
+                    self.call_args[ndx] = '"%s"' % arg
+            call_args = [py3compat.cast_unicode(x) for x in self.call_args]
+            cmd = py3compat.unicode_to_str(u' '.join(call_args))
+            return os.system(cmd)
     else:
         def _run_cmd(self):
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
@@ -420,7 +437,7 @@ def make_runners():
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils', 'nbformat' ]
+                     'testing', 'utils', 'nbformat' ]
 
     if have['zmq']:
         nose_pkg_names.append('zmq')
@@ -539,7 +556,8 @@ def run_iptestall():
             print '-'*40
             print 'Runner failed:',name
             print 'You may wish to rerun this one individually, with:'
-            print ' '.join(failed_runner.call_args)
+            failed_call_args = [py3compat.cast_unicode(x) for x in failed_runner.call_args]
+            print u' '.join(failed_call_args)
             print
         # Ensure that our exit code indicates failure
         sys.exit(1)
