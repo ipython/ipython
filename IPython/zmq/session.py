@@ -421,11 +421,9 @@ class Session(Configurable):
         msg['msg_type'] = header['msg_type']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
         msg['content'] = {} if content is None else content
-        metadata_dict = self.metadata.copy()
+        msg['metadata'] = self.metadata.copy()
         if metadata is not None:
-            metadata_dict.update(metadata)
-        if metadata_dict:
-            msg['metadata'] = metadata_dict
+            msg['metadata'].update(metadata)
         return msg
 
     def sign(self, msg_list):
@@ -459,7 +457,7 @@ class Session(Configurable):
         -------
         msg_list : list
             The list of bytes objects to be sent with the format:
-            [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
+            [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_metadata,p_content,
              buffer1,buffer2,...]. In this list, the p_* entities are
             the packed or serialized versions, so if JSON is used, these
             are utf8 encoded JSON strings.
@@ -480,7 +478,8 @@ class Session(Configurable):
 
         real_message = [self.pack(msg['header']),
                         self.pack(msg['parent_header']),
-                        content
+                        self.pack(msg['metadata']),
+                        content,
         ]
 
         to_send = []
@@ -607,7 +606,7 @@ class Session(Configurable):
             The ZMQ stream or socket to use for sending the message.
         msg_list : list
             The serialized list of messages to send. This only includes the
-            [p_header,p_parent,p_content,buffer1,buffer2,...] portion of
+            [p_header,p_parent,p_metadata,p_content,buffer1,buffer2,...] portion of
             the message.
         ident : ident or list
             A single ident or a list of idents to use in sending.
@@ -705,7 +704,7 @@ class Session(Configurable):
         -----------
         msg_list : list of bytes or Message objects
             The list of message parts of the form [HMAC,p_header,p_parent,
-            p_content,buffer1,buffer2,...].
+            p_metadata,p_content,buffer1,buffer2,...].
         content : bool (True)
             Whether to unpack the content dict (True), or leave it packed
             (False).
@@ -719,7 +718,7 @@ class Session(Configurable):
             The nested message dict with top-level keys [header, parent_header,
             content, buffers].
         """
-        minlen = 4
+        minlen = 5
         message = {}
         if not copy:
             for i in range(minlen):
@@ -741,12 +740,13 @@ class Session(Configurable):
         message['msg_id'] = header['msg_id']
         message['msg_type'] = header['msg_type']
         message['parent_header'] = self.unpack(msg_list[2])
+        message['metadata'] = self.unpack(msg_list[3])
         if content:
-            message['content'] = self.unpack(msg_list[3])
+            message['content'] = self.unpack(msg_list[4])
         else:
-            message['content'] = msg_list[3]
+            message['content'] = msg_list[4]
 
-        message['buffers'] = msg_list[4:]
+        message['buffers'] = msg_list[5:]
         return message
 
 def test_msg2obj():

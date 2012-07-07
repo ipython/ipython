@@ -106,7 +106,7 @@ A message is defined by the following four-dictionary structure::
       # depends on the message type.
       'content' : dict,
       
-      # Any metadata associated with the message; this dictionary is optional.
+      # Any metadata associated with the message.
       'metadata' : dict,
     }
 
@@ -130,7 +130,7 @@ messages upon deserialization to the following form for convenience::
       'msg_type' : str,
       'parent_header' : dict,
       'content' : dict,
-      'metadata' : dict, # optional
+      'metadata' : dict,
     }
 
 All messages sent to or received by any IPython process should have this

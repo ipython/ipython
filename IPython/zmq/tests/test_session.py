@@ -47,10 +47,11 @@ class TestSession(SessionTestCase):
     def test_msg(self):
         """message format"""
         msg = self.session.msg('execute')
-        thekeys = set('header parent_header content msg_type msg_id'.split())
+        thekeys = set('header parent_header metadata content msg_type msg_id'.split())
         s = set(msg.keys())
         self.assertEqual(s, thekeys)
         self.assertTrue(isinstance(msg['content'],dict))
+        self.assertTrue(isinstance(msg['metadata'],dict))
         self.assertTrue(isinstance(msg['header'],dict))
         self.assertTrue(isinstance(msg['parent_header'],dict))
         self.assertTrue(isinstance(msg['msg_id'],str))
@@ -69,6 +70,7 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['metadata'],msg['metadata'])
         # ensure floats don't come out as Decimal:
         self.assertEqual(type(new_msg['content']['b']),type(new_msg['content']['b']))
 
@@ -85,6 +87,7 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['metadata'],msg['metadata'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
 
         socket.data = []
@@ -92,9 +95,10 @@ class TestSession(SessionTestCase):
         content = msg['content']
         header = msg['header']
         parent = msg['parent_header']
+        metadata = msg['metadata']
         msg_type = header['msg_type']
         self.session.send(socket, None, content=content, parent=parent,
-            header=header, ident=b'foo', buffers=[b'bar'])
+            header=header, metadata=metadata, ident=b'foo', buffers=[b'bar'])
         ident, msg_list = self.session.feed_identities(socket.data)
         new_msg = self.session.unserialize(msg_list)
         self.assertEqual(ident[0], b'foo')
@@ -102,6 +106,7 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['msg_type'],msg['msg_type'])
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['metadata'],msg['metadata'])
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
 
@@ -114,6 +119,7 @@ class TestSession(SessionTestCase):
         self.assertEqual(new_msg['msg_type'],msg['msg_type'])
         self.assertEqual(new_msg['header'],msg['header'])
         self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['metadata'],msg['metadata'])
         self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         self.assertEqual(new_msg['buffers'],[b'bar'])
 

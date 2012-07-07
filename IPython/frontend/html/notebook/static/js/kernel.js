@@ -351,7 +351,7 @@ var IPython = (function (IPython) {
         var reply = $.parseJSON(e.data);
         var content = reply.content;
         var msg_type = reply.header.msg_type;
-        var metadata = reply.metadata || {};
+        var metadata = reply.metadata;
         var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
         if (msg_type !== 'status' && callbacks === undefined) {
             // Message not from one of this notebook's cells and there are no
