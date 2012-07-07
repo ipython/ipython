@@ -220,19 +220,19 @@ var IPython = (function (IPython) {
         //  'set_next_input': set_next_input_callback
         // }
         //
-        // The execute_reply_callback will be passed the content object of the execute_reply
+        // The execute_reply_callback will be passed the content and metadata objects of the execute_reply
         // message documented here:
         //
         // http://ipython.org/ipython-doc/dev/development/messaging.html#execute
         //
         // The output_callback will be passed msg_type ('stream','display_data','pyout','pyerr')
-        // of the output and the content and header objects of the PUB/SUB channel that contains the
+        // of the output and the content and metadata objects of the PUB/SUB channel that contains the
         // output:
         //
         // http://ipython.org/ipython-doc/dev/development/messaging.html#messages-on-the-pub-sub-socket
         //
         // The clear_output_callback will be passed a content object that contains
-        // stdout, stderr and other fields that are booleans, as well as the header object.
+        // stdout, stderr and other fields that are booleans, as well as the metadata object.
         //
         // The set_next_input_callback will be passed the text that should become the next
         // input cell.
@@ -313,12 +313,13 @@ var IPython = (function (IPython) {
         reply = $.parseJSON(e.data);
         var header = reply.header;
         var content = reply.content;
+        var metadata = reply.metadata;
         var msg_type = header.msg_type;
         var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
         if (callbacks !== undefined) {
             var cb = callbacks[msg_type];
             if (cb !== undefined) {
-                cb(content);
+                cb(content, metadata);
             }
         };
 
@@ -347,10 +348,10 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype._handle_iopub_reply = function (e) {
-        reply = $.parseJSON(e.data);
+        var reply = $.parseJSON(e.data);
         var content = reply.content;
         var msg_type = reply.header.msg_type;
-        var header = reply.header;
+        var metadata = reply.metadata;
         var callbacks = this.get_callbacks_for_msg(reply.parent_header.msg_id);
         if (msg_type !== 'status' && callbacks === undefined) {
             // Message not from one of this notebook's cells and there are no
@@ -361,7 +362,7 @@ var IPython = (function (IPython) {
         if (output_types.indexOf(msg_type) >= 0) {
             var cb = callbacks['output'];
             if (cb !== undefined) {
-                cb(msg_type, content, header);
+                cb(msg_type, content, metadata);
             }
         } else if (msg_type === 'status') {
             if (content.execution_state === 'busy') {
@@ -375,7 +376,7 @@ var IPython = (function (IPython) {
         } else if (msg_type === 'clear_output') {
             var cb = callbacks['clear_output'];
             if (cb !== undefined) {
-                cb(content, header);
+                cb(content, metadata);
             }
         };
     };

@@ -81,7 +81,7 @@ representation of all the data, we can communicate with such clients.
 General Message Format
 ======================
 
-A message is defined by the following three-dictionary structure::
+A message is defined by the following four-dictionary structure::
 
     {
       # The message header contains a pair of unique identifiers for the
@@ -105,6 +105,9 @@ A message is defined by the following three-dictionary structure::
       # The actual content of the message must be a dict, whose structure
       # depends on the message type.
       'content' : dict,
+      
+      # Any metadata associated with the message; this dictionary is optional.
+      'metadata' : dict,
     }
 
    
@@ -127,6 +130,7 @@ messages upon deserialization to the following form for convenience::
       'msg_type' : str,
       'parent_header' : dict,
       'content' : dict,
+      'metadata' : dict, # optional
     }
 
 All messages sent to or received by any IPython process should have this
