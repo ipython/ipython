@@ -227,6 +227,26 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('if 1:\n     pass   ')
         self.assertEqual(isp.indent_spaces, 0)
 
+    def test_dedent_break(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('while 1:\n    breaks = 5')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('while 1:\n     break')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('while 1:\n     break   ')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_continue(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('while 1:\n    continues = 5')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('while 1:\n     continue')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('while 1:\n     continue   ')
+        self.assertEqual(isp.indent_spaces, 0)
+
     def test_dedent_raise(self):
         isp = self.isp # shorthand
         # should NOT cause dedent
@@ -251,6 +271,20 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('if 1:\n     return      ')
         self.assertEqual(isp.indent_spaces, 0)
         isp.push('if 1:\n     return(0)')
+        self.assertEqual(isp.indent_spaces, 0)
+
+    def test_dedent_yield(self):
+        isp = self.isp # shorthand
+        # should NOT cause dedent
+        isp.push('if 1:\n    yielding = 4')
+        self.assertEqual(isp.indent_spaces, 4)
+        isp.push('if 1:\n     yield 5 + 493')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     yield')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     yield      ')
+        self.assertEqual(isp.indent_spaces, 0)
+        isp.push('if 1:\n     yield(0)')
         self.assertEqual(isp.indent_spaces, 0)
 
     def test_push(self):

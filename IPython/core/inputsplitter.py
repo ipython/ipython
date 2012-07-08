@@ -115,7 +115,11 @@ dedent_re = re.compile('|'.join([
     r'^\s+raise\([^\)]*\).*$', # wacky raise with immediate open paren
     r'^\s+return(\s.*)?$', # normal return (+ space + other stuff, maybe)
     r'^\s+return\([^\)]*\).*$', # wacky return with immediate open paren
-    r'^\s+pass\s*$' # pass (optionally followed by trailing spaces)
+    r'^\s+yield(\s.*)?$', # normal yield (+ space + other stuff, maybe)
+    r'^\s+yield\([^\)]*\).*$', # wacky yield with immediate open paren
+    r'^\s+pass\s*$', # pass (optionally followed by trailing spaces)
+    r'^\s+break\s*$', # break (optionally followed by trailing spaces)
+    r'^\s+continue\s*$', # continue (optionally followed by trailing spaces)
 ]))
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
