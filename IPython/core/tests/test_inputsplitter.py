@@ -351,6 +351,22 @@ class InputSplitterTestCase(unittest.TestCase):
         self.isp.push(u'\xc3\xa9')
         self.isp.push(u"u'\xc3\xa9'")
 
+    def test_line_continuation(self):
+        """ Test issue #2108."""
+        isp = self.isp
+        # A blank line after a line continuation should not accept more
+        isp.push("1 \\\n\n")
+        self.assertFalse(isp.push_accepts_more())
+        # Whitespace after a \ is a SyntaxError.  The only way to test that
+        # here is to test that push doesn't accept more (as with
+        # test_syntax_error() above).
+        isp.push(r"1 \ ")
+        self.assertFalse(isp.push_accepts_more())
+        # Even if the line is continuable (c.f. the regular Python
+        # interpreter)
+        isp.push(r"(1 \ ")
+        self.assertFalse(isp.push_accepts_more())
+
 class InteractiveLoopTestCase(unittest.TestCase):
     """Tests for an interactive loop like a python shell.
     """
@@ -678,7 +694,7 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
     def test_syntax_multiline_cell(self):
         isp = self.isp
         for example in syntax_ml.itervalues():
-            
+
             out_t_parts = []
             for line_pairs in example:
                 raw = '\n'.join(r for r, _ in line_pairs)
@@ -762,7 +778,7 @@ def test_last_two_blanks():
 
 
 class CellMagicsCommon(object):
-    
+
     def test_whole_cell(self):
         src = "%%cellm line\nbody\n"
         sp = self.sp
