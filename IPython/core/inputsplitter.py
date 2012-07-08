@@ -115,7 +115,9 @@ dedent_re = re.compile('|'.join([
     r'^\s+raise\([^\)]*\).*$', # wacky raise with immediate open paren
     r'^\s+return(\s.*)?$', # normal return (+ space + other stuff, maybe)
     r'^\s+return\([^\)]*\).*$', # wacky return with immediate open paren
-    r'^\s+pass\s*$' # pass (optionally followed by trailing spaces)
+    r'^\s+pass\s*$', # pass (optionally followed by trailing spaces)
+    r'^\s+break\s*$', # break (optionally followed by trailing spaces)
+    r'^\s+continue\s*$', # continue (optionally followed by trailing spaces)
 ]))
 ini_spaces_re = re.compile(r'^([ \t\r\f\v]+)')
 
@@ -202,17 +204,17 @@ def remove_comments(src):
     """
 
     return re.sub('#.*', '', src)
-    
+
 def has_comment(src):
     """Indicate whether an input line has (i.e. ends in, or is) a comment.
-    
+
     This uses tokenize, so it can distinguish comments from # inside strings.
-    
+
     Parameters
     ----------
     src : string
       A single line input string.
-    
+
     Returns
     -------
     Boolean: True if source has a comment.
@@ -280,9 +282,9 @@ class InputSplitter(object):
     code = None
     # Input mode
     input_mode = 'line'
-    
+
     # Private attributes
-    
+
     # List with lines of input accumulated so far
     _buffer = None
     # Command compiler
@@ -291,7 +293,7 @@ class InputSplitter(object):
     _full_dedent = False
     # Boolean indicating whether the current block is complete
     _is_complete = None
-    
+
     def __init__(self, input_mode=None):
         """Create a new InputSplitter instance.
 
@@ -348,7 +350,7 @@ class InputSplitter(object):
         ----------
         lines : string
           One or more lines of Python input.
-        
+
         Returns
         -------
         is_complete : boolean
@@ -359,7 +361,7 @@ class InputSplitter(object):
         """
         if self.input_mode == 'cell':
             self.reset()
-        
+
         self._store(lines)
         source = self.source
 
@@ -369,7 +371,7 @@ class InputSplitter(object):
         self.code, self._is_complete = None, None
 
         # Honor termination lines properly
-        if source.rstrip().endswith('\\'):
+        if source.endswith('\\\n'):
             return False
 
         self._update_indent(lines)
@@ -400,11 +402,11 @@ class InputSplitter(object):
         SyntaxError is raised, or *all* of the following are true:
 
         1. The input compiles to a complete statement.
-        
+
         2. The indentation level is flush-left (because if we are indented,
            like inside a function definition or for loop, we need to keep
            reading new input).
-          
+
         3. There is one extra line consisting only of whitespace.
 
         Because of condition #3, this method should be used only by
@@ -464,7 +466,7 @@ class InputSplitter(object):
         ----------
         line : str
           A single new line of non-whitespace, non-comment Python input.
-          
+
         Returns
         -------
         indent_spaces : int
@@ -476,7 +478,7 @@ class InputSplitter(object):
         """
         indent_spaces = self.indent_spaces
         full_dedent = self._full_dedent
-        
+
         inisp = num_ini_spaces(line)
         if inisp < indent_spaces:
             indent_spaces = inisp
@@ -495,9 +497,9 @@ class InputSplitter(object):
         if indent_spaces < 0:
             indent_spaces = 0
             #print 'safety' # dbg
-            
+
         return indent_spaces, full_dedent
-    
+
     def _update_indent(self, lines):
         for line in remove_comments(lines).splitlines():
             if line and not line.isspace():
@@ -508,10 +510,10 @@ class InputSplitter(object):
 
         If input lines are not newline-terminated, a newline is automatically
         appended."""
-        
+
         if buffer is None:
             buffer = self._buffer
-            
+
         if lines.endswith('\n'):
             buffer.append(lines)
         else:
@@ -627,10 +629,10 @@ def transform_help_end(line):
     target = m.group(1)
     esc = m.group(3)
     lspace = _initial_space_re.match(line).group(0)
-    
+
     # If we're mid-command, put it back on the next prompt for the user.
     next_input = line.rstrip('?') if line.strip() != m.group(0) else None
-        
+
     return _make_help_call(target, esc, lspace, next_input)
 
 
@@ -647,7 +649,7 @@ class EscapedTransformer(object):
                ESC_QUOTE2 : self._tr_quote2,
                ESC_PAREN  : self._tr_paren }
         self.tr = tr
-        
+
     # Support for syntax transformations that use explicit escapes typed by the
     # user at the beginning of a line
     @staticmethod
@@ -668,7 +670,7 @@ class EscapedTransformer(object):
         # A naked help line should just fire the intro help screen
         if not line_info.line[1:]:
             return 'get_ipython().show_usage()'
-        
+
         return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
 
     @staticmethod
@@ -745,7 +747,7 @@ class IPythonInputSplitter(InputSplitter):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         self._validate = True
-        
+
     def reset(self):
         """Reset the input buffer and associated state."""
         super(IPythonInputSplitter, self).reset()
@@ -897,7 +899,7 @@ class IPythonInputSplitter(InputSplitter):
         # that this must be done *after* the reset() call that would otherwise
         # flush the buffer.
         self._store(lines, self._buffer_raw, 'source_raw')
-        
+
         try:
             push = super(IPythonInputSplitter, self).push
             buf = self._buffer
