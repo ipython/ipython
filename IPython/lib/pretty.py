@@ -353,8 +353,8 @@ class RepresentationPrinter(PrettyPrinter):
                         # Some objects automatically create any requested
                         # attribute. Try to ignore most of them by checking for
                         # callability.
-                        if '_repr_pretty_' in obj_class.__dict__:
-                            meth = obj_class._repr_pretty_
+                        if '_repr_pretty_' in cls.__dict__:
+                            meth = cls._repr_pretty_
                             if callable(meth):
                                 return meth(obj, self, cycle)
             return _default_pprint(obj, self, cycle)
