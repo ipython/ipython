@@ -14,7 +14,7 @@ var IPython = (function (IPython) {
     var MainToolBar = function (selector) {
         this.selector = selector;
         if (this.selector !== undefined) {
-            IPython.Cell.apply(this, arguments);
+            IPython.ToolBar.apply(this, arguments);
             // move the rest ouside
             this.construct();
             this.addDropDownList();
