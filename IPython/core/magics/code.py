@@ -333,11 +333,6 @@ class CodeMagics(Magics):
         mfile.close()
         self.shell.user_ns[mname] = Macro(mvalue)
 
-    @line_magic
-    def ed(self, parameter_s=''):
-        """Alias to %edit."""
-        return self.edit(parameter_s)
-
     @skip_doctest
     @line_magic
     def edit(self, parameter_s='',last_call=['','']):
@@ -431,7 +426,7 @@ class CodeMagics(Magics):
         This is an example of creating a simple function inside the editor and
         then modifying it. First, start up the editor::
 
-          In [1]: ed
+          In [1]: edit
           Editing... done. Executing edited code...
           Out[1]: 'def foo():\\n    print "foo() was defined in an editing
           session"\\n'
@@ -444,7 +439,7 @@ class CodeMagics(Magics):
         Now we edit foo.  IPython automatically loads the editor with the
         (temporary) file where foo() was previously defined::
 
-          In [3]: ed foo
+          In [3]: edit foo
           Editing... done. Executing edited code...
 
         And if we call foo() again we get the modified version::
@@ -455,21 +450,21 @@ class CodeMagics(Magics):
         Here is an example of how to edit a code snippet successive
         times. First we call the editor::
 
-          In [5]: ed
+          In [5]: edit
           Editing... done. Executing edited code...
           hello
           Out[5]: "print 'hello'\\n"
 
         Now we call it again with the previous output (stored in _)::
 
-          In [6]: ed _
+          In [6]: edit _
           Editing... done. Executing edited code...
           hello world
           Out[6]: "print 'hello world'\\n"
 
         Now we call it with the output #8 (stored in _8, also as Out[8])::
 
-          In [7]: ed _8
+          In [7]: edit _8
           Editing... done. Executing edited code...
           hello again
           Out[7]: "print 'hello again'\\n"
