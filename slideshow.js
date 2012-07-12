@@ -1,28 +1,50 @@
+Presentation Mode
+=================
 <div id='presentation_mode'>
-    <link rel="stylesheet" href="../static/css/printnotebook.css" type="text/css">
     <style>
-        #menubar{ display: none !important }
-        #pager{ display: none !important }
-        #pager_splitter{ display: none !important }
+        .pmode{ display: none !important }
     </style>
-
     <script>
         pmode = function(){
-        console.log('executed script');
+        init()
         cells = $('.cell')
-        //$(cells).fadeOut();
+        $(cells).fadeOut();
         $(cells[0]).fadeIn()
-        var i = 0 
+        i = 0 
         nslide = function(){$(cells[i]).fadeOut(function(){i=i+1;$(cells[i]).fadeIn();});}
+        pslide = function(){$(cells[i]).fadeOut(function(){i=i-1;$(cells[i]).fadeIn();});}
+        $('#menubar, #pager_splitter, #pager, #header,#toolbar').addClass('pmode');
         //setInterval(nslide,1000)
         //
-        var pt = $('<div/>').attr('id','toolbar_present')
-            pt.addClass('border-box-sizing ui-widget ui-widget-content');
-            pt.attr('style','border-top-style: none; border-left-style: none; border-right-style: none; ');
-        $('#toolbar').after(pt);
         };
         
-        pmode()
+        var init = function()
+        {
+            var pt = $('<div/>').attr('id','toolbar_present').addClass('toolbar');
+            $('#toolbar').after(pt);
+            ptoolbar = new IPython.ToolBar('#toolbar_present');
+            IPython.ptoolbar = ptoolbar;
+            ptoolbar.addButtonsGroup([{'label':'Next Slide', 'icon':'ui-icon-stop', 'callback':function(){stop()}}])
+            ptoolbar.addButtonsGroup([
+                                      {'label':'Next Slide', 'icon':'ui-icon-seek-prev', 'callback':function(){pslide()}},
+                                      {'label':'Next Slide', 'icon':'ui-icon-seek-next', 'callback':function(){nslide()}},
+                                      ])
+        }
+        
+        var stop = function() {
+            $(cells).show();
+            $(ptoolbar.selector).remove();
+            $('.pmode').removeClass('pmode');
+        }
+        
+        var sid = '#start_pmode'
+        if(($(sid)).length == 0) {
+            IPython.toolbar.addButtonsGroup([
+                                      {'label':'Start Slideshow', 'icon':'ui-icon-image', 'callback':function(){pmode()},'id':sid},
+                                      ])
+            }
+        //pmode()
 
     </script>
 </div>
+
