@@ -208,7 +208,7 @@ class LoginHandler(AuthenticatedHandler):
 
     def _render(self, message=None):
         self.render('login.html',
-                next=self.get_argument('next', default='/'),
+                next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
@@ -218,7 +218,7 @@ class LoginHandler(AuthenticatedHandler):
 
     def get(self):
         if self.current_user:
-            self.redirect(self.get_argument('next', default='/'))
+            self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
         else:
             self._render()
 
@@ -231,7 +231,7 @@ class LoginHandler(AuthenticatedHandler):
                 self._render(message={'error': 'Invalid password'})
                 return
 
-        self.redirect(self.get_argument('next', default='/'))
+        self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
 
 
 class LogoutHandler(AuthenticatedHandler):
