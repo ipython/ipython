@@ -24,9 +24,9 @@ var IPython = (function (IPython) {
     // First argument : Mandatory
     //      list of dict as argument, each dict should contain
     //      3 mandatory keys and values :
-    //      'label' : string -- the text to show on hover
-    //      'icon'  : string -- the jQuery-ui icon to add on this button
-    //      'callback' : function -- the callback to execute on a click
+    //      label : string -- the text to show on hover
+    //      icon  : string -- the jQuery-ui icon to add on this button
+    //      callback : function -- the callback to execute on a click
     //
     //      and optionnaly an 'id' key that is assigned to the button element
     //
@@ -36,15 +36,15 @@ var IPython = (function (IPython) {
     // Example
     //
     // IPython.toolbar.addButtonsGroup([
-    //  {'label':'my button',
-    //   'icon':'ui-icon-disk',
-    //   'callback':function(){alert('hoho'),
-    //   'id' : 'my_button_id',                 // this is optionnal
+    //  {label:'my button',
+    //   icon:'ui-icon-disk',
+    //   callback:function(){alert('hoho'),
+    //   id : 'my_button_id',                 // this is optionnal
     //   }
     //  },
-    //  {'label':'my second button',
-    //   'icon':'ui-icon-scissors',
-    //   'callback':function(){alert('be carefull I cut')}
+    //  {label:'my second button',
+    //   icon:'ui-icon-scissors',
+    //   callback:function(){alert('be carefull I cut')}
     //  }
     //  ],
     //  "my_button_group_id"
@@ -57,14 +57,14 @@ var IPython = (function (IPython) {
         for(var el in list)
         {
             var button  = $('<button/>').button({
-                icons : {primary: list[el]['icon']},
+                icons : {primary: list[el].icon},
                 text : false,
-                label: list[el]['label'],
+                label: list[el].label,
                 });
-            var id = list[el]['id'];
+            var id = list[el].id;
             if( id != undefined )
                 button.attr('id',id);
-            var fun = list[el]['callback']
+            var fun = list[el].callback;
             button.click(fun);
             span_group.append(button);
         }
