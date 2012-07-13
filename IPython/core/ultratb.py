@@ -892,7 +892,7 @@ class VerboseTB(TBTools):
                 for name_full in unique_names:
                     name_base = name_full.split('.',1)[0]
                     if name_base in frame.f_code.co_varnames:
-                        if locals.has_key(name_base):
+                        if name_base in locals:
                             try:
                                 value = repr(eval(name_full,locals))
                             except:
@@ -901,7 +901,7 @@ class VerboseTB(TBTools):
                             value = undefined
                         name = tpl_local_var % name_full
                     else:
-                        if frame.f_globals.has_key(name_base):
+                        if name_base in frame.f_globals:
                             try:
                                 value = repr(eval(name_full,frame.f_globals))
                             except:

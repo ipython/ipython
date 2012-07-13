@@ -119,7 +119,7 @@ class StoreMagics(Magics):
         ip = self.shell
         db = ip.db
         # delete
-        if opts.has_key('d'):
+        if 'd' in opts:
             try:
                 todel = args[0]
             except IndexError:
@@ -130,11 +130,11 @@ class StoreMagics(Magics):
                 except:
                     raise UsageError("Can't delete variable '%s'" % todel)
         # reset
-        elif opts.has_key('z'):
+        elif 'z' in opts:
             for k in db.keys('autorestore/*'):
                 del db[k]
 
-        elif opts.has_key('r'):
+        elif 'r' in opts:
             refresh_variables(ip)
 
 
