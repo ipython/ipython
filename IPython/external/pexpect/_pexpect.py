@@ -930,7 +930,7 @@ class spawnb(object):
 
         return self
 
-    def next (self):    # File-like object.
+    def __next__ (self):    # File-like object.
 
         """This is to support iterators over a file-like object.
         """
@@ -939,6 +939,9 @@ class spawnb(object):
         if result == self._empty_buffer:
             raise StopIteration
         return result
+
+    if not PY3:
+        next = __next__    # File-like object.
 
     def readlines (self, sizehint = -1):    # File-like object.
 
