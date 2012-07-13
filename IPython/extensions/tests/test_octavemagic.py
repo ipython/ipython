@@ -62,3 +62,24 @@ def test_octave_plot():
                       'plot([1, 2, 3]); figure; plot([4, 5, 6]);')
 
     nt.assert_equal(test_octave_plot.svgs_generated, 2)
+
+def test_octavemagic_localscope():
+    ip = get_ipython()
+    ip.magic('load_ext octavemagic')
+    ip.push({'x':0})
+    ip.run_line_magic('octave', '-i x -o result result = x+1')
+    result = ip.user_ns['result']
+    nt.assert_equal(result, 1)
+
+    ip.run_cell('''def octavemagic_addone(u):
+    %octave -i u -o result result = u+1
+    return result''')
+    ip.run_cell('result = octavemagic_addone(1)')
+    result = ip.user_ns['result']
+    nt.assert_equal(result, 2)
+
+    nt.assert_raises(
+        KeyError,
+        ip.run_line_magic,
+        "octave",
+        "-i var_not_defined 1+1")
