@@ -97,11 +97,11 @@ class TestConfigurable(TestCase):
         self.assertEqual(c2.config, config)
         self.assertEqual(c3.config, config)
         # Test that copies are not made
-        self.assert_(c1.config is config)
-        self.assert_(c2.config is config)
-        self.assert_(c3.config is config)
-        self.assert_(c1.config is c2.config)
-        self.assert_(c2.config is c3.config)
+        self.assertTrue(c1.config is config)
+        self.assertTrue(c2.config is config)
+        self.assertTrue(c3.config is config)
+        self.assertTrue(c1.config is c2.config)
+        self.assertTrue(c2.config is c3.config)
         
     def test_inheritance(self):
         config = Config()

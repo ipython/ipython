@@ -253,8 +253,8 @@ class TestConfig(TestCase):
         import copy
         c2 = copy.deepcopy(c1)
         self.assertEqual(c1, c2)
-        self.assert_(c1 is not c2)
-        self.assert_(c1.Foo is not c2.Foo)
+        self.assertTrue(c1 is not c2)
+        self.assertTrue(c1.Foo is not c2.Foo)
 
     def test_builtin(self):
         c1 = Config()

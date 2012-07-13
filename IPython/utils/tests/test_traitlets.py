@@ -237,9 +237,9 @@ class TestHasTraitsNotify(TestCase):
         a.b = 0.0
         self.assertEqual(len(self._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in self._notify1)
+        self.assertTrue(('a',0,10) in self._notify1)
         a.b = 10.0
-        self.assert_(('b',0.0,10.0) in self._notify1)
+        self.assertTrue(('b',0.0,10.0) in self._notify1)
         self.assertRaises(TraitError,setattr,a,'a','bad string')
         self.assertRaises(TraitError,setattr,a,'b','bad string')
         self._notify1 = []
@@ -259,7 +259,7 @@ class TestHasTraitsNotify(TestCase):
         a.a = 0
         self.assertEqual(len(self._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in self._notify1)
+        self.assertTrue(('a',0,10) in self._notify1)
         self.assertRaises(TraitError,setattr,a,'a','bad string')
 
     def test_subclass(self):
@@ -295,8 +295,8 @@ class TestHasTraitsNotify(TestCase):
         self.assertEqual(len(self._notify2),0)
         b.a = 10
         b.b = 10.0
-        self.assert_(('a',0,10) in self._notify1)
-        self.assert_(('b',0.0,10.0) in self._notify2)
+        self.assertTrue(('a',0,10) in self._notify1)
+        self.assertTrue(('b',0.0,10.0) in self._notify2)
 
     def test_static_notify(self):
 
@@ -311,7 +311,7 @@ class TestHasTraitsNotify(TestCase):
         # This is broken!!!
         self.assertEqual(len(a._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in a._notify1)
+        self.assertTrue(('a',0,10) in a._notify1)
 
         class B(A):
             b = Float
@@ -322,8 +322,8 @@ class TestHasTraitsNotify(TestCase):
         b = B()
         b.a = 10
         b.b = 10.0
-        self.assert_(('a',0,10) in b._notify1)
-        self.assert_(('b',0.0,10.0) in b._notify2)
+        self.assertTrue(('a',0,10) in b._notify1)
+        self.assertTrue(('b',0.0,10.0) in b._notify2)
 
     def test_notify_args(self):
 
@@ -504,11 +504,11 @@ class TestInstance(TestCase):
             inst = Instance(Foo)
 
         a = A()
-        self.assert_(a.inst is None)
+        self.assertTrue(a.inst is None)
         a.inst = Foo()
-        self.assert_(isinstance(a.inst, Foo))
+        self.assertTrue(isinstance(a.inst, Foo))
         a.inst = Bar()
-        self.assert_(isinstance(a.inst, Foo))
+        self.assertTrue(isinstance(a.inst, Foo))
         self.assertRaises(TraitError, setattr, a, 'inst', Foo)
         self.assertRaises(TraitError, setattr, a, 'inst', Bar)
         self.assertRaises(TraitError, setattr, a, 'inst', Bah())
@@ -520,7 +520,7 @@ class TestInstance(TestCase):
 
         a = A()
         b = A()
-        self.assert_(a.inst is not b.inst)
+        self.assertTrue(a.inst is not b.inst)
 
     def test_args_kw(self):
         class Foo(object):
@@ -544,7 +544,7 @@ class TestInstance(TestCase):
         class C(HasTraits):
             inst = Instance(Foo)
         c = C()
-        self.assert_(c.inst is None)
+        self.assertTrue(c.inst is None)
 
     def test_bad_default(self):
         class Foo(object): pass
@@ -583,7 +583,7 @@ class TestThis(TestCase):
 
         f = Foo()
         f.this = Foo()
-        self.assert_(isinstance(f.this, Foo))
+        self.assertTrue(isinstance(f.this, Foo))
 
     def test_subclass(self):
         class Foo(HasTraits):

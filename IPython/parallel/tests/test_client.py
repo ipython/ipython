@@ -50,23 +50,23 @@ class TestClient(ClusterTestCase):
         self.assertEqual(v.targets, targets)
         t = self.client.ids[2]
         v = self.client[t]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, t)
         t = self.client.ids[2:4]
         v = self.client[t]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, t)
         v = self.client[::2]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, targets[::2])
         v = self.client[1::3]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, targets[1::3])
         v = self.client[:-3]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, targets[:-3])
         v = self.client[-1]
-        self.assert_(isinstance(v, DirectView))
+        self.assertTrue(isinstance(v, DirectView))
         self.assertEqual(v.targets, targets[-1])
         self.assertRaises(TypeError, lambda : self.client[None])
     
