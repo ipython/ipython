@@ -21,6 +21,7 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import __builtin__
 
@@ -179,7 +180,7 @@ class DisplayHook(Configurable):
                 # But avoid extraneous empty lines.
                 result_repr = '\n' + result_repr
 
-        print >>io.stdout, result_repr
+        print(result_repr, file=io.stdout)
 
     def update_user_ns(self, result):
         """Update user_ns with various things like _, __, _1, etc."""
@@ -188,7 +189,7 @@ class DisplayHook(Configurable):
         if result is not self.shell.user_ns['_oh']:
             if len(self.shell.user_ns['_oh']) >= self.cache_size and self.do_full_cache:
                 warn('Output cache limit (currently '+
-                      `self.cache_size`+' entries) hit.\n'
+                      repr(self.cache_size)+' entries) hit.\n'
                      'Flushing cache and resetting history counter...\n'
                      'The only history variables available will be _,__,___ and _1\n'
                      'with the current result.')
@@ -208,7 +209,7 @@ class DisplayHook(Configurable):
             # hackish access to top-level  namespace to create _1,_2... dynamically
             to_main = {}
             if self.do_full_cache:
-                new_result = '_'+`self.prompt_count`
+                new_result = '_'+repr(self.prompt_count)
                 to_main[new_result] = result
                 self.shell.push(to_main, interactive=False)
                 self.shell.user_ns['_oh'][self.prompt_count] = result
@@ -243,12 +244,12 @@ class DisplayHook(Configurable):
 
     def flush(self):
         if not self.do_full_cache:
-            raise ValueError,"You shouldn't have reached the cache flush "\
-                  "if full caching is not enabled!"
+            raise ValueError("You shouldn't have reached the cache flush "
+                             "if full caching is not enabled!")
         # delete auto-generated vars from global namespace
 
         for n in range(1,self.prompt_count + 1):
-            key = '_'+`n`
+            key = '_'+repr(n)
             try:
                 del self.shell.user_ns[key]
             except: pass

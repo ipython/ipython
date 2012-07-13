@@ -28,10 +28,12 @@ It shows how to use the built-in keyword, token and tokenize modules to
 scan Python source code and re-emit it with no changes to its original
 formatting (which is the hard part).
 """
+from __future__ import print_function
 
 __all__ = ['ANSICodeColors','Parser']
 
 _scheme_default = 'Linux'
+
 
 # Imports
 import StringIO
@@ -283,7 +285,7 @@ If no filename is given, or if filename is -, read standard input."""
         try:
             stream = open(fname)
         except IOError as msg:
-            print >> sys.stderr, msg
+            print(msg, file=sys.stderr)
             sys.exit(1)
 
     parser = Parser()

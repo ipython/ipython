@@ -1,6 +1,7 @@
 """Test suite for pylab_import_all magic
 Modified from the irunner module but using regex.
 """
+from __future__ import print_function
 
 # Global to make tests extra verbose and help debugging
 VERBOSE = True
@@ -58,10 +59,10 @@ class RunnerTestCase(unittest.TestCase):
             if not re.match(ol1,ol2):
                 mismatch += 1
                 if VERBOSE:
-                    print '<<< line %s does not match:' % n
-                    print repr(ol1)
-                    print repr(ol2)
-                    print '>>>'
+                    print('<<< line %s does not match:' % n)
+                    print(repr(ol1))
+                    print(repr(ol2))
+                    print('>>>')
         self.assert_(mismatch==0,'Number of mismatched lines: %s' %
                      mismatch)
 

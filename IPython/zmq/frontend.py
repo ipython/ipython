@@ -5,6 +5,8 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
+
 # stdlib
 import cPickle as pickle
 import code
@@ -57,25 +59,25 @@ class Console(code.InteractiveConsole):
             return
         c = omsg.content.code.rstrip()
         if c:
-            print '[IN from %s]' % omsg.parent_header.username
-            print c
+            print('[IN from %s]' % omsg.parent_header.username)
+            print(c)
 
     def handle_pyout(self, omsg):
         #print omsg # dbg
         if omsg.parent_header.session == self.session.session:
-            print "%s%s" % (sys.ps3, omsg.content.data)
+            print("%s%s" % (sys.ps3, omsg.content.data))
         else:
-            print '[Out from %s]' % omsg.parent_header.username
-            print omsg.content.data
+            print('[Out from %s]' % omsg.parent_header.username)
+            print(omsg.content.data)
 
     def print_pyerr(self, err):
-        print >> sys.stderr, err.etype,':', err.evalue
-        print >> sys.stderr, ''.join(err.traceback)
+        print(err.etype,':', err.evalue, file=sys.stderr)
+        print(''.join(err.traceback), file=sys.stderr)
 
     def handle_pyerr(self, omsg):
         if omsg.parent_header.session == self.session.session:
             return
-        print >> sys.stderr, '[ERR from %s]' % omsg.parent_header.username
+        print('[ERR from %s]' % omsg.parent_header.username, file=sys.stderr)
         self.print_pyerr(omsg.content)
 
     def handle_stream(self, omsg):
@@ -83,8 +85,8 @@ class Console(code.InteractiveConsole):
             outstream = sys.stdout
         else:
             outstream = sys.stderr
-            print >> outstream, '*ERR*',
-        print >> outstream, omsg.content.data,
+            print('*ERR*', end=' ', file=outstream)
+        print(omsg.content.data, end=' ', file=outstream)
 
     def handle_output(self, omsg):
         handler = self.handlers.get(omsg.msg_type, None)
@@ -107,12 +109,12 @@ class Console(code.InteractiveConsole):
         if rep.content.status == 'error':
             self.print_pyerr(rep.content)
         elif rep.content.status == 'aborted':
-            print >> sys.stderr, "ERROR: ABORTED"
+            print("ERROR: ABORTED", file=sys.stderr)
             ab = self.messages[rep.parent_header.msg_id].content
             if 'code' in ab:
-                print >> sys.stderr, ab.code
+                print(ab.code, file=sys.stderr)
             else:
-                print >> sys.stderr, ab
+                print(ab, file=sys.stderr)
 
     def recv_reply(self):
         ident,rep = self.session.recv(self.request_socket)
@@ -153,7 +155,7 @@ class Console(code.InteractiveConsole):
             time.sleep(0.05)
         else:
             # We exited without hearing back from the kernel!
-            print >> sys.stderr, 'ERROR!!! kernel never got back to us!!!'
+            print('ERROR!!! kernel never got back to us!!!', file=sys.stderr)
 
 
 class InteractiveClient(object):

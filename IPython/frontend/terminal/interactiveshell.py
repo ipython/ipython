@@ -13,6 +13,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import bdb
 import os
@@ -59,8 +60,8 @@ def get_default_editor():
 def get_pasted_lines(sentinel, l_input=py3compat.input):
     """ Yield pasted lines until the user enters the given sentinel value.
     """
-    print "Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
-          % sentinel
+    print("Pasting code; enter '%s' alone on the line to stop or use Ctrl-D." \
+          % sentinel)
     while True:
         try:
             l = l_input(':')
@@ -69,7 +70,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input):
             else:
                 yield l
         except EOFError:
-            print '<EOF>'
+            print('<EOF>')
             return
 
 
@@ -153,7 +154,7 @@ class TerminalMagics(Magics):
         if name:
             # If storing it for further editing
             self.shell.user_ns[name] = SList(b.splitlines())
-            print "Block assigned to '%s'" % name
+            print("Block assigned to '%s'" % name)
         else:
             self.shell.user_ns['pasted_block'] = b
             self.shell.run_cell(b)
@@ -170,7 +171,7 @@ class TerminalMagics(Magics):
             raise UsageError(
                 "Variable 'pasted_block' is not a string, can't execute")
 
-        print "Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b))
+        print("Re-executing '%s...' (%d chars)"% (b.split('\n',1)[0], len(b)))
         self.shell.run_cell(b)
 
     @line_magic
@@ -178,7 +179,7 @@ class TerminalMagics(Magics):
         """Toggle autoindent on/off (if available)."""
 
         self.shell.set_autoindent()
-        print "Automatic indentation is:",['OFF','ON'][self.shell.autoindent]
+        print("Automatic indentation is:",['OFF','ON'][self.shell.autoindent])
 
     @skip_doctest
     @line_magic
