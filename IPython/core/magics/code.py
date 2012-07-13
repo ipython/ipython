@@ -61,6 +61,9 @@ class CodeMagics(Magics):
           -f: force overwrite.  If file exists, %save will prompt for overwrite
           unless -f is given.
 
+          -a: append to file.  Open file in append mode and end every write
+          on a newline.
+
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
 
@@ -70,14 +73,16 @@ class CodeMagics(Magics):
         If `-r` option is used, the default extension is `.ipy`.
         """
 
-        opts,args = self.parse_options(parameter_s,'fr',mode='list')
+        opts,args = self.parse_options(parameter_s,'fra',mode='list')
         raw = 'r' in opts
         force = 'f' in opts
+        append = 'a' in opts
+        mode = 'a' if append else 'w'
         ext = u'.ipy' if raw else u'.py'
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
         if not fname.endswith((u'.py',u'.ipy')):
             fname += ext
-        if os.path.isfile(fname) and not force:
+        if os.path.isfile(fname) and not force and not append:
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
@@ -91,9 +96,16 @@ class CodeMagics(Magics):
         except (TypeError, ValueError) as e:
             print e.args[0]
             return
-        with io.open(fname,'w', encoding="utf-8") as f:
-            f.write(u"# coding: utf-8\n")
-            f.write(py3compat.cast_unicode(cmds))
+        out = py3compat.cast_unicode(cmds)
+        with io.open(fname, mode, encoding="utf-8") as f:
+            if append:
+                f.write(out)
+                # make sure we end on a newline
+                if not out.endswith(u'\n'):
+                    f.write(u'\n')
+            else:
+                f.write(u"# coding: utf-8\n")
+                f.write(out)
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
