@@ -61,8 +61,7 @@ class CodeMagics(Magics):
           -f: force overwrite.  If file exists, %save will prompt for overwrite
           unless -f is given.
 
-          -a: append to file.  Open file in append mode and end every write
-          on a newline.
+          -a: open file in append mode.
 
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
@@ -98,14 +97,12 @@ class CodeMagics(Magics):
             return
         out = py3compat.cast_unicode(cmds)
         with io.open(fname, mode, encoding="utf-8") as f:
-            if append:
-                f.write(out)
-                # make sure we end on a newline
-                if not out.endswith(u'\n'):
-                    f.write(u'\n')
-            else:
+            if not append:
                 f.write(u"# coding: utf-8\n")
-                f.write(out)
+            f.write(out)
+            # make sure we end on a newline
+            if not out.endswith(u'\n'):
+                f.write(u'\n')
         print 'The following commands were written to file `%s`:' % fname
         print cmds
 
