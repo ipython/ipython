@@ -1103,8 +1103,8 @@ class FormattedTB(VerboseTB, ListTB):
                       len(self.valid_modes)
             self.mode = self.valid_modes[new_idx]
         elif mode not in self.valid_modes:
-            raise ValueError, 'Unrecognized mode in FormattedTB: <'+mode+'>\n'\
-                  'Valid modes: '+str(self.valid_modes)
+            raise ValueError('Unrecognized mode in FormattedTB: <'+mode+'>\n'
+                             'Valid modes: '+str(self.valid_modes))
         else:
             self.mode = mode
         # include variable details only in 'Verbose' mode
@@ -1231,7 +1231,7 @@ if __name__ == "__main__":
     try:
         print spam(1, (2, 3))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print ''
 
     handler = VerboseTB()
@@ -1239,6 +1239,6 @@ if __name__ == "__main__":
     try:
         print spam(1, (2, 3))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print ''
 

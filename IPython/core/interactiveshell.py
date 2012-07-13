@@ -16,6 +16,7 @@
 
 from __future__ import with_statement
 from __future__ import absolute_import
+from __future__ import print_function
 
 import __builtin__ as builtin_mod
 import __future__
@@ -792,8 +793,8 @@ class InteractiveShell(SingletonConfigurable):
 
         dp = getattr(self.hooks, name, None)
         if name not in IPython.core.hooks.__all__:
-            print "Warning! Hook '%s' is not one of %s" % \
-                  (name, IPython.core.hooks.__all__ )
+            print("Warning! Hook '%s' is not one of %s" % \
+                  (name, IPython.core.hooks.__all__ ))
         if not dp:
             dp = IPython.core.hooks.CommandChainDispatcher()
 
@@ -901,7 +902,7 @@ class InteractiveShell(SingletonConfigurable):
     def _set_call_pdb(self,val):
 
         if val not in (0,1,False,True):
-            raise ValueError,'new call_pdb value must be boolean'
+            raise ValueError('new call_pdb value must be boolean')
 
         # store value in instance
         self._call_pdb = val
@@ -1314,7 +1315,7 @@ class InteractiveShell(SingletonConfigurable):
                 try:
                     vdict[name] = eval(name, cf.f_globals, cf.f_locals)
                 except:
-                    print ('Could not get variable %s from %s' %
+                    print('Could not get variable %s from %s' %
                            (name,cf.f_code.co_name))
         else:
             raise ValueError('variables must be a dict/str/list/tuple')
@@ -1489,7 +1490,7 @@ class InteractiveShell(SingletonConfigurable):
             else:
                 pmethod(info.obj, oname)
         else:
-            print 'Object `%s` not found.' % oname
+            print('Object `%s` not found.' % oname)
             return 'not found'  # so callers can take other action
 
     def object_inspect(self, oname, detail_level=0):
@@ -1583,10 +1584,10 @@ class InteractiveShell(SingletonConfigurable):
                "The custom exceptions must be given AS A TUPLE."
 
         def dummy_handler(self,etype,value,tb,tb_offset=None):
-            print '*** Simple custom exception handler ***'
-            print 'Exception type :',etype
-            print 'Exception value:',value
-            print 'Traceback      :',tb
+            print('*** Simple custom exception handler ***')
+            print('Exception type :',etype)
+            print('Exception value:',value)
+            print('Traceback      :',tb)
             #print 'Source code    :','\n'.join(self.buffer)
         
         def validate_stb(stb):
@@ -1627,11 +1628,11 @@ class InteractiveShell(SingletonConfigurable):
                 except:
                     # clear custom handler immediately
                     self.set_custom_exc((), None)
-                    print >> io.stderr, "Custom TB Handler failed, unregistering"
+                    print("Custom TB Handler failed, unregistering", file=io.stderr)
                     # show the exception in handler first
                     stb = self.InteractiveTB.structured_traceback(*sys.exc_info())
-                    print >> io.stdout, self.InteractiveTB.stb2text(stb)
-                    print >> io.stdout, "The original exception:"
+                    print(self.InteractiveTB.stb2text(stb), file=io.stdout)
+                    print("The original exception:", file=io.stdout)
                     stb = self.InteractiveTB.structured_traceback(
                                             (etype,value,tb), tb_offset=tb_offset
                     )
@@ -1755,7 +1756,7 @@ class InteractiveShell(SingletonConfigurable):
         Subclasses may override this method to put the traceback on a different
         place, like a side channel.
         """
-        print >> io.stdout, self.InteractiveTB.stb2text(stb)
+        print(self.InteractiveTB.stb2text(stb), file=io.stdout)
 
     def showsyntaxerror(self, filename=None):
         """Display the syntax error that just occurred.
@@ -2331,9 +2332,9 @@ class InteractiveShell(SingletonConfigurable):
             # plain ascii works better w/ pyreadline, on some machines, so
             # we use it and only print uncolored rewrite if we have unicode
             rw = str(rw)
-            print >> io.stdout, rw
+            print(rw, file=io.stdout)
         except UnicodeEncodeError:
-            print "------> " + cmd
+            print("------> " + cmd)
 
     #-------------------------------------------------------------------------
     # Things related to extracting values/expressions from kernel and user_ns
@@ -2622,17 +2623,17 @@ class InteractiveShell(SingletonConfigurable):
                         try:
                             func()
                         except KeyboardInterrupt:
-                            print >> io.stderr, "\nKeyboardInterrupt"
+                            print("\nKeyboardInterrupt", file=io.stderr)
                         except Exception:
                             # register as failing:
                             self._post_execute[func] = False
                             self.showtraceback()
-                            print >> io.stderr, '\n'.join([
+                            print('\n'.join([
                                 "post-execution function %r produced an error." % func,
                                 "If this problem persists, you can disable failing post-exec functions with:",
                                 "",
                                 "    get_ipython().disable_failing_post_execute = True"
-                            ])
+                            ]), file=io.stderr)
 
         if store_history:
             # Write output to the database. Does nothing unless
@@ -2694,7 +2695,7 @@ class InteractiveShell(SingletonConfigurable):
 
             # Flush softspace
             if softspace(sys.stdout, 0):
-                print
+                print()
 
         except:
             # It's possible to have exceptions raised here, typically by

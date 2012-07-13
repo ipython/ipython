@@ -270,6 +270,8 @@ if 'setuptools' in sys.modules:
         # anything.
         setuptools_extra_args['use_2to3_exclude_fixers'] = [
                 'lib2to3.fixes.fix_except',
+                'lib2to3.fixes.fix_apply',
+                'lib2to3.fixes.fix_repr',
                 ]
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}

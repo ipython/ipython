@@ -568,7 +568,7 @@ class Magics(object):
 
         mode = kw.get('mode','string')
         if mode not in ['string','list']:
-            raise ValueError,'incorrect mode given: %s' % mode
+            raise ValueError('incorrect mode given: %s' % mode)
         # Get options
         list_all = kw.get('list_all',0)
         posix = kw.get('posix', os.name == 'posix')
