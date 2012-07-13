@@ -63,11 +63,11 @@ class TestPyFileCL(TestCase):
         # Unlink the file
         cl = PyFileConfigLoader(fname)
         config = cl.load_config()
-        self.assertEquals(config.a, 10)
-        self.assertEquals(config.b, 20)
-        self.assertEquals(config.Foo.Bar.value, 10)
-        self.assertEquals(config.Foo.Bam.value, range(10))
-        self.assertEquals(config.D.C.value, 'hi there')
+        self.assertEqual(config.a, 10)
+        self.assertEqual(config.b, 20)
+        self.assertEqual(config.Foo.Bar.value, 10)
+        self.assertEqual(config.Foo.Bam.value, range(10))
+        self.assertEqual(config.D.C.value, 'hi there')
 
 class MyLoader1(ArgParseConfigLoader):
     def _add_arguments(self, aliases=None, flags=None):
@@ -90,31 +90,31 @@ class TestArgParseCL(TestCase):
     def test_basic(self):
         cl = MyLoader1()
         config = cl.load_config('-f hi -b 10 -n wow'.split())
-        self.assertEquals(config.Global.foo, 'hi')
-        self.assertEquals(config.MyClass.bar, 10)
-        self.assertEquals(config.n, True)
-        self.assertEquals(config.Global.bam, 'wow')
+        self.assertEqual(config.Global.foo, 'hi')
+        self.assertEqual(config.MyClass.bar, 10)
+        self.assertEqual(config.n, True)
+        self.assertEqual(config.Global.bam, 'wow')
         config = cl.load_config(['wow'])
-        self.assertEquals(config.keys(), ['Global'])
-        self.assertEquals(config.Global.keys(), ['bam'])
-        self.assertEquals(config.Global.bam, 'wow')
+        self.assertEqual(config.keys(), ['Global'])
+        self.assertEqual(config.Global.keys(), ['bam'])
+        self.assertEqual(config.Global.bam, 'wow')
 
     def test_add_arguments(self):
         cl = MyLoader2()
         config = cl.load_config('2 frobble'.split())
-        self.assertEquals(config.subparser_name, '2')
-        self.assertEquals(config.y, 'frobble')
+        self.assertEqual(config.subparser_name, '2')
+        self.assertEqual(config.y, 'frobble')
         config = cl.load_config('1 -x frobble'.split())
-        self.assertEquals(config.subparser_name, '1')
-        self.assertEquals(config.Global.x, 'frobble')
+        self.assertEqual(config.subparser_name, '1')
+        self.assertEqual(config.Global.x, 'frobble')
 
     def test_argv(self):
         cl = MyLoader1(argv='-f hi -b 10 -n wow'.split())
         config = cl.load_config()
-        self.assertEquals(config.Global.foo, 'hi')
-        self.assertEquals(config.MyClass.bar, 10)
-        self.assertEquals(config.n, True)
-        self.assertEquals(config.Global.bam, 'wow')
+        self.assertEqual(config.Global.foo, 'hi')
+        self.assertEqual(config.MyClass.bar, 10)
+        self.assertEqual(config.n, True)
+        self.assertEqual(config.Global.bam, 'wow')
 
 
 class TestKeyValueCL(TestCase):
@@ -125,39 +125,39 @@ class TestKeyValueCL(TestCase):
         argv = ['--'+s.strip('c.') for s in pyfile.split('\n')[2:-1]]
         with mute_warn():
             config = cl.load_config(argv)
-        self.assertEquals(config.a, 10)
-        self.assertEquals(config.b, 20)
-        self.assertEquals(config.Foo.Bar.value, 10)
-        self.assertEquals(config.Foo.Bam.value, range(10))
-        self.assertEquals(config.D.C.value, 'hi there')
+        self.assertEqual(config.a, 10)
+        self.assertEqual(config.b, 20)
+        self.assertEqual(config.Foo.Bar.value, 10)
+        self.assertEqual(config.Foo.Bam.value, range(10))
+        self.assertEqual(config.D.C.value, 'hi there')
     
     def test_expanduser(self):
         cl = self.klass()
         argv = ['--a=~/1/2/3', '--b=~', '--c=~/', '--d="~/"']
         with mute_warn():
             config = cl.load_config(argv)
-        self.assertEquals(config.a, os.path.expanduser('~/1/2/3'))
-        self.assertEquals(config.b, os.path.expanduser('~'))
-        self.assertEquals(config.c, os.path.expanduser('~/'))
-        self.assertEquals(config.d, '~/')
+        self.assertEqual(config.a, os.path.expanduser('~/1/2/3'))
+        self.assertEqual(config.b, os.path.expanduser('~'))
+        self.assertEqual(config.c, os.path.expanduser('~/'))
+        self.assertEqual(config.d, '~/')
     
     def test_extra_args(self):
         cl = self.klass()
         with mute_warn():
             config = cl.load_config(['--a=5', 'b', '--c=10', 'd'])
-        self.assertEquals(cl.extra_args, ['b', 'd'])
-        self.assertEquals(config.a, 5)
-        self.assertEquals(config.c, 10)
+        self.assertEqual(cl.extra_args, ['b', 'd'])
+        self.assertEqual(config.a, 5)
+        self.assertEqual(config.c, 10)
         with mute_warn():
             config = cl.load_config(['--', '--a=5', '--c=10'])
-        self.assertEquals(cl.extra_args, ['--a=5', '--c=10'])
+        self.assertEqual(cl.extra_args, ['--a=5', '--c=10'])
     
     def test_unicode_args(self):
         cl = self.klass()
         argv = [u'--a=épsîlön']
         with mute_warn():
             config = cl.load_config(argv)
-        self.assertEquals(config.a, u'épsîlön')
+        self.assertEqual(config.a, u'épsîlön')
     
     def test_unicode_bytes_args(self):
         uarg = u'--a=é'
@@ -169,14 +169,14 @@ class TestKeyValueCL(TestCase):
         cl = self.klass()
         with mute_warn():
             config = cl.load_config([barg])
-        self.assertEquals(config.a, u'é')
+        self.assertEqual(config.a, u'é')
     
     def test_unicode_alias(self):
         cl = self.klass()
         argv = [u'--a=épsîlön']
         with mute_warn():
             config = cl.load_config(argv, aliases=dict(a='A.a'))
-        self.assertEquals(config.A.a, u'épsîlön')
+        self.assertEqual(config.A.a, u'épsîlön')
 
 
 class TestArgParseKVCL(TestKeyValueCL):
@@ -187,15 +187,15 @@ class TestArgParseKVCL(TestKeyValueCL):
         argv = ['-a', '~/1/2/3', '--b', "'~/1/2/3'"]
         with mute_warn():
             config = cl.load_config(argv, aliases=dict(a='A.a', b='A.b'))
-        self.assertEquals(config.A.a, os.path.expanduser('~/1/2/3'))
-        self.assertEquals(config.A.b, '~/1/2/3')
+        self.assertEqual(config.A.a, os.path.expanduser('~/1/2/3'))
+        self.assertEqual(config.A.b, '~/1/2/3')
     
     def test_eval(self):
         cl = self.klass()
         argv = ['-c', 'a=5']
         with mute_warn():
             config = cl.load_config(argv, aliases=dict(c='A.c'))
-        self.assertEquals(config.A.c, u"a=5")
+        self.assertEqual(config.A.c, u"a=5")
     
 
 class TestConfig(TestCase):
@@ -203,19 +203,19 @@ class TestConfig(TestCase):
     def test_setget(self):
         c = Config()
         c.a = 10
-        self.assertEquals(c.a, 10)
-        self.assertEquals('b' in c, False)
+        self.assertEqual(c.a, 10)
+        self.assertEqual('b' in c, False)
 
     def test_auto_section(self):
         c = Config()
-        self.assertEquals('A' in c, True)
-        self.assertEquals(c._has_section('A'), False)
+        self.assertEqual('A' in c, True)
+        self.assertEqual(c._has_section('A'), False)
         A = c.A
         A.foo = 'hi there'
-        self.assertEquals(c._has_section('A'), True)
-        self.assertEquals(c.A.foo, 'hi there')
+        self.assertEqual(c._has_section('A'), True)
+        self.assertEqual(c.A.foo, 'hi there')
         del c.A
-        self.assertEquals(len(c.A.keys()),0)
+        self.assertEqual(len(c.A.keys()),0)
 
     def test_merge_doesnt_exist(self):
         c1 = Config()
@@ -223,11 +223,11 @@ class TestConfig(TestCase):
         c2.bar = 10
         c2.Foo.bar = 10
         c1._merge(c2)
-        self.assertEquals(c1.Foo.bar, 10)
-        self.assertEquals(c1.bar, 10)
+        self.assertEqual(c1.Foo.bar, 10)
+        self.assertEqual(c1.bar, 10)
         c2.Bar.bar = 10
         c1._merge(c2)
-        self.assertEquals(c1.Bar.bar, 10)
+        self.assertEqual(c1.Bar.bar, 10)
 
     def test_merge_exists(self):
         c1 = Config()
@@ -237,12 +237,12 @@ class TestConfig(TestCase):
         c2.Foo.bar = 20
         c2.Foo.wow = 40
         c1._merge(c2)
-        self.assertEquals(c1.Foo.bam, 30)
-        self.assertEquals(c1.Foo.bar, 20)
-        self.assertEquals(c1.Foo.wow, 40)
+        self.assertEqual(c1.Foo.bam, 30)
+        self.assertEqual(c1.Foo.bar, 20)
+        self.assertEqual(c1.Foo.wow, 40)
         c2.Foo.Bam.bam = 10
         c1._merge(c2)
-        self.assertEquals(c1.Foo.Bam.bam, 10)
+        self.assertEqual(c1.Foo.Bam.bam, 10)
 
     def test_deepcopy(self):
         c1 = Config()
@@ -252,12 +252,12 @@ class TestConfig(TestCase):
         c1.b = range(10)
         import copy
         c2 = copy.deepcopy(c1)
-        self.assertEquals(c1, c2)
+        self.assertEqual(c1, c2)
         self.assert_(c1 is not c2)
         self.assert_(c1.Foo is not c2.Foo)
 
     def test_builtin(self):
         c1 = Config()
         exec 'foo = True' in c1
-        self.assertEquals(c1.foo, True)
+        self.assertEqual(c1.foo, True)
         self.assertRaises(ConfigError, setattr, c1, 'ValueError', 10)

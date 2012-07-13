@@ -103,29 +103,29 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
 
     def test_system(self):
         status = system('python "%s"' % self.fname)
-        self.assertEquals(status, 0)
+        self.assertEqual(status, 0)
 
     def test_system_quotes(self):
         status = system('python -c "import sys"')
-        self.assertEquals(status, 0)
+        self.assertEqual(status, 0)
 
     def test_getoutput(self):
         out = getoutput('python "%s"' % self.fname)
-        self.assertEquals(out, 'on stdout')
+        self.assertEqual(out, 'on stdout')
 
     def test_getoutput_quoted(self):
         out = getoutput('python -c "print (1)"')
-        self.assertEquals(out.strip(), '1')
+        self.assertEqual(out.strip(), '1')
 
     #Invalid quoting on windows
     @dec.skip_win32
     def test_getoutput_quoted2(self):
         out = getoutput("python -c 'print (1)'")
-        self.assertEquals(out.strip(), '1')
+        self.assertEqual(out.strip(), '1')
         out = getoutput("python -c 'print (\"1\")'")
-        self.assertEquals(out.strip(), '1')
+        self.assertEqual(out.strip(), '1')
 
     def test_getoutput(self):
         out, err = getoutputerror('python "%s"' % self.fname)
-        self.assertEquals(out, 'on stdout')
-        self.assertEquals(err, 'on stderr')
+        self.assertEqual(out, 'on stdout')
+        self.assertEqual(err, 'on stderr')

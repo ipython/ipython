@@ -142,7 +142,7 @@ class ClusterTestCase(BaseZMQTestCase):
             except error.CompositeError as e:
                 e.raise_exception()
         except error.RemoteError as e:
-            self.assertEquals(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(etype.__name__, e.ename))
+            self.assertEqual(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(etype.__name__, e.ename))
         else:
             self.fail("should have raised a RemoteError")
             

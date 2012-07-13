@@ -37,6 +37,6 @@ class TestConsoleWidget(unittest.TestCase):
             w._insert_plain_text(cursor, text)
             cursor.select(cursor.Document)
             selection = cursor.selectedText()
-            self.assertEquals(expected_outputs[i], selection)
+            self.assertEqual(expected_outputs[i], selection)
             # clear all the text
             cursor.insertText('')

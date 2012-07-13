@@ -16,31 +16,31 @@ class TestCompletionLexer(unittest.TestCase):
         lexer = CompletionLexer(PythonLexer())
 
         # Test simplest case.
-        self.assertEquals(lexer.get_context("foo.bar.baz"),
+        self.assertEqual(lexer.get_context("foo.bar.baz"),
                           [ "foo", "bar", "baz" ])
 
         # Test trailing period.
-        self.assertEquals(lexer.get_context("foo.bar."), [ "foo", "bar", "" ])
+        self.assertEqual(lexer.get_context("foo.bar."), [ "foo", "bar", "" ])
 
         # Test with prompt present.
-        self.assertEquals(lexer.get_context(">>> foo.bar.baz"),
+        self.assertEqual(lexer.get_context(">>> foo.bar.baz"),
                           [ "foo", "bar", "baz" ])
 
         # Test spacing in name.
-        self.assertEquals(lexer.get_context("foo.bar. baz"), [ "baz" ])
+        self.assertEqual(lexer.get_context("foo.bar. baz"), [ "baz" ])
 
         # Test parenthesis.
-        self.assertEquals(lexer.get_context("foo("), [])
+        self.assertEqual(lexer.get_context("foo("), [])
 
     def testC(self):
         """ Does the CompletionLexer work for C/C++?
         """
         lexer = CompletionLexer(CLexer())
-        self.assertEquals(lexer.get_context("foo.bar"), [ "foo", "bar" ])
-        self.assertEquals(lexer.get_context("foo->bar"), [ "foo", "bar" ])
+        self.assertEqual(lexer.get_context("foo.bar"), [ "foo", "bar" ])
+        self.assertEqual(lexer.get_context("foo->bar"), [ "foo", "bar" ])
 
         lexer = CompletionLexer(CppLexer())
-        self.assertEquals(lexer.get_context("Foo::Bar"), [ "Foo", "Bar" ])
+        self.assertEqual(lexer.get_context("Foo::Bar"), [ "Foo", "Bar" ])
 
 
 if __name__ == '__main__':
