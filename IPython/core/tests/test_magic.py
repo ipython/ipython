@@ -742,3 +742,23 @@ def test_alias_magic():
     ip.run_line_magic('alias_magic', '--line env_alias env')
     nt.assert_equal(ip.run_line_magic('env', ''),
                     ip.run_line_magic('env_alias', ''))
+
+def test_save():
+    """Test %save."""
+    ip = get_ipython()
+    ip.history_manager.reset()   # Clear any existing history.
+    cmds = [u"a=1", u"def b():\n  return a**2", u"print(a, b())"]
+    for i, cmd in enumerate(cmds, start=1):
+        ip.history_manager.store_inputs(i, cmd)
+    with TemporaryDirectory() as tmpdir:
+        file = os.path.join(tmpdir, "testsave.py")
+        ip.run_line_magic("save", "%s 1-10" % file)
+        with open(file) as f:
+            content = f.read()
+            nt.assert_equal(content.count(cmds[0]), 1)
+            nt.assert_true('coding: utf-8' in content)
+        ip.run_line_magic("save", "-a %s 1-10" % file)
+        with open(file) as f:
+            content = f.read()
+            nt.assert_equal(content.count(cmds[0]), 2)
+            nt.assert_true('coding: utf-8' in content)
