@@ -81,7 +81,8 @@ class CodeMagics(Magics):
         fname, codefrom = unquote_filename(args[0]), " ".join(args[1:])
         if not fname.endswith((u'.py',u'.ipy')):
             fname += ext
-        if os.path.isfile(fname) and not force and not append:
+        file_exists = os.path.isfile(fname)
+        if file_exists and not force and not append:
             try:
                 overwrite = self.shell.ask_yes_no('File `%s` exists. Overwrite (y/[N])? ' % fname, default='n')
             except StdinNotImplementedError:
@@ -97,7 +98,7 @@ class CodeMagics(Magics):
             return
         out = py3compat.cast_unicode(cmds)
         with io.open(fname, mode, encoding="utf-8") as f:
-            if not append:
+            if not file_exists or not append:
                 f.write(u"# coding: utf-8\n")
             f.write(out)
             # make sure we end on a newline
