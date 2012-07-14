@@ -61,7 +61,7 @@ class CodeMagics(Magics):
           -f: force overwrite.  If file exists, %save will prompt for overwrite
           unless -f is given.
 
-          -a: open file in append mode.
+          -a: append to the file instead of overwriting it.
 
         This function uses the same syntax as %history for input ranges,
         then saves the lines to the filename you specify.
