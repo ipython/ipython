@@ -25,13 +25,50 @@ import shutil
 import subprocess
 
 from IPython.utils.process import find_cmd, FindCmdError
+from IPython.config.configurable import SingletonConfigurable
+from IPython.utils.traitlets import Instance, List, CBool, CUnicode
 
 #-----------------------------------------------------------------------------
 # Tools
 #-----------------------------------------------------------------------------
 
 
-def latex_to_png(s, encode=False, backend='mpl', wrap=False):
+class LaTeXTool(SingletonConfigurable):
+    """An object to store configuration of the LaTeX tool."""
+
+    backends = List(
+        CUnicode, ["matplotlib", "dvipng"],
+        help="Preferred backend to draw LaTeX math equations. "
+        "Backends in the list are checked one by one and the first "
+        "usable one is used.  Note that `matplotlib` backend "
+        "is usable only for inline style equations.  To draw  "
+        "display style equations, `dvipng` backend must be specified. ",
+        # It is a List instead of Enum, to make configuration more
+        # flexible.  For example, to use matplotlib mainly but dvipng
+        # for display style, the default ["matplotlib", "dvipng"] can
+        # be used.  To NOT use dvipng so that other repr such as
+        # unicode pretty printing is used, you can use ["matplotlib"].
+        config=True)
+
+    use_breqn = CBool(
+        True,
+        help="Use breqn.sty to automatically break long equations. "
+        "This configuration takes effect only for dvipng backend.",
+        config=True)
+
+    packages = List(
+        ['amsmath', 'amsthm', 'amssymb', 'bm'],
+        help="A list of packages to use for dvipng backend. "
+        "'breqn' will be automatically appended when use_breqn=True.",
+        config=True)
+
+    preamble = CUnicode(
+        help="Additional preamble to use when generating LaTeX source "
+        "for dvipng backend.",
+        config=True)
+
+
+def latex_to_png(s, encode=False, backend=None, wrap=False):
     """Render a LaTeX string to PNG.
 
     Parameters
@@ -40,7 +77,7 @@ def latex_to_png(s, encode=False, backend='mpl', wrap=False):
         The raw string containing valid inline LaTeX.
     encode : bool, optional
         Should the PNG data bebase64 encoded to make it JSON'able.
-    backend : {mpl, dvipng}
+    backend : {matplotlib, dvipng}
         Backend for producing PNG data.
     wrap : bool
         If true, Automatically wrap `s` as a LaTeX equation.
@@ -48,7 +85,12 @@ def latex_to_png(s, encode=False, backend='mpl', wrap=False):
     None is returned when the backend cannot be used.
 
     """
-    if backend == 'mpl':
+    allowed_backends = LaTeXTool.instance().backends
+    if backend is None:
+        backend = allowed_backends[0]
+    if backend not in allowed_backends:
+        return None
+    if backend == 'matplotlib':
         f = latex_to_png_mpl
     elif backend == 'dvipng':
         f = latex_to_png_dvipng
@@ -120,14 +162,17 @@ def kpsewhich(filename):
 
 def genelatex(body, wrap):
     """Generate LaTeX document for dvipng backend."""
-    breqn = wrap and kpsewhich("breqn.sty")
+    lt = LaTeXTool.instance()
+    breqn = wrap and lt.use_breqn and kpsewhich("breqn.sty")
     yield r'\documentclass{article}'
-    packages = ['amsmath', 'amsthm', 'amssymb', 'bm']
+    packages = lt.packages
     if breqn:
-        packages.append('breqn')
+        packages = packages + ['breqn']
     for pack in packages:
         yield r'\usepackage{{{0}}}'.format(pack)
     yield r'\pagestyle{empty}'
+    if lt.preamble:
+        yield lt.preamble
     yield r'\begin{document}'
     if breqn:
         yield r'\begin{dmath*}'

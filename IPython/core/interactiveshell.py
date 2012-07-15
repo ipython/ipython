@@ -66,6 +66,7 @@ from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
+from IPython.lib.latextools import LaTeXTool
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
@@ -497,6 +498,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_display_pub()
         self.init_displayhook()
         self.init_reload_doctest()
+        self.init_latextool()
         self.init_magics()
         self.init_logstart()
         self.init_pdb()
@@ -689,7 +691,13 @@ class InteractiveShell(SingletonConfigurable):
             doctest_reload()
         except ImportError:
             warn("doctest module does not exist.")
-    
+
+    def init_latextool(self):
+        """Configure LaTeXTool."""
+        cfg = LaTeXTool(config=self.config)
+        if cfg not in self.configurables:
+            self.configurables.append(cfg)
+
     def init_virtualenv(self):
         """Add a virtualenv to sys.path so the user can import modules from it.
         This isn't perfect: it doesn't use the Python interpreter with which the
