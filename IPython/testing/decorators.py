@@ -72,6 +72,9 @@ from ipunittest import ipdoctest, ipdocstring
 # numpy.testing.decorators, we expose all of it here.
 from IPython.external.decorators import *
 
+# For onlyif_cmd_exists decorator
+from IPython.utils.process import is_cmd_found
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -342,3 +345,14 @@ else:
 
 onlyif_unicode_paths = onlyif(unicode_paths, ("This test is only applicable "
                                     "where we can use unicode in filenames."))
+
+
+def onlyif_cmds_exist(*commands):
+    """
+    Decorator to skip test when at least one of `commands` is not found.
+    """
+    for cmd in commands:
+        if not is_cmd_found(cmd):
+            return skip("This test runs only if command '{0}' "
+                        "is installed".format(cmd))
+    return null_deco
