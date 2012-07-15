@@ -694,7 +694,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_latextool(self):
         """Configure LaTeXTool."""
-        cfg = LaTeXTool(config=self.config)
+        cfg = LaTeXTool.instance(config=self.config)
         if cfg not in self.configurables:
             self.configurables.append(cfg)
 
