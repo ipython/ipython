@@ -23,15 +23,16 @@ $(document).ready(function () {
     IPython.page = new IPython.Page();
     IPython.markdown_converter = new Markdown.Converter();
     IPython.layout_manager = new IPython.LayoutManager();
+    IPython.tab_manager = new IPython.TabManager('div#tabs');
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
-    IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.toolbar = new IPython.ToolBar('#toolbar')
-    IPython.tooltip = new IPython.Tooltip()
-    IPython.notification_widget = new IPython.NotificationWidget('#notification')
+    IPython.menubar = new IPython.MenuBar('#menubar');
+    IPython.toolbar = new IPython.ToolBar('#toolbar');
+    IPython.tooltip = new IPython.Tooltip();
+    IPython.notification_widget = new IPython.NotificationWidget('#notification');
 
     IPython.layout_manager.do_resize();
 
@@ -41,33 +42,10 @@ $(document).ready(function () {
     var nh = $('#test1').innerHeight();
     var bh = $('#test2').innerHeight();
     var ih = $('#test3').innerHeight();
-    var dialog = $('<div/>');
     if(nh != bh || nh != ih) {
-        dialog.html('We have detected that your browser is using a '+
-                    '<span style="font-family: monospace;">monospace</span> font that has an '+
-                    'inconsistent size between  '+
-                    '<span style="font-family: monospace;">normal</span>, '+
-                    '<span style="font-family: monospace; font-weight: bold;">bold</span>, and '+
-                    '<span style="font-family: monospace; font-style: italic;">italic</span> '+
-                    'variants, which are used by IPython for syntax highlighting.  '+
-                    'This will cause visual artifacts.  (The font is probably "Courier New")  '+
-                    'We recommend that you configure your browser to use a different '+
-                    'monospace font.<br/><br/>'+
-                    'normal='+String(nh)+'px bold='+String(bh)+'px italic='+String(ih)+'px');
-        $(document).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Bad fonts detected",
-            closeText: '',
-            buttons : {
-                "Ok": function () {
-                    $(this).dialog('close');
-                }
-            }
-        });
-        $('#fonttest').remove();
+        $('head').append('<style>.CodeMirror span { vertical-align: bottom; }</style>');
     }
+    $('#fonttest').remove();
 
     if(IPython.read_only){
         // hide various elements from read-only view
