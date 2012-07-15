@@ -1,3 +1,5 @@
+** Work in Progress: Please feel free to edit and suggest changes! ** 
+
 ===========================================
  IPython: Productive Interactive Computing
 ===========================================
