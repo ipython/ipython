@@ -718,10 +718,10 @@ class IPCompleter(Completer):
         isId = re.compile(r'\w+$').match
         while True:
             try:
-                ids.append(iterTokens.next())
+                ids.append(next(iterTokens))
                 if not isId(ids[-1]):
                     ids.pop(); break
-                if not iterTokens.next() == '.':
+                if not next(iterTokens) == '.':
                     break
             except StopIteration:
                 break

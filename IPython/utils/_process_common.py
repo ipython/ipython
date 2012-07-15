@@ -179,7 +179,7 @@ def arg_split(s, posix=False, strict=True):
     tokens = []
     while True:
         try:
-            tokens.append(lex.next())
+            tokens.append(next(lex))
         except StopIteration:
             break
         except ValueError:
