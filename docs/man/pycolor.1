@@ -1,0 +1,39 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH PYCOLOR 1 "July 15, 2011"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+pycolor \- Colorize a python file or stdin using ANSI and print to stdout.
+.SH SYNOPSIS
+.B pycolor
+.RI [ options ]
+.RI [ file ]
+.SH DESCRIPTION
+Prints a colorized version of the input file (or standard input if no file is
+given, or the file name \- is given) to standard out.
+.SH OPTIONS
+.TP
+.B \-h, \-\-help
+Output a brief help message.
+.TP
+.B \-s, \-\-scheme <scheme>
+Give the color scheme to use.  Currently only Linux (default), LightBG, and
+NoColor are implemented.
+.SH AUTHOR
+pycolor is part of the IPython project (http://ipython.org).
+This manual page was written by Jack Moffitt <jack@xiph.org>,
+for the Debian project (but may be used by others).  Updated by Fernando Perez
+<fernando.perez@berkeley.edu>.

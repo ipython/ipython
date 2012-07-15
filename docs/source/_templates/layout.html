@@ -1,0 +1,23 @@
+{% extends "!layout.html" %}
+
+
+{% block rootrellink %}
+        <li><a href="{{ pathto('index') }}">home</a>|&nbsp;</li>
+        <li><a href="{{ pathto('search') }}">search</a>|&nbsp;</li>
+       <li><a href="{{ pathto('index') }}">documentation </a> &raquo;</li>
+{% endblock %}
+
+
+{% block relbar1 %}
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="{{ pathto('index') }}"><img src="{{
+pathto("_static/logo.png", 1) }}" border="0" alt="IPython Documentation"/></a>
+</div>
+{{ super() }}
+{% endblock %}
+
+{# put the sidebar before the body #}
+{% block sidebar1 %}{{ sidebar() }}{% endblock %}
+{% block sidebar2 %}{% endblock %}
+

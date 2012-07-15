@@ -1,0 +1,32 @@
+=====================
+IPython Documentation
+=====================
+
+.. htmlonly::
+
+   :Release: |release|
+   :Date: |today|
+
+Welcome to the official IPython documentation.
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 1
+
+   overview.txt
+   whatsnew/index.txt
+   install/index.txt
+   interactive/index.txt
+   parallel/index.txt
+   config/index.txt
+   development/index.txt
+   api/index.txt
+   about/index.txt
+
+.. htmlonly::
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
+

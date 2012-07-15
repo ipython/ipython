@@ -1,0 +1,103 @@
+==============================
+ The magic commands subsystem
+==============================
+
+.. warning::
+
+   These are *preliminary* notes and thoughts on the magic system, kept here
+   for reference so we can come up with a good design now that the major core
+   refactoring has made so much progress.  Do not consider yet any part of this
+   document final.
+
+Two entry points:
+
+- m.line_eval(self,parameter_s): like today
+- m.block_eval(self,code_block): for whole-block evaluation.
+
+This would allow us to have magics that take input, and whose single line form
+can even take input and call block_eval later (like %cpaste does, but with a
+generalized interface).
+
+Constructor
+===========
+
+Suggested syntax::
+
+    class MyMagic(BaseMagic):
+        requires_shell = True/False
+        def __init__(self,shell=None):
+
+
+Registering magics
+==================
+
+Today, ipapi provides an *expose_magic()* function for making simple magics.
+We will probably extend this (in a backwards-compatible manner if possible) to
+allow the simplest cases to work as today, while letting users register more
+complex ones.
+
+Use cases::
+
+    def func(arg): pass  # note signature, no 'self'
+    ip.expose_magic('name',func)
+    
+    def func_line(arg): pass
+    def func_block(arg):pass
+    ip.expose_magic('name',func_line,func_block)
+
+    class mymagic(BaseMagic):
+        """Magic docstring, used in help messages.
+        """
+        def line_eval(self,arg): pass
+        def block_eval(self,arg): pass
+
+    ip.register_magic(mymagic)
+
+
+The BaseMagic class will offer common functionality to all, including things
+like options handling (via argparse).
+
+
+Call forms: line and block
+==========================
+
+Block-oriented environments will call line_eval() for the first line of input
+(the call line starting with '%') and will then feed the rest of the block to
+block_eval() if the magic in question has a block mode.
+
+In line environments, by default %foo -> foo.line_eval(), but no block call is
+made.  Specific implementations of line_eval can decide to then call block_eval
+if they want to provide for whole-block input in line-oriented environments.
+
+The api might be adapted for this decision to be made automatically by the
+frontend...
+
+
+Precompiled magics for rapid loading
+====================================
+
+For IPython itself, we'll have a module of 'core' magic functions that do not
+require run-time registration.  These will be the ones contained today in
+Magic.py, plus any others we deem worthy of being available by default.  This
+is a trick to enable faster startup, since once we move to a model where each
+magic can in principle be registered at runtime, creating a lot of them can
+easily swamp startup time.
+
+The trick is to make a module with a top-level class object that contains
+explicit references to all the 'core' magics in its dict.  This way, the magic
+table can be quickly updated at interpreter startup with a single call, by
+doing something along the lines of::
+
+    self.magic_table.update(static_magics.__dict__)
+
+The point will be to be able to bypass the explicit calling of whatever
+register_magic() API we end up making for users to declare their own magics.
+So ultimately one should be able to do either::
+
+    ip.register_magic(mymagic) # for one function
+
+or::
+
+    ip.load_magics(static_magics)  # for a bunch of them
+
+I still need to clarify exactly how this should work though.

@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Simple wrapper around PyColorize, which colorizes python sources."""
+
+import IPython.utils.PyColorize
+IPython.utils.PyColorize.main()

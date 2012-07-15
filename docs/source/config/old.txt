@@ -1,0 +1,231 @@
+.. _initial config:
+
+=============================================================
+Outdated configuration information that might still be useful
+=============================================================
+
+.. warning::
+
+    All of the information in this file is outdated. Until the new
+    configuration system is better documented, this material is being kept.
+
+This section will help you set various things in your environment for
+your IPython sessions to be as efficient as possible. All of IPython's
+configuration information, along with several example files, is stored
+in a directory named by default $HOME/.config/ipython if $HOME/.config 
+exists (Linux), or $HOME/.ipython as a secondary default. You can change this by
+defining the environment variable IPYTHONDIR, or at runtime with the
+command line option -ipythondir.
+
+If all goes well, the first time you run IPython it should automatically create
+a user copy of the config directory for you, based on its builtin defaults. You
+can look at the files it creates to learn more about configuring the
+system. The main file you will modify to configure IPython's behavior is called
+ipythonrc (with a .ini extension under Windows), included for reference
+:ref:`here <ipythonrc>`. This file is very commented and has many variables you
+can change to suit your taste, you can find more details :ref:`here
+<customization>`. Here we discuss the basic things you will want to make sure
+things are working properly from the beginning.
+
+Color
+=====
+
+The default IPython configuration has most bells and whistles turned on
+(they're pretty safe). But there's one that may cause problems on some
+systems: the use of color on screen for displaying information. This is
+very useful, since IPython can show prompts and exception tracebacks
+with various colors, display syntax-highlighted source code, and in
+general make it easier to visually parse information.
+
+The following terminals seem to handle the color sequences fine:
+
+    * Linux main text console, KDE Konsole, Gnome Terminal, E-term,
+      rxvt, xterm.
+    * CDE terminal (tested under Solaris). This one boldfaces light colors.
+    * (X)Emacs buffers. See the emacs_ section for more details on
+      using IPython with (X)Emacs.
+    * A Windows (XP/2k) command prompt with pyreadline_.
+    * A Windows (XP/2k) CygWin shell. Although some users have reported
+      problems; it is not clear whether there is an issue for everyone
+      or only under specific configurations. If you have full color
+      support under cygwin, please post to the IPython mailing list so
+      this issue can be resolved for all users.
+
+.. _pyreadline: https://code.launchpad.net/pyreadline
+      
+These have shown problems:
+
+    * Windows command prompt in WinXP/2k logged into a Linux machine via
+      telnet or ssh.
+    * Windows native command prompt in WinXP/2k, without Gary Bishop's
+      extensions. Once Gary's readline library is installed, the normal
+      WinXP/2k command prompt works perfectly.
+
+Currently the following color schemes are available:
+
+    * NoColor: uses no color escapes at all (all escapes are empty '' ''
+      strings). This 'scheme' is thus fully safe to use in any terminal.
+    * Linux: works well in Linux console type environments: dark
+      background with light fonts. It uses bright colors for
+      information, so it is difficult to read if you have a light
+      colored background.
+    * LightBG: the basic colors are similar to those in the Linux scheme
+      but darker. It is easy to read in terminals with light backgrounds.
+
+IPython uses colors for two main groups of things: prompts and
+tracebacks which are directly printed to the terminal, and the object
+introspection system which passes large sets of data through a pager.
+
+Input/Output prompts and exception tracebacks
+=============================================
+
+You can test whether the colored prompts and tracebacks work on your
+system interactively by typing '%colors Linux' at the prompt (use
+'%colors LightBG' if your terminal has a light background). If the input
+prompt shows garbage like::
+
+    [0;32mIn [[1;32m1[0;32m]: [0;00m
+
+instead of (in color) something like::
+
+    In [1]:
+
+this means that your terminal doesn't properly handle color escape
+sequences. You can go to a 'no color' mode by typing '%colors NoColor'.
+
+You can try using a different terminal emulator program (Emacs users,
+see below). To permanently set your color preferences, edit the file
+$IPYTHONDIR/ipythonrc and set the colors option to the desired value.
+
+
+Object details (types, docstrings, source code, etc.)
+=====================================================
+
+IPython has a set of special functions for studying the objects you are working
+with, discussed in detail :ref:`here <dynamic_object_info>`. But this system
+relies on passing information which is longer than your screen through a data
+pager, such as the common Unix less and more programs. In order to be able to
+see this information in color, your pager needs to be properly configured. I
+strongly recommend using less instead of more, as it seems that more simply can
+not understand colored text correctly.
+
+In order to configure less as your default pager, do the following:
+
+   1. Set the environment PAGER variable to less.
+   2. Set the environment LESS variable to -r (plus any other options
+      you always want to pass to less by default). This tells less to
+      properly interpret control sequences, which is how color
+      information is given to your terminal.
+
+For the bash shell, add to your ~/.bashrc file the lines::
+
+    export PAGER=less
+    export LESS=-r
+
+For the csh or tcsh shells, add to your ~/.cshrc file the lines::
+
+    setenv PAGER less
+    setenv LESS -r
+    
+There is similar syntax for other Unix shells, look at your system
+documentation for details.
+
+If you are on a system which lacks proper data pagers (such as Windows),
+IPython will use a very limited builtin pager.
+
+.. _Prompts:
+
+Fine-tuning your prompt
+=======================
+
+IPython's prompts can be customized using a syntax similar to that of
+the bash shell. Many of bash's escapes are supported, as well as a few
+additional ones. We list them below::
+
+    \#
+        the prompt/history count number. This escape is automatically
+        wrapped in the coloring codes for the currently active color scheme. 
+    \N
+        the 'naked' prompt/history count number: this is just the number
+        itself, without any coloring applied to it. This lets you produce
+        numbered prompts with your own colors. 
+    \D
+        the prompt/history count, with the actual digits replaced by dots.
+        Used mainly in continuation prompts (prompt_in2) 
+    \w
+        the current working directory 
+    \W
+        the basename of current working directory 
+    \Xn
+        where $n=0\ldots5.$ The current working directory, with $HOME
+        replaced by ~, and filtered out to contain only $n$ path elements 
+    \Yn
+        Similar to \Xn, but with the $n+1$ element included if it is ~ (this
+        is similar to the behavior of the %cn escapes in tcsh) 
+    \u
+        the username of the current user 
+    \$
+        if the effective UID is 0, a #, otherwise a $ 
+    \h
+        the hostname up to the first '.' 
+    \H
+        the hostname 
+    \n
+        a newline 
+    \r
+        a carriage return 
+    \v
+        IPython version string 
+
+In addition to these, ANSI color escapes can be insterted into the
+prompts, as \C_ColorName. The list of valid color names is: Black, Blue,
+Brown, Cyan, DarkGray, Green, LightBlue, LightCyan, LightGray,
+LightGreen, LightPurple, LightRed, NoColor, Normal, Purple, Red, White,
+Yellow.
+
+Finally, IPython supports the evaluation of arbitrary expressions in
+your prompt string. The prompt strings are evaluated through the syntax
+of PEP 215, but basically you can use $x.y to expand the value of x.y,
+and for more complicated expressions you can use braces: ${foo()+x} will
+call function foo and add to it the value of x, before putting the
+result into your prompt. For example, using
+prompt_in1 '${commands.getoutput("uptime")}\nIn [\#]: ' 
+will print the result of the uptime command on each prompt (assuming the
+commands module has been imported in your ipythonrc file).
+
+
+      Prompt examples
+
+The following options in an ipythonrc file will give you IPython's
+default prompts::
+
+    prompt_in1 'In [\#]:' 
+    prompt_in2 '   .\D.:' 
+    prompt_out 'Out[\#]:'
+
+which look like this::
+
+    In [1]: 1+2 
+    Out[1]: 3
+
+    In [2]: for i in (1,2,3): 
+       ...:    print i, 
+       ...: 
+    1 2 3
+
+These will give you a very colorful prompt with path information::
+
+    #prompt_in1 '\C_Red\u\C_Blue[\C_Cyan\Y1\C_Blue]\C_LightGreen\#>' 
+    prompt_in2 ' ..\D>' 
+    prompt_out '<\#>'
+
+which look like this::
+
+    fperez[~/ipython]1> 1+2 
+                    <1> 3 
+    fperez[~/ipython]2> for i in (1,2,3): 
+                   ...>     print i, 
+                   ...> 
+    1 2 3
+
+

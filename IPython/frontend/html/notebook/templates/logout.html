@@ -1,0 +1,40 @@
+{% extends page.html %}
+
+{% block stylesheet %}
+
+<link rel="stylesheet" href="{{static_url("css/logout.css") }}" type="text/css"/>
+
+{% end %}
+
+
+{% block login_widget %}
+{% end %}
+
+{% block site %}
+
+<div id="main_app">
+
+    {% if message %}
+      {% for key in message %}
+        <div class="message {{key}}">
+           {{message[key]}}
+        </div>
+      {% end %}
+    {% end %}
+
+    {% if read_only or not login_available %}
+    Proceed to the <a href="{{base_project_url}}">dashboard</a>.
+    {% else %}
+    Proceed to the <a href="{{base_project_url}}login">login page</a>.
+    {% end %}
+
+
+<div/>
+
+{% end %}
+
+{% block script %}
+
+<script src="{{static_url("js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
+
+{% end %}
