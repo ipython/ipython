@@ -1,7 +1,7 @@
 We use minified versions of JQuery / jQueryUI and google-code-prettify in the Notebook.
 
-Some package managers require full versions alongside minified, and they can be
-dropped in here, if necessary.
+Some package managers require full versions alongside minified,
+and they can be dropped in here as necessary.
 
 origins of our minified js:
 prettify:  http://google-code-prettify.googlecode.com/files/prettify-small-1-Jun-2011.tar.bz2

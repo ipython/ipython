@@ -151,7 +151,7 @@ class AsyncResult(object):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:
@@ -675,7 +675,7 @@ class AsyncHubResult(AsyncResult):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:

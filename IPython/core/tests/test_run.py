@@ -201,7 +201,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "for i in range(5):\n"
                "   try:\n"
                "       ip.magic('run %s')\n"
-               "   except NameError, e:\n"
+               "   except NameError as e:\n"
                "       print i;break\n" % empty.fname)
         self.mktmp(py3compat.doctest_refactor_print(src))
         _ip.magic('run %s' % self.fname)
@@ -246,5 +246,5 @@ tclass.py: deleting object: C-third
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, 'nonascii.py')
-        _ip.magic('run %s' % na)
+        _ip.magic('run "%s"' % na)
         tt.assert_equals(_ip.user_ns['u'], u'Ўт№Ф')

@@ -151,7 +151,7 @@ class AliasManager(Configurable):
         """Define an alias, but don't raise on an AliasError."""
         try:
             self.define_alias(name, cmd)
-        except AliasError, e:
+        except AliasError as e:
             error("Invalid alias: %s" % e)
 
     def define_alias(self, name, cmd):

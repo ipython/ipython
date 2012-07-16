@@ -78,7 +78,7 @@ def line_edit_f(self, cmd ):
         for l in curdata:
             try:
                 l2 = eval(cmd)
-            except Exception,e:
+            except Exception as e:
                 print "Dropping exception",e,"on line:",l
                 continue
             newlines.append(l2)

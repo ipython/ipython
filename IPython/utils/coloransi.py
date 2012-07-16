@@ -145,7 +145,7 @@ class ColorSchemeTable(dict):
 
         if scheme_list:
             if default_scheme == '':
-                raise ValueError,'you must specify the default color scheme'
+                raise ValueError('you must specify the default color scheme')
             for scheme in scheme_list:
                 self.add_scheme(scheme)
             self.set_active_scheme(default_scheme)
@@ -157,7 +157,7 @@ class ColorSchemeTable(dict):
     def add_scheme(self,new_scheme):
         """Add a new color scheme to the table."""
         if not isinstance(new_scheme,ColorScheme):
-            raise ValueError,'ColorSchemeTable only accepts ColorScheme instances'
+            raise ValueError('ColorSchemeTable only accepts ColorScheme instances')
         self[new_scheme.name] = new_scheme
 
     def set_active_scheme(self,scheme,case_sensitive=0):
@@ -176,8 +176,8 @@ class ColorSchemeTable(dict):
         try:
             scheme_idx = valid_schemes.index(scheme_test)
         except ValueError:
-            raise ValueError,'Unrecognized color scheme: ' + scheme + \
-                  '\nValid schemes: '+str(scheme_names).replace("'', ",'')
+            raise ValueError('Unrecognized color scheme: ' + scheme + \
+                  '\nValid schemes: '+str(scheme_names).replace("'', ",''))
         else:
             active = scheme_names[scheme_idx]
             self.active_scheme_name = active

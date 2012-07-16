@@ -16,9 +16,11 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import sys
 import unittest
 
 from IPython.testing.decorators import skipif
+from IPython.utils import py3compat
 
 class InteractiveShellTestCase(unittest.TestCase):
     def rl_hist_entries(self, rl, n):
@@ -124,7 +126,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         self.assertEquals(ip.readline.get_current_history_length(),
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 3)
-        self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3\nline4'])
+        expected = [u'line0', u'l€ne1\nline2', u'l€ne3\nline4']
+        # perform encoding, in case of casting due to ASCII locale
+        enc = sys.stdin.encoding or "utf-8"
+        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
+        self.assertEquals(hist, expected)
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
@@ -158,4 +164,8 @@ class InteractiveShellTestCase(unittest.TestCase):
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 4)
         # expect no empty cells in history
-        self.assertEquals(hist, ['line0', 'l€ne1\nline2', 'l€ne3', 'line4'])
+        expected = [u'line0', u'l€ne1\nline2', u'l€ne3', u'line4']
+        # perform encoding, in case of casting due to ASCII locale
+        enc = sys.stdin.encoding or "utf-8"
+        expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
+        self.assertEquals(hist, expected)

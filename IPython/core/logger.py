@@ -54,7 +54,7 @@ class Logger(object):
     # logmode is a validated property
     def _set_mode(self,mode):
         if mode not in ['append','backup','global','over','rotate']:
-            raise ValueError,'invalid log mode %s given' % mode
+            raise ValueError('invalid log mode %s given' % mode)
         self._logmode = mode
 
     def _get_mode(self):
@@ -117,7 +117,7 @@ class Logger(object):
                     for f in old:
                         root, ext = os.path.splitext(f)
                         num = int(ext[1:-1])+1
-                        os.rename(f, root+'.'+`num`.zfill(3)+'~')
+                        os.rename(f, root+'.'+repr(num).zfill(3)+'~')
                 os.rename(self.logfname, self.logfname+'.001~')
             self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
@@ -131,8 +131,8 @@ class Logger(object):
         """Switch logging on/off. val should be ONLY a boolean."""
 
         if val not in [False,True,0,1]:
-            raise ValueError, \
-                  'Call switch_log ONLY with a boolean argument, not with:',val
+            raise ValueError('Call switch_log ONLY with a boolean argument, '
+                             'not with: %s' % val)
 
         label = {0:'OFF',1:'ON',False:'OFF',True:'ON'}
 

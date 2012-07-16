@@ -25,7 +25,7 @@ from getopt import getopt, GetoptError
 from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
@@ -47,6 +47,7 @@ magics = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
+magic_escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
@@ -340,6 +341,30 @@ class MagicsManager(Configurable):
         """
         return self.magics
 
+    def lsmagic_docs(self, brief=False, missing=''):
+        """Return dict of documentation of magic functions.
+
+        The return dict has the keys 'line' and 'cell', corresponding to the
+        two types of magics we support. Each value is a dict keyed by magic
+        name whose value is the function docstring. If a docstring is
+        unavailable, the value of `missing` is used instead.
+
+        If brief is True, only the first line of each docstring will be returned.
+        """
+        docs = {}
+        for m_type in self.magics:
+            m_docs = {}
+            for m_name, m_func in self.magics[m_type].iteritems():
+                if m_func.__doc__:
+                    if brief:
+                        m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
+                    else:
+                        m_docs[m_name] = m_func.__doc__.rstrip()
+                else:
+                    m_docs[m_name] = missing
+            docs[m_type] = m_docs
+        return docs
+
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
 
@@ -469,13 +494,19 @@ class Magics(object):
         # grab.  Only now, that the instance exists, can we create the proper
         # mapping to bound methods.  So we read the info off the original names
         # table and replace each method name by the actual bound method.
+        # But we mustn't clobber the *class* mapping, in case of multiple instances.
+        class_magics = self.magics
+        self.magics = {}
         for mtype in magic_kinds:
-            tab = self.magics[mtype]
-            # must explicitly use keys, as we're mutating this puppy
-            for magic_name in tab.keys():
-                meth_name = tab[magic_name]
+            tab = self.magics[mtype] = {}
+            cls_tab = class_magics[mtype]
+            for magic_name, meth_name in cls_tab.iteritems():
                 if isinstance(meth_name, basestring):
+                    # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
+                else:
+                    # it's the real thing
+                    tab[magic_name] = meth_name
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -537,7 +568,7 @@ class Magics(object):
 
         mode = kw.get('mode','string')
         if mode not in ['string','list']:
-            raise ValueError,'incorrect mode given: %s' % mode
+            raise ValueError('incorrect mode given: %s' % mode)
         # Get options
         list_all = kw.get('list_all',0)
         posix = kw.get('posix', os.name == 'posix')
@@ -553,7 +584,7 @@ class Magics(object):
             # Do regular option processing
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
-            except GetoptError,e:
+            except GetoptError as e:
                 raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
                                         " ".join(long_opts)))
             for o,a in opts:

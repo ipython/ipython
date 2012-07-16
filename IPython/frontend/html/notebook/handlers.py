@@ -208,7 +208,7 @@ class LoginHandler(AuthenticatedHandler):
 
     def _render(self, message=None):
         self.render('login.html',
-                next=self.get_argument('next', default='/'),
+                next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
@@ -218,7 +218,7 @@ class LoginHandler(AuthenticatedHandler):
 
     def get(self):
         if self.current_user:
-            self.redirect(self.get_argument('next', default='/'))
+            self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
         else:
             self._render()
 
@@ -231,7 +231,7 @@ class LoginHandler(AuthenticatedHandler):
                 self._render(message={'error': 'Invalid password'})
                 return
 
-        self.redirect(self.get_argument('next', default='/'))
+        self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
 
 
 class LogoutHandler(AuthenticatedHandler):
@@ -330,8 +330,9 @@ class MainKernelHandler(AuthenticatedHandler):
     @web.authenticated
     def post(self):
         km = self.application.kernel_manager
+        nbm = self.application.notebook_manager
         notebook_id = self.get_argument('notebook', default=None)
-        kernel_id = km.start_kernel(notebook_id)
+        kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
         data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
         self.set_header('Location', '/'+kernel_id)
         self.finish(jsonapi.dumps(data))
@@ -344,7 +345,7 @@ class KernelHandler(AuthenticatedHandler):
     @web.authenticated
     def delete(self, kernel_id):
         km = self.application.kernel_manager
-        km.kill_kernel(kernel_id)
+        km.shutdown_kernel(kernel_id)
         self.set_status(204)
         self.finish()
 

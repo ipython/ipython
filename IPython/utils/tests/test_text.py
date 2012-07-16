@@ -138,3 +138,33 @@ def test_dollar_formatter():
     nt.assert_equals(s, "12 $HOME")
     s = f.format("${foo}", foo="HOME")
     nt.assert_equals(s, "$HOME")
+
+
+def test_long_substr():
+    data = ['hi']
+    nt.assert_equals(text.long_substr(data), 'hi')
+
+
+def test_long_substr2():
+    data = ['abc', 'abd', 'abf', 'ab']
+    nt.assert_equals(text.long_substr(data), 'ab')
+
+
+def test_strip_email():
+    src = """\
+        >> >>> def f(x):
+        >> ...   return x+1
+        >> ... 
+        >> >>> zz = f(2.5)"""
+    cln = """\
+>>> def f(x):
+...   return x+1
+... 
+>>> zz = f(2.5)"""
+    nt.assert_equals(text.strip_email_quotes(src), cln)
+
+
+def test_strip_email2():
+    src = '> > > list()'
+    cln = 'list()'
+    nt.assert_equals(text.strip_email_quotes(src), cln)

@@ -13,6 +13,7 @@ reference the name under which an object is being read.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+from __future__ import print_function
 
 __all__ = ['Inspector','InspectColors']
 
@@ -335,11 +336,11 @@ class Inspector:
 
     def noinfo(self, msg, oname):
         """Generic message when no information is found."""
-        print 'No %s found' % msg,
+        print('No %s found' % msg, end=' ')
         if oname:
-            print 'for %s' % oname
+            print('for %s' % oname)
         else:
-            print
+            print()
 
     def pdef(self, obj, oname=''):
         """Print the definition header for any callable object.
@@ -347,7 +348,7 @@ class Inspector:
         If the object is a class, print the constructor information."""
 
         if not callable(obj):
-            print 'Object is not callable.'
+            print('Object is not callable.')
             return
 
         header = ''
@@ -362,7 +363,7 @@ class Inspector:
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print >>io.stdout, header,self.format(output),
+            print(header,self.format(output), end=' ', file=io.stdout)
 
     # In Python 3, all classes are new-style, so they all have __init__.
     @skip_doctest_py3
@@ -449,9 +450,9 @@ class Inspector:
         # is defined, as long as the file isn't binary and is actually on the
         # filesystem.
         if ofile.endswith(('.so', '.dll', '.pyd')):
-            print 'File %r is binary, not printing.' % ofile
+            print('File %r is binary, not printing.' % ofile)
         elif not os.path.isfile(ofile):
-            print 'File %r does not exist, not printing.' % ofile
+            print('File %r does not exist, not printing.' % ofile)
         else:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
@@ -480,12 +481,15 @@ class Inspector:
 
     # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
     pinfo_fields1 = [("Type", "type_name"),
-                    ("Base Class", "base_class"),
-                    ("String Form", "string_form"),
-                    ("Namespace", "namespace"),
-                    ("Length", "length"),
+                    ]
+                    
+    pinfo_fields2 = [("String Form", "string_form"),
+                    ]
+
+    pinfo_fields3 = [("Length", "length"),
                     ("File", "file"),
-                    ("Definition", "definition")]
+                    ("Definition", "definition"),
+                    ]
 
     pinfo_fields_obj = [("Class Docstring", "class_docstring"),
                         ("Constructor Docstring","init_docstring"),
@@ -509,11 +513,26 @@ class Inspector:
         info = self.info(obj, oname=oname, formatter=formatter,
                             info=info, detail_level=detail_level)
         displayfields = []
-        for title, key in self.pinfo_fields1:
-            field = info[key]
-            if field is not None:
-                displayfields.append((title, field.rstrip()))
+        def add_fields(fields):
+            for title, key in fields:
+                field = info[key]
+                if field is not None:
+                    displayfields.append((title, field.rstrip()))
+        
+        add_fields(self.pinfo_fields1)
+        
+        # Base class for old-style instances
+        if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
+            displayfields.append(("Base Class", info['base_class'].rstrip()))
+        
+        add_fields(self.pinfo_fields2)
+        
+        # Namespace
+        if info['namespace'] != 'Interactive':
+            displayfields.append(("Namespace", info['namespace'].rstrip()))
 
+        add_fields(self.pinfo_fields3)
+        
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
@@ -534,10 +553,7 @@ class Inspector:
 
         # Info for objects:
         else:
-            for title, key in self.pinfo_fields_obj:
-                field = info[key]
-                if field is not None:
-                    displayfields.append((title, field.rstrip()))
+            add_fields(self.pinfo_fields_obj)
 
         # Finally send to printer/pager:
         if displayfields:

@@ -34,8 +34,9 @@ eggs = './setupegg.py bdist_egg'
 # The Windows 64-bit installer can't be built by a Linux/Mac Python because ofa
 # bug in distutils:  http://bugs.python.org/issue6792.
 # So we have to build it with a wine-installed native Windows Python...
-win_builds = ["python setup.py bdist_wininst",
-              r"%s/.wine/dosdevices/c\:/Python27/python.exe setup.py build "
+win_builds = ["python setup.py bdist_wininst "
+              "--install-script=ipython_win_post_install.py",
+              r"%s/.wine/dosdevices/c\:/Python32/python.exe setup.py build "
               "--plat-name=win-amd64 bdist_wininst "
               "--install-script=ipython_win_post_install.py" %
               os.environ['HOME'] ]

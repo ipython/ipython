@@ -897,7 +897,7 @@ class KernelManager(HasTraits):
             # Attempt to kill the kernel.
             try:
                 self.kernel.kill()
-            except OSError, e:
+            except OSError as e:
                 # In Windows, we will get an Access Denied error if the process
                 # has already terminated. Ignore it.
                 if sys.platform == 'win32':

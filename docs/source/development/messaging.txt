@@ -78,22 +78,11 @@ representation of all the data, we can communicate with such clients.
    Not all of these have yet been fully fleshed out, but the key ones are, see
    kernel and frontend files for actual implementation details.
 
-   
-Python functional API
-=====================
-
-As messages are dicts, they map naturally to a ``func(**kw)`` call form.  We
-should develop, at a few key points, functional forms of all the requests that
-take arguments in this manner and automatically construct the necessary dict
-for sending.
-
-
 General Message Format
 ======================
 
-All messages send or received by any IPython process should have the following
-generic structure::
-    
+A message is defined by the following three-dictionary structure::
+
     {
       # The message header contains a pair of unique identifiers for the
       # originating session and the actual message id, in addition to the
@@ -108,22 +97,40 @@ generic structure::
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
          },
-      # The msg's unique identifier and type are stored in the header, but
-      # are also accessible at the top-level for convenience.
-      'msg_id' : uuid,
-      'msg_type' : str,
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
       'parent_header' : dict,
 
       # The actual content of the message must be a dict, whose structure
-      # depends on the message type.x
+      # depends on the message type.
       'content' : dict,
     }
 
-For each message type, the actual content will differ and all existing message
-types are specified in what follows of this document.
+   
+Python functional API
+=====================
+
+As messages are dicts, they map naturally to a ``func(**kw)`` call form.  We
+should develop, at a few key points, functional forms of all the requests that
+take arguments in this manner and automatically construct the necessary dict
+for sending.
+
+In addition, the Python implementation of the message specification extends
+messages upon deserialization to the following form for convenience::
+
+    {
+      'header' : dict,
+      # The msg's unique identifier and type are always stored in the header,
+      # but the Python implementation copies them to the top level.
+      'msg_id' : uuid,
+      'msg_type' : str,
+      'parent_header' : dict,
+      'content' : dict,
+    }
+
+All messages sent to or received by any IPython process should have this
+extended structure.
 
 
 Messages on the shell ROUTER/DEALER sockets
@@ -547,7 +554,7 @@ Message type: ``object_info_reply``::
     # that no source was found.
     'source' : str,
     }
-'
+
     
 Complete
 --------
