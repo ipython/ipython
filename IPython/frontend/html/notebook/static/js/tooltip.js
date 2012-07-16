@@ -351,7 +351,7 @@ var IPython = (function (IPython) {
     // convenient funciton to have the correct code_mirror back into focus
     Tooltip.prototype._cmfocus = function () {
         var cm = this.code_mirror;
-        if (cm == IPython.notebook.get_selected_cell())
+        if (cm == IPython.notebook.get_selected_worksheet().get_selected_cell())
         {
             setTimeout(function () {
                 cm.focus();
