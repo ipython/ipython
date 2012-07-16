@@ -238,17 +238,55 @@ def _push(**ns):
     globals().update(ns)
 
 @interactive
+def _getter(ns, key):
+    """helper method for extracting objects from the namespace `ns`"""
+    keysplit = key.split('.')
+    if len(keysplit) == 1:
+        return ns.get(key)
+    globobj = keysplit[0]
+    tmpobj = ns.get(globobj)
+    for cur in keysplit[1:]:
+        tmpobj = getattr(tmpobj, cur)
+    return tmpobj
+
+@interactive
 def _pull(keys):
     """helper method for implementing `client.pull` via `client.apply`"""
     user_ns = globals()
-    if isinstance(keys, (list,tuple, set)):
+    if isinstance(keys, (list,tuple,set)):
         for key in keys:
+            keysplit = key.split('.')
+            if len(keysplit) > 1 and key.index('.') > 0:
+                globobj = keysplit[0]
+                if not user_ns.has_key(globobj):
+                    raise NameError("name '%s' is not defined"% globobj)
+                tmpobj = user_ns.get(globobj)
+                objstr = globobj
+                for cur in keysplit[1:]:
+                    objstr += ".%s" % cur
+                    if not hasattr(tmpobj, cur):
+                        raise NameError("name '%s' is not defined"% objstr)
+                    tmpobj = getattr(tmpobj, cur)
+                continue
             if not user_ns.has_key(key):
-                raise NameError("name '%s' is not defined"%key)
-        return map(user_ns.get, keys)
+                raise NameError("name '%s' is not defined"% key)
+        # return map(lambda x: _getter(user_ns,x), keys)
     else:
+        keysplit = keys.split('.')
+        if len(keysplit) > 1 and keys.index('.') > 0:
+            globobj = keysplit[0]
+            if not user_ns.has_key(globobj):
+                raise NameError("name '%s' is not defined"% globobj)
+            tmpobj = user_ns.get(globobj)
+            objstr = globobj
+            for cur in keysplit[1:]:
+              objstr += ".%s" % cur
+              if not hasattr(tmpobj, cur):
+                raise NameError("name '%s' is not defined"% objstr)
+              tmpobj = getattr(tmpobj, cur)
+            return tmpobj
         if not user_ns.has_key(keys):
-            raise NameError("name '%s' is not defined"%keys)
+            raise NameError("name '%s' is not defined"% keys)
         return user_ns.get(keys)
 
 @interactive
