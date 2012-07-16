@@ -11,6 +11,9 @@ from IPython.utils import py3compat
 @dec.onlyif_unicode_paths
 def test_unicode_cwd():
     """Check that IPython starts with non-ascii characters in the path."""
+    # Deliberately break test - testing the test framework.
+    raise Exception("Test deliberately broken")
+    
     wd = tempfile.mkdtemp(suffix=u"€")
     
     old_wd = os.getcwdu()
