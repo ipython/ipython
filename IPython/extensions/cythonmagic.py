@@ -122,6 +122,10 @@ class CythonMagics(Magics):
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
+    @argument(
+        '-a', '--anotate', action='store_true', default=False,
+        help="After compiling 'cython -a' will be run on the pyx file and the resulting html returned."
+    )
     @cell_magic
     def cython(self, line, cell):
         """Compile and import everything from a Cython code cell.
@@ -142,6 +146,7 @@ class CythonMagics(Magics):
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
         cython_include_dirs = ['.']
         force = args.force
+        annotate = args.anotate
         quiet = True
         ctx = Context(cython_include_dirs, default_options)
         key = code, sys.version_info, sys.executable, Cython.__version__
@@ -188,6 +193,17 @@ class CythonMagics(Magics):
 
         module = imp.load_dynamic(module_name, module_path)
         self._import_all(module)
+        if annotate:
+            import subprocess
+            from IPython.display import HTML
+            python_exe = os.path.join(sys.prefix, 'pythonw.exe')
+            cython_script = os.path.join(sys.prefix, 'Scripts', 'cython.py')
+            pyx_file = os.path.join(lib_dir, module_name + '.pyx')
+            args = [python_exe, cython_script, '-a', pyx_file]
+            subprocess.check_output(args, stderr=subprocess.STDOUT, shell=True)
+            with open(os.path.join(lib_dir, module_name + '.html')) as istream:
+                html = istream.read()
+            return HTML(html)
 
 
 _loaded = False
