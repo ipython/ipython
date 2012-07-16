@@ -82,7 +82,7 @@ class Config(dict):
     def _merge(self, other):
         to_update = {}
         for k, v in other.iteritems():
-            if not self.has_key(k):
+            if k not in self:
                 to_update[k] = v
             else: # I have this key
                 if isinstance(v, Config):

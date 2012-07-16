@@ -263,7 +263,7 @@ python-profiler package from non-free.""")
             print '\n*** Profile printout saved to text file',\
                   repr(text_file)+'.',sys_exit
 
-        if opts.has_key('r'):
+        if 'r' in opts:
             return stats
         else:
             return None

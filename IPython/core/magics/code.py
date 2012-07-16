@@ -228,7 +228,7 @@ class CodeMagics(Magics):
 
         if opts_prev:
             args = '_%s' % last_call[0]
-            if not shell.user_ns.has_key(args):
+            if args not in shell.user_ns:
                 args = last_call[1]
 
         # use last_call to remember the state of the previous call, but don't

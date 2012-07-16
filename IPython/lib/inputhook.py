@@ -176,7 +176,7 @@ class InputHookManager(object):
         """
         if gui is None:
             self._apps = {}
-        elif self._apps.has_key(gui):
+        elif gui in self._apps:
             del self._apps[gui]
 
     def enable_wx(self, app=None):
@@ -225,7 +225,7 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
-        if self._apps.has_key(GUI_WX):
+        if GUI_WX in self._apps:
             self._apps[GUI_WX]._in_event_loop = False
         self.clear_inputhook()
 
@@ -265,7 +265,7 @@ class InputHookManager(object):
 
         This merely sets PyOS_InputHook to NULL.
         """
-        if self._apps.has_key(GUI_QT4):
+        if GUI_QT4 in self._apps:
             self._apps[GUI_QT4]._in_event_loop = False
         self.clear_inputhook()
 
@@ -364,7 +364,7 @@ class InputHookManager(object):
                                               glut_close, glut_display, \
                                               glut_idle, inputhook_glut
 
-        if not self._apps.has_key( GUI_GLUT ):
+        if GUI_GLUT not in self._apps:
             glut.glutInit( sys.argv )
             glut.glutInitDisplayMode( glut_display_mode )
             # This is specific to freeglut

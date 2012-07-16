@@ -164,7 +164,7 @@ class AliasManager(Configurable):
         self.alias_table[name] = (nargs, cmd)
 
     def undefine_alias(self, name):
-        if self.alias_table.has_key(name):
+        if name in self.alias_table:
             del self.alias_table[name]
 
     def validate_alias(self, name, cmd):
