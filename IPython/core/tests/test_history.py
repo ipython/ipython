@@ -95,7 +95,7 @@ def test_history():
             ip.magic("save " + testfilename + " ~1/1-3")
             with py3compat.open(testfilename, encoding='utf-8') as testfile:
                 nt.assert_equal(testfile.read(),
-                                        u"# coding: utf-8\n" + u"\n".join(hist))
+                                        u"# coding: utf-8\n" + u"\n".join(hist)+u"\n")
 
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
