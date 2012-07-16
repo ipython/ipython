@@ -1,0 +1,116 @@
+.. _ipythonzmq:
+
+=====================================================
+ Porting IPython to a two process model using zeromq
+=====================================================
+
+Abstract
+--------
+
+IPython's execution in a command-line environment will be ported to a two
+process model using the zeromq library for inter-process communication. this
+will:
+
+- prevent an interpreter crash from destroying the user session,
+- allow multiple clients to interact simultaneously with a single interpreter
+- allow IPython to reuse code for local execution and distributed computing (dc)
+- give us a path for python3 support, since zeromq supports python3 while
+  twisted (what we use today for dc) does not.
+
+
+Project description
+-------------------
+
+Currently IPython provides a command-line client that executes all code in a
+single process, and a set of tools for distributed and parallel computing that
+execute code in multiple processes (possibly but not necessarily on different
+hosts), using the twisted asynchronous framework for communication between
+nodes. for a number of reasons, it is desirable to unify the architecture of
+the local execution with that of distributed computing, since ultimately many
+of the underlying abstractions are similar and should be reused.  in
+particular, we would like to:
+
+- have even for a single user a 2-process model, so that the environment where
+  code is being input runs in a different process from that which executes the
+  code. this would prevent a crash of the python interpreter executing code
+  (because of a segmentation fault in a compiled extension or an improper
+  access to a c library via ctypes, for example) from destroying the user
+  session.
+
+- have the same kernel used for executing code locally be available over the
+  network for distributed computing. currently the twisted-using IPython
+  engines for distributed computing do not share any code with the command-line
+  client, which means that many of the additional features of IPython (tab
+  completion, object introspection, magic functions, etc) are not available
+  while using the distributed computing system.  once the regular command-line
+  environment is ported to allowing such a 2-process model, this newly
+  decoupled kernel could form the core of a distributed computing IPython
+  engine and all capabilities would be available throughout the system.
+
+- have a route to python3 support. twisted is a large and complex library that
+  does currently not support python3, and as indicated by the twisted
+  developers it may take a while before it is ported
+  (http://stackoverflow.com/questions/172306/how-are-you-planning-on-handling-the-migration-to-python-3).
+  for IPython, this means that while we could port the command-line
+  environment, a large swath of IPython would be left 2.x-only, a highly
+  undesirable situation.  for this reason, the search for an alternative to
+  twisted has been active for a while, and recently we've identified the zeromq
+  (http://www.zeromq.org, zmq for short) library as a viable candidate. zmq is
+  a fast, simple messaging library written in c++, for which one of the IPython
+  developers has written python bindings using cython
+  (http://www.zeromq.org/bindings:python). since cython already knows how to
+  generate python3-compliant bindings with a simple command-line switch, zmq
+  can be used with python3 when needed.
+
+As part of the zmq python bindings, the IPython developers have already
+developed a simple prototype of such a two-process kernel/frontend system
+(details below). I propose to start from this example and port today's IPython
+code to operate in a similar manner. IPython's command-line program (the main
+'ipython' script) executes both user interaction and the user's code in the
+same process. This project will thus require breaking up IPython into the parts
+that correspond to the kernel and the parts that are meant to interact with the
+user, and making these two components communicate over the network using zmq
+instead of accessing local attributes and methods of a single global object.
+
+Once this port is complete, the resulting tools will be the foundation (though
+as part of this proposal i do not expect to undertake either of these tasks) to
+allow the distributed computing parts of IPython to use the same code as the
+command-line client, and for the whole system to be ported to python3.  so
+while i do not intend to tackle here the removal of twisted and the unification
+of the local and distributed parts of IPython, my proposal is a necessary step
+before those are possible.
+
+Project details
+---------------
+
+As part of the zeromq bindings, the IPython developers have already developed a
+simple prototype example that provides a python execution kernel (with none of
+IPython's code or features, just plain code execution) that listens on zmq
+sockets, and a frontend based on the interactiveconsole class of the code.py
+module from the python standard library. this example is capable of executing
+code, propagating errors, performing tab-completion over the network and having
+multiple frontends connect and disconnect simultaneously to a single kernel,
+with all inputs and outputs being made available to all connected clients
+(thanks to zqm's pub sockets that provide multicasting capabilities for the
+kernel and to which the frontends subscribe via a sub socket).
+
+We have all example code in:
+
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel/kernel.py
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel/completer.py
+* http://github.com/fperez/pyzmq/blob/completer/examples/kernel/frontend.py
+
+all of this code already works, and can be seen in this example directory from
+the zmq python bindings:
+
+* http://github.com/ellisonbg/pyzmq/blob/completer/examples/kernel
+
+Based on this work, i expect to write a stable system for IPython kernel with
+IPython standards, error control,crash recovery system and general
+configuration options, also standardize defaults ports or auth system for
+remote connection etc.
+
+The crash recovery system, is a IPython kernel module for when it fails
+unexpectedly, you can retrieve the information from the section, this will be
+based on a log and a lock file to indicate when the kernel was not closed in a
+proper way.

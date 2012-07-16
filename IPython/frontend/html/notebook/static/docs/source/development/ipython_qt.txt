@@ -1,0 +1,114 @@
+.. _ipython_qt:
+
+====================
+IPython Qt interface
+====================
+
+Abstract
+--------
+
+This is about the implementation of a Qt-based Graphical User Interface (GUI)
+to execute Python code with an interpreter that runs in a separate process and
+the two systems (GUI frontend and interpreter kernel) communicating via the
+ZeroMQ Messaging library.  The bulk of the implementation will be done without
+dependencies on IPython (only on Zmq). Once the key features are ready,
+IPython-specific features can be added using the IPython codebase.
+
+
+Project details
+---------------
+
+For a long time there has been demand for a graphical user interface for
+IPython, and the project already ships Wx-based prototypes thereof.  But these
+run all code in a single process, making them extremely brittle, as a crash of
+the Python interpreter kills the entire user session.  Here I propose to build
+a Qt-based GUI that will communicate with a separate process for the code
+execution, so that if the interpreter kernel dies, the frontend can continue to
+function after restarting a new kernel (and offering the user the option to
+re-execute all inputs, which the frontend can know).
+
+This GUI will allow for the easy editing of multi-line input and the convenient
+re-editing of previous blocks of input, which can be displayed in a 2-d
+workspace instead of a line-driven one like today's IPython. This makes it much
+easier to incrementally build and tune a code, by combining the rapid feedback
+cycle of IPython with the ability to edit multiline code with good graphical
+support.
+
+
+2-process model pyzmq base
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since the necessity of a user to keep his data safe, the design is based in a
+2-process model that will be achieved with a simple client/server system with
+`pyzmq <http://www.zeromq.org/bindings:python>`_, so the GUI session do not
+crash if the the kernel process does. This will be achieved using this test
+`code
+<http://github.com/fperez/pyzmq/blob/completer/examples/kernel/kernel.py>`_ and
+customizing it to the necessities of the GUI such as queue management with
+discrimination for different frontends connected to the same kernel and tab
+completion. A piece of drafted code for the kernel (server) should look like
+this::
+
+    def main():
+        c = zmq.Context(1, 1)
+        rep_conn = connection % port_base                              
+        pub_conn = connection % (port_base+1)
+        print >>sys.__stdout__, "Starting the kernel..."
+        print >>sys.__stdout__, "On:",rep_conn, pub_conn
+        session = Session(username=u'kernel')
+        reply_socket = c.socket(zmq.ROUTER)
+        reply_socket.bind(rep_conn)
+        pub_socket = c.socket(zmq.PUB)
+        pub_socket.bind(pub_conn)                                         
+        stdout = OutStream(session, pub_socket, u'stdout')         
+        stderr = OutStream(session, pub_socket, u'stderr')
+        sys.stdout = stdout                                                 
+        sys.stderr = stderr                     
+        display_hook = DisplayHook(session, pub_socket)
+        sys.displayhook = display_hook
+        kernel = Kernel(session, reply_socket, pub_socket)
+
+This kernel will use two queues (output and input), the input queue will have
+the id of the process(frontend) making the request, type(execute, complete,
+help, etc) and id of the request itself and the string of code to be executed,
+the output queue will have basically the same information just that the string
+is the to be displayed. This model is because the kernel needs to maintain
+control of timeouts when multiple requests are sent and keep them indexed.
+
+Qt based GUI
+~~~~~~~~~~~~
+
+Design of the interface is going to be based in cells of code executed on the
+previous defined kernel. It will also have GUI facilities such toolboxes,
+tooltips to autocomplete code and function summary, highlighting and
+autoindentation.  It will have the cell kind of multiline edition mode so each
+block of code can be edited and executed independently, this can be achieved
+queuing QTextEdit objects (the cell) giving them format so we can discriminate
+outputs from inputs.  One of the main characteristics will be the debug support
+that will show the requested outputs as the debugger (that will be on a popup
+widget) "walks" through the code, this design is to be reviewed with the
+mentor.  `This <http://gfif.udea.edu.co/IPythonQt_snapshot.png>`_ is a
+tentative view of the main window.
+
+The GUI will check continuously the output queue from the kernel for new
+information to handle. This information have to be handled with care since any
+output will come at anytime and possibly in a different order than requested or
+maybe not appear at all, this could be possible due to a variety of reasons(for
+example tab completion request while the kernel is busy processing another
+frontend's request). This is, if the kernel is busy it won't be possible to
+fulfill the request for a while so the GUI will be prepared to abandon waiting
+for the reply if the user moves on or a certain timeout expires.
+
+
+POSSIBLE FUTURE DIRECTIONS
+---------------------------
+
+The near future will bring the feature of saving and loading sessions, also
+importing and exporting to different formats like rst, html, pdf and
+python/ipython code, a discussion about this is taking place in the ipython-dev
+mailing list. Also the interaction with a remote kernel and distributed
+computation which is an IPython's project already in development.
+
+The idea of a mathematica-like help widget (i.e. there will be parts of it that
+will execute as a native session of IPythonQt) is still to be discussed in the
+development mailing list but it's definitively a great idea.

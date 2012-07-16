@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+
+"""Thin wrapper around the IPython irunner module.
+
+Run with --help for details, or see the irunner source."""
+
+from IPython.lib import irunner
+
+irunner.main()

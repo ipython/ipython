@@ -1,0 +1,95 @@
+.. _roadmap:
+
+===================
+Development roadmap
+===================
+
+IPython is an ambitious project that is still under heavy development.
+However, we want IPython to become useful to as many people as possible, as
+quickly as possible. To help us accomplish this, we are laying out a roadmap
+of where we are headed and what needs to happen to get there. Hopefully, this
+will help the IPython developers figure out the best things to work on for
+each upcoming release.
+
+Work targeted to particular releases
+====================================
+
+Release 0.11
+------------
+
+* Full module and package reorganization (done).
+
+* Removal of the threaded shells and new implementation of GUI support
+  based on ``PyOSInputHook`` (done).
+
+* Refactor the configuration system (done).
+
+* Prepare to refactor IPython's core by creating a new component and 
+  application system (done).
+
+* Start to refactor IPython's core by turning everything into configurables
+  (mostly done).
+
+Release 0.12
+------------
+
+* Continue to refactor IPython's core by turning everything into configurables.
+
+* Merge draft html notebook (started).
+
+* Add two-process Terminal frontend using ZMQ architecture.
+
+
+Major areas of work
+===================
+
+Refactoring the main IPython core
+---------------------------------
+
+During the summer of 2009, we began refactoring IPython's core. The main
+thrust in this work was to make the IPython core into a set of loosely coupled
+components. The base configurable class for this is
+:class:`IPython.core.configurable.Configurable`. This section outlines the
+status of this work.
+
+Parts of the IPython core that have been turned into configurables:
+
+* The main :class:`~IPython.core.interactiveshell.InteractiveShell` class.
+* The aliases (:mod:`IPython.core.alias`).
+* History management (:mod:`IPython.core.history`).
+* Plugins (:mod:`IPython.core.plugin`).
+* The display and builtin traps (:mod:`IPython.core.display_trap` and
+  :mod:`IPython.core.builtin_trap`).
+* The prefilter machinery (:mod:`IPython.core.prefilter`).
+
+Parts of the IPython core that still need to be Configurable:
+
+* Magics.
+* Prompts.
+* Tab completers.
+* Exception handling.
+* Anything else.
+
+Process management for :mod:`IPython.parallel`
+--------------------------------------------
+
+A few things need to be done to improve how processes are started
+up and managed for the parallel computing side of IPython:
+
+* Improve the SSH launcher so it is at least back to the levels of 0.10.2
+* We need to add support for other batch systems (LSF, Condor, etc.).
+
+
+Porting to 3.0
+==============
+
+Dropping 2.5 support was a major step towards working with Python 3 due to
+future syntax support in 2.6.  IPython 0.11 requires 2.6 now, so 0.10.2 will
+be the last IPython release that supports Python 2.5.
+
+We currently have a `separate repo <https://github.com/ipython/ipython-py3k>`_
+tracking IPython development that works with Python 3. The core of IPython does
+work, but the parallel computing code in :mod:`IPython.parallel` does not yet
+work in Python 3, though the only major dependency of the parallel code, pyzmq,
+does work on Python 3.
+

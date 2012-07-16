@@ -1,0 +1,61 @@
+====================================================
+Notes on code execution in :class:`InteractiveShell`
+====================================================
+
+Overview
+========
+
+This section contains information and notes about the code execution 
+system in :class:`InteractiveShell`.  This system needs to be refactored
+and we are keeping notes about this process here.
+
+Current design
+==============
+
+Here is a script that shows the relationships between the various
+methods in :class:`InteractiveShell` that manage code execution::
+
+    import networkx as nx
+    import matplotlib.pyplot as plt
+
+    exec_init_cmd = 'exec_init_cmd'
+    interact = 'interact'
+    runlines = 'runlines'
+    runsource = 'runsource'
+    runcode = 'runcode'
+    push_line = 'push_line'
+    mainloop = 'mainloop'
+    embed_mainloop = 'embed_mainloop'
+    ri = 'raw_input'
+    prefilter = 'prefilter'
+
+    g = nx.DiGraph()
+
+    g.add_node(exec_init_cmd)
+    g.add_node(interact)
+    g.add_node(runlines)
+    g.add_node(runsource)
+    g.add_node(push_line)
+    g.add_node(mainloop)
+    g.add_node(embed_mainloop)
+    g.add_node(ri)
+    g.add_node(prefilter)
+
+    g.add_edge(exec_init_cmd, push_line)
+    g.add_edge(exec_init_cmd, prefilter)
+    g.add_edge(mainloop, exec_init_cmd)
+    g.add_edge(mainloop, interact)
+    g.add_edge(embed_mainloop, interact)
+    g.add_edge(interact, ri)
+    g.add_edge(interact, push_line)
+    g.add_edge(push_line, runsource)
+    g.add_edge(runlines, push_line)
+    g.add_edge(runlines, prefilter)
+    g.add_edge(runsource, runcode)
+    g.add_edge(ri, prefilter)
+
+    nx.draw_spectral(g, node_size=100, alpha=0.6, node_color='r',
+                     font_size=10, node_shape='o')
+    plt.show()
+
+
