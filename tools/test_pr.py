@@ -31,7 +31,7 @@ ipy_repository = 'git://github.com/ipython/ipython.git'
 ipy_http_repository = 'http://github.com/ipython/ipython.git'
 gh_project="ipython/ipython"
 
-supported_pythons = ['python2.6', 'python2.7', 'python3.1', 'python3.2']
+supported_pythons = ['python2.6', 'python2.7', 'python3.2']
             
 missing_libs_re = re.compile(r"Tools and libraries NOT available at test time:\n"
                              r"\s*(.*?)\n")
