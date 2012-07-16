@@ -97,15 +97,10 @@ def print_figure(fig, fmt='png'):
 
     fc = fig.get_facecolor()
     ec = fig.get_edgecolor()
-    fig.set_facecolor('white')
-    fig.set_edgecolor('white')
-    try:
-        bytes_io = BytesIO()
-        fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight')
-        data = bytes_io.getvalue()
-    finally:
-        fig.set_facecolor(fc)
-        fig.set_edgecolor(ec)
+    bytes_io = BytesIO()
+    fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
+                            facecolor=fc, edgecolor=ec)
+    data = bytes_io.getvalue()
     return data
 
 

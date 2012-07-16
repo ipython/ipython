@@ -375,8 +375,7 @@ class BackgroundJobBase(threading.Thread):
     stat_dead_c = -1
 
     def __init__(self):
-        raise NotImplementedError, \
-              "This class can not be instantiated directly."
+        raise NotImplementedError("This class can not be instantiated directly.")
 
     def _init(self):
         """Common initialization for all BackgroundJob objects"""

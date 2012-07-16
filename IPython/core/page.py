@@ -25,6 +25,7 @@ rid of that dependency, we could move it there.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import os
 import re
@@ -57,18 +58,18 @@ def page_dumb(strng, start=0, screen_lines=25):
     out_ln  = strng.splitlines()[start:]
     screens = chop(out_ln,screen_lines-1)
     if len(screens) == 1:
-        print >>io.stdout, os.linesep.join(screens[0])
+        print(os.linesep.join(screens[0]), file=io.stdout)
     else:
         last_escape = ""
         for scr in screens[0:-1]:
             hunk = os.linesep.join(scr)
-            print >>io.stdout, last_escape + hunk
+            print(last_escape + hunk, file=io.stdout)
             if not page_more():
                 return
             esc_list = esc_re.findall(hunk)
             if len(esc_list) > 0:
                 last_escape = esc_list[-1]
-        print >>io.stdout, last_escape + os.linesep.join(screens[-1])
+        print(last_escape + os.linesep.join(screens[-1]), file=io.stdout)
 
 def _detect_screen_size(use_curses, screen_lines_def):
     """Attempt to work out the number of lines on the screen.
@@ -163,7 +164,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     # Ugly kludge, but calling curses.initscr() flat out crashes in emacs
     TERM = os.environ.get('TERM','dumb')
     if TERM in ['dumb','emacs'] and os.name != 'nt':
-        print strng
+        print(strng)
         return
     # chop off the topmost part of the string we don't want to see
     str_lines = strng.splitlines()[start:]
@@ -183,13 +184,13 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
         try:
             screen_lines += _detect_screen_size(use_curses, screen_lines_def)
         except (TypeError, UnsupportedOperation):
-            print >>io.stdout, str_toprint
+            print(str_toprint, file=io.stdout)
             return
 
     #print 'numlines',numlines,'screenlines',screen_lines  # dbg
     if numlines <= screen_lines :
         #print '*** normal print'  # dbg
-        print >>io.stdout, str_toprint
+        print(str_toprint, file=io.stdout)
     else:
         # Try to open pager and default to internal one if that fails.
         # All failure modes are tagged as 'retval=1', to match the return
@@ -250,7 +251,7 @@ def page_file(fname, start=0, pager_cmd=None):
                 start -= 1
             page(open(fname).read(),start)
         except:
-            print 'Unable to show file',`fname`
+            print('Unable to show file',repr(fname))
 
 
 def get_pager_cmd(pager_cmd=None):
@@ -325,13 +326,13 @@ def snip_print(str,width = 75,print_full = 0,header = ''):
         page(header+str)
         return 0
 
-    print header,
+    print(header, end=' ')
     if len(str) < width:
-        print str
+        print(str)
         snip = 0
     else:
         whalf = int((width -5)/2)
-        print str[:whalf] + ' <...> ' + str[-whalf:]
+        print(str[:whalf] + ' <...> ' + str[-whalf:])
         snip = 1
     if snip and print_full == 2:
         if raw_input(header+' Snipped. View (y/n)? [N]').lower() == 'y':

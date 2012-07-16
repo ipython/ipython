@@ -22,6 +22,7 @@ Authors:
 import copy
 import logging
 import os
+import pipes
 import stat
 import sys
 import time
@@ -1141,7 +1142,7 @@ class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -V
 #PBS -N ipcontroller
 %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipcontroller_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
 
 
     def start(self):
@@ -1157,7 +1158,7 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -V
 #PBS -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipengine_cmd_argv)))
+"""%(' '.join(map(pipes.quote,ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
@@ -1181,7 +1182,7 @@ class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
 #$ -S /bin/sh
 #$ -N ipcontroller
 %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipcontroller_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
 
     def start(self):
         """Start the controller by profile or profile_dir."""
@@ -1195,7 +1196,7 @@ class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
 #$ -S /bin/sh
 #$ -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipengine_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
@@ -1249,7 +1250,7 @@ class LSFControllerLauncher(LSFLauncher, BatchClusterAppMixin):
     #BSUB -oo ipcontroller.o.%%J
     #BSUB -eo ipcontroller.e.%%J
     %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-    """%(' '.join(ipcontroller_cmd_argv)))
+    """%(' '.join(map(pipes.quote,ipcontroller_cmd_argv))))
 
     def start(self):
         """Start the controller by profile or profile_dir."""
@@ -1264,7 +1265,7 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
     #BSUB -oo ipengine.o.%%J
     #BSUB -eo ipengine.e.%%J
     %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-    """%(' '.join(ipengine_cmd_argv)))
+    """%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
