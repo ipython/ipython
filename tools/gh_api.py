@@ -16,6 +16,17 @@ import json
 # password
 fake_username = 'ipython_tools'
 
+class Obj(dict):
+    """Dictionary with attribute access to names."""
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+    
+    def __setattr__(self, name, val):
+        self[name] = val
+
 token = None
 def get_auth_token():
     global token
@@ -88,7 +99,7 @@ def get_pull_request(project, num, github_api=3):
     response.raise_for_status()
     if github_api == 2 :
         return json.loads(response.text)['pull']
-    return json.loads(response.text)
+    return json.loads(response.text, object_hook=Obj)
 
 def get_pulls_list(project, github_api=3):
     """get pull request list
