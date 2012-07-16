@@ -484,7 +484,7 @@ def test_extension():
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
-        tt.assert_equal(_ip.user_ns['arq'], 185)
+        nt.assert_equal(_ip.user_ns['arq'], 185)
         _ip.magic("unload_ext daft_extension")
         assert 'arq' not in _ip.user_ns
     finally:

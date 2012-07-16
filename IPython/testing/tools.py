@@ -1,10 +1,5 @@
 """Generic testing tools.
 
-In particular, this module exposes a set of top-level assert* functions that
-can be used in place of nose.tools.assert* in method generators (the ones in
-nose can not, at least as of nose 0.10.4).
-
-
 Authors
 -------
 - Fernando Perez <Fernando.Perez@berkeley.edu>
@@ -49,22 +44,6 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 
 from . import decorators as dec
 from . import skipdoctest
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-# Make a bunch of nose.tools assert wrappers that can be used in test
-# generators.  This will expose an assert* function for each one in nose.tools.
-
-_tpl = """
-def %(name)s(*a,**kw):
-    return nt.%(name)s(*a,**kw)
-"""
-
-if has_nose:
-    for _x in [a for a in dir(nt) if a.startswith('assert')]:
-        exec _tpl % dict(name=_x)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
