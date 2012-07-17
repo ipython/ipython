@@ -374,34 +374,16 @@ class IPTester(object):
         # (on posix only, since win32 has no os.kill)
         self.pids = []
 
-    if sys.platform == 'win32':
-        def _run_cmd(self):
-            # On Windows, use os.system instead of subprocess.call, because I
-            # was having problems with subprocess and I just don't know enough
-            # about win32 to debug this reliably.  Os.system may be the 'old
-            # fashioned' way to do it, but it works just fine.  If someone
-            # later can clean this up that's fine, as long as the tests run
-            # reliably in win32.
-            # What types of problems are you having. They may be related to
-            # running Python in unboffered mode. BG.
-            for ndx, arg in enumerate(self.call_args):
-                # Enclose in quotes if necessary and legal
-                if ' ' in arg and os.path.isfile(arg) and arg[0] != '"':
-                    self.call_args[ndx] = '"%s"' % arg
-            call_args = [py3compat.cast_unicode(x) for x in self.call_args]
-            cmd = py3compat.unicode_to_str(u' '.join(call_args))
-            return os.system(cmd)
-    else:
-        def _run_cmd(self):
-            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args)
-            self.pids.append(subp.pid)
-            # If this fails, the pid will be left in self.pids and cleaned up
-            # later, but if the wait call succeeds, then we can clear the
-            # stored pid.
-            retcode = subp.wait()
-            self.pids.pop()
-            return retcode
+    def _run_cmd(self):
+        # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+        subp = subprocess.Popen(self.call_args)
+        self.pids.append(subp.pid)
+        # If this fails, the pid will be left in self.pids and cleaned up
+        # later, but if the wait call succeeds, then we can clear the
+        # stored pid.
+        retcode = subp.wait()
+        self.pids.pop()
+        return retcode
 
     def run(self):
         """Run the stored commands"""
@@ -416,17 +398,28 @@ class IPTester(object):
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
 
+    @staticmethod
+    def _kill(pid):
+        """Attempt to kill the process on a best effort basis."""
+        if hasattr(os, 'kill'):
+            os.kill(pid, signal.SIGKILL)
+        elif sys.platform == 'win32':
+            # Python 2.6 on Windows doesn't have os.kill.
+            from ctypes import windll
+            PROCESS_TERMINATE = 1
+            handle = windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid)
+            windll.kernel32.TerminateProcess(handle, -1)
+            windll.kernel32.CloseHandle(handle)
+        else:
+            raise NotImplementedError
+
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
-
-        if not hasattr(os, 'kill'):
-            return
-
         for pid in self.pids:
             try:
                 print('Cleaning stale PID:', pid)
-                os.kill(pid, signal.SIGKILL)
-            except OSError:
+                self._kill(pid)
+            except (OSError, NotImplementedError):
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
                 pass
