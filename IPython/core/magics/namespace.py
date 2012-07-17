@@ -214,9 +214,9 @@ class NamespaceMagics(Magics):
         psearch = shell.inspector.psearch
 
         # select case options
-        if opts.has_key('i'):
+        if 'i' in opts:
             ignore_case = True
-        elif opts.has_key('c'):
+        elif 'c' in opts:
             ignore_case = False
         else:
             ignore_case = not shell.wildcards_case_sensitive
@@ -656,7 +656,7 @@ class NamespaceMagics(Magics):
 
         opts, regex = self.parse_options(parameter_s,'f')
 
-        if opts.has_key('f'):
+        if 'f' in opts:
             ans = True
         else:
             try:

@@ -133,7 +133,7 @@ class DictDB(BaseDB):
 
     def add_record(self, msg_id, rec):
         """Add a new Task Record, by msg_id."""
-        if self._records.has_key(msg_id):
+        if msg_id in self._records:
             raise KeyError("Already have msg_id %r"%(msg_id))
         self._records[msg_id] = rec
 

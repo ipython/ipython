@@ -243,11 +243,11 @@ def _pull(keys):
     user_ns = globals()
     if isinstance(keys, (list,tuple, set)):
         for key in keys:
-            if not user_ns.has_key(key):
+            if key not in user_ns:
                 raise NameError("name '%s' is not defined"%key)
         return map(user_ns.get, keys)
     else:
-        if not user_ns.has_key(keys):
+        if keys not in user_ns:
             raise NameError("name '%s' is not defined"%keys)
         return user_ns.get(keys)
 

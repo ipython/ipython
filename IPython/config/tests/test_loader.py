@@ -204,11 +204,11 @@ class TestConfig(TestCase):
         c = Config()
         c.a = 10
         self.assertEquals(c.a, 10)
-        self.assertEquals(c.has_key('b'), False)
+        self.assertEquals('b' in c, False)
 
     def test_auto_section(self):
         c = Config()
-        self.assertEquals(c.has_key('A'), True)
+        self.assertEquals('A' in c, True)
         self.assertEquals(c._has_section('A'), False)
         A = c.A
         A.foo = 'hi there'

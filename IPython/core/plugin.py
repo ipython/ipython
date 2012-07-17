@@ -35,7 +35,7 @@ class PluginManager(Configurable):
     def register_plugin(self, name, plugin):
         if not isinstance(plugin, Plugin):
             raise TypeError('Expected Plugin, got: %r' % plugin)
-        if self.plugins.has_key(name):
+        if name in self.plugins:
             raise KeyError('Plugin with name already exists: %r' % name)
         self.plugins[name] = plugin
 

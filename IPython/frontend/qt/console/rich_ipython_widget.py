@@ -117,15 +117,15 @@ class RichIPythonWidget(IPythonWidget):
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
             data = content['data']
-            if data.has_key('image/svg+xml'):
+            if 'image/svg+xml' in data:
                 self._pre_image_append(msg, prompt_number)
                 self._append_svg(data['image/svg+xml'], True)
                 self._append_html(self.output_sep2, True)
-            elif data.has_key('image/png'):
+            elif 'image/png' in data:
                 self._pre_image_append(msg, prompt_number)
                 self._append_png(decodestring(data['image/png'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
-            elif data.has_key('image/jpeg') and self._jpg_supported:
+            elif 'image/jpeg' in data and self._jpg_supported:
                 self._pre_image_append(msg, prompt_number)
                 self._append_jpg(decodestring(data['image/jpeg'].encode('ascii')), True)
                 self._append_html(self.output_sep2, True)
@@ -142,17 +142,17 @@ class RichIPythonWidget(IPythonWidget):
             metadata = msg['content']['metadata']
             # Try to use the svg or html representations.
             # FIXME: Is this the right ordering of things to try?
-            if data.has_key('image/svg+xml'):
+            if 'image/svg+xml' in data:
                 self.log.debug("display: %s", msg.get('content', ''))
                 svg = data['image/svg+xml']
                 self._append_svg(svg, True)
-            elif data.has_key('image/png'):
+            elif 'image/png' in data:
                 self.log.debug("display: %s", msg.get('content', ''))
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'].encode('ascii'))
                 self._append_png(png, True)
-            elif data.has_key('image/jpeg') and self._jpg_supported:
+            elif 'image/jpeg' in data and self._jpg_supported:
                 self.log.debug("display: %s", msg.get('content', ''))
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
                 self._append_jpg(jpg, True)
