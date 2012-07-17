@@ -147,7 +147,7 @@ class Converter(object):
     user_preamble = None
     output = str()
     raw_as_verbatim = False
-        
+    
     def __init__(self, infile):
         self.infile = infile
         self.infile_dir, infile_root = os.path.split(infile)
@@ -459,8 +459,25 @@ class ConverterRST(Converter):
         return rst_directive('.. raw:: javascript', output.javascript)
 
 
+
+
+def highlight(src, lang='python'):
+    """Return a syntax-highlighted version of the input source.
+    """
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import HtmlFormatter
+    
+    lexer = get_lexer_by_name(lang, stripall=True)
+    return highlight(src, lexer, HtmlFormatter())
+
+
 class ConverterMarkdown(Converter):
     extension = 'md'
+
+    def __init__(self, infile, highlight_source=False):
+        super(ConverterMarkdown, self).__init__(infile)
+        self.highlight_source = highlight_source
 
     @DocInherit
     def render_heading(self, cell):
@@ -473,7 +490,9 @@ class ConverterMarkdown(Converter):
         lines = []
         #lines.append('----')
         lines.extend(['*In[%s]:*' % cell.prompt_number, ''])
-        lines.extend([indent(cell.input), ''])
+        src = highlight(cell.input) if self.highlight_source else \
+          indent(cell.input)
+        lines.extend([src, ''])
         if cell.outputs:
             lines.extend(['==>', ''])
         for output in cell.outputs:
@@ -487,7 +506,6 @@ class ConverterMarkdown(Converter):
     @DocInherit
     def render_markdown(self, cell):
         return [cell.source, '']
-        #return [markdown2rst(cell.source)]
 
     @DocInherit
     def render_raw(self, cell):
@@ -499,14 +517,16 @@ class ConverterMarkdown(Converter):
     @DocInherit
     def render_pyout(self, output):
         lines = []
-        #lines.extend(['*Out[%s]:*' % output.prompt_number, ''])
+        
+        ## if 'text' in output:
+        ##     lines.extend(['*Out[%s]:*' % output.prompt_number, ''])
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:
             pass
 
         if 'text' in output:
-            lines.extend([indent(output.text)])
+            lines.extend(['<pre>', indent(output.text), '</pre>'])
 
         lines.append('')
         return lines
@@ -556,6 +576,11 @@ class ConverterMarkdown(Converter):
         Returns list.
         """
         return ['JavaScript:', indent(output.javascript)]
+
+
+def return_list(x):
+    """Ensure that x is returned as a list or inside one"""
+    return x if isinstance(x, list) else [x]
 
 
 class ConverterQuickHTML(Converter):
@@ -639,7 +664,7 @@ class ConverterQuickHTML(Converter):
 
     @DocInherit
     def render_display_format_text(self, output):
-        return [output.text]
+        return_list(output.text)
 
     @DocInherit
     def _unknown_lines(self, data):
@@ -651,18 +676,14 @@ class ConverterQuickHTML(Converter):
 
         Returns list.
         """
-        if type(output.text) == type([]):
-            return output.text
-        return [output.text]
+        return_list(output.text)
 
     def render_display_format_html(self, output):
         """render the html part of an output
 
         Returns list.
         """
-        if type(output.html) == type([]):
-            return output.html
-        return [output.html]
+        return_list(output.html)
 
     def render_display_format_latex(self, output):
         """render the latex part of an output
@@ -686,9 +707,7 @@ class ConverterQuickHTML(Converter):
 
         Returns list.
         """
-        if type(output.javascript) == type([]):
-            return output.javascript
-        return [output.javascript]
+        return_list(output.javascript)
 
 
 class ConverterLaTeX(Converter):
@@ -1050,6 +1069,48 @@ def rst2simplehtml(infile):
 
     return newfname
 
+
+def md2html(infile):
+    """Convert a markdown file to simplified html suitable for blogger.
+
+    """
+
+    proc = subprocess.Popen(['markdown', infile],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    html, stderr = proc.communicate()
+    if stderr:
+        raise IOError(stderr)
+
+    from pygments.formatters import HtmlFormatter
+    css = HtmlFormatter().get_style_defs('.highlight')
+
+    template = """
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>{infile}</title>
+
+    <style type="text/css">
+    {css}
+    </style>
+    
+</head>
+    
+<body>
+{html}
+</body>
+
+</html>
+    """
+    full_html = template.format(**locals())
+    newfname = os.path.splitext(infile)[0] + '.html'
+    with open(newfname, 'w') as f:
+        f.write(full_html)
+
+    return newfname
+
 #-----------------------------------------------------------------------------
 # Cell-level functions -- similar to IPython.nbformat.v3.rwbase functions
 # but at cell level instead of whole notebook level
@@ -1064,7 +1125,10 @@ def writes_cell(cell, **kwargs):
         cell = split_lines_cell(copy.deepcopy(cell))
     return py3compat.str_to_unicode(json.dumps(cell, **kwargs), 'utf-8')
 
+
 _multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
+
+
 def split_lines_cell(cell):
     """
     Split lines within a cell as in 
@@ -1085,6 +1149,7 @@ def split_lines_cell(cell):
             if isinstance(item, basestring):
                 cell[key] = (item + '\n').splitlines()
     return cell
+
 
 def cell_to_lines(cell):
     '''
@@ -1109,10 +1174,10 @@ def main(infile, format='rst'):
         converter = ConverterMarkdown(infile)
         converter.render()
     elif format == 'html':
-        #Currently, conversion to html is a 2 step process, nb->rst->html
-        converter = ConverterRST(infile)
-        rstfname = converter.render()
-        rst2simplehtml(rstfname)
+        #Currently, conversion to html is a 2 step process, nb->md->html
+        converter = ConverterMarkdown(infile, True)
+        mdfname = converter.render()
+        md2html(mdfname)
     elif format == 'quick-html':
         converter = ConverterQuickHTML(infile)
         rstfname = converter.render()
