@@ -113,7 +113,7 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.register_magics(EmbeddedMagics)
 
     def __call__(self, header='', local_ns=None, module=None, dummy=None,
-                 stack_depth=1, global_ns=None):
+                 stack_depth=1, global_ns=None, compile_flags=None):
         """Activate the interactive interpreter.
 
         __call__(self,header='',local_ns=None,module=None,dummy=None) -> Start
@@ -154,7 +154,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
 
         # Call the embedding code with a stack depth of 1 so it can skip over
         # our call and get the original caller's namespaces.
-        self.mainloop(local_ns, module, stack_depth=stack_depth, global_ns=global_ns)
+        self.mainloop(local_ns, module, stack_depth=stack_depth,
+                      global_ns=global_ns, compile_flags=compile_flags)
 
         self.banner2 = self.old_banner2
 
@@ -286,6 +287,7 @@ def embed(**kwargs):
     """
     config = kwargs.get('config')
     header = kwargs.pop('header', u'')
+    compile_flags = kwargs.pop('compile_flags', None)
     if config is None:
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
@@ -293,4 +295,4 @@ def embed(**kwargs):
     global _embedded_shell
     if _embedded_shell is None:
         _embedded_shell = InteractiveShellEmbed(**kwargs)
-    _embedded_shell(header=header, stack_depth=2)
+    _embedded_shell(header=header, stack_depth=2, compile_flags=compile_flags)
