@@ -1479,7 +1479,7 @@ class InteractiveShell(SingletonConfigurable):
         """Generic interface to the inspector system.
 
         This function is meant to be called by pdef, pdoc & friends."""
-        info = self._object_find(oname)
+        info = self._object_find(oname, namespaces)
         if info.found:
             pmethod = getattr(self.inspector, meth)
             formatter = format_screen if info.ismagic else None
