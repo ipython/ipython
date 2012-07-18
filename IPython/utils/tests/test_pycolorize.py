@@ -30,5 +30,5 @@ def test_unicode_colorize():
     p = Parser()
     f1 = p.format('1/0', 'str')
     f2 = p.format(u'1/0', 'str')
-    nt.assert_equals(f1, f2)
+    nt.assert_equal(f1, f2)
 

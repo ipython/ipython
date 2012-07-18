@@ -49,28 +49,28 @@ class TestSession(SessionTestCase):
         msg = self.session.msg('execute')
         thekeys = set('header parent_header content msg_type msg_id'.split())
         s = set(msg.keys())
-        self.assertEquals(s, thekeys)
+        self.assertEqual(s, thekeys)
         self.assertTrue(isinstance(msg['content'],dict))
         self.assertTrue(isinstance(msg['header'],dict))
         self.assertTrue(isinstance(msg['parent_header'],dict))
         self.assertTrue(isinstance(msg['msg_id'],str))
         self.assertTrue(isinstance(msg['msg_type'],str))
-        self.assertEquals(msg['header']['msg_type'], 'execute')
-        self.assertEquals(msg['msg_type'], 'execute')
+        self.assertEqual(msg['header']['msg_type'], 'execute')
+        self.assertEqual(msg['msg_type'], 'execute')
 
     def test_serialize(self):
         msg = self.session.msg('execute', content=dict(a=10, b=1.1))
         msg_list = self.session.serialize(msg, ident=b'foo')
         ident, msg_list = self.session.feed_identities(msg_list)
         new_msg = self.session.unserialize(msg_list)
-        self.assertEquals(ident[0], b'foo')
-        self.assertEquals(new_msg['msg_id'],msg['msg_id'])
-        self.assertEquals(new_msg['msg_type'],msg['msg_type'])
-        self.assertEquals(new_msg['header'],msg['header'])
-        self.assertEquals(new_msg['content'],msg['content'])
-        self.assertEquals(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(ident[0], b'foo')
+        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
+        self.assertEqual(new_msg['header'],msg['header'])
+        self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
         # ensure floats don't come out as Decimal:
-        self.assertEquals(type(new_msg['content']['b']),type(new_msg['content']['b']))
+        self.assertEqual(type(new_msg['content']['b']),type(new_msg['content']['b']))
 
     def test_send(self):
         socket = MockSocket(zmq.Context.instance(),zmq.PAIR)
@@ -79,13 +79,13 @@ class TestSession(SessionTestCase):
         self.session.send(socket, msg, ident=b'foo', buffers=[b'bar'])
         ident, msg_list = self.session.feed_identities(socket.data)
         new_msg = self.session.unserialize(msg_list)
-        self.assertEquals(ident[0], b'foo')
-        self.assertEquals(new_msg['msg_id'],msg['msg_id'])
-        self.assertEquals(new_msg['msg_type'],msg['msg_type'])
-        self.assertEquals(new_msg['header'],msg['header'])
-        self.assertEquals(new_msg['content'],msg['content'])
-        self.assertEquals(new_msg['parent_header'],msg['parent_header'])
-        self.assertEquals(new_msg['buffers'],[b'bar'])
+        self.assertEqual(ident[0], b'foo')
+        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
+        self.assertEqual(new_msg['header'],msg['header'])
+        self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['buffers'],[b'bar'])
 
         socket.data = []
 
@@ -97,25 +97,25 @@ class TestSession(SessionTestCase):
             header=header, ident=b'foo', buffers=[b'bar'])
         ident, msg_list = self.session.feed_identities(socket.data)
         new_msg = self.session.unserialize(msg_list)
-        self.assertEquals(ident[0], b'foo')
-        self.assertEquals(new_msg['msg_id'],msg['msg_id'])
-        self.assertEquals(new_msg['msg_type'],msg['msg_type'])
-        self.assertEquals(new_msg['header'],msg['header'])
-        self.assertEquals(new_msg['content'],msg['content'])
-        self.assertEquals(new_msg['parent_header'],msg['parent_header'])
-        self.assertEquals(new_msg['buffers'],[b'bar'])
+        self.assertEqual(ident[0], b'foo')
+        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
+        self.assertEqual(new_msg['header'],msg['header'])
+        self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['buffers'],[b'bar'])
 
         socket.data = []
 
         self.session.send(socket, msg, ident=b'foo', buffers=[b'bar'])
         ident, new_msg = self.session.recv(socket)
-        self.assertEquals(ident[0], b'foo')
-        self.assertEquals(new_msg['msg_id'],msg['msg_id'])
-        self.assertEquals(new_msg['msg_type'],msg['msg_type'])
-        self.assertEquals(new_msg['header'],msg['header'])
-        self.assertEquals(new_msg['content'],msg['content'])
-        self.assertEquals(new_msg['parent_header'],msg['parent_header'])
-        self.assertEquals(new_msg['buffers'],[b'bar'])
+        self.assertEqual(ident[0], b'foo')
+        self.assertEqual(new_msg['msg_id'],msg['msg_id'])
+        self.assertEqual(new_msg['msg_type'],msg['msg_type'])
+        self.assertEqual(new_msg['header'],msg['header'])
+        self.assertEqual(new_msg['content'],msg['content'])
+        self.assertEqual(new_msg['parent_header'],msg['parent_header'])
+        self.assertEqual(new_msg['buffers'],[b'bar'])
 
         socket.close()
 
@@ -124,17 +124,17 @@ class TestSession(SessionTestCase):
         s = self.session
         self.assertTrue(s.pack is ss.default_packer)
         self.assertTrue(s.unpack is ss.default_unpacker)
-        self.assertEquals(s.username, os.environ.get('USER', u'username'))
+        self.assertEqual(s.username, os.environ.get('USER', u'username'))
 
         s = ss.Session()
-        self.assertEquals(s.username, os.environ.get('USER', u'username'))
+        self.assertEqual(s.username, os.environ.get('USER', u'username'))
 
         self.assertRaises(TypeError, ss.Session, pack='hi')
         self.assertRaises(TypeError, ss.Session, unpack='hi')
         u = str(uuid.uuid4())
         s = ss.Session(username=u'carrot', session=u)
-        self.assertEquals(s.session, u)
-        self.assertEquals(s.username, u'carrot')
+        self.assertEqual(s.session, u)
+        self.assertEqual(s.username, u'carrot')
 
     def test_tracking(self):
         """test tracking messages"""
@@ -162,12 +162,12 @@ class TestSession(SessionTestCase):
     #     d = {'0': uuid.uuid4(), 1:uuid.uuid4(), 'asdf':uuid.uuid4()}
     #     d2 = {0:d['0'],1:d[1],'asdf':d['asdf']}
     #     rd = ss.rekey(d)
-    #     self.assertEquals(d2,rd)
+    #     self.assertEqual(d2,rd)
     #
     #     d = {'1.5':uuid.uuid4(),'1':uuid.uuid4()}
     #     d2 = {1.5:d['1.5'],1:d['1']}
     #     rd = ss.rekey(d)
-    #     self.assertEquals(d2,rd)
+    #     self.assertEqual(d2,rd)
     #
     #     d = {'1.0':uuid.uuid4(),'1':uuid.uuid4()}
     #     self.assertRaises(KeyError, ss.rekey, d)
@@ -193,20 +193,20 @@ class TestSession(SessionTestCase):
         # get bs before us
         bs = session.bsession
         us = session.session
-        self.assertEquals(us.encode('ascii'), bs)
+        self.assertEqual(us.encode('ascii'), bs)
         session = ss.Session()
         # get us before bs
         us = session.session
         bs = session.bsession
-        self.assertEquals(us.encode('ascii'), bs)
+        self.assertEqual(us.encode('ascii'), bs)
         # change propagates:
         session.session = 'something else'
         bs = session.bsession
         us = session.session
-        self.assertEquals(us.encode('ascii'), bs)
+        self.assertEqual(us.encode('ascii'), bs)
         session = ss.Session(session='stuff')
         # get us before bs
-        self.assertEquals(session.bsession, session.session.encode('ascii'))
-        self.assertEquals(b'stuff', session.bsession)
+        self.assertEqual(session.bsession, session.session.encode('ascii'))
+        self.assertEqual(b'stuff', session.bsession)
 
 

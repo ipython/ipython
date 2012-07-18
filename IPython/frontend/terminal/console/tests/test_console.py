@@ -45,12 +45,12 @@ def test_console_starts():
     
     p = pexpect.spawn(ipython_cmd, args=['console', '--colors=NoColor'])
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=15)
-    nt.assert_equals(idx, 0, "expected in prompt")
+    nt.assert_equal(idx, 0, "expected in prompt")
     p.sendline('5')
     idx = p.expect([r'Out\[\d+\]: 5', pexpect.EOF], timeout=5)
-    nt.assert_equals(idx, 0, "expected out prompt")
+    nt.assert_equal(idx, 0, "expected out prompt")
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=5)
-    nt.assert_equals(idx, 0, "expected second in prompt")
+    nt.assert_equal(idx, 0, "expected second in prompt")
     # send ctrl-D;ctrl-D to exit
     p.sendeof()
     p.sendeof()

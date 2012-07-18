@@ -52,7 +52,7 @@ class TeeTestCase(dec.ParametricTestCase):
         print(text, end='', file=chan)
         setattr(sys, channel, std_ori)
         trap_val = trap.getvalue()
-        nt.assert_equals(chan.getvalue(), text)
+        nt.assert_equal(chan.getvalue(), text)
         if check=='close':
             tee.close()
         else:
@@ -82,5 +82,5 @@ def test_capture_output():
         print('hi, stdout')
         print('hi, stderr', file=sys.stderr)
     
-    nt.assert_equals(io.stdout, 'hi, stdout\n')
-    nt.assert_equals(io.stderr, 'hi, stderr\n')
+    nt.assert_equal(io.stdout, 'hi, stdout\n')
+    nt.assert_equal(io.stderr, 'hi, stderr\n')

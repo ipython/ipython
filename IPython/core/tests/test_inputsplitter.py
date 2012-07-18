@@ -425,13 +425,13 @@ class InteractiveLoopTestCase(unittest.TestCase):
 def test_LineInfo():
     """Simple test for LineInfo construction and str()"""
     linfo = isp.LineInfo('  %cd /home')
-    nt.assert_equals(str(linfo), 'LineInfo [  |%|cd|/home]')
+    nt.assert_equal(str(linfo), 'LineInfo [  |%|cd|/home]')
 
 # Transformer tests
 def transform_checker(tests, func):
     """Utility to loop over test inputs"""
     for inp, tr in tests:
-        nt.assert_equals(func(inp), tr)
+        nt.assert_equal(func(inp), tr)
 
 # Data for all the syntax tests in the form of lists of pairs of
 # raw/transformed input.  We store it here as a global dict so that we can use

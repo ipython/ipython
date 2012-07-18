@@ -60,7 +60,7 @@ class TestTraitType(TestCase):
         class A(HasTraits):
             a = TraitType
         a = A()
-        self.assertEquals(a.a, Undefined)
+        self.assertEqual(a.a, Undefined)
 
     def test_set(self):
         class A(HasTraitsStub):
@@ -68,10 +68,10 @@ class TestTraitType(TestCase):
 
         a = A()
         a.a = 10
-        self.assertEquals(a.a, 10)
-        self.assertEquals(a._notify_name, 'a')
-        self.assertEquals(a._notify_old, Undefined)
-        self.assertEquals(a._notify_new, 10)
+        self.assertEqual(a.a, 10)
+        self.assertEqual(a._notify_name, 'a')
+        self.assertEqual(a._notify_old, Undefined)
+        self.assertEqual(a._notify_new, 10)
 
     def test_validate(self):
         class MyTT(TraitType):
@@ -82,7 +82,7 @@ class TestTraitType(TestCase):
 
         a = A()
         a.tt = 10
-        self.assertEquals(a.tt, -1)
+        self.assertEqual(a.tt, -1)
 
     def test_default_validate(self):
         class MyIntTT(TraitType):
@@ -93,7 +93,7 @@ class TestTraitType(TestCase):
         class A(HasTraits):
             tt = MyIntTT(10)
         a = A()
-        self.assertEquals(a.tt, 10)
+        self.assertEqual(a.tt, 10)
 
         # Defaults are validated when the HasTraits is instantiated
         class B(HasTraits):
@@ -109,7 +109,7 @@ class TestTraitType(TestCase):
 
         a = A()
         a.tt = 10
-        self.assertEquals(a.tt, 10)
+        self.assertEqual(a.tt, 10)
 
     def test_value_for(self):
         class MyTT(TraitType):
@@ -120,13 +120,13 @@ class TestTraitType(TestCase):
 
         a = A()
         a.tt = 10
-        self.assertEquals(a.tt, 20)
+        self.assertEqual(a.tt, 20)
 
     def test_info(self):
         class A(HasTraits):
             tt = TraitType
         a = A()
-        self.assertEquals(A.tt.info(), 'any value')
+        self.assertEqual(A.tt.info(), 'any value')
 
     def test_error(self):
         class A(HasTraits):
@@ -146,59 +146,59 @@ class TestTraitType(TestCase):
                 return 21
 
         a = A()
-        self.assertEquals(a._trait_values, {})
-        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(a.x, 11)
-        self.assertEquals(a._trait_values, {'x': 11})
+        self.assertEqual(a._trait_values, {})
+        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(a.x, 11)
+        self.assertEqual(a._trait_values, {'x': 11})
         b = B()
-        self.assertEquals(b._trait_values, {'x': 20})
-        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(b.x, 20)
+        self.assertEqual(b._trait_values, {'x': 20})
+        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(b.x, 20)
         c = C()
-        self.assertEquals(c._trait_values, {})
-        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(c.x, 21)
-        self.assertEquals(c._trait_values, {'x': 21})
+        self.assertEqual(c._trait_values, {})
+        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(c.x, 21)
+        self.assertEqual(c._trait_values, {'x': 21})
         # Ensure that the base class remains unmolested when the _default
         # initializer gets overridden in a subclass.
         a = A()
         c = C()
-        self.assertEquals(a._trait_values, {})
-        self.assertEquals(a._trait_dyn_inits.keys(), ['x'])
-        self.assertEquals(a.x, 11)
-        self.assertEquals(a._trait_values, {'x': 11})
+        self.assertEqual(a._trait_values, {})
+        self.assertEqual(a._trait_dyn_inits.keys(), ['x'])
+        self.assertEqual(a.x, 11)
+        self.assertEqual(a._trait_values, {'x': 11})
 
 
 
 class TestHasTraitsMeta(TestCase):
 
     def test_metaclass(self):
-        self.assertEquals(type(HasTraits), MetaHasTraits)
+        self.assertEqual(type(HasTraits), MetaHasTraits)
 
         class A(HasTraits):
             a = Int
 
         a = A()
-        self.assertEquals(type(a.__class__), MetaHasTraits)
-        self.assertEquals(a.a,0)
+        self.assertEqual(type(a.__class__), MetaHasTraits)
+        self.assertEqual(a.a,0)
         a.a = 10
-        self.assertEquals(a.a,10)
+        self.assertEqual(a.a,10)
 
         class B(HasTraits):
             b = Int()
 
         b = B()
-        self.assertEquals(b.b,0)
+        self.assertEqual(b.b,0)
         b.b = 10
-        self.assertEquals(b.b,10)
+        self.assertEqual(b.b,10)
 
         class C(HasTraits):
             c = Int(30)
 
         c = C()
-        self.assertEquals(c.c,30)
+        self.assertEqual(c.c,30)
         c.c = 10
-        self.assertEquals(c.c,10)
+        self.assertEqual(c.c,10)
 
     def test_this_class(self):
         class A(HasTraits):
@@ -207,10 +207,10 @@ class TestHasTraitsMeta(TestCase):
         class B(A):
             tt = This()
             ttt = This()
-        self.assertEquals(A.t.this_class, A)
-        self.assertEquals(B.t.this_class, A)
-        self.assertEquals(B.tt.this_class, B)
-        self.assertEquals(B.ttt.this_class, B)
+        self.assertEqual(A.t.this_class, A)
+        self.assertEqual(B.t.this_class, A)
+        self.assertEqual(B.tt.this_class, B)
+        self.assertEqual(B.ttt.this_class, B)
 
 class TestHasTraitsNotify(TestCase):
 
@@ -233,20 +233,20 @@ class TestHasTraitsNotify(TestCase):
         a = A()
         a.on_trait_change(self.notify1)
         a.a = 0
-        self.assertEquals(len(self._notify1),0)
+        self.assertEqual(len(self._notify1),0)
         a.b = 0.0
-        self.assertEquals(len(self._notify1),0)
+        self.assertEqual(len(self._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in self._notify1)
+        self.assertTrue(('a',0,10) in self._notify1)
         a.b = 10.0
-        self.assert_(('b',0.0,10.0) in self._notify1)
+        self.assertTrue(('b',0.0,10.0) in self._notify1)
         self.assertRaises(TraitError,setattr,a,'a','bad string')
         self.assertRaises(TraitError,setattr,a,'b','bad string')
         self._notify1 = []
         a.on_trait_change(self.notify1,remove=True)
         a.a = 20
         a.b = 20.0
-        self.assertEquals(len(self._notify1),0)
+        self.assertEqual(len(self._notify1),0)
 
     def test_notify_one(self):
 
@@ -257,9 +257,9 @@ class TestHasTraitsNotify(TestCase):
         a = A()
         a.on_trait_change(self.notify1, 'a')
         a.a = 0
-        self.assertEquals(len(self._notify1),0)
+        self.assertEqual(len(self._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in self._notify1)
+        self.assertTrue(('a',0,10) in self._notify1)
         self.assertRaises(TraitError,setattr,a,'a','bad string')
 
     def test_subclass(self):
@@ -271,12 +271,12 @@ class TestHasTraitsNotify(TestCase):
             b = Float
 
         b = B()
-        self.assertEquals(b.a,0)
-        self.assertEquals(b.b,0.0)
+        self.assertEqual(b.a,0)
+        self.assertEqual(b.b,0.0)
         b.a = 100
         b.b = 100.0
-        self.assertEquals(b.a,100)
-        self.assertEquals(b.b,100.0)
+        self.assertEqual(b.a,100)
+        self.assertEqual(b.b,100.0)
 
     def test_notify_subclass(self):
 
@@ -291,12 +291,12 @@ class TestHasTraitsNotify(TestCase):
         b.on_trait_change(self.notify2, 'b')
         b.a = 0
         b.b = 0.0
-        self.assertEquals(len(self._notify1),0)
-        self.assertEquals(len(self._notify2),0)
+        self.assertEqual(len(self._notify1),0)
+        self.assertEqual(len(self._notify2),0)
         b.a = 10
         b.b = 10.0
-        self.assert_(('a',0,10) in self._notify1)
-        self.assert_(('b',0.0,10.0) in self._notify2)
+        self.assertTrue(('a',0,10) in self._notify1)
+        self.assertTrue(('b',0.0,10.0) in self._notify2)
 
     def test_static_notify(self):
 
@@ -309,9 +309,9 @@ class TestHasTraitsNotify(TestCase):
         a = A()
         a.a = 0
         # This is broken!!!
-        self.assertEquals(len(a._notify1),0)
+        self.assertEqual(len(a._notify1),0)
         a.a = 10
-        self.assert_(('a',0,10) in a._notify1)
+        self.assertTrue(('a',0,10) in a._notify1)
 
         class B(A):
             b = Float
@@ -322,8 +322,8 @@ class TestHasTraitsNotify(TestCase):
         b = B()
         b.a = 10
         b.b = 10.0
-        self.assert_(('a',0,10) in b._notify1)
-        self.assert_(('b',0.0,10.0) in b._notify2)
+        self.assertTrue(('a',0,10) in b._notify1)
+        self.assertTrue(('b',0.0,10.0) in b._notify2)
 
     def test_notify_args(self):
 
@@ -342,25 +342,25 @@ class TestHasTraitsNotify(TestCase):
         a = A()
         a.on_trait_change(callback0, 'a')
         a.a = 10
-        self.assertEquals(self.cb,())
+        self.assertEqual(self.cb,())
         a.on_trait_change(callback0, 'a', remove=True)
 
         a.on_trait_change(callback1, 'a')
         a.a = 100
-        self.assertEquals(self.cb,('a',))
+        self.assertEqual(self.cb,('a',))
         a.on_trait_change(callback1, 'a', remove=True)
 
         a.on_trait_change(callback2, 'a')
         a.a = 1000
-        self.assertEquals(self.cb,('a',1000))
+        self.assertEqual(self.cb,('a',1000))
         a.on_trait_change(callback2, 'a', remove=True)
 
         a.on_trait_change(callback3, 'a')
         a.a = 10000
-        self.assertEquals(self.cb,('a',1000,10000))
+        self.assertEqual(self.cb,('a',1000,10000))
         a.on_trait_change(callback3, 'a', remove=True)
 
-        self.assertEquals(len(a._trait_notifiers['a']),0)
+        self.assertEqual(len(a._trait_notifiers['a']),0)
 
 
 class TestHasTraits(TestCase):
@@ -370,22 +370,22 @@ class TestHasTraits(TestCase):
             i = Int
             f = Float
         a = A()
-        self.assertEquals(sorted(a.trait_names()),['f','i'])
-        self.assertEquals(sorted(A.class_trait_names()),['f','i'])
+        self.assertEqual(sorted(a.trait_names()),['f','i'])
+        self.assertEqual(sorted(A.class_trait_names()),['f','i'])
 
     def test_trait_metadata(self):
         class A(HasTraits):
             i = Int(config_key='MY_VALUE')
         a = A()
-        self.assertEquals(a.trait_metadata('i','config_key'), 'MY_VALUE')
+        self.assertEqual(a.trait_metadata('i','config_key'), 'MY_VALUE')
 
     def test_traits(self):
         class A(HasTraits):
             i = Int
             f = Float
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, f=A.f))
-        self.assertEquals(A.class_traits(), dict(i=A.i, f=A.f))
+        self.assertEqual(a.traits(), dict(i=A.i, f=A.f))
+        self.assertEqual(A.class_traits(), dict(i=A.i, f=A.f))
 
     def test_traits_metadata(self):
         class A(HasTraits):
@@ -393,22 +393,22 @@ class TestHasTraits(TestCase):
             f = Float(config_key='VALUE3', other_thing='VALUE2')
             j = Int(0)
         a = A()
-        self.assertEquals(a.traits(), dict(i=A.i, f=A.f, j=A.j))
+        self.assertEqual(a.traits(), dict(i=A.i, f=A.f, j=A.j))
         traits = a.traits(config_key='VALUE1', other_thing='VALUE2')
-        self.assertEquals(traits, dict(i=A.i))
+        self.assertEqual(traits, dict(i=A.i))
 
         # This passes, but it shouldn't because I am replicating a bug in
         # traits.
         traits = a.traits(config_key=lambda v: True)
-        self.assertEquals(traits, dict(i=A.i, f=A.f, j=A.j))
+        self.assertEqual(traits, dict(i=A.i, f=A.f, j=A.j))
 
     def test_init(self):
         class A(HasTraits):
             i = Int()
             x = Float()
         a = A(i=1, x=10.0)
-        self.assertEquals(a.i, 1)
-        self.assertEquals(a.x, 10.0)
+        self.assertEqual(a.i, 1)
+        self.assertEqual(a.x, 10.0)
 
 #-----------------------------------------------------------------------------
 # Tests for specific trait types
@@ -424,10 +424,10 @@ class TestType(TestCase):
             klass = Type
 
         a = A()
-        self.assertEquals(a.klass, None)
+        self.assertEqual(a.klass, None)
 
         a.klass = B
-        self.assertEquals(a.klass, B)
+        self.assertEqual(a.klass, B)
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
     def test_value(self):
@@ -438,7 +438,7 @@ class TestType(TestCase):
             klass = Type(B)
 
         a = A()
-        self.assertEquals(a.klass, B)
+        self.assertEqual(a.klass, B)
         self.assertRaises(TraitError, setattr, a, 'klass', C)
         self.assertRaises(TraitError, setattr, a, 'klass', object)
         a.klass = B
@@ -451,10 +451,10 @@ class TestType(TestCase):
             klass = Type(B, allow_none=False)
 
         a = A()
-        self.assertEquals(a.klass, B)
+        self.assertEqual(a.klass, B)
         self.assertRaises(TraitError, setattr, a, 'klass', None)
         a.klass = C
-        self.assertEquals(a.klass, C)
+        self.assertEqual(a.klass, C)
 
     def test_validate_klass(self):
 
@@ -489,7 +489,7 @@ class TestType(TestCase):
         from IPython.utils.ipstruct import Struct
         a = A()
         a.klass = Struct
-        self.assertEquals(a.klass, Struct)
+        self.assertEqual(a.klass, Struct)
 
         self.assertRaises(TraitError, setattr, a, 'klass', 10)
 
@@ -504,11 +504,11 @@ class TestInstance(TestCase):
             inst = Instance(Foo)
 
         a = A()
-        self.assert_(a.inst is None)
+        self.assertTrue(a.inst is None)
         a.inst = Foo()
-        self.assert_(isinstance(a.inst, Foo))
+        self.assertTrue(isinstance(a.inst, Foo))
         a.inst = Bar()
-        self.assert_(isinstance(a.inst, Foo))
+        self.assertTrue(isinstance(a.inst, Foo))
         self.assertRaises(TraitError, setattr, a, 'inst', Foo)
         self.assertRaises(TraitError, setattr, a, 'inst', Bar)
         self.assertRaises(TraitError, setattr, a, 'inst', Bah())
@@ -520,7 +520,7 @@ class TestInstance(TestCase):
 
         a = A()
         b = A()
-        self.assert_(a.inst is not b.inst)
+        self.assertTrue(a.inst is not b.inst)
 
     def test_args_kw(self):
         class Foo(object):
@@ -533,18 +533,18 @@ class TestInstance(TestCase):
         class A(HasTraits):
             inst = Instance(Foo, (10,))
         a = A()
-        self.assertEquals(a.inst.c, 10)
+        self.assertEqual(a.inst.c, 10)
 
         class B(HasTraits):
             inst = Instance(Bah, args=(10,), kw=dict(d=20))
         b = B()
-        self.assertEquals(b.inst.c, 10)
-        self.assertEquals(b.inst.d, 20)
+        self.assertEqual(b.inst.c, 10)
+        self.assertEqual(b.inst.d, 20)
 
         class C(HasTraits):
             inst = Instance(Foo)
         c = C()
-        self.assert_(c.inst is None)
+        self.assertTrue(c.inst is None)
 
     def test_bad_default(self):
         class Foo(object): pass
@@ -571,10 +571,10 @@ class TestThis(TestCase):
             this = This
 
         f = Foo()
-        self.assertEquals(f.this, None)
+        self.assertEqual(f.this, None)
         g = Foo()
         f.this = g
-        self.assertEquals(f.this, g)
+        self.assertEqual(f.this, g)
         self.assertRaises(TraitError, setattr, f, 'this', 10)
 
     def test_this_inst(self):
@@ -583,7 +583,7 @@ class TestThis(TestCase):
 
         f = Foo()
         f.this = Foo()
-        self.assert_(isinstance(f.this, Foo))
+        self.assertTrue(isinstance(f.this, Foo))
 
     def test_subclass(self):
         class Foo(HasTraits):
@@ -594,8 +594,8 @@ class TestThis(TestCase):
         b = Bar()
         f.t = b
         b.t = f
-        self.assertEquals(f.t, b)
-        self.assertEquals(b.t, f)
+        self.assertEqual(f.t, b)
+        self.assertEqual(b.t, f)
 
     def test_subclass_override(self):
         class Foo(HasTraits):
@@ -605,7 +605,7 @@ class TestThis(TestCase):
         f = Foo()
         b = Bar()
         f.t = b
-        self.assertEquals(f.t, b)
+        self.assertEqual(f.t, b)
         self.assertRaises(TraitError, setattr, b, 't', f)
 
 class TraitTestBase(TestCase):
@@ -621,7 +621,7 @@ class TraitTestBase(TestCase):
         if hasattr(self, '_good_values'):
             for value in self._good_values:
                 self.assign(value)
-                self.assertEquals(self.obj.value, self.coerce(value))
+                self.assertEqual(self.obj.value, self.coerce(value))
 
     def test_bad_values(self):
         if hasattr(self, '_bad_values'):
@@ -633,7 +633,7 @@ class TraitTestBase(TestCase):
 
     def test_default_value(self):
         if hasattr(self, '_default_value'):
-            self.assertEquals(self._default_value, self.obj.value)
+            self.assertEqual(self._default_value, self.obj.value)
 
     def tearDown(self):
         # restore default value after tests, if set
@@ -692,7 +692,7 @@ class TestLong(TraitTestBase):
     def test_cast_small(self):
         """Long casts ints to long"""
         self.obj.value = 10
-        self.assertEquals(type(self.obj.value), long)
+        self.assertEqual(type(self.obj.value), long)
 
 
 class IntegerTrait(HasTraits):
@@ -712,7 +712,7 @@ class TestInteger(TestLong):
             raise SkipTest("not relevant on py3")
 
         self.obj.value = 100L
-        self.assertEquals(type(self.obj.value), int)
+        self.assertEqual(type(self.obj.value), int)
 
 
 class FloatTrait(HasTraits):

@@ -166,4 +166,4 @@ def test_handlers():
         ])
     ip.magic('autocall 1')
 
-    nt.assert_equals(failures, [])
+    nt.assert_equal(failures, [])

@@ -48,9 +48,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         v.block=True
 
         ip.magic('px a=5')
-        self.assertEquals(v['a'], [5])
+        self.assertEqual(v['a'], [5])
         ip.magic('px a=10')
-        self.assertEquals(v['a'], [10])
+        self.assertEqual(v['a'], [10])
         # just 'print a' works ~99% of the time, but this ensures that
         # the stdout message has arrived when the result is finished:
         with capture_output() as io:
@@ -72,7 +72,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         
         self.assertFalse('\n\n' in stderr, stderr)
         lines = stderr.splitlines()
-        self.assertEquals(len(lines), len(expected), stderr)
+        self.assertEqual(len(lines), len(expected), stderr)
         for line,expect in zip(lines, expected):
             if isinstance(expect, str):
                 expect = [expect]
@@ -128,7 +128,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             r'Out\[\d+:\d+\]:.*IPython\.core\.display\.Math',
             ] * len(v)
         
-        self.assertEquals(len(lines), len(expected), io.stdout)
+        self.assertEqual(len(lines), len(expected), io.stdout)
         for line,expect in zip(lines, expected):
             if isinstance(expect, str):
                 expect = [expect]
@@ -170,7 +170,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             r'Out\[\d+:\d+\]:.*IPython\.core\.display\.Math'
         ] * len(v))
         
-        self.assertEquals(len(lines), len(expected), io.stdout)
+        self.assertEqual(len(lines), len(expected), io.stdout)
         for line,expect in zip(lines, expected):
             if isinstance(expect, str):
                 expect = [expect]
@@ -209,7 +209,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
             (r'Out\[\d+:\d+\]', r'IPython\.core\.display\.Math')
         ] * len(v))
         
-        self.assertEquals(len(lines), len(expected), io.stdout)
+        self.assertEqual(len(lines), len(expected), io.stdout)
         for line,expect in zip(lines, expected):
             if isinstance(expect, str):
                 expect = [expect]
@@ -226,9 +226,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         v.block=False
 
         ip.magic('px a=5')
-        self.assertEquals(v['a'], [5])
+        self.assertEqual(v['a'], [5])
         ip.magic('px a=10')
-        self.assertEquals(v['a'], [10])
+        self.assertEqual(v['a'], [10])
         ip.magic('pxconfig --verbose')
         with capture_output() as io:
             ar = ip.magic('px print (a)')
@@ -263,8 +263,8 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertTrue('\nOut[' in output, output)
         self.assertTrue(': 24690' in output, output)
         ar = v.get_result(-1)
-        self.assertEquals(v['a'], 5)
-        self.assertEquals(v['b'], 24690)
+        self.assertEqual(v['a'], 5)
+        self.assertEqual(v['b'], 24690)
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
 
     def test_autopx_nonblocking(self):
@@ -291,9 +291,9 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         self.assertRaisesRemote(ZeroDivisionError, ar.get)
         # prevent TaskAborted on pulls, due to ZeroDivisionError
         time.sleep(0.5)
-        self.assertEquals(v['a'], 5)
+        self.assertEqual(v['a'], 5)
         # b*=2 will not fire, due to abort
-        self.assertEquals(v['b'], 10)
+        self.assertEqual(v['b'], 10)
     
     def test_result(self):
         ip = get_ipython()
@@ -335,26 +335,26 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         ip = get_ipython()
         rc = self.client
         v = rc.activate(-1, '_tst')
-        self.assertEquals(v.targets, rc.ids[-1])
+        self.assertEqual(v.targets, rc.ids[-1])
         ip.magic("%pxconfig_tst -t :")
-        self.assertEquals(v.targets, rc.ids)
+        self.assertEqual(v.targets, rc.ids)
         ip.magic("%pxconfig_tst -t ::2")
-        self.assertEquals(v.targets, rc.ids[::2])
+        self.assertEqual(v.targets, rc.ids[::2])
         ip.magic("%pxconfig_tst -t 1::2")
-        self.assertEquals(v.targets, rc.ids[1::2])
+        self.assertEqual(v.targets, rc.ids[1::2])
         ip.magic("%pxconfig_tst -t 1")
-        self.assertEquals(v.targets, 1)
+        self.assertEqual(v.targets, 1)
         ip.magic("%pxconfig_tst --block")
-        self.assertEquals(v.block, True)
+        self.assertEqual(v.block, True)
         ip.magic("%pxconfig_tst --noblock")
-        self.assertEquals(v.block, False)
+        self.assertEqual(v.block, False)
     
     def test_cellpx_targets(self):
         """%%px --targets doesn't change defaults"""
         ip = get_ipython()
         rc = self.client
         view = rc.activate(rc.ids)
-        self.assertEquals(view.targets, rc.ids)
+        self.assertEqual(view.targets, rc.ids)
         ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
             with capture_output() as io:
@@ -363,7 +363,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
                 except pmod.RemoteError:
                     pass
             self.assertTrue('engine(s): all' in io.stdout)
-            self.assertEquals(view.targets, rc.ids)
+            self.assertEqual(view.targets, rc.ids)
 
 
     def test_cellpx_block(self):
@@ -372,7 +372,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         rc = self.client
         view = rc.activate(rc.ids)
         view.block = False
-        self.assertEquals(view.targets, rc.ids)
+        self.assertEqual(view.targets, rc.ids)
         ip.magic('pxconfig --verbose')
         for cell in ("pass", "1/0"):
             with capture_output() as io:

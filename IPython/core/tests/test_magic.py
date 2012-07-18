@@ -74,7 +74,7 @@ def test_magic_parse_options():
         expected = 'c:x'
     else:
         expected = path
-    nt.assert_equals(opts['f'], expected)
+    nt.assert_equal(opts['f'], expected)
 
 def test_magic_parse_long_options():
     """Magic.parse_options can handle --foo=bar long options"""
@@ -280,7 +280,7 @@ def test_tb_syntaxerror():
         sys.stdout = save_stdout
     # trim output, and only check the last line
     last_line = out.rstrip().splitlines()[-1].strip()
-    nt.assert_equals(last_line, "SyntaxError: invalid syntax")
+    nt.assert_equal(last_line, "SyntaxError: invalid syntax")
 
 
 @py3compat.doctest_refactor_print
@@ -484,7 +484,7 @@ def test_extension():
         _ip.user_ns.pop('arq', None)
         invalidate_caches()   # Clear import caches
         _ip.magic("load_ext daft_extension")
-        tt.assert_equal(_ip.user_ns['arq'], 185)
+        nt.assert_equal(_ip.user_ns['arq'], 185)
         _ip.magic("unload_ext daft_extension")
         assert 'arq' not in _ip.user_ns
     finally:
@@ -532,10 +532,10 @@ class CellMagicTestCase(TestCase):
     def check_ident(self, magic):
         # Manually called, we get the result
         out = _ip.run_cell_magic(magic, 'a', 'b')
-        nt.assert_equals(out, ('a','b'))
+        nt.assert_equal(out, ('a','b'))
         # Via run_cell, it goes into the user's namespace via displayhook
         _ip.run_cell('%%' + magic +' c\nd')
-        nt.assert_equals(_ip.user_ns['_'], ('c','d'))
+        nt.assert_equal(_ip.user_ns['_'], ('c','d'))
 
     def test_cell_magic_func_deco(self):
         "Cell magic using simple decorator"
@@ -578,7 +578,7 @@ class CellMagicTestCase(TestCase):
         self.check_ident('cellm4')
         # Check that nothing is registered as 'cellm33'
         c33 = _ip.find_cell_magic('cellm33')
-        nt.assert_equals(c33, None)
+        nt.assert_equal(c33, None)
 
 def test_file():
     """Basic %%file"""
@@ -637,39 +637,39 @@ def test_script_config():
 def test_script_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--out output sh", "echo 'hi'")
-    nt.assert_equals(ip.user_ns['output'], 'hi\n')
+    nt.assert_equal(ip.user_ns['output'], 'hi\n')
 
 @dec.skip_win32
 def test_script_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--err error sh", "echo 'hello' >&2")
-    nt.assert_equals(ip.user_ns['error'], 'hello\n')
+    nt.assert_equal(ip.user_ns['error'], 'hello\n')
 
 @dec.skip_win32
 def test_script_out_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--out output --err error sh", "echo 'hi'\necho 'hello' >&2")
-    nt.assert_equals(ip.user_ns['output'], 'hi\n')
-    nt.assert_equals(ip.user_ns['error'], 'hello\n')
+    nt.assert_equal(ip.user_ns['output'], 'hi\n')
+    nt.assert_equal(ip.user_ns['error'], 'hello\n')
 
 @dec.skip_win32
 def test_script_bg_out():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output sh", "echo 'hi'")
-    nt.assert_equals(ip.user_ns['output'].read(), b'hi\n')
+    nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
 
 @dec.skip_win32
 def test_script_bg_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --err error sh", "echo 'hello' >&2")
-    nt.assert_equals(ip.user_ns['error'].read(), b'hello\n')
+    nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
 
 @dec.skip_win32
 def test_script_bg_out_err():
     ip = get_ipython()
     ip.run_cell_magic("script", "--bg --out output --err error sh", "echo 'hi'\necho 'hello' >&2")
-    nt.assert_equals(ip.user_ns['output'].read(), b'hi\n')
-    nt.assert_equals(ip.user_ns['error'].read(), b'hello\n')
+    nt.assert_equal(ip.user_ns['output'].read(), b'hi\n')
+    nt.assert_equal(ip.user_ns['error'].read(), b'hello\n')
 
 def test_script_defaults():
     ip = get_ipython()
@@ -706,12 +706,12 @@ def test_line_cell_info():
     oinfo = ip.object_inspect('%%foo')
     nt.assert_true(oinfo['found'])
     nt.assert_true(oinfo['ismagic'])
-    nt.assert_equals(oinfo['docstring'], FooFoo.cell_foo.__doc__)
+    nt.assert_equal(oinfo['docstring'], FooFoo.cell_foo.__doc__)
 
     oinfo = ip.object_inspect('%foo')
     nt.assert_true(oinfo['found'])
     nt.assert_true(oinfo['ismagic'])
-    nt.assert_equals(oinfo['docstring'], FooFoo.line_foo.__doc__)
+    nt.assert_equal(oinfo['docstring'], FooFoo.line_foo.__doc__)
 
 def test_multiple_magics():
     ip = get_ipython()

@@ -36,7 +36,7 @@ class TestPy(formattest.NBFormatTest, TestCase):
                 # newlines in blocks through roundtrip
                 da = da.strip('\n')
                 db = db.strip('\n')
-            self.assertEquals(da, db)
+            self.assertEqual(da, db)
         return True
     
     def assertNBEquals(self, nba, nbb):
