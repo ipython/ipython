@@ -53,10 +53,13 @@ from IPython.utils.warn import warn, error
 def globlist(args):
     """
     Do glob expansion for each element in `args` and return a flattened list.
+
+    Unmatched glob pattern will remain as-is in the returned list.
+
     """
     expanded = []
     for a in args:
-        expanded.extend(glob(a))
+        expanded.extend(glob(a) or [a])
     return expanded
 
 
