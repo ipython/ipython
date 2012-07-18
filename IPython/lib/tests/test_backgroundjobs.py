@@ -52,7 +52,7 @@ def test_result():
     jobs = bg.BackgroundJobManager()
     j = jobs.new(sleeper)
     j.join()
-    nt.assert_equals(j.result['interval'], t_short)
+    nt.assert_equal(j.result['interval'], t_short)
     
 
 def test_flush():
@@ -60,10 +60,10 @@ def test_flush():
     jobs = bg.BackgroundJobManager()
     j = jobs.new(sleeper)
     j.join()
-    nt.assert_equals(len(jobs.completed), 1)
-    nt.assert_equals(len(jobs.dead), 0)
+    nt.assert_equal(len(jobs.completed), 1)
+    nt.assert_equal(len(jobs.dead), 0)
     jobs.flush()
-    nt.assert_equals(len(jobs.completed), 0)
+    nt.assert_equal(len(jobs.completed), 0)
     
 
 def test_dead():
@@ -71,10 +71,10 @@ def test_dead():
     jobs = bg.BackgroundJobManager()
     j = jobs.new(crasher)
     j.join()
-    nt.assert_equals(len(jobs.completed), 0)
-    nt.assert_equals(len(jobs.dead), 1)
+    nt.assert_equal(len(jobs.completed), 0)
+    nt.assert_equal(len(jobs.dead), 1)
     jobs.flush()    
-    nt.assert_equals(len(jobs.dead), 0)
+    nt.assert_equal(len(jobs.dead), 0)
 
 
 def test_longer():
@@ -84,8 +84,8 @@ def test_longer():
     # job as running, but not so long that it makes the test suite noticeably
     # slower. 
     j = jobs.new(sleeper, 0.1)
-    nt.assert_equals(len(jobs.running), 1)
-    nt.assert_equals(len(jobs.completed), 0)
+    nt.assert_equal(len(jobs.running), 1)
+    nt.assert_equal(len(jobs.completed), 0)
     j.join()
-    nt.assert_equals(len(jobs.running), 0)
-    nt.assert_equals(len(jobs.completed), 1)
+    nt.assert_equal(len(jobs.running), 0)
+    nt.assert_equal(len(jobs.completed), 1)

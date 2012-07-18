@@ -33,12 +33,12 @@ class NBFormatTest:
         shutil.rmtree(self.wd)
     
     def assertNBEquals(self, nba, nbb):
-        self.assertEquals(nba, nbb)
+        self.assertEqual(nba, nbb)
         
     def test_writes(self):
         s = self.mod.writes(nb0)
         if self.nb0_ref:
-            self.assertEquals(s, self.nb0_ref)
+            self.assertEqual(s, self.nb0_ref)
 
     def test_reads(self):
         s = self.mod.writes(nb0)

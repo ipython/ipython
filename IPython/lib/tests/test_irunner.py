@@ -55,8 +55,8 @@ class RunnerTestCase(unittest.TestCase):
                     print(repr(ol1))
                     print(repr(ol2))
                     print('>>>')
-        self.assert_(mismatch==0,'Number of mismatched lines: %s' %
-                     mismatch)
+        self.assertTrue(mismatch==0,'Number of mismatched lines: %s' %
+                        mismatch)
 
     def testIPython(self):
         """Test the IPython runner."""

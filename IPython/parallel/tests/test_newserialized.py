@@ -60,7 +60,7 @@ class CanningTestCase(TestCase):
         s = ns.serialize(us)
         uus = ns.unserialize(s)
         self.assertTrue(isinstance(s, ns.SerializeIt))
-        self.assertEquals(uus, us)
+        self.assertEqual(uus, us)
 
     def test_pickle_serialized(self):
         obj = {'a':1.45345, 'b':'asdfsdf', 'c':10000L}
@@ -69,16 +69,16 @@ class CanningTestCase(TestCase):
         firstData = originalSer.getData()
         firstTD = originalSer.getTypeDescriptor()
         firstMD = originalSer.getMetadata()
-        self.assertEquals(firstTD, 'pickle')
-        self.assertEquals(firstMD, {})
+        self.assertEqual(firstTD, 'pickle')
+        self.assertEqual(firstMD, {})
         unSerialized = ns.UnSerializeIt(originalSer)
         secondObj = unSerialized.getObject()
         for k, v in secondObj.iteritems():
-            self.assertEquals(obj[k], v)
+            self.assertEqual(obj[k], v)
         secondSer = ns.SerializeIt(ns.UnSerialized(secondObj))
-        self.assertEquals(firstData, secondSer.getData())
-        self.assertEquals(firstTD, secondSer.getTypeDescriptor() )
-        self.assertEquals(firstMD, secondSer.getMetadata())
+        self.assertEqual(firstData, secondSer.getData())
+        self.assertEqual(firstTD, secondSer.getTypeDescriptor() )
+        self.assertEqual(firstMD, secondSer.getMetadata())
     
     @skip_without('numpy')
     def test_ndarray_serialized(self):
@@ -87,18 +87,18 @@ class CanningTestCase(TestCase):
         unSer1 = ns.UnSerialized(a)
         ser1 = ns.SerializeIt(unSer1)
         td = ser1.getTypeDescriptor()
-        self.assertEquals(td, 'ndarray')
+        self.assertEqual(td, 'ndarray')
         md = ser1.getMetadata()
-        self.assertEquals(md['shape'], a.shape)
-        self.assertEquals(md['dtype'], a.dtype)
+        self.assertEqual(md['shape'], a.shape)
+        self.assertEqual(md['dtype'], a.dtype)
         buff = ser1.getData()
-        self.assertEquals(buff, buffer(a))
+        self.assertEqual(buff, buffer(a))
         s = ns.Serialized(buff, td, md)
         final = ns.unserialize(s)
-        self.assertEquals(buffer(a), buffer(final))
+        self.assertEqual(buffer(a), buffer(final))
         self.assertTrue((a==final).all())
-        self.assertEquals(a.dtype, final.dtype)
-        self.assertEquals(a.shape, final.shape)
+        self.assertEqual(a.dtype, final.dtype)
+        self.assertEqual(a.shape, final.shape)
         # test non-copying:
         a[2] = 1e9
         self.assertTrue((a==final).all())

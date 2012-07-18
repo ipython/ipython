@@ -59,10 +59,10 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
                                                     hlen_b4_cell)
 
-        self.assertEquals(ip.readline.get_current_history_length(),
+        self.assertEqual(ip.readline.get_current_history_length(),
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
-        self.assertEquals(hist, ghist)
+        self.assertEqual(hist, ghist)
 
     @skipif(not get_ipython().has_readline, 'no readline')
     @skipif(not hasattr(get_ipython().readline, 'remove_history_item'),
@@ -74,7 +74,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip.readline.get_current_history_length()
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€', hlen_b4_cell)
 
-        self.assertEquals(hlen_b4_cell,
+        self.assertEqual(hlen_b4_cell,
                           ip.readline.get_current_history_length())
 
     @skipif(not get_ipython().has_readline, 'no readline')
@@ -95,10 +95,10 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip._replace_rlhist_multiline(u'sourc€\nsource2',
                                                     hlen_b4_cell)
 
-        self.assertEquals(ip.readline.get_current_history_length(),
+        self.assertEqual(ip.readline.get_current_history_length(),
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 2)
-        self.assertEquals(hist, ghist)
+        self.assertEqual(hist, ghist)
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
@@ -123,14 +123,14 @@ class InteractiveShellTestCase(unittest.TestCase):
         hlen_b4_cell = ip._replace_rlhist_multiline(u'l€ne3\nline4',
                                                     hlen_b4_cell)
 
-        self.assertEquals(ip.readline.get_current_history_length(),
+        self.assertEqual(ip.readline.get_current_history_length(),
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 3)
         expected = [u'line0', u'l€ne1\nline2', u'l€ne3\nline4']
         # perform encoding, in case of casting due to ASCII locale
         enc = sys.stdin.encoding or "utf-8"
         expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
-        self.assertEquals(hist, expected)
+        self.assertEqual(hist, expected)
 
 
     @skipif(not get_ipython().has_readline, 'no readline')
@@ -160,7 +160,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.readline.add_history('line4')
         hlen_b4_cell = ip._replace_rlhist_multiline(u'line4', hlen_b4_cell)
 
-        self.assertEquals(ip.readline.get_current_history_length(),
+        self.assertEqual(ip.readline.get_current_history_length(),
                           hlen_b4_cell)
         hist = self.rl_hist_entries(ip.readline, 4)
         # expect no empty cells in history
@@ -168,4 +168,4 @@ class InteractiveShellTestCase(unittest.TestCase):
         # perform encoding, in case of casting due to ASCII locale
         enc = sys.stdin.encoding or "utf-8"
         expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
-        self.assertEquals(hist, expected)
+        self.assertEqual(hist, expected)

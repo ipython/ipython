@@ -75,20 +75,20 @@ class TestView(ClusterTestCase, ParametricTestCase):
         nengines = len(self.client)
         push({'data':data})
         d = pull('data')
-        self.assertEquals(d, data)
+        self.assertEqual(d, data)
         self.client[:].push({'data':data})
         d = self.client[:].pull('data', block=True)
-        self.assertEquals(d, nengines*[data])
+        self.assertEqual(d, nengines*[data])
         ar = push({'data':data}, block=False)
         self.assertTrue(isinstance(ar, AsyncResult))
         r = ar.get()
         ar = self.client[:].pull('data', block=False)
         self.assertTrue(isinstance(ar, AsyncResult))
         r = ar.get()
-        self.assertEquals(r, nengines*[data])
+        self.assertEqual(r, nengines*[data])
         self.client[:].push(dict(a=10,b=20))
         r = self.client[:].pull(('a','b'), block=True)
-        self.assertEquals(r, nengines*[[10,20]])
+        self.assertEqual(r, nengines*[[10,20]])
     
     def test_push_pull_function(self):
         "test pushing and pulling functions"
@@ -106,7 +106,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertEqual(r(1.0), testf(1.0))
         execute('r = testf(10)')
         r = pull('r')
-        self.assertEquals(r, testf(10))
+        self.assertEqual(r, testf(10))
         ar = self.client[:].push({'testf':testf}, block=False)
         ar.get()
         ar = self.client[:].pull('testf', block=False)
@@ -115,7 +115,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             self.assertEqual(r(1.0), testf(1.0))
         execute("def g(x): return x*x")
         r = pull(('testf','g'))
-        self.assertEquals((r[0](10),r[1](10)), (testf(10), 100))
+        self.assertEqual((r[0](10),r[1](10)), (testf(10), 100))
     
     def test_push_function_globals(self):
         """test that pushed functions have access to globals"""
@@ -129,7 +129,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertRaisesRemote(NameError, v.execute, 'b=f()')
         v.execute('a=5')
         v.execute('b=f()')
-        self.assertEquals(v['b'], 5)
+        self.assertEqual(v['b'], 5)
     
     def test_push_function_defaults(self):
         """test that pushed functions preserve default args"""
@@ -139,7 +139,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         v.block=True
         v['f'] = echo
         v.execute('b=f()')
-        self.assertEquals(v['b'], 10)
+        self.assertEqual(v['b'], 10)
 
     def test_get_result(self):
         """test getting results from the Hub."""
@@ -153,7 +153,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         time.sleep(.25)
         ahr = v2.get_result(ar.msg_ids)
         self.assertTrue(isinstance(ahr, AsyncHubResult))
-        self.assertEquals(ahr.get(), ar.get())
+        self.assertEqual(ahr.get(), ar.get())
         ar2 = v2.get_result(ar.msg_ids)
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.spin()
@@ -168,7 +168,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
                 """)
         v = self.client[-1]
         v.run(tmpfile, block=True)
-        self.assertEquals(v.apply_sync(lambda f: f(), pmod.Reference('g')), 5)
+        self.assertEqual(v.apply_sync(lambda f: f(), pmod.Reference('g')), 5)
 
     def test_apply_tracked(self):
         """test tracking for apply"""
@@ -184,7 +184,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertTrue(ar.sent)
         ar = echo(track=True)
         self.assertTrue(isinstance(ar._tracker, zmq.MessageTracker))
-        self.assertEquals(ar.sent, ar._tracker.done)
+        self.assertEqual(ar.sent, ar._tracker.done)
         ar._tracker.wait()
         self.assertTrue(ar.sent)
         
@@ -199,7 +199,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = v.push(ns, block=False, track=True)
         self.assertTrue(isinstance(ar._tracker, zmq.MessageTracker))
         ar._tracker.wait()
-        self.assertEquals(ar.sent, ar._tracker.done)
+        self.assertEqual(ar.sent, ar._tracker.done)
         self.assertTrue(ar.sent)
         ar.get()
         
@@ -212,7 +212,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         ar = self.client[t].scatter('x', x, block=False, track=True)
         self.assertTrue(isinstance(ar._tracker, zmq.MessageTracker))
-        self.assertEquals(ar.sent, ar._tracker.done)
+        self.assertEqual(ar.sent, ar._tracker.done)
         ar._tracker.wait()
         self.assertTrue(ar.sent)
         ar.get()
@@ -222,7 +222,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         v['a'] = 123
         ra = pmod.Reference('a')
         b = v.apply_sync(lambda x: x, ra)
-        self.assertEquals(b, 123)
+        self.assertEqual(b, 123)
 
 
     def test_scatter_gather(self):
@@ -230,7 +230,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         seq1 = range(16)
         view.scatter('a', seq1)
         seq2 = view.gather('a', block=True)
-        self.assertEquals(seq2, seq1)
+        self.assertEqual(seq2, seq1)
         self.assertRaisesRemote(NameError, view.gather, 'asdf', block=True)
     
     @skip_without('numpy')
@@ -249,7 +249,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         x = range(64)
         view.scatter('x', x)
         gathered = view.gather('x', block=True)
-        self.assertEquals(gathered, x)
+        self.assertEqual(gathered, x)
         
 
     @dec.known_failure_py3
@@ -301,10 +301,10 @@ class TestView(ClusterTestCase, ParametricTestCase):
         R2 = view['RR']
         
         r_dtype, r_shape = view.apply_sync(interactive(lambda : (RR.dtype, RR.shape)))
-        self.assertEquals(r_dtype, R.dtype)
-        self.assertEquals(r_shape, R.shape)
-        self.assertEquals(R2.dtype, R.dtype)
-        self.assertEquals(R2.shape, R.shape)
+        self.assertEqual(r_dtype, R.dtype)
+        self.assertEqual(r_shape, R.shape)
+        self.assertEqual(R2.dtype, R.dtype)
+        self.assertEqual(R2.shape, R.shape)
         assert_array_equal(R2, R)
     
     def test_map(self):
@@ -313,7 +313,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             return x**2
         data = range(16)
         r = view.map_sync(f, data)
-        self.assertEquals(r, map(f, data))
+        self.assertEqual(r, map(f, data))
     
     def test_map_iterable(self):
         """test map on iterables (direct)"""
@@ -323,14 +323,14 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # ensure it will be an iterator, even in Python 3
         it = iter(arr)
         r = view.map_sync(lambda x:x, arr)
-        self.assertEquals(r, list(arr))
+        self.assertEqual(r, list(arr))
     
     def test_scatterGatherNonblocking(self):
         data = range(16)
         view = self.client[:]
         view.scatter('a', data, block=False)
         ar = view.gather('a', block=False)
-        self.assertEquals(ar.get(), data)
+        self.assertEqual(ar.get(), data)
     
     @skip_without('numpy')
     def test_scatter_gather_numpy_nonblocking(self):
@@ -352,9 +352,9 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertTrue(isinstance(ar, AsyncResult))
         ar = execute('d=[0,1,2]', block=False)
         self.client.wait(ar, 1)
-        self.assertEquals(len(ar.get()), len(self.client))
+        self.assertEqual(len(ar.get()), len(self.client))
         for c in view['c']:
-            self.assertEquals(c, 30)
+            self.assertEqual(c, 30)
     
     def test_abort(self):
         view = self.client[-1]
@@ -396,7 +396,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             re = globals()['re']
             return re.findall(pat, s)
         
-        self.assertEquals(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
+        self.assertEqual(view.apply_sync(findall, '\w+', 'hello world'), 'hello world'.split())
     
     def test_unicode_execute(self):
         """test executing unicode strings"""
@@ -407,13 +407,13 @@ class TestView(ClusterTestCase, ParametricTestCase):
         else:
             code=u"a=u'é'"
         v.execute(code)
-        self.assertEquals(v['a'], u'é')
+        self.assertEqual(v['a'], u'é')
         
     def test_unicode_apply_result(self):
         """test unicode apply results"""
         v = self.client[-1]
         r = v.apply_sync(lambda : u'é')
-        self.assertEquals(r, u'é')
+        self.assertEqual(r, u'é')
     
     def test_unicode_apply_arg(self):
         """test passing unicode arguments to apply"""
@@ -444,7 +444,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         mlist = nlist[::-1]
         expected = [ m*n for m,n in zip(mlist, nlist) ]
         result = v.map_sync(rf, mlist, nlist)
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
 
     def test_apply_reference(self):
         """view.apply(<Reference>, *args) should work"""
@@ -454,14 +454,14 @@ class TestView(ClusterTestCase, ParametricTestCase):
         rf = pmod.Reference('f')
         result = v.apply_sync(rf, 5)
         expected = [ 5*id for id in self.client.ids ]
-        self.assertEquals(result, expected)
+        self.assertEqual(result, expected)
     
     def test_eval_reference(self):
         v = self.client[self.client.ids[0]]
         v['g'] = range(5)
         rg = pmod.Reference('g[0]')
         echo = lambda x:x
-        self.assertEquals(v.apply_sync(echo, rg), 0)
+        self.assertEqual(v.apply_sync(echo, rg), 0)
     
     def test_reference_nameerror(self):
         v = self.client[self.client.ids[0]]
@@ -474,22 +474,22 @@ class TestView(ClusterTestCase, ParametricTestCase):
         r = range(5)
         check = [ -1*i for i in r ]
         result = e0.map_sync(lambda x: -1*x, r)
-        self.assertEquals(result, check)
+        self.assertEqual(result, check)
     
     def test_len(self):
         """len(view) makes sense"""
         e0 = self.client[self.client.ids[0]]
-        yield self.assertEquals(len(e0), 1)
+        yield self.assertEqual(len(e0), 1)
         v = self.client[:]
-        yield self.assertEquals(len(v), len(self.client.ids))
+        yield self.assertEqual(len(v), len(self.client.ids))
         v = self.client.direct_view('all')
-        yield self.assertEquals(len(v), len(self.client.ids))
+        yield self.assertEqual(len(v), len(self.client.ids))
         v = self.client[:2]
-        yield self.assertEquals(len(v), 2)
+        yield self.assertEqual(len(v), 2)
         v = self.client[:1]
-        yield self.assertEquals(len(v), 1)
+        yield self.assertEqual(len(v), 1)
         v = self.client.load_balanced_view()
-        yield self.assertEquals(len(v), len(self.client.ids))
+        yield self.assertEqual(len(v), len(self.client.ids))
         # parametric tests seem to require manual closing?
         self.client.close()
 
@@ -501,15 +501,15 @@ class TestView(ClusterTestCase, ParametricTestCase):
         e0.block = True
         ar = e0.execute("5", silent=False)
         er = ar.get()
-        self.assertEquals(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
-        self.assertEquals(er.pyout['data']['text/plain'], '5')
+        self.assertEqual(str(er), "<ExecuteReply[%i]: 5>" % er.execution_count)
+        self.assertEqual(er.pyout['data']['text/plain'], '5')
 
     def test_execute_reply_stdout(self):
         e0 = self.client[self.client.ids[0]]
         e0.block = True
         ar = e0.execute("print (5)", silent=False)
         er = ar.get()
-        self.assertEquals(er.stdout.strip(), '5')
+        self.assertEqual(er.stdout.strip(), '5')
         
     def test_execute_pyout(self):
         """execute triggers pyout with silent=False"""
@@ -518,14 +518,14 @@ class TestView(ClusterTestCase, ParametricTestCase):
         
         expected = [{'text/plain' : '5'}] * len(view)
         mimes = [ out['data'] for out in ar.pyout ]
-        self.assertEquals(mimes, expected)
+        self.assertEqual(mimes, expected)
     
     def test_execute_silent(self):
         """execute does not trigger pyout with silent=True"""
         view = self.client[:]
         ar = view.execute("5", block=True)
         expected = [None] * len(view)
-        self.assertEquals(ar.pyout, expected)
+        self.assertEqual(ar.pyout, expected)
     
     def test_execute_magic(self):
         """execute accepts IPython commands"""
@@ -536,7 +536,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar.get(5)
         for stdout in ar.stdout:
             lines = stdout.splitlines()
-            self.assertEquals(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
+            self.assertEqual(lines[0].split(), ['Variable', 'Type', 'Data/Info'])
             found = False
             for line in lines[2:]:
                 split = line.split()
@@ -554,7 +554,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
-            self.assertEquals(mimes, expected)
+            self.assertEqual(mimes, expected)
     
     def test_apply_displaypub(self):
         """apply tracks display_pub output"""
@@ -570,7 +570,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         expected = [ {u'text/plain' : unicode(j)} for j in range(5) ]
         for outputs in ar.outputs:
             mimes = [ out['data'] for out in outputs ]
-            self.assertEquals(mimes, expected)
+            self.assertEqual(mimes, expected)
     
     def test_execute_raises(self):
         """exceptions in execute requests raise appropriately"""
@@ -588,7 +588,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         # include imports, in case user config
         ar = view.execute("plot(rand(100))", silent=False)
         reply = ar.get(5)
-        self.assertEquals(len(reply.outputs), 1)
+        self.assertEqual(len(reply.outputs), 1)
         output = reply.outputs[0]
         self.assertTrue("data" in output)
         data = output['data']

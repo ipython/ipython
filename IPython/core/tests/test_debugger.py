@@ -28,8 +28,8 @@ def test_longer_repr():
     a = '1234567890'* 7
     ar = "'1234567890123456789012345678901234567890123456789012345678901234567890'"
     a_trunc = "'123456789012...8901234567890'"
-    nt.assert_equals(trepr(a), a_trunc)
+    nt.assert_equal(trepr(a), a_trunc)
     # The creation of our tracer modifies the repr module's repr function
     # in-place, since that global is used directly by the stdlib's pdb module.
     t = debugger.Tracer()
-    nt.assert_equals(trepr(a), ar)
+    nt.assert_equal(trepr(a), ar)

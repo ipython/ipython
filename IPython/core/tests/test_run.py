@@ -132,7 +132,7 @@ class TestMagicRunPass(tt.TempFileMixin):
         bid1 = id(_ip.user_ns['__builtins__'])
         self.run_tmpfile()
         bid2 = id(_ip.user_ns['__builtins__'])
-        tt.assert_equals(bid1, bid2)
+        nt.assert_equal(bid1, bid2)
 
     def test_builtins_type(self):
         """Check that the type of __builtins__ doesn't change with %run.
@@ -143,14 +143,14 @@ class TestMagicRunPass(tt.TempFileMixin):
         """
         _ip = get_ipython()
         self.run_tmpfile()
-        tt.assert_equals(type(_ip.user_ns['__builtins__']),type(sys))
+        nt.assert_equal(type(_ip.user_ns['__builtins__']),type(sys))
 
     def test_prompts(self):
         """Test that prompts correctly generate after %run"""
         self.run_tmpfile()
         _ip = get_ipython()
         p2 = _ip.prompt_manager.render('in2').strip()
-        nt.assert_equals(p2[:3], '...')
+        nt.assert_equal(p2[:3], '...')
         
     def test_run_profile( self ):
         """Test that the option -p, which invokes the profiler, do not
@@ -206,7 +206,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
         self.mktmp(py3compat.doctest_refactor_print(src))
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
-        tt.assert_equals(_ip.user_ns['i'], 5)
+        nt.assert_equal(_ip.user_ns['i'], 5)
 
     @dec.skip_win32
     def test_tclass(self):
@@ -236,15 +236,15 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _ip.run_cell("zz = 23")
         _ip.magic('run -i %s' % self.fname)
-        tt.assert_equals(_ip.user_ns['yy'], 23)
+        nt.assert_equal(_ip.user_ns['yy'], 23)
         _ip.magic('reset -f')
         _ip.run_cell("zz = 23")
         _ip.magic('run -i %s' % self.fname)
-        tt.assert_equals(_ip.user_ns['yy'], 23)
+        nt.assert_equal(_ip.user_ns['yy'], 23)
     
     def test_unicode(self):
         """Check that files in odd encodings are accepted."""
         mydir = os.path.dirname(__file__)
         na = os.path.join(mydir, 'nonascii.py')
         _ip.magic('run "%s"' % na)
-        tt.assert_equals(_ip.user_ns['u'], u'Ўт№Ф')
+        nt.assert_equal(_ip.user_ns['u'], u'Ўт№Ф')
