@@ -2112,7 +2112,7 @@ class InteractiveShell(SingletonConfigurable):
             stack_depth = 2
             magic_arg_s = self.var_expand(line, stack_depth)
             with self.builtin_trap:
-                result = fn(line, cell)
+                result = fn(magic_arg_s, cell)
             return result
 
     def find_line_magic(self, magic_name):
