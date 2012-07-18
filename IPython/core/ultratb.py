@@ -1205,7 +1205,8 @@ class SyntaxTB(ListTB):
 #----------------------------------------------------------------------------
 # module testing (minimal)
 if __name__ == "__main__":
-    def spam(c, (d, e)):
+    def spam(c, d_e):
+        (d, e) = d_e
         x = c + d
         y = c * d
         foo(x, y)
