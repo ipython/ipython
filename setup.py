@@ -274,6 +274,7 @@ if 'setuptools' in sys.modules:
                 'lib2to3.fixes.fix_has_key',
                 'lib2to3.fixes.fix_next',
                 'lib2to3.fixes.fix_repr',
+                'lib2to3.fixes.fix_tuple_params',
                 ]
         from setuptools.command.build_py import build_py
         setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}

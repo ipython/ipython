@@ -204,10 +204,10 @@ class Parser:
             return (output, error)
         return (None, error)
 
-    def __call__(self, toktype, toktext, (srow,scol), (erow,ecol), line):
+    def __call__(self, toktype, toktext, start_pos, end_pos, line):
         """ Token handler, with syntax highlighting."""
-
-        # local shorthands
+        (srow,scol) = start_pos
+        (erow,ecol) = end_pos
         colors = self.colors
         owrite = self.out.write
 
