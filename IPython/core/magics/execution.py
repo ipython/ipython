@@ -19,6 +19,7 @@ import os
 import sys
 import time
 from StringIO import StringIO
+from glob import glob
 
 # cProfile was added in Python2.5
 try:
@@ -47,6 +48,17 @@ from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
+
+
+def globlist(args):
+    """
+    Do glob expansion for each element in `args` and return concatenated list.
+    """
+    expanded = []
+    for a in args:
+        expanded.extend(glob(a))
+    return expanded
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -447,10 +459,14 @@ python-profiler package from non-free.""")
 
         will run the example module.
 
+        -g: enables shell-like glob expansion of arguments to the script
+        to run.  Patterns '*', '?', '[seq]' and '[!seq]' can be used.
+
         """
 
         # get arguments and set sys.argv for program to be run.
-        opts, arg_lst = self.parse_options(parameter_s, 'nidtN:b:pD:l:rs:T:em:',
+        opts, arg_lst = self.parse_options(parameter_s,
+                                           'nidtN:b:pD:l:rs:T:em:g',
                                            mode='list', list_all=1)
         if "m" in opts:
             modulename = opts["m"][0]
@@ -486,6 +502,10 @@ python-profiler package from non-free.""")
 
         # simulate shell expansion on arguments, at least tilde expansion
         args = [ os.path.expanduser(a) for a in arg_lst[1:] ]
+
+        # glob expansion
+        if 'g' in opts:
+            args = globlist(args)
 
         sys.argv = [filename] + args  # put in the proper filename
         # protect sys.argv from potential unicode strings on Python 2:
