@@ -651,7 +651,7 @@ class SSHClusterLauncher(SSHLauncher):
         If not specified, use calling profile, stripping out possible leading homedir.
         """)
 
-    def _remote_profie_dir_default(self):
+    def _remote_profile_dir_default(self):
         """turns /home/you/.ipython/profile_foo into .ipython/profile_foo
         """
         home = get_home_dir()
