@@ -52,7 +52,7 @@ from IPython.utils.warn import warn, error
 
 def globlist(args):
     """
-    Do glob expansion for each element in `args` and return concatenated list.
+    Do glob expansion for each element in `args` and return a flattened list.
     """
     expanded = []
     for a in args:
