@@ -253,12 +253,19 @@ the notebook can be achieved with minimal mouse intervention.  The main
 key bindings you need to remember are:
 
 * :kbd:`Shift-Enter`: execute the current cell (similar to the Qt console),
-  show output (if any) and create a new cell below.  Note that in the notebook,
-  simply using :kbd:`Enter` *never* forces execution, it simply inserts a new
-  line in the current cell.  Therefore, in the notebook you must always use
-  :kbd:`Shift-Enter` to get execution (or use the mouse and click on the ``Run
-  Selected`` button).
+  show output (if any) and jump to the next cell below. If :kbd:`Shift-Enter` 
+  was invoked on the last input line, a new code cell will also be created. Note 
+  that in the notebook, simply using :kbd:`Enter` *never* forces execution, 
+  it simply inserts a new line in the current cell. Therefore, in the notebook 
+  you must always use :kbd:`Shift-Enter` to get execution (or use the mouse and 
+  click on the ``Run Selected`` button).
 
+* :kbd:`Alt-Enter`: this combination is similar to the previous one, with the 
+  exception that, if the next cell below is not empty, a new code cell will be 
+  added to the notebook, even if the cell execution happens not in the last cell. 
+  In this regard, :kbd:`Alt-Enter`: is simply a shortcut for the :kbd:`Shift-Enter`, 
+  :kbd:`Ctrl-m a` sequence. 
+  
 * :kbd:`Ctrl-Enter`: execute the current cell in "terminal mode", where any
   output is shown but the cursor stays in the current cell, whose input
   area is flushed empty.  This is convenient to do quick in-place experiments
