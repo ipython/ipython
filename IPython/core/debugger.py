@@ -492,6 +492,15 @@ class Pdb(OldPdb):
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
+    def do_pfile(self, arg):
+        """Print (or run through pager) the file where an object is defined.
+
+        The debugger interface to %pfile.
+        """
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('pfile')(arg, namespaces=namespaces)
+
     def do_pinfo(self, arg):
         """Provide detailed information about an object.
 
