@@ -507,8 +507,15 @@ class Pdb(OldPdb):
         The debugger interface to %pinfo, i.e., obj?."""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
-                                            namespaces=namespaces)
+        self.shell.find_line_magic('pinfo')(arg, namespaces=namespaces)
+
+    def do_pinfo2(self, arg):
+        """Provide extra detailed information about an object.
+
+        The debugger interface to %pinfo2, i.e., obj??."""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('pinfo2')(arg, namespaces=namespaces)
 
     def do_psource(self, arg):
         """Print (or run through pager) the source code for an object."""
