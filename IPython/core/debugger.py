@@ -477,19 +477,25 @@ class Pdb(OldPdb):
     do_l = do_list
 
     def do_pdef(self, arg):
-        """The debugger interface to magic_pdef"""
+        """Print the definition header for any callable object.
+
+        The debugger interface to %pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
-        """The debugger interface to magic_pdoc"""
+        """Print the docstring for an object.
+
+        The debugger interface to %pdoc."""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
-        """The debugger equivalant of ?obj"""
+        """Provide detailed information about an object.
+
+        The debugger interface to %pinfo, i.e., obj?."""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
