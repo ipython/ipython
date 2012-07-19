@@ -29,6 +29,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic,
                                 register_line_magic, register_cell_magic,
                                 register_line_cell_magic)
 from IPython.core.magics import execution, script
+from IPython.core.magics.execution import globlist
 from IPython.nbformat.v3.tests.nbexamples import nb0
 from IPython.nbformat import current
 from IPython.testing import decorators as dec
@@ -84,6 +85,36 @@ def test_magic_parse_long_options():
     nt.assert_true('foo' in opts)
     nt.assert_true('bar' in opts)
     nt.assert_true(opts['bar'], "bubble")
+
+
+def test_globlist():
+    """Test glob expansion for %run magic."""
+    filenames_start_with_a = map('a{0}'.format, range(3))
+    filenames_end_with_b = map('{0}b'.format, range(3))
+    filenames = filenames_start_with_a + filenames_end_with_b
+
+    with TemporaryDirectory() as td:
+
+        def getpaths(names):
+            return [os.path.join(td, fn) for fn in names]
+
+        # create files
+        for p in getpaths(filenames):
+            open(p, 'w').close()
+
+        def assert_match(patterns, matches):
+            # glob returns unordered list. that's why sorted is required.
+            nt.assert_equals(sorted(globlist(getpaths(patterns))),
+                             sorted(getpaths(matches)))
+
+        assert_match(['*'], filenames)
+        assert_match(['a*'], filenames_start_with_a)
+        assert_match(['*c'], ['*c'])
+        assert_match(['*', 'a*', '*b', '*c'],
+                     filenames
+                     + filenames_start_with_a
+                     + filenames_end_with_b
+                     + ['*c'])
 
 
 @dec.skip_without('sqlite3')
