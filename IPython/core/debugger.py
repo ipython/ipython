@@ -510,6 +510,12 @@ class Pdb(OldPdb):
         self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
                                             namespaces=namespaces)
 
+    def do_psource(self, arg):
+        """Print (or run through pager) the source code for an object."""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
+
     def checkline(self, filename, lineno):
         """Check whether specified line seems to be executable.
 
