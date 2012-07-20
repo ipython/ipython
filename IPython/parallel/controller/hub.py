@@ -56,6 +56,7 @@ def empty_record():
     return {
         'msg_id' : None,
         'header' : None,
+        'metadata' : None,
         'content': None,
         'buffers': None,
         'submitted': None,
@@ -66,6 +67,7 @@ def empty_record():
         'resubmitted': None,
         'received': None,
         'result_header' : None,
+        'result_metadata' : None,
         'result_content' : None,
         'result_buffers' : None,
         'queue' : None,
@@ -83,6 +85,7 @@ def init_record(msg):
         'msg_id' : header['msg_id'],
         'header' : header,
         'content': msg['content'],
+        'metadata': msg['metadata'],
         'buffers': msg['buffers'],
         'submitted': header['date'],
         'client_uuid' : None,
@@ -92,6 +95,7 @@ def init_record(msg):
         'resubmitted': None,
         'received': None,
         'result_header' : None,
+        'result_metadata': None,
         'result_content' : None,
         'result_buffers' : None,
         'queue' : None,
@@ -646,10 +650,12 @@ class Hub(SessionFactory):
             return
         # update record anyway, because the unregistration could have been premature
         rheader = msg['header']
+        md = msg['metadata']
         completed = rheader['date']
-        started = rheader.get('started', None)
+        started = md.get('started', None)
         result = {
             'result_header' : rheader,
+            'result_metadata': md,
             'result_content': msg['content'],
             'received': datetime.now(),
             'started' : started,
@@ -736,10 +742,11 @@ class Hub(SessionFactory):
             self.unassigned.remove(msg_id)
 
         header = msg['header']
-        engine_uuid = header.get('engine', u'')
+        md = msg['metadata']
+        engine_uuid = md.get('engine', u'')
         eid = self.by_ident.get(cast_bytes(engine_uuid), None)
         
-        status = header.get('status', None)
+        status = md.get('status', None)
 
         if msg_id in self.pending:
             self.log.info("task::task %r finished on %s", msg_id, eid)
@@ -751,9 +758,10 @@ class Hub(SessionFactory):
                 if msg_id in self.tasks[eid]:
                     self.tasks[eid].remove(msg_id)
             completed = header['date']
-            started = header.get('started', None)
+            started = md.get('started', None)
             result = {
                 'result_header' : header,
+                'result_metadata': msg['metadata'],
                 'result_content': msg['content'],
                 'started' : started,
                 'completed' : completed,
@@ -1221,12 +1229,15 @@ class Hub(SessionFactory):
         io_dict = {}
         for key in ('pyin', 'pyout', 'pyerr', 'stdout', 'stderr'):
                 io_dict[key] = rec[key]
-        content = { 'result_content': rec['result_content'],
-                            'header': rec['header'],
-                            'result_header' : rec['result_header'],
-                            'received' : rec['received'],
-                            'io' : io_dict,
-                          }
+        content = { 
+            'header': rec['header'],
+            'metadata': rec['metadata'],
+            'result_metadata': rec['result_metadata'],
+            'result_header' : rec['result_header'],
+            'result_content': rec['result_content'],
+            'received' : rec['received'],
+            'io' : io_dict,
+        }
         if rec['result_buffers']:
             buffers = map(bytes, rec['result_buffers'])
         else:

@@ -109,6 +109,7 @@ class SQLiteDB(BaseDB):
     # the ordered list of column names
     _keys = List(['msg_id' ,
             'header' ,
+            'metadata',
             'content',
             'buffers',
             'submitted',
@@ -119,6 +120,7 @@ class SQLiteDB(BaseDB):
             'resubmitted',
             'received',
             'result_header' ,
+            'result_metadata',
             'result_content' ,
             'result_buffers' ,
             'queue' ,
@@ -131,6 +133,7 @@ class SQLiteDB(BaseDB):
     # sqlite datatypes for checking that db is current format
     _types = Dict({'msg_id' : 'text' ,
             'header' : 'dict text',
+            'metadata' : 'dict text',
             'content' : 'dict text',
             'buffers' : 'bufs blob',
             'submitted' : 'timestamp',
@@ -141,6 +144,7 @@ class SQLiteDB(BaseDB):
             'resubmitted' : 'text',
             'received' : 'timestamp',
             'result_header' : 'dict text',
+            'result_metadata' : 'dict text',
             'result_content' : 'dict text',
             'result_buffers' : 'bufs blob',
             'queue' : 'text',
@@ -240,6 +244,7 @@ class SQLiteDB(BaseDB):
         self._db.execute("""CREATE TABLE IF NOT EXISTS %s
                 (msg_id text PRIMARY KEY,
                 header dict text,
+                metadata dict text,
                 content dict text,
                 buffers bufs blob,
                 submitted timestamp,
@@ -250,6 +255,7 @@ class SQLiteDB(BaseDB):
                 resubmitted text,
                 received timestamp,
                 result_header dict text,
+                result_metadata dict text,
                 result_content dict text,
                 result_buffers bufs blob,
                 queue text,

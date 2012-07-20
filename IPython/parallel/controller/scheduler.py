@@ -129,12 +129,14 @@ MET = Dependency([])
 
 class Job(object):
     """Simple container for a job"""
-    def __init__(self, msg_id, raw_msg, idents, msg, header, targets, after, follow, timeout):
+    def __init__(self, msg_id, raw_msg, idents, msg, header, metadata,
+                    targets, after, follow, timeout):
         self.msg_id = msg_id
         self.raw_msg = raw_msg
         self.idents = idents
         self.msg = msg
         self.header = header
+        self.metadata = metadata
         self.targets = targets
         self.after = after
         self.follow = follow
@@ -327,13 +329,13 @@ class TaskScheduler(SessionFactory):
                 raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
             except:
                 content = error.wrap_exception()
-            # build fake header
-            header = dict(
-                status='error',
+            # build fake metadata
+            md = dict(
+                status=u'error',
                 engine=engine,
                 date=datetime.now(),
             )
-            msg = self.session.msg('apply_reply', content, parent=parent, subheader=header)
+            msg = self.session.msg('apply_reply', content, parent=parent, metadata=md)
             raw_reply = map(zmq.Message, self.session.serialize(msg, ident=idents))
             # and dispatch it
             self.dispatch_result(raw_reply)
@@ -365,20 +367,21 @@ class TaskScheduler(SessionFactory):
         self.mon_stream.send_multipart([b'intask']+raw_msg, copy=False)
 
         header = msg['header']
+        md = msg['metadata']
         msg_id = header['msg_id']
         self.all_ids.add(msg_id)
 
         # get targets as a set of bytes objects
         # from a list of unicode objects
-        targets = header.get('targets', [])
+        targets = md.get('targets', [])
         targets = map(cast_bytes, targets)
         targets = set(targets)
 
-        retries = header.get('retries', 0)
+        retries = md.get('retries', 0)
         self.retries[msg_id] = retries
 
         # time dependencies
-        after = header.get('after', None)
+        after = md.get('after', None)
         if after:
             after = Dependency(after)
             if after.all:
@@ -402,10 +405,10 @@ class TaskScheduler(SessionFactory):
             after = MET
 
         # location dependencies
-        follow = Dependency(header.get('follow', []))
+        follow = Dependency(md.get('follow', []))
 
         # turn timeouts into datetime objects:
-        timeout = header.get('timeout', None)
+        timeout = md.get('timeout', None)
         if timeout:
             # cast to float, because jsonlib returns floats as decimal.Decimal,
             # which timedelta does not accept
@@ -413,7 +416,7 @@ class TaskScheduler(SessionFactory):
 
         job = Job(msg_id=msg_id, raw_msg=raw_msg, idents=idents, msg=msg,
                  header=header, targets=targets, after=after, follow=follow,
-                 timeout=timeout,
+                 timeout=timeout, metadata=md,
         )
 
         # validate and reduce dependencies:
@@ -585,10 +588,10 @@ class TaskScheduler(SessionFactory):
             self.log.error("task::Invaid result: %r", raw_msg, exc_info=True)
             return
 
-        header = msg['header']
+        md = msg['metadata']
         parent = msg['parent_header']
-        if header.get('dependencies_met', True):
-            success = (header['status'] == 'ok')
+        if md.get('dependencies_met', True):
+            success = (md['status'] == 'ok')
             msg_id = parent['msg_id']
             retries = self.retries[msg_id]
             if not success and retries > 0:

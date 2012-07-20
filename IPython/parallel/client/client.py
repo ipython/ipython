@@ -650,12 +650,16 @@ class Client(HasTraits):
             e.engine_info['engine_id'] = eid
         return e
 
-    def _extract_metadata(self, header, parent, content):
+    def _extract_metadata(self, msg):
+        header = msg['header']
+        parent = msg['parent_header']
+        msg_meta = msg['metadata']
+        content = msg['content']
         md = {'msg_id' : parent['msg_id'],
               'received' : datetime.now(),
-              'engine_uuid' : header.get('engine', None),
-              'follow' : parent.get('follow', []),
-              'after' : parent.get('after', []),
+              'engine_uuid' : msg_meta.get('engine', None),
+              'follow' : msg_meta.get('follow', []),
+              'after' : msg_meta.get('after', []),
               'status' : content['status'],
             }
 
@@ -664,8 +668,8 @@ class Client(HasTraits):
 
         if 'date' in parent:
             md['submitted'] = parent['date']
-        if 'started' in header:
-            md['started'] = header['started']
+        if 'started' in msg_meta:
+            md['started'] = msg_meta['started']
         if 'date' in header:
             md['completed'] = header['date']
         return md
@@ -738,7 +742,7 @@ class Client(HasTraits):
 
         # construct metadata:
         md = self.metadata[msg_id]
-        md.update(self._extract_metadata(header, parent, content))
+        md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
         
@@ -775,7 +779,7 @@ class Client(HasTraits):
 
         # construct metadata:
         md = self.metadata[msg_id]
-        md.update(self._extract_metadata(header, parent, content))
+        md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
 
@@ -1201,7 +1205,7 @@ class Client(HasTraits):
 
         return result
 
-    def send_apply_request(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
+    def send_apply_request(self, socket, f, args=None, kwargs=None, metadata=None, track=False,
                             ident=None):
         """construct and send an apply message via a socket.
 
@@ -1214,7 +1218,7 @@ class Client(HasTraits):
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
-        subheader = subheader if subheader is not None else {}
+        metadata = metadata if metadata is not None else {}
 
         # validate arguments
         if not callable(f) and not isinstance(f, Reference):
@@ -1223,13 +1227,13 @@ class Client(HasTraits):
             raise TypeError("args must be tuple or list, not %s"%type(args))
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
-        if not isinstance(subheader, dict):
-            raise TypeError("subheader must be dict, not %s"%type(subheader))
+        if not isinstance(metadata, dict):
+            raise TypeError("metadata must be dict, not %s"%type(metadata))
 
         bufs = util.pack_apply_message(f,args,kwargs)
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
-                            subheader=subheader, track=track)
+                            metadata=metadata, track=track)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1245,7 +1249,7 @@ class Client(HasTraits):
 
         return msg
 
-    def send_execute_request(self, socket, code, silent=True, subheader=None, ident=None):
+    def send_execute_request(self, socket, code, silent=True, metadata=None, ident=None):
         """construct and send an execute request via a socket.
 
         """
@@ -1254,19 +1258,19 @@ class Client(HasTraits):
             raise RuntimeError("Client cannot be used after its sockets have been closed")
         
         # defaults:
-        subheader = subheader if subheader is not None else {}
+        metadata = metadata if metadata is not None else {}
 
         # validate arguments
         if not isinstance(code, basestring):
             raise TypeError("code must be text, not %s" % type(code))
-        if not isinstance(subheader, dict):
-            raise TypeError("subheader must be dict, not %s" % type(subheader))
+        if not isinstance(metadata, dict):
+            raise TypeError("metadata must be dict, not %s" % type(metadata))
         
         content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
 
 
         msg = self.session.send(socket, "execute_request", content=content, ident=ident,
-                            subheader=subheader)
+                            metadata=metadata)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1401,7 +1405,7 @@ class Client(HasTraits):
         return ar
 
     @spin_first
-    def resubmit(self, indices_or_msg_ids=None, subheader=None, block=None):
+    def resubmit(self, indices_or_msg_ids=None, metadata=None, block=None):
         """Resubmit one or more tasks.
 
         in-flight tasks may not be resubmitted.
@@ -1539,7 +1543,13 @@ class Client(HasTraits):
                     rcontent = self.session.unpack(rcontent)
 
                 md = self.metadata[msg_id]
-                md.update(self._extract_metadata(header, parent, rcontent))
+                md_msg = dict(
+                    content=rcontent,
+                    parent_header=parent,
+                    header=header,
+                    metadata=rec['result_metadata'],
+                )
+                md.update(self._extract_metadata(md_msg))
                 if rec.get('received'):
                     md['received'] = rec['received']
                 md.update(iodict)
