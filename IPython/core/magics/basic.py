@@ -83,6 +83,7 @@ class BasicMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.alias_magic, line)
         shell = self.shell
+        mman = self.shell.magics_manager
         escs = ''.join(magic_escapes.values())
 
         target = args.target.lstrip(escs)
@@ -109,18 +110,10 @@ class BasicMagics(Magics):
             args.cell = bool(m_cell)
 
         if args.line:
-            def wrapper(line): return m_line(line)
-            wrapper.__name__ = str(name)
-            wrapper.__doc__ = "Alias for `%s%s`." % \
-                              (magic_escapes['line'], target)
-            shell.register_magic_function(wrapper, 'line', name)
+            mman.register_alias(name, target, 'line')
 
         if args.cell:
-            def wrapper(line, cell): return m_cell(line, cell)
-            wrapper.__name__ = str(name)
-            wrapper.__doc__ = "Alias for `%s%s`." % \
-                              (magic_escapes['cell'], target)
-            shell.register_magic_function(wrapper, 'cell', name)
+            mman.register_alias(name, target, 'cell')
 
     def _lsmagic(self):
         mesc = magic_escapes['line']
