@@ -272,8 +272,12 @@ class IPythonWidget(FrontendWidget):
     def _load_guiref_magic(self):
         """Load %guiref magic."""
         self.kernel_manager.shell_channel.execute('\n'.join([
-            "from IPython.core import usage",
-            "get_ipython().register_magic_function(usage.page_guiref, 'line', 'guiref')",
+            "try:",
+            "    _usage",
+            "except:",
+            "    from IPython.core import usage as _usage",
+            "    get_ipython().register_magic_function(_usage.page_guiref, 'line', 'guiref')",
+            "    del _usage",
         ]), silent=True)
         
     #---------------------------------------------------------------------------
