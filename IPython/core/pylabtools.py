@@ -205,22 +205,19 @@ def activate_matplotlib(backend):
     """Activate the given backend and set interactive to True."""
 
     import matplotlib
-    if backend.startswith('module://'):
-        # Work around bug in matplotlib: matplotlib.use converts the
-        # backend_id to lowercase even if a module name is specified!
-        matplotlib.rcParams['backend'] = backend
-    else:
-        matplotlib.use(backend)
     matplotlib.interactive(True)
+
+    # Matplotlib had a bug where even switch_backend could not force
+    # the rcParam to update. This needs to be set *before* the module
+    # magic of switch_backend().
+    matplotlib.rcParams['backend'] = backend
+
+    import matplotlib.pyplot
+    matplotlib.pyplot.switch_backend(backend)
 
     # This must be imported last in the matplotlib series, after
     # backend/interactivity choices have been made
     import matplotlib.pylab as pylab
-
-    # XXX For now leave this commented out, but depending on discussions with
-    # mpl-dev, we may be able to allow interactive switching...
-    #import matplotlib.pyplot
-    #matplotlib.pyplot.switch_backend(backend)
 
     pylab.show._needmain = False
     # We need to detect at runtime whether show() is called by the user.
