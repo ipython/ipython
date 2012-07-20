@@ -31,20 +31,14 @@ def merge_branch(repo, branch ):
     return True
 
 
-def merge_pr(num, github_api=3):
+def merge_pr(num):
     """ try to merge the branch of PR `num` into current branch
-    
-    github_api : use github api v2 (to bypass https and issues with proxy) to find the
-             remote branch that should be merged by it's number
     """
     # Get Github authorisation first, so that the user is prompted straight away
     # if their login is needed.
     
-    pr = gh_api.get_pull_request(gh_project, num, github_api)
-    if github_api == 2:
-        repo = pr['head']['repository']['url']
-    elif github_api == 3 :
-        repo = pr['head']['repo']['clone_url']
+    pr = gh_api.get_pull_request(gh_project, num)
+    repo = pr['head']['repo']['clone_url']
 
 
     branch = pr['head']['ref']
@@ -90,15 +84,11 @@ def main(*args):
             nargs='*',
             metavar='pr-number')
     args = parser.parse_args()
-    if args.githubapiv2 == 2 :
-        github_api = 2
-    else  :
-        github_api = 3
 
     if(args.list):
-        pr_list = gh_api.get_pulls_list(gh_project, github_api)
+        pr_list = gh_api.get_pulls_list(gh_project)
         for pr in pr_list :
-            mergeable = gh_api.get_pull_request(gh_project, pr['number'], github_api=github_api)['mergeable']
+            mergeable = gh_api.get_pull_request(gh_project, pr['number'])['mergeable']
 
             ismgb = u"√" if mergeable else " "
             print(u"* #{number} [{ismgb}]:  {title}".format(
@@ -114,7 +104,7 @@ def main(*args):
 
     elif args.merge:
         for num in args.merge :
-            merge_pr(num, github_api=github_api)
+            merge_pr(num)
 
     if not_merged :
         print('*************************************************************************************')
