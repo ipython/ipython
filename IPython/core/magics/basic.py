@@ -65,6 +65,8 @@ class BasicMagics(Magics):
         --------
         ::
           In [1]: %alias_magic t timeit
+          Created `%t` as an alias for `%timeit`.
+          Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
           1 loops, best of 3: 954 ns per loop
@@ -77,6 +79,7 @@ class BasicMagics(Magics):
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.
           In [5]: %alias_magic --line whereami pwd
+          Created `%whereami` as an alias for `%pwd`.
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
@@ -111,9 +114,15 @@ class BasicMagics(Magics):
 
         if args.line:
             mman.register_alias(name, target, 'line')
+            print('Created `%s%s` as an alias for `%s%s`.' % (
+                magic_escapes['line'], name,
+                magic_escapes['line'], target))
 
         if args.cell:
             mman.register_alias(name, target, 'cell')
+            print('Created `%s%s` as an alias for `%s%s`.' % (
+                magic_escapes['cell'], name,
+                magic_escapes['cell'], target))
 
     def _lsmagic(self):
         mesc = magic_escapes['line']
