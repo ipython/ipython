@@ -594,6 +594,21 @@ def test_file():
         nt.assert_in('line1\n', s)
         nt.assert_in('line2', s)
 
+def test_file_var_expand():
+    """%%file $filename"""
+    ip = get_ipython()
+    with TemporaryDirectory() as td:
+        fname = os.path.join(td, 'file1')
+        ip.user_ns['filename'] = fname
+        ip.run_cell_magic("file", '$filename', u'\n'.join([
+            'line1',
+            'line2',
+        ]))
+        with open(fname) as f:
+            s = f.read()
+        nt.assert_in('line1\n', s)
+        nt.assert_in('line2', s)
+
 def test_file_unicode():
     """%%file with unicode cell"""
     ip = get_ipython()
