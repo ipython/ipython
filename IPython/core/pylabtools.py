@@ -269,6 +269,7 @@ def configure_inline_support(shell, backend, user_ns=None):
         from IPython.zmq.pylab.backend_inline import InlineBackend
     except ImportError:
         return
+    from matplotlib import pyplot
 
     user_ns = shell.user_ns if user_ns is None else user_ns
     
@@ -279,12 +280,23 @@ def configure_inline_support(shell, backend, user_ns=None):
 
     if backend == backends['inline']:
         from IPython.zmq.pylab.backend_inline import flush_figures
-        from matplotlib import pyplot
         shell.register_post_execute(flush_figures)
+
+        # Save rcParams that will be overwrittern
+        shell._saved_rcParams = dict()
+        for k in cfg.rc:
+            shell._saved_rcParams[k] = pyplot.rcParams[k]
         # load inline_rc
         pyplot.rcParams.update(cfg.rc)
         # Add 'figsize' to pyplot and to the user's namespace
         user_ns['figsize'] = pyplot.figsize = figsize
+    else:
+        from IPython.zmq.pylab.backend_inline import flush_figures
+        if flush_figures in shell._post_execute:
+            shell._post_execute.pop(flush_figures)
+        if hasattr(shell, '_saved_rcParams'):
+            pyplot.rcParams.update(shell._saved_rcParams)
+            del shell._saved_rcParams
 
     # Setup the default figure format
     fmt = cfg.figure_format
