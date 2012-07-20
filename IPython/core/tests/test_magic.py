@@ -94,27 +94,28 @@ def test_globlist():
     filenames = filenames_start_with_a + filenames_end_with_b
 
     with TemporaryDirectory() as td:
+        save = os.getcwdu()
+        try:
+            os.chdir(td)
 
-        def getpaths(names):
-            return [os.path.join(td, fn) for fn in names]
+            # Create empty files
+            for fname in filenames:
+                open(os.path.join(td, fname), 'w').close()
 
-        # create files
-        for p in getpaths(filenames):
-            open(p, 'w').close()
+            def assert_match(patterns, matches):
+                # glob returns unordered list. that's why sorted is required.
+                nt.assert_equals(sorted(globlist(patterns)), sorted(matches))
 
-        def assert_match(patterns, matches):
-            # glob returns unordered list. that's why sorted is required.
-            nt.assert_equals(sorted(globlist(getpaths(patterns))),
-                             sorted(getpaths(matches)))
-
-        assert_match(['*'], filenames)
-        assert_match(['a*'], filenames_start_with_a)
-        assert_match(['*c'], ['*c'])
-        assert_match(['*', 'a*', '*b', '*c'],
-                     filenames
-                     + filenames_start_with_a
-                     + filenames_end_with_b
-                     + ['*c'])
+            assert_match(['*'], filenames)
+            assert_match(['a*'], filenames_start_with_a)
+            assert_match(['*c'], ['*c'])
+            assert_match(['*', 'a*', '*b', '*c'],
+                         filenames
+                         + filenames_start_with_a
+                         + filenames_end_with_b
+                         + ['*c'])
+        finally:
+            os.chdir(save)
 
 
 @dec.skip_without('sqlite3')
