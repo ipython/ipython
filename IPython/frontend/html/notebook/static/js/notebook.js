@@ -114,6 +114,14 @@ var IPython = (function (IPython) {
             } else if (event.which === key.ENTER && event.shiftKey) {
                 that.execute_selected_cell();
                 return false;
+            } else if (event.which === key.ENTER && event.altKey) {
+                // Execute code cell, and insert new in place
+                that.execute_selected_cell();
+                 // Only insert a new cell, if we ended up in an already populated cell
+                if (/\S/.test(that.get_selected_cell().get_text()) == true) {
+                    that.insert_cell_above('code');
+                }
+                return false;
             } else if (event.which === key.ENTER && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
