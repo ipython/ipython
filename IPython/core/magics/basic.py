@@ -50,6 +50,11 @@ class BasicMagics(Magics):
         help="""Create a cell magic alias."""
     )
     @magic_arguments.argument(
+        '-q', '--quiet', action='store_true',
+        help="""Be quiet, only report errors, but not aliases which are
+        successfully created."""
+    )
+    @magic_arguments.argument(
         'name',
         help="""Name of the magic to be created."""
     )
@@ -65,6 +70,8 @@ class BasicMagics(Magics):
         --------
         ::
           In [1]: %alias_magic t timeit
+          Created `%t` as an alias for `%timeit`.
+          Created `%%t` as an alias for `%%timeit`.
 
           In [2]: %t -n1 pass
           1 loops, best of 3: 954 ns per loop
@@ -77,6 +84,7 @@ class BasicMagics(Magics):
           In [4]: %alias_magic --cell whereami pwd
           UsageError: Cell magic function `%%pwd` not found.
           In [5]: %alias_magic --line whereami pwd
+          Created `%whereami` as an alias for `%pwd`.
 
           In [6]: %whereami
           Out[6]: u'/home/testuser'
@@ -114,6 +122,10 @@ class BasicMagics(Magics):
             wrapper.__doc__ = "Alias for `%s%s`." % \
                               (magic_escapes['line'], target)
             shell.register_magic_function(wrapper, 'line', name)
+            if not args.quiet:
+                print('Created `%s%s` as an alias for `%s%s`.' % (
+                    magic_escapes['line'], name,
+                    magic_escapes['line'], target))
 
         if args.cell:
             def wrapper(line, cell): return m_cell(line, cell)
@@ -121,6 +133,10 @@ class BasicMagics(Magics):
             wrapper.__doc__ = "Alias for `%s%s`." % \
                               (magic_escapes['cell'], target)
             shell.register_magic_function(wrapper, 'cell', name)
+            if not args.quiet:
+                print('Created `%s%s` as an alias for `%s%s`.' % (
+                    magic_escapes['cell'], name,
+                    magic_escapes['cell'], target))
 
     def _lsmagic(self):
         mesc = magic_escapes['line']
