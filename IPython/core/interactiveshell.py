@@ -1809,7 +1809,6 @@ class InteractiveShell(SingletonConfigurable):
             self.readline_no_record = no_op_context
             self.set_readline_completer = no_op
             self.set_custom_completer = no_op
-            self.set_completer_frame = no_op
             if self.readline_use:
                 warn('Readline services not available or not loaded.')
         else:
