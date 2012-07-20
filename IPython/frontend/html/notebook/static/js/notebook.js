@@ -118,7 +118,7 @@ var IPython = (function (IPython) {
                 // Execute code cell, and insert new in place
                 that.execute_selected_cell();
                  // Only insert a new cell, if we ended up in an already populated cell
-                if (/\S/.test(that.get_selected_cell().toJSON().input) == true) {
+                if (/\S/.test(that.get_selected_cell().get_text()) == true) {
                     that.insert_cell_above('code');
                 }
                 return false;
