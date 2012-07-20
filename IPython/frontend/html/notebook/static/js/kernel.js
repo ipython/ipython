@@ -43,6 +43,7 @@ var IPython = (function (IPython) {
                 session : this.session_id,
                 msg_type : msg_type
             },
+            metadata : {},
             content : content,
             parent_header : {}
         };
