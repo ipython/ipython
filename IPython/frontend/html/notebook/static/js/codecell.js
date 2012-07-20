@@ -132,21 +132,23 @@ var IPython = (function (IPython) {
                 return false;
             }
             var tail_space = line.match(/ +$/g)
-            if (tail_space && tail_space[0].length === line.length ) { 
-            //if the line is empty, we move the cursor to previous indent point
+            if (tail_space) { 
                 var pre_indent_point = Math.floor( (cur.ch - 1)/ 4 ) * 4 + 1;
-                editor.replaceRange('',
-                    {line: cur.line, ch: pre_indent_point},
-                    {line: cur.line, ch: line.length}
-                );
-            } else if (tail_space && cur.ch > line.length - tail_space[0].length) { 
-            //if the line is not empty, backspace in the tailing end spaces will remove all tailing spaces 
-                editor.replaceRange('',
-                    {line: cur.line, ch: line.length - tail_space[0].length},
-                    {line: cur.line, ch: line.length}
-                );
-                event.stop();
-                return true;
+                if (pre_indent_point > line.length - tail_space[0].length ) {
+                    //There are more than 4 spaces, delete up to previous indent point
+                    editor.replaceRange('',
+                        {line: cur.line, ch: pre_indent_point},
+                        {line: cur.line, ch: line.length}
+                    );
+                } else {
+                    //Less than 4 spaces, delete them all
+                    editor.replaceRange('',
+                        {line: cur.line, ch: line.length - tail_space[0].length},
+                        {line: cur.line, ch: line.length}
+                    );
+                    event.stop();
+                    return true;
+                }
             } else {
                 return false;
             };
