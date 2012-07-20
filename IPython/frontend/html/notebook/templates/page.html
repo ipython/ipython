@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{{static_url("css/page.css") }}" type="text/css"/>
     {% block stylesheet %}
     {% end %}
+    <link rel="stylesheet" href="{{ static_url("css/custom.css") }}" type="text/css" />
+
 
     {% block meta %}
     {% end %}
@@ -52,6 +54,8 @@
 
 {% block script %}
 {% end %}
+
+<script src="{{static_url("js/custom.js") }}" type="text/javascript" charset="utf-8"></script>
 
 </body>
 
