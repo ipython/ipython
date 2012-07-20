@@ -84,7 +84,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
-    }
+    };
 
 
     NotebookList.prototype.load_list = function () {
@@ -95,7 +95,9 @@ var IPython = (function (IPython) {
             type : "GET",
             dataType : "json",
             success : $.proxy(this.list_loaded, this),
-            error : $.proxy( function(){that.list_loaded([],null,null,{msg:"Error connecting to server."})},this)
+            error : $.proxy( function(){
+                that.list_loaded([], null, null, {msg:"Error connecting to server."});
+                             },this)
         };
 
         var url = $('body').data('baseProjectUrl') + 'notebooks';
