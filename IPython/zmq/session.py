@@ -405,7 +405,7 @@ class Session(Configurable):
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
 
-    def msg(self, msg_type, content=None, parent=None, subheader=None, header=None, metadata=None):
+    def msg(self, msg_type, content=None, parent=None, header=None, metadata=None):
         """Return the nested message dict.
 
         This format is different from what is sent over the wire. The
@@ -415,8 +415,6 @@ class Session(Configurable):
         msg = {}
         header = self.msg_header(msg_type) if header is None else header
         msg['header'] = header
-        if subheader is not None:
-            msg['header'].update(subheader)
         msg['msg_id'] = header['msg_id']
         msg['msg_type'] = header['msg_type']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
@@ -499,7 +497,7 @@ class Session(Configurable):
         return to_send
 
     def send(self, stream, msg_or_type, content=None, parent=None, ident=None,
-             buffers=None, subheader=None, track=False, header=None, metadata=None):
+             buffers=None, track=False, header=None, metadata=None):
         """Build and send a message via stream or socket.
 
         The message format used by this function internally is as follows:
@@ -529,9 +527,6 @@ class Session(Configurable):
             (ignored if msg_or_type is a message).
         ident : bytes or list of bytes
             The zmq.IDENTITY routing path.
-        subheader : dict or None
-            Extra header keys for this message's header (ignored if msg_or_type
-            is a message).
         metadata : dict or None
             The metadata describing the message
         buffers : list or None
@@ -563,7 +558,7 @@ class Session(Configurable):
             msg = msg_or_type
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
-                           subheader=subheader, header=header, metadata=metadata)
+                           header=header, metadata=metadata)
 
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
@@ -730,9 +725,9 @@ class Session(Configurable):
             if signature in self.digest_history:
                 raise ValueError("Duplicate Signature: %r"%signature)
             self.digest_history.add(signature)
-            check = self.sign(msg_list[1:4])
+            check = self.sign(msg_list[1:5])
             if not signature == check:
-                raise ValueError("Invalid Signature: %r"%signature)
+                raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
         header = self.unpack(msg_list[1])
