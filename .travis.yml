@@ -5,7 +5,6 @@ python:
     - 2.7
     - 3.2
 before_install:
-    - pip install --use-mirrors numpy
     - easy_install -q pyzmq
 install:
     - python setup.py install -q 
