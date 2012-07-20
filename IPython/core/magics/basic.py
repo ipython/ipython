@@ -232,7 +232,7 @@ of any of them, type %magic_name?, e.g. '%cd?'.
 
 Currently the magic system has the following functions:""",
        magic_docs,
-       "Summary of magic functions (from %slsmagic):",
+       "Summary of magic functions (from %slsmagic):" % magic_escapes['line'],
        self._lsmagic(),
        ]
         page.page('\n'.join(out))
