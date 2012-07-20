@@ -155,7 +155,7 @@ class NotebookWebApplication(web.Application):
         
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
             cookie_secret=os.urandom(1024),
             login_url="%s/login"%(base_project_url.rstrip('/')),

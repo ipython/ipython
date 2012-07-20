@@ -749,6 +749,8 @@ class FileFindHandler(web.StaticFileHandler):
     _static_paths = {}
     
     def initialize(self, path, default_filename=None):
+        if isinstance(path, basestring):
+            path = [path]
         self.roots = tuple(
             os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in path
         )
@@ -849,14 +851,16 @@ class FileFindHandler(web.StaticFileHandler):
         could be determined.
         """
         # begin subclass override:
-        static_path = settings['static_path']
+        static_paths = settings['static_path']
+        if isinstance(static_paths, basestring):
+            static_paths = [static_paths]
         roots = tuple(
-            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in static_path
+            os.path.abspath(os.path.expanduser(p)) + os.path.sep for p in static_paths
         )
 
         try:
             abs_path = filefind(path, roots)
-        except Exception:
+        except IOError:
             logging.error("Could not find static file %r", path)
             return None
         
