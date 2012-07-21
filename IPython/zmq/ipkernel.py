@@ -677,7 +677,7 @@ class Kernel(Configurable):
             status = {'status' : 'aborted'}
             md = {'engine' : self.ident}
             md.update(status)
-            reply_msg = self.session.send(stream, reply_type, meatadata=md,
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
