@@ -218,9 +218,9 @@ class Kernel(Configurable):
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg_type.split('_')[0] + '_reply'
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             return
         
@@ -293,13 +293,16 @@ class Kernel(Configurable):
     # Kernel request handlers
     #---------------------------------------------------------------------------
     
-    def _make_subheader(self):
-        """init subheader dict, for execute/apply_reply"""
-        return {
+    def _make_metadata(self, other=None):
+        """init metadata dict, for execute/apply_reply"""
+        new_md = {
             'dependencies_met' : True,
             'engine' : self.ident,
             'started': datetime.now(),
         }
+        if other:
+            new_md.update(other)
+        return new_md
     
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
@@ -333,7 +336,7 @@ class Kernel(Configurable):
             self.log.error("%s", parent)
             return
         
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
 
         shell = self.shell # we'll need this a lot here
 
@@ -425,13 +428,13 @@ class Kernel(Configurable):
         # Send the reply.
         reply_content = json_clean(reply_content)
         
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
         if reply_content['status'] == 'error' and \
                         reply_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+                md['dependencies_met'] = False
 
         reply_msg = self.session.send(stream, u'execute_reply',
-                                      reply_content, parent, subheader=sub,
+                                      reply_content, parent, metadata=md,
                                       ident=ident)
         
         self.log.debug("%s", reply_msg)
@@ -543,7 +546,7 @@ class Kernel(Configurable):
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)
         # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
         try:
             working = shell.user_ns
 
@@ -589,19 +592,19 @@ class Kernel(Configurable):
             result_buf = []
 
             if reply_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+                md['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
 
         # put 'ok'/'error' status in header, for scheduler introspection:
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
 
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
-                    parent=parent, ident=ident,buffers=result_buf, subheader=sub)
+                    parent=parent, ident=ident,buffers=result_buf, metadata=md)
 
         self._publish_status(u'idle', parent)
 
@@ -672,9 +675,9 @@ class Kernel(Configurable):
             reply_type = msg_type.split('_')[0] + '_reply'
 
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, meatadata=md,
                         content=status, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably

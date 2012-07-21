@@ -49,7 +49,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode)
+                                        DottedObjectName, CUnicode, Dict)
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -296,6 +296,9 @@ class Session(Configurable):
     username = Unicode(os.environ.get('USER',u'username'), config=True,
         help="""Username for the Session. Default is your system username.""")
 
+    metadata = Dict({}, config=True,
+        help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
+
     # message signature related traits:
     
     key = CBytes(b'', config=True,
@@ -406,7 +409,7 @@ class Session(Configurable):
     def msg_header(self, msg_type):
         return msg_header(self.msg_id, msg_type, self.username, self.session)
 
-    def msg(self, msg_type, content=None, parent=None, subheader=None, header=None):
+    def msg(self, msg_type, content=None, parent=None, header=None, metadata=None):
         """Return the nested message dict.
 
         This format is different from what is sent over the wire. The
@@ -420,8 +423,9 @@ class Session(Configurable):
         msg['msg_type'] = header['msg_type']
         msg['parent_header'] = {} if parent is None else extract_header(parent)
         msg['content'] = {} if content is None else content
-        sub = {} if subheader is None else subheader
-        msg['header'].update(sub)
+        msg['metadata'] = self.metadata.copy()
+        if metadata is not None:
+            msg['metadata'].update(metadata)
         return msg
 
     def sign(self, msg_list):
@@ -455,7 +459,7 @@ class Session(Configurable):
         -------
         msg_list : list
             The list of bytes objects to be sent with the format:
-            [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_content,
+            [ident1,ident2,...,DELIM,HMAC,p_header,p_parent,p_metadata,p_content,
              buffer1,buffer2,...]. In this list, the p_* entities are
             the packed or serialized versions, so if JSON is used, these
             are utf8 encoded JSON strings.
@@ -476,7 +480,8 @@ class Session(Configurable):
 
         real_message = [self.pack(msg['header']),
                         self.pack(msg['parent_header']),
-                        content
+                        self.pack(msg['metadata']),
+                        content,
         ]
 
         to_send = []
@@ -496,7 +501,7 @@ class Session(Configurable):
         return to_send
 
     def send(self, stream, msg_or_type, content=None, parent=None, ident=None,
-             buffers=None, subheader=None, track=False, header=None):
+             buffers=None, track=False, header=None, metadata=None):
         """Build and send a message via stream or socket.
 
         The message format used by this function internally is as follows:
@@ -520,20 +525,20 @@ class Session(Configurable):
         content : dict or None
             The content of the message (ignored if msg_or_type is a message).
         header : dict or None
-            The header dict for the message (ignores if msg_to_type is a message).
+            The header dict for the message (ignored if msg_to_type is a message).
         parent : Message or dict or None
             The parent or parent header describing the parent of this message
             (ignored if msg_or_type is a message).
         ident : bytes or list of bytes
             The zmq.IDENTITY routing path.
-        subheader : dict or None
-            Extra header keys for this message's header (ignored if msg_or_type
-            is a message).
+        metadata : dict or None
+            The metadata describing the message
         buffers : list or None
             The already-serialized buffers to be appended to the message.
         track : bool
             Whether to track.  Only for use with Sockets, because ZMQStream
             objects cannot track messages.
+            
 
         Returns
         -------
@@ -557,7 +562,7 @@ class Session(Configurable):
             msg = msg_or_type
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
-                           subheader=subheader, header=header)
+                           header=header, metadata=metadata)
 
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
@@ -600,7 +605,7 @@ class Session(Configurable):
             The ZMQ stream or socket to use for sending the message.
         msg_list : list
             The serialized list of messages to send. This only includes the
-            [p_header,p_parent,p_content,buffer1,buffer2,...] portion of
+            [p_header,p_parent,p_metadata,p_content,buffer1,buffer2,...] portion of
             the message.
         ident : ident or list
             A single ident or a list of idents to use in sending.
@@ -698,7 +703,7 @@ class Session(Configurable):
         -----------
         msg_list : list of bytes or Message objects
             The list of message parts of the form [HMAC,p_header,p_parent,
-            p_content,buffer1,buffer2,...].
+            p_metadata,p_content,buffer1,buffer2,...].
         content : bool (True)
             Whether to unpack the content dict (True), or leave it packed
             (False).
@@ -712,7 +717,7 @@ class Session(Configurable):
             The nested message dict with top-level keys [header, parent_header,
             content, buffers].
         """
-        minlen = 4
+        minlen = 5
         message = {}
         if not copy:
             for i in range(minlen):
@@ -724,9 +729,9 @@ class Session(Configurable):
             if signature in self.digest_history:
                 raise ValueError("Duplicate Signature: %r"%signature)
             self.digest_history.add(signature)
-            check = self.sign(msg_list[1:4])
+            check = self.sign(msg_list[1:5])
             if not signature == check:
-                raise ValueError("Invalid Signature: %r"%signature)
+                raise ValueError("Invalid Signature: %r" % signature)
         if not len(msg_list) >= minlen:
             raise TypeError("malformed message, must have at least %i elements"%minlen)
         header = self.unpack(msg_list[1])
@@ -734,12 +739,13 @@ class Session(Configurable):
         message['msg_id'] = header['msg_id']
         message['msg_type'] = header['msg_type']
         message['parent_header'] = self.unpack(msg_list[2])
+        message['metadata'] = self.unpack(msg_list[3])
         if content:
-            message['content'] = self.unpack(msg_list[3])
+            message['content'] = self.unpack(msg_list[4])
         else:
-            message['content'] = msg_list[3]
+            message['content'] = msg_list[4]
 
-        message['buffers'] = msg_list[4:]
+        message['buffers'] = msg_list[5:]
         return message
 
 def test_msg2obj():
