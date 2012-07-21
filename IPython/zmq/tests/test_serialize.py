@@ -87,7 +87,7 @@ def _scrub_nan(A):
         for field in A.dtype.fields.keys():
             try:
                 A[field][numpy.isnan(A[field])] = 0
-            except TypeError:
+            except (TypeError, NotImplementedError):
                 # e.g. str dtype
                 pass
 
