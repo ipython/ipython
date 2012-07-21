@@ -226,20 +226,12 @@ python-profiler package from non-free.""")
 
         # Trap output.
         stdout_trap = StringIO()
-
-        if hasattr(stats,'stream'):
-            # In newer versions of python, the stats object has a 'stream'
-            # attribute to write into.
+        stats_stream = stats.stream
+        try:
             stats.stream = stdout_trap
             stats.print_stats(*lims)
-        else:
-            # For older versions, we manually redirect stdout during printing
-            sys_stdout = sys.stdout
-            try:
-                sys.stdout = stdout_trap
-                stats.print_stats(*lims)
-            finally:
-                sys.stdout = sys_stdout
+        finally:
+            stats.stream = stats_stream
 
         output = stdout_trap.getvalue()
         output = output.rstrip()
