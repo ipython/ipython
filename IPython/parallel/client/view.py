@@ -1022,10 +1022,10 @@ class LoadBalancedView(View):
 
         after = self._render_dependency(after)
         follow = self._render_dependency(follow)
-        subheader = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
+        metadata = dict(after=after, follow=follow, timeout=timeout, targets=idents, retries=retries)
 
         msg = self.client.send_apply_request(self._socket, f, args, kwargs, track=track,
-                                subheader=subheader)
+                                metadata=metadata)
         tracker = None if track is False else msg['tracker']
 
         ar = AsyncResult(self.client, msg['header']['msg_id'], fname=getname(f), targets=None, tracker=tracker)
