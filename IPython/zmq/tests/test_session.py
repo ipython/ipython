@@ -149,7 +149,7 @@ class TestSession(SessionTestCase):
         s.copy_threshold = 1
         stream = ZMQStream(a)
         msg = s.send(a, 'hello', track=False)
-        self.assertTrue(msg['tracker'] is None)
+        self.assertTrue(msg['tracker'] is ss.DONE)
         msg = s.send(a, 'hello', track=True)
         self.assertTrue(isinstance(msg['tracker'], zmq.MessageTracker))
         M = zmq.Message(b'hi there', track=True)
