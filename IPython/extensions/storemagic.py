@@ -140,7 +140,7 @@ class StoreMagics(Magics):
 
         # run without arguments -> list variables & values
         elif not args:
-            vars = self.db.keys('autorestore/*')
+            vars = db.keys('autorestore/*')
             vars.sort()
             if vars:
                 size = max(map(len, vars))
@@ -186,9 +186,9 @@ class StoreMagics(Magics):
             except KeyError:
                 # it might be an alias
                 # This needs to be refactored to use the new AliasManager stuff.
-                if args[0] in self.alias_manager:
+                if args[0] in ip.alias_manager:
                     name = args[0]
-                    nargs, cmd = self.alias_manager.alias_table[ name ]
+                    nargs, cmd = ip.alias_manager.alias_table[ name ]
                     staliases = db.get('stored_aliases',{})
                     staliases[ name ] = cmd
                     db['stored_aliases'] = staliases
@@ -207,7 +207,7 @@ class StoreMagics(Magics):
                     """ % (args[0], obj) )
                     return
                 #pickled = pickle.dumps(obj)
-                self.db[ 'autorestore/' + args[0] ] = obj
+                db[ 'autorestore/' + args[0] ] = obj
                 print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
 
