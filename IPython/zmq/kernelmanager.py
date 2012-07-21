@@ -233,7 +233,7 @@ class ShellSocketChannel(ZMQSocketChannel):
             will force store_history to be False.
 
         store_history : bool, optional (default True)
-            If set, the kernel will execute store command history.  This is forced
+            If set, the kernel will store command history.  This is forced
             to be False if silent is True.
 
         user_variables : list, optional
