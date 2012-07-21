@@ -114,7 +114,7 @@ authors = {'Fernando' : ('Fernando Perez','fperez.net@gmail.com'),
            'Brian'    : ('Brian E Granger', 'ellisonbg@gmail.com'),
            'Min'      : ('Min Ragan-Kelley', 'benjaminrk@gmail.com'),
            'Thomas'   : ('Thomas A. Kluyver', 'takowl@gmail.com'),
-           'Jörgen'   : ('Jörgen Stenarson', 'jorgen.stenarson@bostream.nu'),
+           'Jorgen'   : ('Jorgen Stenarson', 'jorgen.stenarson@bostream.nu'),
            'Matthias' : ('Matthias Bussonnier', 'bussonniermatthias@gmail.com'),
            }
 
