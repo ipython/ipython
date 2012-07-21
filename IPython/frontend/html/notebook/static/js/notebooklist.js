@@ -106,7 +106,10 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
-        var message = param.msg || 'Notebook list empty.';
+        var message = 'Notebook list empty.';
+        if (param !== undefined && param.msg) {
+            var message = param.msg;
+        }
         var len = data.length;
         this.clear_list();
 
