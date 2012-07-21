@@ -369,3 +369,14 @@ def make_tempfile(name):
         yield
     finally:
         os.unlink(name)
+
+
+@contextmanager
+def monkeypatch(obj, name, attr):
+    """
+    Context manager to replace attribute named `name` in `obj` with `attr`.
+    """
+    orig = getattr(obj, name)
+    setattr(obj, name, attr)
+    yield
+    setattr(obj, name, orig)
