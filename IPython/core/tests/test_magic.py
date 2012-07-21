@@ -777,3 +777,22 @@ def test_save():
             content = f.read()
             nt.assert_equal(content.count(cmds[0]), 2)
             nt.assert_true('coding: utf-8' in content)
+
+
+def test_store():
+    """Test %store."""
+    ip = get_ipython()
+    ip.run_line_magic('load_ext', 'storemagic')
+    
+    # make sure the storage is empty
+    ip.run_line_magic('store', '-z')
+    ip.user_ns['var'] = 42
+    ip.run_line_magic('store', 'var')
+    ip.user_ns['var'] = 39
+    ip.run_line_magic('store', '-r')
+    nt.assert_equal(ip.user_ns['var'], 42)
+
+    ip.run_line_magic('store', '-d var')
+    ip.user_ns['var'] = 39
+    ip.run_line_magic('store' , '-r')
+    nt.assert_equal(ip.user_ns['var'], 39)
