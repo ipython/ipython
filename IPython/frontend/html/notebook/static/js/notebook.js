@@ -764,12 +764,22 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.cut_cell = function () {
         this.copy_cell();
+        // note that we might want 
+        // to keep the uuid in this case
+        // if the cell is pasted after.
         this.delete_cell();
     }
 
     Notebook.prototype.copy_cell = function () {
         var cell = this.get_selected_cell();
-        this.clipboard = cell.toJSON();
+        var json = cell.toJSON();
+
+        // we don't want to have du plicate uuid, so for now, we are carefull
+        // of deleting the uuid befor copying.
+        if( json.uuid != undefined){
+            delete  json.uuid
+        }
+        this.clipboard = json;
         this.enable_paste();
     };
 
