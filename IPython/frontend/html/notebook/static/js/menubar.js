@@ -48,7 +48,8 @@ var IPython = (function (IPython) {
         this.element.find('#copy_notebook').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + notebook_id + '/copy';
-            window.open(url,'_newtab');
+            window.open(url,'_blank');
+            return false;
         });
         this.element.find('#save_notebook').click(function () {
             IPython.notebook.save_notebook();
