@@ -25,7 +25,10 @@ var IPython = (function (IPython) {
             this.element.data("cell", this);
             this.bind_events();
         }
-        this.cell_id = utils.uuid();
+        if( this.cell_id == undefined)
+        {
+            this.cell_id = utils.uuid();
+        }
     };
 
 
@@ -93,6 +96,7 @@ var IPython = (function (IPython) {
     Cell.prototype.toJSON = function () {
         var data = {};
         data.metadata = this.metadata;
+        data.uuid = this.cell_id
         return data;
     };
 
@@ -100,6 +104,9 @@ var IPython = (function (IPython) {
     Cell.prototype.fromJSON = function (data) {
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
+        }
+        if (data.uuid !== undefined) {
+            this.cell_id = data.uuid;
         }
     };
 
