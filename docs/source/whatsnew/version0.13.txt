@@ -237,8 +237,8 @@ Another handy cell magic makes it easy to write short text files: ``%%file
 ~/save/to/here.txt``.
 
 The following cell magics are now included by default; all those that use
-special interpreters (Perl, Ruby, bash, etc., assume you have the requisite
-interpreter installed):
+special interpreters (Perl, Ruby, bash, etc.) assume you have the requisite
+interpreter installed:
 
 * ``%%!``: run cell body with the underlying OS shell; this is similar to
   prefixing every line in the cell with ``!``.
