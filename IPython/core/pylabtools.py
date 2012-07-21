@@ -174,13 +174,16 @@ def select_figure_format(shell, fmt):
 #-----------------------------------------------------------------------------
 
 
-def find_gui_and_backend(gui=None):
+def find_gui_and_backend(gui=None, gui_select=None):
     """Given a gui string return the gui and mpl backend.
 
     Parameters
     ----------
     gui : str
         Can be one of ('tk','gtk','wx','qt','qt4','inline').
+    gui_select : str
+        Can be one of ('tk','gtk','wx','qt','qt4','inline').
+        This is any gui already selected by the shell.
 
     Returns
     -------
@@ -198,6 +201,13 @@ def find_gui_and_backend(gui=None):
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
         gui = backend2gui.get(backend, None)
+
+        # If we have already had a gui active, we need it and inline are the
+        # ones allowed.
+        if gui_select and gui != gui_select:
+            gui = gui_select
+            backend = backends[gui]
+
     return gui, backend
 
 
@@ -330,7 +340,18 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     The actual gui used (if not given as input, it was obtained from matplotlib
     itself, and will be needed next to configure IPython's gui integration.
     """
-    gui, backend = find_gui_and_backend(gui)
+    pylab_gui_select = shell.pylab_gui_select if shell is not None else None
+    # Try to find the appropriate gui and backend for the settings
+    gui, backend = find_gui_and_backend(gui, pylab_gui_select)
+    if shell is not None and gui != 'inline':
+        # If we have our first gui selection, store it
+        if pylab_gui_select is None:
+            shell.pylab_gui_select = gui
+        # Otherwise if they are different
+        elif gui != pylab_gui_select:
+            print ('Warning: Cannot change to a different GUI toolkit: %s.'
+                    ' Using %s instead.' % (gui, pylab_gui_select))
+            gui, backend = find_gui_and_backend(pylab_gui_select)
     activate_matplotlib(backend)
     import_pylab(user_ns, import_all)
     if shell is not None:
