@@ -18,6 +18,8 @@ Authors:
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
+import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -107,17 +109,16 @@ class EngineConnector(HasTraits):
     """A simple object for accessing the various zmq connections of an object.
     Attributes are:
     id (int): engine ID
-    uuid (str): uuid (unused?)
-    queue (str): identity of queue's DEALER socket
-    registration (str): identity of registration DEALER socket
-    heartbeat (str): identity of heartbeat DEALER socket
+    uuid (unicode): engine UUID
+    pending: set of msg_ids
+    stallback: DelayedCallback for stalled registration
     """
-    id=Integer(0)
-    queue=CBytes()
-    control=CBytes()
-    registration=CBytes()
-    heartbeat=CBytes()
-    pending=Set()
+    
+    id = Integer(0)
+    uuid = Unicode()
+    pending = Set()
+    stallback = Instance(ioloop.DelayedCallback)
+
 
 _db_shortcuts = {
     'sqlitedb' : 'IPython.parallel.controller.sqlitedb.SQLiteDB',
@@ -131,29 +132,29 @@ class HubFactory(RegistrationFactory):
 
     # port-pairs for monitoredqueues:
     hb = Tuple(Integer,Integer,config=True,
-        help="""DEALER/SUB Port pair for Engine heartbeats""")
+        help="""PUB/ROUTER Port pair for Engine heartbeats""")
     def _hb_default(self):
         return tuple(util.select_random_ports(2))
 
     mux = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for MUX queue""")
+        help="""Client/Engine Port pair for MUX queue""")
 
     def _mux_default(self):
         return tuple(util.select_random_ports(2))
 
     task = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for Task queue""")
+        help="""Client/Engine Port pair for Task queue""")
     def _task_default(self):
         return tuple(util.select_random_ports(2))
 
     control = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for Control queue""")
+        help="""Client/Engine Port pair for Control queue""")
 
     def _control_default(self):
         return tuple(util.select_random_ports(2))
 
     iopub = Tuple(Integer,Integer,config=True,
-        help="""Engine/Client Port pair for IOPub relay""")
+        help="""Client/Engine Port pair for IOPub relay""")
 
     def _iopub_default(self):
         return tuple(util.select_random_ports(2))
@@ -231,38 +232,77 @@ class HubFactory(RegistrationFactory):
         self.heartmonitor.start()
         self.log.info("Heartmonitor started")
 
+    def client_url(self, channel):
+        """return full zmq url for a named client channel"""
+        return "%s://%s:%i" % (self.client_transport, self.client_ip, self.client_info[channel])
+    
+    def engine_url(self, channel):
+        """return full zmq url for a named engine channel"""
+        return "%s://%s:%i" % (self.engine_transport, self.engine_ip, self.engine_info[channel])
+    
     def init_hub(self):
-        """construct"""
-        client_iface = "%s://%s:" % (self.client_transport, self.client_ip) + "%i"
-        engine_iface = "%s://%s:" % (self.engine_transport, self.engine_ip) + "%i"
+        """construct Hub object"""
 
         ctx = self.context
         loop = self.loop
 
+        try:
+            scheme = self.config.TaskScheduler.scheme_name
+        except AttributeError:
+            from .scheduler import TaskScheduler
+            scheme = TaskScheduler.scheme_name.get_default_value()
+        
+        # build connection dicts
+        engine = self.engine_info = {
+            'interface'     : "%s://%s" % (self.engine_transport, self.engine_ip),
+            'registration'  : self.regport,
+            'control'       : self.control[1],
+            'mux'           : self.mux[1],
+            'hb_ping'       : self.hb[0],
+            'hb_pong'       : self.hb[1],
+            'task'          : self.task[1],
+            'iopub'         : self.iopub[1],
+            }
+
+        client = self.client_info = {
+            'interface'     : "%s://%s" % (self.client_transport, self.client_ip),
+            'registration'  : self.regport,
+            'control'       : self.control[0],
+            'mux'           : self.mux[0],
+            'task'          : self.task[0],
+            'task_scheme'   : scheme,
+            'iopub'         : self.iopub[0],
+            'notification'  : self.notifier_port,
+            }
+        
+        self.log.debug("Hub engine addrs: %s", self.engine_info)
+        self.log.debug("Hub client addrs: %s", self.client_info)
+        
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
-        q.bind(client_iface % self.regport)
-        self.log.info("Hub listening on %s for registration.", client_iface % self.regport)
+        q.bind(self.client_url('registration'))
+        self.log.info("Hub listening on %s for registration.", self.client_url('registration'))
         if self.client_ip != self.engine_ip:
-            q.bind(engine_iface % self.regport)
-            self.log.info("Hub listening on %s for registration.", engine_iface % self.regport)
+            q.bind(self.engine_url('registration'))
+            self.log.info("Hub listening on %s for registration.", self.engine_url('registration'))
 
         ### Engine connections ###
 
         # heartbeat
         hpub = ctx.socket(zmq.PUB)
-        hpub.bind(engine_iface % self.hb[0])
+        hpub.bind(self.engine_url('hb_ping'))
         hrep = ctx.socket(zmq.ROUTER)
-        hrep.bind(engine_iface % self.hb[1])
+        hrep.bind(self.engine_url('hb_pong'))
         self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
                                 pongstream=ZMQStream(hrep,loop)
                             )
 
         ### Client connections ###
+        
         # Notifier socket
         n = ZMQStream(ctx.socket(zmq.PUB), loop)
-        n.bind(client_iface%self.notifier_port)
+        n.bind(self.client_url('notification'))
 
         ### build and launch the queues ###
 
@@ -279,35 +319,10 @@ class HubFactory(RegistrationFactory):
         self.db = import_item(str(db_class))(session=self.session.session,
                                             config=self.config, log=self.log)
         time.sleep(.25)
-        try:
-            scheme = self.config.TaskScheduler.scheme_name
-        except AttributeError:
-            from .scheduler import TaskScheduler
-            scheme = TaskScheduler.scheme_name.get_default_value()
-        # build connection dicts
-        self.engine_info = {
-            'control' : engine_iface%self.control[1],
-            'mux': engine_iface%self.mux[1],
-            'heartbeat': (engine_iface%self.hb[0], engine_iface%self.hb[1]),
-            'task' : engine_iface%self.task[1],
-            'iopub' : engine_iface%self.iopub[1],
-            # 'monitor' : engine_iface%self.mon_port,
-            }
-
-        self.client_info = {
-            'control' : client_iface%self.control[0],
-            'mux': client_iface%self.mux[0],
-            'task' : (scheme, client_iface%self.task[0]),
-            'iopub' : client_iface%self.iopub[0],
-            'notification': client_iface%self.notifier_port
-            }
-        self.log.debug("Hub engine addrs: %s", self.engine_info)
-        self.log.debug("Hub client addrs: %s", self.client_info)
 
         # resubmit stream
         r = ZMQStream(ctx.socket(zmq.DEALER), loop)
-        url = util.disambiguate_url(self.client_info['task'][-1])
-        r.setsockopt(zmq.IDENTITY, self.session.bsession)
+        url = util.disambiguate_url(self.client_url('task'))
         r.connect(url)
 
         self.hub = Hub(loop=loop, session=self.session, monitor=sub, heartmonitor=self.heartmonitor,
@@ -335,6 +350,9 @@ class Hub(SessionFactory):
     client_info: dict of zmq connection information for engines to connect
                 to the queues.
     """
+    
+    engine_state_file = Unicode()
+    
     # internal data structures:
     ids=Set() # engine IDs
     keytable=Dict()
@@ -382,15 +400,6 @@ class Hub(SessionFactory):
         super(Hub, self).__init__(**kwargs)
         self.registration_timeout = max(5000, 2*self.heartmonitor.period)
 
-        # validate connection dicts:
-        for k,v in self.client_info.iteritems():
-            if k == 'task':
-                util.validate_url_container(v[1])
-            else:
-                util.validate_url_container(v)
-        # util.validate_url_container(self.client_info)
-        util.validate_url_container(self.engine_info)
-
         # register our callbacks
         self.query.on_recv(self.dispatch_query)
         self.monitor.on_recv(self.dispatch_monitor_traffic)
@@ -425,7 +434,7 @@ class Hub(SessionFactory):
         self.resubmit.on_recv(lambda msg: None, copy=False)
 
         self.log.info("hub::created hub")
-
+    
     @property
     def _next_id(self):
         """gemerate a new ID.
@@ -440,7 +449,7 @@ class Hub(SessionFactory):
         # while newid in self.ids or newid in incoming:
         #     newid += 1
         # return newid
-
+    
     #-----------------------------------------------------------------------------
     # message validation
     #-----------------------------------------------------------------------------
@@ -556,11 +565,11 @@ class Hub(SessionFactory):
         triggers unregistration"""
         self.log.debug("heartbeat::handle_heart_failure(%r)", heart)
         eid = self.hearts.get(heart, None)
-        queue = self.engines[eid].queue
+        uuid = self.engines[eid].uuid
         if eid is None or self.keytable[eid] in self.dead_engines:
             self.log.info("heartbeat::ignoring heart failure %r (not an engine or already dead)", heart)
         else:
-            self.unregister_engine(heart, dict(content=dict(id=eid, queue=queue)))
+            self.unregister_engine(heart, dict(content=dict(id=eid, queue=uuid)))
 
     #----------------------- MUX Queue Traffic ------------------------------
 
@@ -585,7 +594,7 @@ class Hub(SessionFactory):
         self.log.info("queue::client %r submitted request %r to %s", client_id, msg_id, eid)
         # Unicode in records
         record['engine_uuid'] = queue_id.decode('ascii')
-        record['client_uuid'] = client_id.decode('ascii')
+        record['client_uuid'] = msg['header']['session']
         record['queue'] = 'mux'
 
         try:
@@ -677,7 +686,7 @@ class Hub(SessionFactory):
             return
         record = init_record(msg)
 
-        record['client_uuid'] = client_id.decode('ascii')
+        record['client_uuid'] = msg['header']['session']
         record['queue'] = 'task'
         header = msg['header']
         msg_id = header['msg_id']
@@ -865,11 +874,10 @@ class Hub(SessionFactory):
         """Reply with connection addresses for clients."""
         self.log.info("client::client %r connected", client_id)
         content = dict(status='ok')
-        content.update(self.client_info)
         jsonable = {}
         for k,v in self.keytable.iteritems():
             if v not in self.dead_engines:
-                jsonable[str(k)] = v.decode('ascii')
+                jsonable[str(k)] = v
         content['engines'] = jsonable
         self.session.send(self.query, 'connection_reply', content, parent=msg, ident=client_id)
 
@@ -877,48 +885,37 @@ class Hub(SessionFactory):
         """Register a new engine."""
         content = msg['content']
         try:
-            queue = cast_bytes(content['queue'])
+            uuid = content['uuid']
         except KeyError:
             self.log.error("registration::queue not specified", exc_info=True)
             return
-        heart = content.get('heartbeat', None)
-        if heart:
-            heart = cast_bytes(heart)
-        """register a new engine, and create the socket(s) necessary"""
-        eid = self._next_id
-        # print (eid, queue, reg, heart)
 
-        self.log.debug("registration::register_engine(%i, %r, %r, %r)", eid, queue, reg, heart)
+        eid = self._next_id
+
+        self.log.debug("registration::register_engine(%i, %r)", eid, uuid)
 
         content = dict(id=eid,status='ok')
-        content.update(self.engine_info)
         # check if requesting available IDs:
-        if queue in self.by_ident:
+        if cast_bytes(uuid) in self.by_ident:
             try:
-                raise KeyError("queue_id %r in use" % queue)
+                raise KeyError("uuid %r in use" % uuid)
             except:
                 content = error.wrap_exception()
-                self.log.error("queue_id %r in use", queue, exc_info=True)
-        elif heart in self.hearts: # need to check unique hearts?
-            try:
-                raise KeyError("heart_id %r in use" % heart)
-            except:
-                self.log.error("heart_id %r in use", heart, exc_info=True)
-                content = error.wrap_exception()
+                self.log.error("uuid %r in use", uuid, exc_info=True)
         else:
-            for h, pack in self.incoming_registrations.iteritems():
-                if heart == h:
+            for h, ec in self.incoming_registrations.iteritems():
+                if uuid == h:
                     try:
-                        raise KeyError("heart_id %r in use" % heart)
+                        raise KeyError("heart_id %r in use" % uuid)
                     except:
-                        self.log.error("heart_id %r in use", heart, exc_info=True)
+                        self.log.error("heart_id %r in use", uuid, exc_info=True)
                         content = error.wrap_exception()
                     break
-                elif queue == pack[1]:
+                elif uuid == ec.uuid:
                     try:
-                        raise KeyError("queue_id %r in use" % queue)
+                        raise KeyError("uuid %r in use" % uuid)
                     except:
-                        self.log.error("queue_id %r in use", queue, exc_info=True)
+                        self.log.error("uuid %r in use", uuid, exc_info=True)
                         content = error.wrap_exception()
                     break
 
@@ -926,18 +923,21 @@ class Hub(SessionFactory):
                 content=content,
                 ident=reg)
 
+        heart = cast_bytes(uuid)
+
         if content['status'] == 'ok':
             if heart in self.heartmonitor.hearts:
                 # already beating
-                self.incoming_registrations[heart] = (eid,queue,reg[0],None)
+                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid)
                 self.finish_registration(heart)
             else:
                 purge = lambda : self._purge_stalled_registration(heart)
                 dc = ioloop.DelayedCallback(purge, self.registration_timeout, self.loop)
                 dc.start()
-                self.incoming_registrations[heart] = (eid,queue,reg[0],dc)
+                self.incoming_registrations[heart] = EngineConnector(id=eid,uuid=uuid,stallback=dc)
         else:
             self.log.error("registration::registration %i failed: %r", eid, content['evalue'])
+        
         return eid
 
     def unregister_engine(self, ident, msg):
@@ -950,7 +950,7 @@ class Hub(SessionFactory):
         self.log.info("registration::unregister_engine(%r)", eid)
         # print (eid)
         uuid = self.keytable[eid]
-        content=dict(id=eid, queue=uuid.decode('ascii'))
+        content=dict(id=eid, uuid=uuid)
         self.dead_engines.add(uuid)
         # self.ids.remove(eid)
         # uuid = self.keytable.pop(eid)
@@ -963,6 +963,8 @@ class Hub(SessionFactory):
         dc = ioloop.DelayedCallback(handleit, self.registration_timeout, self.loop)
         dc.start()
         ############## TODO: HANDLE IT ################
+        
+        self._save_engine_state()
 
         if self.notifier:
             self.session.send(self.notifier, "unregistration_notification", content=content)
@@ -1001,34 +1003,95 @@ class Hub(SessionFactory):
         """Second half of engine registration, called after our HeartMonitor
         has received a beat from the Engine's Heart."""
         try:
-            (eid,queue,reg,purge) = self.incoming_registrations.pop(heart)
+            ec = self.incoming_registrations.pop(heart)
         except KeyError:
             self.log.error("registration::tried to finish nonexistant registration", exc_info=True)
             return
-        self.log.info("registration::finished registering engine %i:%r", eid, queue)
-        if purge is not None:
-            purge.stop()
-        control = queue
+        self.log.info("registration::finished registering engine %i:%s", ec.id, ec.uuid)
+        if ec.stallback is not None:
+            ec.stallback.stop()
+        eid = ec.id
         self.ids.add(eid)
-        self.keytable[eid] = queue
-        self.engines[eid] = EngineConnector(id=eid, queue=queue, registration=reg,
-                                    control=control, heartbeat=heart)
-        self.by_ident[queue] = eid
+        self.keytable[eid] = ec.uuid
+        self.engines[eid] = ec
+        self.by_ident[cast_bytes(ec.uuid)] = ec.id
         self.queues[eid] = list()
         self.tasks[eid] = list()
         self.completed[eid] = list()
         self.hearts[heart] = eid
-        content = dict(id=eid, queue=self.engines[eid].queue.decode('ascii'))
+        content = dict(id=eid, uuid=self.engines[eid].uuid)
         if self.notifier:
             self.session.send(self.notifier, "registration_notification", content=content)
         self.log.info("engine::Engine Connected: %i", eid)
+        
+        self._save_engine_state()
 
     def _purge_stalled_registration(self, heart):
         if heart in self.incoming_registrations:
-            eid = self.incoming_registrations.pop(heart)[0]
-            self.log.info("registration::purging stalled registration: %i", eid)
+            ec = self.incoming_registrations.pop(heart)
+            self.log.info("registration::purging stalled registration: %i", ec.id)
         else:
             pass
+
+    #-------------------------------------------------------------------------
+    # Engine State
+    #-------------------------------------------------------------------------
+
+
+    def _cleanup_engine_state_file(self):
+        """cleanup engine state mapping"""
+        
+        if os.path.exists(self.engine_state_file):
+            self.log.debug("cleaning up engine state: %s", self.engine_state_file)
+            try:
+                os.remove(self.engine_state_file)
+            except IOError:
+                self.log.error("Couldn't cleanup file: %s", self.engine_state_file, exc_info=True)
+
+
+    def _save_engine_state(self):
+        """save engine mapping to JSON file"""
+        if not self.engine_state_file:
+            return
+        self.log.debug("save engine state to %s" % self.engine_state_file)
+        state = {}
+        engines = {}
+        for eid, ec in self.engines.iteritems():
+            if ec.uuid not in self.dead_engines:
+                engines[eid] = ec.uuid
+        
+        state['engines'] = engines
+        
+        state['next_id'] = self._idcounter
+        
+        with open(self.engine_state_file, 'w') as f:
+            json.dump(state, f)
+
+
+    def _load_engine_state(self):
+        """load engine mapping from JSON file"""
+        if not os.path.exists(self.engine_state_file):
+            return
+        
+        self.log.info("loading engine state from %s" % self.engine_state_file)
+        
+        with open(self.engine_state_file) as f:
+            state = json.load(f)
+        
+        save_notifier = self.notifier
+        self.notifier = None
+        for eid, uuid in state['engines'].iteritems():
+            heart = uuid.encode('ascii')
+            # start with this heart as current and beating:
+            self.heartmonitor.responses.add(heart)
+            self.heartmonitor.hearts.add(heart)
+            
+            self.incoming_registrations[heart] = EngineConnector(id=int(eid), uuid=uuid)
+            self.finish_registration(heart)
+        
+        self.notifier = save_notifier
+        
+        self._idcounter = state['next_id']
 
     #-------------------------------------------------------------------------
     # Client Requests
@@ -1131,7 +1194,7 @@ class Hub(SessionFactory):
                         except:
                             reply = error.wrap_exception()
                         break
-                    uid = self.engines[eid].queue
+                    uid = self.engines[eid].uuid
                     try:
                         self.db.drop_matching_records(dict(engine_uuid=uid, completed={'$ne':None}))
                     except Exception:
@@ -1205,6 +1268,7 @@ class Hub(SessionFactory):
                 self.db.add_record(msg_id, init_record(msg))
             except Exception:
                 self.log.error("db::DB Error updating record: %s", msg_id, exc_info=True)
+                return finish(error.wrap_exception())
 
         finish(dict(status='ok', resubmitted=resubmitted))
         

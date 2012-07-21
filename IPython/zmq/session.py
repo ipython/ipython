@@ -257,9 +257,11 @@ class Session(Configurable):
         if new.lower() == 'json':
             self.pack = json_packer
             self.unpack = json_unpacker
+            self.unpacker = new
         elif new.lower() == 'pickle':
             self.pack = pickle_packer
             self.unpack = pickle_unpacker
+            self.unpacker = new
         else:
             self.pack = import_item(str(new))
 
@@ -270,9 +272,11 @@ class Session(Configurable):
         if new.lower() == 'json':
             self.pack = json_packer
             self.unpack = json_unpacker
+            self.packer = new
         elif new.lower() == 'pickle':
             self.pack = pickle_packer
             self.unpack = pickle_unpacker
+            self.packer = new
         else:
             self.unpack = import_item(str(new))
 
