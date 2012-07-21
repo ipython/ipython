@@ -68,8 +68,17 @@ class TestPylabSwitch(object):
         pylab_gui_select = None
 
     def setup(self):
+        import matplotlib
+        def act_mpl(backend):
+            matplotlib.rcParams['backend'] = backend
+
+        # Save rcParams since they get modified
+        self._saved_rcParams = matplotlib.rcParams
+        matplotlib.rcParams = dict(backend='Qt4Agg')
+
+        # Mock out functions
         self._save_am = pt.activate_matplotlib
-        pt.activate_matplotlib = lambda *a,**kw:None
+        pt.activate_matplotlib = act_mpl
         self._save_ip = pt.import_pylab
         pt.import_pylab = lambda *a,**kw:None
         self._save_cis = pt.configure_inline_support
@@ -79,10 +88,12 @@ class TestPylabSwitch(object):
         pt.activate_matplotlib = self._save_am
         pt.import_pylab = self._save_ip
         pt.configure_inline_support = self._save_cis
+        import matplotlib
+        matplotlib.rcParams = self._saved_rcParams
 
     def test_qt(self):
         s = self.Shell()
-        gui = pt.pylab_activate(dict(), 'qt', False, s)
+        gui = pt.pylab_activate(dict(), None, False, s)
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
@@ -90,7 +101,7 @@ class TestPylabSwitch(object):
         nt.assert_equal(gui, 'inline')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
-        gui = pt.pylab_activate(dict(), None, False, s)
+        gui = pt.pylab_activate(dict(), 'qt', False, s)
         nt.assert_equal(gui, 'qt')
         nt.assert_equal(s.pylab_gui_select, 'qt')
 
