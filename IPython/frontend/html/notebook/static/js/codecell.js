@@ -134,13 +134,14 @@ var IPython = (function (IPython) {
             var tail_space = line.match(/ +$/g)
             if (tail_space) { 
                 var pre_indent_point = Math.floor( (cur.ch - 1)/ 4 ) * 4 + 1;
-                if (pre_indent_point > line.length - tail_space[0].length ) {
+                var non_space_end = line.length - tail_space[0].length
+                if (pre_indent_point > non_space_end ) {
                     //There are more than 4 spaces, delete up to previous indent point
                     editor.replaceRange('',
                         {line: cur.line, ch: pre_indent_point},
                         {line: cur.line, ch: line.length}
                     );
-                } else {
+                } else if (cur.ch > non_space_end ){
                     //Less than 4 spaces, delete them all
                     editor.replaceRange('',
                         {line: cur.line, ch: line.length - tail_space[0].length},
