@@ -2448,6 +2448,9 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
+            # Ensure that __file__ is always defined to match Python behavior
+            save_fname = self.user_ns.get('__file__',None)
+            self.user_ns['__file__'] = fname
             try:
                 py3compat.execfile(fname,*where)
             except SystemExit as status:
@@ -2468,6 +2471,8 @@ class InteractiveShell(SingletonConfigurable):
                 if kw['raise_exceptions']:
                     raise
                 self.showtraceback()
+            finally:
+                self.user_ns['__file__'] = save_fname
 
     def safe_execfile_ipy(self, fname):
         """Like safe_execfile, but for .ipy files with IPython syntax.
@@ -2494,6 +2499,9 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
+            # Ensure that __file__ is always defined to match Python behavior
+            save_fname = self.user_ns.get('__file__',None)
+            self.user_ns['__file__'] = fname
             try:
                 with open(fname) as thefile:
                     # self.run_cell currently captures all exceptions
@@ -2504,6 +2512,8 @@ class InteractiveShell(SingletonConfigurable):
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
+            finally:
+                self.user_ns['__file__'] = save_fname
 
     def safe_run_module(self, mod_name, where):
         """A safe version of runpy.run_module().
