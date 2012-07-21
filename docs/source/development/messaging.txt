@@ -158,7 +158,8 @@ Message type: ``execute_request``::
     # A boolean flag which, if True, signals the kernel to execute
     # this code as quietly as possible.  This means that the kernel
     # will compile the code with 'exec' instead of 'single' (so
-    # sys.displayhook will not fire), and will *not*:
+    # sys.displayhook will not fire), forces store_history to be False, 
+    # and will *not*:
     #   - broadcast exceptions on the PUB socket
     #   - do any logging
     #
@@ -166,7 +167,8 @@ Message type: ``execute_request``::
     'silent' : bool,
 
     # A boolean flag which, if True, signals the kernel to populate history
-    # The default is False if silent is True, or True if silent is False.
+    # The default is True if silent is False.  If silent is True, store_history
+    # is forced to be False.
     'store_history' : bool,
 
     # A list of variable names from the user's namespace to be retrieved.  What
