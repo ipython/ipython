@@ -45,7 +45,7 @@ from IPython.zmq.session import (
 from IPython.config.configurable import Configurable
 
 from IPython.parallel.engine.engine import EngineFactory
-from IPython.parallel.util import disambiguate_url
+from IPython.parallel.util import disambiguate_ip_address
 
 from IPython.utils.importstring import import_item
 from IPython.utils.py3compat import cast_bytes
@@ -211,24 +211,36 @@ class IPEngineApp(BaseParallelApplication):
         with open(self.url_file) as f:
             d = json.loads(f.read())
         
-        if 'exec_key' in d:
-            config.Session.key = cast_bytes(d['exec_key'])
-        
+        # allow hand-override of location for disambiguation
+        # and ssh-server
         try:
             config.EngineFactory.location
         except AttributeError:
             config.EngineFactory.location = d['location']
         
-        d['url'] = disambiguate_url(d['url'], config.EngineFactory.location)
-        try:
-            config.EngineFactory.url
-        except AttributeError:
-            config.EngineFactory.url = d['url']
-        
         try:
             config.EngineFactory.sshserver
         except AttributeError:
-            config.EngineFactory.sshserver = d['ssh']
+            config.EngineFactory.sshserver = d.get('ssh')
+        
+        location = config.EngineFactory.location
+        
+        proto, ip = d['interface'].split('://')
+        ip = disambiguate_ip_address(ip)
+        d['interface'] = '%s://%s' % (proto, ip)
+        
+        # DO NOT allow override of basic URLs, serialization, or exec_key
+        # JSON file takes top priority there
+        config.Session.key = cast_bytes(d['exec_key'])
+        
+        config.EngineFactory.url = d['interface'] + ':%i' % d['registration']
+        
+        config.Session.packer = d['pack']
+        config.Session.unpacker = d['unpack']
+        
+        self.log.debug("Config changed:")
+        self.log.debug("%r", config)
+        self.connection_info = d
     
     def bind_kernel(self, **kwargs):
         """Promote engine to listening kernel, accessible to frontends."""
@@ -320,7 +332,9 @@ class IPEngineApp(BaseParallelApplication):
         # shell_class = import_item(self.master_config.Global.shell_class)
         # print self.config
         try:
-            self.engine = EngineFactory(config=config, log=self.log)
+            self.engine = EngineFactory(config=config, log=self.log,
+                            connection_info=self.connection_info,
+                        )
         except:
             self.log.error("Couldn't start the Engine", exc_info=True)
             self.exit(1)

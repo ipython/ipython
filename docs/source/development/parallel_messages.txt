@@ -43,9 +43,7 @@ monitor the survival of the Engine process.
 Message type: ``registration_request``::
 
     content = {
-        'queue'   : 'abcd-1234-...', # the MUX queue zmq.IDENTITY
-        'control'   : 'abcd-1234-...', # the control queue zmq.IDENTITY
-        'heartbeat' : 'abcd-1234-...' # the heartbeat zmq.IDENTITY
+        'uuid'   : 'abcd-1234-...', # the zmq.IDENTITY of the engine's sockets
     }
 
 .. note::
@@ -63,10 +61,6 @@ Message type: ``registration_reply``::
         'status' : 'ok', # or 'error'
         # if ok:
         'id' : 0, # int, the engine id
-        'queue' : 'tcp://127.0.0.1:12345', # connection for engine side of the queue
-        'control' : 'tcp://...', # addr for control queue
-        'heartbeat' : ('tcp://...','tcp://...'), # tuple containing two interfaces needed for heartbeat
-        'task' : 'tcp://...', # addr for task queue, or None if no task queue running
     }
 
 Clients use the same socket as engines to start their connections. Connection requests
@@ -84,11 +78,6 @@ Message type: ``connection_reply``::
 
     content = {
         'status' : 'ok', # or 'error'
-        # if ok:
-        'queue' : 'tcp://127.0.0.1:12345', # connection for client side of the MUX queue
-        'task' : ('lru','tcp...'), # routing scheme and addr for task queue (len 2 tuple)
-        'query' : 'tcp...', # addr for methods to query the hub, like queue_request, etc.
-        'control' : 'tcp...', # addr for control methods, like abort, etc.
     }
 
 Heartbeat
@@ -110,13 +99,14 @@ Message type: ``registration_notification``::
 
     content = {
         'id' : 0, # engine ID that has been registered
-        'queue' : 'engine_id' # the IDENT for the engine's queue
+        'uuid' : 'engine_id' # the IDENT for the engine's sockets
     }
 
 Message type : ``unregistration_notification``::
 
     content = {
         'id' : 0 # engine ID that has been unregistered
+        'uuid' : 'engine_id' # the IDENT for the engine's sockets
     }
 
 
