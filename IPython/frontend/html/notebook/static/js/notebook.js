@@ -791,7 +791,7 @@ var IPython = (function (IPython) {
             new_cell.fromJSON(cell_data);
             // generate uuid at cell paste
             // for a cell can be paste many time and we need unique ids.
-            new.cell.cell_id = utils.uuid();
+            new_cell.cell_id = utils.uuid();
 
             old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
@@ -1086,6 +1086,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.fromJSON = function (data) {
         var ncells = this.ncells();
+        var uuid_dict = {};
         var i;
         for (i=0; i<ncells; i++) {
             // Always delete cell 0 as they get renumbered as they are deleted.
@@ -1114,8 +1115,19 @@ var IPython = (function (IPython) {
                 
                 new_cell = this.insert_cell_below(cell_data.cell_type);
                 new_cell.fromJSON(cell_data);
+                // dummy assigment using dict as set does not exist
+                uuid_dict[new_cell.cell_id]=0
+
             };
         };
+
+        if (ncells != uuid_dict.length){
+            console.log('warnng, it seems like you have 2 cells with the same uuid')
+            setTimeout(function(){
+                    IPython.notification_widget.set_message('Warning : Potentially duplicate cell UUID', 2000)
+                },3000);
+        }
+
         if (data.worksheets.length > 1) {
             var dialog = $('<div/>');
             dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
@@ -1144,9 +1156,17 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         var ncells = cells.length;
         var cell_array = new Array(ncells);
+        var uuid_dict = {};
         for (var i=0; i<ncells; i++) {
-            cell_array[i] = cells[i].toJSON();
+            var json = cells[i].toJSON();
+            cell_array[i] = json
+            // dummy assigment using dict as set does not exist
+            uuid_dict[json.metadata.uuid]=0
         };
+        if (cell_array.length != uuid_dict.length){
+            console.log('warnng, it seems like you have 2 cells with the same uuid')
+            IPython.notification_widget.set_message('Potentially dupicate cell UUID', 5000);
+        }
         var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{
