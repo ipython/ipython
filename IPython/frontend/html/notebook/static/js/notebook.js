@@ -776,8 +776,8 @@ var IPython = (function (IPython) {
 
         // we don't want to have du plicate uuid, so for now, we are carefull
         // of deleting the uuid befor copying.
-        if( json.uuid != undefined){
-            delete  json.uuid
+        if( json.metadata.uuid != undefined){
+            delete  json.metadata.uuid
         }
         this.clipboard = json;
         this.enable_paste();
@@ -789,6 +789,10 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            // generate uuid at cell paste
+            // for a cell can be paste many time and we need unique ids.
+            new.cell.cell_id = utils.uuid();
+
             old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
             this.select(this.find_cell_index(new_cell));

@@ -25,10 +25,11 @@ var IPython = (function (IPython) {
             this.element.data("cell", this);
             this.bind_events();
         }
-        if( this.cell_id == undefined)
-        {
-            this.cell_id = utils.uuid();
-        }
+        // alway create uuid, it will be overwritten
+        // when loading from JSON. Trying to check for
+        // this.cell_id = undefined create issues
+        // with inheritence
+        this.cell_id = utils.uuid();
     };
 
 
@@ -96,7 +97,9 @@ var IPython = (function (IPython) {
     Cell.prototype.toJSON = function () {
         var data = {};
         data.metadata = this.metadata;
-        data.uuid = this.cell_id
+        if (this.cell_id != undefined){
+            data.metadata.uuid = this.cell_id
+        }
         return data;
     };
 
@@ -105,8 +108,8 @@ var IPython = (function (IPython) {
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
         }
-        if (data.uuid !== undefined) {
-            this.cell_id = data.uuid;
+        if (data.metadata.uuid !== undefined) {
+            this.cell_id = data.metadata.uuid;
         }
     };
 
