@@ -32,12 +32,12 @@ var IPython = (function (IPython) {
             .text(msg);
 
         $(this.selector).append(tdiv);
-        var tmout = Math.max(1000,timeout);
+        var tmout = Math.max(1500,(timeout||1500));
         tdiv.fadeIn(100);
 
         setTimeout(function () {
                 tdiv.fadeOut(100, function () {tdiv.remove();});
-            }, timeout)
+            }, tmout)
     };
 
     IPython.NotificationArea = NotificationArea;
