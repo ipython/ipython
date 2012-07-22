@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
 
 
     NotificationWidget.prototype.style = function () {
-        this.element.addClass('ui-widget ui-widget-content ui-corner-all');
+        this.element.addClass('notification ui-widget ui-widget-content ui-corner-all');
         this.element.addClass('border-box-sizing');
     };
 

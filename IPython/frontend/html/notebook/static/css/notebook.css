@@ -51,14 +51,35 @@ span#notebook_name {
     position: relative;
 }
 
-#notification {
+#notification_area {
     position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 25px;
+    padding: 3px 6px;
+    z-index: 10;
+}
+
+.notification{
+    float : right;
     right: 3px;
     top: 3px;
     height: 25px;
     padding: 3px 6px;
     z-index: 10;
 }
+
+.notification.info
+{color : darkblue;}
+
+.notification.safe
+{color : darkgreen;}
+
+.notification.warning
+{color : darkorange;}
+
+.notification.danger
+{ color : darkred }
 
 #toolbar {
     padding: 3px 15px;
