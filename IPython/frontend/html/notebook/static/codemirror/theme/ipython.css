@@ -1,0 +1,40 @@
+
+
+.cm-s-ipython span.cm-keyword {color: #008000; font-weight: bold;}
+.cm-s-ipython span.cm-number {color: #000080;}
+.cm-s-ipython span.cm-operator {color: #AA22FF; font-weight: bold;}
+.cm-s-ipython span.cm-meta {color: #AA22FF;}
+.cm-s-ipython span.cm-comment {color: #408080; font-style: italic;}
+.cm-s-ipython span.cm-string {color: #BA2121;}
+.cm-s-ipython span.cm-error {color: #f00;}
+.cm-s-ipython span.cm-builtin {color: #008000;}
+.cm-s-ipython span.cm-variable {color: #000000;}
+
+/* These classes are not currently used in the python.js mode */
+
+/*.cm-s-ipython span.cm-atom {color: #219;}*/
+/*.cm-s-ipython span.cm-def {color: #00f;}*/
+/*.cm-s-ipython span.cm-variable-2 {color: #05a;}*/
+/*.cm-s-ipython span.cm-variable-3 {color: #0a5;}*/
+/*.cm-s-ipython span.cm-property {color: black;}*/
+/*.cm-s-ipython span.cm-qualifier {color: #555;}*/
+/*.cm-s-ipython span.cm-bracket {color: #cc7;}*/
+/*.cm-s-ipython span.cm-tag {color: #170;}*/
+/*.cm-s-ipython span.cm-attribute {color: #00c;}*/
+
+/* These are the old styles for our pre-themed version */
+
+/*span.py-delimiter {color: #666666;}*/
+/*span.py-special {color: #666666;}*/
+/*span.py-operator {color: #AA22FF; font-weight: bold;}*/
+/*span.py-keyword {color: #008000; font-weight: bold;}*/
+/*span.py-number {color: #666666;}*/
+/*span.py-identifier {color: #000000;}*/
+/*span.py-func {color: #000000;}*/
+/*span.py-type {color: #008000;}*/
+/*span.py-decorator {color: #AA22FF;}*/
+/*span.py-comment {color: #408080; font-style: italic;}*/
+/*span.py-string {color: #BA2121;}*/
+/*span.py-bytes {color: #BA2121;}*/
+/*span.py-raw {color: #BA2121;}*/
+/*span.py-unicode {color: #BA2121;}*/
