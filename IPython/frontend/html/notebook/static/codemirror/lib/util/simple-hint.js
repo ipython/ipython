@@ -2,6 +2,10 @@
   CodeMirror.simpleHint = function(editor, getHints) {
     // We want a single cursor position.
     if (editor.somethingSelected()) return;
+    //don't show completion if the token is empty
+    var tempToken = editor.getTokenAt(editor.getCursor());
+    if(!(/[\S]/gi.test(tempToken.string))) return;
+
     var result = getHints(editor);
     if (!result || !result.list.length) return;
     var completions = result.list;
@@ -29,6 +33,10 @@
     complete.style.left = pos.x + "px";
     complete.style.top = pos.yBot + "px";
     document.body.appendChild(complete);
+    // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
+    var winW = window.innerWidth || Math.max(document.body.offsetWidth, document.documentElement.offsetWidth);
+    if(winW - pos.x < sel.clientWidth)
+      complete.style.left = (pos.x - sel.clientWidth) + "px";
     // Hack to hide the scrollbar.
     if (completions.length <= 10)
       complete.style.width = (sel.clientWidth - 1) + "px";
@@ -53,6 +61,8 @@
       else if (code == 27) {CodeMirror.e_stop(event); close(); editor.focus();}
       else if (code != 38 && code != 40) {
         close(); editor.focus();
+        // Pass the event to the CodeMirror instance so that it can handle things like backspace properly.
+        editor.triggerOnKeyDown(event);
         setTimeout(function(){CodeMirror.simpleHint(editor, getHints);}, 50);
       }
     });
