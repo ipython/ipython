@@ -91,6 +91,15 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
     )
 
+    mime_preference = List(
+        default_value=['image/png', 'image/jpeg', 'image/svg+xml'],
+        config=True, allow_none=False, help=
+        """
+        Preferred object representation MIME type in order.  First
+        matched MIME type will be used.
+        """
+    )
+
     def __init__(self, *args, **kwargs):
         self.km = kwargs.pop('kernel_manager')
         self.session_id = self.km.session.session
@@ -236,8 +245,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     }
 
     def handle_rich_data(self, data):
-        for mime in ['image/png', 'image/jpeg', 'image/svg+xml']:
-            if mime in data:
+        for mime in self.mime_preference:
+            if mime in data and mime in self._imagemime:
                 self.handle_image(data, mime)
                 return
 
