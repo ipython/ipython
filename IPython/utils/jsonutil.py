@@ -11,6 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import math
 import re
 import sys
 import types
@@ -29,12 +30,6 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 # timestamp formats
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
 ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
-
-# float constants
-NAN  = float('nan')
-INF  = float('inf')
-NINF = float('-inf')
-INFS = (INF, NINF)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -174,7 +169,7 @@ def json_clean(obj):
     
     if isinstance(obj, float):
         # cast out-of-range floats to their reprs
-        if obj != obj or obj in INFS:
+        if math.isnan(obj) or math.isinf(obj):
             return repr(obj)
         return obj
     
