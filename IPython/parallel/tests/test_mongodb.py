@@ -16,6 +16,8 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+from unittest import TestCase
+
 from nose import SkipTest
 
 from pymongo import Connection
@@ -28,7 +30,7 @@ try:
 except Exception:
     c=None
 
-class TestMongoBackend(test_db.TestDictBackend):
+class TestMongoBackend(test_db.TaskDBTest, TestCase):
     """MongoDB backend tests"""
 
     def create_db(self):
