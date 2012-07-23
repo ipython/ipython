@@ -24,6 +24,7 @@ import logging
 import mimetypes
 import os
 import stat
+import threading
 import time
 import uuid
 
@@ -742,11 +743,15 @@ class RSTHandler(AuthenticatedHandler):
         self.set_header('Content-Type', 'text/html')
         self.finish(html)
 
+# to minimize subclass changes:
+HTTPError = web.HTTPError
 
 class FileFindHandler(web.StaticFileHandler):
     """subclass of StaticFileHandler for serving files from a search path"""
     
     _static_paths = {}
+    # _lock is needed for tornado < 2.2.0 compat
+    _lock = threading.Lock()  # protects _static_hashes
     
     def initialize(self, path, default_filename=None):
         if isinstance(path, basestring):
@@ -771,17 +776,17 @@ class FileFindHandler(web.StaticFileHandler):
             # os.path.abspath strips a trailing /
             # it needs to be temporarily added back for requests to root/
             if not (abspath + os.path.sep).startswith(roots):
-                raise web.HTTPError(403, "%s is not in root static directory", path)
+                raise HTTPError(403, "%s is not in root static directory", path)
         
             cls._static_paths[path] = abspath
             return abspath
     
     def get(self, path, include_body=True):
         path = self.parse_url_path(path)
-        abspath = self.locate_file(path, self.roots)
         
-        # from here on, this method is unchanged from the parent:
-        # other than using web.HTTPError instead of just HTTPError
+        # begin subclass override
+        abspath = self.locate_file(path, self.roots)
+        # end subclass override
         
         if os.path.isdir(abspath) and self.default_filename is not None:
             # need to look at the request.path here for when path is empty
@@ -792,9 +797,9 @@ class FileFindHandler(web.StaticFileHandler):
                 return
             abspath = os.path.join(abspath, self.default_filename)
         if not os.path.exists(abspath):
-            raise web.HTTPError(404)
+            raise HTTPError(404)
         if not os.path.isfile(abspath):
-            raise web.HTTPError(403, "%s is not a file", path)
+            raise HTTPError(403, "%s is not a file", path)
 
         stat_result = os.stat(abspath)
         modified = datetime.datetime.fromtimestamp(stat_result[stat.ST_MTIME])
@@ -881,4 +886,35 @@ class FileFindHandler(web.StaticFileHandler):
                 return hsh[:5]
         return None
 
-    
+
+    # make_static_url and parse_url_path totally unchanged from tornado 2.2.0
+    # but needed for tornado < 2.2.0 compat
+    @classmethod
+    def make_static_url(cls, settings, path):
+        """Constructs a versioned url for the given path.
+
+        This method may be overridden in subclasses (but note that it is
+        a class method rather than an instance method).
+
+        ``settings`` is the `Application.settings` dictionary.  ``path``
+        is the static path being requested.  The url returned should be
+        relative to the current host.
+        """
+        static_url_prefix = settings.get('static_url_prefix', '/static/')
+        version_hash = cls.get_version(settings, path)
+        if version_hash:
+            return static_url_prefix + path + "?v=" + version_hash
+        return static_url_prefix + path
+
+    def parse_url_path(self, url_path):
+        """Converts a static URL path into a filesystem path.
+
+        ``url_path`` is the path component of the URL with
+        ``static_url_prefix`` removed.  The return value should be
+        filesystem path relative to ``static_path``.
+        """
+        if os.path.sep != "/":
+            url_path = url_path.replace("/", os.path.sep)
+        return url_path
+
+
