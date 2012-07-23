@@ -41,6 +41,7 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);

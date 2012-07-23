@@ -35,6 +35,7 @@ var IPython = (function (IPython) {
             value: this.placeholder,
             readOnly: this.read_only,
             lineWrapping : true,
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
