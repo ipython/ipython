@@ -11,7 +11,7 @@
 import nose.tools as nt
 
 from IPython.lib import latextools
-from IPython.testing.decorators import onlyif_cmds_exist
+from IPython.testing.decorators import onlyif_cmds_exist, skipif_not_matplotlib
 from IPython.testing.tools import monkeypatch
 from IPython.utils.process import FindCmdError
 
@@ -48,6 +48,26 @@ def test_latex_to_png_dvipng_runs():
 
         with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
             yield (latextools.latex_to_png_dvipng, s, wrap)
+
+@skipif_not_matplotlib
+def test_latex_to_png_mpl_runs():
+    """
+    Test that latex_to_png_mpl just runs without error.
+    """
+    def mock_kpsewhich(filename):
+        nt.assert_equals(filename, "breqn.sty")
+        return None
+
+    for (s, wrap) in [("$x^2$", False), ("x^2", True)]:
+        yield (latextools.latex_to_png_mpl, s, wrap)
+
+        with monkeypatch(latextools, "kpsewhich", mock_kpsewhich):
+            yield (latextools.latex_to_png_mpl, s, wrap)
+
+@skipif_not_matplotlib
+def test_latex_to_html():
+    img = latextools.latex_to_html("$x^2$")
+    nt.assert_in("data:image/png;base64,iVBOR", img) 
 
 
 def test_genelatex_no_wrap():

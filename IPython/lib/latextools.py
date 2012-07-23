@@ -17,7 +17,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from StringIO import StringIO
+from io import BytesIO
 from base64 import encodestring
 import os
 import tempfile
@@ -27,6 +27,7 @@ import subprocess
 from IPython.utils.process import find_cmd, FindCmdError
 from IPython.config.configurable import SingletonConfigurable
 from IPython.utils.traitlets import Instance, List, CBool, CUnicode
+from IPython.utils.py3compat import bytes_to_str
 
 #-----------------------------------------------------------------------------
 # Tools
@@ -111,7 +112,7 @@ def latex_to_png_mpl(s, wrap):
     if wrap:
         s = '${0}$'.format(s)
     mt = mathtext.MathTextParser('bitmap')
-    f = StringIO()
+    f = BytesIO()
     mt.to_png(f, s, fontsize=12)
     return f.getvalue()
 
@@ -140,7 +141,7 @@ def latex_to_png_dvipng(s, wrap):
              "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        with open(outfile) as f:
+        with open(outfile, "rb") as f:
             bin_data = f.read()
     finally:
         shutil.rmtree(workdir)
@@ -197,7 +198,7 @@ def latex_to_html(s, alt='image'):
     alt : str
         The alt text to use for the HTML.
     """
-    base64_data = latex_to_png(s, encode=True)
+    base64_data = bytes_to_str(latex_to_png(s, encode=True), 'ascii')
     if base64_data:
         return _data_uri_template_png  % (base64_data, alt)
 
