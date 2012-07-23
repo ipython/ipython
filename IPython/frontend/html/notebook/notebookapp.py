@@ -382,7 +382,7 @@ class NotebookApp(BaseIPythonApplication):
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
                                                      "/static/")
         try:
-            filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
+            mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
         except IOError:
             if self.certfile:
                 # HTTPS: load from Rackspace CDN, because SSL certificate requires it
@@ -394,7 +394,7 @@ class NotebookApp(BaseIPythonApplication):
             self.log.info("Using MathJax from CDN: %s", url)
             return url
         else:
-            self.log.info("Using local MathJax")
+            self.log.info("Using local MathJax from %s" % mathjax)
             return static_url_prefix+u"mathjax/MathJax.js"
     
     def _mathjax_url_changed(self, name, old, new):
