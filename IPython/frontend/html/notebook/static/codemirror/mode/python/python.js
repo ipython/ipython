@@ -4,8 +4,11 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
     function wordRegexp(words) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
-    
-    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!]");
+
+    // IPython-specific changes: add '?' as recognized character.
+    var singleOperators = new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
+    // End IPython changes.
+
     var singleDelimiters = new RegExp('^[\\(\\)\\[\\]\\{\\}@,:`=;\\.]');
     var doubleOperators = new RegExp("^((==)|(!=)|(<=)|(>=)|(<>)|(<<)|(>>)|(//)|(\\*\\*))");
     var doubleDelimiters = new RegExp("^((\\+=)|(\\-=)|(\\*=)|(%=)|(/=)|(&=)|(\\|=)|(\\^=))");
