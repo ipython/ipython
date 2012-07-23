@@ -19,7 +19,6 @@ import os
 import sys
 import time
 from StringIO import StringIO
-from glob import glob
 
 # cProfile was added in Python2.5
 try:
@@ -45,22 +44,9 @@ from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
-from IPython.utils.path import get_py_filename, unquote_filename
+from IPython.utils.path import get_py_filename, unquote_filename, globlist
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
-
-
-def globlist(args):
-    """
-    Do glob expansion for each element in `args` and return a flattened list.
-
-    Unmatched glob pattern will remain as-is in the returned list.
-
-    """
-    expanded = []
-    for a in args:
-        expanded.extend(glob(a) or [a])
-    return expanded
 
 
 #-----------------------------------------------------------------------------

@@ -19,6 +19,7 @@ import sys
 import tempfile
 import warnings
 from hashlib import md5
+from glob import glob
 
 import IPython
 from IPython.testing.skipdoctest import skip_doctest
@@ -353,6 +354,19 @@ def expand_path(s):
     if os.name=='nt':
         s = s.replace('IPYTHON_TEMP', '$\\')
     return s
+
+
+def globlist(args):
+    """
+    Do glob expansion for each element in `args` and return a flattened list.
+
+    Unmatched glob pattern will remain as-is in the returned list.
+
+    """
+    expanded = []
+    for a in args:
+        expanded.extend(glob(a) or [a])
+    return expanded
 
 
 def target_outdated(target,deps):
