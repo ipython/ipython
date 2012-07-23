@@ -30,6 +30,12 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
 ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+$")
 
+# float constants
+NAN  = float('nan')
+INF  = float('inf')
+NINF = float('-inf')
+INFS = (INF, NINF)
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -161,10 +167,16 @@ def json_clean(obj):
     """
     # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
     # listed explicitly because bools pass as int instances
-    atomic_ok = (unicode, int, float, types.NoneType)
+    atomic_ok = (unicode, int, types.NoneType)
     
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)
+    
+    if isinstance(obj, float):
+        # cast out-of-range floats to their reprs
+        if obj != obj or obj in INFS:
+            return repr(obj)
+        return obj
     
     if isinstance(obj, atomic_ok):
         return obj
