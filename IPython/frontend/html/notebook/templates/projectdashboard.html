@@ -25,7 +25,9 @@ data-read-only={{read_only}}
 <div id="tabs">
     <ul>
         <li><a href="#tab1">Notebooks</a></li>
+        {% if logged_in or not read_only %}
         <li><a href="#tab2">Clusters</a></li>
+        {% end %}
     </ul>
 
     <div id="tab1">
@@ -48,6 +50,8 @@ data-read-only={{read_only}}
             <div id="project_name"><h2>{{project}}</h2></div>
         </div>
     </div>
+
+    {% if logged_in or not read_only %}
     <div id="tab2">
 
         <div id="cluster_toolbar">
@@ -68,6 +72,7 @@ data-read-only={{read_only}}
         </div>
 
     </div>
+    {% end %}
 </div>
 
 </div>

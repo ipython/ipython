@@ -428,6 +428,8 @@ var IPython = (function (IPython) {
     // Cell selection.
 
     Notebook.prototype.select = function (index) {
+        if(this.read_only)
+            return;
         if (index !== undefined && index >= 0 && index < this.ncells()) {
             sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
@@ -547,7 +549,7 @@ var IPython = (function (IPython) {
         var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
+                cell = new IPython.CodeCell(this.kernel,{read_only: this.read_only});
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new IPython.MarkdownCell();
@@ -581,7 +583,7 @@ var IPython = (function (IPython) {
         var cell = null;
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
+                cell = new IPython.CodeCell(this.kernel,{read_only : this.read_only});
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new IPython.MarkdownCell();

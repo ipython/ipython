@@ -33,7 +33,7 @@ var IPython = (function (IPython) {
             mode: this.code_mirror_mode,
             theme: 'default',
             value: this.placeholder,
-            readOnly: this.read_only,
+            readOnly: this.read_only ? false : 'nocursor',
             lineWrapping : true,
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });

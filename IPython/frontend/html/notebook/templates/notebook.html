@@ -46,12 +46,12 @@ data-notebook-id={{notebook_id}}
 
 
 {% block site %}
-
 <div id="menubar_container">
 <div id="menubar">
     <ul id="menus">
         <li><a href="#">File</a>
             <ul>
+                {% if logged_in or not read_only %}
                 <li id="new_notebook"><a href="#">New</a></li>
                 <li id="open_notebook"><a href="#">Open...</a></li>
                 <hr/>
@@ -59,6 +59,7 @@ data-notebook-id={{notebook_id}}
                 <li id="rename_notebook"><a href="#">Rename...</a></li>
                 <li id="save_notebook"><a href="#">Save</a></li>
                 <hr/>
+                {% end %}
                 <li><a href="#">Download as</a>
                     <ul>
                         <li id="download_ipynb"><a href="#">IPython (.ipynb)</a></li>
@@ -67,10 +68,13 @@ data-notebook-id={{notebook_id}}
                 </li>
                 <hr/>
                 <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>
+                {% if logged_in or not read_only %}
                 <hr/>
                 <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
+                {% end %}
             </ul>
         </li>
+        {% if logged_in or not read_only %}
         <li><a href="#">Edit</a>
             <ul>
                 <li id="cut_cell"><a href="#">Cut Cell</a></li>
@@ -91,12 +95,16 @@ data-notebook-id={{notebook_id}}
                 <li id="select_next"><a href="#">Select Next Cell</a></li>
             </ul>
         </li>
+        {% end %}
         <li><a href="#">View</a>
             <ul>
                 <li id="toggle_header"><a href="#">Toggle Header</a></li>
+                {% if logged_in or not read_only %}
                 <li id="toggle_toolbar"><a href="#">Toggle Toolbar</a></li>
+                {% end %}
             </ul>
         </li>
+        {% if logged_in or not read_only %}
         <li><a href="#">Insert</a>
             <ul>
                 <li id="insert_cell_above"><a href="#">Insert Cell Above</a></li>
@@ -136,6 +144,7 @@ data-notebook-id={{notebook_id}}
                 <li id="restart_kernel"><a href="#">Restart</a></li>
             </ul>
         </li>
+        {% end %}
         <li><a href="#">Help</a>
             <ul>
                 <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
@@ -156,6 +165,7 @@ data-notebook-id={{notebook_id}}
 </div>
 
 
+{% if logged_in or not read_only %}
 <div id="toolbar">
 
     <span>
@@ -193,6 +203,7 @@ data-notebook-id={{notebook_id}}
     </span>
 
 </div>
+{% end %}
 
 <div id="main_app">
 
