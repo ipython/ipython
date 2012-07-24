@@ -23,6 +23,8 @@ var IPython = (function (IPython) {
 
     NotificationArea.prototype.temp_message = function (msg, timeout, css_class) {
         var uuid = utils.uuid();
+        if( css_class == 'danger'){css_class = 'ui-state-error'}
+        if( css_class == 'warning'){css_class = 'ui-state-highlight'}
         var tdiv = $('<div>')
             .attr('id',uuid)
             .addClass('notification ui-widget ui-widget-content ui-corner-all')

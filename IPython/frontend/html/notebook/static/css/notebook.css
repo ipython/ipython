@@ -69,18 +69,6 @@ span#notebook_name {
     z-index: 10;
 }
 
-.notification.info
-{color : darkblue;}
-
-.notification.safe
-{color : darkgreen;}
-
-.notification.warning
-{color : darkorange;}
-
-.notification.danger
-{ color : darkred }
-
 #toolbar {
     padding: 3px 15px;
 }
