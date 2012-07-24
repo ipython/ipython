@@ -764,15 +764,16 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.cut_cell = function () {
         this.copy_cell();
-        // note that we might want 
-        // to keep the uuid in this case
-        // if the cell is pasted after.
         this.delete_cell();
     }
 
     Notebook.prototype.copy_cell = function () {
         var cell = this.get_selected_cell();
         var json = cell.toJSON();
+
+        //copied cell become ancestor of future pasted cells
+        var uuid = json.metadata.uuid
+        json.metadata.parents = {uuid:json.metadata.parents};
 
         // we don't want to have du plicate uuid, so for now, we are carefull
         // of deleting the uuid befor copying.
@@ -824,27 +825,36 @@ var IPython = (function (IPython) {
         // Todo: implement spliting for other cell types.
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
-            texta = cell.get_pre_cursor();
-            textb = cell.get_post_cursor();
+            var texta = cell.get_pre_cursor();
+            var textb = cell.get_post_cursor();
+            var uuid = cell.cell_id;
+            var family_tree = {}
+            family_tree[uuid] = cell.parents_id;
+            var new_cell
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
-                var new_cell = this.insert_cell_below('code');
+                new_cell = this.insert_cell_below('code');
                 new_cell.set_text(textb);
             } else if (cell instanceof IPython.MarkdownCell) {
                 cell.set_text(texta);
                 cell.render();
-                var new_cell = this.insert_cell_below('markdown');
+                new_cell = this.insert_cell_below('markdown');
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(textb);
                 new_cell.render();
             } else if (cell instanceof IPython.HTMLCell) {
                 cell.set_text(texta);
                 cell.render();
-                var new_cell = this.insert_cell_below('html');
+                new_cell = this.insert_cell_below('html');
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(textb);
                 new_cell.render();
             };
+            // the 2 new cell have a new id and 
+            // are both daughter from the splitted cell
+            cell.cell_id = utils.uuid();
+            cell.parents_id = family_tree;
+            new_cell.parents_id = family_tree;
         };
     };
 
@@ -863,6 +873,14 @@ var IPython = (function (IPython) {
                 cell.set_text(upper_text+'\n'+text);
                 cell.render();
             };
+            var upper_id = upper_cell.cell_id
+            var lower_id = cell.cell_id
+            // when merging two cell, the new cell have obviously 2 parents
+            var family_tree = {};
+            family_tree[upper_id]= upper_cell.parents_id
+            family_tree[lower_id]= cell.parents_id
+            cell.cell_id = utils.uuid()
+            cell.parents_id = family_tree;
             this.delete_cell(index-1);
             this.select(this.find_cell_index(cell));
         };
@@ -883,6 +901,14 @@ var IPython = (function (IPython) {
                 cell.set_text(text+'\n'+lower_text);
                 cell.render();
             };
+            // when merging two cell, the new cell have obviously 2 parents
+            var upper_id = cell.cell_id
+            var lower_id = lower_cell.cell_id
+            var family_tree = {};
+            family_tree[upper_id]= cell.parents_id
+            family_tree[lower_id]= lower_cell.parents_id
+            cell.cell_id = utils.uuid()
+            cell.parents_id = family_tree;
             this.delete_cell(index+1);
             this.select(this.find_cell_index(cell));
         };

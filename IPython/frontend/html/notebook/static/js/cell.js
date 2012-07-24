@@ -30,6 +30,7 @@ var IPython = (function (IPython) {
         // this.cell_id = undefined create issues
         // with inheritence
         this.cell_id = utils.uuid();
+        this.parents_id = {};
     };
 
 
@@ -98,7 +99,8 @@ var IPython = (function (IPython) {
         var data = {};
         data.metadata = this.metadata;
         if (this.cell_id != undefined){
-            data.metadata.uuid = this.cell_id
+            data.metadata.uuid = this.cell_id;
+            data.metadata.parents_id = this.parents_id;
         }
         return data;
     };
@@ -107,9 +109,14 @@ var IPython = (function (IPython) {
     Cell.prototype.fromJSON = function (data) {
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
+        } else {
+            data.metadata = {};
         }
         if (data.metadata.uuid !== undefined) {
             this.cell_id = data.metadata.uuid;
+        }
+        if (data.metadata.parents_id !== undefined) {
+            this.parents_id = data.metadata.parents_id;
         }
     };
 
