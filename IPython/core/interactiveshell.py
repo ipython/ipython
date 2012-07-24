@@ -2053,6 +2053,12 @@ class InteractiveShell(SingletonConfigurable):
             m.NamespaceMagics, m.OSMagics, m.PylabMagics, m.ScriptMagics,
         )
 
+        # Register Magic Aliases
+        mman = self.magics_manager
+        mman.register_alias('ed', 'edit')
+        mman.register_alias('hist', 'history')
+        mman.register_alias('rep', 'recall')
+
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
         # even need a centralize colors management object.
