@@ -16,6 +16,7 @@ __docformat__ = "restructuredtext en"
 #-------------------------------------------------------------------------------
 
 import copy
+import logging
 import sys
 from types import FunctionType
 
@@ -32,6 +33,8 @@ except:
 import codeutil
 import py3compat
 from importstring import import_item
+
+from IPython.config import Application
 
 if py3compat.PY3:
     buffer = memoryview
@@ -142,6 +145,14 @@ def CannedBuffer(CannedBytes):
 # Functions
 #-------------------------------------------------------------------------------
 
+def _error(*args, **kwargs):
+    if Application.initialized():
+        logger = Application.instance().log
+    else:
+        logger = logging.getLogger()
+        if not logger.handlers:
+            logging.basicConfig()
+    logger.error(*args, **kwargs)
 
 def can(obj):
     """prepare an object for pickling"""
@@ -150,8 +161,8 @@ def can(obj):
             try:
                 cls = import_item(cls)
             except Exception:
-                # not importable
-                print "not importable: %r" % cls
+                _error("cannning class not importable: %r", cls, exc_info=True)
+                cls = None
                 continue
         if isinstance(obj, cls):
             return canner(obj)
@@ -182,8 +193,8 @@ def uncan(obj, g=None):
             try:
                 cls = import_item(cls)
             except Exception:
-                # not importable
-                print "not importable: %r" % cls
+                _error("uncanning class not importable: %r", cls, exc_info=True)
+                cls = None
                 continue
         if isinstance(obj, cls):
             return uncanner(obj, g)
