@@ -423,6 +423,9 @@ class InteractiveShell(SingletonConfigurable):
     # Private interface
     _post_execute = Instance(dict)
 
+    # Tracks any GUI loop loaded for pylab
+    pylab_gui_select = None
+
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None)):

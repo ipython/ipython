@@ -254,8 +254,6 @@ class Kernel(Configurable):
                 self.eventloop = None
                 break
         self.log.info("exiting eventloop")
-        # if eventloop exits, IOLoop should stop
-        ioloop.IOLoop.instance().stop()
 
     def start(self):
         """register dispatchers for streams"""

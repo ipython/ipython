@@ -174,13 +174,16 @@ def select_figure_format(shell, fmt):
 #-----------------------------------------------------------------------------
 
 
-def find_gui_and_backend(gui=None):
+def find_gui_and_backend(gui=None, gui_select=None):
     """Given a gui string return the gui and mpl backend.
 
     Parameters
     ----------
     gui : str
         Can be one of ('tk','gtk','wx','qt','qt4','inline').
+    gui_select : str
+        Can be one of ('tk','gtk','wx','qt','qt4','inline').
+        This is any gui already selected by the shell.
 
     Returns
     -------
@@ -198,6 +201,13 @@ def find_gui_and_backend(gui=None):
         # In this case, we need to find what the appropriate gui selection call
         # should be for IPython, so we can activate inputhook accordingly
         gui = backend2gui.get(backend, None)
+
+        # If we have already had a gui active, we need it and inline are the
+        # ones allowed.
+        if gui_select and gui != gui_select:
+            gui = gui_select
+            backend = backends[gui]
+
     return gui, backend
 
 
@@ -205,22 +215,19 @@ def activate_matplotlib(backend):
     """Activate the given backend and set interactive to True."""
 
     import matplotlib
-    if backend.startswith('module://'):
-        # Work around bug in matplotlib: matplotlib.use converts the
-        # backend_id to lowercase even if a module name is specified!
-        matplotlib.rcParams['backend'] = backend
-    else:
-        matplotlib.use(backend)
     matplotlib.interactive(True)
+
+    # Matplotlib had a bug where even switch_backend could not force
+    # the rcParam to update. This needs to be set *before* the module
+    # magic of switch_backend().
+    matplotlib.rcParams['backend'] = backend
+
+    import matplotlib.pyplot
+    matplotlib.pyplot.switch_backend(backend)
 
     # This must be imported last in the matplotlib series, after
     # backend/interactivity choices have been made
     import matplotlib.pylab as pylab
-
-    # XXX For now leave this commented out, but depending on discussions with
-    # mpl-dev, we may be able to allow interactive switching...
-    #import matplotlib.pyplot
-    #matplotlib.pyplot.switch_backend(backend)
 
     pylab.show._needmain = False
     # We need to detect at runtime whether show() is called by the user.
@@ -272,6 +279,7 @@ def configure_inline_support(shell, backend, user_ns=None):
         from IPython.zmq.pylab.backend_inline import InlineBackend
     except ImportError:
         return
+    from matplotlib import pyplot
 
     user_ns = shell.user_ns if user_ns is None else user_ns
     
@@ -282,12 +290,23 @@ def configure_inline_support(shell, backend, user_ns=None):
 
     if backend == backends['inline']:
         from IPython.zmq.pylab.backend_inline import flush_figures
-        from matplotlib import pyplot
         shell.register_post_execute(flush_figures)
+
+        # Save rcParams that will be overwrittern
+        shell._saved_rcParams = dict()
+        for k in cfg.rc:
+            shell._saved_rcParams[k] = pyplot.rcParams[k]
         # load inline_rc
         pyplot.rcParams.update(cfg.rc)
         # Add 'figsize' to pyplot and to the user's namespace
         user_ns['figsize'] = pyplot.figsize = figsize
+    else:
+        from IPython.zmq.pylab.backend_inline import flush_figures
+        if flush_figures in shell._post_execute:
+            shell._post_execute.pop(flush_figures)
+        if hasattr(shell, '_saved_rcParams'):
+            pyplot.rcParams.update(shell._saved_rcParams)
+            del shell._saved_rcParams
 
     # Setup the default figure format
     fmt = cfg.figure_format
@@ -321,7 +340,18 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     The actual gui used (if not given as input, it was obtained from matplotlib
     itself, and will be needed next to configure IPython's gui integration.
     """
-    gui, backend = find_gui_and_backend(gui)
+    pylab_gui_select = shell.pylab_gui_select if shell is not None else None
+    # Try to find the appropriate gui and backend for the settings
+    gui, backend = find_gui_and_backend(gui, pylab_gui_select)
+    if shell is not None and gui != 'inline':
+        # If we have our first gui selection, store it
+        if pylab_gui_select is None:
+            shell.pylab_gui_select = gui
+        # Otherwise if they are different
+        elif gui != pylab_gui_select:
+            print ('Warning: Cannot change to a different GUI toolkit: %s.'
+                    ' Using %s instead.' % (gui, pylab_gui_select))
+            gui, backend = find_gui_and_backend(pylab_gui_select)
     activate_matplotlib(backend)
     import_pylab(user_ns, import_all)
     if shell is not None:
