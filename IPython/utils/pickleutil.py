@@ -218,15 +218,9 @@ can_map = {
     FunctionType : CannedFunction,
     bytes : CannedBytes,
     buffer : CannedBuffer,
-    # dict : can_dict,
-    # list : can_sequence,
-    # tuple : can_sequence,
 }
 
 uncan_map = {
     CannedObject : lambda obj, g: obj.get_object(g),
-    # dict : uncan_dict,
-    # list : uncan_sequence,
-    # tuple : uncan_sequence,
 }
 
