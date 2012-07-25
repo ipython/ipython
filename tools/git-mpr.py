@@ -6,6 +6,7 @@ Usage:
 """
 from __future__ import print_function
 
+import io, os
 import argparse
 from subprocess import check_call, CalledProcessError
 
@@ -24,7 +25,7 @@ def merge_branch(repo, branch ):
     """
     # Delete the branch first
     try :
-        check_call(['git', 'pull', '--no-edit', repo, branch])
+        check_call(['git', 'pull', repo, branch], stdin=io.open(os.devnull))
     except CalledProcessError :
         check_call(['git', 'merge', '--abort'])
         return False
