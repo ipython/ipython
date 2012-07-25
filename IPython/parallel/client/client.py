@@ -1209,7 +1209,10 @@ class Client(HasTraits):
         if not isinstance(metadata, dict):
             raise TypeError("metadata must be dict, not %s"%type(metadata))
 
-        bufs = util.pack_apply_message(f,args,kwargs)
+        bufs = util.pack_apply_message(f, args, kwargs,
+            buffer_threshold=self.session.buffer_threshold,
+            item_threshold=self.session.item_threshold,
+        )
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
                             metadata=metadata, track=track)

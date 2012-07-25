@@ -49,7 +49,8 @@ from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode, Dict, Int)
+                                        DottedObjectName, CUnicode, Dict, Integer)
+from IPython.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -331,9 +332,17 @@ class Session(Configurable):
         if not callable(new):
             raise TypeError("unpacker must be callable, not %s"%type(new))
     
-    copy_threshold = Int(2**16, config=True,
+    # thresholds:
+    copy_threshold = Integer(2**16, config=True,
         help="Threshold (in bytes) beyond which a buffer should be sent without copying.")
-
+    buffer_threshold = Integer(MAX_BYTES, config=True,
+        help="Threshold (in bytes) beyond which an object's buffer should be extracted to avoid pickling.")
+    item_threshold = Integer(MAX_ITEMS, config=True,
+        help="""The maximum number of items for a container to be introspected for custom serialization.
+        Containers larger than this are pickled outright.
+        """
+    )
+    
     def __init__(self, **kwargs):
         """create a Session object
 

@@ -43,10 +43,11 @@ if py3compat.PY3:
 # Serialization Functions
 #-----------------------------------------------------------------------------
 
-# maximum items to iterate through in a container
+# default values for the thresholds:
 MAX_ITEMS = 64
+MAX_BYTES = 1024
 
-def _extract_buffers(obj, threshold=1024):
+def _extract_buffers(obj, threshold=MAX_BYTES):
     """extract buffers larger than a certain threshold"""
     buffers = []
     if isinstance(obj, CannedObject) and obj.buffers:
@@ -68,7 +69,7 @@ def _restore_buffers(obj, buffers):
             if buf is None:
                 obj.buffers[i] = buffers.pop(0)
 
-def serialize_object(obj, threshold=1024):
+def serialize_object(obj, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     """Serialize an object into a list of sendable buffers.
     
     Parameters
@@ -76,28 +77,32 @@ def serialize_object(obj, threshold=1024):
     
     obj : object
         The object to be serialized
-    threshold : int
+    buffer_threshold : int
         The threshold (in bytes) for pulling out data buffers
         to avoid pickling them.
+    item_threshold : int
+        The maximum number of items over which canning will iterate.
+        Containers (lists, dicts) larger than this will be pickled without
+        introspection.
     
     Returns
     -------
     [bufs] : list of buffers representing the serialized object.
     """
     buffers = []
-    if isinstance(obj, (list, tuple)) and len(obj) < MAX_ITEMS:
+    if isinstance(obj, (list, tuple)) and len(obj) < item_threshold:
         cobj = can_sequence(obj)
         for c in cobj:
-            buffers.extend(_extract_buffers(c, threshold))
-    elif isinstance(obj, dict) and len(obj) < MAX_ITEMS:
+            buffers.extend(_extract_buffers(c, buffer_threshold))
+    elif isinstance(obj, dict) and len(obj) < item_threshold:
         cobj = {}
         for k in sorted(obj.iterkeys()):
             c = can(obj[k])
-            buffers.extend(_extract_buffers(c, threshold))
+            buffers.extend(_extract_buffers(c, buffer_threshold))
             cobj[k] = c
     else:
         cobj = can(obj)
-        buffers.extend(_extract_buffers(cobj, threshold))
+        buffers.extend(_extract_buffers(cobj, buffer_threshold))
 
     buffers.insert(0, pickle.dumps(cobj,-1))
     return buffers
@@ -135,17 +140,18 @@ def unserialize_object(buffers, g=None):
     
     return newobj, bufs
 
-def pack_apply_message(f, args, kwargs, threshold=1024):
+def pack_apply_message(f, args, kwargs, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     """pack up a function, args, and kwargs to be sent over the wire
+    
     as a series of buffers. Any object whose data is larger than `threshold`
     will not have their data copied (currently only numpy arrays support zero-copy)
     """
     msg = [pickle.dumps(can(f),-1)]
     databuffers = [] # for large objects
-    sargs = serialize_object(args,threshold)
+    sargs = serialize_object(args, buffer_threshold, item_threshold)
     msg.append(sargs[0])
     databuffers.extend(sargs[1:])
-    skwargs = serialize_object(kwargs,threshold)
+    skwargs = serialize_object(kwargs, buffer_threshold, item_threshold)
     msg.append(skwargs[0])
     databuffers.extend(skwargs[1:])
     msg.extend(databuffers)
