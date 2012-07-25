@@ -75,13 +75,13 @@ var IPython = (function (IPython) {
                 var cell = current_sheet.get_selected_cell();
                 if (cell.at_top()) {
                     event.preventDefault();
-                    that.select_prev();
+                    current_sheet.select_prev();
                 };
             } else if (event.which === key.DOWNARROW && !event.shiftKey) {
                 var cell = current_sheet.get_selected_cell();
                 if (cell.at_bottom()) {
                     event.preventDefault();
-                    that.select_next();
+                    current_sheet.select_next();
                 };
             } else if (event.which === key.ENTER && event.shiftKey) {
                 current_sheet.execute_selected_cell();
@@ -288,14 +288,15 @@ var IPython = (function (IPython) {
     // Worksheet indexing, retrieval, etc.
 
     Notebook.prototype.get_worksheet_elements = function () {
-	// reorder the panels so that they are in the same order as the tabs
+	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');
+/*	// reorder the panels so that they are in the same order as the tabs
 	var ids = this.element.find('ul.ui-tabs-nav').find("a[href!='#tab-add']").map(
 	    function() { return $(this).attr('href'); } 
 	);
 	for(var i=0; i<ids.length; i++) {
 	    this.tabs.append(this.tabs.children(ids[i]));
 	}
-	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');
+	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');*/
     };
 
     Notebook.prototype.get_worksheet_element = function (index) {
@@ -402,7 +403,7 @@ var IPython = (function (IPython) {
 	    index = index+1;
 	}
 	this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
-	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name);
+	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
 	this.select(index);
 	this.dirty = true;
 	return sheet;
@@ -415,7 +416,7 @@ var IPython = (function (IPython) {
 	    index = 0;
 	}
 	this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
-	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name);
+	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
 	this.select(index);
 	this.dirty = true;
 	return sheet;

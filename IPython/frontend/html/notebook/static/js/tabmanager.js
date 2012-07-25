@@ -23,19 +23,19 @@ var IPython = (function (IPython) {
 
     TabManager.prototype.bind_events = function () {
 	that = this;
-	// attach event handler for the 'Add Tab' button
+	// attach click event to the 'Add Tab' button
 	$('div#tabs').find("a[href='#tab-add']").parent('li').click(function (event) {
 	    event.preventDefault();
-	    nsheets = IPython.notebook.nsheets();
+	    var nsheets = IPython.notebook.nsheets();
 	    IPython.notebook.insert_worksheet_above('New Tab ' + (nsheets+1), nsheets);
 	})
 	// attach event handler for when a tab is added
 	this.tabs.bind("tabsadd", function(event, ui) {
-	    tab = $(ui.tab);
-	    e = tab.children('span');
-	    // on click
+	    // select the tab and panels
+	    var tab = $(ui.tab);
+	    // set click and hover events
+	    var e = tab.children('span');
 	    e.click(that.set_onclick);
-	    // on hover
 	    e.hover(function () {
 		if($(this).closest('li').hasClass('ui-tabs-active') && !$(this).hasClass('editing')) {
 		    $(this).addClass("ui-state-hover");
@@ -45,23 +45,26 @@ var IPython = (function (IPython) {
 		    $(this).removeClass("ui-state-hover");
 		}
             });
-	    // add a close button for the tab
-	    tab.after('<span class="ui-icon ui-icon-close">Remove Tab</span>');
+	    // add a close icon to the tab
+	    tab.after('<span class="ui-icon ui-icon-close"></span>');
 	    tab.next().click(that.close_tab);
 	    // set class for tab panel
 	    $(ui.panel).addClass('panel');
 	});
 	// attach event handler for when a tab is selected
-	this.tabs.bind("tabsselect", function(event, ui) {
+	this.tabs.bind("tabsshow", function(event, ui) {
 	    // ignore if the "add tab" button was clicked
-	    if(ui.index < IPython.notebook.nsheets()) {
-		ws = IPython.notebook.get_worksheet(ui.index);
+	    if($(ui.panel).attr('id') !== 'tab-add') {
+		var ws = IPython.notebook.get_worksheet(ui.index);
 		if(ws !== undefined) {
 		    if(ws.ncells() === 0) {
 			ws.insert_cell_below('code');
 		    }
-		    ws.select(0);
 		}
+		ws.refresh_code_mirror();
+		// reselect the cell, since the cell loses focus when the tab is changed
+		var i = ws.get_selected_index();
+		ws.select(i);
 	    }
 	})
     };

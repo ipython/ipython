@@ -27,8 +27,9 @@ var IPython = (function (IPython) {
             select : function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
-                var i = IPython.notebook.get_selected_worksheet().get_selected_index();
-                IPython.notebook.select(i);
+		var ws = IPython.notebook.get_selected_worksheet();
+                var i = ws.get_selected_index();
+                ws.select(i);
             }
         });
     };

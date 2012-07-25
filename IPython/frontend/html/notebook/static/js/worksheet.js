@@ -34,7 +34,6 @@ var IPython = (function (IPython) {
     Worksheet.prototype.style = function () {
     };
 
-
     Worksheet.prototype.create_elements = function () {
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
@@ -732,6 +731,16 @@ var IPython = (function (IPython) {
     Worksheet.prototype.cell_toggle_line_numbers = function() {
         this.get_selected_cell().toggle_line_numbers();
     };
+
+
+    // Refresh code mirror for all cells in worksheet
+    Worksheet.prototype.refresh_code_mirror = function() {
+	var cells = this.get_cells();
+	for (var i=0; i<this.ncells(); i++) {
+	    cells[i].refresh();
+	}
+    }
+
 
     // Kernel related things
 
