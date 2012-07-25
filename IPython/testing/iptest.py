@@ -328,8 +328,8 @@ class IPTester(object):
     params = None
     #: list, arguments of system call to be made to call test runner
     call_args = None
-    #: list, process ids of subprocesses we start (for cleanup)
-    pids = None
+    #: list, subprocesses we start (for cleanup)
+    processes = None
     #: str, coverage xml output file
     coverage_xml = None
 
@@ -370,19 +370,18 @@ class IPTester(object):
             self.call_args.remove('--with-xml-coverage')
             self.call_args = ["coverage", "run", "--source="+sect] + self.call_args[1:]
 
-        # Store pids of anything we start to clean up on deletion, if possible
-        # (on posix only, since win32 has no os.kill)
-        self.pids = []
+        # Store anything we start to clean up on deletion
+        self.processes = []
 
     def _run_cmd(self):
         # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
         subp = subprocess.Popen(self.call_args)
-        self.pids.append(subp.pid)
-        # If this fails, the pid will be left in self.pids and cleaned up
-        # later, but if the wait call succeeds, then we can clear the
-        # stored pid.
+        self.processes.append(subp)
+        # If this fails, the process will be left in self.processes and cleaned
+        # up later, but if the wait call succeeds, then we can clear the
+        # stored process.
         retcode = subp.wait()
-        self.pids.pop()
+        self.processes.pop()
         return retcode
 
     def run(self):
@@ -398,28 +397,13 @@ class IPTester(object):
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
 
-    @staticmethod
-    def _kill(pid):
-        """Attempt to kill the process on a best effort basis."""
-        if hasattr(os, 'kill'):
-            os.kill(pid, signal.SIGKILL)
-        elif sys.platform == 'win32':
-            # Python 2.6 on Windows doesn't have os.kill.
-            from ctypes import windll
-            PROCESS_TERMINATE = 1
-            handle = windll.kernel32.OpenProcess(PROCESS_TERMINATE, False, pid)
-            windll.kernel32.TerminateProcess(handle, -1)
-            windll.kernel32.CloseHandle(handle)
-        else:
-            raise NotImplementedError
-
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
-        for pid in self.pids:
+        for subp in self.processes:
             try:
-                print('Cleaning stale PID:', pid)
-                self._kill(pid)
-            except (OSError, NotImplementedError):
+                print('Cleaning stale PID: %d' % subp.pid)
+                subp.kill()
+            except: # (OSError, WindowsError) ?
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
                 pass
