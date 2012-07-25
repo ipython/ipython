@@ -116,13 +116,13 @@ var IPython = (function (IPython) {
             } else if (event.which === key.UPARROW && event.shiftKey) {
                 var index = that.get_selected_index();
                 if (index != that.history_ref) {
-    				// We need to check for the last known position, and fix it, if the user navigated to another cell
-					that.history_ref = index;
-					that.history_position = index;
-				}
-				// Jump over current cell
-				if (that.history_position == index+1) that.history_position = index;
-				that.history_position = Math.max(0, that.history_position - 1);
+    		// We need to check for the last known position, and fix it, if the user navigated to another cell
+			that.history_ref = index;
+			that.history_position = index;
+		}
+		// Jump over current cell
+		if (that.history_position == index+1) that.history_position = index;
+		that.history_position = Math.max(0, that.history_position - 1);
                 var cell = that.get_cell(that.history_position);
                 var current_cell = that.get_selected_cell();
                 current_cell.fromJSON(cell.toJSON());
@@ -130,13 +130,13 @@ var IPython = (function (IPython) {
             } else if (event.which === key.DOWNARROW && event.shiftKey) {
                 var index = that.get_selected_index();
                 if (index != that.history_ref) {
-					// We need to check for the last known position, and fix it, if the user navigated to another cell
-					that.history_ref = index;
-					that.history_position = index;
-				}
-				// Jump over current cell
-				if (that.history_position == index-1) that.history_position = index;				
-				that.history_position = Math.min(that.ncells()-1, that.history_position + 1);
+		// We need to check for the last known position, and fix it, if the user navigated to another cell
+			that.history_ref = index;
+			that.history_position = index;
+		}
+		// Jump over current cell
+		if (that.history_position == index-1) that.history_position = index;				
+		that.history_position = Math.min(that.ncells()-1, that.history_position + 1);
                 var cell = that.get_cell(that.history_position);
                 var current_cell = that.get_selected_cell();
                 current_cell.fromJSON(cell.toJSON());
