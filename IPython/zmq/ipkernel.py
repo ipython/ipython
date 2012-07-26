@@ -570,8 +570,11 @@ class Kernel(Configurable):
                 for key in ns.iterkeys():
                     working.pop(key)
 
-            packed_result,buf = serialize_object(result)
-            result_buf = [packed_result]+buf
+            result_buf = serialize_object(result,
+                buffer_threshold=self.session.buffer_threshold,
+                item_threshold=self.session.item_threshold,
+            )
+        
         except:
             # invoke IPython traceback formatting
             shell.showtraceback()
