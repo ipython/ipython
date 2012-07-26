@@ -59,6 +59,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
@@ -374,15 +375,18 @@ class IPTester(object):
         self.processes = []
 
     def _run_cmd(self):
-        # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-        subp = subprocess.Popen(self.call_args)
-        self.processes.append(subp)
-        # If this fails, the process will be left in self.processes and cleaned
-        # up later, but if the wait call succeeds, then we can clear the
-        # stored process.
-        retcode = subp.wait()
-        self.processes.pop()
-        return retcode
+        with TemporaryDirectory() as IPYTHONDIR:
+            env = os.environ.copy()
+            env['IPYTHONDIR'] = IPYTHONDIR
+            # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
+            subp = subprocess.Popen(self.call_args, env=env)
+            self.processes.append(subp)
+            # If this fails, the process will be left in self.processes and
+            # cleaned up later, but if the wait call succeeds, then we can
+            # clear the stored process.
+            retcode = subp.wait()
+            self.processes.pop()
+            return retcode
 
     def run(self):
         """Run the stored commands"""
