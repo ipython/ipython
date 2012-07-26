@@ -146,9 +146,10 @@ class TestSession(SessionTestCase):
         """test tracking messages"""
         a,b = self.create_bound_pair(zmq.PAIR, zmq.PAIR)
         s = self.session
+        s.copy_threshold = 1
         stream = ZMQStream(a)
         msg = s.send(a, 'hello', track=False)
-        self.assertTrue(msg['tracker'] is None)
+        self.assertTrue(msg['tracker'] is ss.DONE)
         msg = s.send(a, 'hello', track=True)
         self.assertTrue(isinstance(msg['tracker'], zmq.MessageTracker))
         M = zmq.Message(b'hi there', track=True)
