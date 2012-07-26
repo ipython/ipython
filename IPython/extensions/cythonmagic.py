@@ -111,6 +111,10 @@ class CythonMagics(Magics):
         help="Extra flags to pass to compiler via the `extra_compile_args` Extension flag (can be specified  multiple times)."
     )
     @magic_arguments.argument(
+        '-la', '--link-args', action='append', default=[],
+        help="Extra flags to pass to linker via the `extra_link_args` Extension flag (can be specified  multiple times)."
+    )
+    @magic_arguments.argument(
         '-l', '--lib', action='append', default=[],
         help="Add a library to link the extension against (can be specified  multiple times)."
     )
@@ -170,6 +174,7 @@ class CythonMagics(Magics):
                 sources = [pyx_file],
                 include_dirs = c_include_dirs,
                 extra_compile_args = args.compile_args,
+                extra_link_args = args.link_args,
                 libraries = args.lib,
             )
             dist = Distribution()
