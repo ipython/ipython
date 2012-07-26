@@ -147,6 +147,8 @@ class Kernel(Configurable):
         self.shell.displayhook.topic = self._topic('pyout')
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
+        self.shell.data_pub.session = self.session
+        self.shell.data_pub.pub_socket = self.iopub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -353,6 +355,7 @@ class Kernel(Configurable):
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
@@ -538,6 +541,7 @@ class Kernel(Configurable):
         shell = self.shell
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 

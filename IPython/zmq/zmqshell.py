@@ -44,6 +44,7 @@ from IPython.utils import py3compat
 from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook
+from IPython.zmq.datapub import ZMQDataPublisher
 from IPython.zmq.session import extract_header
 from session import Session
 
@@ -464,6 +465,7 @@ class ZMQInteractiveShell(InteractiveShell):
 
     displayhook_class = Type(ZMQShellDisplayHook)
     display_pub_class = Type(ZMQDisplayPublisher)
+    data_pub_class = Type(ZMQDataPublisher)
 
     # Override the traitlet in the parent class, because there's no point using
     # readline for the kernel. Can be removed when the readline code is moved

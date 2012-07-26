@@ -270,6 +270,7 @@ class InteractiveShell(SingletonConfigurable):
     display_formatter = Instance(DisplayFormatter)
     displayhook_class = Type(DisplayHook)
     display_pub_class = Type(DisplayPublisher)
+    data_pub_class = None
 
     exit_now = CBool(False)
     exiter = Instance(ExitAutocall)
@@ -483,6 +484,7 @@ class InteractiveShell(SingletonConfigurable):
         self.init_prompts()
         self.init_display_formatter()
         self.init_display_pub()
+        self.init_data_pub()
         self.init_displayhook()
         self.init_reload_doctest()
         self.init_latextool()
@@ -658,6 +660,13 @@ class InteractiveShell(SingletonConfigurable):
     def init_display_pub(self):
         self.display_pub = self.display_pub_class(config=self.config)
         self.configurables.append(self.display_pub)
+
+    def init_data_pub(self):
+        if not self.data_pub_class:
+            self.data_pub = None
+            return
+        self.data_pub = self.data_pub_class(config=self.config)
+        self.configurables.append(self.data_pub)
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
