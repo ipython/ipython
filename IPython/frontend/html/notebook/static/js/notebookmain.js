@@ -23,15 +23,16 @@ $(document).ready(function () {
     IPython.page = new IPython.Page();
     IPython.markdown_converter = new Markdown.Converter();
     IPython.layout_manager = new IPython.LayoutManager();
+    IPython.tab_manager = new IPython.TabManager('div#tabs');
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
     IPython.login_widget = new IPython.LoginWidget('span#login_widget');
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
-    IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.toolbar = new IPython.ToolBar('#toolbar')
-    IPython.tooltip = new IPython.Tooltip()
-    IPython.notification_widget = new IPython.NotificationWidget('#notification')
+    IPython.menubar = new IPython.MenuBar('#menubar');
+    IPython.toolbar = new IPython.ToolBar('#toolbar');
+    IPython.tooltip = new IPython.Tooltip();
+    IPython.notification_widget = new IPython.NotificationWidget('#notification');
 
     IPython.layout_manager.do_resize();
 

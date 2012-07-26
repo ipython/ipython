@@ -50,8 +50,10 @@ var IPython = (function (IPython) {
         $('div#pager').height(pager_height);
         if (IPython.pager.expanded) {
             $('div#notebook').height(app_height-pager_height-pager_splitter_height);
+	    $('div.panel').height(app_height-pager_height-pager_splitter_height);
         } else {
             $('div#notebook').height(app_height-pager_splitter_height);
+            $('div.panel').height(app_height-pager_splitter_height);
         }
     };
 
