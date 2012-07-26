@@ -400,6 +400,9 @@ class IPTester(object):
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
         for subp in self.processes:
+            if subp.poll() is not None:
+                continue # process is already dead
+
             try:
                 print('Cleaning stale PID: %d' % subp.pid)
                 subp.kill()
@@ -408,6 +411,10 @@ class IPTester(object):
                 # really gone, ignore it.
                 pass
 
+            if subp.poll() is None:
+                # The process did not die...
+                print('... failed. Manual cleanup may be required.'
+                      % subp.pid)
 
 def make_runners():
     """Define the top-level packages that need to be tested.
