@@ -123,7 +123,7 @@ class CythonMagics(Magics):
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
     @argument(
-        '-a', '--anotate', action='store_true', default=False,
+        '-a', '--annotate', action='store_true', default=False,
         help="After compiling 'cython -a' will be run on the pyx file and the resulting html returned."
     )
     @cell_magic
@@ -145,10 +145,16 @@ class CythonMagics(Magics):
         code = cell if cell.endswith('\n') else cell+'\n'
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
         cython_include_dirs = ['.']
-        force = args.force
-        annotate = args.anotate
-        quiet = True
-        ctx = Context(cython_include_dirs, default_options)
+
+        options = default_options.copy()
+        options['quiet'] = True
+        options['annotate'] = args.annotate
+        if options['annotate']:
+            force = True
+        else:
+            force = args.force
+
+        ctx = Context(cython_include_dirs, options)
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
         so_ext = [ ext for ext,_,mod_type in imp.get_suffixes() if mod_type == imp.C_EXTENSION ][0]
@@ -158,6 +164,12 @@ class CythonMagics(Magics):
             os.makedirs(lib_dir)
 
         if force or not os.path.isfile(module_path):
+            # If python is holding a reference to the already compiled
+            # module it can't be overwritten so we tweak the name so as
+            # to create a new .pyd instead of overwriting the old one.
+            if os.path.isfile(module_path):
+                module_name += '_force'
+                module_path = os.path.join(lib_dir, module_name+so_ext)
             c_include_dirs = args.include
             if 'numpy' in code:
                 import numpy
@@ -183,7 +195,7 @@ class CythonMagics(Magics):
             build_extension = build_ext(dist)
             build_extension.finalize_options()
             try:
-                build_extension.extensions = cythonize([extension], ctx=ctx, quiet=quiet)
+                build_extension.extensions = cythonize([extension], ctx=ctx)
             except CompileError:
                 return
             build_extension.build_temp = os.path.dirname(pyx_file)
@@ -193,15 +205,9 @@ class CythonMagics(Magics):
 
         module = imp.load_dynamic(module_name, module_path)
         self._import_all(module)
-        if annotate:
-            import subprocess
+        if options['annotate']:
             from IPython.display import HTML
-            python_exe = os.path.join(sys.prefix, 'pythonw.exe')
-            cython_script = os.path.join(sys.prefix, 'Scripts', 'cython.py')
-            pyx_file = os.path.join(lib_dir, module_name + '.pyx')
-            args = [python_exe, cython_script, '-a', pyx_file]
-            subprocess.check_output(args, stderr=subprocess.STDOUT, shell=True)
-            with open(os.path.join(lib_dir, module_name + '.html')) as istream:
+            with io.open(os.path.join(lib_dir, module_name + '.html')) as istream:
                 html = istream.read()
             return HTML(html)
 
