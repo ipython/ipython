@@ -6,6 +6,7 @@ Usage:
 """
 from __future__ import print_function
 
+import io, os
 import argparse
 from subprocess import check_call, CalledProcessError
 
@@ -24,7 +25,7 @@ def merge_branch(repo, branch ):
     """
     # Delete the branch first
     try :
-        check_call(['git', 'pull', '--no-edit', repo, branch])
+        check_call(['git', 'pull', repo, branch], stdin=io.open(os.devnull))
     except CalledProcessError :
         check_call(['git', 'merge', '--abort'])
         return False
@@ -57,13 +58,11 @@ def merge_pr(num):
 def main(*args):
     parser = argparse.ArgumentParser(
             description="""
-                Merge (one|many) github pull request by their number.\
-                
-                If pull request can't be merge as is, cancel merge,
-                and continue to the next if any.
+                Merge one or more github pull requests by their number. If any
+                one pull request can't be merged as is, its merge is ignored
+                and the process continues with the next ones (if any).
                 """
             )
-    parser.add_argument('-v2', '--githubapiv2', action='store_const', const=2)
 
     grp = parser.add_mutually_exclusive_group()
     grp.add_argument(
@@ -77,8 +76,7 @@ def main(*args):
             action='store_const',
             const=True ,
             help='try to merge as many PR as possible, one by one')
-    grp.add_argument('-m',
-            '--merge',
+    parser.add_argument('integers',
             type=int,
             help="The pull request numbers",
             nargs='*',
