@@ -84,7 +84,10 @@ class CannedFunction(CannedObject):
     def __init__(self, f):
         self._check_type(f)
         self.code = f.func_code
-        self.defaults = f.func_defaults
+        if f.func_defaults:
+            self.defaults = [ can(fd) for fd in f.func_defaults ]
+        else:
+            self.defaults = None
         self.module = f.__module__ or '__main__'
         self.__name__ = f.__name__
         self.buffers = []
@@ -104,7 +107,11 @@ class CannedFunction(CannedObject):
 
         if g is None:
             g = {}
-        newFunc = FunctionType(self.code, g, self.__name__, self.defaults)
+        if self.defaults:
+            defaults = tuple(uncan(cfd, g) for cfd in self.defaults)
+        else:
+            defaults = None
+        newFunc = FunctionType(self.code, g, self.__name__, defaults)
         return newFunc
 
 

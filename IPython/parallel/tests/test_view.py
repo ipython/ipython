@@ -593,5 +593,17 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertTrue("data" in output)
         data = output['data']
         self.assertTrue("image/png" in data)
+    
+    def test_func_default_func(self):
+        """interactively defined function as apply func default"""
+        def foo():
+            return 'foo'
         
+        def bar(f=foo):
+            return f()
+        
+        view = self.client[-1]
+        ar = view.apply_async(bar)
+        r = ar.get(10)
+        self.assertEquals(r, 'foo')
 
