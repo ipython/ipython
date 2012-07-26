@@ -289,14 +289,6 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.get_worksheet_elements = function () {
 	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');
-/*	// reorder the panels so that they are in the same order as the tabs
-	var ids = this.element.find('ul.ui-tabs-nav').find("a[href!='#tab-add']").map(
-	    function() { return $(this).attr('href'); } 
-	);
-	for(var i=0; i<ids.length; i++) {
-	    this.tabs.append(this.tabs.children(ids[i]));
-	}
-	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');*/
     };
 
     Notebook.prototype.get_worksheet_element = function (index) {
@@ -422,6 +414,7 @@ var IPython = (function (IPython) {
 	return sheet;
     };
 
+
     // Kernel related things
 
     // need to update to set kernel for worksheet instead -DLS
@@ -521,7 +514,12 @@ var IPython = (function (IPython) {
 	var nsheets = sheets.length;
 	var sheet_array = new Array(nsheets);
 	for (var i=0; i<nsheets; i++) {
-	    sheet_array[i] = sheets[i].toJSON();
+	    // the tabs are not in order when we call get_worksheets
+	    var id = sheets[i].worksheet_id;
+	    // get index of worksheet among tabs
+	    var j = this.element.find('.ui-tabs-nav').find("a[href!='#tab-add']").index($("a[href=#" + id + "]"));
+	    // convert sheet to JSON
+	    sheet_array[i] = sheets[j].toJSON();
 	};
 	var data = {
 	    worksheets : sheet_array,

@@ -736,7 +736,7 @@ var IPython = (function (IPython) {
     // Refresh code mirror for all cells in worksheet
     Worksheet.prototype.refresh_code_mirror = function() {
 	var cells = this.get_cells();
-	for (var i=0; i<this.ncells(); i++) {
+	for (var i=0; i<cells.length; i++) {
 	    cells[i].refresh();
 	}
     }

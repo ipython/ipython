@@ -14,7 +14,16 @@ var IPython = (function (IPython) {
 
     var TabManager = function (selector) {
 	this.tabs = $(selector).tabs();
-	this.tabs.find('.ui-tabs-nav').sortable({axis: "x"});
+	this.tabs.find('.ui-tabs-nav').sortable({
+	    axis: "x",
+	    update: function () {
+		// refresh the code mirror for all the worksheets
+		var sheets = IPython.notebook.get_worksheets();
+		for (var i=0; i<sheets.length; i++) {
+		    sheets[i].refresh_code_mirror();
+		}
+	    }
+	});
 	this.tabs.addClass('container');
 	this.tabs.tabs('add','#tab-add','+') // create a button for adding tabs
         this.bind_events();
