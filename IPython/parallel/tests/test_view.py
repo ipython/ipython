@@ -606,4 +606,25 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.apply_async(bar)
         r = ar.get(10)
         self.assertEquals(r, 'foo')
+    def test_data_pub_single(self):
+        view = self.client[-1]
+        ar = view.execute('\n'.join([
+            'from IPython.zmq.datapub import publish_data',
+            'for i in range(5):',
+            '  publish_data(dict(i=i))'
+        ]), block=False)
+        self.assertTrue(isinstance(ar.data, dict))
+        ar.get(5)
+        self.assertEqual(ar.data, dict(i=4))
+
+    def test_data_pub(self):
+        view = self.client[:]
+        ar = view.execute('\n'.join([
+            'from IPython.zmq.datapub import publish_data',
+            'for i in range(5):',
+            '  publish_data(dict(i=i))'
+        ]), block=False)
+        self.assertTrue(all(isinstance(d, dict) for d in ar.data))
+        ar.get(5)
+        self.assertEqual(ar.data, [dict(i=4)] * len(ar))
 
