@@ -48,7 +48,8 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
-    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler
+    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
+    FileFindHandler,
 )
 from .notebookmanager import NotebookManager
 from .clustermanager import ClusterManager
@@ -67,6 +68,7 @@ from IPython.zmq.ipkernel import (
 )
 from IPython.utils.traitlets import Dict, Unicode, Integer, List, Enum, Bool
 from IPython.utils import py3compat
+from IPython.utils.path import filefind
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -153,7 +155,8 @@ class NotebookWebApplication(web.Application):
         
         settings = dict(
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
-            static_path=os.path.join(os.path.dirname(__file__), "static"),
+            static_path=ipython_app.static_file_path,
+            static_handler_class = FileFindHandler,
             cookie_secret=os.urandom(1024),
             login_url="%s/login"%(base_project_url.rstrip('/')),
         )
@@ -355,6 +358,20 @@ class NotebookApp(BaseIPythonApplication):
     websocket_host = Unicode("", config=True,
         help="""The hostname for the websocket server."""
     )
+    
+    extra_static_paths = List(Unicode, config=True,
+        help="""Extra paths to search for serving static files.
+        
+        This allows adding javascript/css to be available from the notebook server machine,
+        or overriding individual files in the IPython"""
+    )
+    def _extra_static_paths_default(self):
+        return [os.path.join(self.profile_dir.location, 'static')]
+    
+    @property
+    def static_file_path(self):
+        """return extra paths + the default location"""
+        return self.extra_static_paths + [os.path.join(os.path.dirname(__file__), "static")]
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
@@ -362,13 +379,11 @@ class NotebookApp(BaseIPythonApplication):
     def _mathjax_url_default(self):
         if not self.enable_mathjax:
             return u''
-        static_path = self.webapp_settings.get("static_path", os.path.join(os.path.dirname(__file__), "static"))
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
                                                      "/static/")
-        if os.path.exists(os.path.join(static_path, 'mathjax', "MathJax.js")):
-            self.log.info("Using local MathJax")
-            return static_url_prefix+u"mathjax/MathJax.js"
-        else:
+        try:
+            mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
+        except IOError:
             if self.certfile:
                 # HTTPS: load from Rackspace CDN, because SSL certificate requires it
                 base = u"https://c328740.ssl.cf1.rackcdn.com"
@@ -378,6 +393,9 @@ class NotebookApp(BaseIPythonApplication):
             url = base + u"/mathjax/latest/MathJax.js"
             self.log.info("Using MathJax from CDN: %s", url)
             return url
+        else:
+            self.log.info("Using local MathJax from %s" % mathjax)
+            return static_url_prefix+u"mathjax/MathJax.js"
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
