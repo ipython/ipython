@@ -19,6 +19,7 @@ from __future__ import print_function
 
 import bdb
 import signal
+import os
 import sys
 import time
 import tempfile
@@ -269,23 +270,23 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         imageformat = self._imagemime[mime]
         fmt = dict(format=imageformat)
         args = [s.format(**fmt) for s in self.stream_image_handler]
-        proc = subprocess.Popen(
-            args, stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        proc.communicate(raw)
+        with open(os.devnull, 'w') as devnull:
+            proc = subprocess.Popen(
+                args, stdin=subprocess.PIPE,
+                stdout=devnull, stderr=devnull)
+            proc.communicate(raw)
 
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime])
         imageformat = self._imagemime[mime]
         ext = '.{0}'.format(imageformat)
-        with tempfile.NamedTemporaryFile(suffix=ext) as f:
+        with tempfile.NamedTemporaryFile(suffix=ext) as f, \
+             open(os.devnull, 'w') as devnull:
             f.write(raw)
             f.flush()
             fmt = dict(file=f.name, format=imageformat)
             args = [s.format(**fmt) for s in self.tempfile_image_handler]
-            subprocess.Popen(
-                args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            ).communicate()
+            subprocess.call(args, stdout=devnull, stderr=devnull)
 
     def handle_image_callable(self, data, mime):
         self.callable_image_handler(data)
