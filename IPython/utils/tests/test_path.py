@@ -447,7 +447,7 @@ def test_unicode_in_filename():
         str(ex)
 
 
-def test_globlist():
+def test_shellglob():
     """Test glob expansion for %run magic."""
     filenames_start_with_a = map('a{0}'.format, range(3))
     filenames_end_with_b = map('{0}b'.format, range(3))
@@ -464,7 +464,7 @@ def test_globlist():
 
             def assert_match(patterns, matches):
                 # glob returns unordered list. that's why sorted is required.
-                nt.assert_equals(sorted(path.globlist(patterns)),
+                nt.assert_equals(sorted(path.shellglob(patterns)),
                                  sorted(matches))
 
             assert_match(['*'], filenames)

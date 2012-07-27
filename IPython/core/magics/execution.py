@@ -44,7 +44,7 @@ from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
-from IPython.utils.path import get_py_filename, unquote_filename, globlist
+from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
 
@@ -499,7 +499,7 @@ python-profiler package from non-free.""")
             args = arg_lst[1:]
         else:
             # tilde and glob expansion
-            args = globlist(map(os.path.expanduser,  arg_lst[1:]))
+            args = shellglob(map(os.path.expanduser,  arg_lst[1:]))
 
         sys.argv = [filename] + args  # put in the proper filename
         # protect sys.argv from potential unicode strings on Python 2:

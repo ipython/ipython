@@ -356,7 +356,7 @@ def expand_path(s):
     return s
 
 
-def globlist(args):
+def shellglob(args):
     """
     Do glob expansion for each element in `args` and return a flattened list.
 
