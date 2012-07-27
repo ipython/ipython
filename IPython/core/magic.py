@@ -647,7 +647,7 @@ class Magics(object):
         self.options_table[fn] = optstr
 
 class MagicAlias(object):
-    """Store a magic alias.
+    """An alias to another magic function.
 
     An alias is determined by its magic name and magic kind. Lookup
     is done at call time, so if the underlying magic changes the alias
@@ -661,16 +661,10 @@ class MagicAlias(object):
         self.magic_name = magic_name
         self.magic_kind = magic_kind
 
+        self.pretty_target = '%s%s' % (magic_escapes[self.magic_kind], self.magic_name)
+        self.__doc__ = "Alias for `%s`." % self.pretty_target
+
         self._in_call = False
-
-    @property
-    def pretty_target(self):
-        """A formatted version of the target of the alias."""
-        return '%s%s' % (magic_escapes[self.magic_kind], self.magic_name)
-
-    @property
-    def __doc__(self):
-        return "Alias for `%s`." % self.pretty_target
 
     def __call__(self, *args, **kwargs):
         """Call the magic alias."""
