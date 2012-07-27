@@ -30,7 +30,7 @@ var IPython = (function (IPython) {
         // this.cell_id = undefined create issues
         // with inheritence
         this.cell_id = utils.uuid();
-        this.parents_id = {};
+        this.parents_id = [];
     };
 
 

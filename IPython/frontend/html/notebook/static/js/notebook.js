@@ -773,7 +773,7 @@ var IPython = (function (IPython) {
 
         //copied cell become ancestor of future pasted cells
         var uuid = json.metadata.uuid
-        json.metadata.parents = {uuid:json.metadata.parents};
+        json.metadata.parents = [{uuid:json.metadata.parents}];
 
         // we don't want to have du plicate uuid, so for now, we are carefull
         // of deleting the uuid befor copying.
@@ -829,7 +829,7 @@ var IPython = (function (IPython) {
             var textb = cell.get_post_cursor();
             var uuid = cell.cell_id;
             var family_tree = {}
-            family_tree[uuid] = cell.parents_id;
+            family_tree= [{uuid:cell.parents_id}];
             var new_cell
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
@@ -873,12 +873,10 @@ var IPython = (function (IPython) {
                 cell.set_text(upper_text+'\n'+text);
                 cell.render();
             };
-            var upper_id = upper_cell.cell_id
-            var lower_id = cell.cell_id
+            var upper_id = upper_cell.cell_id;
+            var lower_id = cell.cell_id;
             // when merging two cell, the new cell have obviously 2 parents
-            var family_tree = {};
-            family_tree[upper_id]= upper_cell.parents_id
-            family_tree[lower_id]= cell.parents_id
+            var family_tree = [{upper_id:upper_cell.parents_id},{lower_id:cell.parents_id}];
             cell.cell_id = utils.uuid()
             cell.parents_id = family_tree;
             this.delete_cell(index-1);
@@ -904,9 +902,7 @@ var IPython = (function (IPython) {
             // when merging two cell, the new cell have obviously 2 parents
             var upper_id = cell.cell_id
             var lower_id = lower_cell.cell_id
-            var family_tree = {};
-            family_tree[upper_id]= cell.parents_id
-            family_tree[lower_id]= lower_cell.parents_id
+            var family_tree = [{upper_id:cell.parents_id},{lower_id:lower_cell.parents_id}];
             cell.cell_id = utils.uuid()
             cell.parents_id = family_tree;
             this.delete_cell(index+1);
