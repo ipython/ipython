@@ -304,7 +304,7 @@ extremely useful.  The following extensions are provided:
     or whole blocks of Octave code, capture both output and figures inline
     (just like matplotlib plots), and have variables automatically converted
     between the two languages.  To use this extension, you must have Octave
-    installed as well as the oct2py_ and h5py_ packages.  The examples
+    installed as well as the oct2py_ package.  The examples
     directory in the source distribution ships with a full notebook
     demonstrating these capabilities:
 
@@ -316,7 +316,6 @@ extremely useful.  The following extensions are provided:
 
 .. _octave: http://www.gnu.org/software/octave
 .. _oct2py: http://pypi.python.org/pypi/oct2py
-.. _h5py: http://code.google.com/p/h5py
 
 **R magics** (extension :ref:`rmagic <extensions_rmagic>`)
     This extension provides several magics that support calling code written in

@@ -8,8 +8,8 @@ Magics for interacting with Octave via oct2py.
 
 .. note::
 
-  The ``oct2py`` module needs to be installed separately, and in turn depends
-  on ``h5py``.  Both can be obtained using ``easy_install`` or ``pip``.
+  The ``oct2py`` module needs to be installed separately and
+  can be obtained using ``easy_install`` or ``pip``.
 
 Usage
 =====
