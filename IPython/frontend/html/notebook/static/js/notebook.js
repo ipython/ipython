@@ -876,11 +876,15 @@ var IPython = (function (IPython) {
             var upper_id = upper_cell.cell_id;
             var lower_id = cell.cell_id;
             // when merging two cell, the new cell have obviously 2 parents
-            var upcell[upper_id] = upper_cell.parents_id ;
-            var lowcell[lower_id] = cell.parents_id ;
+            var upcell = {}
+            var lowcell= {}
+            upcell[upper_id] = upper_cell.parents_id ;
+            lowcell[lower_id] = cell.parents_id ;
             var family_tree = [upcell,lowcell];
             cell.cell_id = utils.uuid()
-            cell.parents_id = family_tree;
+            console.log(this.get_cell(index).parents_id)
+            this.get_cell(index).parents_id = family_tree;
+            console.log(index,this.get_cell(index).parents_id)
             this.delete_cell(index-1);
             this.select(this.find_cell_index(cell));
         };
@@ -904,8 +908,10 @@ var IPython = (function (IPython) {
             // when merging two cell, the new cell have obviously 2 parents
             var upper_id = cell.cell_id
             var lower_id = lower_cell.cell_id
-            var upcell[upper_id] = cell.parents_id ;
-            var lowcell[lower_id] = lower_cell.parents_id ;
+            var upcell = {}
+            var lowcell= {}
+            upcell[upper_id] = cell.parents_id ;
+            lowcell[lower_id] = lower_cell.parents_id ;
             var family_tree = [upcell,lowcell];
             cell.cell_id = utils.uuid()
             cell.parents_id = family_tree;
