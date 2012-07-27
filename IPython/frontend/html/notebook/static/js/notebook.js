@@ -876,7 +876,9 @@ var IPython = (function (IPython) {
             var upper_id = upper_cell.cell_id;
             var lower_id = cell.cell_id;
             // when merging two cell, the new cell have obviously 2 parents
-            var family_tree = [{upper_id:upper_cell.parents_id},{lower_id:cell.parents_id}];
+            var upcell[upper_id] = upper_cell.parents_id ;
+            var lowcell[lower_id] = cell.parents_id ;
+            var family_tree = [upcell,lowcell];
             cell.cell_id = utils.uuid()
             cell.parents_id = family_tree;
             this.delete_cell(index-1);
@@ -902,7 +904,9 @@ var IPython = (function (IPython) {
             // when merging two cell, the new cell have obviously 2 parents
             var upper_id = cell.cell_id
             var lower_id = lower_cell.cell_id
-            var family_tree = [{upper_id:cell.parents_id},{lower_id:lower_cell.parents_id}];
+            var upcell[upper_id] = cell.parents_id ;
+            var lowcell[lower_id] = lower_cell.parents_id ;
+            var family_tree = [upcell,lowcell];
             cell.cell_id = utils.uuid()
             cell.parents_id = family_tree;
             this.delete_cell(index+1);
