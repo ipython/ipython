@@ -125,16 +125,31 @@ var IPython = (function (IPython) {
                 return true;
             };
         } else if (event.keyCode === key.BACKSPACE && event.type == 'keydown') {
-            // If backspace and the line ends with 4 spaces, remove them.
+            // If backspace and the cursor in the region of the spaces of the tail of a line, delete all spaces
+            var cur = editor.getCursor();
             var line = editor.getLine(cur.line);
-            var ending = line.slice(-4);
-            if (ending === '    ') {
-                editor.replaceRange('',
-                    {line: cur.line, ch: cur.ch-4},
-                    {line: cur.line, ch: cur.ch}
-                );
-                event.stop();
-                return true;
+            if (line[cur.ch - 1] != " ") { //avoid regular expression match when the character before the cursor is not space
+                return false;
+            }
+            var tail_space = line.match(/ +$/g)
+            if (tail_space) { 
+                var pre_indent_point = Math.floor( (cur.ch - 1)/ 4 ) * 4 + 1;
+                var non_space_end = line.length - tail_space[0].length
+                if (pre_indent_point > non_space_end ) {
+                    //There are more than 4 spaces, delete up to previous indent point
+                    editor.replaceRange('',
+                        {line: cur.line, ch: pre_indent_point},
+                        {line: cur.line, ch: line.length}
+                    );
+                } else if (cur.ch > non_space_end ){
+                    //Less than 4 spaces, delete them all
+                    editor.replaceRange('',
+                        {line: cur.line, ch: line.length - tail_space[0].length},
+                        {line: cur.line, ch: line.length}
+                    );
+                    event.stop();
+                    return true;
+                }
             } else {
                 return false;
             };
