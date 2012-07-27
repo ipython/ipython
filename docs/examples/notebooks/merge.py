@@ -21,23 +21,26 @@ def find_familly(dct,idset):
         print('return empty')
         return []
     else :
-        for k in dct.keys():
-            print('looping on keys', k)
+        for l in dct:
+            print('dctl', dct)
+            k,v = l.items()[0]
+            print('looping on parents', k,v)
             if k in idset:
                 print('append k')
                 a.append(k)
             else :
                 print(' deepens')
-                a.extend(find_familly(dct[k],idset))
+                a.extend(find_familly(v,idset))
     return a
 
 c = cells2[1]
-dd = {
-        'z' : {'a':{},'x':{}},
-        'y' : {'t':{},'b':{}}
-     }
-ki = set(['a','b'])
-find_familly(dd,ki)
+#dd = {
+#        'z' : {'a':{},'x':{}},
+#        'y' : {'t':{},'b':{}}
+#     }
+#ki = set(['a','b'])
+#find_familly(dd,ki)
 
 
-find_familly(c['metadata']['parents_id'], known_uuid)
+f = find_familly(c['metadata']['parents_id'], known_uuid)
+f
