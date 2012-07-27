@@ -19,7 +19,7 @@ import sys
 import tempfile
 import warnings
 from hashlib import md5
-from glob import glob
+import glob
 
 import IPython
 from IPython.testing.skipdoctest import skip_doctest
@@ -365,7 +365,7 @@ def globlist(args):
     """
     expanded = []
     for a in args:
-        expanded.extend(glob(a) or [a])
+        expanded.extend(glob.glob(a) or [a])
     return expanded
 
 
