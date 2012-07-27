@@ -35,7 +35,7 @@ var IPython = (function (IPython) {
     //
     // Example
     //
-    // IPython.toolbar.addButtonsGroup([
+    // IPython.toolbar.add_button_group([
     //  {label:'my button',
     //   icon:'ui-icon-disk',
     //   callback:function(){alert('hoho'),
@@ -50,7 +50,7 @@ var IPython = (function (IPython) {
     //  "my_button_group_id"
     //  )
     //
-    ToolBar.prototype.addButtonsGroup = function(list, group_id){
+    ToolBar.prototype.add_button_group = function(list, group_id){
         var span_group = $('<span/>');
         if( group_id != undefined )
             span_group.attr('id',group_id)

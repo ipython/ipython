@@ -17,14 +17,14 @@ var IPython = (function (IPython) {
             IPython.ToolBar.apply(this, arguments);
             // move the rest ouside
             this.construct();
-            this.addDropDownList();
+            this.add_drop_down_list();
             this.bind_events();
         }
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 
 
-    MainToolBar.prototype.addDropDownList = function() {
+    MainToolBar.prototype.add_drop_down_list = function() {
         var select = $(this.selector)
             .append($('<select/>')
                 .attr('id','cell_type')
@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
     }
 
     MainToolBar.prototype.construct = function() {
-        this.addButtonsGroup([
+        this.add_buttons_group([
                 {
                     id:'save_b',
                     label:'Save',
@@ -54,7 +54,7 @@ var IPython = (function (IPython) {
                         },
                 },
             ]);
-        this.addButtonsGroup([
+        this.add_buttons_group([
                 {
                     id:'cut_b',
                     label:'Cut Cell',
@@ -81,7 +81,7 @@ var IPython = (function (IPython) {
                 },
             ],'cut_copy_paste');
 
-        this.addButtonsGroup([
+        this.add_buttons_group([
                 {
                     id:'move_up_b',
                     label:'Move Cell Up',
@@ -100,7 +100,7 @@ var IPython = (function (IPython) {
                 },
             ],'move_up_down');
         
-        this.addButtonsGroup([
+        this.add_buttons_group([
                 {
                     id:'insert_above_b',
                     label:'Insert Cell Above',
@@ -119,7 +119,7 @@ var IPython = (function (IPython) {
                 },
             ],'insert_above_below');
 
-        this.addButtonsGroup([
+        this.add_buttons_group([
                 {
                     id:'run_b',
                     label:'Run Cell',
