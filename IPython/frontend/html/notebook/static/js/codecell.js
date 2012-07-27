@@ -41,6 +41,7 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         input.append(input_area);
@@ -123,20 +124,6 @@ var IPython = (function (IPython) {
                 event.stop();
                 this.completer.startCompletion();
                 return true;
-            };
-        } else if (event.keyCode === key.BACKSPACE && event.type == 'keydown') {
-            // If backspace and the line ends with 4 spaces, remove them.
-            var line = editor.getLine(cur.line);
-            var ending = line.slice(-4);
-            if (ending === '    ') {
-                editor.replaceRange('',
-                    {line: cur.line, ch: cur.ch-4},
-                    {line: cur.line, ch: cur.ch}
-                );
-                event.stop();
-                return true;
-            } else {
-                return false;
             };
         } else {
             // keypress/keyup also trigger on TAB press, and we don't want to

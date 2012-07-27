@@ -1,6 +1,7 @@
 CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
-  var htmlMode = CodeMirror.getMode(cmCfg, { name: 'xml', htmlMode: true });
+  var htmlFound = CodeMirror.mimeModes.hasOwnProperty("text/html");
+  var htmlMode = CodeMirror.getMode(cmCfg, htmlFound ? "text/html" : "text/plain");
 
   var header   = 'header'
   ,   code     = 'comment'
@@ -13,11 +14,10 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
   ,   strong   = 'strong'
   ,   emstrong = 'emstrong';
 
-  var hrRE = /^[*-=_]/
-  ,   ulRE = /^[*-+]\s+/
+  var hrRE = /^([*\-=_])(?:\s*\1){2,}\s*$/
+  ,   ulRE = /^[*\-+]\s+/
   ,   olRE = /^[0-9]+\.\s+/
   ,   headerRE = /^(?:\={3,}|-{3,})$/
-  ,   codeRE = /^(k:\t|\s{4,})/
   ,   textRE = /^[^\[*_\\<>`]+/;
 
   function switchInline(stream, state, f) {
@@ -33,36 +33,36 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   // Blocks
 
+  function blankLine(state) {
+    // Reset EM state
+    state.em = false;
+    // Reset STRONG state
+    state.strong = false;
+    if (!htmlFound && state.f == htmlBlock) {
+      state.f = inlineNormal;
+      state.block = blockNormal;
+    }
+    return null;
+  }
+
   function blockNormal(stream, state) {
-    if (stream.match(codeRE)) {
+    var match;
+    if (state.indentationDiff >= 4) {
+      state.indentation -= state.indentationDiff;
       stream.skipToEnd();
       return code;
-    }
-    
-    if (stream.eatSpace()) {
+    } else if (stream.eatSpace()) {
       return null;
-    }
-    
-    if (stream.peek() === '#' || stream.match(headerRE)) {
-      stream.skipToEnd();
-      return header;
-    }
-    if (stream.eat('>')) {
+    } else if (stream.peek() === '#' || stream.match(headerRE)) {
+      state.header = true;
+    } else if (stream.eat('>')) {
       state.indentation++;
-      return quote;
-    }
-    if (stream.peek() === '[') {
+      state.quote = true;
+    } else if (stream.peek() === '[') {
       return switchInline(stream, state, footnoteLink);
-    }
-    if (hrRE.test(stream.peek())) {
-      var re = new RegExp('(?:\s*['+stream.peek()+']){3,}$');
-      if (stream.match(re, true)) {
-        return hr;
-      }
-    }
-    
-    var match;
-    if (match = stream.match(ulRE, true) || stream.match(olRE, true)) {
+    } else if (stream.match(hrRE, true)) {
+      return hr;
+    } else if (match = stream.match(ulRE, true) || stream.match(olRE, true)) {
       state.indentation += match[0].length;
       return list;
     }
@@ -72,9 +72,14 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   function htmlBlock(stream, state) {
     var style = htmlMode.token(stream, state.htmlState);
-    if (style === 'tag' && state.htmlState.type !== 'openTag' && !state.htmlState.context) {
+    if (htmlFound && style === 'tag' && state.htmlState.type !== 'openTag' && !state.htmlState.context) {
       state.f = inlineNormal;
       state.block = blockNormal;
+    }
+    if (state.md_inside && stream.current().indexOf(">")!=-1) {
+      state.f = inlineNormal;
+      state.block = blockNormal;
+      state.htmlState.context = undefined;
     }
     return style;
   }
@@ -82,8 +87,15 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   // Inline
   function getType(state) {
-    return state.strong ? (state.em ? emstrong : strong)
-                        : (state.em ? em       : null);
+    var styles = [];
+    
+    if (state.strong) { styles.push(state.em ? emstrong : strong); }
+    else if (state.em) { styles.push(em); }
+    
+    if (state.header) { styles.push(header); }
+    if (state.quote) { styles.push(quote); }
+
+    return styles.length ? styles.join(' ') : null;
   }
 
   function handleText(stream, state) {
@@ -111,10 +123,22 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
       return switchInline(stream, state, linkText);
     }
     if (ch === '<' && stream.match(/^\w/, false)) {
+      var md_inside = false;
+      if (stream.string.indexOf(">")!=-1) {
+        var atts = stream.string.substring(1,stream.string.indexOf(">"));
+        if (/markdown\s*=\s*('|"){0,1}1('|"){0,1}/.test(atts)) {
+          state.md_inside = true;
+        }
+      }
       stream.backUp(1);
       return switchBlock(stream, state, htmlBlock);
     }
-
+      
+    if (ch === '<' && stream.match(/^\/\w*?>/)) {
+      state.md_inside = false;
+      return "tag";
+    }
+      
     var t = getType(state);
     if (ch === '*' || ch === '_') {
       if (stream.eat(ch)) {
@@ -186,13 +210,15 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         f: blockNormal,
         
         block: blockNormal,
-        htmlState: htmlMode.startState(),
+        htmlState: CodeMirror.startState(htmlMode),
         indentation: 0,
         
         inline: inlineNormal,
         text: handleText,
         em: false,
-        strong: false
+        strong: false,
+        header: false,
+        quote: false
       };
     },
 
@@ -203,44 +229,40 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
         block: s.block,
         htmlState: CodeMirror.copyState(htmlMode, s.htmlState),
         indentation: s.indentation,
-        
+          
         inline: s.inline,
         text: s.text,
         em: s.em,
-        strong: s.strong
+        strong: s.strong,
+        header: s.header,
+        quote: s.quote,
+        md_inside: s.md_inside
       };
     },
 
     token: function(stream, state) {
       if (stream.sol()) {
-        // Reset EM state
-        state.em = false;
-        // Reset STRONG state
-        state.strong = false;
+        if (stream.match(/^\s*$/, true)) { return blankLine(state); }
+
+        // Reset state.header
+        state.header = false;
+        // Reset state.quote
+        state.quote = false;
+
         state.f = state.block;
-        var previousIndentation = state.indentation
-        ,   currentIndentation = 0;
-        while (previousIndentation > 0) {
-          if (stream.eat(' ')) {
-            previousIndentation--;
-            currentIndentation++;
-          } else if (previousIndentation >= 4 && stream.eat('\t')) {
-            previousIndentation -= 4;
-            currentIndentation += 4;
-          } else {
-            break;
-          }
-        }
-        state.indentation = currentIndentation;
-        
-        if (currentIndentation > 0) return null;
+        var indentation = stream.match(/^\s*/, true)[0].replace(/\t/g, '    ').length;
+        state.indentationDiff = indentation - state.indentation;
+        state.indentation = indentation;
+        if (indentation > 0) { return null; }
       }
       return state.f(stream, state);
     },
 
+    blankLine: blankLine,
+
     getType: getType
   };
 
-});
+}, "xml");
 
 CodeMirror.defineMIME("text/x-markdown", "markdown");
