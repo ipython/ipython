@@ -42,6 +42,12 @@ var IPython = (function (IPython) {
             }, tmout)
     };
 
+    NotificationArea.prototype.new_notification_widget = function(name) {
+        var div = $('<div/>').attr('id','notification_'+name);
+        $(this.selector).append(div)
+        return new IPython.NotificationWidget('#notification_'+name)
+    }
+
     IPython.NotificationArea = NotificationArea;
 
     return IPython;
