@@ -55,6 +55,10 @@ class OutStream(object):
     def isatty(self):
         return False
 
+    @property
+    def encoding(self):
+        return encoding.DEFAULT_ENCODING
+
     def __next__(self):
         raise IOError('Read not supported on a write only stream.')
 
