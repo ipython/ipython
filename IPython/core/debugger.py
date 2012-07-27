@@ -477,19 +477,20 @@ class Pdb(OldPdb):
         """The debugger interface to magic_pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pdef(arg, namespaces=namespaces)
+        self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
         """The debugger interface to magic_pdoc"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pdoc(arg, namespaces=namespaces)
+        self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
         """The debugger equivalant of ?obj"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)
+        self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
+                                            namespaces=namespaces)
 
     def checkline(self, filename, lineno):
         """Check whether specified line seems to be executable.
