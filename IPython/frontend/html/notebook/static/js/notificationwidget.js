@@ -58,12 +58,12 @@ var IPython = (function (IPython) {
             this.element.click(function(){
                 if( callback() != false){
                     that.element.fadeOut(100, function () {that.element.html('');});
+                    that.element.unbind('click')
                 }
                 if (that.timeout !== undefined) {
                     that.timeout = undefined
                     clearTimeout(that.timeout);
                 }
-                that.element.unbind('click')
             });
         }
     };
