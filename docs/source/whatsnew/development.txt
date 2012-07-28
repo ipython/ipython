@@ -4,3 +4,6 @@
 
 This document describes in-flight development work.
 
+The CodeMirror js library has been updated fron 2.23 to 2.32 
+this might induce a few changes in behavior of keymaps in the notebook, 
+especially intenting/deindenting blocks that is now bounded to Ctrl+] and ctr+[
