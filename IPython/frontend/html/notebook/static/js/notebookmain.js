@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -11,6 +11,25 @@
 
 
 $(document).ready(function () {
+
+    // monkey patch CM to be able to syntax highlight cell magics
+    // bug reported upstream,
+    // see https://github.com/marijnh/CodeMirror2/issues/670
+    if(CodeMirror.getMode(1,'text/plain').indent == undefined ){
+        console.log('patching CM for undefined indent');
+        CodeMirror.modes.null = function() { return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0}}}
+        }
+
+    CodeMirror.patchedGetMode = function(config, mode){
+            var cmmode = CodeMirror.getMode(config, mode);
+            if(cmmode.indent == null)
+            {
+                console.log('patch mode "' , mode, '" on the fly');
+                cmmode.indent = function(){return 0};
+            }
+            return cmmode;
+        }
+    // end monkey patching CodeMirror
 
     IPython.init_mathjax();
 
