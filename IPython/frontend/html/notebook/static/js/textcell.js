@@ -223,9 +223,9 @@ var IPython = (function (IPython) {
             try {
                 this.set_rendered(html);
             } catch (e) {
-                console.log("Error rendering Markdown:");
+                console.log("Error running Javascript in Markdown:");
                 console.log(e);
-                this.set_rendered($("<div/>").addClass("render-error").html(
+                this.set_rendered($("<div/>").addClass("js-error").html(
                     "Error rendering Markdown!<br/>" + e.toString())
                 );
             }

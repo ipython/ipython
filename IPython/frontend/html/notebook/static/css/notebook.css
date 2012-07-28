@@ -389,6 +389,6 @@ pre, code, kbd, samp { white-space: pre-wrap; }
     font-family: monospace;
 }
 
-.render-error {
+.js-error {
     color: darkred;
 }
