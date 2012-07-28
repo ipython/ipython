@@ -32,7 +32,7 @@ $(document).ready(function () {
     IPython.toolbar = new IPython.ToolBar('#toolbar')
     IPython.tooltip = new IPython.Tooltip()
     IPython.notification_area = new IPython.NotificationArea('#notification_area')
-    IPython.initNotificationWidgets(IPython);
+    IPython.notification_area.init_notification_widgets();
 
     IPython.layout_manager.do_resize();
 

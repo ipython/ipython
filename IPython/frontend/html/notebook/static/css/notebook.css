@@ -61,7 +61,7 @@ span#notebook_name {
     z-index: 10;
 }
 
-.notification{
+.notification_widget{
     float : right;
     right: 0px;
     top: 1px;

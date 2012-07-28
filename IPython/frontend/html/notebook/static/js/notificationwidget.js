@@ -21,28 +21,27 @@ var IPython = (function (IPython) {
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
-            //this.bind_events();
         }
         this.element.button();
         this.element.hide();
         var that = this;
-        this.element.click(function(){
-            that.element.fadeOut(100, function () {that.element.html('');});
-            if (that.timeout !== undefined) {
-                that.timeout = undefined
-                clearTimeout(that.timeout);
-            }
-        });
+
     };
 
 
     NotificationWidget.prototype.style = function () {
-        this.element.addClass('notification ui-widget ui-widget-content ui-corner-all');
+        this.element.addClass('notification_widget ui-widget ui-widget-content ui-corner-all');
         this.element.addClass('border-box-sizing');
     };
 
-
-    NotificationWidget.prototype.set_message = function (msg, timeout) {
+    // msg : message to display
+    // timeout : time in ms before diseapearing
+    //
+    // if timeout <= 0
+    // click_callback : function called if user click on notification
+    // could return false to prevent the notification to be dismissed
+    NotificationWidget.prototype.set_message = function (msg, timeout, click_callback) {
+        var callback = click_callback || function(){return false};
         var that = this;
         this.element.html(msg);
         this.element.fadeIn(100);
@@ -55,7 +54,18 @@ var IPython = (function (IPython) {
                 that.element.fadeOut(100, function () {that.element.html('');});
                 that.timeout = null;
             }, timeout);
-        };
+        } else {
+            this.element.click(function(){
+                if( callback() != false){
+                    that.element.fadeOut(100, function () {that.element.html('');});
+                }
+                if (that.timeout !== undefined) {
+                    that.timeout = undefined
+                    clearTimeout(that.timeout);
+                }
+                that.element.unbind('click')
+            });
+        }
     };
 
 
