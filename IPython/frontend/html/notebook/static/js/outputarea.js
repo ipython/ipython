@@ -360,7 +360,19 @@ var IPython = (function (IPython) {
         container.hide();
         // If the Javascript appends content to `element` that should be drawn, then
         // it must also call `container.show()`.
-        eval(js);
+        try {
+            eval(js);
+        } catch(err) {
+            console.log('Error in Javascript!');
+            console.log(err);
+            container.show();
+            element.append($('<div/>')
+                .html("Error in Javascript !<br/>"+
+                    err.toString()+
+                    '<br/>See your browser Javascript console for more details.')
+                .addClass('js-error')
+                );
+        }
     }
 
 
