@@ -220,7 +220,15 @@ var IPython = (function (IPython) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
-            this.set_rendered(html);
+            try {
+                this.set_rendered(html);
+            } catch (e) {
+                console.log("Error running Javascript in Markdown:");
+                console.log(e);
+                this.set_rendered($("<div/>").addClass("js-error").html(
+                    "Error rendering Markdown!<br/>" + e.toString())
+                );
+            }
             this.typeset()
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
