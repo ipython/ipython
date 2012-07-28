@@ -11,6 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import math
 import re
 import sys
 import types
@@ -161,11 +162,17 @@ def json_clean(obj):
     """
     # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
     # listed explicitly because bools pass as int instances
-    atomic_ok = (unicode, int, float, types.NoneType)
+    atomic_ok = (unicode, int, types.NoneType)
     
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)
-    
+
+    if isinstance(obj, float):
+        # cast out-of-range floats to their reprs
+        if math.isnan(obj) or math.isinf(obj):
+            return repr(obj)
+        return obj
+
     if isinstance(obj, atomic_ok):
         return obj
     
