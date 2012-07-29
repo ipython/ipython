@@ -304,15 +304,22 @@ class IPEngineApp(BaseParallelApplication):
         
         
         try:
-            exec_lines = config.Kernel.exec_lines
+            exec_lines = config.IPKernelApp.exec_lines
         except AttributeError:
-            config.Kernel.exec_lines = []
-            exec_lines = config.Kernel.exec_lines
+            try:
+                exec_lines = config.InteractiveShellApp.exec_lines
+            except AttributeError:
+                exec_lines = config.IPKernelApp.exec_lines = []
+        try:
+            exec_files = config.IPKernelApp.exec_files
+        except AttributeError:
+            try:
+                exec_files = config.InteractiveShellApp.exec_files
+            except AttributeError:
+                exec_files = config.IPKernelApp.exec_files = []
         
         if self.startup_script:
-            enc = sys.getfilesystemencoding() or 'utf8'
-            cmd="execfile(%r)" % self.startup_script.encode(enc)
-            exec_lines.append(cmd)
+            exec_files.append(self.startup_script)
         if self.startup_command:
             exec_lines.append(self.startup_command)
 

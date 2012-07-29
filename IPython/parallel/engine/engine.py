@@ -34,7 +34,7 @@ from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url
 
 from IPython.zmq.session import Message
-from IPython.zmq.ipkernel import Kernel
+from IPython.zmq.ipkernel import Kernel, IPKernelApp
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
@@ -204,10 +204,15 @@ class EngineFactory(RegistrationFactory):
             self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,
                     loop=loop, user_ns=self.user_ns, log=self.log)
+
             self.kernel.shell.display_pub.topic = cast_bytes('engine.%i.displaypub' % self.id)
+
+            # FIXME: This is a hack until IPKernelApp and IPEngineApp can be fully merged
+            app = IPKernelApp(config=self.config, shell=self.kernel.shell, kernel=self.kernel, log=self.log)
+            app.init_profile_dir()
+            app.init_code()
+
             self.kernel.start()
-
-
         else:
             self.log.fatal("Registration Failed: %s"%msg)
             raise Exception("Registration Failed: %s"%msg)
