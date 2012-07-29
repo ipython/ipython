@@ -29,6 +29,7 @@ span#notebook_name {
     font-size: 146.5%;
 }
 
+
 .ui-menubar-item .ui-button .ui-button-text {
     padding: 0.4em 1.0em;
     font-size: 100%;
@@ -145,6 +146,7 @@ div.ui-widget-content {
 
 .cell {
     border: 1px solid transparent;
+    position: relative;
 }
 
 div.cell {
