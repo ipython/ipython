@@ -116,6 +116,16 @@ var IPython = (function (IPython) {
                 }
             ],'run_int');
 
+        this.add_buttons_group([
+                {
+                    id : 'show_meta',
+                    label : 'Show Per Cell Toolbar',
+                    icon : 'ui-icon-image',
+                    callback : function () {
+                    $('body').toggleClass('editmetaon');
+                        }
+                }
+            ],'meta_on');
 
     };
 
