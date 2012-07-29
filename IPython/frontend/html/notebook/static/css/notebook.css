@@ -99,13 +99,41 @@ div#notebook_panel {
 }
 
 div#notebook {
-    overflow-y: scroll;
-    overflow-x: auto;
+    margin: 0px 0px 0px 0px;
+    padding: 0px;
     width: 100%;
-    /* This spaces the cell away from the edge of the notebook area */
-    padding: 5px 5px 15px 5px;
-    margin: 0px;
     background-color: white;
+}
+
+/* Keep scrollbar inside tab panel so that tabs stay fixed as you scroll */
+.container {
+    width: 100%;
+}
+
+.panel {
+    overflow: auto;
+}
+
+.ui-icon-close {
+    cursor: pointer;
+}
+
+/* Remove header background for tabs: http://keith-wood.name/uiTabs.html */
+#tabs {
+    padding: 0px;
+    background: none;
+    border-width: 0px;
+}
+#tabs .ui-tabs-nav {
+    padding-left: 5px;
+    background: transparent;
+    border-width: 0px 0px 1px 0px;
+    -moz-border-radius: 0px;
+    -webkit-border-radius: 0px;
+    border-radius: 0px;
+}
+#tabs .ui-tabs-panel {
+    border-width: 0px 1px 1px 1px;
 }
 
 div#pager_splitter {

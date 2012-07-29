@@ -27,8 +27,9 @@ var IPython = (function (IPython) {
             select : function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
-                var i = IPython.notebook.get_selected_index();
-                IPython.notebook.select(i);
+		var ws = IPython.notebook.get_selected_worksheet();
+                var i = ws.get_selected_index();
+                ws.select(i);
             }
         });
     };
@@ -75,34 +76,37 @@ var IPython = (function (IPython) {
         });
         // Edit
         this.element.find('#cut_cell').click(function () {
-            IPython.notebook.cut_cell();
+            IPython.notebook.get_selected_worksheet().cut_cell();
         });
         this.element.find('#copy_cell').click(function () {
-            IPython.notebook.copy_cell();
+            IPython.notebook.get_selected_worksheet().copy_cell();
         });
         this.element.find('#delete_cell').click(function () {
-            IPython.notebook.delete_cell();
+            IPython.notebook.get_selected_worksheet().delete_cell();
         });
         this.element.find('#split_cell').click(function () {
-            IPython.notebook.split_cell();
+            IPython.notebook.get_selected_worksheet().split_cell();
         });
         this.element.find('#merge_cell_above').click(function () {
-            IPython.notebook.merge_cell_above();
+            IPython.notebook.get_selected_worksheet().merge_cell_above();
         });
         this.element.find('#merge_cell_below').click(function () {
-            IPython.notebook.merge_cell_below();
+            IPython.notebook.get_selected_worksheet().merge_cell_below();
         });
         this.element.find('#move_cell_up').click(function () {
-            IPython.notebook.move_cell_up();
+            IPython.notebook.get_selected_worksheet().move_cell_up();
         });
         this.element.find('#move_cell_down').click(function () {
-            IPython.notebook.move_cell_down();
+            IPython.notebook.get_selected_worksheet().move_cell_down();
         });
         this.element.find('#select_previous').click(function () {
-            IPython.notebook.select_prev();
+            IPython.notebook.get_selected_worksheet().select_prev();
         });
         this.element.find('#select_next').click(function () {
-            IPython.notebook.select_next();
+            IPython.notebook.get_selected_worksheet().select_next();
+        });
+        this.element.find('#delete_worksheet').click(function () {
+            IPython.notebook.delete_worksheet();
         });
         // View
         this.element.find('#toggle_header').click(function () {
@@ -113,63 +117,69 @@ var IPython = (function (IPython) {
             IPython.toolbar.toggle();
         });
         // Insert
+	this.element.find('#insert_worksheet_above').click(function() {
+	    IPython.notebook.insert_worksheet_above('New Sheet');
+	});
+	this.element.find('#insert_worksheet_below').click(function() {
+	    IPython.notebook.insert_worksheet_below('New Sheet');
+	});
         this.element.find('#insert_cell_above').click(function () {
-            IPython.notebook.insert_cell_above('code');
+            IPython.notebook.get_selected_worksheet().insert_cell_above('code');
         });
         this.element.find('#insert_cell_below').click(function () {
-            IPython.notebook.insert_cell_below('code');
+            IPython.notebook.get_selected_worksheet().insert_cell_below('code');
         });
         // Cell
         this.element.find('#run_cell').click(function () {
-            IPython.notebook.execute_selected_cell();
+            IPython.notebook.get_selected_worksheet().execute_selected_cell();
         });
         this.element.find('#run_cell_in_place').click(function () {
-            IPython.notebook.execute_selected_cell({terminal:true});
+            IPython.notebook.get_selected_worksheet().execute_selected_cell({terminal:true});
         });
         this.element.find('#run_all_cells').click(function () {
-            IPython.notebook.execute_all_cells();
+            IPython.notebook.get_selected_worksheet().execute_all_cells();
         });
         this.element.find('#to_code').click(function () {
-            IPython.notebook.to_code();
+            IPython.notebook.get_selected_worksheet().to_code();
         });
         this.element.find('#to_markdown').click(function () {
-            IPython.notebook.to_markdown();
+            IPython.notebook.get_selected_worksheet().to_markdown();
         });
         this.element.find('#to_raw').click(function () {
-            IPython.notebook.to_raw();
+            IPython.notebook.get_selected_worksheet().to_raw();
         });
         this.element.find('#to_heading1').click(function () {
-            IPython.notebook.to_heading(undefined, 1);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 1);
         });
         this.element.find('#to_heading2').click(function () {
-            IPython.notebook.to_heading(undefined, 2);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 2);
         });
         this.element.find('#to_heading3').click(function () {
-            IPython.notebook.to_heading(undefined, 3);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 3);
         });
         this.element.find('#to_heading4').click(function () {
-            IPython.notebook.to_heading(undefined, 4);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 4);
         });
         this.element.find('#to_heading5').click(function () {
-            IPython.notebook.to_heading(undefined, 5);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 5);
         });
         this.element.find('#to_heading6').click(function () {
-            IPython.notebook.to_heading(undefined, 6);
+            IPython.notebook.get_selected_worksheet().to_heading(undefined, 6);
         });
         this.element.find('#toggle_output').click(function () {
-            IPython.notebook.toggle_output();
+            IPython.notebook.get_selected_worksheet().toggle_output();
         });
         this.element.find('#collapse_all_output').click(function () {
-            IPython.notebook.collapse_all_output();
+            IPython.notebook.get_selected_worksheet().collapse_all_output();
         });
         this.element.find('#scroll_all_output').click(function () {
-            IPython.notebook.scroll_all_output();
+            IPython.notebook.get_selected_worksheet().scroll_all_output();
         });
         this.element.find('#expand_all_output').click(function () {
-            IPython.notebook.expand_all_output();
+            IPython.notebook.get_selected_worksheet().expand_all_output();
         });
         this.element.find('#clear_all_output').click(function () {
-            IPython.notebook.clear_all_output();
+            IPython.notebook.get_selected_worksheet().clear_all_output();
         });
         // Kernel
         this.element.find('#int_kernel').click(function () {

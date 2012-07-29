@@ -81,28 +81,28 @@ var IPython = (function (IPython) {
             IPython.notebook.save_notebook();
         });
         this.element.find('#cut_b').click(function () {
-            IPython.notebook.cut_cell();
+            IPython.notebook.get_selected_worksheet().cut_cell();
         });
         this.element.find('#copy_b').click(function () {
-            IPython.notebook.copy_cell();
+            IPython.notebook.get_selected_worksheet().copy_cell();
         });
         this.element.find('#paste_b').click(function () {
-            IPython.notebook.paste_cell();
+            IPython.notebook.get_selected_worksheet().paste_cell();
         });
         this.element.find('#move_up_b').click(function () {
-            IPython.notebook.move_cell_up();
+            IPython.notebook.get_selected_worksheet().move_cell_up();
         });
         this.element.find('#move_down_b').click(function () {
-            IPython.notebook.move_cell_down();
+            IPython.notebook.get_selected_worksheet().move_cell_down();
         });
         this.element.find('#insert_above_b').click(function () {
-            IPython.notebook.insert_cell_above('code');
+            IPython.notebook.get_selected_worksheet().insert_cell_above('code');
         });
         this.element.find('#insert_below_b').click(function () {
-            IPython.notebook.insert_cell_below('code');
+            IPython.notebook.get_selected_worksheet().insert_cell_below('code');
         });
         this.element.find('#run_b').click(function () {
-            IPython.notebook.execute_selected_cell();
+            IPython.notebook.get_selected_worksheet().execute_selected_cell();
         });
         this.element.find('#interrupt_b').click(function () {
             IPython.notebook.kernel.interrupt();
@@ -110,26 +110,26 @@ var IPython = (function (IPython) {
         this.element.find('#cell_type').change(function () {
             var cell_type = $(this).val();
             if (cell_type === 'code') {
-                IPython.notebook.to_code();
+                IPython.notebook.get_selected_worksheet().to_code();
             } else if (cell_type === 'markdown')  {
-                IPython.notebook.to_markdown();
+                IPython.notebook.get_selected_worksheet().to_markdown();
             } else if (cell_type === 'raw')  {
-                IPython.notebook.to_raw();
+                IPython.notebook.get_selected_worksheet().to_raw();
             } else if (cell_type === 'heading1')  {
-                IPython.notebook.to_heading(undefined, 1);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 1);
             } else if (cell_type === 'heading2')  {
-                IPython.notebook.to_heading(undefined, 2);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 2);
             } else if (cell_type === 'heading3')  {
-                IPython.notebook.to_heading(undefined, 3);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 3);
             } else if (cell_type === 'heading4')  {
-                IPython.notebook.to_heading(undefined, 4);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 4);
             } else if (cell_type === 'heading5')  {
-                IPython.notebook.to_heading(undefined, 5);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 5);
             } else if (cell_type === 'heading6')  {
-                IPython.notebook.to_heading(undefined, 6);
+                IPython.notebook.get_selected_worksheet().to_heading(undefined, 6);
             };
         });
-        $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
+        $([IPython.events]).on('selected_cell_type_changed.Worksheet', function (event, data) {
             if (data.cell_type === 'heading') {
                 that.element.find('#cell_type').val(data.cell_type+data.level);
             } else {
