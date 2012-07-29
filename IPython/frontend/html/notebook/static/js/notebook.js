@@ -34,7 +34,7 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
-	this.tabs = IPython.tab_manager.tabs;
+        this.tabs = IPython.tab_manager.tabs;
     };
 
 
@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
         var that = this;
 
         $(document).keydown(function (event) {
-	    var current_sheet = that.get_selected_worksheet();
+            var current_sheet = that.get_selected_worksheet();
 
             // console.log(event);
             if (that.read_only) return true;
@@ -259,12 +259,12 @@ var IPython = (function (IPython) {
             if (kill_kernel) {
                 that.kernel.kill();
             }
-	    // determine whether there have been any unsaved changes
-	    for (var i=0; i<that.nsheets(); i++) {
-		if(that.get_worksheet(i).dirty) {
-		    that.dirty = true;
-		}
-	    }
+            // determine whether there have been any unsaved changes
+            for (var i=0; i<that.nsheets(); i++) {
+                if(that.get_worksheet(i).dirty) {
+                    that.dirty = true;
+                }
+            }
             if (that.dirty && ! that.read_only) {
                 return "You have unsaved changes that will be lost if you leave this page.";
             };
@@ -288,75 +288,75 @@ var IPython = (function (IPython) {
     // Worksheet indexing, retrieval, etc.
 
     Notebook.prototype.get_worksheet_elements = function () {
-	return this.tabs.children('div.ui-tabs-panel').not('#tab-add');
+        return this.tabs.children('div.ui-tabs-panel').not('#tab-add');
     };
 
     Notebook.prototype.get_worksheet_element = function (index) {
-	var result = null;
-	var e = this.get_worksheet_elements().eq(index);
-	if (e.length !== 0) {
-	    result = e;
-	}
-	return result;
+        var result = null;
+        var e = this.get_worksheet_elements().eq(index);
+        if (e.length !== 0) {
+            result = e;
+        }
+        return result;
     };
 
     Notebook.prototype.nsheets = function () {
-	return this.get_worksheet_elements().length;
+        return this.get_worksheet_elements().length;
     };
 
     Notebook.prototype.get_worksheets = function () {
-	return this.get_worksheet_elements().toArray().map(function (e) {
-	    return $(e).data('worksheet');
-	})
+        return this.get_worksheet_elements().toArray().map(function (e) {
+            return $(e).data('worksheet');
+        })
     };
 
     Notebook.prototype.get_worksheet = function (index) {
-	var result = null;
-	var ws = this.get_worksheet_element(index);
-	if (ws !== null) {
-	    result = ws.data('worksheet');
-	}
-	return result;
+        var result = null;
+        var ws = this.get_worksheet_element(index);
+        if (ws !== null) {
+            result = ws.data('worksheet');
+        }
+        return result;
     };
 
     Notebook.prototype.find_worksheet_index = function (sheet) {
-	var result = null;
-	this.get_worksheet_elements().filter(function (index) {
-	    if ($(this).data('worksheet') == worksheet) {
-		result = index;
-	    };
-	});
-	return result;
+        var result = null;
+        this.get_worksheet_elements().filter(function (index) {
+            if ($(this).data('worksheet') == worksheet) {
+                result = index;
+            };
+        });
+        return result;
     };
 
     Notebook.prototype.index_or_selected_worksheet = function(index) {
-	var i;
-	if (index === undefined || index === null) {
-	    i = this.get_selected_worksheet_index();
-	    if (i === null) {
-		i = 0;
-	    }
-	} else {
-	    i = index;
-	}
-	return i;
+        var i;
+        if (index === undefined || index === null) {
+            i = this.get_selected_worksheet_index();
+            if (i === null) {
+                i = 0;
+            }
+        } else {
+            i = index;
+        }
+        return i;
     };
 
     Notebook.prototype.get_selected_worksheet = function () {
-	var index = this.get_selected_worksheet_index();
-	return this.get_worksheet(index);
+        var index = this.get_selected_worksheet_index();
+        return this.get_worksheet(index);
     };
 
     Notebook.prototype.is_valid_worksheet_index = function (index) {
-	if (index !== null && index >= 0 && index < this.nsheets()) {
-	    return true;
-	} else {
-	    return false;
-	}
+        if (index !== null && index >= 0 && index < this.nsheets()) {
+            return true;
+        } else {
+            return false;
+        }
     };
 
     Notebook.prototype.get_selected_worksheet_index = function () {
-	return this.tabs.tabs('option','selected');
+        return this.tabs.tabs('option','selected');
     };
 
     Notebook.prototype.rename_worksheet = function (name) {
@@ -365,53 +365,53 @@ var IPython = (function (IPython) {
     // Worksheet selection.
 
     Notebook.prototype.select = function (index) {
-	this.tabs.tabs('select',index);
-	return this;
+        this.tabs.tabs('select',index);
+        return this;
     };
 
 
     // Worksheet insertion, deletion.
 
     Notebook.prototype.delete_worksheet = function (index) {
-	index = this.index_or_selected_worksheet(index);
-	if (this.is_valid_worksheet_index(index)) {
-	    this.tabs.tabs('remove',index);
-	    if (index === (this.nsheets())) {
-		this.select(index-1);
-	    } else {
-		this.select(index);
-	    }
-	    this.dirty = true;
-	}
-	return this;
+        index = this.index_or_selected_worksheet(index);
+        if (this.is_valid_worksheet_index(index)) {
+            this.tabs.tabs('remove',index);
+            if (index === (this.nsheets())) {
+                this.select(index-1);
+            } else {
+                this.select(index);
+            }
+            this.dirty = true;
+        }
+        return this;
     };
 
     Notebook.prototype.insert_worksheet_below = function (name, index) {
-	index = this.index_or_selected_worksheet(index);
-	id = 'tab-' + utils.uuid(); // generate random id
-	if (this.nsheets() === 0) {
-	    index = 0;
-	} else {
-	    index = index+1;
-	}
-	this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
-	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
-	this.select(index);
-	this.dirty = true;
-	return sheet;
+        index = this.index_or_selected_worksheet(index);
+        id = 'tab-' + utils.uuid(); // generate random id
+        if (this.nsheets() === 0) {
+            index = 0;
+        } else {
+            index = index+1;
+        }
+        this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
+        var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
+        this.select(index);
+        this.dirty = true;
+        return sheet;
     };
 
     Notebook.prototype.insert_worksheet_above = function (name, index) {
-	index = this.index_or_selected_worksheet(index);
-	id = 'tab-' + utils.uuid(); // generate random id
-	if (this.nsheets() === 0) {
-	    index = 0;
-	}
-	this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
-	var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
-	this.select(index);
-	this.dirty = true;
-	return sheet;
+        index = this.index_or_selected_worksheet(index);
+        id = 'tab-' + utils.uuid(); // generate random id
+        if (this.nsheets() === 0) {
+            index = 0;
+        }
+        this.tabs.tabs('add', '#'+id, name, index); // create tab with specified id, name, and position
+        var sheet = new IPython.Worksheet(this.tabs.children('#'+id), name, this.kernel);
+        this.select(index);
+        this.dirty = true;
+        return sheet;
     };
 
 
@@ -423,11 +423,11 @@ var IPython = (function (IPython) {
         var base_url = $('body').data('baseKernelUrl') + "kernels";
         this.kernel = new IPython.Kernel(base_url);
         this.kernel.start(this.notebook_id);
-	var nsheets = this.nsheets();
-	for (var i=0; i<nsheets; i++) {
-	    var sheet = this.get_worksheet(i);
-	    sheet.set_kernel(this.kernel);
-	}
+        var nsheets = this.nsheets();
+        for (var i=0; i<nsheets; i++) {
+            var sheet = this.get_worksheet(i);
+            sheet.set_kernel(this.kernel);
+        }
     };
 
 
@@ -488,43 +488,43 @@ var IPython = (function (IPython) {
             this.delete_worksheet(0);
         };
         // Save the metadata and name.
-	if(data.metadata !== undefined) {
+        if(data.metadata !== undefined) {
             this.metadata = data.metadata;
             this.notebook_name = data.metadata.name;
-	}
-	nsheets = data.worksheets.length;
-	var sheet_data = null;
-	var new_sheet = null;
-	for (var i=0; i<nsheets; i++) {
-	    sheet_data = data.worksheets[i];
-	    // fetch the name from the metadata if it exists, otherwise use default 
-	    if(sheet_data.metadata !== undefined && sheet_data.metadata.name !== undefined) {
-		name = sheet_data.metadata.name;
-	    } else {
-		name = 'New Tab ' + i;
-	    }
-	    new_sheet = this.insert_worksheet_below(name);
-	    new_sheet.fromJSON(sheet_data);
-	}
+        }
+        nsheets = data.worksheets.length;
+        var sheet_data = null;
+        var new_sheet = null;
+        for (var i=0; i<nsheets; i++) {
+            sheet_data = data.worksheets[i];
+            // fetch the name from the metadata if it exists, otherwise use default 
+            if(sheet_data.metadata !== undefined && sheet_data.metadata.name !== undefined) {
+                name = sheet_data.metadata.name;
+            } else {
+                name = 'New Tab ' + i;
+            }
+            new_sheet = this.insert_worksheet_below(name);
+            new_sheet.fromJSON(sheet_data);
+        }
     };
 
 
     Notebook.prototype.toJSON = function () {
-	var sheets = this.get_worksheets();
-	var nsheets = sheets.length;
-	var sheet_array = new Array(nsheets);
-	for (var i=0; i<nsheets; i++) {
-	    // the tabs are not in order when we call get_worksheets
-	    var id = sheets[i].worksheet_id;
-	    // get index of worksheet among tabs
-	    var j = this.element.find('.ui-tabs-nav').find("a[href!='#tab-add']").index($("a[href=#" + id + "]"));
-	    // convert sheet to JSON
-	    sheet_array[i] = sheets[j].toJSON();
-	};
-	var data = {
-	    worksheets : sheet_array,
-	    metadata : this.metadata
-	};
+        var sheets = this.get_worksheets();
+        var nsheets = sheets.length;
+        var sheet_array = new Array(nsheets);
+        for (var i=0; i<nsheets; i++) {
+            // the tabs are not in order when we call get_worksheets
+            var id = sheets[i].worksheet_id;
+            // get index of worksheet among tabs
+            var j = this.element.find('.ui-tabs-nav').find("a[href!='#tab-add']").index($("a[href=#" + id + "]"));
+            // convert sheet to JSON
+            sheet_array[i] = sheets[j].toJSON();
+        };
+        var data = {
+            worksheets : sheet_array,
+            metadata : this.metadata
+        };
         return data;
     };
 
@@ -551,11 +551,11 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.save_notebook_success = function (data, status, xhr) {
-	// mark notebook and all worksheets as clean
+        // mark notebook and all worksheets as clean
         this.dirty = false;
-	for (var i=0; i<this.nsheets(); i++) {
-	    this.get_worksheet(i).dirty = false;
-	}
+        for (var i=0; i<this.nsheets(); i++) {
+            this.get_worksheet(i).dirty = false;
+        }
         $([IPython.events]).trigger('notebook_saved.Notebook');
     };
 

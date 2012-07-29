@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
             select : function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
-		var ws = IPython.notebook.get_selected_worksheet();
+                var ws = IPython.notebook.get_selected_worksheet();
                 var i = ws.get_selected_index();
                 ws.select(i);
             }
@@ -117,12 +117,12 @@ var IPython = (function (IPython) {
             IPython.toolbar.toggle();
         });
         // Insert
-	this.element.find('#insert_worksheet_above').click(function() {
-	    IPython.notebook.insert_worksheet_above('New Sheet');
-	});
-	this.element.find('#insert_worksheet_below').click(function() {
-	    IPython.notebook.insert_worksheet_below('New Sheet');
-	});
+        this.element.find('#insert_worksheet_above').click(function() {
+            IPython.notebook.insert_worksheet_above('New Sheet');
+        });
+        this.element.find('#insert_worksheet_below').click(function() {
+            IPython.notebook.insert_worksheet_below('New Sheet');
+        });
         this.element.find('#insert_cell_above').click(function () {
             IPython.notebook.get_selected_worksheet().insert_cell_above('code');
         });

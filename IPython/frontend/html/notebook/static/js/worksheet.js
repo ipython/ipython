@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
         this.dirty = false;
         this.metadata = {name: name};
         this.style();
-	this.worksheet_id = this.element.attr('id');
+        this.worksheet_id = this.element.attr('id');
         this.create_elements();
         this.bind_events();
     };
@@ -51,7 +51,7 @@ var IPython = (function (IPython) {
 
 
     Worksheet.prototype.bind_events = function () {
-	var that = this;
+        var that = this;
 
         $([IPython.events]).on('set_next_input.Worksheet', function (event, data) {
             var index = that.find_cell_index(data.cell);
@@ -60,7 +60,7 @@ var IPython = (function (IPython) {
             that.dirty = true;
         });
 
-	$([IPython.events]).on('set_dirty.Worksheet', function (event, data) {
+        $([IPython.events]).on('set_dirty.Worksheet', function (event, data) {
             that.dirty = data.value;
         });
 
@@ -735,18 +735,18 @@ var IPython = (function (IPython) {
 
     // Refresh code mirror for all cells in worksheet
     Worksheet.prototype.refresh_code_mirror = function() {
-	var cells = this.get_cells();
-	for (var i=0; i<cells.length; i++) {
-	    cells[i].refresh();
-	}
+        var cells = this.get_cells();
+        for (var i=0; i<cells.length; i++) {
+            cells[i].refresh();
+        }
     }
 
 
     // Kernel related things
 
     Worksheet.prototype.set_kernel = function (kernel) {
-	this.kernel = kernel;
-	// Now that the kernel has been created, tell the CodeCells about it.
+        this.kernel = kernel;
+        // Now that the kernel has been created, tell the CodeCells about it.
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             var cell = this.get_cell(i);
@@ -796,15 +796,15 @@ var IPython = (function (IPython) {
     // Persistance and loading
 
     Worksheet.prototype.get_worksheet_id = function () {
-	return this.worksheet_id;
+        return this.worksheet_id;
     };
 
     Worksheet.prototype.get_worksheet_name = function () {
-	return this.metadata.name;
+        return this.metadata.name;
     };
 
     Worksheet.prototype.set_worksheet_name = function (name) {
-	this.metadata.name = name;
+        this.metadata.name = name;
     }
 
 
@@ -817,8 +817,8 @@ var IPython = (function (IPython) {
         };
         // Save the metadata and name.
         if(data.metadata !== undefined) {
-	    this.metadata = data.metadata;
-	}
+            this.metadata = data.metadata;
+        }
         var new_cells = data.cells;
         ncells = new_cells.length;
         var cell_data = null;
