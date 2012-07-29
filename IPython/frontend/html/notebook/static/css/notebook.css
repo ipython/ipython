@@ -24,11 +24,12 @@ span#notebook_name {
 }
 
 .metaedit{
+    min-width : 30px;
+    min-height : 10px;
     position: absolute;
     right : 15px;
     top : 15px;
     z-index : 11;
-
 }
 
 .ui-menubar-item .ui-button .ui-button-text {
