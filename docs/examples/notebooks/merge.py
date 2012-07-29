@@ -1,5 +1,8 @@
 # coding: utf-8
 from IPython.nbformat import current as nbf
+from  difflib import context_diff, ndiff, unified_diff
+
+
 
 
 f = file('000-test-merge-split.ipynb')
@@ -34,6 +37,24 @@ def find_familly(dct,idset):
     return a
 
 c = cells2[0]
+
+cellbyid = {};
+for c in cells1 : 
+    cellbyid[c['metadata']['uuid']] = c
+
+for c in cells2 :
+    ancesters = find_cell_ancester(c,known_uuid)
+    c.ancesters = ancesters
+    s1 = c['input'].splitlines()
+    s2p = '\n'.join([ cellbyid[x]['input'] for x in ancesters])
+    s2 = s2p.splitlines()
+    if(len(ancesters) >1):
+        oldfile = '%d_old_cells'%(len(ancesters)) 
+    else :
+        oldfile = 'old_cell'
+    print '\n'.join([ r.strip('\n') for r in unified_diff(s2, s1, fromfile=oldfile, tofile='1 new cell')])
+
+
 #dd = {
 #        'z' : {'a':{},'x':{}},
 #        'y' : {'t':{},'b':{}}
@@ -41,5 +62,4 @@ c = cells2[0]
 #ki = set(['a','b'])
 #find_familly(dd,ki)
 
-f = find_familly(c['metadata']['parents_id'], known_uuid)
-f
+#f = find_familly(c['metadata']['parents_id'], known_uuid)
