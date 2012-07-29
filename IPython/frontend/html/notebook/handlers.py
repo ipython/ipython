@@ -123,6 +123,14 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
     else:
         return auth_f(self, *args, **kwargs)
 
+def urljoin(*pieces):
+    """Join componenet of url into a relative url
+
+    Use to prevent double slash when joining subpath
+    """
+    striped = [s.strip('/') for s in pieces]
+    return '/'.join(s for s in striped if s)
+
 #-----------------------------------------------------------------------------
 # Top-level handlers
 #-----------------------------------------------------------------------------
@@ -267,17 +275,7 @@ class NewHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         notebook_id = nbm.new_notebook()
-        self.render(
-            'notebook.html', project=project,
-            notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            kill_kernel=False,
-            read_only=False,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+        self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
 
 class NamedNotebookHandler(AuthenticatedHandler):
@@ -663,17 +661,7 @@ class NotebookCopyHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         notebook_id = nbm.copy_notebook(notebook_id)
-        self.render(
-            'notebook.html', project=project,
-            notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            kill_kernel=False,
-            read_only=False,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+        self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
 
 #-----------------------------------------------------------------------------
