@@ -247,7 +247,7 @@ def test_pr(num, post_results=True):
     testrun.print_results()
     
     if post_results:
-        results_urls = testrun.post_logs
+        testrun.post_logs()
         testrun.post_results_comment()
         print("(Posted to Github)")
     else:
