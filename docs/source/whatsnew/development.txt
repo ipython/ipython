@@ -6,4 +6,8 @@ This document describes in-flight development work.
 
 The CodeMirror js library has been updated fron 2.23 to 2.32 
 this might induce a few changes in behavior of keymaps in the notebook, 
-especially intenting/deindenting blocks that is now bounded to Ctrl+] and ctr+[
+especially intenting/deindenting blocks that is now bound to Ctrl+] and ctr+[
+
+* Exception types can now be displayed with a custom traceback, by defining a
+  ``_render_traceback_()`` method which returns a list of strings, each
+  containing one line of the traceback.
