@@ -22,9 +22,9 @@ var IPython = (function (IPython) {
                 .append(this.metainner)
                 .hover(function(){that.fadeI()},function(){that.fadeO()})
     //
-        this.add_button('button 1');
-        this.add_button('button 2').sticky = true;
-        this.add_button('button 3');
+        this.add_button(['button -a-','button -b-','button -c-']);
+        this.add_button(['button -1-','button -2-','button -3-']);
+        this.add_button(['button ---','button +++','button ===']);
 
         return metawrapper;
     };
@@ -49,9 +49,13 @@ var IPython = (function (IPython) {
 
 
 
-    MetaUI.prototype.add_button = function (title) {
-       var button =  $('<div/>').button({'label':title})
-           button.click(function(){console.log(title+ 'clicked');button.sticky = !button.sticky});
+    MetaUI.prototype.add_button = function (labels) {
+       var labels = labels || ["on","off"]
+       var button =  $('<div/>').button({label:labels[0]})
+           button.click(function(){
+               button.value = (button.value+1)% labels.length || 0;
+               $(button).button( "option", "label",labels[button.value]);
+            });
        this.subelements.push(button);
        this.metainner.append(button)
        return button

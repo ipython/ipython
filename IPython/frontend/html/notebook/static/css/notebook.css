@@ -24,11 +24,11 @@ span#notebook_name {
 }
 
 .metaedit{
-    min-width : 30px;
+    min-width : 70px;
+    margin-top : 5px;
+    position : absolute;
     min-height : 10px;
-    position: absolute;
-    right : 15px;
-    top : 15px;
+    right : 5px;
     z-index : 11;
 }
 
