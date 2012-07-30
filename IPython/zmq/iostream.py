@@ -1,6 +1,6 @@
 import sys
 import time
-from io import StringIO
+from io import StringIO, IOBase
 
 from session import extract_header, Message
 
@@ -15,7 +15,7 @@ from IPython.utils import py3compat
 # Stream classes
 #-----------------------------------------------------------------------------
 
-class OutStream(object):
+class OutStream(IOBase):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
     # The time interval between automatic flushes, in seconds.
@@ -54,6 +54,18 @@ class OutStream(object):
 
     def isatty(self):
         return False
+
+    @property
+    def encoding(self):
+        return encoding.DEFAULT_ENCODING
+
+    @property
+    def mode(self):
+        return 'w'
+
+    @property
+    def errors(self):
+        return None
 
     def __next__(self):
         raise IOError('Read not supported on a write only stream.')
