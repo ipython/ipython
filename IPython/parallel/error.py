@@ -190,12 +190,12 @@ class RemoteError(KernelError):
     def __str__(self):
         return "%s(%s)" % (self.ename, self.evalue)
     
-    def _render_traceback_(self):
+    def render_traceback(self):
         """render traceback to a list of lines"""
         return (self.traceback or "No traceback available").splitlines()
     
-    # Previous name retained for backwards compatibility.
-    render_traceback = _render_traceback_
+    # Special method for custom tracebacks within IPython
+    _render_traceback_ = render_traceback
 
     def print_traceback(self, excid=None):
         """print my traceback"""
