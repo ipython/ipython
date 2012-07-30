@@ -190,9 +190,12 @@ class RemoteError(KernelError):
     def __str__(self):
         return "%s(%s)" % (self.ename, self.evalue)
     
-    def render_traceback(self):
+    def _render_traceback_(self):
         """render traceback to a list of lines"""
         return (self.traceback or "No traceback available").splitlines()
+    
+    # Previous name retained for backwards compatibility.
+    render_traceback = _render_traceback_
 
     def print_traceback(self, excid=None):
         """print my traceback"""
