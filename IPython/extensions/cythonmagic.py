@@ -27,11 +27,9 @@ except ImportError:
 from distutils.core import Distribution, Extension
 from distutils.command.build_ext import build_ext
 
+from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, cell_magic
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.core.magic_arguments import (
-    argument, magic_arguments, parse_argstring
-)
 from IPython.utils import py3compat
 
 import Cython
@@ -105,20 +103,20 @@ class CythonMagics(Magics):
             self._reloads[module_name] = module
         self._import_all(module)
 
-    @magic_arguments()
-    @argument(
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
         '-c', '--compile-args', action='append', default=[],
         help="Extra flags to pass to compiler via the `extra_compile_args` Extension flag (can be specified  multiple times)."
     )
-    @argument(
+    @magic_arguments.argument(
         '-l', '--lib', action='append', default=[],
         help="Add a library to link the extension against (can be specified  multiple times)."
     )
-    @argument(
+    @magic_arguments.argument(
         '-I', '--include', action='append', default=[],
         help="Add a path to the list of include directories (can be specified  multiple times)."
     )
-    @argument(
+    @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
@@ -137,7 +135,7 @@ class CythonMagics(Magics):
         def f(x):
             return 2.0*x
         """
-        args = parse_argstring(self.cython, line)
+        args = magic_arguments.parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
         cython_include_dirs = ['.']
