@@ -34,7 +34,6 @@ from IPython.utils import py3compat
 
 import Cython
 from Cython.Compiler.Errors import CompileError
-from Cython.Compiler.Main import Context, default_options
 from Cython.Build.Dependencies import cythonize
 
 
@@ -138,10 +137,8 @@ class CythonMagics(Magics):
         args = magic_arguments.parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
-        cython_include_dirs = ['.']
         force = args.force
         quiet = True
-        ctx = Context(cython_include_dirs, default_options)
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
         so_ext = [ ext for ext,_,mod_type in imp.get_suffixes() if mod_type == imp.C_EXTENSION ][0]
@@ -176,7 +173,7 @@ class CythonMagics(Magics):
             build_extension = build_ext(dist)
             build_extension.finalize_options()
             try:
-                build_extension.extensions = cythonize([extension], ctx=ctx, quiet=quiet)
+                build_extension.extensions = cythonize([extension], quiet=quiet)
             except CompileError:
                 return
             build_extension.build_temp = os.path.dirname(pyx_file)
