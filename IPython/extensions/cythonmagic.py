@@ -27,6 +27,7 @@ except ImportError:
 from distutils.core import Distribution, Extension
 from distutils.command.build_ext import build_ext
 
+from IPython.core import display
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, cell_magic
 from IPython.testing.skipdoctest import skip_doctest
@@ -119,6 +120,10 @@ class CythonMagics(Magics):
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't changed"
     )
+    @magic_arguments.argument(
+        '-a', '--annotate', action='store_true', default=False,
+        help="Produce a colorized HTML version of the source. (Implies --force)."
+    )
     @cell_magic
     def cython(self, line, cell):
         """Compile and import everything from a Cython code cell.
@@ -142,6 +147,9 @@ class CythonMagics(Magics):
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
         so_ext = [ ext for ext,_,mod_type in imp.get_suffixes() if mod_type == imp.C_EXTENSION ][0]
         module_path = os.path.join(lib_dir, module_name+so_ext)
+
+        if args.annotate:
+            args.force = True
 
         if not os.path.exists(lib_dir):
             os.makedirs(lib_dir)
@@ -172,7 +180,8 @@ class CythonMagics(Magics):
             build_extension = build_ext(dist)
             build_extension.finalize_options()
             try:
-                build_extension.extensions = cythonize([extension], quiet=quiet)
+                build_extension.extensions = cythonize([extension], quiet=quiet,
+                                                       annotate=args.annotate, force=args.force)
             except CompileError:
                 return
             build_extension.build_temp = os.path.dirname(pyx_file)
@@ -183,6 +192,10 @@ class CythonMagics(Magics):
         module = imp.load_dynamic(module_name, module_path)
         self._import_all(module)
 
+        if args.annotate:
+            with open(os.path.join(lib_dir, module_name + '.html')) as f:
+                annotated_html = f.read()
+            return display.HTML(annotated_html)
 
 _loaded = False
 
