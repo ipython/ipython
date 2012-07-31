@@ -15,3 +15,15 @@ def assert_not_in(item, collection):
 
 if not hasattr(nt, 'assert_not_in'):
     nt.assert_not_in = assert_not_in
+
+def assert_is_none(obj):
+    assert obj is None, '%r is not None' % obj
+
+if not hasattr(nt, 'assert_is_none'):
+    nt.assert_is_none = assert_is_none
+
+def assert_is_not_none(obj):
+    assert obj is not None, '%r is None' % obj
+
+if not hasattr(nt, 'assert_is_not_none'):
+    nt.assert_is_not_none = assert_is_not_none
