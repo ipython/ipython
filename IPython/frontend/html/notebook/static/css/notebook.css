@@ -24,6 +24,7 @@ span#notebook_name {
 }
 
 .metaedit{
+    white-space:nowrap;
     min-width : 60px;
     min-height : 30px;
     position: absolute;
