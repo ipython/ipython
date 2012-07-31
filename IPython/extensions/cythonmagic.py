@@ -137,7 +137,6 @@ class CythonMagics(Magics):
         args = magic_arguments.parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
-        force = args.force
         quiet = True
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
@@ -147,7 +146,7 @@ class CythonMagics(Magics):
         if not os.path.exists(lib_dir):
             os.makedirs(lib_dir)
 
-        if force or not os.path.isfile(module_path):
+        if args.force or not os.path.isfile(module_path):
             c_include_dirs = args.include
             if 'numpy' in code:
                 import numpy
