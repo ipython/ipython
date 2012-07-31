@@ -152,27 +152,56 @@ def CannedBuffer(CannedBytes):
 # Functions
 #-------------------------------------------------------------------------------
 
-def _error(*args, **kwargs):
+def _logger():
+    """get the logger for the current Application
+    
+    the root logger will be used if no Application is running
+    """
     if Application.initialized():
         logger = Application.instance().log
     else:
         logger = logging.getLogger()
         if not logger.handlers:
             logging.basicConfig()
-    logger.error(*args, **kwargs)
+    
+    return logger
+
+def _import_mapping(mapping, original=None):
+    """import any string-keys in a type mapping
+    
+    """
+    log = _logger()
+    log.debug("Importing canning map")
+    for key,value in mapping.items():
+        if isinstance(key, basestring):
+            try:
+                cls = import_item(key)
+            except Exception:
+                if original and key not in original:
+                    # only message on user-added classes
+                    log.error("cannning class not importable: %r", key, exc_info=True)
+                mapping.pop(key)
+            else:
+                mapping[cls] = mapping.pop(key)
 
 def can(obj):
     """prepare an object for pickling"""
+    
+    import_needed = False
+    
     for cls,canner in can_map.iteritems():
         if isinstance(cls, basestring):
-            try:
-                cls = import_item(cls)
-            except Exception:
-                _error("cannning class not importable: %r", cls, exc_info=True)
-                cls = None
-                continue
-        if isinstance(obj, cls):
+            import_needed = True
+            break
+        elif isinstance(obj, cls):
             return canner(obj)
+    
+    if import_needed:
+        # perform can_map imports, then try again
+        # this will usually only happen once
+        _import_mapping(can_map, _original_can_map)
+        return can(obj)
+    
     return obj
 
 def can_dict(obj):
@@ -195,16 +224,21 @@ def can_sequence(obj):
 
 def uncan(obj, g=None):
     """invert canning"""
+    
+    import_needed = False
     for cls,uncanner in uncan_map.iteritems():
         if isinstance(cls, basestring):
-            try:
-                cls = import_item(cls)
-            except Exception:
-                _error("uncanning class not importable: %r", cls, exc_info=True)
-                cls = None
-                continue
-        if isinstance(obj, cls):
+            import_needed = True
+            break
+        elif isinstance(obj, cls):
             return uncanner(obj, g)
+    
+    if import_needed:
+        # perform uncan_map imports, then try again
+        # this will usually only happen once
+        _import_mapping(uncan_map, _original_uncan_map)
+        return uncan(obj, g)
+    
     return obj
 
 def uncan_dict(obj, g=None):
@@ -225,7 +259,7 @@ def uncan_sequence(obj, g=None):
 
 
 #-------------------------------------------------------------------------------
-# API dictionary
+# API dictionaries
 #-------------------------------------------------------------------------------
 
 # These dicts can be extended for custom serialization of new objects
@@ -242,3 +276,6 @@ uncan_map = {
     CannedObject : lambda obj, g: obj.get_object(g),
 }
 
+# for use in _import_mapping:
+_original_can_map = can_map.copy()
+_original_uncan_map = uncan_map.copy()
