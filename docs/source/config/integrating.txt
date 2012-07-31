@@ -20,7 +20,7 @@ these are surrounded by single, not double underscores.
 
 Both the notebook and the Qt console can display ``svg``, ``png`` and ``jpeg``
 representations. The notebook can also display ``html``, ``javascript``,
-``json`` and ``latex``. If the methods don't exist, or return ``None``, it falls
+and ``latex``. If the methods don't exist, or return ``None``, it falls
 back to a standard ``repr()``.
 
 For example::
