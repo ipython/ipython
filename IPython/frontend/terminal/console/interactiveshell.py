@@ -29,6 +29,11 @@ import base64
 
 from Queue import Empty
 
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
+
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
@@ -280,8 +285,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         raw = base64.decodestring(data[mime])
         imageformat = self._imagemime[mime]
         ext = '.{0}'.format(imageformat)
-        with tempfile.NamedTemporaryFile(suffix=ext) as f, \
-             open(os.devnull, 'w') as devnull:
+        with nested(tempfile.NamedTemporaryFile(suffix=ext),
+                    open(os.devnull, 'w')) as (f, devnull):
             f.write(raw)
             f.flush()
             fmt = dict(file=f.name, format=imageformat)
