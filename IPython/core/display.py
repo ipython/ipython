@@ -186,6 +186,8 @@ def display_latex(*objs, **kwargs):
 
 def display_json(*objs, **kwargs):
     """Display the JSON representation of an object.
+    
+    Note that not many frontends support displaying JSON.
 
     Parameters
     ----------

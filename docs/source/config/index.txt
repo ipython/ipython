@@ -10,5 +10,6 @@ Configuration and customization
    overview.txt
    extensions/index.txt
    ipython.txt
+   integrating.txt
    editors.txt
    old.txt
