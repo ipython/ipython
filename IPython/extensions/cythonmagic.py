@@ -193,7 +193,8 @@ class CythonMagics(Magics):
         self._import_all(module)
 
         if args.annotate:
-            with open(os.path.join(lib_dir, module_name + '.html')) as f:
+            html_file = os.path.join(lib_dir, module_name + '.html')
+            with io.open(html_file, encoding='utf-8') as f:
                 annotated_html = f.read()
             return display.HTML(annotated_html)
 
