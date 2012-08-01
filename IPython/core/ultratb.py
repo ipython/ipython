@@ -126,15 +126,10 @@ def inspect_error():
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
 
-
-# N.B. This function is a monkeypatch we are currently not applying.
-# It was written some time ago, to fix an apparent Python bug with
-# codeobj.co_firstlineno . Unfortunately, we don't know under what conditions
-# the bug occurred, so we can't tell if it has been fixed. If it reappears, we
-# will apply the monkeypatch again. Also, note that findsource() is not called
-# by our code at this time - we don't know if it was when the monkeypatch was
-# written, or if the monkeypatch is needed for some other code (like a debugger).
-# For the discussion about not applying it, see gh-1229. TK, Jan 2011.
+# This function is a monkeypatch we apply to the Python inspect module. We have
+# now found when it's needed (see discussion on issue gh-1456), and we have a
+# test case (IPython.core.tests.test_ultratb.ChangedPyFileTest) that fails if
+# the monkeypatch is not applied. TK, Aug 2012.
 def findsource(object):
     """Return the entire source file and starting line number for an object.
 
@@ -210,10 +205,8 @@ def findsource(object):
         return lines, lnum
     raise IOError('could not find code object')
 
-# Not applying the monkeypatch - see above the function for details. TK, Jan 2012
-# Monkeypatch inspect to apply our bugfix.  This code only works with py25
-#if sys.version_info[:2] >= (2,5):
-#    inspect.findsource = findsource
+# Monkeypatch inspect to apply our bugfix.  This code only works with Python >= 2.5
+inspect.findsource = findsource
 
 def fix_frame_records_filenames(records):
     """Try to fix the filenames in each record from inspect.getinnerframes().
