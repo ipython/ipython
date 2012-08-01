@@ -861,6 +861,8 @@ class Hub(SessionFactory):
             d[msg_type] = content
         elif msg_type == 'status':
             pass
+        elif msg_type == 'data_pub':
+            self.log.info("ignored data_pub message for %s" % msg_id)
         else:
             self.log.warn("unhandled iopub msg_type: %r", msg_type)
 
