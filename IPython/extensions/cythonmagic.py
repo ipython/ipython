@@ -15,6 +15,8 @@ Parts of this code were taken from Cython.inline.
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import io
 import os, sys
 import imp
@@ -194,9 +196,19 @@ class CythonMagics(Magics):
 
         if args.annotate:
             html_file = os.path.join(lib_dir, module_name + '.html')
-            with io.open(html_file, encoding='utf-8') as f:
-                annotated_html = f.read()
-            return display.HTML(annotated_html)
+            try:
+                with io.open(html_file, encoding='utf-8') as f:
+                    annotated_html = f.read()
+            except IOError as e:
+                # File could not be opened. Most likely the user has a version
+                # of Cython before 0.15.1 (when `cythonize` learned the
+                # `force` keyword argument) and has already compiled this
+                # exact source without annotation.
+                print('Cython completed successfully but the annotated '
+                      'source could not be read.', file=sys.stderr)
+                print(e, file=sys.stderr)
+            else:
+                return display.HTML(annotated_html)
 
 _loaded = False
 
