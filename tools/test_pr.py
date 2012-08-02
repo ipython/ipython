@@ -87,7 +87,7 @@ class TestRun(object):
         os.chdir(repodir)
         check_call(['git', 'checkout', 'master'])
         try :
-            check_call(['git', 'pull', ipy_repository, 'master'])
+            check_call(['git', 'pull', 'origin', 'master'])
         except CalledProcessError :
             check_call(['git', 'pull', ipy_http_repository, 'master'])
         os.chdir(basedir)
@@ -207,13 +207,29 @@ def run_tests(venv):
     # cleanup build-dir
     if os.path.exists('build'):
         shutil.rmtree('build')
-    check_call([py, 'setup.py', 'install'])
+    tic = time.time()
+    print ("\nInstalling IPython with %s" % py)
+    logfile = os.path.join(basedir, venv, 'install.log')
+    print ("Install log at %s" % logfile)
+    with open(logfile, 'wb') as f:
+        check_call([py, 'setup.py', 'install'], stdout=f)
+    toc = time.time()
+    print ("Installed IPython in %.1fs" % (toc-tic))
     os.chdir(basedir)
     
     # Environment variables:
     orig_path = os.environ["PATH"]
     os.environ["PATH"] = os.path.join(basedir, venv, 'bin') + ':' + os.environ["PATH"]
     os.environ.pop("PYTHONPATH", None)
+    
+    # check that the right IPython is imported
+    ipython_file = check_output([py, '-c', 'import IPython; print (IPython.__file__)'])
+    ipython_file = ipython_file.strip().decode('utf-8')
+    if not ipython_file.startswith(os.path.join(basedir, venv)):
+        msg = u"IPython does not appear to be in the venv: %s" % ipython_file
+        msg += u"\nDo you use setupegg.py develop?"
+        print(msg, file=sys.stderr)
+        return False, msg
     
     iptest = os.path.join(basedir, venv, 'bin', 'iptest')
     if not os.path.exists(iptest):
