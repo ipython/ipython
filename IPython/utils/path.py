@@ -358,9 +358,11 @@ def expand_path(s):
 
 def unescape_glob(string):
     """Unescape glob pattern in `string`."""
-    for pattern in '*[]!?':
-        string = string.replace(r'\{0}'.format(pattern), pattern)
-    return string
+    def unescape(s):
+        for pattern in '*[]!?':
+            s = s.replace(r'\{0}'.format(pattern), pattern)
+        return s
+    return '\\'.join(map(unescape, string.split('\\\\')))
 
 
 def shellglob(args):

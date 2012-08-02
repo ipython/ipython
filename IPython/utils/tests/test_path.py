@@ -486,3 +486,7 @@ def test_shellglob():
 
 def test_unescape_glob():
     nt.assert_equals(path.unescape_glob(r'\*\[\!\]\?'), '*[!]?')
+    nt.assert_equals(path.unescape_glob(r'\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\a'), r'\a')
+    nt.assert_equals(path.unescape_glob(r'\a'), r'\a')
