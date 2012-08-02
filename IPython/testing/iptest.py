@@ -420,7 +420,7 @@ class IPTester(object):
                 print('... failed. Manual cleanup may be required.'
                       % subp.pid)
 
-def make_runners():
+def make_runners(inc_slow=False):
     """Define the top-level packages that need to be tested.
     """
 
@@ -430,7 +430,8 @@ def make_runners():
 
     if have['zmq']:
         nose_pkg_names.append('zmq')
-        nose_pkg_names.append('parallel')
+        if inc_slow:
+            nose_pkg_names.append('parallel')
 
     # For debugging this code, only load quick stuff
     #nose_pkg_names = ['core', 'extensions']  # dbg
@@ -492,16 +493,23 @@ def run_iptest():
     TestProgram(argv=argv, addplugins=plugins)
 
 
-def run_iptestall():
+def run_iptestall(inc_slow=False):
     """Run the entire IPython test suite by calling nose and trial.
 
     This function constructs :class:`IPTester` instances for all IPython
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
     nose.
+    
+    Parameters
+    ----------
+    
+    inc_slow : bool, optional
+      Include slow tests, like IPython.parallel. By default, these tests aren't
+      run.
     """
 
-    runners = make_runners()
+    runners = make_runners(inc_slow=inc_slow)
 
     # Run the test runners in a temporary dir so we can nuke it when finished
     # to clean up any junk files left over by accident.  This also makes it
@@ -558,8 +566,13 @@ def main():
             # This is in-process
             run_iptest()
     else:
+        if "--all" in sys.argv:
+            sys.argv.remove("--all")
+            inc_slow = True
+        else:
+            inc_slow = False
         # This starts subprocesses
-        run_iptestall()
+        run_iptestall(inc_slow=inc_slow)
 
 
 if __name__ == '__main__':
