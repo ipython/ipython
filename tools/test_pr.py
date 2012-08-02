@@ -87,7 +87,7 @@ class TestRun(object):
         os.chdir(repodir)
         check_call(['git', 'checkout', 'master'])
         try :
-            check_call(['git', 'pull', ipy_repository, 'master'])
+            check_call(['git', 'pull', 'origin', 'master'])
         except CalledProcessError :
             check_call(['git', 'pull', ipy_http_repository, 'master'])
         os.chdir(basedir)
