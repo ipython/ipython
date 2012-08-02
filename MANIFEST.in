@@ -1,7 +1,5 @@
 include README.rst
 include ipython.py
-include setup2.py
-include setup3.py
 include setupbase.py
 include setupegg.py
 
