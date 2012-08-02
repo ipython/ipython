@@ -357,9 +357,9 @@ python-profiler package from non-free.""")
         Arguments are expanded using shell-like glob match.  Patterns
         '*', '?', '[seq]' and '[!seq]' can be used.  Additionally,
         tilde '~' will be expanded into user's home directory.  Unlike
-        real shells, quotation does not suppress expansions.  Use back
-        slash (e.g., '\\*') to suppress expansions.  To completely
-        disable these expansions, you can use -G flag.
+        real shells, quotation does not suppress expansions.  Use
+        *two* back slashes (e.g., '\\\\*') to suppress expansions.
+        To completely disable these expansions, you can use -G flag.
 
         Options:
 
