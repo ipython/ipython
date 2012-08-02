@@ -306,7 +306,10 @@ else:
             super(MyStringIO, self).write(s)
 
 notprinted_msg = """Did not find {0!r} in printed output (on {1}):
-{2!r}"""
+-------
+{2!s}
+-------
+"""
 
 class AssertPrints(object):
     """Context manager for testing that code prints certain text.
@@ -337,7 +340,13 @@ class AssertPrints(object):
         printed = self.buffer.getvalue()
         assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
         return False
-    
+
+printed_msg = """Found {0!r} in printed output (on {1}):
+-------
+{2!s}
+-------
+"""
+
 class AssertNotPrints(AssertPrints):
     """Context manager for checking that certain output *isn't* produced.
     
@@ -346,7 +355,7 @@ class AssertNotPrints(AssertPrints):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s not in printed, notprinted_msg.format(self.s, self.channel, printed)
+        assert self.s not in printed, printed_msg.format(self.s, self.channel, printed)
         return False
 
 @contextmanager
