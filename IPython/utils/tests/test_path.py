@@ -475,5 +475,14 @@ def test_shellglob():
                          + filenames_start_with_a
                          + filenames_end_with_b
                          + ['*c'])
+
+            assert_match([r'\*'], ['*'])
+            assert_match([r'a\*', 'a*'], ['a*'] + filenames_start_with_a)
+            assert_match(['a[012]'], filenames_start_with_a)
+            assert_match([r'a\[012]'], ['a[012]'])
         finally:
             os.chdir(save)
+
+
+def test_unescape_glob():
+    nt.assert_equals(path.unescape_glob(r'\*\[\!\]\?'), '*[!]?')

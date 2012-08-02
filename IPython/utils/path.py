@@ -356,6 +356,13 @@ def expand_path(s):
     return s
 
 
+def unescape_glob(string):
+    """Unescape glob pattern in `string`."""
+    for pattern in '*[]!?':
+        string = string.replace(r'\{0}'.format(pattern), pattern)
+    return string
+
+
 def shellglob(args):
     """
     Do glob expansion for each element in `args` and return a flattened list.
@@ -365,7 +372,7 @@ def shellglob(args):
     """
     expanded = []
     for a in args:
-        expanded.extend(glob.glob(a) or [a])
+        expanded.extend(glob.glob(a) or [unescape_glob(a)])
     return expanded
 
 
