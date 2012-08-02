@@ -30,7 +30,7 @@ large blocking requests or database actions in the Hub do not have the ability t
 job submission and results.
 
 Registration (``ROUTER``)
-***********************
+*************************
 
 The first function of the Hub is to facilitate and monitor connections of clients
 and engines. Both client and engine registration are handled by the same socket, so only
@@ -111,7 +111,7 @@ Message type : ``unregistration_notification``::
 
 
 Client Queries (``ROUTER``)
-*************************
+***************************
 
 The hub monitors and logs all queue traffic, so that clients can retrieve past
 results or monitor pending tasks. This information may reside in-memory on the Hub, or
@@ -242,8 +242,8 @@ Message type: ``task_destination``::
         'engine_id' : '1234-abcd-...', # the destination engine's zmq.IDENTITY
     }
 
-:func:`apply` and :func:`apply_bound`
-*************************************
+:func:`apply`
+*************
 
 In terms of message classes, the MUX scheduler and Task scheduler relay the exact same
 message types.  Their only difference lies in how the destination is selected.
@@ -260,18 +260,17 @@ code string, must be able to send arbitrary (pickleable) Python objects. And ide
 as little data as we can. The `buffers` property of a Message was introduced for this
 purpose.
 
-Utility method :func:`build_apply_message` in :mod:`IPython.zmq.streamsession` wraps a
+Utility method :func:`build_apply_message` in :mod:`IPython.zmq.serialize` wraps a
 function signature and builds a sendable buffer format for minimal data copying (exactly
 zero copies of numpy array data or buffers or large strings).
 
 Message type: ``apply_request``::
 
-    content = {
-        'bound' : True, # whether to execute in the engine's namespace or unbound
+    metadata = {
         'after' : ['msg_id',...], # list of msg_ids or output of Dependency.as_dict()
         'follow' : ['msg_id',...], # list of msg_ids or output of Dependency.as_dict()
-        
     }
+    content = {}
     buffers = ['...'] # at least 3 in length
                     # as built by build_apply_message(f,args,kwargs)
 
@@ -360,8 +359,8 @@ Split Sends
 Previously, messages were bundled as a single json object and one call to
 :func:`socket.send_json`. Since the hub inspects all messages, and doesn't need to
 see the content of the messages, which can be large, messages are now serialized and sent in
-pieces. All messages are sent in at least 3 parts: the header, the parent header, and the
-content. This allows the controller to unpack and inspect the (always small) header,
+pieces. All messages are sent in at least 4 parts: the header, the parent header, the metadata and the content.
+This allows the controller to unpack and inspect the (always small) header,
 without spending time unpacking the content unless the message is bound for the
 controller. Buffers are added on to the end of the message, and can be any objects that
 present the buffer interface.

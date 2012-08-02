@@ -83,7 +83,7 @@ class AsyncResult(object):
         self._tracker = tracker
         self._ready = False
         self._success = None
-        self._metadata = None
+        self._metadata = [ self._client.metadata.get(id) for id in self.msg_ids ]
         if len(msg_ids) == 1:
             self._single_result = not isinstance(targets, (list, tuple))
         else:
@@ -126,6 +126,10 @@ class AsyncResult(object):
         else:
             raise error.TimeoutError("Result not ready.")
 
+    def _check_ready(self):
+        if not self.ready():
+            raise error.TimeoutError("Result not ready.")
+    
     def ready(self):
         """Return whether the call has completed."""
         if not self._ready:
@@ -157,9 +161,8 @@ class AsyncResult(object):
             else:
                 self._success = True
             finally:
-                self._metadata = map(self._client.metadata.get, self.msg_ids)
+                
                 self._wait_for_outputs(10)
-            
 
 
     def successful(self):
@@ -192,14 +195,13 @@ class AsyncResult(object):
 
     @property
     def result(self):
-        """result property wrapper for `get(timeout=0)`."""
+        """result property wrapper for `get(timeout=-1)`."""
         return self.get()
 
     # abbreviated alias:
     r = result
 
     @property
-    @check_ready
     def metadata(self):
         """property for accessing execution metadata."""
         if self._single_result:
@@ -238,15 +240,17 @@ class AsyncResult(object):
     # dict-access
     #-------------------------------------
 
-    @check_ready
     def __getitem__(self, key):
         """getitem returns result value(s) if keyed by int/slice, or metadata if key is str.
         """
         if isinstance(key, int):
+            self._check_ready()
             return error.collect_exceptions([self._result[key]], self._fname)[0]
         elif isinstance(key, slice):
+            self._check_ready()
             return error.collect_exceptions(self._result[key], self._fname)
         elif isinstance(key, basestring):
+            # metadata proxy *does not* require that results are done
             values = [ md[key] for md in self._metadata ]
             if self._single_result:
                 return values[0]

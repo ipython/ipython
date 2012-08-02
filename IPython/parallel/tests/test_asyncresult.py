@@ -81,13 +81,13 @@ class AsyncResultTest(ClusterTestCase):
     
     def test_getattr(self):
         ar = self.client[:].apply_async(wait, 0.5)
+        self.assertEqual(ar.engine_id, [None] * len(ar))
         self.assertRaises(AttributeError, lambda : ar._foo)
         self.assertRaises(AttributeError, lambda : ar.__length_hint__())
         self.assertRaises(AttributeError, lambda : ar.foo)
-        self.assertRaises(AttributeError, lambda : ar.engine_id)
         self.assertFalse(hasattr(ar, '__length_hint__'))
         self.assertFalse(hasattr(ar, 'foo'))
-        self.assertFalse(hasattr(ar, 'engine_id'))
+        self.assertTrue(hasattr(ar, 'engine_id'))
         ar.get(5)
         self.assertRaises(AttributeError, lambda : ar._foo)
         self.assertRaises(AttributeError, lambda : ar.__length_hint__())
@@ -100,8 +100,8 @@ class AsyncResultTest(ClusterTestCase):
 
     def test_getitem(self):
         ar = self.client[:].apply_async(wait, 0.5)
-        self.assertRaises(TimeoutError, lambda : ar['foo'])
-        self.assertRaises(TimeoutError, lambda : ar['engine_id'])
+        self.assertEqual(ar['engine_id'], [None] * len(ar))
+        self.assertRaises(KeyError, lambda : ar['foo'])
         ar.get(5)
         self.assertRaises(KeyError, lambda : ar['foo'])
         self.assertTrue(isinstance(ar['engine_id'], list))
@@ -109,8 +109,8 @@ class AsyncResultTest(ClusterTestCase):
     
     def test_single_result(self):
         ar = self.client[-1].apply_async(wait, 0.5)
-        self.assertRaises(TimeoutError, lambda : ar['foo'])
-        self.assertRaises(TimeoutError, lambda : ar['engine_id'])
+        self.assertRaises(KeyError, lambda : ar['foo'])
+        self.assertEqual(ar['engine_id'], None)
         self.assertTrue(ar.get(5) == 0.5)
         self.assertTrue(isinstance(ar['engine_id'], int))
         self.assertTrue(isinstance(ar.engine_id, int))
