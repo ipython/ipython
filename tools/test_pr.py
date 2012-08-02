@@ -41,10 +41,11 @@ def get_missing_libraries(log):
         return m.group(1)
 
 class TestRun(object):
-    def __init__(self, pr_num):
+    def __init__(self, pr_num, extra_args):
         self.unavailable_pythons = []
         self.venvs = []
         self.pr_num = pr_num
+        self.extra_args = extra_args
         
         self.pr = gh_api.get_pull_request(gh_project, pr_num)
         
@@ -131,8 +132,10 @@ class TestRun(object):
                  "Platform: " + sys.platform,
                  ""] + \
                 [format_result(r) for r in self.results] + \
-                ["",
-                 "Not available for testing: " + ", ".join(self.unavailable_pythons)]
+                [""]
+        if self.extra_args:
+            lines.append("Extra args: %r" % self.extra_args),
+        lines.append("Not available for testing: " + ", ".join(self.unavailable_pythons))
         return "\n".join(lines)
     
     def post_results_comment(self):
@@ -156,6 +159,9 @@ class TestRun(object):
                 print("    Test log:", result.get('log_url') or result.log_file)
             if result.missing_libraries:
                 print("    Libraries not available:", result.missing_libraries)
+        
+        if self.extra_args:
+            print("Extra args:", self.extra_args)
         print("Not available for testing:", ", ".join(self.unavailable_pythons))
 
     def dump_results(self):
@@ -187,7 +193,7 @@ class TestRun(object):
     def run(self):
         for py, venv in self.venvs:
             tic = time.time()
-            passed, log = run_tests(venv)
+            passed, log = run_tests(venv, self.extra_args)
             elapsed = int(time.time() - tic)
             print("Ran tests with %s in %is" % (py, elapsed))
             missing_libraries = get_missing_libraries(log)
@@ -200,7 +206,7 @@ class TestRun(object):
                                )
 
 
-def run_tests(venv):
+def run_tests(venv, extra_args):
     py = os.path.join(basedir, venv, 'bin', 'python')
     print(py)
     os.chdir(repodir)
@@ -226,8 +232,8 @@ def run_tests(venv):
     ipython_file = check_output([py, '-c', 'import IPython; print (IPython.__file__)'])
     ipython_file = ipython_file.strip().decode('utf-8')
     if not ipython_file.startswith(os.path.join(basedir, venv)):
-        msg = u"IPython does not appear to be in the venv: %s" % ipython_file
-        msg += u"\nDo you use setupegg.py develop?"
+        msg = "IPython does not appear to be in the venv: %s" % ipython_file
+        msg += "\nDo you use setupegg.py develop?"
         print(msg, file=sys.stderr)
         return False, msg
     
@@ -237,7 +243,7 @@ def run_tests(venv):
         
     print("\nRunning tests, this typically takes a few minutes...")
     try:
-        return True, check_output([iptest], stderr=STDOUT).decode('utf-8')
+        return True, check_output([iptest] + extra_args, stderr=STDOUT).decode('utf-8')
     except CalledProcessError as e:
         return False, e.output.decode('utf-8')
     finally:
@@ -245,13 +251,13 @@ def run_tests(venv):
         os.environ["PATH"] = orig_path
 
 
-def test_pr(num, post_results=True):
+def test_pr(num, post_results=True, extra_args=None):
     # Get Github authorisation first, so that the user is prompted straight away
     # if their login is needed.
     if post_results:
         gh_api.get_auth_token()
     
-    testrun = TestRun(num)
+    testrun = TestRun(num, extra_args or [])
     
     testrun.get_branch()
     
@@ -278,5 +284,5 @@ if __name__ == '__main__':
                         help="Publish the results to Github")
     parser.add_argument('number', type=int, help="The pull request number")
     
-    args = parser.parse_args()
-    test_pr(args.number, post_results=args.publish)
+    args, extra_args = parser.parse_known_args()
+    test_pr(args.number, post_results=args.publish, extra_args=extra_args)
