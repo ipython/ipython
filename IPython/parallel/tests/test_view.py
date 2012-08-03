@@ -627,4 +627,52 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertTrue(all(isinstance(d, dict) for d in ar.data))
         ar.get(5)
         self.assertEqual(ar.data, [dict(i=4)] * len(ar))
+    
+    def test_can_list_arg(self):
+        """args in lists are canned"""
+        view = self.client[-1]
+        view['a'] = 128
+        rA = pmod.Reference('a')
+        ar = view.apply_async(lambda x: x, [rA])
+        r = ar.get(5)
+        self.assertEqual(r, [128])
+
+    def test_can_dict_arg(self):
+        """args in dicts are canned"""
+        view = self.client[-1]
+        view['a'] = 128
+        rA = pmod.Reference('a')
+        ar = view.apply_async(lambda x: x, dict(foo=rA))
+        r = ar.get(5)
+        self.assertEqual(r, dict(foo=128))
+
+    def test_can_list_kwarg(self):
+        """kwargs in lists are canned"""
+        view = self.client[-1]
+        view['a'] = 128
+        rA = pmod.Reference('a')
+        ar = view.apply_async(lambda x=5: x, x=[rA])
+        r = ar.get(5)
+        self.assertEqual(r, [128])
+
+    def test_can_dict_kwarg(self):
+        """kwargs in dicts are canned"""
+        view = self.client[-1]
+        view['a'] = 128
+        rA = pmod.Reference('a')
+        ar = view.apply_async(lambda x=5: x, dict(foo=rA))
+        r = ar.get(5)
+        self.assertEqual(r, dict(foo=128))
+    
+    def test_map_ref(self):
+        """view.map works with references"""
+        view = self.client[:]
+        ranks = sorted(self.client.ids)
+        view.scatter('rank', ranks, flatten=True)
+        rrank = pmod.Reference('rank')
+        
+        amr = view.map_async(lambda x: x*2, [rrank] * len(view))
+        drank = amr.get(5)
+        self.assertEqual(drank, [ r*2 for r in ranks ])
+        
 
