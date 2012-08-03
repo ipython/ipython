@@ -17,9 +17,10 @@ Parts of this code were taken from Cython.inline.
 
 from __future__ import print_function
 
-import io
-import os, sys
 import imp
+import io
+import os
+import sys
 
 try:
     import hashlib
@@ -157,8 +158,7 @@ class CythonMagics(Magics):
         quiet = True
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
-        so_ext = [ ext for ext,_,mod_type in imp.get_suffixes() if mod_type == imp.C_EXTENSION ][0]
-        module_path = os.path.join(lib_dir, module_name+so_ext)
+        module_path = os.path.join(lib_dir, module_name+self.so_ext)
 
         if args.annotate:
             args.force = True
@@ -183,15 +183,7 @@ class CythonMagics(Magics):
                 extra_link_args = args.link_args,
                 libraries = args.lib,
             )
-            dist = Distribution()
-            config_files = dist.find_config_files()
-            try:
-                config_files.remove('setup.cfg')
-            except ValueError:
-                pass
-            dist.parse_config_files(config_files)
-            build_extension = build_ext(dist)
-            build_extension.finalize_options()
+            build_extension = self._get_build_extension()
             try:
                 build_extension.extensions = cythonize([extension], quiet=quiet,
                                                        annotate=args.annotate, force=args.force)
@@ -220,6 +212,27 @@ class CythonMagics(Magics):
                 print(e, file=sys.stderr)
             else:
                 return display.HTML(annotated_html)
+
+    @property
+    def so_ext(self):
+        """The extension suffix for compiled modules."""
+        try:
+            return self._so_ext
+        except AttributeError:
+            self._so_ext = self._get_build_extension().get_ext_filename('')
+            return self._so_ext
+
+    def _get_build_extension(self):
+        dist = Distribution()
+        config_files = dist.find_config_files()
+        try:
+            config_files.remove('setup.cfg')
+        except ValueError:
+            pass
+        dist.parse_config_files(config_files)
+        build_extension = build_ext(dist)
+        build_extension.finalize_options()
+        return build_extension
 
 _loaded = False
 
