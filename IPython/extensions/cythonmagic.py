@@ -128,6 +128,10 @@ class CythonMagics(Magics):
              "multiple times)."
     )
     @magic_arguments.argument(
+        '-+', '--cplus', action='store_true', default=False,
+        help="Output a C++ rather than C file."
+    )
+    @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
         help="Force the compilation of the pyx module even if it hasn't "
              "changed"
@@ -182,11 +186,16 @@ class CythonMagics(Magics):
                 extra_compile_args = args.compile_args,
                 extra_link_args = args.link_args,
                 libraries = args.lib,
+                language = 'c++' if args.cplus else 'c',
             )
             build_extension = self._get_build_extension()
             try:
-                build_extension.extensions = cythonize([extension], quiet=quiet,
-                                                       annotate=args.annotate, force=args.force)
+                opts = dict(
+                    quiet=quiet,
+                    annotate = args.annotate,
+                    force = args.force,
+                    )
+                build_extension.extensions = cythonize([extension], **opts)
             except CompileError:
                 return
             build_extension.build_temp = os.path.dirname(pyx_file)
