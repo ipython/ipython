@@ -200,7 +200,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             module.__dict__ = global_ns
 
         # Get locals and globals from caller
-        if (local_ns is None or module is None) and self.default_user_namespaces:
+        if ((local_ns is None or module is None or compile_flags is None)
+            and self.default_user_namespaces):
             call_frame = sys._getframe(stack_depth).f_back
 
             if local_ns is None:
@@ -233,7 +234,8 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
             self.init_user_ns()
 
         # Compiler flags
-        self.compile.flags = compile_flags
+        if compile_flags is not None:
+            self.compile.flags = compile_flags
 
         # Patch for global embedding to make sure that things don't overwrite
         # user globals accidentally. Thanks to Richard <rxe@renre-europe.com>
