@@ -61,7 +61,7 @@ class CythonMagics(Magics):
         and returns the result. If the variables `a` and `b` are defined
         in the user's namespace, here is a simple example that returns
         their sum::
-        
+
             %%cython_inline
             return a+b
 
@@ -78,14 +78,14 @@ class CythonMagics(Magics):
         The contents of the cell are written to a `.pyx` file in the current
         working directory, which is then imported using `pyximport`. This
         magic requires a module name to be passed::
-        
+
             %%cython_pyximport modulename
             def f(x):
                 return 2.0*x
 
-        The compiled module is then imported and all of its symbols are injected into
-        the user's namespace. For most purposes, we recommend the usage of the
-        `%%cython` magic.
+        The compiled module is then imported and all of its symbols are
+        injected into the user's namespace. For most purposes, we recommend
+        the usage of the `%%cython` magic.
         """
         module_name = line.strip()
         if not module_name:
@@ -108,35 +108,41 @@ class CythonMagics(Magics):
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-c', '--compile-args', action='append', default=[],
-        help="Extra flags to pass to compiler via the `extra_compile_args` Extension flag (can be specified  multiple times)."
+        help="Extra flags to pass to compiler via the `extra_compile_args` "
+             "Extension flag (can be specified  multiple times)."
     )
     @magic_arguments.argument(
         '-la', '--link-args', action='append', default=[],
-        help="Extra flags to pass to linker via the `extra_link_args` Extension flag (can be specified  multiple times)."
+        help="Extra flags to pass to linker via the `extra_link_args` "
+             "Extension flag (can be specified  multiple times)."
     )
     @magic_arguments.argument(
         '-l', '--lib', action='append', default=[],
-        help="Add a library to link the extension against (can be specified  multiple times)."
+        help="Add a library to link the extension against (can be specified "
+             "multiple times)."
     )
     @magic_arguments.argument(
         '-I', '--include', action='append', default=[],
-        help="Add a path to the list of include directories (can be specified  multiple times)."
+        help="Add a path to the list of include directories (can be specified "
+             "multiple times)."
     )
     @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
-        help="Force the compilation of the pyx module even if it hasn't changed"
+        help="Force the compilation of the pyx module even if it hasn't "
+             "changed"
     )
     @magic_arguments.argument(
         '-a', '--annotate', action='store_true', default=False,
-        help="Produce a colorized HTML version of the source. (Implies --force)."
+        help="Produce a colorized HTML version of the source. "
+             "(Implies --force)."
     )
     @cell_magic
     def cython(self, line, cell):
         """Compile and import everything from a Cython code cell.
 
         The contents of the cell are written to a `.pyx` file in the
-        directory `IPYTHONDIR/cython` using a filename with the hash of the code.
-        This file is then cythonized and compiled. The resulting module
+        directory `IPYTHONDIR/cython` using a filename with the hash of the
+        code. This file is then cythonized and compiled. The resulting module
         is imported and all of its symbols are injected into the user's
         namespace. The usage is similar to that of `%%cython_pyximport` but
         you don't have to pass a module name::
@@ -179,7 +185,7 @@ class CythonMagics(Magics):
             )
             dist = Distribution()
             config_files = dist.find_config_files()
-            try: 
+            try:
                 config_files.remove('setup.cfg')
             except ValueError:
                 pass
