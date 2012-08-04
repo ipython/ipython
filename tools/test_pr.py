@@ -91,6 +91,7 @@ class TestRun(object):
             check_call(['git', 'pull', 'origin', 'master'])
         except CalledProcessError :
             check_call(['git', 'pull', ipy_http_repository, 'master'])
+        self.master_sha = check_output(['git', 'log', '-1', '--format=%h']).decode('ascii').strip()
         os.chdir(basedir)
     
     def get_branch(self):
@@ -125,7 +126,7 @@ class TestRun(object):
             return s
         
         if self.pr['mergeable']:
-            com = self.pr['head']['sha'][:7] + " merged into master"
+            com = self.pr['head']['sha'][:7] + " merged into master (%s)" % self.master_sha
         else:
             com = self.pr['head']['sha'][:7] + " (can't merge cleanly)"
         lines = ["**Test results for commit %s**" % com,
@@ -146,10 +147,12 @@ class TestRun(object):
         pr = self.pr
         
         print("\n")
+        msg = "**Test results for commit %s" % pr['head']['sha'][:7]
         if pr['mergeable']:
-            print("**Test results for commit %s merged into master**" % pr['head']['sha'][:7])
+            msg += " merged into master (%s)**" % self.master_sha
         else:
-            print("**Test results for commit %s (can't merge cleanly)**" % pr['head']['sha'][:7])
+            msg += " (can't merge cleanly)**"
+        print(msg)
         print("Platform:", sys.platform)
         for result in self.results:
             if result.passed:
