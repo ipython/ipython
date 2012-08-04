@@ -33,6 +33,7 @@ import nose.tools as nt
 
 # Our own
 from IPython.testing.decorators import skipif
+from IPython.testing import tools as tt
 from IPython.utils import io
 
 #-----------------------------------------------------------------------------
@@ -400,6 +401,18 @@ class TestSystemRaw(unittest.TestCase):
         """
         cmd = ur'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
+
+class TestModules(unittest.TestCase, tt.TempFileMixin):
+    def test_extraneous_loads(self):
+        """Test we're not loading modules on startup that we shouldn't.
+        """
+        self.mktmp("import sys\n"
+                   "print('numpy' in sys.modules)\n"
+                   "print('IPython.parallel' in sys.modules)\n"
+                   "print('IPython.zmq' in sys.modules)\n"
+                   )
+        out = "False\nFalse\nFalse\n"
+        tt.ipexec_validate(self.fname, out)
 
 
 def test__IPYTHON__():

@@ -84,22 +84,6 @@ from IPython.utils.traitlets import (Integer, CBool, CaselessStrEnum, Enum,
 from IPython.utils.warn import warn, error
 import IPython.core.hooks
 
-# FIXME: do this in a function to avoid circular dependencies
-# A better solution is to remove IPython.parallel.error,
-# and place those classes in IPython.core.error.
-
-class RemoteError(Exception):
-    pass
-
-def _import_remote_error():
-    global RemoteError
-    try:
-        from IPython.parallel.error import RemoteError
-    except:
-        pass
-
-_import_remote_error()
-
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
@@ -1723,10 +1707,6 @@ class InteractiveShell(SingletonConfigurable):
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
                 self.write_err("UsageError: %s" % value)
-            elif issubclass(etype, RemoteError):
-                # IPython.parallel remote exceptions.
-                # Draw the remote traceback, not the local one.
-                self._showtraceback(etype, value, value.render_traceback())
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
@@ -1734,7 +1714,13 @@ class InteractiveShell(SingletonConfigurable):
                     stb.extend(self.InteractiveTB.get_exception_only(etype,
                                                                      value))
                 else:
-                    stb = self.InteractiveTB.structured_traceback(etype,
+                    try:
+                        # Exception classes can customise their traceback - we
+                        # use this in IPython.parallel for exceptions occurring
+                        # in the engines. This should return a list of strings.
+                        stb = value._render_traceback_()
+                    except Exception:
+                        stb = self.InteractiveTB.structured_traceback(etype,
                                             value, tb, tb_offset=tb_offset)
 
                     self._showtraceback(etype, value, stb)
