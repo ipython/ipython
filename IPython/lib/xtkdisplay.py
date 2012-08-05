@@ -7,7 +7,7 @@ visualizations in the IPython Notebook.
 
 A simple example would be::
 
-    from xtkdisplay import Mesh
+    from IPython.lib.xtkdisplay import Mesh
     Mesh('http://x.babymri.org/?skull.vtk', opacity=0.5, magicmode=True)
 
 Authors:
