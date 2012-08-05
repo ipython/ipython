@@ -75,7 +75,9 @@ class HistoryMagics(Magics):
 
           -g: treat the arg as a pattern to grep for in (full) history.
           This includes the saved history (almost all commands ever written).
-          Use '%hist -g' to show full saved history (may be very long).
+          The pattern may contain '?' to match one unknown character and '*'
+          to match any number of unknown characters. Use '%hist -g' to show
+          full saved history (may be very long).
 
           -l: get the last n lines from all sessions. Specify n as a single
           arg, or the default is the last 10 lines.
