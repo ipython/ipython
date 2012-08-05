@@ -76,7 +76,7 @@ def main(*args):
             action='store_const',
             const=True ,
             help='try to merge as many PR as possible, one by one')
-    parser.add_argument('integers',
+    parser.add_argument('merge',
             type=int,
             help="The pull request numbers",
             nargs='*',
