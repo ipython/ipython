@@ -166,7 +166,8 @@ class AsyncResult(object):
             else:
                 self._success = True
             finally:
-                if timeout is not None and timeout < 0:
+                if timeout is None or timeout < 0:
+                    # cutoff infinite wait at 10s
                     timeout = 10
                 self._wait_for_outputs(timeout)
 
