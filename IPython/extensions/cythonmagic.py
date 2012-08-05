@@ -21,6 +21,7 @@ import imp
 import io
 import os
 import sys
+import time
 
 try:
     import hashlib
@@ -133,13 +134,12 @@ class CythonMagics(Magics):
     )
     @magic_arguments.argument(
         '-f', '--force', action='store_true', default=False,
-        help="Force the compilation of the pyx module even if it hasn't "
-             "changed"
+        help="Force the compilation of a new module, even if the source has been "
+             "previously compiled."
     )
     @magic_arguments.argument(
         '-a', '--annotate', action='store_true', default=False,
-        help="Produce a colorized HTML version of the source. "
-             "(Implies --force)."
+        help="Produce a colorized HTML version of the source."
     )
     @cell_magic
     def cython(self, line, cell):
@@ -161,16 +161,27 @@ class CythonMagics(Magics):
         lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
         quiet = True
         key = code, sys.version_info, sys.executable, Cython.__version__
-        module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
-        module_path = os.path.join(lib_dir, module_name+self.so_ext)
-
-        if args.annotate:
-            args.force = True
 
         if not os.path.exists(lib_dir):
             os.makedirs(lib_dir)
 
-        if args.force or not os.path.isfile(module_path):
+        if args.force:
+            # Force a new module name by adding the current time to the
+            # key which is hashed to determine the module name.
+            key += time.time(),
+
+        module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
+        module_path = os.path.join(lib_dir, module_name + self.so_ext)
+
+        have_module = os.path.isfile(module_path)
+        need_cythonize = not have_module
+
+        if args.annotate:
+            html_file = os.path.join(lib_dir, module_name + '.html')
+            if not os.path.isfile(html_file):
+                need_cythonize = True
+
+        if need_cythonize:
             c_include_dirs = args.include
             if 'numpy' in code:
                 import numpy
@@ -193,11 +204,13 @@ class CythonMagics(Magics):
                 opts = dict(
                     quiet=quiet,
                     annotate = args.annotate,
-                    force = args.force,
+                    force = True,
                     )
                 build_extension.extensions = cythonize([extension], **opts)
             except CompileError:
                 return
+
+        if not have_module:
             build_extension.build_temp = os.path.dirname(pyx_file)
             build_extension.build_lib  = lib_dir
             build_extension.run()
@@ -207,7 +220,6 @@ class CythonMagics(Magics):
         self._import_all(module)
 
         if args.annotate:
-            html_file = os.path.join(lib_dir, module_name + '.html')
             try:
                 with io.open(html_file, encoding='utf-8') as f:
                     annotated_html = f.read()
