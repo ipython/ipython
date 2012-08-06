@@ -18,6 +18,8 @@ Authors:
 
 import time
 
+import nose.tools as nt
+
 from IPython.utils.io import capture_output
 
 from IPython.parallel.error import TimeoutError
@@ -263,5 +265,30 @@ class AsyncResultTest(ClusterTestCase):
             ar.display_outputs('engine')
         self.assertEqual(io.stderr, '')
         self.assertEqual(io.stdout, '')
+    
+    def test_await_data(self):
+        """asking for ar.data flushes outputs"""
+        self.minimum_engines(1)
         
+        v = self.client[-1]
+        ar = v.execute('\n'.join([
+            "import time",
+            "from IPython.zmq.datapub import publish_data",
+            "for i in range(5):",
+            "    publish_data(dict(i=i))",
+            "    time.sleep(0.1)",
+        ]), block=False)
+        found = set()
+        tic = time.time()
+        # timeout after 10s
+        while time.time() <= tic + 10:
+            if ar.data:
+                found.add(ar.data['i'])
+                if ar.data['i'] == 4:
+                    break
+            time.sleep(0.05)
+        
+        ar.get(5)
+        nt.assert_in(4, found)
+        self.assertTrue(len(found) > 1, "should have seen data multiple times, but got: %s" % found)
 
