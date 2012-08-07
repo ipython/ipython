@@ -17,6 +17,33 @@
 
 import sys, os
 
+ON_RTD = os.environ.get('READTHEDOCS', None) == 'True'
+
+if ON_RTD:
+    # Mock the presence of matplotlib, which we don't have on RTD
+    # see
+    # http://read-the-docs.readthedocs.org/en/latest/faq.html
+    tags.add('rtd')
+    class Mock(object):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __call__(self, *args, **kwargs):
+            return Mock()
+
+        @classmethod
+        def __getattr__(self, name):
+            if name in ('__file__', '__path__'):
+                return '/dev/null'
+            elif name[0] == name[0].upper():
+                return type(name, (), {})
+            else:
+                return Mock()
+
+    MOCK_MODULES = ['matplotlib', 'matplotlib.sphinxext', 'numpy']
+    for mod_name in MOCK_MODULES:
+        sys.modules[mod_name] = Mock()
+
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -47,6 +74,11 @@ extensions = [
     'numpydoc',  # to preprocess docstrings
     'github',  # for easy GitHub links
 ]
+
+if ON_RTD:
+    # Remove extensions not currently supported on RTD
+    extensions.remove('matplotlib.sphinxext.only_directives')
+    extensions.remove('ipython_directive')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
