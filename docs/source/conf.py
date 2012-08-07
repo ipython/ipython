@@ -23,7 +23,7 @@ if ON_RTD:
     # Mock the presence of matplotlib, which we don't have on RTD
     # see
     # http://read-the-docs.readthedocs.org/en/latest/faq.html
-
+    tags.add('rtd')
     class Mock(object):
         def __init__(self, *args, **kwargs):
             pass
