@@ -227,6 +227,7 @@ notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script'
 aliases = dict(ipkernel_aliases)
 
 aliases.update({
+    'nbmgr': 'NotebookApp.nbmgr',
     'ip': 'NotebookApp.ip',
     'port': 'NotebookApp.port',
     'port-retries': 'NotebookApp.port_retries',
@@ -241,7 +242,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir']
+                    u'notebook-dir', u'nbmgr']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -276,6 +277,9 @@ class NotebookApp(BaseIPythonApplication):
 
     # file to be opened in the notebook server
     file_to_run = Unicode('')
+
+    # Which alternative NotebookManager to use
+    nbmgr = Unicode(u'', config=True, help="""Alternative notebook manager module""")
 
     # Network related information.
 
@@ -430,7 +434,14 @@ class NotebookApp(BaseIPythonApplication):
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
-        self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+
+        # added option to load alternative notebook
+        if self.nbmgr and self.nbmgr != "":
+          loader = __import__(self.nbmgr, globals(), locals(), ['get_notebook_manager'], -1)
+          self.notebook_manager = loader.get_notebook_manager()
+        else:
+          self.notebook_manager = NotebookManager(config=self.config, log=self.log)
+
         self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
         self.notebook_manager.list_notebooks()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
