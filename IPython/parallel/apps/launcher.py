@@ -726,6 +726,9 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
         help="""dict of engines to launch.  This is a dict by hostname of ints,
         corresponding to the number of engines to start on that host.""")
     
+    def _engine_cmd_default(self):
+        return ['ipengine']
+    
     @property
     def engine_count(self):
         """determine engine count from `engines` dict"""
