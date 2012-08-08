@@ -226,7 +226,7 @@ class IPEngineApp(BaseParallelApplication):
         location = config.EngineFactory.location
         
         proto, ip = d['interface'].split('://')
-        ip = disambiguate_ip_address(ip)
+        ip = disambiguate_ip_address(ip, location)
         d['interface'] = '%s://%s' % (proto, ip)
         
         # DO NOT allow override of basic URLs, serialization, or exec_key
