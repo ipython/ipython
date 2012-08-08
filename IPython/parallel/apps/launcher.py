@@ -584,7 +584,7 @@ class SSHLauncher(LocalProcessLauncher):
 
     def find_args(self):
         return self.ssh_cmd + self.ssh_args + [self.location] + \
-               self.program + self.program_args
+               list(map(pipes.quote, self.program + self.program_args))
     
     def _send_file(self, local, remote):
         """send a single file"""
