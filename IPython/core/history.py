@@ -27,7 +27,9 @@ import threading
 from IPython.config.configurable import Configurable
 from IPython.external.decorator import decorator
 from IPython.utils.path import locate_profile
-from IPython.utils.traitlets import Bool, Dict, Instance, Integer, List, Unicode
+from IPython.utils.traitlets import (
+    Any, Bool, Dict, Instance, Integer, List, Unicode, TraitError,
+)
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -52,12 +54,12 @@ class DummyDB(object):
 
 
 @decorator
-def needs_sqlite(f,*a,**kw):
+def needs_sqlite(f, self, *a, **kw):
     """return an empty list in the absence of sqlite"""
-    if sqlite3 is None:
+    if sqlite is None or self.disabled:
         return []
     else:
-        return f(*a,**kw)
+        return f(self, *a, **kw)
 
 
 class HistoryAccessor(Configurable):
@@ -81,12 +83,32 @@ class HistoryAccessor(Configurable):
             ipython --HistoryManager.hist_file=/tmp/ipython_hist.sqlite
         
         """)
+    
+    disabled = Bool(False, config=True,
+        help="""disable the SQLite history
+        
+        If True there will be no stored history, no SQLite connection,
+        and no background saving thread.  This may be necessary in some
+        threaded environments where IPython is embedded.
+        """
+    )
+    
+    connection_options = Dict(config=True,
+        help="""Options for configuring the SQLite connection
+        
+        These options are passed as keyword args to sqlite3.connect
+        when establishing database conenctions.
+        """
+    )
 
     # The SQLite database
-    if sqlite3:
-        db = Instance(sqlite3.Connection)
-    else:
-        db = Instance(DummyDB)
+    db = Any()
+    def _db_changed(self, name, old, new):
+        """validate the db, since it can be an Instance of two different types"""
+        if not isinstance(new, (sqlite3.Connection, DummyDB)):
+            msg = "%s.db must be sqlite3 Connection or DummyDB, not %r" % \
+                    (self.__class__.__name__, new)
+            raise TraitError(msg)
     
     def __init__(self, profile='default', hist_file=u'', config=None, **traits):
         """Create a new history accessor.
@@ -113,14 +135,18 @@ class HistoryAccessor(Configurable):
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
 
-        if sqlite3 is None:
+        if sqlite3 is None and not self.disabled:
             warn("IPython History requires SQLite, your history will not be saved\n")
-            self.db = DummyDB()
-            return
+            self.disabled = True
+        
+        if sqlite3 is not None:
+            DatabaseError = sqlite3.DatabaseError
+        else:
+            DatabaseError = Exception
         
         try:
             self.init_db()
-        except sqlite3.DatabaseError:
+        except DatabaseError:
             if os.path.isfile(self.hist_file):
                 # Try to move the file out of the way
                 base,ext = os.path.splitext(self.hist_file)
@@ -148,9 +174,14 @@ class HistoryAccessor(Configurable):
     
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
+        if self.disabled:
+            self.db = DummyDB()
+            return
+        
         # use detect_types so that timestamps return datetime objects
-        self.db = sqlite3.connect(self.hist_file,
-                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        kwargs = dict(detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        kwargs.update(self.connection_options)
+        self.db = sqlite3.connect(self.hist_file, **kwargs)
         self.db.execute("""CREATE TABLE IF NOT EXISTS sessions (session integer
                         primary key autoincrement, start timestamp,
                         end timestamp, num_cmds integer, remark text)""")
@@ -402,7 +433,7 @@ class HistoryManager(HistoryAccessor):
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
-        if self.hist_file != ':memory:':
+        if not self.disabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
             self.save_thread.start()
 
@@ -638,16 +669,20 @@ class HistorySavingThread(threading.Thread):
     the cache size reaches a defined threshold."""
     daemon = True
     stop_now = False
+    disabled = False
     def __init__(self, history_manager):
         super(HistorySavingThread, self).__init__()
         self.history_manager = history_manager
+        self.disabled = history_manager.disabled
         atexit.register(self.stop)
 
     @needs_sqlite
     def run(self):
         # We need a separate db connection per thread:
         try:
-            self.db = sqlite3.connect(self.history_manager.hist_file)
+            self.db = sqlite3.connect(self.history_manager.hist_file,
+                            **self.history_manager.connection_options
+            )
             while True:
                 self.history_manager.save_flag.wait()
                 if self.stop_now:
