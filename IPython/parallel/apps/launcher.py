@@ -584,7 +584,7 @@ class SSHLauncher(LocalProcessLauncher):
 
     def find_args(self):
         return self.ssh_cmd + self.ssh_args + [self.location] + \
-               self.program + self.program_args
+               list(map(pipes.quote, self.program + self.program_args))
     
     def _send_file(self, local, remote):
         """send a single file"""
@@ -726,6 +726,9 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
         help="""dict of engines to launch.  This is a dict by hostname of ints,
         corresponding to the number of engines to start on that host.""")
     
+    def _engine_cmd_default(self):
+        return ['ipengine']
+
     @property
     def engine_count(self):
         """determine engine count from `engines` dict"""
