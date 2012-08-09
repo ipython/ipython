@@ -579,13 +579,8 @@ class NotebookApp(BaseIPythonApplication):
                 browser = None
 
             if self.file_to_run:
-                filename, _ = os.path.splitext(os.path.basename(self.file_to_run))
-                for nb in self.notebook_manager.list_notebooks():
-                    if filename == nb['name']:
-                        url = nb['notebook_id']
-                        break
-                else:
-                    url = ''
+                name, _ = os.path.splitext(os.path.basename(self.file_to_run))
+                url = self.notebook_manager.rev_mapping.get(name, '')
             else:
                 url = ''
             if browser:
