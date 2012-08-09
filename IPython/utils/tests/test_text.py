@@ -149,6 +149,9 @@ def test_long_substr2():
     data = ['abc', 'abd', 'abf', 'ab']
     nt.assert_equals(text.long_substr(data), 'ab')
 
+def test_long_substr_empty():
+    data = []
+    nt.assert_equals(text.long_substr(data), '')
 
 def test_strip_email():
     src = """\
