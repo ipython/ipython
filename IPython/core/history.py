@@ -56,7 +56,7 @@ class DummyDB(object):
 @decorator
 def needs_sqlite(f, self, *a, **kw):
     """return an empty list in the absence of sqlite"""
-    if sqlite is None or self.disabled:
+    if sqlite3 is None or self.disabled:
         return []
     else:
         return f(self, *a, **kw)
