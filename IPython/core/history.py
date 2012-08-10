@@ -56,7 +56,7 @@ class DummyDB(object):
 @decorator
 def needs_sqlite(f, self, *a, **kw):
     """return an empty list in the absence of sqlite"""
-    if sqlite3 is None or self.disabled:
+    if sqlite3 is None or not self.enabled:
         return []
     else:
         return f(self, *a, **kw)
@@ -84,10 +84,11 @@ class HistoryAccessor(Configurable):
         
         """)
     
-    disabled = Bool(False, config=True,
-        help="""disable the SQLite history
+    enabled = Bool(True, config=True,
+        help="""enable the SQLite history
         
-        If True there will be no stored history, no SQLite connection,
+        set enabled=False to disable the SQLite history,
+        in which case there will be no stored history, no SQLite connection,
         and no background saving thread.  This may be necessary in some
         threaded environments where IPython is embedded.
         """
@@ -135,9 +136,9 @@ class HistoryAccessor(Configurable):
             # No one has set the hist_file, yet.
             self.hist_file = self._get_hist_file_name(profile)
 
-        if sqlite3 is None and not self.disabled:
+        if sqlite3 is None and self.enabled:
             warn("IPython History requires SQLite, your history will not be saved\n")
-            self.disabled = True
+            self.enabled = False
         
         if sqlite3 is not None:
             DatabaseError = sqlite3.DatabaseError
@@ -174,7 +175,7 @@ class HistoryAccessor(Configurable):
     
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
-        if self.disabled:
+        if not self.enabled:
             self.db = DummyDB()
             return
         
@@ -433,7 +434,7 @@ class HistoryManager(HistoryAccessor):
         self.save_flag = threading.Event()
         self.db_input_cache_lock = threading.Lock()
         self.db_output_cache_lock = threading.Lock()
-        if not self.disabled and self.hist_file != ':memory:':
+        if self.enabled and self.hist_file != ':memory:':
             self.save_thread = HistorySavingThread(self)
             self.save_thread.start()
 
@@ -669,11 +670,11 @@ class HistorySavingThread(threading.Thread):
     the cache size reaches a defined threshold."""
     daemon = True
     stop_now = False
-    disabled = False
+    enabled = True
     def __init__(self, history_manager):
         super(HistorySavingThread, self).__init__()
         self.history_manager = history_manager
-        self.disabled = history_manager.disabled
+        self.enabled = history_manager.enabled
         atexit.register(self.stop)
 
     @needs_sqlite
