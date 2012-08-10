@@ -298,8 +298,8 @@ class Converter(object):
             outfile = self.outbase + '.' + self.extension
         if encoding is None:
             encoding = self.default_encoding
-        with open(outfile, 'w') as f:
-            f.write(self.output.encode(encoding))
+        with io.open(outfile, 'w', encoding=encoding) as f:
+            f.write(self.output)
         return os.path.abspath(outfile)
 
     def optional_header(self):
@@ -781,6 +781,7 @@ class ConverterHTML(Converter):
         
         # pygments css
         pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        header.extend(['<meta charset="UTF-8">'])
         header.extend(self.in_tag('style', pygments_css, dict(type='text/css')))
         
         # TODO: this should be allowed to use local mathjax:
@@ -1327,7 +1328,6 @@ def md2html(infile):
 
 <head>
     <title>{infile}</title>
-
     <style type="text/css">
     {css}
     </style>
