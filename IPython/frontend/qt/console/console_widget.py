@@ -351,14 +351,21 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     #---------------------------------------------------------------------------
 
     def dragEnterEvent(self, e):
-        if e.mimeData().hasText():
+        if e.mimeData().hasUrls():
+            # The link action should indicate to that the drop will insert
+            # the file anme.
+            e.setDropAction(QtCore.Qt.LinkAction)
+            e.accept()
+        elif e.mimeData().hasText():
             # By changing the action to copy we don't need to worry about
             # the user accidentally moving text around in the widget.
             e.setDropAction(QtCore.Qt.CopyAction)
             e.accept()
 
     def dragMoveEvent(self, e):
-        if e.mimeData().hasText():
+        if e.mimeData().hasUrls():
+            pass
+        elif e.mimeData().hasText():
             cursor = self._control.cursorForPosition(e.pos())
             if self._in_buffer(cursor.position()):
                 e.setDropAction(QtCore.Qt.CopyAction)
@@ -368,7 +375,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             e.accept()
 
     def dropEvent(self, e):
-        if e.mimeData().hasText():
+        if e.mimeData().hasUrls():
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+            filenames = [url.toLocalFile() for url in e.mimeData().urls()]
+            text = ', '.join("'" + f.replace("'", "'\"'\"'") + "'"
+                             for f in filenames)
+            self._insert_plain_text_into_buffer(cursor, text)
+        elif e.mimeData().hasText():
             cursor = self._control.cursorForPosition(e.pos())
             if self._in_buffer(cursor.position()):
                 text = e.mimeData().text()
