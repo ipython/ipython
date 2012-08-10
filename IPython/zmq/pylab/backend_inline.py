@@ -207,22 +207,3 @@ def flush_figures():
         show._to_draw = []
         show._draw_called = False
 
-
-def send_figure(fig):
-    """Draw the given figure and send it as a PNG payload.
-    """
-    fmt = InlineBackend.instance().figure_format
-    data = print_figure(fig, fmt)
-    # print_figure will return None if there's nothing to draw:
-    if data is None:
-        return
-    mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
-    mime = mimetypes[fmt]
-    # flush text streams before sending figures, helps a little with output
-    # synchronization in the console (though it's a bandaid, not a real sln)
-    sys.stdout.flush(); sys.stderr.flush()
-    publish_display_data(
-        'IPython.zmq.pylab.backend_inline.send_figure',
-        {mime : data}
-    )
-
