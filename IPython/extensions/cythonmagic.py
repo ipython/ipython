@@ -20,6 +20,7 @@ from __future__ import print_function
 import imp
 import io
 import os
+import re
 import sys
 import time
 
@@ -232,7 +233,7 @@ class CythonMagics(Magics):
                       'source could not be read.', file=sys.stderr)
                 print(e, file=sys.stderr)
             else:
-                return display.HTML(annotated_html)
+                return display.HTML(self.clean_annotated_html(annotated_html))
 
     @property
     def so_ext(self):
@@ -254,6 +255,17 @@ class CythonMagics(Magics):
         build_extension = build_ext(dist)
         build_extension.finalize_options()
         return build_extension
+
+    @staticmethod
+    def clean_annotated_html(html):
+        """Clean up the annotated HTML source.
+
+        Strips the link to the generated C or C++ file, which we do not
+        present to the user.
+        """
+        r = re.compile('<p>Raw output: <a href="(.*)">(.*)</a>')
+        html = '\n'.join(l for l in html.splitlines() if not r.match(l))
+        return html
 
 _loaded = False
 
