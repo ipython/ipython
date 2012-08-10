@@ -15,6 +15,7 @@ from matplotlib._pylab_helpers import Gcf
 
 # Local imports.
 from IPython.config.configurable import SingletonConfigurable
+from IPython.core.display import display
 from IPython.core.displaypub import publish_display_data
 from IPython.core.pylabtools import print_figure, select_figure_format
 from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
@@ -102,7 +103,7 @@ def show(close=None):
         close = InlineBackend.instance().close_figures
     try:
         for figure_manager in Gcf.get_all_fig_managers():
-            send_figure(figure_manager.canvas.figure)
+            display(figure_manager.canvas.figure)
     finally:
         show._to_draw = []
         if close:
@@ -138,7 +139,7 @@ def draw_if_interactive():
     
     if not hasattr(fig, 'show'):
         # Queue up `fig` for display
-        fig.show = lambda *a: send_figure(fig)
+        fig.show = lambda *a: display(fig)
 
     # If matplotlib was manually set to non-interactive mode, this function
     # should be a no-op (otherwise we'll generate duplicate plots, since a user
@@ -191,7 +192,7 @@ def flush_figures():
         active = set([fm.canvas.figure for fm in Gcf.get_all_fig_managers()])
         for fig in [ fig for fig in show._to_draw if fig in active ]:
             try:
-                send_figure(fig)
+                display(fig)
             except Exception as e:
                 # safely show traceback if in IPython, else raise
                 try:
@@ -205,23 +206,4 @@ def flush_figures():
         # clear flags for next round
         show._to_draw = []
         show._draw_called = False
-
-
-def send_figure(fig):
-    """Draw the given figure and send it as a PNG payload.
-    """
-    fmt = InlineBackend.instance().figure_format
-    data = print_figure(fig, fmt)
-    # print_figure will return None if there's nothing to draw:
-    if data is None:
-        return
-    mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
-    mime = mimetypes[fmt]
-    # flush text streams before sending figures, helps a little with output
-    # synchronization in the console (though it's a bandaid, not a real sln)
-    sys.stdout.flush(); sys.stderr.flush()
-    publish_display_data(
-        'IPython.zmq.pylab.backend_inline.send_figure',
-        {mime : data}
-    )
 
