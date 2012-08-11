@@ -29,7 +29,7 @@ from IPython.utils.traitlets import List, Dict, Unicode, TraitError
 # Classes
 #-----------------------------------------------------------------------------
 
-class BaseNotebookManager(LoggingConfigurable):
+class NotebookManager(LoggingConfigurable):
 
     # Todo:
     # The notebook_dir attribute is used to mean a couple of different things:
