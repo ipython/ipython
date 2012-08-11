@@ -23,7 +23,7 @@ import glob
 
 from tornado import web
 
-from .basenbmanager import BaseNotebookManager
+from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 
@@ -31,7 +31,7 @@ from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
 # Classes
 #-----------------------------------------------------------------------------
 
-class FileNotebookManager(BaseNotebookManager):
+class FileNotebookManager(NotebookManager):
     
     save_script = Bool(False, config=True,
         help="""Automatically create a Python script when saving the notebook.
