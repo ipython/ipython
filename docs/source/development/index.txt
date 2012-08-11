@@ -13,14 +13,8 @@ IPython developer's guide
    doc_guide.txt
    testing.txt
    release.txt
-   roadmap.txt
    reorg.txt
    messaging.txt
    parallel_messages.txt
    parallel_connections.txt
-   magic_blueprint.txt
-   ipgraph.txt
-   ipython_qt.txt
-   ipythonzmq.txt
-   notebook_todo.txt
    ipython_directive.txt
