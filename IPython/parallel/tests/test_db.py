@@ -238,14 +238,14 @@ class TestDictBackend(TaskDBTest, TestCase):
         self.db.record_limit = 20
         self.db.cull_fraction = 0.2
         self.load_records(20)
-        self.assertEquals(len(self.db.get_history()), 20)
+        self.assertEqual(len(self.db.get_history()), 20)
         self.load_records(1)
         # 0.2 * 20 = 4, 21 - 4 = 17
-        self.assertEquals(len(self.db.get_history()), 17)
+        self.assertEqual(len(self.db.get_history()), 17)
         self.load_records(3)
-        self.assertEquals(len(self.db.get_history()), 20)
+        self.assertEqual(len(self.db.get_history()), 20)
         self.load_records(1)
-        self.assertEquals(len(self.db.get_history()), 17)
+        self.assertEqual(len(self.db.get_history()), 17)
         
         for i in range(100):
             self.load_records(1)
@@ -257,12 +257,12 @@ class TestDictBackend(TaskDBTest, TestCase):
         self.db.size_limit = 1000
         self.db.cull_fraction = 0.2
         self.load_records(100, buffer_size=10)
-        self.assertEquals(len(self.db.get_history()), 100)
+        self.assertEqual(len(self.db.get_history()), 100)
         self.load_records(1, buffer_size=0)
-        self.assertEquals(len(self.db.get_history()), 101)
+        self.assertEqual(len(self.db.get_history()), 101)
         self.load_records(1, buffer_size=1)
         # 0.2 * 100 = 20, 101 - 20 = 81
-        self.assertEquals(len(self.db.get_history()), 81)
+        self.assertEqual(len(self.db.get_history()), 81)
     
     def test_cull_size_drop(self):
         """dropping records updates tracked buffer size"""
@@ -270,15 +270,15 @@ class TestDictBackend(TaskDBTest, TestCase):
         self.db.size_limit = 1000
         self.db.cull_fraction = 0.2
         self.load_records(100, buffer_size=10)
-        self.assertEquals(len(self.db.get_history()), 100)
+        self.assertEqual(len(self.db.get_history()), 100)
         self.db.drop_record(self.db.get_history()[-1])
-        self.assertEquals(len(self.db.get_history()), 99)
+        self.assertEqual(len(self.db.get_history()), 99)
         self.load_records(1, buffer_size=5)
-        self.assertEquals(len(self.db.get_history()), 100)
+        self.assertEqual(len(self.db.get_history()), 100)
         self.load_records(1, buffer_size=5)
-        self.assertEquals(len(self.db.get_history()), 101)
+        self.assertEqual(len(self.db.get_history()), 101)
         self.load_records(1, buffer_size=1)
-        self.assertEquals(len(self.db.get_history()), 81)
+        self.assertEqual(len(self.db.get_history()), 81)
 
     def test_cull_size_update(self):
         """updating records updates tracked buffer size"""
@@ -286,12 +286,12 @@ class TestDictBackend(TaskDBTest, TestCase):
         self.db.size_limit = 1000
         self.db.cull_fraction = 0.2
         self.load_records(100, buffer_size=10)
-        self.assertEquals(len(self.db.get_history()), 100)
+        self.assertEqual(len(self.db.get_history()), 100)
         msg_id = self.db.get_history()[-1]
         self.db.update_record(msg_id, dict(result_buffers = [os.urandom(10)], buffers=[]))
-        self.assertEquals(len(self.db.get_history()), 100)
+        self.assertEqual(len(self.db.get_history()), 100)
         self.db.update_record(msg_id, dict(result_buffers = [os.urandom(11)], buffers=[]))
-        self.assertEquals(len(self.db.get_history()), 79)
+        self.assertEqual(len(self.db.get_history()), 79)
 
 class TestSQLiteBackend(TaskDBTest, TestCase):
 
