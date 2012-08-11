@@ -51,7 +51,8 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
     FileFindHandler,
 )
-from .notebookmanager import NotebookManager
+from .basenbmanager import BaseNotebookManager
+from .filenbmanager import FileNotebookManager
 from .clustermanager import ClusterManager
 
 from IPython.config.application import catch_config_error, boolean_flag
@@ -66,7 +67,11 @@ from IPython.zmq.ipkernel import (
     aliases as ipkernel_aliases,
     IPKernelApp
 )
-from IPython.utils.traitlets import Dict, Unicode, Integer, List, Enum, Bool
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import (
+    Dict, Unicode, Integer, List, Enum, Bool,
+    DottedObjectName
+)
 from IPython.utils import py3compat
 from IPython.utils.path import filefind
 
@@ -215,7 +220,7 @@ flags['read-only'] = (
 )
 
 # Add notebook manager flags
-flags.update(boolean_flag('script', 'NotebookManager.save_script',
+flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
                'Auto-save a .py script everytime the .ipynb notebook is saved',
                'Do not auto-save .py scripts for every notebook'))
 
@@ -232,7 +237,7 @@ aliases.update({
     'port-retries': 'NotebookApp.port_retries',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
-    'notebook-dir': 'NotebookManager.notebook_dir',
+    'notebook-dir': 'BaseNotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
 })
 
@@ -260,7 +265,8 @@ class NotebookApp(BaseIPythonApplication):
     """
     examples = _examples
     
-    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager]
+    classes = IPythonConsoleApp.classes + [MappingKernelManager, BaseNotebookManager,
+        FileNotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
@@ -404,6 +410,10 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.filenbmanager.FileNotebookManager',
+        config=True,
+        help='The notebook manager class to use.')
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         if argv is None:
@@ -421,7 +431,7 @@ class NotebookApp(BaseIPythonApplication):
             else:
                 self.file_to_run = f
                 nbdir = os.path.dirname(f)
-            self.config.NotebookManager.notebook_dir = nbdir
+            self.config.BaseNotebookManager.notebook_dir = nbdir
 
     def init_configurables(self):
         # force Session default to be secure
@@ -430,9 +440,10 @@ class NotebookApp(BaseIPythonApplication):
             config=self.config, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
-        self.notebook_manager = NotebookManager(config=self.config, log=self.log)
-        self.log.info("Serving notebooks from %s", self.notebook_manager.notebook_dir)
-        self.notebook_manager.list_notebooks()
+        kls = import_item(self.notebook_manager_class)
+        self.notebook_manager = kls(config=self.config, log=self.log)
+        self.notebook_manager.log_info()
+        self.notebook_manager.load_notebook_names()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()
 

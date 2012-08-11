@@ -164,6 +164,7 @@ have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
+have['azure'] = test_for('azure')
 
 if os.name == 'nt':
     min_zmq = (2,1,7)
@@ -302,6 +303,9 @@ def make_exclude():
     if not have['rpy2'] or not have['numpy']:
         exclusions.append(ipjoin('extensions', 'rmagic'))
         exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
+
+    if not have['azure']:
+        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'azurenbmanager'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
