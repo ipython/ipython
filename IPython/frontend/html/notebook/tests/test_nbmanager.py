@@ -14,13 +14,13 @@ class TestNotebookManager(TestCase):
     def test_nb_dir(self):
         with TemporaryDirectory() as td:
             km = FileNotebookManager(notebook_dir=td)
-            self.assertEquals(km.notebook_dir, td)
+            self.assertEqual(km.notebook_dir, td)
 
     def test_create_nb_dir(self):
         with TemporaryDirectory() as td:
             nbdir = os.path.join(td, 'notebooks')
             km = FileNotebookManager(notebook_dir=nbdir)
-            self.assertEquals(km.notebook_dir, nbdir)
+            self.assertEqual(km.notebook_dir, nbdir)
 
     def test_missing_nb_dir(self):
         with TemporaryDirectory() as td:
