@@ -51,7 +51,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
     FileFindHandler,
 )
-from .basenbmanager import BaseNotebookManager
+from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
 from .clustermanager import ClusterManager
 
@@ -237,7 +237,7 @@ aliases.update({
     'port-retries': 'NotebookApp.port_retries',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
-    'notebook-dir': 'BaseNotebookManager.notebook_dir',
+    'notebook-dir': 'NotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
 })
 
@@ -265,7 +265,7 @@ class NotebookApp(BaseIPythonApplication):
     """
     examples = _examples
     
-    classes = IPythonConsoleApp.classes + [MappingKernelManager, BaseNotebookManager,
+    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager,
         FileNotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
@@ -431,7 +431,7 @@ class NotebookApp(BaseIPythonApplication):
             else:
                 self.file_to_run = f
                 nbdir = os.path.dirname(f)
-            self.config.BaseNotebookManager.notebook_dir = nbdir
+            self.config.NotebookManager.notebook_dir = nbdir
 
     def init_configurables(self):
         # force Session default to be secure

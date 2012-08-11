@@ -23,7 +23,7 @@ from azure.storage import BlobService
 
 from tornado import web
 
-from .basenbmanager import BaseNotebookManager
+from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Instance
 
@@ -32,7 +32,7 @@ from IPython.utils.traitlets import Unicode, Instance
 # Classes
 #-----------------------------------------------------------------------------
 
-class AzureNotebookManager(BaseNotebookManager):
+class AzureNotebookManager(NotebookManager):
 
     account_name = Unicode('', config=True, help='Azure storage account name.')
     account_key = Unicode('', config=True, help='Azure storage account key.')
