@@ -51,7 +51,8 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
     FileFindHandler,
 )
-from .notebookmanager import NotebookManager
+from .basenbmanager import BaseNotebookManager
+from .filenbmanager import FileNotebookManager
 from .clustermanager import ClusterManager
 
 from IPython.config.application import catch_config_error, boolean_flag
@@ -219,7 +220,7 @@ flags['read-only'] = (
 )
 
 # Add notebook manager flags
-flags.update(boolean_flag('script', 'NotebookManager.save_script',
+flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
                'Auto-save a .py script everytime the .ipynb notebook is saved',
                'Do not auto-save .py scripts for every notebook'))
 
@@ -236,7 +237,7 @@ aliases.update({
     'port-retries': 'NotebookApp.port_retries',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
-    'notebook-dir': 'NotebookManager.notebook_dir',
+    'notebook-dir': 'BaseNotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
 })
 
@@ -264,7 +265,8 @@ class NotebookApp(BaseIPythonApplication):
     """
     examples = _examples
     
-    classes = IPythonConsoleApp.classes + [MappingKernelManager, NotebookManager]
+    classes = IPythonConsoleApp.classes + [MappingKernelManager, BaseNotebookManager,
+        FileNotebookManager]
     flags = Dict(flags)
     aliases = Dict(aliases)
 
@@ -429,7 +431,7 @@ class NotebookApp(BaseIPythonApplication):
             else:
                 self.file_to_run = f
                 nbdir = os.path.dirname(f)
-            self.config.NotebookManager.notebook_dir = nbdir
+            self.config.BaseNotebookManager.notebook_dir = nbdir
 
     def init_configurables(self):
         # force Session default to be secure
