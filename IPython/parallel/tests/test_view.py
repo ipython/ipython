@@ -605,7 +605,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view = self.client[-1]
         ar = view.apply_async(bar)
         r = ar.get(10)
-        self.assertEquals(r, 'foo')
+        self.assertEqual(r, 'foo')
     def test_data_pub_single(self):
         view = self.client[-1]
         ar = view.execute('\n'.join([
