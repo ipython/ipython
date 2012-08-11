@@ -234,7 +234,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0) {
+        if (cursor.line === 0 && cursor.ch === 0) {
             return true;
         } else {
             return false;
@@ -244,7 +244,7 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
-        if (cursor.line === (this.code_mirror.lineCount()-1)) {
+        if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
             return true;
         } else {
             return false;

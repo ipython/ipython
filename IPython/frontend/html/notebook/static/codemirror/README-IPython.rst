@@ -7,6 +7,10 @@ is (*please update this information when updating versions*)::
 
     CodeMirror2 4e244d252a26a2dba5446d44eb46adfb3c7f356a , tag : v2.32
 
+The following CodeMirror commits have been cherry-picked into the source:
+
+  * 4ec8a34 Pressing Up while on the first line should move cursor to (0,0)
+
 The current politics is not to ships the following folders of CodeMirrors :
 
   * doc/
