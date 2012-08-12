@@ -50,16 +50,16 @@ var IPython = (function (IPython) {
     //  "my_button_group_id"
     //  )
     //
-    ToolBar.prototype.add_button_group = function(list, group_id){
+    ToolBar.prototype.add_button_group = function (list, group_id) {
         var span_group = $('<span/>');
         if( group_id != undefined ) {
             span_group.attr('id',group_id);
         }
         for(var el in list) {
             var button  = $('<button/>').button({
-                icons : {primary: list[el].icon},
-                text : false,
-                label: list[el].label
+                icons : {primary : list[el].icon},
+                text  : false,
+                label : list[el].label
                 });
             var id = list[el].id;
             if( id != undefined )
