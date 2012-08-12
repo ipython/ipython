@@ -10,7 +10,7 @@
 //============================================================================
 
 var IPython = (function (IPython) {
-
+    "use strict";
     var utils = IPython.utils;
 
 
