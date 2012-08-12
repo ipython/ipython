@@ -41,7 +41,7 @@ var IPython = (function (IPython) {
                     .append($('<option/>').attr('value','heading7').text('Heading 7'))
                     .append($('<option/>').attr('value','heading8').text('Heading 8'))
                 );
-    }
+    };
 
     MainToolBar.prototype.construct = function() {
         this.add_buttons_group([
@@ -51,8 +51,8 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-disk',
                     callback:function(){
                         IPython.notebook.save_notebook();
-                        },
-                },
+                        }
+                }
             ]);
         this.add_buttons_group([
                 {
@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-scissors',
                     callback:function(){
                         IPython.notebook.cut_cell();
-                        },
+                        }
                 },
                 {
                     id:'copy_b',
@@ -69,7 +69,7 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-copy',
                     callback:function(){
                         IPython.notebook.copy_cell();
-                        },
+                        }
                 },
                 {
                     id:'paste_b',
@@ -77,8 +77,8 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-clipboard',
                     callback:function(){
                         IPython.notebook.paste_cell();
-                        },
-                },
+                        }
+                }
             ],'cut_copy_paste');
 
         this.add_buttons_group([
@@ -88,7 +88,7 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-arrowthick-1-n',
                     callback:function(){
                         IPython.notebook.move_cell_up();
-                        },
+                        }
                 },
                 {
                     id:'move_down_b',
@@ -96,8 +96,8 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-arrowthick-1-s',
                     callback:function(){
                         IPython.notebook.move_cell_down();
-                        },
-                },
+                        }
+                }
             ],'move_up_down');
         
         this.add_buttons_group([
@@ -107,7 +107,7 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-arrowthickstop-1-n',
                     callback:function(){
                         IPython.notebook.insert_cell_above('code');
-                        },
+                        }
                 },
                 {
                     id:'insert_below_b',
@@ -115,8 +115,8 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-arrowthickstop-1-s',
                     callback:function(){
                         IPython.notebook.insert_cell_below('code');
-                        },
-                },
+                        }
+                }
             ],'insert_above_below');
 
         this.add_buttons_group([
@@ -126,7 +126,7 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-play',
                     callback:function(){
                     IPython.notebook.execute_selected_cell();
-                        },
+                        }
                 },
                 {
                     id:'interrupt_b',
@@ -134,12 +134,12 @@ var IPython = (function (IPython) {
                     icon:'ui-icon-stop',
                     callback:function(){
                         IPython.notebook.kernel.interrupt();
-                        },
-                },
+                        }
+                }
             ],'run_int');
 
 
-    }
+    };
 
     MainToolBar.prototype.bind_events = function () {
         var that = this;
@@ -164,7 +164,7 @@ var IPython = (function (IPython) {
                 IPython.notebook.to_heading(undefined, 5);
             } else if (cell_type === 'heading6')  {
                 IPython.notebook.to_heading(undefined, 6);
-            };
+            }
         });
         $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
             if (data.cell_type === 'heading') {

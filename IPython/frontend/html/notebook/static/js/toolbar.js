@@ -52,14 +52,14 @@ var IPython = (function (IPython) {
     //
     ToolBar.prototype.add_button_group = function(list, group_id){
         var span_group = $('<span/>');
-        if( group_id != undefined )
-            span_group.attr('id',group_id)
-        for(var el in list)
-        {
+        if( group_id != undefined ) {
+            span_group.attr('id',group_id);
+        }
+        for(var el in list) {
             var button  = $('<button/>').button({
                 icons : {primary: list[el].icon},
                 text : false,
-                label: list[el].label,
+                label: list[el].label
                 });
             var id = list[el].id;
             if( id != undefined )
@@ -69,8 +69,8 @@ var IPython = (function (IPython) {
             span_group.append(button);
         }
         span_group.buttonset();
-        $(this.selector).append(span_group)
-    }
+        $(this.selector).append(span_group);
+    };
 
     ToolBar.prototype.style = function () {
         this.element.addClass('border-box-sizing').
