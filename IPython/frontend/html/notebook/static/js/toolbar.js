@@ -28,9 +28,9 @@ var IPython = (function (IPython) {
     //      icon  : string -- the jQuery-ui icon to add on this button
     //      callback : function -- the callback to execute on a click
     //
-    //      and optionnaly an 'id' key that is assigned to the button element
+    //      and optionally an 'id' key that is assigned to the button element
     //
-    // Second Argument, optionnal,
+    // Second Argument, optional,
     //      string reprensenting the id to give to the button group.
     //
     // Example
@@ -39,7 +39,7 @@ var IPython = (function (IPython) {
     //  {label:'my button',
     //   icon:'ui-icon-disk',
     //   callback:function(){alert('hoho'),
-    //   id : 'my_button_id',                 // this is optionnal
+    //   id : 'my_button_id',                 // this is optional
     //   }
     //  },
     //  {label:'my second button',
