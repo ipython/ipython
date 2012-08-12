@@ -41,27 +41,27 @@ var IPython = (function (IPython) {
     // click_callback : function called if user click on notification
     // could return false to prevent the notification to be dismissed
     NotificationWidget.prototype.set_message = function (msg, timeout, click_callback) {
-        var callback = click_callback || function(){return false};
+        var callback = click_callback || function() {return false;};
         var that = this;
         this.element.html(msg);
         this.element.fadeIn(100);
         if (this.timeout !== null) {
             clearTimeout(this.timeout);
             this.timeout = null;
-        };
+        }
         if (timeout !== undefined && timeout >=0) {
             this.timeout = setTimeout(function () {
                 that.element.fadeOut(100, function () {that.element.html('');});
                 that.timeout = null;
             }, timeout);
         } else {
-            this.element.click(function(){
-                if( callback() != false){
+            this.element.click(function() {
+                if( callback() != false ) {
                     that.element.fadeOut(100, function () {that.element.html('');});
-                    that.element.unbind('click')
+                    that.element.unbind('click');
                 }
                 if (that.timeout !== undefined) {
-                    that.timeout = undefined
+                    that.timeout = undefined;
                     clearTimeout(that.timeout);
                 }
             });
