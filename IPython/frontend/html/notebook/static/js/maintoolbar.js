@@ -24,25 +24,6 @@ var IPython = (function (IPython) {
 
     MainToolBar.prototype = new IPython.ToolBar(); 
 
-    MainToolBar.prototype.add_drop_down_list = function () {
-        var select = $(this.selector)
-            .append($('<select/>')
-                .attr('id','cell_type')
-                .addClass('ui-widget ui-widget-content')
-                    .append($('<option/>').attr('value','code').text('Code'))
-                    .append($('<option/>').attr('value','markdown').text('Markdown'))
-                    .append($('<option/>').attr('value','raw').text('Raw Text'))
-                    .append($('<option/>').attr('value','heading1').text('Heading 1'))
-                    .append($('<option/>').attr('value','heading2').text('Heading 2'))
-                    .append($('<option/>').attr('value','heading3').text('Heading 3'))
-                    .append($('<option/>').attr('value','heading4').text('Heading 4'))
-                    .append($('<option/>').attr('value','heading5').text('Heading 5'))
-                    .append($('<option/>').attr('value','heading6').text('Heading 6'))
-                    .append($('<option/>').attr('value','heading7').text('Heading 7'))
-                    .append($('<option/>').attr('value','heading8').text('Heading 8'))
-                );
-    };
-
     MainToolBar.prototype.construct = function () {
         this.add_buttons_group([
                 {
@@ -139,6 +120,25 @@ var IPython = (function (IPython) {
             ],'run_int');
 
 
+    };
+
+    MainToolBar.prototype.add_drop_down_list = function () {
+        var select = $(this.selector)
+            .append($('<select/>')
+                .attr('id','cell_type')
+                .addClass('ui-widget ui-widget-content')
+                    .append($('<option/>').attr('value','code').text('Code'))
+                    .append($('<option/>').attr('value','markdown').text('Markdown'))
+                    .append($('<option/>').attr('value','raw').text('Raw Text'))
+                    .append($('<option/>').attr('value','heading1').text('Heading 1'))
+                    .append($('<option/>').attr('value','heading2').text('Heading 2'))
+                    .append($('<option/>').attr('value','heading3').text('Heading 3'))
+                    .append($('<option/>').attr('value','heading4').text('Heading 4'))
+                    .append($('<option/>').attr('value','heading5').text('Heading 5'))
+                    .append($('<option/>').attr('value','heading6').text('Heading 6'))
+                    .append($('<option/>').attr('value','heading7').text('Heading 7'))
+                    .append($('<option/>').attr('value','heading8').text('Heading 8'))
+                );
     };
 
     MainToolBar.prototype.bind_events = function () {

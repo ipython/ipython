@@ -50,7 +50,7 @@ var IPython = (function (IPython) {
     //  "my_button_group_id"
     //  )
     //
-    ToolBar.prototype.add_button_group = function (list, group_id) {
+    ToolBar.prototype.add_buttons_group = function (list, group_id) {
         var span_group = $('<span/>');
         if( group_id != undefined ) {
             span_group.attr('id',group_id);
@@ -83,7 +83,9 @@ var IPython = (function (IPython) {
 
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
-        IPython.layout_manager.do_resize();
+        if (IPython.layout_manager != undefined) {
+            IPython.layout_manager.do_resize();
+        }
     };
 
 
