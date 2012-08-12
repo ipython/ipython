@@ -13,13 +13,10 @@ var IPython = (function (IPython) {
 
     var MainToolBar = function (selector) {
         this.selector = selector;
-        if (this.selector !== undefined) {
-            IPython.ToolBar.apply(this, arguments);
-            // move the rest ouside
-            this.construct();
-            this.add_drop_down_list();
-            this.bind_events();
-        }
+        IPython.ToolBar.apply(this, arguments);
+        this.construct();
+        this.add_drop_down_list();
+        this.bind_events();
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 
