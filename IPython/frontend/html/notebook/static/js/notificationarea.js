@@ -24,8 +24,8 @@ var IPython = (function (IPython) {
 
     NotificationArea.prototype.temp_message = function (msg, timeout, css_class) {
         var uuid = utils.uuid();
-        if( css_class == 'danger'){css_class = 'ui-state-error'}
-        if( css_class == 'warning'){css_class = 'ui-state-highlight'}
+        if( css_class == 'danger') {css_class = 'ui-state-error';}
+        if( css_class == 'warning') {css_class = 'ui-state-highlight';}
         var tdiv = $('<div>')
             .attr('id',uuid)
             .addClass('notification_widget ui-widget ui-widget-content ui-corner-all')
@@ -40,32 +40,32 @@ var IPython = (function (IPython) {
 
         setTimeout(function () {
                 tdiv.fadeOut(100, function () {tdiv.remove();});
-            }, tmout)
+            }, tmout);
     };
 
-    NotificationArea.prototype.widget = function(name){
-        if(this.widget_dict[name] == undefined){
-            return this.new_notification_widget(name)
+    NotificationArea.prototype.widget = function(name) {
+        if(this.widget_dict[name] == undefined) {
+            return this.new_notification_widget(name);
         }
-    return this.get_widget(name)
-    }
+    return this.get_widget(name);
+    };
 
     NotificationArea.prototype.get_widget = function(name) {
-        if(this.widget_dict[name] == undefined){
+        if(this.widget_dict[name] == undefined) {
             throw('no widgets with this name');
         }
         return this.widget_dict[name];
-    }
+    };
 
     NotificationArea.prototype.new_notification_widget = function(name) {
-        if(this.widget_dict[name] != undefined){
+        if(this.widget_dict[name] != undefined) {
             throw('widget with that name already exists ! ');
         }
         var div = $('<div/>').attr('id','notification_'+name);
-        $(this.selector).append(div)
-        this.widget_dict[name] = new IPython.NotificationWidget('#notification_'+name)
+        $(this.selector).append(div);
+        this.widget_dict[name] = new IPython.NotificationWidget('#notification_'+name);
         return this.widget_dict[name];
-    }
+    };
 
     NotificationArea.prototype.init_notification_widgets = function() {
         var knw = this.new_notification_widget('kernel');
@@ -131,7 +131,7 @@ var IPython = (function (IPython) {
             nnw.set_message("Notebook save failed");
         });
 
-    }
+    };
 
     IPython.NotificationArea = NotificationArea;
 
