@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
         this.add_button('bt1',['Group Stop','Slide Stop','Show With Previous',"Never Show"]);
         this.add_button('bt2',['In & Out','In / Out','In Only','Out Only']);
         //this.add_button('bt3',['button ---','button +++','button ===']);
-
+        this.fadeO();
         return metawrapper;
     };
    
