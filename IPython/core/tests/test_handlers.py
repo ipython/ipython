@@ -75,49 +75,8 @@ def test_handlers():
     # line.
     run([(i,py3compat.u_format(o)) for i,o in \
         [('"no change"', '"no change"'),             # normal
-         (u"!true",       "get_ipython().system({u}'true')"),      # shell_escapes
-         (u"!! true",     "get_ipython().magic({u}'sx  true')"),   # shell_escapes + magic
-         (u"!!true",      "get_ipython().magic({u}'sx true')"),    # shell_escapes + magic
-         (u"%lsmagic",    "get_ipython().magic({u}'lsmagic ')"),   # magic
          (u"lsmagic",     "get_ipython().magic({u}'lsmagic ')"),   # magic
          #("a = b # PYTHON-MODE", '_i'),          # emacs -- avoids _in cache
-
-         # post-esc-char whitespace goes inside
-         (u"! true",   "get_ipython().system({u}' true')"),
-
-         # handle_help
-
-         # These are weak tests -- just looking at what the help handlers
-         # logs, which is not how it really does its work.  But it still
-         # lets us check the key paths through the handler.
-
-         ("x=1 # what?", "x=1 # what?"), # no help if valid python
-         ]])
-
-    # multi_line_specials
-    ip.prefilter_manager.multi_line_specials = False
-    # W/ multi_line_specials off, leading ws kills esc chars/autoexpansion
-    run([
-        (u'if 1:\n    !true',    u'if 1:\n    !true'),
-        (u'if 1:\n    lsmagic',  u'if 1:\n    lsmagic'),
-        (u'if 1:\n    an_alias', u'if 1:\n    an_alias'),
-        ])
-
-    ip.prefilter_manager.multi_line_specials = True
-    # initial indents must be preserved.
-    run([(i,py3compat.u_format(o)) for i,o in \
-        [(u'if 1:\n    !true',    "if 1:\n    get_ipython().system({u}'true')"),
-         (u'if 2:\n    lsmagic',  "if 2:\n    get_ipython().magic({u}'lsmagic ')"),
-         (u'if 1:\n    an_alias', "if 1:\n    get_ipython().system({u}'true ')"),
-         # Weird one
-         (u'if 1:\n    !!true',   "if 1:\n    get_ipython().magic({u}'sx true')"),
-
-         # Even with m_l_s on, autocall is off even with special chars
-         ('if 1:\n    /fun 1 2', 'if 1:\n    /fun 1 2'),
-         ('if 1:\n    ;fun 1 2', 'if 1:\n    ;fun 1 2'),
-         ('if 1:\n    ,fun 1 2', 'if 1:\n    ,fun 1 2'),
-         ('if 1:\n    ?fun 1 2', 'if 1:\n    ?fun 1 2'),
-         # What about !!
          ]])
 
     # Objects which are instances of IPyAutocall are *always* autocalled
@@ -133,15 +92,9 @@ def test_handlers():
         ('autocallable',    'autocallable()'),
         # Don't add extra brackets (gh-1117)
         ('autocallable()',    'autocallable()'),
-        (",list 1 2 3",     'list("1", "2", "3")'),
-        (";list 1 2 3",     'list("1 2 3")'),
-        ("/len range(1,4)", 'len(range(1,4))'),
         ])
     ip.magic('autocall 1')
     run([
-        (",list 1 2 3", 'list("1", "2", "3")'),
-        (";list 1 2 3", 'list("1 2 3")'),
-        ("/len range(1,4)", 'len(range(1,4))'),
         ('len "abc"', 'len("abc")'),
         ('len "abc";', 'len("abc");'),  # ; is special -- moves out of parens
         # Autocall is turned off if first arg is [] and the object
@@ -153,9 +106,6 @@ def test_handlers():
         ])
     ip.magic('autocall 2')
     run([
-        (",list 1 2 3", 'list("1", "2", "3")'),
-        (";list 1 2 3", 'list("1 2 3")'),
-        ("/len range(1,4)", 'len(range(1,4))'),
         ('len "abc"', 'len("abc")'),
         ('len "abc";', 'len("abc");'),
         ('len [1,2]', 'len([1,2])'),

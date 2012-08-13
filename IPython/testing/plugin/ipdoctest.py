@@ -47,6 +47,12 @@ import nose.core
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
 
+# Our own imports
+
+# We're temporarily using TerminalMagics.cleanup_input() until the functionality
+# is moved into core.
+from IPython.frontend.terminal.interactiveshell import TerminalMagics
+
 #-----------------------------------------------------------------------------
 # Module globals and other constants
 #-----------------------------------------------------------------------------
@@ -380,17 +386,7 @@ class IPDocTestParser(doctest.DocTestParser):
 
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
-        out = []
-        newline = out.append
-        #print 'IPSRC:\n',source,'\n###'  # dbg
-        # The input source must be first stripped of all bracketing whitespace
-        # and turned into lines, so it looks to the parser like regular user
-        # input
-        for lnum,line in enumerate(source.strip().splitlines()):
-            newline(_ip.prefilter(line,lnum>0))
-        newline('')  # ensure a closing newline, needed by doctest
-        #print "PYSRC:", '\n'.join(out)  # dbg
-        return '\n'.join(out)
+        return TerminalMagics(_ip).cleanup_input(source)
 
     def parse(self, string, name='<string>'):
         """

@@ -391,85 +391,6 @@ class PrefilterTransformer(Configurable):
             self.__class__.__name__, self.priority, self.enabled)
 
 
-_assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*!(?P<cmd>.*)')
-
-
-class AssignSystemTransformer(PrefilterTransformer):
-    """Handle the `files = !ls` syntax."""
-
-    priority = Integer(100, config=True)
-
-    def transform(self, line, continue_prompt):
-        m = _assign_system_re.match(line)
-        if m is not None:
-            cmd = m.group('cmd')
-            lhs = m.group('lhs')
-            expr = "sc =%s" % cmd
-            new_line = '%s = get_ipython().magic(%r)' % (lhs, expr)
-            return new_line
-        return line
-
-
-_assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*%(?P<cmd>.*)')
-
-class AssignMagicTransformer(PrefilterTransformer):
-    """Handle the `a = %who` syntax."""
-
-    priority = Integer(200, config=True)
-
-    def transform(self, line, continue_prompt):
-        m = _assign_magic_re.match(line)
-        if m is not None:
-            cmd = m.group('cmd')
-            lhs = m.group('lhs')
-            new_line = '%s = get_ipython().magic(%r)' % (lhs, cmd)
-            return new_line
-        return line
-
-
-_classic_prompt_re = re.compile(r'(^[ \t]*>>> |^[ \t]*\.\.\. )')
-
-class PyPromptTransformer(PrefilterTransformer):
-    """Handle inputs that start with '>>> ' syntax."""
-
-    priority = Integer(50, config=True)
-
-    def transform(self, line, continue_prompt):
-
-        if not line or line.isspace() or line.strip() == '...':
-            # This allows us to recognize multiple input prompts separated by
-            # blank lines and pasted in a single chunk, very common when
-            # pasting doctests or long tutorial passages.
-            return ''
-        m = _classic_prompt_re.match(line)
-        if m:
-            return line[len(m.group(0)):]
-        else:
-            return line
-
-
-_ipy_prompt_re = re.compile(r'(^[ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
-
-class IPyPromptTransformer(PrefilterTransformer):
-    """Handle inputs that start classic IPython prompt syntax."""
-
-    priority = Integer(50, config=True)
-
-    def transform(self, line, continue_prompt):
-
-        if not line or line.isspace() or line.strip() == '...':
-            # This allows us to recognize multiple input prompts separated by
-            # blank lines and pasted in a single chunk, very common when
-            # pasting doctests or long tutorial passages.
-            return ''
-        m = _ipy_prompt_re.match(line)
-        if m:
-            return line[len(m.group(0)):]
-        else:
-            return line
-
 #-----------------------------------------------------------------------------
 # Prefilter checkers
 #-----------------------------------------------------------------------------
@@ -511,15 +432,6 @@ class EmacsChecker(PrefilterChecker):
             return None
 
 
-class ShellEscapeChecker(PrefilterChecker):
-
-    priority = Integer(200, config=True)
-
-    def check(self, line_info):
-        if line_info.line.lstrip().startswith(ESC_SHELL):
-            return self.prefilter_manager.get_handler_by_name('shell')
-
-
 class MacroChecker(PrefilterChecker):
 
     priority = Integer(250, config=True)
@@ -544,43 +456,6 @@ class IPyAutocallChecker(PrefilterChecker):
             return self.prefilter_manager.get_handler_by_name('auto')
         else:
             return None
-
-
-class MultiLineMagicChecker(PrefilterChecker):
-
-    priority = Integer(400, config=True)
-
-    def check(self, line_info):
-        "Allow ! and !! in multi-line statements if multi_line_specials is on"
-        # Note that this one of the only places we check the first character of
-        # ifun and *not* the pre_char.  Also note that the below test matches
-        # both ! and !!.
-        if line_info.continue_prompt \
-            and self.prefilter_manager.multi_line_specials:
-                if line_info.esc == ESC_MAGIC:
-                    return self.prefilter_manager.get_handler_by_name('magic')
-        else:
-            return None
-
-
-class EscCharsChecker(PrefilterChecker):
-
-    priority = Integer(500, config=True)
-
-    def check(self, line_info):
-        """Check for escape character and return either a handler to handle it,
-        or None if there is no escape char."""
-        if line_info.line[-1] == ESC_HELP \
-               and line_info.esc != ESC_SHELL \
-               and line_info.esc != ESC_SH_CAP:
-            # the ? can be at the end, but *not* for either kind of shell escape,
-            # because a ? can be a vaild final char in a shell cmd
-            return self.prefilter_manager.get_handler_by_name('help')
-        else:
-            if line_info.pre:
-                return None
-            # This returns None like it should if no handler exists
-            return self.prefilter_manager.get_handler_by_esc(line_info.esc)
 
 
 class AssignmentChecker(PrefilterChecker):
@@ -742,33 +617,6 @@ class AliasHandler(PrefilterHandler):
         return line_out
 
 
-class ShellEscapeHandler(PrefilterHandler):
-
-    handler_name = Unicode('shell')
-    esc_strings = List([ESC_SHELL, ESC_SH_CAP])
-
-    def handle(self, line_info):
-        """Execute the line in a shell, empty return value"""
-        magic_handler = self.prefilter_manager.get_handler_by_name('magic')
-
-        line = line_info.line
-        if line.lstrip().startswith(ESC_SH_CAP):
-            # rewrite LineInfo's line, ifun and the_rest to properly hold the
-            # call to %sx and the actual command to be executed, so
-            # handle_magic can work correctly.  Note that this works even if
-            # the line is indented, so it handles multi_line_specials
-            # properly.
-            new_rest = line.lstrip()[2:]
-            line_info.line = '%ssx %s' % (ESC_MAGIC, new_rest)
-            line_info.ifun = 'sx'
-            line_info.the_rest = new_rest
-            return magic_handler.handle(line_info)
-        else:
-            cmd = line.lstrip().lstrip(ESC_SHELL)
-            line_out = '%sget_ipython().system(%r)' % (line_info.pre_whitespace, cmd)
-        return line_out
-
-
 class MacroHandler(PrefilterHandler):
     handler_name = Unicode("macro")
 
@@ -865,44 +713,6 @@ class AutoHandler(PrefilterHandler):
         return newcmd
 
 
-class HelpHandler(PrefilterHandler):
-
-    handler_name = Unicode('help')
-    esc_strings = List([ESC_HELP])
-
-    def handle(self, line_info):
-        """Try to get some help for the object.
-
-        obj? or ?obj   -> basic information.
-        obj?? or ??obj -> more details.
-        """
-        normal_handler = self.prefilter_manager.get_handler_by_name('normal')
-        line = line_info.line
-        # We need to make sure that we don't process lines which would be
-        # otherwise valid python, such as "x=1 # what?"
-        try:
-            codeop.compile_command(line)
-        except SyntaxError:
-            # We should only handle as help stuff which is NOT valid syntax
-            if line[0]==ESC_HELP:
-                line = line[1:]
-            elif line[-1]==ESC_HELP:
-                line = line[:-1]
-            if line:
-                #print 'line:<%r>' % line  # dbg
-                self.shell.magic('pinfo %s' % line_info.ifun)
-            else:
-                self.shell.show_usage()
-            return '' # Empty string is needed here!
-        except:
-            raise
-            # Pass any other exceptions through to the normal handler
-            return normal_handler.handle(line_info)
-        else:
-            # If the code compiles ok, we should handle it normally
-            return normal_handler.handle(line_info)
-
-
 class EmacsHandler(PrefilterHandler):
 
     handler_name = Unicode('emacs')
@@ -924,19 +734,12 @@ class EmacsHandler(PrefilterHandler):
 
 
 _default_transformers = [
-    AssignSystemTransformer,
-    AssignMagicTransformer,
-    PyPromptTransformer,
-    IPyPromptTransformer,
 ]
 
 _default_checkers = [
     EmacsChecker,
-    ShellEscapeChecker,
     MacroChecker,
     IPyAutocallChecker,
-    MultiLineMagicChecker,
-    EscCharsChecker,
     AssignmentChecker,
     AutoMagicChecker,
     AliasChecker,
@@ -947,10 +750,8 @@ _default_checkers = [
 _default_handlers = [
     PrefilterHandler,
     AliasHandler,
-    ShellEscapeHandler,
     MacroHandler,
     MagicHandler,
     AutoHandler,
-    HelpHandler,
     EmacsHandler
 ]
