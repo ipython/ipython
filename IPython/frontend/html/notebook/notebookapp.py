@@ -359,8 +359,8 @@ class NotebookApp(BaseIPythonApplication):
 
     base_project_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server''')
-    base_notebook_manager_url = Unicode('/', config=True,
-                                        help='''The base URL for the notebook manager server''')
+    alternative_notebook_index_url = Unicode('', config=True,
+                                             help='''An alternative URL for listing notebooks''')
     base_kernel_url = Unicode('/', config=True,
                                help='''The base URL for the kernel server''')
     websocket_host = Unicode("", config=True,

@@ -208,17 +208,19 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        self.render(
-            'projectdashboard.html', project=project,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_notebook_manager_url=self.application.ipython_app.base_notebook_manager_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            read_only=self.read_only,
-            logged_in=self.logged_in,
-            login_available=self.login_available
-        )
+        if self.application.ipython_app.alternative_notebook_index_url != "":
+            self.redirect(self.application.ipython_app.alternative_notebook_index_url)
+        else:
+            nbm = self.application.notebook_manager
+            project = nbm.notebook_dir
+            self.render(
+                'projectdashboard.html', project=project,
+                base_project_url=self.application.ipython_app.base_project_url,
+                base_kernel_url=self.application.ipython_app.base_kernel_url,
+                read_only=self.read_only,
+                logged_in=self.logged_in,
+                login_available=self.login_available
+            )
 
 
 class LoginHandler(AuthenticatedHandler):
@@ -230,7 +232,6 @@ class LoginHandler(AuthenticatedHandler):
                 logged_in=self.logged_in,
                 login_available=self.login_available,
                 base_project_url=self.application.ipython_app.base_project_url,
-                base_notebook_manager_url=self.application.ipython_app.base_notebook_manager_url,
                 message=message
         )
 
@@ -267,7 +268,6 @@ class LogoutHandler(AuthenticatedHandler):
                     logged_in=self.logged_in,
                     login_available=self.login_available,
                     base_project_url=self.application.ipython_app.base_project_url,
-                    base_notebook_manager_url=self.application.ipython_app.base_notebook_manager_url,
                     message=message)
 
 
@@ -294,7 +294,6 @@ class NamedNotebookHandler(AuthenticatedHandler):
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
-            base_notebook_manager_url=self.application.ipython_app.base_notebook_manager_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=self.read_only,
@@ -317,7 +316,6 @@ class PrintNotebookHandler(AuthenticatedHandler):
             'printnotebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
-            base_notebook_manager_url=self.application.ipython_app.base_notebook_manager_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
             read_only=self.read_only,
