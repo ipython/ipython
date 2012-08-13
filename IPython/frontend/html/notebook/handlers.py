@@ -286,14 +286,15 @@ class NamedNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
+        nb_readonly = nbm.notebook_readonly(notebook_id)
+
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
-            read_only=self.read_only,
+            read_only=(self.read_only and not self.logged_in) or nb_readonly,
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
@@ -308,6 +309,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        nb_readonly = nbm.notebook_readonly(notebook_id)
         
         self.render(
             'printnotebook.html', project=project,
@@ -315,7 +317,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
-            read_only=self.read_only,
+            read_only=(self.read_only and not self.logged_in) or nb_readonly,
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
@@ -338,9 +340,12 @@ class MainKernelHandler(AuthenticatedHandler):
         km = self.application.kernel_manager
         nbm = self.application.notebook_manager
         notebook_id = self.get_argument('notebook', default=None)
-        kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
-        data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
-        self.set_header('Location', '/'+kernel_id)
+        if not nbm.notebook_readonly(notebook_id):
+            kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
+            data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
+            self.set_header('Location', '/'+kernel_id)
+        else:
+            data = {'ws_url':self.ws_url,'kernel_id':None}
         self.finish(jsonapi.dumps(data))
 
 

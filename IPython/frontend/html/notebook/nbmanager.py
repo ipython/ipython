@@ -105,6 +105,10 @@ class NotebookManager(LoggingConfigurable):
         """Does a notebook exist?"""
         return notebook_id in self.mapping
 
+    def notebook_readonly(self, notebook_id):
+        """Is the notebook itself readonly?"""
+        return False
+
     def get_notebook(self, notebook_id, format=u'json'):
         """Get the representation of a notebook in format by notebook_id."""
         format = unicode(format)

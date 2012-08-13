@@ -70,7 +70,7 @@ var IPython = (function (IPython) {
             IPython.print_widget.print_notebook();
         });
         this.element.find('#kill_and_exit').click(function () {
-            IPython.notebook.kernel.kill();
+            IPython.notebook.kill_kernel();
             setTimeout(function(){window.close();}, 200);
         });
         // Edit
@@ -173,7 +173,7 @@ var IPython = (function (IPython) {
         });
         // Kernel
         this.element.find('#int_kernel').click(function () {
-            IPython.notebook.kernel.interrupt();
+            IPython.notebook.interrupt_kernel();
         });
         this.element.find('#restart_kernel').click(function () {
             IPython.notebook.restart_kernel();
