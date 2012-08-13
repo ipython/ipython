@@ -283,22 +283,18 @@ def test_tb_syntaxerror():
     nt.assert_equal(last_line, "SyntaxError: invalid syntax")
 
 
-@py3compat.doctest_refactor_print
-def doctest_time():
-    """
-    In [10]: %time None
-    CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-    Wall time: 0.00 s
+def test_time():
+    ip = get_ipython()
     
-    In [11]: def f(kmjy):
-       ....:    %time print 2*kmjy
-       
-    In [12]: f(3)
-    6
-    CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
-    Wall time: 0.00 s
-    """
-
+    with tt.AssertPrints("CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s"):
+        ip.run_cell("%time None")
+    
+    ip.run_cell("def f(kmjy):\n"
+                "    %time print (2*kmjy)")
+    
+    with tt.AssertPrints("CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s"):
+        with tt.AssertPrints("hihi", suppress=False):
+            ip.run_cell("f('hi')")
 
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
