@@ -11,3 +11,13 @@ especially intenting/deindenting blocks that is now bound to Ctrl+] and ctr+[
 * Exception types can now be displayed with a custom traceback, by defining a
   ``_render_traceback_()`` method which returns a list of strings, each
   containing one line of the traceback.
+
+Backwards incompatible changes
+------------------------------
+
+* Calling :meth:`InteractiveShell.prefilter` will no longer perform static
+  transformations - the processing of escaped commands such as ``%magic`` and
+  ``!system``, and stripping input prompts from code blocks. This functionality
+  was duplicated in :mod:`IPython.core.inputsplitter`, and the latter version
+  was already what IPython relied on. A new API to transform input will be ready
+  before release.
