@@ -106,7 +106,10 @@ class HistoryAccessor(Configurable):
     db = Any()
     def _db_changed(self, name, old, new):
         """validate the db, since it can be an Instance of two different types"""
-        if not isinstance(new, (sqlite3.Connection, DummyDB)):
+        connection_types = (DummyDB,)
+        if sqlite3 is not None:
+            connection_types = (DummyDB, sqlite3.Connection)
+        if not isinstance(new, connection_types):
             msg = "%s.db must be sqlite3 Connection or DummyDB, not %r" % \
                     (self.__class__.__name__, new)
             raise TraitError(msg)
