@@ -359,6 +359,8 @@ class NotebookApp(BaseIPythonApplication):
 
     base_project_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server''')
+    base_notebook_manager_url = Unicode('/', config=True,
+                                        help='''The base URL for the notebook manager server''')
     base_kernel_url = Unicode('/', config=True,
                                help='''The base URL for the kernel server''')
     websocket_host = Unicode("", config=True,
@@ -578,7 +580,7 @@ class NotebookApp(BaseIPythonApplication):
         proto = 'https' if self.certfile else 'http'
         info = self.log.info
         info("The IPython Notebook is running at: %s://%s:%i%s" %
-             (proto, ip, self.port,self.base_project_url) )
+             (proto, ip, self.port, self.base_project_url) )
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:
