@@ -80,7 +80,7 @@ pjoin = os.path.join
 
 def cleanup():
     """Clean up the junk left around by the build process"""
-    if "develop" not in sys.argv:
+    if "develop" not in sys.argv and "egg_info" not in sys.argv:
         try:
             shutil.rmtree('ipython.egg-info')
         except:
