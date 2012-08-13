@@ -20,17 +20,6 @@ def test_prefilter():
 
     # pairs of (raw, expected correct) input
     pairs = [ ('2+2','2+2'),
-              ('>>> 2+2','2+2'),
-              ('>>> # This is a comment\n'
-               '... 2+2',
-               '# This is a comment\n'
-               '2+2'),
-              # Some IPython input
-              ('In [1]: 1', '1'),
-              ('In [2]: for i in range(5):\n'
-               '   ...:     print i,',
-               'for i in range(5):\n'
-               '    print i,'),
              ]
 
     for raw, correct in pairs:
