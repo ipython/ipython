@@ -258,6 +258,18 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell('makemacro()')
         nt.assert_in('macro_var_expand_locals', ip.user_ns)
     
+    def test_var_expand_self(self):
+        """Test variable expansion with the name 'self', which was failing.
+        
+        See https://github.com/ipython/ipython/issues/1878#issuecomment-7698218
+        """
+        ip.run_cell('class cTest:\n'
+                    '  classvar="see me"\n'
+                    '  def test(self):\n'
+                    '    res = !echo Variable: {self.classvar}\n'
+                    '    return res\n')
+        nt.assert_in('see me', ip.user_ns['cTest']().test())
+    
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
         # SyntaxError
