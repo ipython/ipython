@@ -267,7 +267,7 @@ class InteractiveShellTestCase(unittest.TestCase):
                     '  classvar="see me"\n'
                     '  def test(self):\n'
                     '    res = !echo Variable: {self.classvar}\n'
-                    '    return res\n')
+                    '    return res[0]\n')
         nt.assert_in('see me', ip.user_ns['cTest']().test())
     
     def test_bad_var_expand(self):
