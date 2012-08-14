@@ -2841,9 +2841,11 @@ class InteractiveShell(SingletonConfigurable):
         """
         ns = self.user_ns.copy()
         ns.update(sys._getframe(depth+1).f_locals)
-        ns.pop('self', None)
         try:
-            cmd = formatter.format(cmd, **ns)
+            # We have to use .vformat() here, because 'self' is a valid and common
+            # name, and expanding **ns for .format() would make it collide with
+            # the 'self' argument of the method.
+            cmd = formatter.vformat(cmd, args=[], kwargs=ns)
         except Exception:
             # if formatter couldn't format, just let it go untransformed
             pass
