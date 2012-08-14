@@ -20,6 +20,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import ast
 import os
 import shutil
 import sys
@@ -414,6 +415,28 @@ class TestModules(unittest.TestCase, tt.TempFileMixin):
         out = "False\nFalse\nFalse\n"
         tt.ipexec_validate(self.fname, out)
 
+class Negator(ast.NodeTransformer):
+    """Negates all number literals in an AST."""
+    def visit_Num(self, node):
+        node.n = -node.n
+        return node
+
+class TestAstTransform(unittest.TestCase):
+    def setUp(self):
+        self.negator = Negator()
+        ip.ast_transformers.append(self.negator)
+    
+    def tearDown(self):
+        ip.ast_transformers.remove(self.negator)
+    
+    def test_run_cell(self):
+        with tt.AssertPrints('-34'):
+            ip.run_cell('print (12 + 22)')
+        
+        # A named reference to a number shouldn't be transformed.
+        ip.user_ns['n'] = 55
+        with tt.AssertNotPrints('-55'):
+            ip.run_cell('print (n)')
 
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all
