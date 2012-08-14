@@ -438,6 +438,22 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertNotPrints('-55'):
             ip.run_cell('print (n)')
 
+class ErrorTransformer(ast.NodeTransformer):
+    """Throws an error when it sees a number."""
+    def visit_Num(self):
+        raise ValueError("test")
+
+class TestAstTransformError(unittest.TestCase):
+    def test_unregistering(self):
+        err_transformer = ErrorTransformer()
+        ip.ast_transformers.append(err_transformer)
+        
+        with tt.AssertPrints("unregister", channel='stderr'):
+            ip.run_cell("1 + 2")
+        
+        # This should have been removed.
+        nt.assert_not_in(err_transformer, ip.ast_transformers)
+
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all
     __IPYTHON__
