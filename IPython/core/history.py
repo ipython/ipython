@@ -137,7 +137,7 @@ class HistoryAccessor(Configurable):
             self.hist_file = self._get_hist_file_name(profile)
 
         if sqlite3 is None and self.enabled:
-            warn("IPython History requires SQLite, your history will not be saved\n")
+            warn("IPython History requires SQLite, your history will not be saved")
             self.enabled = False
         
         if sqlite3 is not None:

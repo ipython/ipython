@@ -42,7 +42,7 @@ def warn(msg,level=2,exit_val=1):
 
     if level>0:
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
-        io.stderr.write('%s%s' % (header[level],msg))
+        print(header[level], msg, sep='', file=io.stderr)
         if level == 4:
             print('Exiting.\n', file=io.stderr)
             sys.exit(exit_val)

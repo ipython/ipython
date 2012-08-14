@@ -130,9 +130,9 @@ def import_fail_info(mod_name,fns=None):
     """Inform load failure for a module."""
 
     if fns == None:
-        warn("Loading of %s failed.\n" % (mod_name,))
+        warn("Loading of %s failed." % (mod_name,))
     else:
-        warn("Loading of %s from %s failed.\n" % (fns,mod_name))
+        warn("Loading of %s from %s failed." % (fns,mod_name))
 
 
 class NotGiven: pass

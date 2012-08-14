@@ -351,7 +351,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         """Replace --pylab='inline' with --pylab='auto'"""
         if new == 'inline':
             warn.warn("'inline' not available as pylab backend, "
-                      "using 'auto' instead.\n")
+                      "using 'auto' instead.")
             self.pylab = 'auto'
 
     def start(self):

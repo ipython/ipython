@@ -105,7 +105,7 @@ class InputHookManager(object):
     
     def __init__(self):
         if ctypes is None:
-            warn("IPython GUI event loop requires ctypes, %gui will not be available\n")
+            warn("IPython GUI event loop requires ctypes, %gui will not be available")
             return
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
         self._apps = {}

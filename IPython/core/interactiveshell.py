@@ -336,7 +336,7 @@ class InteractiveShell(SingletonConfigurable):
             'prompt_out' : 'out_template',
             'prompts_pad_left' : 'justify',
         }
-        warn("InteractiveShell.{name} is deprecated, use PromptManager.{newname}\n".format(
+        warn("InteractiveShell.{name} is deprecated, use PromptManager.{newname}".format(
                 name=name, newname=table[name])
         )
         # protect against weird cases where self.config may not exist:
@@ -721,7 +721,7 @@ class InteractiveShell(SingletonConfigurable):
             return
         
         warn("Attempting to work in a virtualenv. If you encounter problems, please "
-             "install IPython inside the virtualenv.\n")
+             "install IPython inside the virtualenv.")
         if sys.platform == "win32":
             virtual_env = os.path.join(os.environ['VIRTUAL_ENV'], 'Lib', 'site-packages') 
         else:
