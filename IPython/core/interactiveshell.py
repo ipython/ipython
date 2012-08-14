@@ -2691,7 +2691,7 @@ class InteractiveShell(SingletonConfigurable):
             try:
                 node = transformer.visit(node)
             except Exception:
-                warn("AST transformer %r threw an error. It will be unregistered.")
+                warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
         
         return node
