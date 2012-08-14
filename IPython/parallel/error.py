@@ -195,8 +195,9 @@ class RemoteError(KernelError):
         return (self.traceback or "No traceback available").splitlines()
     
     # Special method for custom tracebacks within IPython
-    _render_traceback_ = render_traceback
-
+    def _render_traceback_(self):
+        return self.render_traceback()
+    
     def print_traceback(self, excid=None):
         """print my traceback"""
         print('\n'.join(self.render_traceback()))
