@@ -119,7 +119,7 @@ class NamespaceMagics(Magics):
             except IOError as msg:
                 print msg
                 return
-            page.page(self.shell.pycolorize(read_py_file(filename)))
+            page.page(self.shell.pycolorize(read_py_file(filename, skip_encoding_cookie=False)))
 
     @line_magic
     def psearch(self, parameter_s=''):
