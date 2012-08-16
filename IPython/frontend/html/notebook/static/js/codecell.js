@@ -42,7 +42,8 @@ var IPython = (function (IPython) {
             theme: 'ipython',
             readOnly: this.read_only,
             extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this),
+            matchBrackets: true
         });
         input.append(input_area);
         var output = $('<div></div>');
