@@ -319,7 +319,7 @@ def configure_inline_support(shell, backend, user_ns=None):
     user_ns['getfigs'] = getfigs
 
 
-def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
+def pylab_activate(user_ns, gui=None, import_all=True, shell=None, welcome_message=False):
     """Activate pylab mode in the user's namespace.
 
     Loads and initializes numpy, matplotlib and friends for interactive use.
@@ -334,6 +334,10 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
 
     import_all : optional, boolean
       If true, an 'import *' is done from numpy and pylab.
+
+    welcome_message : optional, boolean
+      If true, print a welcome message about pylab, which includes the backend
+      being used.
 
     Returns
     -------
@@ -356,12 +360,11 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None):
     import_pylab(user_ns, import_all)
     if shell is not None:
         configure_inline_support(shell, backend, user_ns)
-        
-    print """
+    if welcome_message:
+        print """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.""" % backend
-    # flush stdout, just to be safe
-    sys.stdout.flush()
-    
-    return gui
+        # flush stdout, just to be safe
+        sys.stdout.flush()
 
+    return gui
