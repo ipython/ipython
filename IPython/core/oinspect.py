@@ -138,10 +138,7 @@ def getdoc(obj):
     try:
         docstr = inspect.getdoc(obj)
         encoding = get_encoding(obj)
-        if encoding:
-            return py3compat.cast_unicode(docstr, encoding=encoding)
-        else:
-            return docstr
+        return py3compat.cast_unicode(docstr, encoding=encoding)
     except Exception:
         # Harden against an inspect failure, which can occur with
         # SWIG-wrapped extensions.
@@ -176,7 +173,8 @@ def getsource(obj,is_binary=False):
         except TypeError:
             if hasattr(obj,'__class__'):
                 src = inspect.getsource(obj.__class__)
-        return cast_unicode(src)
+        encoding = get_encoding(obj)
+        return cast_unicode(src, encoding=encoding)
 
 def getargspec(obj):
     """Get the names and default values of a function's arguments.
