@@ -197,7 +197,7 @@ class InteractiveShellApp(Configurable):
                     gui, backend = pylabtools.find_gui_and_backend(self.pylab)
                     self.log.info("Enabling GUI event loop integration, "
                               "toolkit=%s, pylab=%s" % (gui, self.pylab))
-                    shell.enable_pylab(gui, import_all=self.pylab_import_all)
+                    shell.enable_pylab(gui, import_all=self.pylab_import_all, welcome_message=True)
                 else:
                     self.log.info("Enabling GUI event loop integration, "
                                   "toolkit=%s" % self.gui)
