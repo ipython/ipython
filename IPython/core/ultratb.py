@@ -550,7 +550,7 @@ class ListTB(TBTools):
         stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list.append( str(stype) + '\n')
+            list.append( py3compat.cast_unicode(stype) + '\n')
         else:
             if etype is SyntaxError:
                 have_filedata = True
@@ -565,7 +565,7 @@ class ListTB(TBTools):
                     while i < len(value.text) and value.text[i].isspace():
                         i += 1
                     list.append('%s    %s%s\n' % (Colors.line,
-                                                  value.text.strip(),
+                                                  py3compat.cast_unicode(value.text.strip()),
                                                   Colors.Normal))
                     if value.offset is not None:
                         s = '    '
