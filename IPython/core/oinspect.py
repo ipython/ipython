@@ -24,6 +24,8 @@ import linecache
 import os
 import sys
 import types
+import io as stdlib_io
+
 from collections import namedtuple
 try:
     from itertools import izip_longest
@@ -92,6 +94,29 @@ def object_info(**kw):
     return infodict
 
 
+def get_encoding(obj):
+    """Get encoding for python source file defining obj
+
+    Returns None if obj is not defined in a sourcefile.
+    """
+    ofile = find_file(obj)
+    # run contents of file through pager starting at line where the object
+    # is defined, as long as the file isn't binary and is actually on the
+    # filesystem.
+    if ofile is None:
+        return None
+    elif ofile.endswith(('.so', '.dll', '.pyd')):
+        return None
+    elif not os.path.isfile(ofile):
+        return None
+    else:
+        # Print only text files, not extension binaries.  Note that
+        # getsourcelines returns lineno with 1-offset and page() uses
+        # 0-offset, so we must adjust.
+        buffer = stdlib_io.open(ofile, 'rb')   # Tweaked to use io.open for Python 2
+        encoding, lines = openpy.detect_encoding(buffer.readline)
+        return encoding
+
 def getdoc(obj):
     """Stable wrapper around inspect.getdoc.
 
@@ -111,10 +136,16 @@ def getdoc(obj):
             return inspect.cleandoc(ds)
     
     try:
-        return inspect.getdoc(obj)
+        docstr = inspect.getdoc(obj)
+        encoding = get_encoding(obj)
+        if encoding:
+            return py3compat.cast_unicode(docstr, encoding=encoding)
+        else:
+            return docstr
     except Exception:
         # Harden against an inspect failure, which can occur with
         # SWIG-wrapped extensions.
+        raise
         return None
 
 
