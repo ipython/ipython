@@ -30,7 +30,7 @@ import bdb
 import linecache
 import sys
 
-from IPython.utils import PyColorize, py3compat
+from IPython.utils import PyColorize, ulinecache
 from IPython.core import ipapi
 from IPython.utils import coloransi, io, openpy
 from IPython.core.excolors import exception_colors
@@ -179,22 +179,6 @@ def _file_lines(fname):
         return out
 
 
-def _readline(x):
-    """helper to pop elements off list of string
-
-    call with list of strings, return readline function that will pop
-    one line off the beginning of a copy of the list with each call.
-    raise StopIteration when empty or on third call
-    """
-    x = x[:2]
-    def readline():
-        if x:
-            return x.pop(0)
-        else:
-            raise StopIteration
-    return readline
-
-
 class Pdb(OldPdb):
     """Modified Pdb class, does not load readline."""
 
@@ -320,7 +304,7 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
-        import linecache, repr
+        import repr
 
         ret = []
 
@@ -367,11 +351,7 @@ class Pdb(OldPdb):
         ret.append('%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
-        lines = linecache.getlines(filename)
-        try:
-            encoding, _ = openpy.detect_encoding(_readline(lines))
-        except SyntaxError:
-            encoding = "ascii"
+        lines = ulinecache.getlines(filename)
         start = max(start, 0)
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
@@ -382,7 +362,7 @@ class Pdb(OldPdb):
                       and tpl_line_em \
                       or tpl_line
             ret.append(self.__format_line(linetpl, filename,
-                                          start + 1 + i, py3compat.cast_unicode(line),
+                                          start + 1 + i, line,
                                           arrow = show_arrow) )
         return ''.join(ret)
 
@@ -442,18 +422,10 @@ class Pdb(OldPdb):
             tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
-                lines = list(open(self._exec_filename))
-            else:
-                lines = linecache.getlines(filename)
-            try:
-                encoding, _ = openpy.detect_encoding(_readline(lines))
-            except SyntaxError:
-                encoding = "ascii"
-            if not lines:
-                print >>io.stdout, "No src could be located using filename: %r"%filename
-                return #Bailing out, there is nothing to see here
+                filename = self._exec_filename
+            
             for lineno in range(first, last+1):
-                line = py3compat.cast_unicode(lines[lineno])
+                ulinecache.getline(filename, lineno)
                 if not line:
                     break
 

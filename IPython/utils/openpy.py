@@ -208,3 +208,12 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     response = urllib.urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)
+
+def _list_readline(x):
+    """Given a list, returns a readline() function that returns the next element
+    with each call.
+    """
+    x = iter(x)
+    def readline():
+        return next(x)
+    return readline
