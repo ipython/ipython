@@ -102,6 +102,7 @@ from IPython.utils import io
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils import pyfile
+from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
 from IPython.utils.warn import info, error
 
@@ -230,7 +231,6 @@ def fix_frame_records_filenames(records):
 
 
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
-    import linecache
     LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
 
     records  = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
@@ -252,7 +252,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
         maybeStart = lnum-1 - context//2
         start =  max(maybeStart, 0)
         end   = start + context
-        lines = linecache.getlines(file)[start:end]
+        lines = ulinecache.getlines(file)[start:end]
         buf = list(records[i])
         buf[LNUM_POS] = lnum
         buf[INDEX_POS] = lnum - 1 - start
@@ -826,7 +826,7 @@ class VerboseTB(TBTools):
                 # Look up the corresponding source file.
                 file = pyfile.source_from_cache(file)
 
-            def linereader(file=file, lnum=[lnum], getline=linecache.getline):
+            def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
                 line = getline(file, lnum[0])
                 lnum[0] += 1
                 return line

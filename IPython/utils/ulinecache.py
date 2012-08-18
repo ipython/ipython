@@ -21,13 +21,18 @@ else:
     def getlines(filename, module_globals=None):
         """Get the lines (as unicode) for a file from the cache.
         Update the cache if it doesn't contain an entry for this file already."""
-        linesb = linecache.getlines(filename, module_globals=module_globals)
-        readline = openpy._list_readline(linesb)
+        lines = linecache.getlines(filename, module_globals=module_globals)
+        
+        # The bits we cache ourselves can be unicode.
+        if (not lines) or isinstance(lines[0], unicode):
+            return lines
+        
+        readline = openpy._list_readline(lines)
         try:
             encoding, _ = openpy.detect_encoding(readline)
         except SyntaxError:
             encoding = 'ascii'
-        return [l.decode(encoding, 'replace') for l in linesb]
+        return [l.decode(encoding, 'replace') for l in lines]
 
     # This is a straight copy of linecache.getline
     def getline(filename, lineno, module_globals=None):
