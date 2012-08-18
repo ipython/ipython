@@ -1,6 +1,7 @@
+# encoding: utf-8
 """Tests for IPython.core.ultratb
 """
-
+import io
 import os.path
 import unittest
 
@@ -49,3 +50,26 @@ class ChangedPyFileTest(unittest.TestCase):
                     ip.run_cell("foo.f()")
                 with tt.AssertPrints("ZeroDivisionError"):
                     ip.run_cell("foo.f()")
+
+iso_8859_5_file = u'''# coding: iso-8859-5
+
+def fail():
+    """дбИЖ"""
+    1/0     # дбИЖ
+'''
+
+class NonAsciiTest(unittest.TestCase):
+    def test_iso8859_5(self):
+        # Non-ascii directory name as well.
+        with TemporaryDirectory(suffix=u'é') as td:
+            fname = os.path.join(td, 'dfghjkl.py')
+
+            with io.open(fname, 'w', encoding='iso-8859-5') as f:
+                f.write(iso_8859_5_file)
+            
+            with prepended_to_syspath(td):
+                ip.run_cell("from dfghjkl import fail")
+            
+            with tt.AssertPrints("ZeroDivisionError"):
+                with tt.AssertPrints(u'дбИЖ', suppress=False):
+                    ip.run_cell('fail()')
