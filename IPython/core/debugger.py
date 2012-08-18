@@ -32,7 +32,7 @@ import sys
 
 from IPython.utils import PyColorize, ulinecache
 from IPython.core import ipapi
-from IPython.utils import coloransi, io, openpy
+from IPython.utils import coloransi, io, openpy, py3compat
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
@@ -310,10 +310,10 @@ class Pdb(OldPdb):
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = '%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
+        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
+        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
                                             ColorsNormal)
 
         frame, lineno = frame_lineno
@@ -327,7 +327,7 @@ class Pdb(OldPdb):
 
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        link = tpl_link % filename
+        link = tpl_link % py3compat.cast_unicode(filename)
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
@@ -348,7 +348,7 @@ class Pdb(OldPdb):
             ret.append('> ')
         else:
             ret.append('  ')
-        ret.append('%s(%s)%s\n' % (link,lineno,call))
+        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
         lines = ulinecache.getlines(filename)
@@ -425,7 +425,7 @@ class Pdb(OldPdb):
                 filename = self._exec_filename
             
             for lineno in range(first, last+1):
-                ulinecache.getline(filename, lineno)
+                line = ulinecache.getline(filename, lineno)
                 if not line:
                     break
 
