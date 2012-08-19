@@ -395,7 +395,7 @@ class Client(HasTraits):
         
         if self._cd is not None:
             if url_file is None:
-                if cluster_id is None:
+                if not cluster_id:
                     client_json = 'ipcontroller-client.json'
                 else:
                     client_json = 'ipcontroller-%s-client.json' % cluster_id
