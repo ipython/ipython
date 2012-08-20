@@ -104,6 +104,7 @@ from IPython.utils import py3compat
 from IPython.utils import pyfile
 from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
+from IPython.utils.openpy import read_py_file
 from IPython.utils.warn import info, error
 
 # Globals
@@ -543,7 +544,6 @@ class ListTB(TBTools):
 
         Also lifted nearly verbatim from traceback.py
         """
-
         have_filedata = False
         Colors = self.Colors
         list = []
@@ -560,16 +560,25 @@ class ListTB(TBTools):
                         (Colors.normalEm,
                          Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
                          Colors.linenoEm, value.lineno, Colors.Normal  ))
-                if value.text is not None:
+                if value.filename[:1] != "<":
+                    # The value.text on the exception seems to be encoded using error="replace"
+                    # Read source file directly
+                    textline = read_py_file(value.filename, skip_encoding_cookie=False).split("\n")[value.lineno - 1]
+                else:
+                    #It seems code entered at the prompt always results in source
+                    #encoded in utf-8 format
+                    textline = py3compat.cast_unicode(value.text, encoding="utf-8")
+
+                if textline is not None:
                     i = 0
-                    while i < len(value.text) and value.text[i].isspace():
+                    while i < len(textline) and textline[i].isspace():
                         i += 1
                     list.append('%s    %s%s\n' % (Colors.line,
-                                                  py3compat.cast_unicode(value.text.strip()),
+                                                  textline.strip(),
                                                   Colors.Normal))
                     if value.offset is not None:
                         s = '    '
-                        for c in value.text[i:value.offset-1]:
+                        for c in textline[i:value.offset-1]:
                             if c.isspace():
                                 s += c
                             else:
