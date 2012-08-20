@@ -219,7 +219,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
-    def execute(self, code, silent=False,
+    def execute(self, code, silent=False, store_history=True,
                 user_variables=None, user_expressions=None, allow_stdin=None):
         """Execute code in the kernel.
 
@@ -229,7 +229,12 @@ class ShellSocketChannel(ZMQSocketChannel):
             A string of Python code.
 
         silent : bool, optional (default False)
-            If set, the kernel will execute the code as quietly possible.
+            If set, the kernel will execute the code as quietly possible, and
+            will force store_history to be False.
+
+        store_history : bool, optional (default True)
+            If set, the kernel will store command history.  This is forced
+            to be False if silent is True.
 
         user_variables : list, optional
             A list of variable names to pull from the user's namespace.  They
@@ -267,7 +272,7 @@ class ShellSocketChannel(ZMQSocketChannel):
 
         # Create class for content/msg creation. Related to, but possibly
         # not in Session.
-        content = dict(code=code, silent=silent,
+        content = dict(code=code, silent=silent, store_history=store_history,
                        user_variables=user_variables,
                        user_expressions=user_expressions,
                        allow_stdin=allow_stdin,

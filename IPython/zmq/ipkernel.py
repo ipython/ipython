@@ -331,6 +331,7 @@ class Kernel(Configurable):
             content = parent[u'content']
             code = content[u'code']
             silent = content[u'silent']
+            store_history = content.get(u'store_history', not silent)
         except:
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
@@ -367,7 +368,7 @@ class Kernel(Configurable):
         reply_content = {}
         try:
             # FIXME: the shell calls the exception handler itself.
-            shell.run_cell(code, store_history=not silent, silent=silent)
+            shell.run_cell(code, store_history=store_history, silent=silent)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,

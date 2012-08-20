@@ -158,13 +158,18 @@ Message type: ``execute_request``::
     # A boolean flag which, if True, signals the kernel to execute
     # this code as quietly as possible.  This means that the kernel
     # will compile the code with 'exec' instead of 'single' (so
-    # sys.displayhook will not fire), and will *not*:
+    # sys.displayhook will not fire), forces store_history to be False, 
+    # and will *not*:
     #   - broadcast exceptions on the PUB socket
     #   - do any logging
-    #   - populate any history
     #
     # The default is False.
     'silent' : bool,
+
+    # A boolean flag which, if True, signals the kernel to populate history
+    # The default is True if silent is False.  If silent is True, store_history
+    # is forced to be False.
+    'store_history' : bool,
 
     # A list of variable names from the user's namespace to be retrieved.  What
     # returns is a JSON string of the variable's repr(), not a python object.
@@ -308,7 +313,7 @@ Execution counter (old prompt number)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The kernel has a single, monotonically increasing counter of all execution
-requests that are made with ``silent=False``.  This counter is used to populate
+requests that are made with ``store_history=True``.  This counter is used to populate
 the ``In[n]``, ``Out[n]`` and ``_n`` variables, so clients will likely want to
 display it in some form to the user, which will typically (but not necessarily)
 be done in the prompts.  The value of this counter will be returned as the
@@ -325,9 +330,9 @@ Message type: ``execute_reply``::
       # One of: 'ok' OR 'error' OR 'abort'
       'status' : str,
 
-      # The global kernel counter that increases by one with each non-silent
-      # executed request.  This will typically be used by clients to display
-      # prompt numbers to the user.  If the request was a silent one, this will
+      # The global kernel counter that increases by one with each request that 
+      # stores history.  This will typically be used by clients to display
+      # prompt numbers to the user.  If the request did not store history, this will
       # be the current value of the counter in the kernel.
       'execution_count' : int,
     }

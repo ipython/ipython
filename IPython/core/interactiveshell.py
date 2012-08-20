@@ -2568,7 +2568,7 @@ class InteractiveShell(SingletonConfigurable):
           history. For user code calling back into IPython's machinery, this
           should be set to False.
         silent : bool
-          If True, avoid side-effets, such as implicit displayhooks, history,
+          If True, avoid side-effects, such as implicit displayhooks and
           and logging.  silent=True forces store_history=False.
         """
         if (not raw_cell) or raw_cell.isspace():
