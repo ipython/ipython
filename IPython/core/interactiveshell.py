@@ -2787,7 +2787,7 @@ class InteractiveShell(SingletonConfigurable):
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
 
-    def enable_pylab(self, gui=None, import_all=True):
+    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
         """Activate pylab support at runtime.
 
         This turns on support for matplotlib, preloads into the interactive
@@ -2814,7 +2814,7 @@ class InteractiveShell(SingletonConfigurable):
         # user_ns_hidden with this information.
         ns = {}
         try:
-            gui = pylab_activate(ns, gui, import_all, self)
+            gui = pylab_activate(ns, gui, import_all, self, welcome_message=welcome_message)
         except KeyError:
             error("Backend %r not supported" % gui)
             return

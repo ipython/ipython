@@ -85,4 +85,4 @@ class PylabMagics(Magics):
         else:
             import_all_status = True
 
-        self.shell.enable_pylab(parameter_s, import_all=import_all_status)
+        self.shell.enable_pylab(parameter_s, import_all=import_all_status, welcome_message=True)
