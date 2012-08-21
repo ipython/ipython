@@ -20,9 +20,11 @@ import Cookie
 import datetime
 import email.utils
 import hashlib
+import json
 import logging
 import mimetypes
 import os
+import re
 import stat
 import threading
 import time
@@ -36,6 +38,7 @@ from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
 from IPython.external.decorator import decorator
+from IPython.external.sockjs.tornado import SockJSConnection
 from IPython.zmq.session import Session
 from IPython.lib.security import passwd_check
 from IPython.utils.jsonutil import date_default
@@ -191,7 +194,7 @@ class AuthenticatedHandler(RequestHandler):
         turns http[s]://host[:port] into
                 ws[s]://host[:port]
         """
-        proto = self.request.protocol.replace('http', 'ws')
+        proto = self.request.protocol
         host = self.application.ipython_app.websocket_host # default to config value
         if host == '':
             host = self.request.host # get from request
@@ -370,8 +373,15 @@ class KernelActionHandler(AuthenticatedHandler):
             self.write(jsonapi.dumps(data))
         self.finish()
 
-
-class ZMQStreamHandler(websocket.WebSocketHandler):
+class ZMQStreamHandler(SockJSConnection):
+    
+    @property
+    def application(self):
+        return self.session.handler.application
+    
+    @property
+    def request(self):
+        return self.session.handler.request
 
     def _reserialize_reply(self, msg_list):
         """Reserialize a reply message using JSON.
@@ -381,8 +391,8 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         should be used by self._on_zmq_reply to build messages that can
         be sent back to the browser.
         """
-        idents, msg_list = self.session.feed_identities(msg_list)
-        msg = self.session.unserialize(msg_list)
+        idents, msg_list = self.ip_session.feed_identities(msg_list)
+        msg = self.ip_session.unserialize(msg_list)
         try:
             msg['header'].pop('date')
         except KeyError:
@@ -400,7 +410,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         except Exception:
             self.application.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
-            self.write_message(msg)
+            self.send(msg)
 
     def allow_draft76(self):
         """Allow draft 76, until browsers such as Safari update to RFC 6455.
@@ -413,15 +423,20 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
 
-    def open(self, kernel_id):
-        self.kernel_id = kernel_id.decode('ascii')
+    def on_open(self, info):
+        self.info = info
+        
+        from .notebookapp import _kernel_id_regex
+        url = self.session.handler.request.uri
+        self.kernel_id = re.search(_kernel_id_regex, url).groupdict()['kernel_id']
+        
         try:
             cfg = self.application.config
         except AttributeError:
             # protect from the case where this is run from something other than
             # the notebook app:
             cfg = None
-        self.session = Session(config=cfg)
+        self.ip_session = Session(config=cfg)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
 
@@ -443,8 +458,8 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
-    def on_first_message(self, msg):
-        self._inject_cookie_message(msg)
+    def on_first_message(self, cookie):
+        self._inject_cookie_message(cookie)
         if self.get_current_user() is None:
             logging.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
@@ -453,11 +468,10 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
 
 class IOPubHandler(AuthenticatedZMQStreamHandler):
 
-    def initialize(self, *args, **kwargs):
-        self._kernel_alive = True
-        self._beating = False
-        self.iopub_stream = None
-        self.hb_stream = None
+    _kernel_alive = True
+    _beating = False
+    iopub_stream = None
+    hb_stream = None
 
     def on_first_message(self, msg):
         try:
@@ -585,7 +599,7 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
     def on_message(self, msg):
         if len(msg) < self.max_msg_size:
             msg = jsonapi.loads(msg)
-            self.session.send(self.shell_stream, msg)
+            self.ip_session.send(self.shell_stream, msg)
 
     def on_close(self):
         # Make sure the stream exists and is not already closed.
