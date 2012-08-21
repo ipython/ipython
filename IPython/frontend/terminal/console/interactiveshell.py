@@ -284,8 +284,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def handle_image_tempfile(self, data, mime):
         raw = base64.decodestring(data[mime])
         imageformat = self._imagemime[mime]
-        ext = '.{0}'.format(imageformat)
-        with nested(NamedFileInTemporaryDirectory('tmp.{0}'.format(ext)),
+        filename = 'tmp.{0}'.format(imageformat)
+        with nested(NamedFileInTemporaryDirectory(filename),
                     open(os.devnull, 'w')) as (f, devnull):
             f.write(raw)
             f.flush()
