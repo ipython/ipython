@@ -15,6 +15,6 @@ def test_named_file_in_temporary_directory():
         name = file.name
         assert not file.closed
         assert os.path.exists(name)
-        file.write('test')
+        file.write(b'test')
     assert file.closed
     assert not os.path.exists(name)
