@@ -562,12 +562,12 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
     def kernel_died(self):
         self._delete_kernel_data()
         self.application.log.error("Kernel died: %s" % self.kernel_id)
-        self.write_message(
+        self.send(json.dumps(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
              'content': {'execution_state':'dead'}
             }
-        )
+        ))
         self.on_close()
 
 
