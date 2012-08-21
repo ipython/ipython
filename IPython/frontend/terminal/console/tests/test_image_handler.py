@@ -30,7 +30,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         self.shell = ZMQTerminalInteractiveShell(kernel_manager=km)
         self.raw = b'dummy data'
         self.mime = 'image/png'
-        self.data = {self.mime: base64.encodestring(self.raw)}
+        self.data = {self.mime: base64.encodestring(self.raw).decode('ascii')}
 
     def test_no_call_by_default(self):
         def raise_if_called(*args, **kwds):
