@@ -92,8 +92,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         Callable object called via 'callable' image handler with one
         argument, `data`, which is `msg["content"]["data"]` where
         `msg` is the message from iopub channel.  For exmaple, you can
-        find base64 encoded PNG data as `data['image/png']`. You can
-        use {format} in the string to represent the image format.
+        find base64 encoded PNG data as `data['image/png']`.
         """
     )
 
