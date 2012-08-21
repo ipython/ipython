@@ -10,11 +10,15 @@ Copy data from input file to output file for testing.
 """
 
 import sys
+from IPython.utils.py3compat import PY3
 (inpath, outpath) = sys.argv[1:]
 
 if inpath == '-':
-    infile = sys.stdin
+    if PY3:
+        infile = sys.stdin.buffer
+    else:
+        infile = sys.stdin
 else:
-    infile = open(inpath)
+    infile = open(inpath, 'rb')
 
 open(outpath, 'w+b').write(infile.read())
