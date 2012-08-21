@@ -264,7 +264,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def handle_image_PIL(self, data, mime):
         if mime not in ('image/png', 'image/jpeg'):
             return
-        import PIL
+        import PIL.Image
         raw = base64.decodestring(data[mime].encode('ascii'))
         img = PIL.Image.open(BytesIO(raw))
         img.show()
