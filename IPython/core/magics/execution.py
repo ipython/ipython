@@ -812,7 +812,7 @@ python-profiler package from non-free.""")
     @skip_doctest
     @needs_local_scope
     @line_magic
-    def time(self,parameter_s, user_locals):
+    def time(self,parameter_s, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -884,11 +884,11 @@ python-profiler package from non-free.""")
         wall_st = wtime()
         if mode=='eval':
             st = clock2()
-            out = eval(code, glob, user_locals)
+            out = eval(code, glob, local_ns)
             end = clock2()
         else:
             st = clock2()
-            exec code in glob, user_locals
+            exec code in glob, local_ns
             end = clock2()
             out = None
         wall_end = wtime()

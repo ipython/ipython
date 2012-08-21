@@ -2088,11 +2088,12 @@ class InteractiveShell(SingletonConfigurable):
             magic_arg_s = self.var_expand(line, stack_depth)
             # Put magic args in a list so we can call with f(*a) syntax
             args = [magic_arg_s]
+            kwargs = {}
             # Grab local namespace if we need it:
             if getattr(fn, "needs_local_scope", False):
-                args.append(sys._getframe(stack_depth).f_locals)
+                kwargs['local_ns'] = sys._getframe(stack_depth).f_locals
             with self.builtin_trap:
-                result = fn(*args)
+                result = fn(*args,**kwargs)
             return result
 
     def run_cell_magic(self, magic_name, line, cell):
