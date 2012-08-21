@@ -132,14 +132,15 @@ def latex_to_png_dvipng(s, wrap):
         with open(tmpfile, "w") as f:
             f.writelines(genelatex(s, wrap))
 
-        subprocess.check_call(
-            ["latex", "-halt-on-errror", tmpfile], cwd=workdir,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        with open(os.devnull, 'w') as devnull:
+            subprocess.check_call(
+                ["latex", "-halt-on-error", tmpfile], cwd=workdir,
+                stdout=devnull, stderr=devnull)
 
-        subprocess.check_call(
-            ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
-             "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
-            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.check_call(
+                ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
+                 "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
+                stdout=devnull, stderr=devnull)
 
         with open(outfile, "rb") as f:
             bin_data = f.read()
