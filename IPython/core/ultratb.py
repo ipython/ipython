@@ -560,14 +560,7 @@ class ListTB(TBTools):
                         (Colors.normalEm,
                          Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
                          Colors.linenoEm, value.lineno, Colors.Normal  ))
-                if value.filename[:1] != "<":
-                    # The value.text on the exception seems to be encoded using error="replace"
-                    # Read source file directly
-                    textline = read_py_file(value.filename, skip_encoding_cookie=False).split("\n")[value.lineno - 1]
-                else:
-                    #It seems code entered at the prompt always results in source
-                    #encoded in utf-8 format
-                    textline = py3compat.cast_unicode(value.text, encoding="utf-8")
+                textline = ulinecache.getline(value.filename, value.lineno)
 
                 if textline is not None:
                     i = 0
