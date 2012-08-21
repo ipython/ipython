@@ -22,7 +22,6 @@ import signal
 import os
 import sys
 import time
-import tempfile
 import subprocess
 from io import BytesIO
 import base64
@@ -39,6 +38,7 @@ from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
 from IPython.utils.traitlets import List, Enum, Any
+from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.console.completer import ZMQCompleter
@@ -285,7 +285,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         raw = base64.decodestring(data[mime])
         imageformat = self._imagemime[mime]
         ext = '.{0}'.format(imageformat)
-        with nested(tempfile.NamedTemporaryFile(suffix=ext),
+        with nested(NamedFileInTemporaryDirectory('tmp.{0}'.format(ext)),
                     open(os.devnull, 'w')) as (f, devnull):
             f.write(raw)
             f.flush()
