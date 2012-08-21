@@ -62,10 +62,6 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         assert len(show_called_with) == 1
         assert open_called_with[0].getvalue() == self.raw
 
-    @staticmethod
-    def get_handler_command(inpath, outpath):
-        return [find_cmd('python'), SCRIPT_PATH, inpath, outpath]
-
     def check_handler_with_file(self, inpath, handler):
         shell = self.shell
         configname = '{0}_image_handler'.format(handler)
@@ -75,7 +71,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         assert hasattr(shell, funcname)
 
         with NamedFileInTemporaryDirectory('data') as file:
-            cmd = self.get_handler_command(inpath, file.name)
+            cmd = [find_cmd('python'), SCRIPT_PATH, inpath, file.name]
             setattr(shell, configname, cmd)
             getattr(shell, funcname)(self.data, self.mime)
             transferred = file.read()
