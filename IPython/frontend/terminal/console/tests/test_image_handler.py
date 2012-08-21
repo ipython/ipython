@@ -14,6 +14,7 @@ from IPython.frontend.terminal.console.interactiveshell \
     import ZMQTerminalInteractiveShell
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython.testing.tools import monkeypatch
+from IPython.testing.decorators import skip_without
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import find_cmd
 
@@ -43,6 +44,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
 
         shell.handle_image(None, None)  # arguments are dummy
 
+    @skip_without('PIL')
     def test_handle_image_PIL(self):
         import PIL.Image
 
