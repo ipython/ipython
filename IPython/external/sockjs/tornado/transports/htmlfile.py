@@ -8,8 +8,8 @@
 
 from tornado.web import asynchronous
 
-from sockjs.tornado import proto
-from sockjs.tornado.transports import streamingbase
+from IPython.external.sockjs.tornado import proto
+from IPython.external.sockjs.tornado.transports import streamingbase
 
 # HTMLFILE template
 HTMLFILE_HEAD = r'''

@@ -1,4 +1,4 @@
-from sockjs.tornado import session
+from IPython.external.sockjs.tornado import session
 
 
 class BaseTransportMixin(object):

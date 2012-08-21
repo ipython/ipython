@@ -8,8 +8,8 @@
 import logging
 import socket
 
-from sockjs.tornado import proto, websocket, session
-from sockjs.tornado.transports import base
+from IPython.external.sockjs.tornado import proto, websocket, session
+from IPython.external.sockjs.tornado.transports import base
 
 
 class RawSession(session.BaseSession):

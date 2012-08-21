@@ -6,8 +6,8 @@
     Polling transports base
 """
 
-from sockjs.tornado import basehandler
-from sockjs.tornado.transports import base
+from IPython.external.sockjs.tornado import basehandler
+from IPython.external.sockjs.tornado.transports import base
 
 
 class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin):

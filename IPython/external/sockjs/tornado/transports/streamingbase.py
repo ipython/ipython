@@ -1,4 +1,4 @@
-from sockjs.tornado.transports import pollingbase
+from IPython.external.sockjs.tornado.transports import pollingbase
 
 
 class StreamingTransportBase(pollingbase.PollingTransportBase):

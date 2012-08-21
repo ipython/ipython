@@ -8,7 +8,7 @@
 
 import logging
 
-from sockjs.tornado import sessioncontainer, periodic, proto
+from IPython.external.sockjs.tornado import sessioncontainer, periodic, proto
 
 
 class ConnectionInfo(object):

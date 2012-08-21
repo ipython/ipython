@@ -13,8 +13,8 @@ import sys
 
 from tornado.web import asynchronous
 
-from sockjs.tornado.basehandler import BaseHandler, PreflightHandler
-from sockjs.tornado.proto import json_encode
+from IPython.external.sockjs.tornado.basehandler import BaseHandler, PreflightHandler
+from IPython.external.sockjs.tornado.proto import json_encode
 
 IFRAME_TEXT = '''<!DOCTYPE html>
 <html>

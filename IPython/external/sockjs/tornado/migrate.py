@@ -6,7 +6,7 @@
     `tornado.websocket` to `sockjs.tornado` migration helper.
 """
 
-from sockjs.tornado import conn
+from IPython.external.sockjs.tornado import conn
 
 
 class WebsocketHandler(conn.SockJSConnection):

@@ -8,7 +8,7 @@
 
 from tornado.web import asynchronous
 
-from sockjs.tornado.transports import streamingbase
+from IPython.external.sockjs.tornado.transports import streamingbase
 
 
 class XhrStreamingTransport(streamingbase.StreamingTransportBase):

@@ -10,8 +10,8 @@ import logging
 
 from tornado.web import asynchronous
 
-from sockjs.tornado import proto
-from sockjs.tornado.transports import pollingbase
+from IPython.external.sockjs.tornado import proto
+from IPython.external.sockjs.tornado.transports import pollingbase
 
 
 class JSONPTransport(pollingbase.PollingTransportBase):

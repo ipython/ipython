@@ -8,7 +8,7 @@
 
 from tornado import ioloop, version_info
 
-from sockjs.tornado import transports, session, sessioncontainer, static, stats, proto
+from IPython.external.sockjs.tornado import transports, session, sessioncontainer, static, stats, proto
 
 
 DEFAULT_SETTINGS = {
