@@ -60,3 +60,23 @@ def test_cell_magic():
     ip.run_cell_magic('R', '-i x,y -o r,xc a=lm(y~x)', snippet)
     np.testing.assert_almost_equal(ip.user_ns['xc'], [3.2, 0.9])
     np.testing.assert_almost_equal(ip.user_ns['r'], np.array([-0.2,  0.9, -1. ,  0.1,  0.2]))
+
+
+def test_rmagic_localscope():
+    ip.push({'x':0})
+    ip.run_line_magic('R', '-i x -o result result <-x+1')
+    result = ip.user_ns['result']
+    nt.assert_equal(result[0], 1)
+
+    ip.run_cell('''def rmagic_addone(u):
+    %R -i u -o result result <- u+1
+    return result[0]''')
+    ip.run_cell('result = rmagic_addone(1)')
+    result = ip.user_ns['result']
+    nt.assert_equal(result, 2)
+
+    nt.assert_raises(
+        KeyError,
+        ip.run_line_magic,
+        "R",
+        "-i var_not_defined 1+1")

@@ -53,7 +53,7 @@ ro.conversion.py2ri = numpy2ri
 
 from IPython.core.displaypub import publish_display_data
 from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
-                                line_cell_magic)
+                                line_cell_magic, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
@@ -344,8 +344,9 @@ class RMagics(Magics):
         'code',
         nargs='*',
         )
+    @needs_local_scope
     @line_cell_magic
-    def R(self, line, cell=None):
+    def R(self, line, cell=None, local_ns=None):
         '''
         Execute code in R, and pull some of the results back into the Python namespace.
 
@@ -482,7 +483,8 @@ class RMagics(Magics):
 
         # arguments 'code' in line are prepended to
         # the cell lines
-        if not cell:
+
+        if cell is None:
             code = ''
             return_output = True
             line_mode = True
@@ -493,9 +495,17 @@ class RMagics(Magics):
 
         code = ' '.join(args.code) + code
 
+        # if there is no local namespace then default to an empty dict
+        if local_ns is None:
+            local_ns = {}
+
         if args.input:
             for input in ','.join(args.input).split(','):
-                self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
+                try:
+                    val = local_ns[input]
+                except KeyError:
+                    val = self.shell.user_ns[input]
+                self.r.assign(input, self.pyconverter(val))
 
         png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
         png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])

@@ -45,7 +45,7 @@ from xml.dom import minidom
 
 from IPython.core.displaypub import publish_display_data
 from IPython.core.magic import (Magics, magics_class, line_magic,
-                                line_cell_magic)
+                                line_cell_magic, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
@@ -182,12 +182,13 @@ class OctaveMagics(Magics):
         help='Plot format (png, svg or jpg).'
         )
 
+    @needs_local_scope
     @argument(
         'code',
         nargs='*',
         )
     @line_cell_magic
-    def octave(self, line, cell=None):
+    def octave(self, line, cell=None, local_ns=None):
         '''
         Execute code in Octave, and pull some of the results back into the
         Python namespace.
@@ -237,18 +238,24 @@ class OctaveMagics(Magics):
         if cell is None:
             code = ''
             return_output = True
-            line_mode = True
         else:
             code = cell
             return_output = False
-            line_mode = False
 
         code = ' '.join(args.code) + code
+
+        # if there is no local namespace then default to an empty dict
+        if local_ns is None:
+            local_ns = {}
 
         if args.input:
             for input in ','.join(args.input).split(','):
                 input = unicode_to_str(input)
-                self._oct.put(input, self.shell.user_ns[input])
+                try:
+                    val = local_ns[input]
+                except KeyError:
+                    val = self.shell.user_ns[input]
+                self._oct.put(input, val)
 
         # generate plots in a temporary directory
         plot_dir = tempfile.mkdtemp()
