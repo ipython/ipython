@@ -37,10 +37,10 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
             assert False
 
         shell = self.shell
-        shell.handle_image_PIL
-        shell.handle_image_stream
-        shell.handle_image_tempfile
-        shell.handle_image_callable
+        shell.handle_image_PIL = raise_if_called
+        shell.handle_image_stream = raise_if_called
+        shell.handle_image_tempfile = raise_if_called
+        shell.handle_image_callable = raise_if_called
 
         shell.handle_image(None, None)  # arguments are dummy
 
