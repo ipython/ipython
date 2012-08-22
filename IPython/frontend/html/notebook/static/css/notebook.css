@@ -112,6 +112,10 @@ div#pager_splitter {
     height: 8px;
 }
 
+#pager_container {
+    position : relative;
+}
+
 div#pager {
     padding: 15px;
     overflow: auto;
