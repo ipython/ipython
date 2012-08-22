@@ -399,7 +399,7 @@ class Client(HasTraits):
                     client_json = 'ipcontroller-client.json'
                 else:
                     client_json = 'ipcontroller-%s-client.json' % cluster_id
-                url_or_file = pjoin(self._cd.security_dir, client_json)
+                url_file = pjoin(self._cd.security_dir, client_json)
         if url_file is None:
             raise ValueError(
                 "I can't find enough information to connect to a hub!"
