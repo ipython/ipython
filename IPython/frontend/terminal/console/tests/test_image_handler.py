@@ -6,6 +6,7 @@
 #-----------------------------------------------------------------------------
 
 import os
+import sys
 import unittest
 import base64
 
@@ -16,7 +17,6 @@ from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 from IPython.testing.tools import monkeypatch
 from IPython.testing.decorators import skip_without
 from IPython.utils.ipstruct import Struct
-from IPython.utils.process import find_cmd
 
 
 SCRIPT_PATH = os.path.join(
@@ -71,7 +71,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         assert hasattr(shell, funcname)
 
         with NamedFileInTemporaryDirectory('data') as file:
-            cmd = [find_cmd('python'), SCRIPT_PATH, inpath, file.name]
+            cmd = [sys.executable, SCRIPT_PATH, inpath, file.name]
             setattr(shell, configname, cmd)
             getattr(shell, funcname)(self.data, self.mime)
             transferred = file.read()
