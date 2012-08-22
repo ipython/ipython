@@ -13,7 +13,7 @@ import base64
 from IPython.zmq.kernelmanager import KernelManager
 from IPython.frontend.terminal.console.interactiveshell \
     import ZMQTerminalInteractiveShell
-from IPython.utils.tempdir import NamedFileInTemporaryDirectory
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.tools import monkeypatch
 from IPython.testing.decorators import skip_without
 from IPython.utils.ipstruct import Struct
@@ -70,11 +70,14 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         assert hasattr(shell, configname)
         assert hasattr(shell, funcname)
 
-        with NamedFileInTemporaryDirectory('data') as file:
-            cmd = [sys.executable, SCRIPT_PATH, inpath, file.name]
+        with TemporaryDirectory() as tmpdir:
+            outpath = os.path.join(tmpdir, 'data')
+            cmd = [sys.executable, SCRIPT_PATH, inpath, outpath]
             setattr(shell, configname, cmd)
             getattr(shell, funcname)(self.data, self.mime)
-            transferred = file.read()
+            # cmd is called and file is closed.  So it's safe to open now.
+            with open(outpath, 'rb') as file:
+                transferred = file.read()
 
         self.assertEqual(transferred, self.raw)
 
