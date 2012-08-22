@@ -675,4 +675,22 @@ class TestView(ClusterTestCase, ParametricTestCase):
         drank = amr.get(5)
         self.assertEqual(drank, [ r*2 for r in ranks ])
         
+    def test_nested_getitem_setitem(self):
+        """get and set with view['a.b']"""
+        view = self.client[-1]
+        view.execute('\n'.join([
+            'class A(object): pass',
+            'a = A()',
+            'a.b = 128',
+            ]), block=True)
+        ra = pmod.Reference('a')
 
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 128)
+        self.assertEqual(view['a.b'], 128)
+
+        view['a.b'] = 0
+
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 0)
+        self.assertEqual(view['a.b'], 0)
