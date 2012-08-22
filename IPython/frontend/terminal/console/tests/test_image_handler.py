@@ -58,9 +58,9 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         with monkeypatch(PIL.Image, 'open', fake_open):
             self.shell.handle_image_PIL(self.data, self.mime)
 
-        assert len(open_called_with) == 1
-        assert len(show_called_with) == 1
-        assert open_called_with[0].getvalue() == self.raw
+        self.assertEqual(len(open_called_with), 1)
+        self.assertEqual(len(show_called_with), 1)
+        self.assertEqual(open_called_with[0].getvalue(), self.raw)
 
     def check_handler_with_file(self, inpath, handler):
         shell = self.shell
@@ -76,7 +76,7 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
             getattr(shell, funcname)(self.data, self.mime)
             transferred = file.read()
 
-        assert transferred == self.raw
+        self.assertEqual(transferred, self.raw)
 
     def test_handle_image_stream(self):
         self.check_handler_with_file('-', 'stream')
@@ -88,5 +88,5 @@ class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
         called_with = []
         self.shell.callable_image_handler = called_with.append
         self.shell.handle_image_callable(self.data, self.mime)
-        assert len(called_with) == 1
+        self.assertEqual(len(called_with), 1)
         assert called_with[0] is self.data
