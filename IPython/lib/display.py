@@ -47,6 +47,10 @@ class LocalFile(object):
 
     local_file = LocalFile("my/data.txt")
     display(local_file)
+    
+    or in the HTML notebook, just
+    
+    LocalFile("my/data.txt")
     """
     
     def __init__(self,
@@ -101,6 +105,11 @@ class LocalFiles(LocalFile):
 
     local_files = LocalFiles("my/data")
     display(local_files)
+    
+    or in the HTML notebook, just
+    
+    LocalFiles("my/data")
+    
     """
     def __init__(self,
                  path,
