@@ -88,7 +88,7 @@ def figsize(sizex, sizey):
     matplotlib.rcParams['figure.figsize'] = [sizex, sizey]
 
 
-def print_figure(fig, fmt='svg'):
+def print_figure(fig, fmt='png'):
     """Convert a figure to svg or png for inline display."""
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.

@@ -56,7 +56,7 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    figure_format = CaselessStrEnum(['svg', 'png'], default_value='svg', config=True,
+    figure_format = CaselessStrEnum(['svg', 'png'], default_value='png', config=True,
         help="The image format for figures with the inline backend.")
 
     def _figure_format_changed(self, name, old, new):
