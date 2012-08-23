@@ -561,6 +561,8 @@ class ListTB(TBTools):
                          Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
                          Colors.linenoEm, value.lineno, Colors.Normal  ))
                 textline = ulinecache.getline(value.filename, value.lineno)
+                if textline == '':
+                    textline = py3compat.cast_unicode(value.text, "utf-8")
 
                 if textline is not None:
                     i = 0
