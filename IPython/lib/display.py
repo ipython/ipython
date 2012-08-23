@@ -70,9 +70,9 @@ class LocalFile(object):
         self._result_html_suffix = _result_html_suffix
     
     def _format_path(self):
-        link = join(self._directory_prefix,self.path)
+        fp = join(self._directory_prefix,self.path)
         return ''.join([self._result_html_prefix,
-                        link,
+                        self._link_str % (fp, self.path),
                         self._result_html_suffix])
         
     def _repr_html_(self):
