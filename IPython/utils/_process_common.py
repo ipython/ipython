@@ -34,7 +34,7 @@ def read_no_interrupt(p):
 
     try:
         return p.read()
-    except IOError, err:
+    except IOError as err:
         if err.errno != errno.EINTR:
             raise
 
@@ -179,7 +179,7 @@ def arg_split(s, posix=False, strict=True):
     tokens = []
     while True:
         try:
-            tokens.append(lex.next())
+            tokens.append(next(lex))
         except StopIteration:
             break
         except ValueError:

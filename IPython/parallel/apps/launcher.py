@@ -22,6 +22,7 @@ Authors:
 import copy
 import logging
 import os
+import pipes
 import stat
 import sys
 import time
@@ -583,7 +584,7 @@ class SSHLauncher(LocalProcessLauncher):
 
     def find_args(self):
         return self.ssh_cmd + self.ssh_args + [self.location] + \
-               self.program + self.program_args
+               list(map(pipes.quote, self.program + self.program_args))
     
     def _send_file(self, local, remote):
         """send a single file"""
@@ -650,7 +651,7 @@ class SSHClusterLauncher(SSHLauncher):
         If not specified, use calling profile, stripping out possible leading homedir.
         """)
 
-    def _remote_profie_dir_default(self):
+    def _remote_profile_dir_default(self):
         """turns /home/you/.ipython/profile_foo into .ipython/profile_foo
         """
         home = get_home_dir()
@@ -724,6 +725,9 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
     engines = Dict(config=True,
         help="""dict of engines to launch.  This is a dict by hostname of ints,
         corresponding to the number of engines to start on that host.""")
+    
+    def _engine_cmd_default(self):
+        return ['ipengine']
     
     @property
     def engine_count(self):
@@ -1141,7 +1145,7 @@ class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -V
 #PBS -N ipcontroller
 %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipcontroller_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
 
 
     def start(self):
@@ -1157,7 +1161,7 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -V
 #PBS -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipengine_cmd_argv)))
+"""%(' '.join(map(pipes.quote,ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
@@ -1181,7 +1185,7 @@ class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
 #$ -S /bin/sh
 #$ -N ipcontroller
 %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipcontroller_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
 
     def start(self):
         """Start the controller by profile or profile_dir."""
@@ -1195,7 +1199,7 @@ class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
 #$ -S /bin/sh
 #$ -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-"""%(' '.join(ipengine_cmd_argv)))
+"""%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""
@@ -1249,7 +1253,7 @@ class LSFControllerLauncher(LSFLauncher, BatchClusterAppMixin):
     #BSUB -oo ipcontroller.o.%%J
     #BSUB -eo ipcontroller.e.%%J
     %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-    """%(' '.join(ipcontroller_cmd_argv)))
+    """%(' '.join(map(pipes.quote,ipcontroller_cmd_argv))))
 
     def start(self):
         """Start the controller by profile or profile_dir."""
@@ -1264,7 +1268,7 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
     #BSUB -oo ipengine.o.%%J
     #BSUB -eo ipengine.e.%%J
     %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
-    """%(' '.join(ipengine_cmd_argv)))
+    """%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
     def start(self, n):
         """Start n engines by profile or profile_dir."""

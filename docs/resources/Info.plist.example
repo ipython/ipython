@@ -1,0 +1,20 @@
+    # Add this into the info.plist file of an application
+    # and the icns icon in Contents/Resources
+    # then move the application twice :
+    # http://superuser.com/questions/178316/how-to-set-an-icon-for-a-file-type-on-mac
+
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeExtensions</key>
+            <array>
+                <string>ipynb</string>
+            </array>
+            <key>CFBundleTypeIconFile</key>
+            <string>ipynb_mac_icon</string>
+            <key>CFBundleTypeName</key>
+            <string>IPython notebook file</string>
+            <key>CFBundleTypeRole</key>
+            <string>None</string>
+        </dict>
+    <array>

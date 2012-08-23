@@ -16,7 +16,7 @@
 <div id="main_app">
 
     {% if login_available %}
-    <form action="/login?next={{url_escape(next)}}" method="post">
+    <form action="{{base_project_url}}login?next={{url_escape(next)}}" method="post">
         Password: <input type="password" class='ui-widget ui-widget-content' name="password" id="password_input">
         <input type="submit" value="Log in" id="login_submit">
     </form>

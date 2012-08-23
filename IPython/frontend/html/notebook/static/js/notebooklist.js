@@ -84,23 +84,32 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
-    }
+    };
 
 
     NotebookList.prototype.load_list = function () {
+        var that = this;
         var settings = {
             processData : false,
             cache : false,
             type : "GET",
             dataType : "json",
-            success : $.proxy(this.list_loaded, this)
+            success : $.proxy(this.list_loaded, this),
+            error : $.proxy( function(){
+                that.list_loaded([], null, null, {msg:"Error connecting to server."});
+                             },this)
         };
+
         var url = $('body').data('baseProjectUrl') + 'notebooks';
         $.ajax(url, settings);
     };
 
 
-    NotebookList.prototype.list_loaded = function (data, status, xhr) {
+    NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
+        var message = 'Notebook list empty.';
+        if (param !== undefined && param.msg) {
+            var message = param.msg;
+        }
         var len = data.length;
         this.clear_list();
 
@@ -109,7 +118,7 @@ var IPython = (function (IPython) {
             $(this.new_notebook_item(0))
                 .append(
                     $('<div style="margin:auto;text-align:center;color:grey"/>')
-                    .text('Notebook list empty.')
+                    .text(message)
                     )
         }
 

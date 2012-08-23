@@ -117,11 +117,11 @@ class NotificationTests(unittest.TestCase):
         for i in xrange(10):
             Observer('TYPE', None, center=shared_center)
 
-        self.assert_(len(shared_center.observers[('TYPE',None)]) >= 10,
+        self.assertTrue(len(shared_center.observers[('TYPE',None)]) >= 10,
             "observers registered")
 
         shared_center.remove_all_observers()
-        self.assert_(len(shared_center.observers) == 0, "observers removed")
+        self.assertTrue(len(shared_center.observers) == 0, "observers removed")
 
     def test_any_sender(self):
         expected_ntype = "EXPECTED_TYPE"

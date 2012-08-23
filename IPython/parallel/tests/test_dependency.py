@@ -75,7 +75,7 @@ class DependencyTest(ClusterTestCase):
         def encode(dikt):
             return urllib.urlencode(dikt)
         # must pass through canning to properly connect namespaces
-        self.assertEquals(encode(dict(a=5)), 'a=5')
+        self.assertEqual(encode(dict(a=5)), 'a=5')
     
     def test_success_only(self):
         dep = pmod.Dependency(mixed, success=True, failure=False)

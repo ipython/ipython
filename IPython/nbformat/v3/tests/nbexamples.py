@@ -6,7 +6,7 @@ from base64 import encodestring
 from ..nbbase import (
     NotebookNode,
     new_code_cell, new_text_cell, new_worksheet, new_notebook, new_output,
-    new_metadata, new_author, new_heading_cell, nbformat
+    new_metadata, new_author, new_heading_cell, nbformat, nbformat_minor
 )
 
 # some random base64-encoded *bytes*
@@ -108,7 +108,7 @@ nb0 = new_notebook(
 )
 
 nb0_py = u"""# -*- coding: utf-8 -*-
-# <nbformat>%i</nbformat>
+# <nbformat>%i.%i</nbformat>
 
 # <htmlcell>
 
@@ -148,6 +148,6 @@ b = 5
 
 print "ünîcødé"
 
-""" % nbformat
+""" % (nbformat, nbformat_minor)
 
 

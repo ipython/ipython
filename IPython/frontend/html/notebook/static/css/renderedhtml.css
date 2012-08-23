@@ -16,8 +16,8 @@
 .rendered_html ol {list-style:upper-roman; margin: 1em 2em;}
 .rendered_html ol ol {list-style:upper-alpha; margin: 0em 2em;}
 .rendered_html ol ol ol {list-style:decimal; margin: 0em 2em;}
-.rendered_html ol ol ol ol {list-style:lower-alpha; margin 0em 2em;}
-.rendered_html ol ol ol ol ol {list-style:lower-roman; 0em 2em;}
+.rendered_html ol ol ol ol {list-style:lower-alpha; margin: 0em 2em;}
+.rendered_html ol ol ol ol ol {list-style:lower-roman; margin: 0em 2em;}
 
 .rendered_html hr {
     color: black;

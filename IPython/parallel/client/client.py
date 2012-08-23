@@ -49,6 +49,7 @@ from IPython.parallel import error
 from IPython.parallel import util
 
 from IPython.zmq.session import Session, Message
+from IPython.zmq import serialize
 
 from .asyncresult import AsyncResult, AsyncHubResult
 from .view import DirectView, LoadBalancedView
@@ -184,6 +185,7 @@ class Metadata(dict):
               'stdout' : '',
               'stderr' : '',
               'outputs' : [],
+              'data': {},
               'outputs_ready' : False,
             }
         self.update(md)
@@ -217,7 +219,9 @@ class Client(HasTraits):
     Parameters
     ----------
 
-    url_or_file : bytes or unicode; zmq url or path to ipcontroller-client.json
+    url_file : str/unicode; path to ipcontroller-client.json
+        This JSON file should contain all the information needed to connect to a cluster,
+        and is likely the only argument needed.
         Connection information for the Hub's registration.  If a json connector
         file is given, then likely no further configuration is necessary.
         [Default: use profile]
@@ -225,6 +229,13 @@ class Client(HasTraits):
         The name of the Cluster profile to be used to find connector information.
         If run from an IPython application, the default profile will be the same
         as the running application, otherwise it will be 'default'.
+    cluster_id : str
+        String id to added to runtime files, to prevent name collisions when using
+        multiple clusters with a single profile simultaneously.
+        When set, will look for files named like: 'ipcontroller-<cluster_id>-client.json'
+        Since this is text inserted into filenames, typical recommendations apply:
+        Simple character strings are ideal, and spaces are not recommended (but
+        should generally work)
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own.
     debug : bool
@@ -239,14 +250,6 @@ class Client(HasTraits):
         If specified, this will be relayed to the Session for configuration
     username : str
         set username for the session object
-    packer : str (import_string) or callable
-        Can be either the simple keyword 'json' or 'pickle', or an import_string to a
-        function to serialize messages. Must support same input as
-        JSON, and output must be bytes.
-        You can pass a callable directly as `pack`
-    unpacker : str (import_string) or callable
-        The inverse of packer.  Only necessary if packer is specified as *not* one
-        of 'json' or 'pickle'.
 
     #-------------- ssh related args ----------------
     # These are args for configuring the ssh tunnel to be used
@@ -270,17 +273,6 @@ class Client(HasTraits):
     paramiko : bool
         flag for whether to use paramiko instead of shell ssh for tunneling.
         [default: True on win32, False else]
-
-    ------- exec authentication args -------
-    If even localhost is untrusted, you can have some protection against
-    unauthorized execution by signing messages with HMAC digests.
-    Messages are still sent as cleartext, so if someone can snoop your
-    loopback traffic this will not protect your privacy, but will prevent
-    unauthorized execution.
-
-    exec_key : str
-        an authentication key or file containing a key
-        default: None
 
 
     Attributes
@@ -378,10 +370,10 @@ class Client(HasTraits):
         # don't raise on positional args
         return HasTraits.__new__(self, **kw)
 
-    def __init__(self, url_or_file=None, profile=None, profile_dir=None, ipython_dir=None,
-            context=None, debug=False, exec_key=None,
+    def __init__(self, url_file=None, profile=None, profile_dir=None, ipython_dir=None,
+            context=None, debug=False,
             sshserver=None, sshkey=None, password=None, paramiko=None,
-            timeout=10, **extra_args
+            timeout=10, cluster_id=None, **extra_args
             ):
         if profile:
             super(Client, self).__init__(debug=debug, profile=profile)
@@ -391,39 +383,50 @@ class Client(HasTraits):
             context = zmq.Context.instance()
         self._context = context
         self._stop_spinning = Event()
+        
+        if 'url_or_file' in extra_args:
+            url_file = extra_args['url_or_file']
+            warnings.warn("url_or_file arg no longer supported, use url_file", DeprecationWarning)
+        
+        if url_file and util.is_url(url_file):
+            raise ValueError("single urls cannot be specified, url-files must be used.")
 
         self._setup_profile_dir(self.profile, profile_dir, ipython_dir)
+        
         if self._cd is not None:
-            if url_or_file is None:
-                url_or_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
-        if url_or_file is None:
+            if url_file is None:
+                if not cluster_id:
+                    client_json = 'ipcontroller-client.json'
+                else:
+                    client_json = 'ipcontroller-%s-client.json' % cluster_id
+                url_file = pjoin(self._cd.security_dir, client_json)
+        if url_file is None:
             raise ValueError(
                 "I can't find enough information to connect to a hub!"
-                " Please specify at least one of url_or_file or profile."
+                " Please specify at least one of url_file or profile."
             )
-
-        if not util.is_url(url_or_file):
-            # it's not a url, try for a file
-            if not os.path.exists(url_or_file):
-                if self._cd:
-                    url_or_file = os.path.join(self._cd.security_dir, url_or_file)
-                if not os.path.exists(url_or_file):
-                    raise IOError("Connection file not found: %r" % url_or_file)
-            with open(url_or_file) as f:
-                cfg = json.loads(f.read())
-        else:
-            cfg = {'url':url_or_file}
+        
+        with open(url_file) as f:
+            cfg = json.load(f)
+        
+        self._task_scheme = cfg['task_scheme']
 
         # sync defaults from args, json:
         if sshserver:
             cfg['ssh'] = sshserver
-        if exec_key:
-            cfg['exec_key'] = exec_key
-        exec_key = cfg['exec_key']
+
         location = cfg.setdefault('location', None)
-        cfg['url'] = util.disambiguate_url(cfg['url'], location)
-        url = cfg['url']
-        proto,addr,port = util.split_url(url)
+        
+        proto,addr = cfg['interface'].split('://')
+        addr = util.disambiguate_ip_address(addr)
+        cfg['interface'] = "%s://%s" % (proto, addr)
+        
+        # turn interface,port into full urls:
+        for key in ('control', 'task', 'mux', 'iopub', 'notification', 'registration'):
+            cfg[key] = cfg['interface'] + ':%i' % cfg[key]
+        
+        url = cfg['registration']
+        
         if location is not None and addr == '127.0.0.1':
             # location specified, and connection is expected to be local
             if location not in LOCAL_IPS and not sshserver:
@@ -448,7 +451,7 @@ class Client(HasTraits):
         self._ssh = bool(sshserver or sshkey or password)
         if self._ssh and sshserver is None:
             # default to ssh via localhost
-            sshserver = url.split('://')[1].split(':')[0]
+            sshserver = addr
         if self._ssh and password is None:
             if tunnel.try_passwordless_ssh(sshserver, sshkey, paramiko):
                 password=False
@@ -457,20 +460,18 @@ class Client(HasTraits):
         ssh_kwargs = dict(keyfile=sshkey, password=password, paramiko=paramiko)
 
         # configure and construct the session
-        if exec_key is not None:
-            if os.path.isfile(exec_key):
-                extra_args['keyfile'] = exec_key
-            else:
-                exec_key = cast_bytes(exec_key)
-                extra_args['key'] = exec_key
+        extra_args['packer'] = cfg['pack']
+        extra_args['unpacker'] = cfg['unpack']
+        extra_args['key'] = cast_bytes(cfg['exec_key'])
+        
         self.session = Session(**extra_args)
 
         self._query_socket = self._context.socket(zmq.DEALER)
-        self._query_socket.setsockopt(zmq.IDENTITY, self.session.bsession)
+
         if self._ssh:
-            tunnel.tunnel_connection(self._query_socket, url, sshserver, **ssh_kwargs)
+            tunnel.tunnel_connection(self._query_socket, cfg['registration'], sshserver, **ssh_kwargs)
         else:
-            self._query_socket.connect(url)
+            self._query_socket.connect(cfg['registration'])
 
         self.session.debug = self.debug
 
@@ -520,8 +521,9 @@ class Client(HasTraits):
         """Update our engines dict and _ids from a dict of the form: {id:uuid}."""
         for k,v in engines.iteritems():
             eid = int(k)
+            if eid not in self._engines:
+                self._ids.append(eid)
             self._engines[eid] = v
-            self._ids.append(eid)
         self._ids = sorted(self._ids)
         if sorted(self._engines.keys()) != range(len(self._engines)) and \
                         self._task_scheme == 'pure' and self._task_socket:
@@ -583,7 +585,7 @@ class Client(HasTraits):
         self._connected=True
 
         def connect_socket(s, url):
-            url = util.disambiguate_url(url, self._config['location'])
+            # url = util.disambiguate_url(url, self._config['location'])
             if self._ssh:
                 return tunnel.tunnel_connection(s, url, sshserver, **ssh_kwargs)
             else:
@@ -600,38 +602,28 @@ class Client(HasTraits):
         idents,msg = self.session.recv(self._query_socket,mode=0)
         if self.debug:
             pprint(msg)
-        msg = Message(msg)
-        content = msg.content
-        self._config['registration'] = dict(content)
-        if content.status == 'ok':
-            ident = self.session.bsession
-            if content.mux:
-                self._mux_socket = self._context.socket(zmq.DEALER)
-                self._mux_socket.setsockopt(zmq.IDENTITY, ident)
-                connect_socket(self._mux_socket, content.mux)
-            if content.task:
-                self._task_scheme, task_addr = content.task
-                self._task_socket = self._context.socket(zmq.DEALER)
-                self._task_socket.setsockopt(zmq.IDENTITY, ident)
-                connect_socket(self._task_socket, task_addr)
-            if content.notification:
-                self._notification_socket = self._context.socket(zmq.SUB)
-                connect_socket(self._notification_socket, content.notification)
-                self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
-            # if content.query:
-            #     self._query_socket = self._context.socket(zmq.DEALER)
-            #     self._query_socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-            #     connect_socket(self._query_socket, content.query)
-            if content.control:
-                self._control_socket = self._context.socket(zmq.DEALER)
-                self._control_socket.setsockopt(zmq.IDENTITY, ident)
-                connect_socket(self._control_socket, content.control)
-            if content.iopub:
-                self._iopub_socket = self._context.socket(zmq.SUB)
-                self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
-                self._iopub_socket.setsockopt(zmq.IDENTITY, ident)
-                connect_socket(self._iopub_socket, content.iopub)
-            self._update_engines(dict(content.engines))
+        content = msg['content']
+        # self._config['registration'] = dict(content)
+        cfg = self._config
+        if content['status'] == 'ok':
+            self._mux_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._mux_socket, cfg['mux'])
+
+            self._task_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._task_socket, cfg['task'])
+
+            self._notification_socket = self._context.socket(zmq.SUB)
+            self._notification_socket.setsockopt(zmq.SUBSCRIBE, b'')
+            connect_socket(self._notification_socket, cfg['notification'])
+
+            self._control_socket = self._context.socket(zmq.DEALER)
+            connect_socket(self._control_socket, cfg['control'])
+
+            self._iopub_socket = self._context.socket(zmq.SUB)
+            self._iopub_socket.setsockopt(zmq.SUBSCRIBE, b'')
+            connect_socket(self._iopub_socket, cfg['iopub'])
+
+            self._update_engines(dict(content['engines']))
         else:
             self._connected = False
             raise Exception("Failed to connect!")
@@ -650,12 +642,16 @@ class Client(HasTraits):
             e.engine_info['engine_id'] = eid
         return e
 
-    def _extract_metadata(self, header, parent, content):
+    def _extract_metadata(self, msg):
+        header = msg['header']
+        parent = msg['parent_header']
+        msg_meta = msg['metadata']
+        content = msg['content']
         md = {'msg_id' : parent['msg_id'],
               'received' : datetime.now(),
-              'engine_uuid' : header.get('engine', None),
-              'follow' : parent.get('follow', []),
-              'after' : parent.get('after', []),
+              'engine_uuid' : msg_meta.get('engine', None),
+              'follow' : msg_meta.get('follow', []),
+              'after' : msg_meta.get('after', []),
               'status' : content['status'],
             }
 
@@ -664,8 +660,8 @@ class Client(HasTraits):
 
         if 'date' in parent:
             md['submitted'] = parent['date']
-        if 'started' in header:
-            md['started'] = header['started']
+        if 'started' in msg_meta:
+            md['started'] = msg_meta['started']
         if 'date' in header:
             md['completed'] = header['date']
         return md
@@ -674,7 +670,7 @@ class Client(HasTraits):
         """Register a new engine, and update our connection info."""
         content = msg['content']
         eid = content['id']
-        d = {eid : content['queue']}
+        d = {eid : content['uuid']}
         self._update_engines(d)
 
     def _unregister_engine(self, msg):
@@ -738,7 +734,7 @@ class Client(HasTraits):
 
         # construct metadata:
         md = self.metadata[msg_id]
-        md.update(self._extract_metadata(header, parent, content))
+        md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
         
@@ -775,7 +771,7 @@ class Client(HasTraits):
 
         # construct metadata:
         md = self.metadata[msg_id]
-        md.update(self._extract_metadata(header, parent, content))
+        md.update(self._extract_metadata(msg))
         # is this redundant?
         self.metadata[msg_id] = md
 
@@ -785,7 +781,7 @@ class Client(HasTraits):
 
         # construct result:
         if content['status'] == 'ok':
-            self.results[msg_id] = util.unserialize_object(msg['buffers'])[0]
+            self.results[msg_id] = serialize.unserialize_object(msg['buffers'])[0]
         elif content['status'] == 'aborted':
             self.results[msg_id] = error.TaskAborted(msg_id)
         elif content['status'] == 'resubmitted':
@@ -881,6 +877,9 @@ class Client(HasTraits):
                 md['outputs'].append(content)
             elif msg_type == 'pyout':
                 md['pyout'] = content
+            elif msg_type == 'data_message':
+                data, remainder = serialize.unserialize_object(msg['buffers'])
+                md['data'].update(data)
             elif msg_type == 'status':
                 # idle message comes after all outputs
                 if content['execution_state'] == 'idle':
@@ -1201,7 +1200,7 @@ class Client(HasTraits):
 
         return result
 
-    def send_apply_request(self, socket, f, args=None, kwargs=None, subheader=None, track=False,
+    def send_apply_request(self, socket, f, args=None, kwargs=None, metadata=None, track=False,
                             ident=None):
         """construct and send an apply message via a socket.
 
@@ -1214,7 +1213,7 @@ class Client(HasTraits):
         # defaults:
         args = args if args is not None else []
         kwargs = kwargs if kwargs is not None else {}
-        subheader = subheader if subheader is not None else {}
+        metadata = metadata if metadata is not None else {}
 
         # validate arguments
         if not callable(f) and not isinstance(f, Reference):
@@ -1223,13 +1222,16 @@ class Client(HasTraits):
             raise TypeError("args must be tuple or list, not %s"%type(args))
         if not isinstance(kwargs, dict):
             raise TypeError("kwargs must be dict, not %s"%type(kwargs))
-        if not isinstance(subheader, dict):
-            raise TypeError("subheader must be dict, not %s"%type(subheader))
+        if not isinstance(metadata, dict):
+            raise TypeError("metadata must be dict, not %s"%type(metadata))
 
-        bufs = util.pack_apply_message(f,args,kwargs)
+        bufs = serialize.pack_apply_message(f, args, kwargs,
+            buffer_threshold=self.session.buffer_threshold,
+            item_threshold=self.session.item_threshold,
+        )
 
         msg = self.session.send(socket, "apply_request", buffers=bufs, ident=ident,
-                            subheader=subheader, track=track)
+                            metadata=metadata, track=track)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1245,7 +1247,7 @@ class Client(HasTraits):
 
         return msg
 
-    def send_execute_request(self, socket, code, silent=True, subheader=None, ident=None):
+    def send_execute_request(self, socket, code, silent=True, metadata=None, ident=None):
         """construct and send an execute request via a socket.
 
         """
@@ -1254,19 +1256,19 @@ class Client(HasTraits):
             raise RuntimeError("Client cannot be used after its sockets have been closed")
         
         # defaults:
-        subheader = subheader if subheader is not None else {}
+        metadata = metadata if metadata is not None else {}
 
         # validate arguments
         if not isinstance(code, basestring):
             raise TypeError("code must be text, not %s" % type(code))
-        if not isinstance(subheader, dict):
-            raise TypeError("subheader must be dict, not %s" % type(subheader))
+        if not isinstance(metadata, dict):
+            raise TypeError("metadata must be dict, not %s" % type(metadata))
         
         content = dict(code=code, silent=bool(silent), user_variables=[], user_expressions={})
 
 
         msg = self.session.send(socket, "execute_request", content=content, ident=ident,
-                            subheader=subheader)
+                            metadata=metadata)
 
         msg_id = msg['header']['msg_id']
         self.outstanding.add(msg_id)
@@ -1401,7 +1403,7 @@ class Client(HasTraits):
         return ar
 
     @spin_first
-    def resubmit(self, indices_or_msg_ids=None, subheader=None, block=None):
+    def resubmit(self, indices_or_msg_ids=None, metadata=None, block=None):
         """Resubmit one or more tasks.
 
         in-flight tasks may not be resubmitted.
@@ -1539,14 +1541,20 @@ class Client(HasTraits):
                     rcontent = self.session.unpack(rcontent)
 
                 md = self.metadata[msg_id]
-                md.update(self._extract_metadata(header, parent, rcontent))
+                md_msg = dict(
+                    content=rcontent,
+                    parent_header=parent,
+                    header=header,
+                    metadata=rec['result_metadata'],
+                )
+                md.update(self._extract_metadata(md_msg))
                 if rec.get('received'):
                     md['received'] = rec['received']
                 md.update(iodict)
                 
                 if rcontent['status'] == 'ok':
                     if header['msg_type'] == 'apply_reply':
-                        res,buffers = util.unserialize_object(buffers)
+                        res,buffers = serialize.unserialize_object(buffers)
                     elif header['msg_type'] == 'execute_reply':
                         res = ExecuteReply(msg_id, rcontent, md)
                     else:

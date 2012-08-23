@@ -465,7 +465,7 @@ class HasTraits(object):
 
 
     def _add_notifiers(self, handler, name):
-        if not self._trait_notifiers.has_key(name):
+        if name not in self._trait_notifiers:
             nlist = []
             self._trait_notifiers[name] = nlist
         else:
@@ -474,7 +474,7 @@ class HasTraits(object):
             nlist.append(handler)
 
     def _remove_notifiers(self, handler, name):
-        if self._trait_notifiers.has_key(name):
+        if name in self._trait_notifiers:
             nlist = self._trait_notifiers[name]
             try:
                 index = nlist.index(handler)

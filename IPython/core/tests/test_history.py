@@ -93,9 +93,9 @@ def test_history():
             # Cross testing: check that magic %save can get previous session.
             testfilename = os.path.realpath(os.path.join(tmpdir, "test.py"))
             ip.magic("save " + testfilename + " ~1/1-3")
-            with py3compat.open(testfilename) as testfile:
+            with py3compat.open(testfilename, encoding='utf-8') as testfile:
                 nt.assert_equal(testfile.read(),
-                                        u"# coding: utf-8\n" + u"\n".join(hist))
+                                        u"# coding: utf-8\n" + u"\n".join(hist)+u"\n")
 
             # Duplicate line numbers - check that it doesn't crash, and
             # gets a new session
@@ -139,7 +139,7 @@ def test_hist_file_config():
     cfg.HistoryManager.hist_file = tfile.name
     try:
         hm = HistoryManager(shell=get_ipython(), config=cfg)
-        nt.assert_equals(hm.hist_file, cfg.HistoryManager.hist_file)
+        nt.assert_equal(hm.hist_file, cfg.HistoryManager.hist_file)
     finally:
         try:
             os.remove(tfile.name)

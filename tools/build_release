@@ -6,6 +6,17 @@ import os
 
 from toollib import *
 
+# The windows builds are fairly painful to set up on a posix system via wine,
+# so by default we've disabled them and we just build the windows installers
+# separately in a true Windows VM.
+do_windows = False
+
+# Egg building is also disabled by default.  They serve no real purpose in
+# python2, and getting a setupegg.py file that has valid python2/3 syntax is a
+# pain in the ass.  Since the python devs were too stubborn to leave execfile()
+# in place in python3, then we just don't build eggs.
+do_eggs = False
+
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()
 cd(ipdir)
@@ -26,13 +37,13 @@ for d in ['build', 'dist', pjoin('docs', 'build'), pjoin('docs', 'dist'),
 sh(sdists)
 
 # Build eggs
-sh(eggs)
+if do_eggs:
+    sh(eggs)
 
-# Run windows builds
-map(sh, win_builds)
-
-# Change name so retarded Vista runs the installer correctly
-sh("rename 's/linux-i686/win32/' dist/*.exe")
-sh("rename 's/linux-x86_64/win32/' dist/*.exe")
-# exe files aren't really executable under *nix.
-sh("chmod -x dist/*.exe")
+if do_windows:
+    map(sh, win_builds)
+    # Change name so retarded Vista runs the installer correctly
+    sh("rename 's/linux-i686/win32/' dist/*.exe")
+    sh("rename 's/linux-x86_64/win32/' dist/*.exe")
+    # exe files aren't really executable under *nix.
+    sh("chmod -x dist/*.exe")

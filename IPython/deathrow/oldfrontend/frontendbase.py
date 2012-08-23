@@ -246,7 +246,7 @@ class FrontEndBase(object):
 
         try:
             result = self.shell.execute(block)
-        except Exception,e:
+        except Exception as e:
             e = self._add_block_id_for_failure(e, blockID=blockID)
             e = self.update_cell_prompt(e, blockID=blockID)
             e = self.render_error(e)

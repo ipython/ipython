@@ -30,10 +30,10 @@ class PluginTest(TestCase):
         self.manager = PluginManager()
 
     def test_register_get(self):
-        self.assertEquals(None, self.manager.get_plugin('foo'))
+        self.assertEqual(None, self.manager.get_plugin('foo'))
         foo = FooPlugin()
         self.manager.register_plugin('foo', foo)
-        self.assertEquals(foo, self.manager.get_plugin('foo'))
+        self.assertEqual(foo, self.manager.get_plugin('foo'))
         bar = BarPlugin()
         self.assertRaises(KeyError, self.manager.register_plugin, 'foo', bar)
         bad = BadPlugin()
@@ -43,4 +43,4 @@ class PluginTest(TestCase):
         foo = FooPlugin()
         self.manager.register_plugin('foo', foo)
         self.manager.unregister_plugin('foo')
-        self.assertEquals(None, self.manager.get_plugin('foo'))
+        self.assertEqual(None, self.manager.get_plugin('foo'))

@@ -65,7 +65,7 @@ def print_display_png(o):
     s = s.strip('$')
     # As matplotlib does not support display style, dvipng backend is
     # used here.
-    png = latex_to_png('$$%s$$' % s, backend='dvipng')
+    png = latex_to_png(s, backend='dvipng', wrap=True)
     return png
 
 

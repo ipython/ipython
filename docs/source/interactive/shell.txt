@@ -6,12 +6,17 @@ IPython as a system shell
 
 .. warning::
 
-    As of the 0.11 version of IPython, most of the APIs used by the shell
-    profile have been changed, so the profile currently does very little
-    beyond changing the IPython prompt.  To help restore the shell
-    profile to past functionality described here, the old code is found in 
-    :file:`IPython/deathrow`, which needs to be updated to use the
-    APIs in 0.11.
+    This page does not describe the current state of IPython!
+
+.. warning::
+
+    As of IPython 0.11, most of the APIs used by the shell profile have been changed,
+    so it currently does very little beyond changing the IPython prompt.
+    To help restore the shell profile to past functionality described here,
+    the old code is found in :file:`IPython/deathrow`,
+    which needs to be updated to use the APIs in 0.11.
+
+
 
 Overview
 ========

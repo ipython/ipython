@@ -19,10 +19,10 @@ import sys
 from pprint import pformat
 
 # Our own packages
+from IPython.core import magic_arguments
 from IPython.core.error import UsageError
-from IPython.core.inputsplitter import ESC_MAGIC
-from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.utils.text import format_screen
+from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
+from IPython.utils.text import format_screen, dedent, indent
 from IPython.core import magic_arguments, page
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
@@ -40,9 +40,93 @@ class BasicMagics(Magics):
     These are various magics that don't fit into specific categories but that
     are all part of the base 'IPython experience'."""
 
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '-l', '--line', action='store_true',
+        help="""Create a line magic alias."""
+    )
+    @magic_arguments.argument(
+        '-c', '--cell', action='store_true',
+        help="""Create a cell magic alias."""
+    )
+    @magic_arguments.argument(
+        'name',
+        help="""Name of the magic to be created."""
+    )
+    @magic_arguments.argument(
+        'target',
+        help="""Name of the existing line or cell magic."""
+    )
+    @line_magic
+    def alias_magic(self, line=''):
+        """Create an alias for an existing line or cell magic.
+
+        Examples
+        --------
+        ::
+          In [1]: %alias_magic t timeit
+          Created `%t` as an alias for `%timeit`.
+          Created `%%t` as an alias for `%%timeit`.
+
+          In [2]: %t -n1 pass
+          1 loops, best of 3: 954 ns per loop
+
+          In [3]: %%t -n1
+             ...: pass
+             ...:
+          1 loops, best of 3: 954 ns per loop
+
+          In [4]: %alias_magic --cell whereami pwd
+          UsageError: Cell magic function `%%pwd` not found.
+          In [5]: %alias_magic --line whereami pwd
+          Created `%whereami` as an alias for `%pwd`.
+
+          In [6]: %whereami
+          Out[6]: u'/home/testuser'
+        """
+        args = magic_arguments.parse_argstring(self.alias_magic, line)
+        shell = self.shell
+        mman = self.shell.magics_manager
+        escs = ''.join(magic_escapes.values())
+
+        target = args.target.lstrip(escs)
+        name = args.name.lstrip(escs)
+
+        # Find the requested magics.
+        m_line = shell.find_magic(target, 'line')
+        m_cell = shell.find_magic(target, 'cell')
+        if args.line and m_line is None:
+            raise UsageError('Line magic function `%s%s` not found.' %
+                             (magic_escapes['line'], target))
+        if args.cell and m_cell is None:
+            raise UsageError('Cell magic function `%s%s` not found.' %
+                             (magic_escapes['cell'], target))
+
+        # If --line and --cell are not specified, default to the ones
+        # that are available.
+        if not args.line and not args.cell:
+            if not m_line and not m_cell:
+                raise UsageError(
+                    'No line or cell magic with name `%s` found.' % target
+                )
+            args.line = bool(m_line)
+            args.cell = bool(m_cell)
+
+        if args.line:
+            mman.register_alias(name, target, 'line')
+            print('Created `%s%s` as an alias for `%s%s`.' % (
+                magic_escapes['line'], name,
+                magic_escapes['line'], target))
+
+        if args.cell:
+            mman.register_alias(name, target, 'cell')
+            print('Created `%s%s` as an alias for `%s%s`.' % (
+                magic_escapes['cell'], name,
+                magic_escapes['cell'], target))
+
     def _lsmagic(self):
-        mesc = ESC_MAGIC
-        cesc = mesc*2
+        mesc = magic_escapes['line']
+        cesc = magic_escapes['cell']
         mman = self.shell.magics_manager
         magics = mman.lsmagic()
         out = ['Available line magics:',
@@ -59,6 +143,26 @@ class BasicMagics(Magics):
         """List currently available magic functions."""
         print(self._lsmagic())
 
+    def _magic_docs(self, brief=False, rest=False):
+        """Return docstrings from magic functions."""
+        mman = self.shell.magics_manager
+        docs = mman.lsmagic_docs(brief, missing='No documentation')
+
+        if rest:
+            format_string = '**%s%s**::\n\n%s\n\n'
+        else:
+            format_string = '%s%s:\n%s\n'
+
+        return ''.join(
+            [format_string % (magic_escapes['line'], fname,
+                              indent(dedent(fndoc)))
+             for fname, fndoc in sorted(docs['line'].items())]
+            +
+            [format_string % (magic_escapes['cell'], fname,
+                              indent(dedent(fndoc)))
+             for fname, fndoc in sorted(docs['cell'].items())]
+        )
+
     @line_magic
     def magic(self, parameter_s=''):
         """Print information about the magic function system.
@@ -74,45 +178,15 @@ class BasicMagics(Magics):
         except IndexError:
             pass
 
-        magic_docs = []
-        escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC*2)
-        magics = self.shell.magics_manager.magics
-
-        for mtype in ('line', 'cell'):
-            escape = escapes[mtype]
-            for fname, fn in magics[mtype].iteritems():
-
-                if mode == 'brief':
-                    # only first line
-                    if fn.__doc__:
-                        fndoc = fn.__doc__.split('\n',1)[0]
-                    else:
-                        fndoc = 'No documentation'
-                else:
-                    if fn.__doc__:
-                        fndoc = fn.__doc__.rstrip()
-                    else:
-                        fndoc = 'No documentation'
-
-                if mode == 'rest':
-                    rest_docs.append('**%s%s**::\n\n\t%s\n\n' %
-                                     (escape, fname, fndoc))
-                else:
-                    magic_docs.append('%s%s:\n\t%s\n' %
-                                      (escape, fname, fndoc))
-
-        magic_docs = ''.join(magic_docs)
-
-        if mode == 'rest':
-            return "".join(rest_docs)
+        brief = (mode == 'brief')
+        rest = (mode == 'rest')
+        magic_docs = self._magic_docs(brief, rest)
 
         if mode == 'latex':
             print(self.format_latex(magic_docs))
             return
         else:
             magic_docs = format_screen(magic_docs)
-        if mode == 'brief':
-            return magic_docs
 
         out = ["""
 IPython's 'magic' functions
@@ -160,7 +234,7 @@ of any of them, type %magic_name?, e.g. '%cd?'.
 
 Currently the magic system has the following functions:""",
        magic_docs,
-       "Summary of magic functions (from %slsmagic):",
+       "Summary of magic functions (from %slsmagic):" % magic_escapes['line'],
        self._lsmagic(),
        ]
         page.page('\n'.join(out))
@@ -185,7 +259,7 @@ Currently the magic system has the following functions:""",
         raw = 'r' in opts
 
         oname = args and args or '_'
-        info = self._ofind(oname)
+        info = self.shell._ofind(oname)
         if info['found']:
             txt = (raw and str or pformat)( info['obj'] )
             page.page(txt)
@@ -304,7 +378,7 @@ Defaulting color scheme to 'NoColor'"""
     def quickref(self,arg):
         """ Show a quick reference sheet """
         from IPython.core.usage import quick_reference
-        qr = quick_reference + self.magic('-brief')
+        qr = quick_reference + self._magic_docs(brief=True)
         page.page(qr)
 
     @line_magic

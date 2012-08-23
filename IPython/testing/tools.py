@@ -1,10 +1,5 @@
 """Generic testing tools.
 
-In particular, this module exposes a set of top-level assert* functions that
-can be used in place of nose.tools.assert* in method generators (the ones in
-nose can not, at least as of nose 0.10.4).
-
-
 Authors
 -------
 - Fernando Perez <Fernando.Perez@berkeley.edu>
@@ -49,22 +44,6 @@ from IPython.utils.encoding import DEFAULT_ENCODING
 
 from . import decorators as dec
 from . import skipdoctest
-
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-# Make a bunch of nose.tools assert wrappers that can be used in test
-# generators.  This will expose an assert* function for each one in nose.tools.
-
-_tpl = """
-def %(name)s(*a,**kw):
-    return nt.%(name)s(*a,**kw)
-"""
-
-if has_nose:
-    for _x in [a for a in dir(nt) if a.startswith('assert')]:
-        exec _tpl % dict(name=_x)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -256,12 +235,12 @@ def ipexec_validate(fname, expected_out, expected_err='',
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
-            nt.assert_equals(err.strip(), expected_err.strip())
+            nt.assert_equal(err.strip(), expected_err.strip())
         else:
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
     # If no errors or output on stderr was expected, match stdout
-    nt.assert_equals(out.strip(), expected_out.strip())
+    nt.assert_equal(out.strip(), expected_out.strip())
 
 
 class TempFileMixin(object):
@@ -327,7 +306,10 @@ else:
             super(MyStringIO, self).write(s)
 
 notprinted_msg = """Did not find {0!r} in printed output (on {1}):
-{2!r}"""
+-------
+{2!s}
+-------
+"""
 
 class AssertPrints(object):
     """Context manager for testing that code prints certain text.
@@ -358,7 +340,13 @@ class AssertPrints(object):
         printed = self.buffer.getvalue()
         assert self.s in printed, notprinted_msg.format(self.s, self.channel, printed)
         return False
-    
+
+printed_msg = """Found {0!r} in printed output (on {1}):
+-------
+{2!s}
+-------
+"""
+
 class AssertNotPrints(AssertPrints):
     """Context manager for checking that certain output *isn't* produced.
     
@@ -367,7 +355,7 @@ class AssertNotPrints(AssertPrints):
         self.tee.flush()
         setattr(sys, self.channel, self.orig_stream)
         printed = self.buffer.getvalue()
-        assert self.s not in printed, notprinted_msg.format(self.s, self.channel, printed)
+        assert self.s not in printed, printed_msg.format(self.s, self.channel, printed)
         return False
 
 @contextmanager
@@ -390,3 +378,14 @@ def make_tempfile(name):
         yield
     finally:
         os.unlink(name)
+
+
+@contextmanager
+def monkeypatch(obj, name, attr):
+    """
+    Context manager to replace attribute named `name` in `obj` with `attr`.
+    """
+    orig = getattr(obj, name)
+    setattr(obj, name, attr)
+    yield
+    setattr(obj, name, orig)

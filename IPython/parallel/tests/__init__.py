@@ -107,7 +107,7 @@ def teardown():
         if p.poll() is None:
             try:
                 p.stop()
-            except Exception, e:
+            except Exception as e:
                 print e
                 pass
         if p.poll() is None:

@@ -226,20 +226,12 @@ python-profiler package from non-free.""")
 
         # Trap output.
         stdout_trap = StringIO()
-
-        if hasattr(stats,'stream'):
-            # In newer versions of python, the stats object has a 'stream'
-            # attribute to write into.
+        stats_stream = stats.stream
+        try:
             stats.stream = stdout_trap
             stats.print_stats(*lims)
-        else:
-            # For older versions, we manually redirect stdout during printing
-            sys_stdout = sys.stdout
-            try:
-                sys.stdout = stdout_trap
-                stats.print_stats(*lims)
-            finally:
-                sys.stdout = sys_stdout
+        finally:
+            stats.stream = stats_stream
 
         output = stdout_trap.getvalue()
         output = output.rstrip()
@@ -254,16 +246,16 @@ python-profiler package from non-free.""")
             dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
             print '\n*** Profile stats marshalled to file',\
-                  `dump_file`+'.',sys_exit
+                  repr(dump_file)+'.',sys_exit
         if text_file:
             text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
             print '\n*** Profile printout saved to text file',\
-                  `text_file`+'.',sys_exit
+                  repr(text_file)+'.',sys_exit
 
-        if opts.has_key('r'):
+        if 'r' in opts:
             return stats
         else:
             return None
@@ -820,7 +812,7 @@ python-profiler package from non-free.""")
     @skip_doctest
     @needs_local_scope
     @line_magic
-    def time(self,parameter_s, user_locals):
+    def time(self,parameter_s, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -892,11 +884,11 @@ python-profiler package from non-free.""")
         wall_st = wtime()
         if mode=='eval':
             st = clock2()
-            out = eval(code, glob, user_locals)
+            out = eval(code, glob, local_ns)
             end = clock2()
         else:
             st = clock2()
-            exec code in glob, user_locals
+            exec code in glob, local_ns
             end = clock2()
             out = None
         wall_end = wtime()

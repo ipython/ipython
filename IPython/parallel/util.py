@@ -43,16 +43,10 @@ from IPython.external.decorator import decorator
 
 # IPython imports
 from IPython.config.application import Application
-from IPython.utils import py3compat
-from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
-from IPython.utils.newserialized import serialize, unserialize
 from IPython.zmq.log import EnginePUBHandler
 from IPython.zmq.serialize import (
     unserialize_object, serialize_object, pack_apply_message, unpack_apply_message
 )
-
-if py3compat.PY3:
-    buffer = memoryview
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -243,11 +237,11 @@ def _pull(keys):
     user_ns = globals()
     if isinstance(keys, (list,tuple, set)):
         for key in keys:
-            if not user_ns.has_key(key):
+            if key not in user_ns:
                 raise NameError("name '%s' is not defined"%key)
         return map(user_ns.get, keys)
     else:
-        if not user_ns.has_key(keys):
+        if keys not in user_ns:
             raise NameError("name '%s' is not defined"%keys)
         return user_ns.get(keys)
 

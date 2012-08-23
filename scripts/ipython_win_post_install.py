@@ -37,6 +37,8 @@ def install():
     if not have_setuptools:
         # This currently doesn't work without setuptools,
         # so don't bother making broken links
+        print("Distribute (setuptools) is required to create Start Menu items.", file=sys.stderr)
+        print("Re-run this installer after installing distribute to get Start Menu items.", file=sys.stderr)
         return
     
     # Lookup path to common startmenu ...
@@ -113,10 +115,10 @@ def install():
     mkshortcut(python, 'IPython engine', link, cmd, workdir)
 
     link = pjoin(ip_start_menu, 'ipythonqt.lnk')
-    cmdbase = suffix(pjoin(scripts, 'ipython')) + '-qtconsole'
+    cmdbase = suffix(pjoin(scripts, 'ipython'))
     if have_setuptools:
-        cmdbase += '-script.pyw'
-    cmd = '"%s"' % cmdbase
+        cmdbase += '-script.py'
+    cmd = '"%s" qtconsole' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
 
     # FIXME: These below are commented out because we don't ship the html built

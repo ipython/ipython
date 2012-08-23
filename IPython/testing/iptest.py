@@ -24,6 +24,7 @@ itself from the command line. There are two ways of running this script:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 # Stdlib
 import glob
@@ -53,10 +54,12 @@ from nose import SkipTest
 from nose.core import TestProgram
 
 # Our own imports
+from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
 from IPython.utils.process import find_cmd, pycmd2argv
 from IPython.utils.sysinfo import sys_info
+from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.warn import warn
 
 from IPython.testing import globalipapp
@@ -161,6 +164,7 @@ have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
+have['azure'] = test_for('azure')
 
 if os.name == 'nt':
     min_zmq = (2,1,7)
@@ -231,6 +235,11 @@ def make_exclude():
                   ipjoin('lib', 'inputhook'),
                   # Config files aren't really importable stand-alone
                   ipjoin('config', 'profile'),
+                  # The notebook 'static' directory contains JS, css and other
+                  # files for web serving.  Occasionally projects may put a .py
+                  # file in there (MathJax ships a conf.py), so we might as
+                  # well play it safe and skip the whole thing.
+                  ipjoin('frontend', 'html', 'notebook', 'static')
                   ]
     if not have['sqlite3']:
         exclusions.append(ipjoin('core', 'tests', 'test_history'))
@@ -255,8 +264,7 @@ def make_exclude():
         exclusions.append(ipjoin('testing', 'plugin', 'dtexample'))
 
     if not have['pexpect']:
-        exclusions.extend([ipjoin('scripts', 'irunner'),
-                           ipjoin('lib', 'irunner'),
+        exclusions.extend([ipjoin('lib', 'irunner'),
                            ipjoin('lib', 'tests', 'test_irunner'),
                            ipjoin('frontend', 'terminal', 'console'),
                            ])
@@ -296,6 +304,9 @@ def make_exclude():
         exclusions.append(ipjoin('extensions', 'rmagic'))
         exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
 
+    if not have['azure']:
+        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'azurenbmanager'))
+
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         exclusions = [s.replace('\\','\\\\') for s in exclusions]
@@ -322,8 +333,8 @@ class IPTester(object):
     params = None
     #: list, arguments of system call to be made to call test runner
     call_args = None
-    #: list, process ids of subprocesses we start (for cleanup)
-    pids = None
+    #: list, subprocesses we start (for cleanup)
+    processes = None
     #: str, coverage xml output file
     coverage_xml = None
 
@@ -351,38 +362,34 @@ class IPTester(object):
             raise ValueError("Section not found", self.params)
         
         if '--with-xunit' in self.call_args:
-            self.call_args.append('--xunit-file=%s' % path.abspath(sect+'.xunit.xml'))
+            
+            self.call_args.append('--xunit-file')
+            # FIXME: when Windows uses subprocess.call, these extra quotes are unnecessary:
+            xunit_file = path.abspath(sect+'.xunit.xml')
+            if sys.platform == 'win32':
+                xunit_file = '"%s"' % xunit_file
+            self.call_args.append(xunit_file)
         
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
             self.call_args.remove('--with-xml-coverage')
             self.call_args = ["coverage", "run", "--source="+sect] + self.call_args[1:]
 
-        # Store pids of anything we start to clean up on deletion, if possible
-        # (on posix only, since win32 has no os.kill)
-        self.pids = []
+        # Store anything we start to clean up on deletion
+        self.processes = []
 
-    if sys.platform == 'win32':
-        def _run_cmd(self):
-            # On Windows, use os.system instead of subprocess.call, because I
-            # was having problems with subprocess and I just don't know enough
-            # about win32 to debug this reliably.  Os.system may be the 'old
-            # fashioned' way to do it, but it works just fine.  If someone
-            # later can clean this up that's fine, as long as the tests run
-            # reliably in win32.
-            # What types of problems are you having. They may be related to
-            # running Python in unboffered mode. BG.
-            return os.system(' '.join(self.call_args))
-    else:
-        def _run_cmd(self):
+    def _run_cmd(self):
+        with TemporaryDirectory() as IPYTHONDIR:
+            env = os.environ.copy()
+            env['IPYTHONDIR'] = IPYTHONDIR
             # print >> sys.stderr, '*** CMD:', ' '.join(self.call_args) # dbg
-            subp = subprocess.Popen(self.call_args)
-            self.pids.append(subp.pid)
-            # If this fails, the pid will be left in self.pids and cleaned up
-            # later, but if the wait call succeeds, then we can clear the
-            # stored pid.
+            subp = subprocess.Popen(self.call_args, env=env)
+            self.processes.append(subp)
+            # If this fails, the process will be left in self.processes and
+            # cleaned up later, but if the wait call succeeds, then we can
+            # clear the stored process.
             retcode = subp.wait()
-            self.pids.pop()
+            self.processes.pop()
             return retcode
 
     def run(self):
@@ -400,31 +407,35 @@ class IPTester(object):
 
     def __del__(self):
         """Cleanup on exit by killing any leftover processes."""
+        for subp in self.processes:
+            if subp.poll() is not None:
+                continue # process is already dead
 
-        if not hasattr(os, 'kill'):
-            return
-
-        for pid in self.pids:
             try:
-                print 'Cleaning stale PID:', pid
-                os.kill(pid, signal.SIGKILL)
-            except OSError:
+                print('Cleaning stale PID: %d' % subp.pid)
+                subp.kill()
+            except: # (OSError, WindowsError) ?
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
                 pass
 
+            if subp.poll() is None:
+                # The process did not die...
+                print('... failed. Manual cleanup may be required.'
+                      % subp.pid)
 
-def make_runners():
+def make_runners(inc_slow=False):
     """Define the top-level packages that need to be tested.
     """
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'scripts', 'testing', 'utils', 'nbformat' ]
+                     'testing', 'utils', 'nbformat' ]
 
     if have['zmq']:
         nose_pkg_names.append('zmq')
-        nose_pkg_names.append('parallel')
+        if inc_slow:
+            nose_pkg_names.append('parallel')
 
     # For debugging this code, only load quick stuff
     #nose_pkg_names = ['core', 'extensions']  # dbg
@@ -486,16 +497,23 @@ def run_iptest():
     TestProgram(argv=argv, addplugins=plugins)
 
 
-def run_iptestall():
+def run_iptestall(inc_slow=False):
     """Run the entire IPython test suite by calling nose and trial.
 
     This function constructs :class:`IPTester` instances for all IPython
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
     nose.
+    
+    Parameters
+    ----------
+    
+    inc_slow : bool, optional
+      Include slow tests, like IPython.parallel. By default, these tests aren't
+      run.
     """
 
-    runners = make_runners()
+    runners = make_runners(inc_slow=inc_slow)
 
     # Run the test runners in a temporary dir so we can nuke it when finished
     # to clean up any junk files left over by accident.  This also makes it
@@ -510,8 +528,8 @@ def run_iptestall():
     t_start = time.time()
     try:
         for (name, runner) in runners:
-            print '*'*70
-            print 'IPython test group:',name
+            print('*'*70)
+            print('IPython test group:',name)
             res = runner.run()
             if res:
                 failed.append( (name, runner) )
@@ -522,25 +540,26 @@ def run_iptestall():
     nrunners = len(runners)
     nfail = len(failed)
     # summarize results
-    print
-    print '*'*70
-    print 'Test suite completed for system with the following information:'
-    print report()
-    print 'Ran %s test groups in %.3fs' % (nrunners, t_tests)
-    print
-    print 'Status:'
+    print()
+    print('*'*70)
+    print('Test suite completed for system with the following information:')
+    print(report())
+    print('Ran %s test groups in %.3fs' % (nrunners, t_tests))
+    print()
+    print('Status:')
     if not failed:
-        print 'OK'
+        print('OK')
     else:
         # If anything went wrong, point out what command to rerun manually to
         # see the actual errors and individual summary
-        print 'ERROR - %s out of %s test groups failed.' % (nfail, nrunners)
+        print('ERROR - %s out of %s test groups failed.' % (nfail, nrunners))
         for name, failed_runner in failed:
-            print '-'*40
-            print 'Runner failed:',name
-            print 'You may wish to rerun this one individually, with:'
-            print ' '.join(failed_runner.call_args)
-            print
+            print('-'*40)
+            print('Runner failed:',name)
+            print('You may wish to rerun this one individually, with:')
+            failed_call_args = [py3compat.cast_unicode(x) for x in failed_runner.call_args]
+            print(u' '.join(failed_call_args))
+            print()
         # Ensure that our exit code indicates failure
         sys.exit(1)
 
@@ -551,8 +570,13 @@ def main():
             # This is in-process
             run_iptest()
     else:
+        if "--all" in sys.argv:
+            sys.argv.remove("--all")
+            inc_slow = True
+        else:
+            inc_slow = False
         # This starts subprocesses
-        run_iptestall()
+        run_iptestall(inc_slow=inc_slow)
 
 
 if __name__ == '__main__':

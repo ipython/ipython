@@ -29,7 +29,7 @@ class ParentPollerUnix(Thread):
                 if os.getppid() == 1:
                     os._exit(1)
                 time.sleep(1.0)
-            except OSError, e:
+            except OSError as e:
                 if e.errno == EINTR:
                     continue
                 raise

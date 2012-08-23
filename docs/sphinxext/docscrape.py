@@ -413,7 +413,7 @@ class FunctionDoc(NumpyDocString):
             doc = inspect.getdoc(func) or ''
         try:
             NumpyDocString.__init__(self, doc)
-        except ValueError, e:
+        except ValueError as e:
             print '*'*78
             print "ERROR: '%s' while parsing `%s`" % (e, self._f)
             print '*'*78
@@ -429,7 +429,7 @@ class FunctionDoc(NumpyDocString):
                 argspec = inspect.formatargspec(*argspec)
                 argspec = argspec.replace('*','\*')
                 signature = '%s%s' % (func_name, argspec)
-            except TypeError, e:
+            except TypeError as e:
                 signature = '%s()' % func_name
             self['Signature'] = signature
 

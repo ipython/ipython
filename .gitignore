@@ -11,3 +11,4 @@ build
 *.egg-info
 *~
 *.bak
+.tox

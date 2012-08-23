@@ -158,6 +158,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     # widget (Ctrl+n, Ctrl+a, etc). Enable this if you want this widget to take
     # priority (when it has focus) over, e.g., window-level menu shortcuts.
     override_shortcuts = Bool(False)
+    
+    # ------ Custom Qt Widgets -------------------------------------------------
+    
+    # For other projects to easily override the Qt widgets used by the console
+    # (e.g. Spyder)
+    custom_control = None
+    custom_page_control = None
 
     #------ Signals ------------------------------------------------------------
 
@@ -877,15 +884,16 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             the prompt region.
         """
         # Select and remove all text below the input buffer.
-        _temp_buffer_filled = False
         cursor = self._get_prompt_cursor()
         prompt = self._continuation_prompt.lstrip()
-        while cursor.movePosition(QtGui.QTextCursor.NextBlock):
-            temp_cursor = QtGui.QTextCursor(cursor)
-            temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
-            text = temp_cursor.selection().toPlainText().lstrip()
-            if not text.startswith(prompt):
-                break
+        if(self._temp_buffer_filled):
+            self._temp_buffer_filled = False
+            while cursor.movePosition(QtGui.QTextCursor.NextBlock):
+                temp_cursor = QtGui.QTextCursor(cursor)
+                temp_cursor.select(QtGui.QTextCursor.BlockUnderCursor)
+                text = temp_cursor.selection().toPlainText().lstrip()
+                if not text.startswith(prompt):
+                    break
         else:
             # We've reached the end of the input buffer and no text follows.
             return
@@ -938,7 +946,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self._control.moveCursor(QtGui.QTextCursor.End)
         self._control.setTextCursor(cursor)
 
-        _temp_buffer_filled = True
+        self._temp_buffer_filled = True
 
 
     def _context_menu_make(self, pos):
@@ -989,7 +997,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Creates and connects the underlying text widget.
         """
         # Create the underlying control.
-        if self.kind == 'plain':
+        if self.custom_control:
+            control = self.custom_control()
+        elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
@@ -1026,7 +1036,9 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     def _create_page_control(self):
         """ Creates and connects the underlying paging widget.
         """
-        if self.kind == 'plain':
+        if self.custom_page_control:
+            control = self.custom_page_control()
+        elif self.kind == 'plain':
             control = QtGui.QPlainTextEdit()
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()

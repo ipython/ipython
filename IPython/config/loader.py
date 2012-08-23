@@ -82,7 +82,7 @@ class Config(dict):
     def _merge(self, other):
         to_update = {}
         for k, v in other.iteritems():
-            if not self.has_key(k):
+            if k not in self:
                 to_update[k] = v
             else: # I have this key
                 if isinstance(v, Config):
@@ -163,19 +163,19 @@ class Config(dict):
     def __getattr__(self, key):
         try:
             return self.__getitem__(key)
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __setattr__(self, key, value):
         try:
             self.__setitem__(key, value)
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __delattr__(self, key):
         try:
             dict.__delitem__(self, key)
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
 

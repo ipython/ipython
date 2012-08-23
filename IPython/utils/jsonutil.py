@@ -11,9 +11,11 @@
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import math
 import re
 import sys
 import types
+from base64 import encodestring
 from datetime import datetime
 
 from IPython.utils import py3compat
@@ -89,6 +91,39 @@ def date_default(obj):
         raise TypeError("%r is not JSON serializable"%obj)
 
 
+# constants for identifying png/jpeg data
+PNG = b'\x89PNG\r\n\x1a\n'
+JPEG = b'\xff\xd8'
+
+def encode_images(format_dict):
+    """b64-encodes images in a displaypub format dict
+    
+    Perhaps this should be handled in json_clean itself?
+    
+    Parameters
+    ----------
+    
+    format_dict : dict
+        A dictionary of display data keyed by mime-type
+    
+    Returns
+    -------
+    
+    format_dict : dict
+        A copy of the same dictionary,
+        but binary image data ('image/png' or 'image/jpeg')
+        is base64-encoded.
+    
+    """
+    encoded = format_dict.copy()
+    pngdata = format_dict.get('image/png')
+    if isinstance(pngdata, bytes) and pngdata[:8] == PNG:
+        encoded['image/png'] = encodestring(pngdata).decode('ascii')
+    jpegdata = format_dict.get('image/jpeg')
+    if isinstance(jpegdata, bytes) and jpegdata[:2] == JPEG:
+        encoded['image/jpeg'] = encodestring(jpegdata).decode('ascii')
+    return encoded
+
 
 def json_clean(obj):
     """Clean an object to ensure it's safe to encode in JSON.
@@ -127,10 +162,16 @@ def json_clean(obj):
     """
     # types that are 'atomic' and ok in json as-is.  bool doesn't need to be
     # listed explicitly because bools pass as int instances
-    atomic_ok = (unicode, int, float, types.NoneType)
+    atomic_ok = (unicode, int, types.NoneType)
     
     # containers that we need to convert into lists
     container_to_list = (tuple, set, types.GeneratorType)
+    
+    if isinstance(obj, float):
+        # cast out-of-range floats to their reprs
+        if math.isnan(obj) or math.isinf(obj):
+            return repr(obj)
+        return obj
     
     if isinstance(obj, atomic_ok):
         return obj

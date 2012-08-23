@@ -111,7 +111,7 @@ class HtmlExporter(object):
             # Perform the export!
             try:
                 return exporter(html, self.filename, self.image_tag)
-            except Exception, e:
+            except Exception as e:
                 msg = "Error exporting HTML to %s\n" % self.filename + str(e)
                 reply = QtGui.QMessageBox.warning(parent, 'Error', msg,
                     QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)

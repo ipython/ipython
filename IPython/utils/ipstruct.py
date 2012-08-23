@@ -84,7 +84,7 @@ class Struct(dict):
         ...
         this is not allowed
         """
-        if not self._allownew and not self.has_key(key):
+        if not self._allownew and key not in self:
             raise KeyError(
                 "can't create new attribute %s when allow_new_attr(False)" % key)
         dict.__setitem__(self, key, value)
@@ -121,7 +121,7 @@ class Struct(dict):
                 )
         try:
             self.__setitem__(key, value)
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __getattr__(self, key):
@@ -212,7 +212,7 @@ class Struct(dict):
         {'b': 30}
         """
         for k in other.keys():
-            if self.has_key(k):
+            if k in self:
                 del self[k]
         return self
 
@@ -262,7 +262,7 @@ class Struct(dict):
         >>> s.hasattr('get')
         False
         """
-        return self.has_key(key)
+        return key in self
 
     def allow_new_attr(self, allow = True):
         """Set whether new attributes can be created in this Struct.

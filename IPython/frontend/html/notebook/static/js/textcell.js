@@ -12,6 +12,7 @@
 var IPython = (function (IPython) {
 
     // TextCell base class
+    var key = IPython.utils.keycodes;
 
     var TextCell = function () {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
@@ -35,6 +36,7 @@ var IPython = (function (IPython) {
             value: this.placeholder,
             readOnly: this.read_only,
             lineWrapping : true,
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
@@ -155,6 +157,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.fromJSON = function (data) {
+        IPython.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
             if (data.source !== undefined) {
                 this.set_text(data.source);
@@ -170,7 +173,7 @@ var IPython = (function (IPython) {
 
 
     TextCell.prototype.toJSON = function () {
-        var data = {};
+        var data = IPython.Cell.prototype.toJSON.apply(this);
         data.cell_type = this.cell_type;
         data.source = this.get_text();
         return data;
@@ -219,7 +222,15 @@ var IPython = (function (IPython) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var html = IPython.markdown_converter.makeHtml(text);
-            this.set_rendered(html);
+            try {
+                this.set_rendered(html);
+            } catch (e) {
+                console.log("Error running Javascript in Markdown:");
+                console.log(e);
+                this.set_rendered($("<div/>").addClass("js-error").html(
+                    "Error rendering Markdown!<br/>" + e.toString())
+                );
+            }
             this.typeset()
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
@@ -259,6 +270,36 @@ var IPython = (function (IPython) {
     };
 
 
+    RawCell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        // This method gets called in CodeMirror's onKeyDown/onKeyPress
+        // handlers and is used to provide custom key handling. Its return
+        // value is used to determine if CodeMirror should ignore the event:
+        // true = ignore, false = don't ignore.
+
+        var that = this;
+        if (event.which === key.UPARROW && event.type === 'keydown') {
+            // If we are not at the top, let CM handle the up arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_top()) {
+                event.stop();
+                return false;
+            } else {
+                return true;
+            };
+        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+            // If we are not at the bottom, let CM handle the down arrow and
+            // prevent the global keydown handler from handling it.
+            if (!that.at_bottom()) {
+                event.stop();
+                return false;
+            } else {
+                return true;
+            };
+        };
+        return false;
+    };
+
+
     RawCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
@@ -268,7 +309,7 @@ var IPython = (function (IPython) {
 
     RawCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0) {
+        if (cursor.line === 0 && cursor.ch === 0) {
             return true;
         } else {
             return false;
@@ -278,7 +319,7 @@ var IPython = (function (IPython) {
 
     RawCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
-        if (cursor.line === (this.code_mirror.lineCount()-1)) {
+        if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
             return true;
         } else {
             return false;

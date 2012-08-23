@@ -6,6 +6,7 @@ Usage:
 """
 from __future__ import print_function
 
+import io, os
 import argparse
 from subprocess import check_call, CalledProcessError
 
@@ -24,27 +25,21 @@ def merge_branch(repo, branch ):
     """
     # Delete the branch first
     try :
-        check_call(['git', 'pull', '--no-edit', repo, branch])
+        check_call(['git', 'pull', repo, branch], stdin=io.open(os.devnull))
     except CalledProcessError :
         check_call(['git', 'merge', '--abort'])
         return False
     return True
 
 
-def merge_pr(num, github_api=3):
+def merge_pr(num):
     """ try to merge the branch of PR `num` into current branch
-    
-    github_api : use github api v2 (to bypass https and issues with proxy) to find the
-             remote branch that should be merged by it's number
     """
     # Get Github authorisation first, so that the user is prompted straight away
     # if their login is needed.
     
-    pr = gh_api.get_pull_request(gh_project, num, github_api)
-    if github_api == 2:
-        repo = pr['head']['repository']['url']
-    elif github_api == 3 :
-        repo = pr['head']['repo']['clone_url']
+    pr = gh_api.get_pull_request(gh_project, num)
+    repo = pr['head']['repo']['clone_url']
 
 
     branch = pr['head']['ref']
@@ -63,13 +58,11 @@ def merge_pr(num, github_api=3):
 def main(*args):
     parser = argparse.ArgumentParser(
             description="""
-                Merge (one|many) github pull request by their number.\
-                
-                If pull request can't be merge as is, cancel merge,
-                and continue to the next if any.
+                Merge one or more github pull requests by their number. If any
+                one pull request can't be merged as is, its merge is ignored
+                and the process continues with the next ones (if any).
                 """
             )
-    parser.add_argument('-v2', '--githubapiv2', action='store_const', const=2)
 
     grp = parser.add_mutually_exclusive_group()
     grp.add_argument(
@@ -83,22 +76,17 @@ def main(*args):
             action='store_const',
             const=True ,
             help='try to merge as many PR as possible, one by one')
-    grp.add_argument('-m',
-            '--merge',
+    parser.add_argument('merge',
             type=int,
             help="The pull request numbers",
             nargs='*',
             metavar='pr-number')
     args = parser.parse_args()
-    if args.githubapiv2 == 2 :
-        github_api = 2
-    else  :
-        github_api = 3
 
     if(args.list):
-        pr_list = gh_api.get_pulls_list(gh_project, github_api)
+        pr_list = gh_api.get_pulls_list(gh_project)
         for pr in pr_list :
-            mergeable = gh_api.get_pull_request(gh_project, pr['number'], github_api=github_api)['mergeable']
+            mergeable = gh_api.get_pull_request(gh_project, pr['number'])['mergeable']
 
             ismgb = u"√" if mergeable else " "
             print(u"* #{number} [{ismgb}]:  {title}".format(
@@ -114,7 +102,7 @@ def main(*args):
 
     elif args.merge:
         for num in args.merge :
-            merge_pr(num, github_api=github_api)
+            merge_pr(num)
 
     if not_merged :
         print('*************************************************************************************')

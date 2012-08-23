@@ -82,8 +82,9 @@ class AsyncResult(object):
         self._targets = targets
         self._tracker = tracker
         self._ready = False
+        self._outputs_ready = False
         self._success = None
-        self._metadata = None
+        self._metadata = [ self._client.metadata.get(id) for id in self.msg_ids ]
         if len(msg_ids) == 1:
             self._single_result = not isinstance(targets, (list, tuple))
         else:
@@ -126,10 +127,17 @@ class AsyncResult(object):
         else:
             raise error.TimeoutError("Result not ready.")
 
+    def _check_ready(self):
+        if not self.ready():
+            raise error.TimeoutError("Result not ready.")
+    
     def ready(self):
         """Return whether the call has completed."""
         if not self._ready:
             self.wait(0)
+        elif not self._outputs_ready:
+            self._wait_for_outputs(0)
+        
         return self._ready
 
     def wait(self, timeout=-1):
@@ -138,6 +146,7 @@ class AsyncResult(object):
         This method always returns None.
         """
         if self._ready:
+            self._wait_for_outputs(timeout)
             return
         self._ready = self._client.wait(self.msg_ids, timeout)
         if self._ready:
@@ -151,15 +160,16 @@ class AsyncResult(object):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:
                 self._success = True
             finally:
-                self._metadata = map(self._client.metadata.get, self.msg_ids)
-                self._wait_for_outputs(10)
-            
+                if timeout is None or timeout < 0:
+                    # cutoff infinite wait at 10s
+                    timeout = 10
+                self._wait_for_outputs(timeout)
 
 
     def successful(self):
@@ -192,14 +202,13 @@ class AsyncResult(object):
 
     @property
     def result(self):
-        """result property wrapper for `get(timeout=0)`."""
+        """result property wrapper for `get(timeout=-1)`."""
         return self.get()
 
     # abbreviated alias:
     r = result
 
     @property
-    @check_ready
     def metadata(self):
         """property for accessing execution metadata."""
         if self._single_result:
@@ -238,15 +247,18 @@ class AsyncResult(object):
     # dict-access
     #-------------------------------------
 
-    @check_ready
     def __getitem__(self, key):
         """getitem returns result value(s) if keyed by int/slice, or metadata if key is str.
         """
         if isinstance(key, int):
+            self._check_ready()
             return error.collect_exceptions([self._result[key]], self._fname)[0]
         elif isinstance(key, slice):
+            self._check_ready()
             return error.collect_exceptions(self._result[key], self._fname)
         elif isinstance(key, basestring):
+            # metadata proxy *does not* require that results are done
+            self.wait(0)
             values = [ md[key] for md in self._metadata ]
             if self._single_result:
                 return values[0]
@@ -373,11 +385,13 @@ class AsyncResult(object):
         """
         return self.timedelta(self.submitted, self.received)
     
-    def wait_interactive(self, interval=1., timeout=None):
+    def wait_interactive(self, interval=1., timeout=-1):
         """interactive wait, printing progress at regular intervals"""
+        if timeout is None:
+            timeout = -1
         N = len(self)
         tic = time.time()
-        while not self.ready() and (timeout is None or time.time() - tic <= timeout):
+        while not self.ready() and (timeout < 0 or time.time() - tic <= timeout):
             self.wait(interval)
             clear_output()
             print("%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed), end="")
@@ -429,13 +443,21 @@ class AsyncResult(object):
     def _wait_for_outputs(self, timeout=-1):
         """wait for the 'status=idle' message that indicates we have all outputs
         """
-        if not self._success:
+        if self._outputs_ready or not self._success:
             # don't wait on errors
             return
+        
+        # cast None to -1 for infinite timeout
+        if timeout is None:
+            timeout = -1
+        
         tic = time.time()
-        while not all(md['outputs_ready'] for md in self._metadata):
+        self._client._flush_iopub(self._client._iopub_socket)
+        self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
+        while not self._outputs_ready:
             time.sleep(0.01)
             self._client._flush_iopub(self._client._iopub_socket)
+            self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
             if timeout >= 0 and time.time() > tic + timeout:
                 break
     
@@ -639,9 +661,9 @@ class AsyncHubResult(AsyncResult):
     so use `AsyncHubResult.wait()` sparingly.
     """
 
-    def _wait_for_outputs(self, timeout=None):
+    def _wait_for_outputs(self, timeout=-1):
         """no-op, because HubResults are never incomplete"""
-        return
+        self._outputs_ready = True
     
     def wait(self, timeout=-1):
         """wait for result to complete."""
@@ -675,7 +697,7 @@ class AsyncHubResult(AsyncResult):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:

@@ -66,6 +66,8 @@ the full test suite.  You can then run the suite with:
 
    iptest  [args]
 
+By default, this excludes the relatively slow tests for ``IPython.parallel``. To
+run these, use ``iptest --all``.
 
 Regardless of how you run things, you should eventually see something like:
 
@@ -138,6 +140,23 @@ point of the error or failure respectively.
        print sys_info()
 
    and include the resulting information in your query.
+
+Testing pull requests
+---------------------
+
+We have a script that fetches a pull request from Github, merges it with master,
+and runs the test suite on different versions of Python. This uses a separate
+copy of the repository, so you can keep working on the code while it runs. To
+run it::
+
+    python tools/test_pr.py -p 1234
+
+The number is the pull request number from Github; the ``-p`` flag makes it post
+the results to a comment on the pull request. Any further arguments are passed
+to ``iptest``.
+
+This requires the `requests <http://pypi.python.org/pypi/requests>`_ and
+`keyring <http://pypi.python.org/pypi/keyring>`_ packages.
 
 For developers: writing tests
 =============================

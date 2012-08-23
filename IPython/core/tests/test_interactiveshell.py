@@ -33,6 +33,7 @@ import nose.tools as nt
 
 # Our own
 from IPython.testing.decorators import skipif
+from IPython.testing import tools as tt
 from IPython.utils import io
 
 #-----------------------------------------------------------------------------
@@ -50,17 +51,17 @@ class InteractiveShellTestCase(unittest.TestCase):
         """Test that cells with only naked strings are fully executed"""
         # First, single-line inputs
         ip.run_cell('"a"\n')
-        self.assertEquals(ip.user_ns['_'], 'a')
+        self.assertEqual(ip.user_ns['_'], 'a')
         # And also multi-line cells
         ip.run_cell('"""a\nb"""\n')
-        self.assertEquals(ip.user_ns['_'], 'a\nb')
+        self.assertEqual(ip.user_ns['_'], 'a\nb')
 
     def test_run_empty_cell(self):
         """Just make sure we don't get a horrible error with a blank
         cell of input. Yes, I did overlook that."""
         old_xc = ip.execution_count
         ip.run_cell('')
-        self.assertEquals(ip.execution_count, old_xc)
+        self.assertEqual(ip.execution_count, old_xc)
 
     def test_run_cell_multiline(self):
         """Multi-block, multi-line cells must execute correctly.
@@ -71,38 +72,38 @@ class InteractiveShellTestCase(unittest.TestCase):
                          "    x += 1",
                          "    y += 1",])
         ip.run_cell(src)
-        self.assertEquals(ip.user_ns['x'], 2)
-        self.assertEquals(ip.user_ns['y'], 3)
+        self.assertEqual(ip.user_ns['x'], 2)
+        self.assertEqual(ip.user_ns['y'], 3)
 
     def test_multiline_string_cells(self):
         "Code sprinkled with multiline strings should execute (GH-306)"
         ip.run_cell('tmp=0')
-        self.assertEquals(ip.user_ns['tmp'], 0)
+        self.assertEqual(ip.user_ns['tmp'], 0)
         ip.run_cell('tmp=1;"""a\nb"""\n')
-        self.assertEquals(ip.user_ns['tmp'], 1)
+        self.assertEqual(ip.user_ns['tmp'], 1)
 
     def test_dont_cache_with_semicolon(self):
         "Ending a line with semicolon should not cache the returned object (GH-307)"
         oldlen = len(ip.user_ns['Out'])
         a = ip.run_cell('1;', store_history=True)
         newlen = len(ip.user_ns['Out'])
-        self.assertEquals(oldlen, newlen)
+        self.assertEqual(oldlen, newlen)
         #also test the default caching behavior
         ip.run_cell('1', store_history=True)
         newlen = len(ip.user_ns['Out'])
-        self.assertEquals(oldlen+1, newlen)
+        self.assertEqual(oldlen+1, newlen)
 
     def test_In_variable(self):
         "Verify that In variable grows with user input (GH-284)"
         oldlen = len(ip.user_ns['In'])
         ip.run_cell('1;', store_history=True)
         newlen = len(ip.user_ns['In'])
-        self.assertEquals(oldlen+1, newlen)
-        self.assertEquals(ip.user_ns['In'][-1],'1;')
+        self.assertEqual(oldlen+1, newlen)
+        self.assertEqual(ip.user_ns['In'][-1],'1;')
         
     def test_magic_names_in_string(self):
         ip.run_cell('a = """\n%exit\n"""')
-        self.assertEquals(ip.user_ns['a'], '\n%exit\n')
+        self.assertEqual(ip.user_ns['a'], '\n%exit\n')
     
     def test_alias_crash(self):
         """Errors in prefilter can't crash IPython"""
@@ -113,7 +114,7 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell('parts 1')
         err = io.stderr.getvalue()
         io.stderr = save_err
-        self.assertEquals(err.split(':')[0], 'ERROR')
+        self.assertEqual(err.split(':')[0], 'ERROR')
     
     def test_trailing_newline(self):
         """test that running !(command) does not raise a SyntaxError"""
@@ -192,9 +193,9 @@ class InteractiveShellTestCase(unittest.TestCase):
             # capture stderr
             io.stderr = StringIO()
             ip.set_custom_exc((IOError,), lambda etype,value,tb: 1/0)
-            self.assertEquals(ip.custom_exceptions, (IOError,))
+            self.assertEqual(ip.custom_exceptions, (IOError,))
             ip.run_cell(u'raise IOError("foo")')
-            self.assertEquals(ip.custom_exceptions, ())
+            self.assertEqual(ip.custom_exceptions, ())
             self.assertTrue("Custom TB Handler failed" in io.stderr.getvalue())
         finally:
             io.stderr = save_stderr
@@ -207,9 +208,9 @@ class InteractiveShellTestCase(unittest.TestCase):
             # capture stderr
             io.stderr = StringIO()
             ip.set_custom_exc((NameError,),lambda etype,value,tb, tb_offset=None: 1)
-            self.assertEquals(ip.custom_exceptions, (NameError,))
+            self.assertEqual(ip.custom_exceptions, (NameError,))
             ip.run_cell(u'a=abracadabra')
-            self.assertEquals(ip.custom_exceptions, ())
+            self.assertEqual(ip.custom_exceptions, ())
             self.assertTrue("Custom TB Handler failed" in io.stderr.getvalue())
         finally:
             io.stderr = save_stderr
@@ -257,6 +258,18 @@ class InteractiveShellTestCase(unittest.TestCase):
         ip.run_cell('makemacro()')
         nt.assert_in('macro_var_expand_locals', ip.user_ns)
     
+    def test_var_expand_self(self):
+        """Test variable expansion with the name 'self', which was failing.
+        
+        See https://github.com/ipython/ipython/issues/1878#issuecomment-7698218
+        """
+        ip.run_cell('class cTest:\n'
+                    '  classvar="see me"\n'
+                    '  def test(self):\n'
+                    '    res = !echo Variable: {self.classvar}\n'
+                    '    return res[0]\n')
+        nt.assert_in('see me', ip.user_ns['cTest']().test())
+    
     def test_bad_var_expand(self):
         """var_expand on invalid formats shouldn't raise"""
         # SyntaxError
@@ -288,11 +301,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         # silent should force store_history=False
         ip.run_cell("1", store_history=True, silent=True)
         
-        self.assertEquals(ec, ip.execution_count)
+        self.assertEqual(ec, ip.execution_count)
         # double-check that non-silent exec did what we expected
         # silent to avoid
         ip.run_cell("1", store_history=True)
-        self.assertEquals(ec+1, ip.execution_count)
+        self.assertEqual(ec+1, ip.execution_count)
     
     def test_silent_nodisplayhook(self):
         """run_cell(silent=True) doesn't trigger displayhook"""
@@ -400,6 +413,18 @@ class TestSystemRaw(unittest.TestCase):
         """
         cmd = ur'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
+
+class TestModules(unittest.TestCase, tt.TempFileMixin):
+    def test_extraneous_loads(self):
+        """Test we're not loading modules on startup that we shouldn't.
+        """
+        self.mktmp("import sys\n"
+                   "print('numpy' in sys.modules)\n"
+                   "print('IPython.parallel' in sys.modules)\n"
+                   "print('IPython.zmq' in sys.modules)\n"
+                   )
+        out = "False\nFalse\nFalse\n"
+        tt.ipexec_validate(self.fname, out)
 
 
 def test__IPYTHON__():

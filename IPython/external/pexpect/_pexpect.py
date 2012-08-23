@@ -79,7 +79,7 @@ try:
     import errno
     import traceback
     import signal
-except ImportError, e:
+except ImportError as e:
     raise ImportError (str(e) + """
 
 A critical module was not found. Probably this operating system does not
@@ -265,10 +265,10 @@ def run (command, timeout=-1, withexitstatus=False, events=None, extra_args=None
             else:
                 raise TypeError ('The callback must be a string or function type.')
             event_count = event_count + 1
-        except TIMEOUT, e:
+        except TIMEOUT as e:
             child_result_list.append(child.before)
             break
-        except EOF, e:
+        except EOF as e:
             child_result_list.append(child.before)
             break
     child_result = child._empty_buffer.join(child_result_list)
@@ -552,7 +552,7 @@ class spawnb(object):
         if self.use_native_pty_fork:
             try:
                 self.pid, self.child_fd = pty.fork()
-            except OSError, e:
+            except OSError as e:
                 raise ExceptionPexpect('Error! pty.fork() failed: ' + str(e))
         else: # Use internal __fork_pty
             self.pid, self.child_fd = self.__fork_pty()
@@ -608,11 +608,11 @@ class spawnb(object):
 
         parent_fd, child_fd = os.openpty()
         if parent_fd < 0 or child_fd < 0:
-            raise ExceptionPexpect, "Error! Could not open pty with os.openpty()."
+            raise ExceptionPexpect("Error! Could not open pty with os.openpty().")
 
         pid = os.fork()
         if pid < 0:
-            raise ExceptionPexpect, "Error! Failed os.fork()."
+            raise ExceptionPexpect("Error! Failed os.fork().")
         elif pid == 0:
             # Child.
             os.close(parent_fd)
@@ -655,7 +655,7 @@ class spawnb(object):
             fd = os.open("/dev/tty", os.O_RDWR | os.O_NOCTTY);
             if fd >= 0:
                 os.close(fd)
-                raise ExceptionPexpect, "Error! Failed to disconnect from controlling tty. It is still possible to open /dev/tty."
+                raise ExceptionPexpect("Error! Failed to disconnect from controlling tty. It is still possible to open /dev/tty.")
         except:
             # Good! We are disconnected from a controlling tty.
             pass
@@ -663,14 +663,14 @@ class spawnb(object):
         # Verify we can open child pty.
         fd = os.open(child_name, os.O_RDWR);
         if fd < 0:
-            raise ExceptionPexpect, "Error! Could not open child pty, " + child_name
+            raise ExceptionPexpect("Error! Could not open child pty, " + child_name)
         else:
             os.close(fd)
 
         # Verify we now have a controlling tty.
         fd = os.open("/dev/tty", os.O_WRONLY)
         if fd < 0:
-            raise ExceptionPexpect, "Error! Could not open controlling tty, /dev/tty"
+            raise ExceptionPexpect("Error! Could not open controlling tty, /dev/tty")
         else:
             os.close(fd)
 
@@ -857,7 +857,7 @@ class spawnb(object):
         if self.child_fd in r:
             try:
                 s = os.read(self.child_fd, size)
-            except OSError, e: # Linux does this
+            except OSError as e: # Linux does this
                 self.flag_eof = True
                 raise EOF ('End Of File (EOF) in read_nonblocking(). Exception style platform.')
             if s == b'': # BSD style
@@ -930,7 +930,7 @@ class spawnb(object):
 
         return self
 
-    def next (self):    # File-like object.
+    def __next__ (self):    # File-like object.
 
         """This is to support iterators over a file-like object.
         """
@@ -939,6 +939,9 @@ class spawnb(object):
         if result == self._empty_buffer:
             raise StopIteration
         return result
+
+    if not PY3:
+        next = __next__    # File-like object.
 
     def readlines (self, sizehint = -1):    # File-like object.
 
@@ -1106,7 +1109,7 @@ class spawnb(object):
                 else:
                     return False
             return False
-        except OSError, e:
+        except OSError as e:
             # I think there are kernel timing issues that sometimes cause
             # this to happen. I think isalive() reports True, but the
             # process is dead to the kernel.
@@ -1177,7 +1180,7 @@ class spawnb(object):
         if pid == 0:
             try:
                 pid, status = os.waitpid(self.pid, waitpid_options) ### os.WNOHANG) # Solaris!
-            except OSError, e: # This should never happen...
+            except OSError as e: # This should never happen...
                 if e[0] == errno.ECHILD:
                     raise ExceptionPexpect ('isalive() encountered condition that should never happen. There was no child process. Did someone else call waitpid() on our process?')
                 else:
@@ -1424,7 +1427,7 @@ class spawnb(object):
                 incoming = incoming + c
                 if timeout is not None:
                     timeout = end_time - time.time()
-        except EOF, e:
+        except EOF as e:
             self.buffer = self._empty_buffer
             self.before = incoming
             self.after = EOF
@@ -1437,7 +1440,7 @@ class spawnb(object):
                 self.match = None
                 self.match_index = None
                 raise EOF (str(e) + '\n' + str(self))
-        except TIMEOUT, e:
+        except TIMEOUT as e:
             self.buffer = incoming
             self.before = incoming
             self.after = TIMEOUT
@@ -1829,7 +1832,7 @@ def which (filename):
         if os.access (filename, os.X_OK):
             return filename
 
-    if not os.environ.has_key('PATH') or os.environ['PATH'] == '':
+    if 'PATH' not in os.environ or os.environ['PATH'] == '':
         p = os.defpath
     else:
         p = os.environ['PATH']

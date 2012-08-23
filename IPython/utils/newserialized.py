@@ -110,7 +110,7 @@ class SerializeIt(object):
                 self.obj = numpy.ascontiguousarray(self.obj, dtype=None)
                 self.typeDescriptor = 'ndarray'
                 self.metadata = {'shape':self.obj.shape,
-                                 'dtype':self.obj.dtype.str}
+                                 'dtype':self.obj.dtype}
         elif isinstance(self.obj, bytes):
             self.typeDescriptor = 'bytes'
             self.metadata = {}

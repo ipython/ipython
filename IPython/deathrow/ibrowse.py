@@ -217,7 +217,7 @@ class _BrowserLevel(object):
                 break
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 have += 1
                 self.items.append(_BrowserCachedItem(exc))
                 self.exhausted = True
@@ -260,7 +260,7 @@ class _BrowserLevel(object):
                 value = attr.value(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 value = exc
             # only store attribute if it exists (or we got an exception)
             if value is not ipipe.noitem:
@@ -652,7 +652,7 @@ class _CommandFind(_CommandInput):
                         break # found something
                 except (KeyboardInterrupt, SystemExit):
                     raise
-                except Exception, exc:
+                except Exception as exc:
                     browser.report(exc)
                     curses.beep()
                     break  # break on error
@@ -677,7 +677,7 @@ class _CommandFindBackwards(_CommandInput):
                         break # found something
                 except (KeyboardInterrupt, SystemExit):
                     raise
-                except Exception, exc:
+                except Exception as exc:
                     browser.report(exc)
                     curses.beep()
                     break # break on error
@@ -946,7 +946,7 @@ class ibrowse(ipipe.Display):
                 )
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 if not self.levels:
                     raise
                 self._calcheaderlines(oldlevels)
@@ -1311,7 +1311,7 @@ class ibrowse(ipipe.Display):
                 item = attr.value(item)
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 self.report(exc)
             else:
                 self.report("entering detail view for attribute %s..." % attr.name())
@@ -1638,7 +1638,7 @@ class ibrowse(ipipe.Display):
                         value = attr.value(item)
                     except (SystemExit, KeyboardInterrupt):
                         raise
-                    except Exception, exc:
+                    except Exception as exc:
                         value = exc
                     if value is not ipipe.noitem:
                         attrstyle = ipipe.xrepr(value, "footer")

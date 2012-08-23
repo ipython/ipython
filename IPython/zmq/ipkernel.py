@@ -147,6 +147,8 @@ class Kernel(Configurable):
         self.shell.displayhook.topic = self._topic('pyout')
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
+        self.shell.data_pub.session = self.session
+        self.shell.data_pub.pub_socket = self.iopub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -218,9 +220,9 @@ class Kernel(Configurable):
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg_type.split('_')[0] + '_reply'
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             return
         
@@ -254,8 +256,6 @@ class Kernel(Configurable):
                 self.eventloop = None
                 break
         self.log.info("exiting eventloop")
-        # if eventloop exits, IOLoop should stop
-        ioloop.IOLoop.instance().stop()
 
     def start(self):
         """register dispatchers for streams"""
@@ -293,13 +293,16 @@ class Kernel(Configurable):
     # Kernel request handlers
     #---------------------------------------------------------------------------
     
-    def _make_subheader(self):
-        """init subheader dict, for execute/apply_reply"""
-        return {
+    def _make_metadata(self, other=None):
+        """init metadata dict, for execute/apply_reply"""
+        new_md = {
             'dependencies_met' : True,
             'engine' : self.ident,
             'started': datetime.now(),
         }
+        if other:
+            new_md.update(other)
+        return new_md
     
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
@@ -328,12 +331,13 @@ class Kernel(Configurable):
             content = parent[u'content']
             code = content[u'code']
             silent = content[u'silent']
+            store_history = content.get(u'store_history', not silent)
         except:
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
             return
         
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
 
         shell = self.shell # we'll need this a lot here
 
@@ -352,6 +356,7 @@ class Kernel(Configurable):
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
@@ -363,7 +368,7 @@ class Kernel(Configurable):
         reply_content = {}
         try:
             # FIXME: the shell calls the exception handler itself.
-            shell.run_cell(code, store_history=not silent, silent=silent)
+            shell.run_cell(code, store_history=store_history, silent=silent)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
@@ -425,13 +430,13 @@ class Kernel(Configurable):
         # Send the reply.
         reply_content = json_clean(reply_content)
         
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
         if reply_content['status'] == 'error' and \
                         reply_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+                md['dependencies_met'] = False
 
         reply_msg = self.session.send(stream, u'execute_reply',
-                                      reply_content, parent, subheader=sub,
+                                      reply_content, parent, metadata=md,
                                       ident=ident)
         
         self.log.debug("%s", reply_msg)
@@ -537,13 +542,14 @@ class Kernel(Configurable):
         shell = self.shell
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)
         # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
         try:
             working = shell.user_ns
 
@@ -569,8 +575,11 @@ class Kernel(Configurable):
                 for key in ns.iterkeys():
                     working.pop(key)
 
-            packed_result,buf = serialize_object(result)
-            result_buf = [packed_result]+buf
+            result_buf = serialize_object(result,
+                buffer_threshold=self.session.buffer_threshold,
+                item_threshold=self.session.item_threshold,
+            )
+        
         except:
             # invoke IPython traceback formatting
             shell.showtraceback()
@@ -589,19 +598,19 @@ class Kernel(Configurable):
             result_buf = []
 
             if reply_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+                md['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
 
         # put 'ok'/'error' status in header, for scheduler introspection:
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
 
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
-                    parent=parent, ident=ident,buffers=result_buf, subheader=sub)
+                    parent=parent, ident=ident,buffers=result_buf, metadata=md)
 
         self._publish_status(u'idle', parent)
 
@@ -672,9 +681,9 @@ class Kernel(Configurable):
             reply_type = msg_type.split('_')[0] + '_reply'
 
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -908,6 +917,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     
     app.kernel.user_module = module
     app.kernel.user_ns = local_ns
+    app.shell.set_completer_frame()
     app.start()
 
 def main():
