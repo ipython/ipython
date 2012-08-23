@@ -3,7 +3,6 @@
 Authors : MinRK, gregcaporaso
 """
 
-from IPython.display import display, HTML
 from os import walk
 from os.path import join, exists, isfile, splitext
 
