@@ -103,7 +103,7 @@ def print_figure(fig, fmt='png'):
         original_axes_colors.append((patch.get_facecolor(),
                                      patch.get_edgecolor()))
         patch.set_facecolor(fc)
-        patch.set_edgecolor(fc)
+        patch.set_edgecolor(ec)
     try:
         bytes_io = BytesIO()
         fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
