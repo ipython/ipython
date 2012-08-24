@@ -78,9 +78,7 @@ class OutStream(object):
             
             self._buffer.write(string)
             current_time = time.time()
-            if self._start <= 0:
-                self._start = current_time
-            elif current_time - self._start > self.flush_interval:
+            if current_time - self._start > self.flush_interval:
                 self.flush()
 
     def writelines(self, sequence):
@@ -92,4 +90,4 @@ class OutStream(object):
 
     def _new_buffer(self):
         self._buffer = StringIO()
-        self._start = -1
+        self._start = time.time()
