@@ -30,6 +30,7 @@ from IPython.core.interactiveshell import (
 from IPython.core import page
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displaypub import DisplayPublisher
+from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
@@ -349,6 +350,9 @@ class KernelMagics(Magics):
         """Show a file through the pager.
 
         Files ending in .py are syntax-highlighted."""
+        if not arg_s:
+            raise UsageError('Missing filename.')
+
         cont = open(arg_s).read()
         if arg_s.endswith('.py'):
             cont = self.shell.pycolorize(cont)
