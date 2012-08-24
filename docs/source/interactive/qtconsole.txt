@@ -254,6 +254,7 @@ stylesheet:
     QPlainTextEdit, QTextEdit { background-color: white;
             color: black ;
             selection-background-color: #ccc}
+    .inverted { background-color: black ; color: white;}
     .error { color: red; }
     .in-prompt { color: navy; }
     .in-prompt-number { font-weight: bold; }
