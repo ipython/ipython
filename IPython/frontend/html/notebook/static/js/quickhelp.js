@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
             {key: 'Ctrl-Enter', help: 'run cell in-place'},
+            {key: 'Alt-Enter', help: 'run cell, insert below'},
             {key: 'Ctrl-m x', help: 'cut cell'},
             {key: 'Ctrl-m c', help: 'copy cell'},
             {key: 'Ctrl-m v', help: 'paste cell'},
@@ -35,6 +36,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m o', help: 'toggle output'},
+            {key: 'Ctrl-m O', help: 'toggle output scroll'},
             {key: 'Ctrl-m l', help: 'toggle line numbers'},
             {key: 'Ctrl-m s', help: 'save notebook'},
             {key: 'Ctrl-m j', help: 'move cell down'},

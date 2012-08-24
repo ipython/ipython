@@ -87,6 +87,7 @@ Some of the known remaining caveats are:
 
 - C extension modules cannot be reloaded, and so cannot be autoreloaded.
 """
+from __future__ import print_function
 
 skip_doctest = True
 
@@ -244,8 +245,8 @@ class ModuleReloader(object):
                 if py_filename in self.failed:
                     del self.failed[py_filename]
             except:
-                print >> sys.stderr, "[autoreload of %s failed: %s]" % (
-                        modname, traceback.format_exc(1))
+                print("[autoreload of %s failed: %s]" % (
+                        modname, traceback.format_exc(1)), file=sys.stderr)
                 self.failed[py_filename] = pymtime
 
 #------------------------------------------------------------------------------
@@ -372,6 +373,7 @@ def superreload(module, reload=reload, old_objects={}):
         old_name = module.__name__
         module.__dict__.clear()
         module.__dict__['__name__'] = old_name
+        module.__dict__['__loader__'] = old_dict['__loader__']
     except (TypeError, AttributeError, KeyError):
         pass
 

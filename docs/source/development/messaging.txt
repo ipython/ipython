@@ -78,22 +78,11 @@ representation of all the data, we can communicate with such clients.
    Not all of these have yet been fully fleshed out, but the key ones are, see
    kernel and frontend files for actual implementation details.
 
-   
-Python functional API
-=====================
-
-As messages are dicts, they map naturally to a ``func(**kw)`` call form.  We
-should develop, at a few key points, functional forms of all the requests that
-take arguments in this manner and automatically construct the necessary dict
-for sending.
-
-
 General Message Format
 ======================
 
-All messages send or received by any IPython process should have the following
-generic structure::
-    
+A message is defined by the following four-dictionary structure::
+
     {
       # The message header contains a pair of unique identifiers for the
       # originating session and the actual message id, in addition to the
@@ -108,22 +97,44 @@ generic structure::
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
          },
-      # The msg's unique identifier and type are stored in the header, but
-      # are also accessible at the top-level for convenience.
-      'msg_id' : uuid,
-      'msg_type' : str,
 
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
       'parent_header' : dict,
 
       # The actual content of the message must be a dict, whose structure
-      # depends on the message type.x
+      # depends on the message type.
       'content' : dict,
+      
+      # Any metadata associated with the message.
+      'metadata' : dict,
     }
 
-For each message type, the actual content will differ and all existing message
-types are specified in what follows of this document.
+   
+Python functional API
+=====================
+
+As messages are dicts, they map naturally to a ``func(**kw)`` call form.  We
+should develop, at a few key points, functional forms of all the requests that
+take arguments in this manner and automatically construct the necessary dict
+for sending.
+
+In addition, the Python implementation of the message specification extends
+messages upon deserialization to the following form for convenience::
+
+    {
+      'header' : dict,
+      # The msg's unique identifier and type are always stored in the header,
+      # but the Python implementation copies them to the top level.
+      'msg_id' : uuid,
+      'msg_type' : str,
+      'parent_header' : dict,
+      'content' : dict,
+      'metadata' : dict,
+    }
+
+All messages sent to or received by any IPython process should have this
+extended structure.
 
 
 Messages on the shell ROUTER/DEALER sockets
@@ -147,13 +158,18 @@ Message type: ``execute_request``::
     # A boolean flag which, if True, signals the kernel to execute
     # this code as quietly as possible.  This means that the kernel
     # will compile the code with 'exec' instead of 'single' (so
-    # sys.displayhook will not fire), and will *not*:
+    # sys.displayhook will not fire), forces store_history to be False, 
+    # and will *not*:
     #   - broadcast exceptions on the PUB socket
     #   - do any logging
-    #   - populate any history
     #
     # The default is False.
     'silent' : bool,
+
+    # A boolean flag which, if True, signals the kernel to populate history
+    # The default is True if silent is False.  If silent is True, store_history
+    # is forced to be False.
+    'store_history' : bool,
 
     # A list of variable names from the user's namespace to be retrieved.  What
     # returns is a JSON string of the variable's repr(), not a python object.
@@ -297,7 +313,7 @@ Execution counter (old prompt number)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The kernel has a single, monotonically increasing counter of all execution
-requests that are made with ``silent=False``.  This counter is used to populate
+requests that are made with ``store_history=True``.  This counter is used to populate
 the ``In[n]``, ``Out[n]`` and ``_n`` variables, so clients will likely want to
 display it in some form to the user, which will typically (but not necessarily)
 be done in the prompts.  The value of this counter will be returned as the
@@ -314,9 +330,9 @@ Message type: ``execute_reply``::
       # One of: 'ok' OR 'error' OR 'abort'
       'status' : str,
 
-      # The global kernel counter that increases by one with each non-silent
-      # executed request.  This will typically be used by clients to display
-      # prompt numbers to the user.  If the request was a silent one, this will
+      # The global kernel counter that increases by one with each request that 
+      # stores history.  This will typically be used by clients to display
+      # prompt numbers to the user.  If the request did not store history, this will
       # be the current value of the counter in the kernel.
       'execution_count' : int,
     }
@@ -547,7 +563,7 @@ Message type: ``object_info_reply``::
     # that no source was found.
     'source' : str,
     }
-'
+
     
 Complete
 --------
@@ -745,12 +761,50 @@ Message type: ``display_data``::
         # The data dict contains key/value pairs, where the kids are MIME
         # types and the values are the raw data of the representation in that
         # format. The data dict must minimally contain the ``text/plain``
-        # MIME type which is used as a backup representation.        
+        # MIME type which is used as a backup representation.
         'data' : dict,
 
         # Any metadata that describes the data
         'metadata' : dict
     }
+
+
+Raw Data Publication
+--------------------
+
+``display_data`` lets you publish *representations* of data, such as images and html.
+This ``data_pub`` message lets you publish *actual raw data*, sent via message buffers.
+
+data_pub messages are constructed via the :func:`IPython.lib.datapub.publish_data` function:
+
+.. sourcecode:: python
+
+    from IPython.zmq.datapub import publish_data
+    ns = dict(x=my_array)
+    publish_data(ns)
+
+
+Message type: ``data_pub``::
+
+    content = {
+        # the keys of the data dict, after it has been unserialized
+        keys = ['a', 'b']
+    }
+    # the namespace dict will be serialized in the message buffers,
+    # which will have a length of at least one
+    buffers = ['pdict', ...]
+
+
+The interpretation of a sequence of data_pub messages for a given parent request should be
+to update a single namespace with subsequent results.
+
+.. note::
+
+    No frontends directly handle data_pub messages at this time.
+    It is currently only used by the client/engines in :mod:`IPython.parallel`,
+    where engines may publish *data* to the Client,
+    of which the Client can then publish *representations* via ``display_data``
+    to various frontends.
 
 Python inputs
 -------------

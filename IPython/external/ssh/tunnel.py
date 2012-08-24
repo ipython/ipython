@@ -97,7 +97,7 @@ def _try_passwordless_openssh(server, keyfile):
     p = pexpect.spawn(cmd)
     while True:
         try:
-            p.expect('[Ppassword]:', timeout=.1)
+            p.expect('[Pp]assword:', timeout=.1)
         except pexpect.TIMEOUT:
             continue
         except pexpect.EOF:

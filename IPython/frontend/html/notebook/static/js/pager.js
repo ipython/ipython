@@ -75,6 +75,13 @@ var IPython = (function (IPython) {
             that.toggle();
         });
 
+        $([IPython.events]).on('open_with_text.Pager', function (event, data) {
+            if (data.text.trim() !== '') {
+                that.clear();
+                that.expand();
+                that.append_text(data.text);
+            };
+        });
     };
 
 
@@ -110,7 +117,7 @@ var IPython = (function (IPython) {
 
     Pager.prototype.append_text = function (text) {
         var toinsert = $("<div/>").addClass("output_area output_stream");
-        toinsert.append($('<pre/>').html(utils.fixConsole(text)));
+        toinsert.append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
         this.pager_element.append(toinsert);
     };
 

@@ -6,7 +6,7 @@ Authors:
 * Brian Granger
 """
 #-----------------------------------------------------------------------------
-# Copyright (C) 2010-2011, IPython Development Team.
+# Copyright (C) 2010 IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,16 +17,60 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from StringIO import StringIO
+from io import BytesIO
 from base64 import encodestring
+import os
+import tempfile
+import shutil
+import subprocess
+
+from IPython.utils.process import find_cmd, FindCmdError
+from IPython.config.configurable import SingletonConfigurable
+from IPython.utils.traitlets import Instance, List, CBool, CUnicode
+from IPython.utils.py3compat import bytes_to_str
 
 #-----------------------------------------------------------------------------
 # Tools
 #-----------------------------------------------------------------------------
 
 
-def latex_to_png(s, encode=False):
-    """Render a LaTeX string to PNG using matplotlib.mathtext.
+class LaTeXTool(SingletonConfigurable):
+    """An object to store configuration of the LaTeX tool."""
+
+    backends = List(
+        CUnicode, ["matplotlib", "dvipng"],
+        help="Preferred backend to draw LaTeX math equations. "
+        "Backends in the list are checked one by one and the first "
+        "usable one is used.  Note that `matplotlib` backend "
+        "is usable only for inline style equations.  To draw  "
+        "display style equations, `dvipng` backend must be specified. ",
+        # It is a List instead of Enum, to make configuration more
+        # flexible.  For example, to use matplotlib mainly but dvipng
+        # for display style, the default ["matplotlib", "dvipng"] can
+        # be used.  To NOT use dvipng so that other repr such as
+        # unicode pretty printing is used, you can use ["matplotlib"].
+        config=True)
+
+    use_breqn = CBool(
+        True,
+        help="Use breqn.sty to automatically break long equations. "
+        "This configuration takes effect only for dvipng backend.",
+        config=True)
+
+    packages = List(
+        ['amsmath', 'amsthm', 'amssymb', 'bm'],
+        help="A list of packages to use for dvipng backend. "
+        "'breqn' will be automatically appended when use_breqn=True.",
+        config=True)
+
+    preamble = CUnicode(
+        help="Additional preamble to use when generating LaTeX source "
+        "for dvipng backend.",
+        config=True)
+
+
+def latex_to_png(s, encode=False, backend=None, wrap=False):
+    """Render a LaTeX string to PNG.
 
     Parameters
     ----------
@@ -34,16 +78,113 @@ def latex_to_png(s, encode=False):
         The raw string containing valid inline LaTeX.
     encode : bool, optional
         Should the PNG data bebase64 encoded to make it JSON'able.
+    backend : {matplotlib, dvipng}
+        Backend for producing PNG data.
+    wrap : bool
+        If true, Automatically wrap `s` as a LaTeX equation.
+
+    None is returned when the backend cannot be used.
+
     """
-    from matplotlib import mathtext
-    
-    mt = mathtext.MathTextParser('bitmap')
-    f = StringIO()
-    mt.to_png(f, s, fontsize=12)
-    bin_data = f.getvalue()
-    if encode:
+    allowed_backends = LaTeXTool.instance().backends
+    if backend is None:
+        backend = allowed_backends[0]
+    if backend not in allowed_backends:
+        return None
+    if backend == 'matplotlib':
+        f = latex_to_png_mpl
+    elif backend == 'dvipng':
+        f = latex_to_png_dvipng
+    else:
+        raise ValueError('No such backend {0}'.format(backend))
+    bin_data = f(s, wrap)
+    if encode and bin_data:
         bin_data = encodestring(bin_data)
     return bin_data
+
+
+def latex_to_png_mpl(s, wrap):
+    try:
+        from matplotlib import mathtext
+    except ImportError:
+        return None
+
+    if wrap:
+        s = '${0}$'.format(s)
+    mt = mathtext.MathTextParser('bitmap')
+    f = BytesIO()
+    mt.to_png(f, s, fontsize=12)
+    return f.getvalue()
+
+
+def latex_to_png_dvipng(s, wrap):
+    try:
+        find_cmd('latex')
+        find_cmd('dvipng')
+    except FindCmdError:
+        return None
+    try:
+        workdir = tempfile.mkdtemp()
+        tmpfile = os.path.join(workdir, "tmp.tex")
+        dvifile = os.path.join(workdir, "tmp.dvi")
+        outfile = os.path.join(workdir, "tmp.png")
+
+        with open(tmpfile, "w") as f:
+            f.writelines(genelatex(s, wrap))
+
+        with open(os.devnull, 'w') as devnull:
+            subprocess.check_call(
+                ["latex", "-halt-on-error", tmpfile], cwd=workdir,
+                stdout=devnull, stderr=devnull)
+
+            subprocess.check_call(
+                ["dvipng", "-T", "tight", "-x", "1500", "-z", "9",
+                 "-bg", "transparent", "-o", outfile, dvifile], cwd=workdir,
+                stdout=devnull, stderr=devnull)
+
+        with open(outfile, "rb") as f:
+            bin_data = f.read()
+    finally:
+        shutil.rmtree(workdir)
+    return bin_data
+
+
+def kpsewhich(filename):
+    """Invoke kpsewhich command with an argument `filename`."""
+    try:
+        find_cmd("kpsewhich")
+        proc = subprocess.Popen(
+            ["kpsewhich", filename],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        (stdout, stderr) = proc.communicate()
+        return stdout.strip()
+    except FindCmdError:
+        pass
+
+
+def genelatex(body, wrap):
+    """Generate LaTeX document for dvipng backend."""
+    lt = LaTeXTool.instance()
+    breqn = wrap and lt.use_breqn and kpsewhich("breqn.sty")
+    yield r'\documentclass{article}'
+    packages = lt.packages
+    if breqn:
+        packages = packages + ['breqn']
+    for pack in packages:
+        yield r'\usepackage{{{0}}}'.format(pack)
+    yield r'\pagestyle{empty}'
+    if lt.preamble:
+        yield lt.preamble
+    yield r'\begin{document}'
+    if breqn:
+        yield r'\begin{dmath*}'
+        yield body
+        yield r'\end{dmath*}'
+    elif wrap:
+        yield '$${0}$$'.format(body)
+    else:
+        yield body
+    yield r'\end{document}'
 
 
 _data_uri_template_png = """<img src="data:image/png;base64,%s" alt=%s />"""
@@ -58,8 +199,9 @@ def latex_to_html(s, alt='image'):
     alt : str
         The alt text to use for the HTML.
     """
-    base64_data = latex_to_png(s, encode=True)
-    return _data_uri_template_png  % (base64_data, alt)
+    base64_data = bytes_to_str(latex_to_png(s, encode=True), 'ascii')
+    if base64_data:
+        return _data_uri_template_png  % (base64_data, alt)
 
 
 # From matplotlib, thanks to mdboom. Once this is in matplotlib releases, we

@@ -11,6 +11,7 @@ Authors:
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #-------------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 import tempfile
@@ -70,13 +71,13 @@ def generate_output():
     import sys
     from IPython.core.display import display, HTML, Math
     
-    print "stdout"
-    print >> sys.stderr, "stderr"
+    print("stdout")
+    print("stderr", file=sys.stderr)
     
     display(HTML("<b>HTML</b>"))
     
-    print "stdout2"
-    print >> sys.stderr, "stderr2"
+    print("stdout2")
+    print("stderr2", file=sys.stderr)
     
     display(Math(r"\alpha=\beta"))
     
@@ -99,36 +100,6 @@ def skip_without(*names):
 #-------------------------------------------------------------------------------
 # Classes
 #-------------------------------------------------------------------------------
-
-class CapturedIO(object):
-    """Simple object for containing captured stdout/err StringIO objects"""
-    
-    def __init__(self, stdout, stderr):
-        self.stdout_io = stdout
-        self.stderr_io = stderr
-    
-    @property
-    def stdout(self):
-        return self.stdout_io.getvalue()
-    
-    @property
-    def stderr(self):
-        return self.stderr_io.getvalue()
-
-
-class capture_output(object):
-    """context manager for capturing stdout/err"""
-    
-    def __enter__(self):
-        self.sys_stdout = sys.stdout
-        self.sys_stderr = sys.stderr
-        stdout = sys.stdout = StringIO()
-        stderr = sys.stderr = StringIO()
-        return CapturedIO(stdout, stderr)
-    
-    def __exit__(self, exc_type, exc_value, traceback):
-        sys.stdout = self.sys_stdout
-        sys.stderr = self.sys_stderr
 
 
 class ClusterTestCase(BaseZMQTestCase):
@@ -171,7 +142,7 @@ class ClusterTestCase(BaseZMQTestCase):
             except error.CompositeError as e:
                 e.raise_exception()
         except error.RemoteError as e:
-            self.assertEquals(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(etype.__name__, e.ename))
+            self.assertEqual(etype.__name__, e.ename, "Should have raised %r, but raised %r"%(etype.__name__, e.ename))
         else:
             self.fail("should have raised a RemoteError")
             
@@ -184,7 +155,7 @@ class ClusterTestCase(BaseZMQTestCase):
             time.sleep(0.1)
             self.client.spin()
         if not f():
-            print "Warning: Awaited condition never arrived"
+            print("Warning: Awaited condition never arrived")
     
     def setUp(self):
         BaseZMQTestCase.setUp(self)

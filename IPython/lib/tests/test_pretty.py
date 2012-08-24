@@ -45,13 +45,21 @@ class MyDict(dict):
         p.text("MyDict(...)")
 
 
+class Dummy1(object):
+    def _repr_pretty_(self, p, cycle):
+        p.text("Dummy1(...)")
+
+class Dummy2(Dummy1):
+    _repr_pretty_ = None
+
+
 def test_indentation():
     """Test correct indentation in groups"""
     count = 40
     gotoutput = pretty.pretty(MyList(range(count)))
     expectedoutput = "MyList(\n" + ",\n".join("   %d" % i for i in range(count)) + ")"
 
-    nt.assert_equals(gotoutput, expectedoutput)
+    nt.assert_equal(gotoutput, expectedoutput)
 
 
 def test_dispatch():
@@ -62,4 +70,15 @@ def test_dispatch():
     gotoutput = pretty.pretty(MyDict())
     expectedoutput = "MyDict(...)"
 
-    nt.assert_equals(gotoutput, expectedoutput)
+    nt.assert_equal(gotoutput, expectedoutput)
+
+
+def test_callability_checking():
+    """
+    Test that the _repr_pretty_ method is tested for callability and skipped if
+    not.
+    """
+    gotoutput = pretty.pretty(Dummy2())
+    expectedoutput = "Dummy1(...)"
+
+    nt.assert_equal(gotoutput, expectedoutput)

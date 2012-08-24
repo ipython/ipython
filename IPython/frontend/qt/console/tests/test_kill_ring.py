@@ -29,12 +29,12 @@ class TestKillRing(unittest.TestCase):
         """ Does the generic kill ring work?
         """
         ring = KillRing()
-        self.assert_(ring.yank() is None)
-        self.assert_(ring.rotate() is None)
+        self.assertTrue(ring.yank() is None)
+        self.assertTrue(ring.rotate() is None)
 
         ring.kill('foo')
         self.assertEqual(ring.yank(), 'foo')
-        self.assert_(ring.rotate() is None)
+        self.assertTrue(ring.rotate() is None)
         self.assertEqual(ring.yank(), 'foo')
 
         ring.kill('bar')
@@ -42,8 +42,8 @@ class TestKillRing(unittest.TestCase):
         self.assertEqual(ring.rotate(), 'foo')
 
         ring.clear()
-        self.assert_(ring.yank() is None)
-        self.assert_(ring.rotate() is None)
+        self.assertTrue(ring.yank() is None)
+        self.assertTrue(ring.rotate() is None)
 
     def test_qt_basic(self):
         """ Does the Qt kill ring work?

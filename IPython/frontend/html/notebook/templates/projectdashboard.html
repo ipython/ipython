@@ -4,6 +4,7 @@
 
 {% block stylesheet %}
     <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("css/alternateuploadform.css") }}" type="text/css" />
 {% end %}
 
 
@@ -30,9 +31,12 @@ data-read-only={{read_only}}
     <div id="tab1">
         {% if logged_in or not read_only %}
         <div id="notebook_toolbar">
-            <span id="drag_info">Drag files onto the list to import
-            notebooks.</span>
-
+            <form id='alternate_upload'  class='alternate_upload' >
+                <span id="drag_info" style="position:absolute" >
+                    To import a notebook, drag the file onto the listing below or <strong>click here</strong>.
+                    </span>
+                <input type="file" name="datafile" class="fileinput" multiple='multiple'>
+            </form>
             <span id="notebook_buttons">
                 <button id="refresh_notebook_list" title="Refresh notebook list">Refresh</button>
                 <button id="new_notebook" title="Create new notebook">New Notebook</button>

@@ -30,9 +30,21 @@ $(document).ready(function () {
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.toolbar = new IPython.ToolBar('#toolbar')
+    IPython.tooltip = new IPython.Tooltip()
     IPython.notification_widget = new IPython.NotificationWidget('#notification')
 
     IPython.layout_manager.do_resize();
+
+    $('body').append('<div id="fonttest"><pre><span id="test1">x</span>'+
+                     '<span id="test2" style="font-weight: bold;">x</span>'+
+                     '<span id="test3" style="font-style: italic;">x</span></pre></div>')
+    var nh = $('#test1').innerHeight();
+    var bh = $('#test2').innerHeight();
+    var ih = $('#test3').innerHeight();
+    if(nh != bh || nh != ih) {
+        $('head').append('<style>.CodeMirror span { vertical-align: bottom; }</style>');
+    }
+    $('#fonttest').remove();
 
     if(IPython.read_only){
         // hide various elements from read-only view
@@ -48,7 +60,6 @@ $(document).ready(function () {
     IPython.layout_manager.do_resize();
     $([IPython.events]).on('notebook_loaded.Notebook', function () {
         IPython.layout_manager.do_resize();
-        IPython.save_widget.update_url();
     })
     IPython.notebook.load_notebook($('body').data('notebookId'));
 

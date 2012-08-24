@@ -12,7 +12,7 @@
 // Give us an object to bind all events to. This object should be created
 // before all other objects so it exists when others register event handlers.
 // To trigger an event handler:
-// $([IPython.events]).trigger('event.Namespace);
+// $([IPython.events]).trigger('event.Namespace');
 // To handle it:
 // $([IPython.events]).on('event.Namespace',function () {});
 

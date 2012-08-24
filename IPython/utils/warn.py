@@ -13,6 +13,7 @@ Utilities for warnings.  Shoudn't we just use the built in warnings module.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 
@@ -43,7 +44,7 @@ def warn(msg,level=2,exit_val=1):
         header = ['','','WARNING: ','ERROR: ','FATAL ERROR: ']
         io.stderr.write('%s%s' % (header[level],msg))
         if level == 4:
-            print >> io.stderr,'Exiting.\n'
+            print('Exiting.\n', file=io.stderr)
             sys.exit(exit_val)
 
             

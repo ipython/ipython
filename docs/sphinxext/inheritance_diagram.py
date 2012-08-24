@@ -380,7 +380,7 @@ def visit_inheritance_diagram(inner_func):
     def visitor(self, node):
         try:
             content = inner_func(self, node)
-        except DotException, e:
+        except DotException as e:
             # Insert the exception as a warning in the document
             warning = self.document.reporter.warning(str(e), line=node.line)
             warning.parent = node

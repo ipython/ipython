@@ -21,13 +21,13 @@ class TestJSON(formattest.NBFormatTest, TestCase):
         # ensures that notebooks written prior to splitlines change
         # are still readable.
         s = writes(nb0, split_lines=False)
-        self.assertEquals(nbjson.reads(s),nb0)
+        self.assertEqual(nbjson.reads(s),nb0)
 
     def test_roundtrip_split(self):
         """Ensure that splitting multiline blocks is safe"""
         # This won't differ from test_roundtrip unless the default changes
         s = writes(nb0, split_lines=True)
-        self.assertEquals(nbjson.reads(s),nb0)
+        self.assertEqual(nbjson.reads(s),nb0)
 
 
 

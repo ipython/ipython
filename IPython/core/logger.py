@@ -14,8 +14,11 @@
 
 # Python standard modules
 import glob
+import io
 import os
 import time
+
+from IPython.utils.py3compat import str_to_unicode
 
 #****************************************************************************
 # FIXME: This class isn't a mixin anymore, but it still needs attributes from
@@ -24,7 +27,7 @@ import time
 class Logger(object):
     """A Logfile class with different policies for file creation"""
 
-    def __init__(self, home_dir, logfname='Logger.log', loghead='',
+    def __init__(self, home_dir, logfname='Logger.log', loghead=u'',
                  logmode='over'):
 
         # this is the full ipython instance, we need some attributes from it
@@ -51,7 +54,7 @@ class Logger(object):
     # logmode is a validated property
     def _set_mode(self,mode):
         if mode not in ['append','backup','global','over','rotate']:
-            raise ValueError,'invalid log mode %s given' % mode
+            raise ValueError('invalid log mode %s given' % mode)
         self._logmode = mode
 
     def _get_mode(self):
@@ -59,8 +62,8 @@ class Logger(object):
 
     logmode = property(_get_mode,_set_mode)
 
-    def logstart(self,logfname=None,loghead=None,logmode=None,
-                 log_output=False,timestamp=False,log_raw_input=False):
+    def logstart(self, logfname=None, loghead=None, logmode=None,
+                 log_output=False, timestamp=False, log_raw_input=False):
         """Generate a new log-file with a default header.
 
         Raises RuntimeError if the log has already been started"""
@@ -84,7 +87,7 @@ class Logger(object):
         logmode = self.logmode
 
         if logmode == 'append':
-            self.logfile = open(self.logfname,'a')
+            self.logfile = io.open(self.logfname, 'a', encoding='utf-8')
 
         elif logmode == 'backup':
             if isfile(self.logfname):
@@ -94,16 +97,16 @@ class Logger(object):
                 if isfile(backup_logname):
                     os.remove(backup_logname)
                 os.rename(self.logfname,backup_logname)
-            self.logfile = open(self.logfname,'w')
+            self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
         elif logmode == 'global':
             self.logfname = os.path.join(self.home_dir,self.logfname)
-            self.logfile = open(self.logfname, 'a')
+            self.logfile = io.open(self.logfname, 'a', encoding='utf-8')
 
         elif logmode == 'over':
             if isfile(self.logfname):
                 os.remove(self.logfname)
-            self.logfile = open(self.logfname,'w')
+            self.logfile = io.open(self.logfname,'w', encoding='utf-8')
 
         elif logmode == 'rotate':
             if isfile(self.logfname):
@@ -114,9 +117,9 @@ class Logger(object):
                     for f in old:
                         root, ext = os.path.splitext(f)
                         num = int(ext[1:-1])+1
-                        os.rename(f, root+'.'+`num`.zfill(3)+'~')
+                        os.rename(f, root+'.'+repr(num).zfill(3)+'~')
                 os.rename(self.logfname, self.logfname+'.001~')
-            self.logfile = open(self.logfname,'w')
+            self.logfile = io.open(self.logfname, 'w', encoding='utf-8')
 
         if logmode != 'append':
             self.logfile.write(self.loghead)
@@ -128,8 +131,8 @@ class Logger(object):
         """Switch logging on/off. val should be ONLY a boolean."""
 
         if val not in [False,True,0,1]:
-            raise ValueError, \
-                  'Call switch_log ONLY with a boolean argument, not with:',val
+            raise ValueError('Call switch_log ONLY with a boolean argument, '
+                             'not with: %s' % val)
 
         label = {0:'OFF',1:'ON',False:'OFF',True:'ON'}
 
@@ -190,13 +193,13 @@ which already exists. But you must first start the logging process with
             write = self.logfile.write
             if kind=='input':
                 if self.timestamp:
-                    write(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
-                                        time.localtime()))
+                    write(str_to_unicode(time.strftime('# %a, %d %b %Y %H:%M:%S\n',
+                                        time.localtime())))
                 write(data)
             elif kind=='output' and self.log_output:
-                odata = '\n'.join(['#[Out]# %s' % s
+                odata = u'\n'.join([u'#[Out]# %s' % s
                                    for s in data.splitlines()])
-                write('%s\n' % odata)
+                write(u'%s\n' % odata)
             self.logfile.flush()
 
     def logstop(self):

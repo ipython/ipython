@@ -1,0 +1,25 @@
+/* We need an invisible input field on top of the sentense*/
+/* "Drag file onto the list ..." */
+
+.alternate_upload
+{
+    background-color:none;
+    display: inline;
+}
+
+.alternate_upload.form
+{
+    padding: 0;
+    margin:0;
+}
+
+.alternate_upload input.fileinput
+{
+    background-color:red;
+    position:relative;
+    opacity: 0;
+    z-index: 2;
+    width: 295px;
+    margin-left:163px;
+    cursor: pointer;
+}

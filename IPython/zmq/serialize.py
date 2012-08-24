@@ -32,8 +32,10 @@ except:
 
 # IPython imports
 from IPython.utils import py3compat
-from IPython.utils.pickleutil import can, uncan, canSequence, uncanSequence
-from IPython.utils.newserialized import serialize, unserialize
+from IPython.utils.data import flatten
+from IPython.utils.pickleutil import (
+    can, uncan, can_sequence, uncan_sequence, CannedObject
+)
 
 if py3compat.PY3:
     buffer = memoryview
@@ -42,7 +44,33 @@ if py3compat.PY3:
 # Serialization Functions
 #-----------------------------------------------------------------------------
 
-def serialize_object(obj, threshold=64e-6):
+# default values for the thresholds:
+MAX_ITEMS = 64
+MAX_BYTES = 1024
+
+def _extract_buffers(obj, threshold=MAX_BYTES):
+    """extract buffers larger than a certain threshold"""
+    buffers = []
+    if isinstance(obj, CannedObject) and obj.buffers:
+        for i,buf in enumerate(obj.buffers):
+            if len(buf) > threshold:
+                # buffer larger than threshold, prevent pickling
+                obj.buffers[i] = None
+                buffers.append(buf)
+            elif isinstance(buf, buffer):
+                # buffer too small for separate send, coerce to bytes
+                # because pickling buffer objects just results in broken pointers
+                obj.buffers[i] = bytes(buf)
+    return buffers
+
+def _restore_buffers(obj, buffers):
+    """restore buffers extracted by """
+    if isinstance(obj, CannedObject) and obj.buffers:
+        for i,buf in enumerate(obj.buffers):
+            if buf is None:
+                obj.buffers[i] = buffers.pop(0)
+
+def serialize_object(obj, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     """Serialize an object into a list of sendable buffers.
     
     Parameters
@@ -50,130 +78,127 @@ def serialize_object(obj, threshold=64e-6):
     
     obj : object
         The object to be serialized
-    threshold : float
-        The threshold for not double-pickling the content.
-        
+    buffer_threshold : int
+        The threshold (in bytes) for pulling out data buffers
+        to avoid pickling them.
+    item_threshold : int
+        The maximum number of items over which canning will iterate.
+        Containers (lists, dicts) larger than this will be pickled without
+        introspection.
     
     Returns
     -------
-    ('pmd', [bufs]) :
-        where pmd is the pickled metadata wrapper,
-        bufs is a list of data buffers
+    [bufs] : list of buffers representing the serialized object.
     """
-    databuffers = []
-    if isinstance(obj, (list, tuple)):
-        clist = canSequence(obj)
-        slist = map(serialize, clist)
-        for s in slist:
-            if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
-                databuffers.append(s.getData())
-                s.data = None
-        return pickle.dumps(slist,-1), databuffers
-    elif isinstance(obj, dict):
-        sobj = {}
+    buffers = []
+    if isinstance(obj, (list, tuple)) and len(obj) < item_threshold:
+        cobj = can_sequence(obj)
+        for c in cobj:
+            buffers.extend(_extract_buffers(c, buffer_threshold))
+    elif isinstance(obj, dict) and len(obj) < item_threshold:
+        cobj = {}
         for k in sorted(obj.iterkeys()):
-            s = serialize(can(obj[k]))
-            if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
-                databuffers.append(s.getData())
-                s.data = None
-            sobj[k] = s
-        return pickle.dumps(sobj,-1),databuffers
+            c = can(obj[k])
+            buffers.extend(_extract_buffers(c, buffer_threshold))
+            cobj[k] = c
     else:
-        s = serialize(can(obj))
-        if s.typeDescriptor in ('buffer', 'ndarray') or s.getDataSize() > threshold:
-            databuffers.append(s.getData())
-            s.data = None
-        return pickle.dumps(s,-1),databuffers
-            
-        
-def unserialize_object(bufs):
-    """reconstruct an object serialized by serialize_object from data buffers."""
-    bufs = list(bufs)
-    sobj = pickle.loads(bufs.pop(0))
-    if isinstance(sobj, (list, tuple)):
-        for s in sobj:
-            if s.data is None:
-                s.data = bufs.pop(0)
-        return uncanSequence(map(unserialize, sobj)), bufs
-    elif isinstance(sobj, dict):
-        newobj = {}
-        for k in sorted(sobj.iterkeys()):
-            s = sobj[k]
-            if s.data is None:
-                s.data = bufs.pop(0)
-            newobj[k] = uncan(unserialize(s))
-        return newobj, bufs
-    else:
-        if sobj.data is None:
-            sobj.data = bufs.pop(0)
-        return uncan(unserialize(sobj)), bufs
+        cobj = can(obj)
+        buffers.extend(_extract_buffers(cobj, buffer_threshold))
 
-def pack_apply_message(f, args, kwargs, threshold=64e-6):
+    buffers.insert(0, pickle.dumps(cobj,-1))
+    return buffers
+
+def unserialize_object(buffers, g=None):
+    """reconstruct an object serialized by serialize_object from data buffers.
+    
+    Parameters
+    ----------
+    
+    bufs : list of buffers/bytes
+    
+    g : globals to be used when uncanning
+    
+    Returns
+    -------
+    
+    (newobj, bufs) : unpacked object, and the list of remaining unused buffers.
+    """
+    bufs = list(buffers)
+    pobj = bufs.pop(0)
+    if not isinstance(pobj, bytes):
+        # a zmq message
+        pobj = bytes(pobj)
+    canned = pickle.loads(pobj)
+    if isinstance(canned, (list, tuple)) and len(canned) < MAX_ITEMS:
+        for c in canned:
+            _restore_buffers(c, bufs)
+        newobj = uncan_sequence(canned, g)
+    elif isinstance(canned, dict) and len(canned) < MAX_ITEMS:
+        newobj = {}
+        for k in sorted(canned.iterkeys()):
+            c = canned[k]
+            _restore_buffers(c, bufs)
+            newobj[k] = uncan(c, g)
+    else:
+        _restore_buffers(canned, bufs)
+        newobj = uncan(canned, g)
+    
+    return newobj, bufs
+
+def pack_apply_message(f, args, kwargs, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     """pack up a function, args, and kwargs to be sent over the wire
-    as a series of buffers. Any object whose data is larger than `threshold`
-    will not have their data copied (currently only numpy arrays support zero-copy)"""
+    
+    Each element of args/kwargs will be canned for special treatment,
+    but inspection will not go any deeper than that.
+    
+    Any object whose data is larger than `threshold`  will not have their data copied
+    (only numpy arrays and bytes/buffers support zero-copy)
+    
+    Message will be a list of bytes/buffers of the format:
+    
+    [ cf, pinfo, <arg_bufs>, <kwarg_bufs> ]
+    
+    With length at least two + len(args) + len(kwargs)
+    """
+    
+    arg_bufs = flatten(serialize_object(arg, buffer_threshold, item_threshold) for arg in args)
+    
+    kw_keys = sorted(kwargs.keys())
+    kwarg_bufs = flatten(serialize_object(kwargs[key], buffer_threshold, item_threshold) for key in kw_keys)
+    
+    info = dict(nargs=len(args), narg_bufs=len(arg_bufs), kw_keys=kw_keys)
+    
     msg = [pickle.dumps(can(f),-1)]
-    databuffers = [] # for large objects
-    sargs, bufs = serialize_object(args,threshold)
-    msg.append(sargs)
-    databuffers.extend(bufs)
-    skwargs, bufs = serialize_object(kwargs,threshold)
-    msg.append(skwargs)
-    databuffers.extend(bufs)
-    msg.extend(databuffers)
+    msg.append(pickle.dumps(info, -1))
+    msg.extend(arg_bufs)
+    msg.extend(kwarg_bufs)
+    
     return msg
 
 def unpack_apply_message(bufs, g=None, copy=True):
     """unpack f,args,kwargs from buffers packed by pack_apply_message()
     Returns: original f,args,kwargs"""
     bufs = list(bufs) # allow us to pop
-    assert len(bufs) >= 3, "not enough buffers!"
+    assert len(bufs) >= 2, "not enough buffers!"
     if not copy:
-        for i in range(3):
+        for i in range(2):
             bufs[i] = bufs[i].bytes
-    cf = pickle.loads(bufs.pop(0))
-    sargs = list(pickle.loads(bufs.pop(0)))
-    skwargs = dict(pickle.loads(bufs.pop(0)))
-    # print sargs, skwargs
-    f = uncan(cf, g)
-    for sa in sargs:
-        if sa.data is None:
-            m = bufs.pop(0)
-            if sa.getTypeDescriptor() in ('buffer', 'ndarray'):
-                # always use a buffer, until memoryviews get sorted out
-                sa.data = buffer(m)
-                # disable memoryview support
-                # if copy:
-                #     sa.data = buffer(m)
-                # else:
-                #     sa.data = m.buffer
-            else:
-                if copy:
-                    sa.data = m
-                else:
-                    sa.data = m.bytes
+    f = uncan(pickle.loads(bufs.pop(0)), g)
+    info = pickle.loads(bufs.pop(0))
+    arg_bufs, kwarg_bufs = bufs[:info['narg_bufs']], bufs[info['narg_bufs']:]
     
-    args = uncanSequence(map(unserialize, sargs), g)
+    args = []
+    for i in range(info['nargs']):
+        arg, arg_bufs = unserialize_object(arg_bufs, g)
+        args.append(arg)
+    args = tuple(args)
+    assert not arg_bufs, "Shouldn't be any arg bufs left over"
+    
     kwargs = {}
-    for k in sorted(skwargs.iterkeys()):
-        sa = skwargs[k]
-        if sa.data is None:
-            m = bufs.pop(0)
-            if sa.getTypeDescriptor() in ('buffer', 'ndarray'):
-                # always use a buffer, until memoryviews get sorted out
-                sa.data = buffer(m)
-                # disable memoryview support
-                # if copy:
-                #     sa.data = buffer(m)
-                # else:
-                #     sa.data = m.buffer
-            else:
-                if copy:
-                    sa.data = m
-                else:
-                    sa.data = m.bytes
-
-        kwargs[k] = uncan(unserialize(sa), g)
+    for key in info['kw_keys']:
+        kwarg, kwarg_bufs = unserialize_object(kwarg_bufs, g)
+        kwargs[key] = kwarg
+    assert not kwarg_bufs, "Shouldn't be any kwarg bufs left over"
     
     return f,args,kwargs
 

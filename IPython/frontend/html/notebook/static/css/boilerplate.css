@@ -34,6 +34,9 @@ time, mark, audio, video {
   vertical-align: baseline;
 }
 
+sup { vertical-align: super; }
+sub { vertical-align: sub; }
+
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
   display: block;
@@ -70,4 +73,5 @@ select, input, textarea, button { font:99% sans-serif; }
    en.wikipedia.org/wiki/MediaWiki_talk:Common.css/Archive_11#Teletype_style_fix_for_Chrome */
 pre, code, kbd, samp { font-family: monospace, sans-serif; }
 
-
+em,i { font-style: italic; }
+b,strong { font-weight: bold; }

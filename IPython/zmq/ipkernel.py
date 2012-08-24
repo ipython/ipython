@@ -35,7 +35,6 @@ from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
-from IPython.core import pylabtools
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
@@ -148,6 +147,8 @@ class Kernel(Configurable):
         self.shell.displayhook.topic = self._topic('pyout')
         self.shell.display_pub.session = self.session
         self.shell.display_pub.pub_socket = self.iopub_socket
+        self.shell.data_pub.session = self.session
+        self.shell.data_pub.pub_socket = self.iopub_socket
 
         # TMP - hack while developing
         self.shell._reply_content = None
@@ -219,9 +220,9 @@ class Kernel(Configurable):
             # is it safe to assume a msg_id will not be resubmitted?
             reply_type = msg_type.split('_')[0] + '_reply'
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             return
         
@@ -255,8 +256,6 @@ class Kernel(Configurable):
                 self.eventloop = None
                 break
         self.log.info("exiting eventloop")
-        # if eventloop exits, IOLoop should stop
-        ioloop.IOLoop.instance().stop()
 
     def start(self):
         """register dispatchers for streams"""
@@ -294,13 +293,16 @@ class Kernel(Configurable):
     # Kernel request handlers
     #---------------------------------------------------------------------------
     
-    def _make_subheader(self):
-        """init subheader dict, for execute/apply_reply"""
-        return {
+    def _make_metadata(self, other=None):
+        """init metadata dict, for execute/apply_reply"""
+        new_md = {
             'dependencies_met' : True,
             'engine' : self.ident,
             'started': datetime.now(),
         }
+        if other:
+            new_md.update(other)
+        return new_md
     
     def _publish_pyin(self, code, parent, execution_count):
         """Publish the code request on the pyin stream."""
@@ -309,26 +311,33 @@ class Kernel(Configurable):
                             {u'code':code, u'execution_count': execution_count},
                             parent=parent, ident=self._topic('pyin')
         )
-
-    def execute_request(self, stream, ident, parent):
-
+    
+    def _publish_status(self, status, parent=None):
+        """send status (busy/idle) on IOPub"""
         self.session.send(self.iopub_socket,
                           u'status',
-                          {u'execution_state':u'busy'},
+                          {u'execution_state': status},
                           parent=parent,
                           ident=self._topic('status'),
                           )
+        
+
+    def execute_request(self, stream, ident, parent):
+        """handle an execute_request"""
+        
+        self._publish_status(u'busy', parent)
         
         try:
             content = parent[u'content']
             code = content[u'code']
             silent = content[u'silent']
+            store_history = content.get(u'store_history', not silent)
         except:
             self.log.error("Got bad msg: ")
             self.log.error("%s", parent)
             return
         
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
 
         shell = self.shell # we'll need this a lot here
 
@@ -347,6 +356,7 @@ class Kernel(Configurable):
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
@@ -358,7 +368,7 @@ class Kernel(Configurable):
         reply_content = {}
         try:
             # FIXME: the shell calls the exception handler itself.
-            shell.run_cell(code, store_history=not silent, silent=silent)
+            shell.run_cell(code, store_history=store_history, silent=silent)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
@@ -420,13 +430,13 @@ class Kernel(Configurable):
         # Send the reply.
         reply_content = json_clean(reply_content)
         
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
         if reply_content['status'] == 'error' and \
                         reply_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+                md['dependencies_met'] = False
 
         reply_msg = self.session.send(stream, u'execute_reply',
-                                      reply_content, parent, subheader=sub,
+                                      reply_content, parent, metadata=md,
                                       ident=ident)
         
         self.log.debug("%s", reply_msg)
@@ -434,11 +444,7 @@ class Kernel(Configurable):
         if not silent and reply_msg['content']['status'] == u'error':
             self._abort_queues()
 
-        self.session.send(self.iopub_socket,
-                          u'status',
-                          {u'execution_state':u'idle'},
-                          parent=parent,
-                          ident=self._topic('status'))
+        self._publish_status(u'idle', parent)
 
     def complete_request(self, stream, ident, parent):
         txt, matches = self._complete(parent)
@@ -530,18 +536,22 @@ class Kernel(Configurable):
             self.log.error("Got bad msg: %s", parent, exc_info=True)
             return
 
+        self._publish_status(u'busy', parent)
+        
         # Set the parent message of the display hook and out streams.
-        self.shell.displayhook.set_parent(parent)
-        self.shell.display_pub.set_parent(parent)
+        shell = self.shell
+        shell.displayhook.set_parent(parent)
+        shell.display_pub.set_parent(parent)
+        shell.data_pub.set_parent(parent)
         sys.stdout.set_parent(parent)
         sys.stderr.set_parent(parent)
 
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)
         # self.session.send(self.iopub_socket, u'pyin', {u'code':code},parent=parent)
-        sub = self._make_subheader()
+        md = self._make_metadata(parent['metadata'])
         try:
-            working = self.shell.user_ns
+            working = shell.user_ns
 
             prefix = "_"+str(msg_id).replace("-","")+"_"
 
@@ -559,36 +569,50 @@ class Kernel(Configurable):
             working.update(ns)
             code = "%s = %s(*%s,**%s)" % (resultname, fname, argname, kwargname)
             try:
-                exec code in self.shell.user_global_ns, self.shell.user_ns
+                exec code in shell.user_global_ns, shell.user_ns
                 result = working.get(resultname)
             finally:
                 for key in ns.iterkeys():
                     working.pop(key)
 
-            packed_result,buf = serialize_object(result)
-            result_buf = [packed_result]+buf
+            result_buf = serialize_object(result,
+                buffer_threshold=self.session.buffer_threshold,
+                item_threshold=self.session.item_threshold,
+            )
+        
         except:
-            exc_content = self._wrap_exception('apply')
-            # exc_msg = self.session.msg(u'pyerr', exc_content, parent)
-            self.session.send(self.iopub_socket, u'pyerr', exc_content, parent=parent,
+            # invoke IPython traceback formatting
+            shell.showtraceback()
+            # FIXME - fish exception info out of shell, possibly left there by
+            # run_code.  We'll need to clean up this logic later.
+            reply_content = {}
+            if shell._reply_content is not None:
+                reply_content.update(shell._reply_content)
+                e_info = dict(engine_uuid=self.ident, engine_id=self.int_id, method='apply')
+                reply_content['engine_info'] = e_info
+                # reset after use
+                shell._reply_content = None
+            
+            self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
                                 ident=self._topic('pyerr'))
-            reply_content = exc_content
             result_buf = []
 
-            if exc_content['ename'] == 'UnmetDependency':
-                sub['dependencies_met'] = False
+            if reply_content['ename'] == 'UnmetDependency':
+                md['dependencies_met'] = False
         else:
             reply_content = {'status' : 'ok'}
 
         # put 'ok'/'error' status in header, for scheduler introspection:
-        sub['status'] = reply_content['status']
+        md['status'] = reply_content['status']
 
         # flush i/o
         sys.stdout.flush()
         sys.stderr.flush()
         
         reply_msg = self.session.send(stream, u'apply_reply', reply_content,
-                    parent=parent, ident=ident,buffers=result_buf, subheader=sub)
+                    parent=parent, ident=ident,buffers=result_buf, metadata=md)
+
+        self._publish_status(u'idle', parent)
 
     #---------------------------------------------------------------------------
     # Control messages
@@ -657,9 +681,9 @@ class Kernel(Configurable):
             reply_type = msg_type.split('_')[0] + '_reply'
 
             status = {'status' : 'aborted'}
-            sub = {'engine' : self.ident}
-            sub.update(status)
-            reply_msg = self.session.send(stream, reply_type, subheader=sub,
+            md = {'engine' : self.ident}
+            md.update(status)
+            reply_msg = self.session.send(stream, reply_type, metadata=md,
                         content=status, parent=msg, ident=idents)
             self.log.debug("%s", reply_msg)
             # We need to wait a bit for requests to come in. This can probably
@@ -772,11 +796,6 @@ flags['pylab'] = (
 aliases = dict(kernel_aliases)
 aliases.update(shell_aliases)
 
-# it's possible we don't want short aliases for *all* of these:
-aliases.update(dict(
-    pylab='IPKernelApp.pylab',
-))
-
 #-----------------------------------------------------------------------------
 # The IPKernelApp class
 #-----------------------------------------------------------------------------
@@ -787,20 +806,13 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
     aliases = Dict(aliases)
     flags = Dict(flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
-    
-    # configurables
-    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
-        config=True,
-        help="""Pre-load matplotlib and numpy for interactive use,
-        selecting a particular matplotlib backend and loop integration.
-        """
-    )
-    
+
     @catch_config_error
     def initialize(self, argv=None):
         super(IPKernelApp, self).initialize(argv)
         self.init_path()
         self.init_shell()
+        self.init_gui_pylab()
         self.init_extensions()
         self.init_code()
 
@@ -818,31 +830,28 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
         self.kernel = kernel
         kernel.record_ports(self.ports)
         shell = kernel.shell
-        if self.pylab:
-            try:
-                gui, backend = pylabtools.find_gui_and_backend(self.pylab)
-                shell.enable_pylab(gui, import_all=self.pylab_import_all)
-            except Exception:
-                self.log.error("Pylab initialization failed", exc_info=True)
-                # print exception straight to stdout, because normally 
-                # _showtraceback associates the reply with an execution, 
-                # which means frontends will never draw it, as this exception 
-                # is not associated with any execute request.
-                
-                # replace pyerr-sending traceback with stdout
-                _showtraceback = shell._showtraceback
-                def print_tb(etype, evalue, stb):
-                    print ("Error initializing pylab, pylab mode will not "
-                           "be active", file=io.stderr)
-                    print (shell.InteractiveTB.stb2text(stb), file=io.stdout)
-                shell._showtraceback = print_tb
-                
-                # send the traceback over stdout
-                shell.showtraceback(tb_offset=0)
-                
-                # restore proper _showtraceback method
-                shell._showtraceback = _showtraceback
-                
+
+    def init_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+
+        # Provide a wrapper for :meth:`InteractiveShellApp.init_gui_pylab`
+        # to ensure that any exception is printed straight to stderr.
+        # Normally _showtraceback associates the reply with an execution,
+        # which means frontends will never draw it, as this exception
+        # is not associated with any execute request.
+
+        shell = self.shell
+        _showtraceback = shell._showtraceback
+        try:
+            # replace pyerr-sending traceback with stderr
+            def print_tb(etype, evalue, stb):
+                print ("GUI event loop or pylab initialization failed",
+                       file=io.stderr)
+                print (shell.InteractiveTB.stb2text(stb), file=io.stderr)
+            shell._showtraceback = print_tb
+            InteractiveShellApp.init_gui_pylab(self)
+        finally:
+            shell._showtraceback = _showtraceback
 
     def init_shell(self):
         self.shell = self.kernel.shell
@@ -908,6 +917,7 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     
     app.kernel.user_module = module
     app.kernel.user_ns = local_ns
+    app.shell.set_completer_frame()
     app.start()
 
 def main():

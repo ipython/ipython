@@ -43,6 +43,7 @@ from IPython.core.prompts import PromptManager
 from IPython.core.application import (
     ProfileDir, BaseIPythonApplication, base_flags, base_aliases
 )
+from IPython.core.magics import ScriptMagics
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
@@ -78,6 +79,9 @@ ipython help notebook      # show the help for the notebook subcmd
 
 ipython profile create foo # create profile foo w/ default config files
 ipython help profile       # show the help for the profile subcmd
+
+ipython locate             # print the path to the IPython directory
+ipython locate profile foo # print the path to the directory for profile `foo`
 """
 
 #-----------------------------------------------------------------------------
@@ -171,25 +175,29 @@ frontend_flags['i'] = (
     """If running code from the command line, become interactive afterwards.
     Note: can also be given simply as '-i.'"""
 )
-frontend_flags['pylab'] = (
-    {'TerminalIPythonApp' : {'pylab' : 'auto'}},
-    """Pre-load matplotlib and numpy for interactive use with
-    the default matplotlib backend."""
-)
 flags.update(frontend_flags)
 
 aliases = dict(base_aliases)
 aliases.update(shell_aliases)
 
-# it's possible we don't want short aliases for *all* of these:
-aliases.update(dict(
-    gui='TerminalIPythonApp.gui',
-    pylab='TerminalIPythonApp.pylab',
-))
-
 #-----------------------------------------------------------------------------
 # Main classes and functions
 #-----------------------------------------------------------------------------
+
+
+class LocateIPythonApp(BaseIPythonApplication):
+    description = """print the path to the IPython dir"""
+    subcommands = Dict(dict(
+        profile=('IPython.core.profileapp.ProfileLocate',
+            "print the path to an IPython profile directory",
+        ),
+    ))
+    def start(self):
+        if self.subapp is not None:
+            return self.subapp.start()
+        else:
+            print self.ipython_dir
+
 
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
@@ -212,6 +220,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             ProfileDir,
             PlainTextFormatter,
             IPCompleter,
+            ScriptMagics,
         ]
 
     subcommands = Dict(dict(
@@ -230,6 +239,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
             """Launch the IPython terminal-based Console."""
         ),
+        locate=('IPython.frontend.terminal.ipapp.LocateIPythonApp',
+            LocateIPythonApp.description
+        ),
     ))
 
     # *do* autocreate requested profile, but don't create the config file.
@@ -246,15 +258,6 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
             self.load_config_file = lambda *a, **kw: None
             self.ignore_old_config=True
 
-    gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet'), config=True,
-        help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet')."
-    )
-    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'auto'],
-        config=True,
-        help="""Pre-load matplotlib and numpy for interactive use,
-        selecting a particular matplotlib backend and loop integration.
-        """
-    )
     display_banner = Bool(True, config=True,
         help="Whether to display a banner upon starting IPython."
     )
@@ -344,34 +347,12 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         # Make sure there is a space below the banner.
         if self.log_level <= logging.INFO: print
 
-
-    def init_gui_pylab(self):
-        """Enable GUI event loop integration, taking pylab into account."""
-        gui = self.gui
-
-        # Using `pylab` will also require gui activation, though which toolkit
-        # to use may be chosen automatically based on mpl configuration.
-        if self.pylab:
-            activate = self.shell.enable_pylab
-            if self.pylab == 'auto':
-                gui = None
-            else:
-                gui = self.pylab
-        else:
-            # Enable only GUI integration, no pylab
-            activate = inputhook.enable_gui
-
-        if gui or self.pylab:
-            try:
-                self.log.info("Enabling GUI event loop integration, "
-                              "toolkit=%s, pylab=%s" % (gui, self.pylab) )
-                if self.pylab:
-                    activate(gui, import_all=self.pylab_import_all)
-                else:
-                    activate(gui)
-            except:
-                self.log.warn("Error in enabling GUI event loop integration:")
-                self.shell.showtraceback()
+    def _pylab_changed(self, name, old, new):
+        """Replace --pylab='inline' with --pylab='auto'"""
+        if new == 'inline':
+            warn.warn("'inline' not available as pylab backend, "
+                      "using 'auto' instead.\n")
+            self.pylab = 'auto'
 
     def start(self):
         if self.subapp is not None:

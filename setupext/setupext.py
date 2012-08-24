@@ -161,17 +161,22 @@ def check_for_pyzmq():
             return True
 
 def check_for_readline():
+    from distutils.version import LooseVersion
     try:
         import readline
     except ImportError:
         try:
             import pyreadline
-        except ImportError:
+            vs = pyreadline.release.version
+        except (ImportError, AttributeError):
             print_status('readline', "no (required for good interactive behavior)")
             return False
-        else:
-            print_status('readline', "yes pyreadline-"+pyreadline.release.version)
+        if LooseVersion(vs).version >= [1,7,1]:
+            print_status('readline', "yes pyreadline-" + vs)
             return True
+        else:
+            print_status('readline', "no pyreadline-%s < 1.7.1" % vs)
+            return False
     else:
         print_status('readline', "yes")
         return True

@@ -56,7 +56,7 @@ class TestLoadBalancedView(ClusterTestCase):
             return x**2
         data = range(16)
         r = self.view.map_sync(f, data)
-        self.assertEquals(r, map(f, data))
+        self.assertEqual(r, map(f, data))
 
     def test_map_unordered(self):
         def f(x):
@@ -74,8 +74,8 @@ class TestLoadBalancedView(ClusterTestCase):
         # list comprehension uses __iter__
         astheycame = [ r for r in amr ]
         # Ensure that at least one result came out of order:
-        self.assertNotEquals(astheycame, reference, "should not have preserved order")
-        self.assertEquals(sorted(astheycame, reverse=True), reference, "result corrupted")
+        self.assertNotEqual(astheycame, reference, "should not have preserved order")
+        self.assertEqual(sorted(astheycame, reverse=True), reference, "result corrupted")
 
     def test_map_ordered(self):
         def f(x):
@@ -93,8 +93,8 @@ class TestLoadBalancedView(ClusterTestCase):
         # list(amr) uses __iter__
         astheycame = list(amr)
         # Ensure that results came in order
-        self.assertEquals(astheycame, reference)
-        self.assertEquals(amr.result, reference)
+        self.assertEqual(astheycame, reference)
+        self.assertEqual(amr.result, reference)
 
     def test_map_iterable(self):
         """test map on iterables (balanced)"""
@@ -104,7 +104,7 @@ class TestLoadBalancedView(ClusterTestCase):
         # so that it will be an iterator, even in Python 3
         it = iter(arr)
         r = view.map_sync(lambda x:x, arr)
-        self.assertEquals(r, list(arr))
+        self.assertEqual(r, list(arr))
 
     
     def test_abort(self):
@@ -163,7 +163,7 @@ class TestLoadBalancedView(ClusterTestCase):
             ars.append(self.view.apply_async(lambda : 1))
         self.view.wait(ars)
         for ar in ars:
-            self.assertEquals(ar.engine_id, first_id)
+            self.assertEqual(ar.engine_id, first_id)
 
     def test_after(self):
         view = self.view

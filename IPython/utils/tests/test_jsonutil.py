@@ -12,12 +12,15 @@
 #-----------------------------------------------------------------------------
 # stdlib
 import json
+from base64 import decodestring
 
 # third party
 import nose.tools as nt
 
 # our own
-from ..jsonutil import json_clean
+from IPython.testing import decorators as dec
+from ..jsonutil import json_clean, encode_images
+from ..py3compat import unicode_to_str, str_to_bytes
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -56,9 +59,39 @@ def test():
         json.loads(json.dumps(out))
 
 
+
+@dec.parametric
+def test_encode_images():
+    # invalid data, but the header and footer are from real files
+    pngdata = b'\x89PNG\r\n\x1a\nblahblahnotactuallyvalidIEND\xaeB`\x82'
+    jpegdata = b'\xff\xd8\xff\xe0\x00\x10JFIFblahblahjpeg(\xa0\x0f\xff\xd9'
+    
+    fmt = {
+        'image/png'  : pngdata,
+        'image/jpeg' : jpegdata,
+    }
+    encoded = encode_images(fmt)
+    for key, value in fmt.iteritems():
+        # encoded has unicode, want bytes
+        decoded = decodestring(encoded[key].encode('ascii'))
+        yield nt.assert_equal(decoded, value)
+    encoded2 = encode_images(encoded)
+    yield nt.assert_equal(encoded, encoded2)
+    
+    b64_str = {}
+    for key, encoded in encoded.iteritems():
+        b64_str[key] = unicode_to_str(encoded)
+    encoded3 = encode_images(b64_str)
+    yield nt.assert_equal(encoded3, b64_str)
+    for key, value in fmt.iteritems():
+        # encoded3 has str, want bytes
+        decoded = decodestring(str_to_bytes(encoded3[key]))
+        yield nt.assert_equal(decoded, value)
+
 def test_lambda():
     jc = json_clean(lambda : 1)
-    nt.assert_true(jc.startswith('<function <lambda> at '))
+    assert isinstance(jc, str)
+    assert '<lambda>' in jc
     json.dumps(jc)
 
 

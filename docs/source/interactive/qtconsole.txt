@@ -600,10 +600,5 @@ frontend:
   will not be fixed, as abandoning pexpect would significantly degrade the
   console experience.
 
-* Use of ``\b`` and ``\r`` characters in the console: these are control
-  characters that allow the cursor to move backwards on a line, and are used to
-  display things like in-place progress bars in a terminal.  We currently do
-  not support this, but it is being tracked as issue :ghissue:`629`.
-
 .. _PyQt: http://www.riverbankcomputing.co.uk/software/pyqt/download
 .. _pygments: http://pygments.org/

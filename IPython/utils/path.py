@@ -21,10 +21,10 @@ import warnings
 from hashlib import md5
 
 import IPython
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.process import system
 from IPython.utils.importstring import import_item
 from IPython.utils import py3compat
-
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -40,6 +40,7 @@ def _writable_dir(path):
     return os.path.isdir(path) and os.access(path, os.W_OK)
 
 if sys.platform == 'win32':
+    @skip_doctest
     def _get_long_path_name(path):
         """Get a long path name (expand ~) on Windows using ctypes.
 
@@ -106,7 +107,7 @@ def get_py_filename(name, force_win32=None):
     if os.path.isfile(name):
         return name
     else:
-        raise IOError,'File `%r` not found.' % name
+        raise IOError('File `%r` not found.' % name)
 
 
 def filefind(filename, path_dirs=None):
@@ -227,13 +228,13 @@ def get_home_dir(require_writable=False):
 def get_xdg_dir():
     """Return the XDG_CONFIG_HOME, if it is defined and exists, else None.
 
-    This is only for posix (Linux,Unix,OS X, etc) systems.
+    This is only for non-OS X posix (Linux,Unix,etc.) systems.
     """
 
     env = os.environ
 
-    if os.name == 'posix':
-        # Linux, Unix, AIX, OS X
+    if os.name == 'posix' and sys.platform != 'darwin':
+        # Linux, Unix, AIX, etc.
         # use ~/.config if empty OR not set
         xdg = env.get("XDG_CONFIG_HOME", None) or os.path.join(get_home_dir(), '.config')
         if xdg and _writable_dir(xdg):

@@ -10,10 +10,11 @@ class CompletionWidget(QtGui.QListWidget):
     # 'QObject' interface
     #--------------------------------------------------------------------------
 
-    def __init__(self, text_edit):
+    def __init__(self, console_widget):
         """ Create a completion widget that is attached to the specified Qt
             text edit widget.
         """
+        text_edit = console_widget._control
         assert isinstance(text_edit, (QtGui.QTextEdit, QtGui.QPlainTextEdit))
         super(CompletionWidget, self).__init__()
 
@@ -132,3 +133,6 @@ class CompletionWidget(QtGui.QListWidget):
                 self.hide()
         else:
             self.hide()
+
+    def cancel_completion(self):
+        self.hide()

@@ -25,12 +25,12 @@ from getopt import getopt, GetoptError
 from IPython.config.configurable import Configurable
 from IPython.core import oinspect
 from IPython.core.error import UsageError
-from IPython.core.prefilter import ESC_MAGIC
+from IPython.core.inputsplitter import ESC_MAGIC, ESC_MAGIC2
 from IPython.external.decorator import decorator
 from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
-from IPython.utils.traitlets import Bool, Dict, Instance
+from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
 from IPython.utils.warn import error, warn
 
 #-----------------------------------------------------------------------------
@@ -47,6 +47,7 @@ magics = dict(line={}, cell={})
 
 magic_kinds = ('line', 'cell')
 magic_spec = ('line', 'cell', 'line_cell')
+magic_escapes = dict(line=ESC_MAGIC, cell=ESC_MAGIC2)
 
 #-----------------------------------------------------------------------------
 # Utility classes and functions
@@ -321,6 +322,16 @@ class MagicsManager(Configurable):
     def auto_status(self):
         """Return descriptive string with automagic status."""
         return self._auto_status[self.auto_magic]
+    
+    def lsmagic_info(self):
+        magic_list = []
+        for m_type in self.magics :
+            for m_name,mgc in self.magics[m_type].items():
+                try :
+                    magic_list.append({'name':m_name,'type':m_type,'class':mgc.im_class.__name__})
+                except AttributeError :
+                    magic_list.append({'name':m_name,'type':m_type,'class':'Other'})
+        return magic_list
 
     def lsmagic(self):
         """Return a dict of currently available magic functions.
@@ -329,6 +340,30 @@ class MagicsManager(Configurable):
         two types of magics we support.  Each value is a list of names.
         """
         return self.magics
+
+    def lsmagic_docs(self, brief=False, missing=''):
+        """Return dict of documentation of magic functions.
+
+        The return dict has the keys 'line' and 'cell', corresponding to the
+        two types of magics we support. Each value is a dict keyed by magic
+        name whose value is the function docstring. If a docstring is
+        unavailable, the value of `missing` is used instead.
+
+        If brief is True, only the first line of each docstring will be returned.
+        """
+        docs = {}
+        for m_type in self.magics:
+            m_docs = {}
+            for m_name, m_func in self.magics[m_type].iteritems():
+                if m_func.__doc__:
+                    if brief:
+                        m_docs[m_name] = m_func.__doc__.split('\n', 1)[0]
+                    else:
+                        m_docs[m_name] = m_func.__doc__.rstrip()
+                else:
+                    m_docs[m_name] = missing
+            docs[m_type] = m_docs
+        return docs
 
     def register(self, *magic_objects):
         """Register one or more instances of Magics.
@@ -355,10 +390,10 @@ class MagicsManager(Configurable):
         for m in magic_objects:
             if not m.registered:
                 raise ValueError("Class of magics %r was constructed without "
-                                 "the @register_macics class decorator")
-            if type(m) is type:
+                                 "the @register_magics class decorator")
+            if type(m) in (type, MetaHasTraits):
                 # If we're given an uninstantiated class
-                m = m(self.shell)
+                m = m(shell=self.shell)
 
             # Now that we have an instance, we can register it and update the
             # table of callables
@@ -417,6 +452,36 @@ class MagicsManager(Configurable):
         setattr(self.user_magics, name, meth)
         record_magic(self.magics, 'line', name, meth)
 
+    def register_alias(self, alias_name, magic_name, magic_kind='line'):
+        """Register an alias to a magic function.
+
+        The alias is an instance of :class:`MagicAlias`, which holds the
+        name and kind of the magic it should call. Binding is done at
+        call time, so if the underlying magic function is changed the alias
+        will call the new function.
+
+        Parameters
+        ----------
+        alias_name : str
+          The name of the magic to be registered.
+
+        magic_name : str
+          The name of an existing magic.
+
+        magic_kind : str
+          Kind of magic, one of 'line' or 'cell'
+        """
+
+        # `validate_type` is too permissive, as it allows 'line_cell'
+        # which we do not handle.
+        if magic_kind not in magic_kinds:
+            raise ValueError('magic_kind must be one of %s, %s given' %
+                             magic_kinds, magic_kind)
+
+        alias = MagicAlias(self.shell, magic_name, magic_kind)
+        setattr(self.user_magics, alias_name, alias)
+        record_magic(self.magics, magic_kind, alias_name, alias)
+
 # Key base class that provides the central functionality for magics.
 
 class Magics(object):
@@ -459,13 +524,19 @@ class Magics(object):
         # grab.  Only now, that the instance exists, can we create the proper
         # mapping to bound methods.  So we read the info off the original names
         # table and replace each method name by the actual bound method.
+        # But we mustn't clobber the *class* mapping, in case of multiple instances.
+        class_magics = self.magics
+        self.magics = {}
         for mtype in magic_kinds:
-            tab = self.magics[mtype]
-            # must explicitly use keys, as we're mutating this puppy
-            for magic_name in tab.keys():
-                meth_name = tab[magic_name]
+            tab = self.magics[mtype] = {}
+            cls_tab = class_magics[mtype]
+            for magic_name, meth_name in cls_tab.iteritems():
                 if isinstance(meth_name, basestring):
+                    # it's a method name, grab it
                     tab[magic_name] = getattr(self, meth_name)
+                else:
+                    # it's the real thing
+                    tab[magic_name] = meth_name
 
     def arg_err(self,func):
         """Print docstring if incorrect arguments were passed"""
@@ -527,7 +598,7 @@ class Magics(object):
 
         mode = kw.get('mode','string')
         if mode not in ['string','list']:
-            raise ValueError,'incorrect mode given: %s' % mode
+            raise ValueError('incorrect mode given: %s' % mode)
         # Get options
         list_all = kw.get('list_all',0)
         posix = kw.get('posix', os.name == 'posix')
@@ -543,7 +614,7 @@ class Magics(object):
             # Do regular option processing
             try:
                 opts,args = getopt(argv, opt_str, long_opts)
-            except GetoptError,e:
+            except GetoptError as e:
                 raise UsageError('%s ( allowed: "%s" %s)' % (e.msg,opt_str,
                                         " ".join(long_opts)))
             for o,a in opts:
@@ -574,3 +645,39 @@ class Magics(object):
         if fn not in self.lsmagic():
             error("%s is not a magic function" % fn)
         self.options_table[fn] = optstr
+
+class MagicAlias(object):
+    """An alias to another magic function.
+
+    An alias is determined by its magic name and magic kind. Lookup
+    is done at call time, so if the underlying magic changes the alias
+    will call the new function.
+
+    Use the :meth:`MagicsManager.register_alias` method or the
+    `%alias_magic` magic function to create and register a new alias.
+    """
+    def __init__(self, shell, magic_name, magic_kind):
+        self.shell = shell
+        self.magic_name = magic_name
+        self.magic_kind = magic_kind
+
+        self.pretty_target = '%s%s' % (magic_escapes[self.magic_kind], self.magic_name)
+        self.__doc__ = "Alias for `%s`." % self.pretty_target
+
+        self._in_call = False
+
+    def __call__(self, *args, **kwargs):
+        """Call the magic alias."""
+        fn = self.shell.find_magic(self.magic_name, self.magic_kind)
+        if fn is None:
+            raise UsageError("Magic `%s` not found." % self.pretty_target)
+
+        # Protect against infinite recursion.
+        if self._in_call:
+            raise UsageError("Infinite recursion detected; "
+                             "magic aliases cannot call themselves.")
+        self._in_call = True
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            self._in_call = False

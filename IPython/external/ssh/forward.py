@@ -45,7 +45,7 @@ class Handler (SocketServer.BaseRequestHandler):
             chan = self.ssh_transport.open_channel('direct-tcpip',
                                                    (self.chain_host, self.chain_port),
                                                    self.request.getpeername())
-        except Exception, e:
+        except Exception as e:
             logger.debug('Incoming request to %s:%d failed: %s' % (self.chain_host,
                                                               self.chain_port,
                                                               repr(e)))

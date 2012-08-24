@@ -84,67 +84,6 @@ def _run_ns_sync(self,arg_s,runner=None):
     return get_ipython().magic_run_ori(arg_s, runner, finder)
 
 
-class ipnsdict(dict):
-    """A special subclass of dict for use as an IPython namespace in doctests.
-
-    This subclass adds a simple checkpointing capability so that when testing
-    machinery clears it (we use it as the test execution context), it doesn't
-    get completely destroyed.
-
-    In addition, it can handle the presence of the '_' key in a special manner,
-    which is needed because of how Python's doctest machinery operates with
-    '_'.  See constructor and :meth:`update` for details.
-    """
-
-    def __init__(self,*a):
-        dict.__init__(self,*a)
-        self._savedict = {}
-        # If this flag is True, the .update() method will unconditionally
-        # remove a key named '_'.  This is so that such a dict can be used as a
-        # namespace in doctests that call '_'.
-        self.protect_underscore = False
-
-    def clear(self):
-        dict.clear(self)
-        self.update(self._savedict)
-
-    def _checkpoint(self):
-        self._savedict.clear()
-        self._savedict.update(self)
-
-    def update(self,other):
-        self._checkpoint()
-        dict.update(self,other)
-
-        if self.protect_underscore:
-            # If '_' is in the namespace, python won't set it when executing
-            # code *in doctests*, and we have multiple doctests that use '_'.
-            # So we ensure that the namespace is always 'clean' of it before
-            # it's used for test code execution.
-            # This flag is only turned on by the doctest machinery, so that
-            # normal test code can assume the _ key is updated like any other
-            # key and can test for its presence after cell executions.
-            self.pop('_', None)
-
-        # The builtins namespace must *always* be the real __builtin__ module,
-        # else weird stuff happens.  The main ipython code does have provisions
-        # to ensure this after %run, but since in this class we do some
-        # aggressive low-level cleaning of the execution namespace, we need to
-        # correct for that ourselves, to ensure consitency with the 'real'
-        # ipython.
-        self['__builtins__'] = builtin_mod
-
-    def __delitem__(self, key):
-        """Part of the test suite checks that we can release all
-        references to an object. So we need to make sure that we're not
-        keeping a reference in _savedict."""
-        dict.__delitem__(self, key)
-        try:
-            del self._savedict[key]
-        except KeyError:
-            pass
-
-
 def get_ipython():
     # This will get replaced by the real thing once we start IPython below
     return start_ipython()
@@ -159,7 +98,7 @@ def xsys(self, cmd):
     """
     # We use getoutput, but we need to strip it because pexpect captures
     # the trailing newline differently from commands.getoutput
-    print(self.getoutput(cmd, split=False).rstrip(), end='', file=sys.stdout)
+    print(self.getoutput(cmd, split=False, depth=1).rstrip(), end='', file=sys.stdout)
     sys.stdout.flush()
 
 
@@ -189,7 +128,6 @@ def start_ipython():
 
     # Create and initialize our test-friendly IPython instance.
     shell = TerminalInteractiveShell.instance(config=config,
-                                              user_ns=ipnsdict(),
                                               )
 
     # A few more tweaks needed for playing nicely with doctests...

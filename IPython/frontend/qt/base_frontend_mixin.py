@@ -25,6 +25,7 @@ class BaseFrontendMixin(object):
         # Disconnect the old kernel manager, if necessary.
         old_manager = self._kernel_manager
         if old_manager is not None:
+            old_manager.started_kernel.disconnect(self._started_kernel)
             old_manager.started_channels.disconnect(self._started_channels)
             old_manager.stopped_channels.disconnect(self._stopped_channels)
 
@@ -45,6 +46,7 @@ class BaseFrontendMixin(object):
             return
 
         # Connect the new kernel manager.
+        kernel_manager.started_kernel.connect(self._started_kernel)
         kernel_manager.started_channels.connect(self._started_channels)
         kernel_manager.stopped_channels.connect(self._stopped_channels)
 
@@ -76,6 +78,11 @@ class BaseFrontendMixin(object):
         ----------
         since_last_heartbeat : float
             The time since the heartbeat was last received.
+        """
+
+    def _started_kernel(self):
+        """Called when the KernelManager starts (or restarts) the kernel subprocess.
+        Channels may or may not be running at this point.
         """
 
     def _started_channels(self):

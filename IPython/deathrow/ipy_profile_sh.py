@@ -115,9 +115,6 @@ def main():
 
             ip.define_alias(key.replace('.',''), cmd)
 
-    # mglob combines 'find', recursion, exclusion... '%mglob?' to learn more
-    ip.load("IPython.external.mglob")
-
     # win32 is crippled w/o cygwin, try to help it a little bit
     if sys.platform == 'win32':
         if 'cygwin' in os.environ['PATH'].lower():

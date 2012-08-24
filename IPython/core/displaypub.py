@@ -102,7 +102,7 @@ class DisplayPublisher(Configurable):
         """
 
         # The default is to simply write the plain text data using io.stdout.
-        if data.has_key('text/plain'):
+        if 'text/plain' in data:
             print(data['text/plain'], file=io.stdout)
 
     def clear_output(self, stdout=True, stderr=True, other=True):

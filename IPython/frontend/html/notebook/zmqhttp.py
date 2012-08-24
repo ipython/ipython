@@ -76,7 +76,7 @@ class ZMQSubHandler(ZMQHandler):
         self.get_stream().on_recv(self._handle_msgs)
 
 
-class ZMQXReqHandler(ZMQHandler):
+class ZMQDealerHandler(ZMQHandler):
 
     SUPPORTED_METHODS = ("POST",)
 

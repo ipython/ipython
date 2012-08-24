@@ -36,9 +36,10 @@ def setup():
     global save_get_ipython_dir
     
     IPYTHONDIR = tempfile.mkdtemp()
-    env = dict(IPYTHONDIR=IPYTHONDIR)
-    if 'PYTHONPATH' in os.environ:
-        env['PYTHONPATH'] = os.environ['PYTHONPATH']
+
+    env = os.environ.copy()
+    env["IPYTHONDIR"] = IPYTHONDIR
+
     save_get_ipython_dir = path.get_ipython_dir
     path.get_ipython_dir = lambda : IPYTHONDIR
 
@@ -116,14 +117,14 @@ def test_embed_kernel_basic():
         msg_id = shell.execute("c=a*2")
         msg = shell.get_msg(block=True, timeout=2)
         content = msg['content']
-        nt.assert_equals(content['status'], u'ok')
+        nt.assert_equal(content['status'], u'ok')
 
         # oinfo c (should be 10)
         msg_id = shell.object_info('c')
         msg = shell.get_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equals(content['string_form'], u'10')
+        nt.assert_equal(content['string_form'], u'10')
 
 def test_embed_kernel_namespace():
     """IPython.embed_kernel() inherits calling namespace"""
@@ -145,14 +146,14 @@ def test_embed_kernel_namespace():
         msg = shell.get_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equals(content['string_form'], u'5')
+        nt.assert_equal(content['string_form'], u'5')
 
         # oinfo b (str)
         msg_id = shell.object_info('b')
         msg = shell.get_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
-        nt.assert_equals(content['string_form'], u'hi there')
+        nt.assert_equal(content['string_form'], u'hi there')
 
         # oinfo c (undefined)
         msg_id = shell.object_info('c')
@@ -182,7 +183,7 @@ def test_embed_kernel_reentrant():
             msg = shell.get_msg(block=True, timeout=2)
             content = msg['content']
             nt.assert_true(content['found'])
-            nt.assert_equals(content['string_form'], unicode(i))
+            nt.assert_equal(content['string_form'], unicode(i))
             
             # exit from embed_kernel
             shell.execute("get_ipython().exit_now = True")

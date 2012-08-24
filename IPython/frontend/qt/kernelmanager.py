@@ -183,6 +183,9 @@ class QtKernelManager(KernelManager, SuperQObject):
     __metaclass__ = MetaQObjectHasTraits
 
     # Emitted when the kernel manager has started listening.
+    started_kernel = QtCore.Signal()
+
+    # Emitted when the kernel manager has started listening.
     started_channels = QtCore.Signal()
 
     # Emitted when the kernel manager has stopped listening.
@@ -206,6 +209,7 @@ class QtKernelManager(KernelManager, SuperQObject):
         if self._shell_channel is not None:
             self._shell_channel.reset_first_reply()
         super(QtKernelManager, self).start_kernel(*args, **kw)
+        self.started_kernel.emit()
 
     #------ Channel management -------------------------------------------------
 

@@ -15,13 +15,15 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 import sys
 import time
 from datetime import datetime
 
 from zmq import MessageTracker
 
-from IPython.core.display import clear_output, display
+from IPython.core.display import clear_output, display, display_pretty
 from IPython.external.decorator import decorator
 from IPython.parallel import error
 
@@ -37,6 +39,9 @@ def _total_seconds(td):
     except AttributeError:
         # Python 2.6
         return 1e-6 * (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
+
+def _raw_text(s):
+    display_pretty(s, raw=True)
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -77,8 +82,9 @@ class AsyncResult(object):
         self._targets = targets
         self._tracker = tracker
         self._ready = False
+        self._outputs_ready = False
         self._success = None
-        self._metadata = None
+        self._metadata = [ self._client.metadata.get(id) for id in self.msg_ids ]
         if len(msg_ids) == 1:
             self._single_result = not isinstance(targets, (list, tuple))
         else:
@@ -121,10 +127,17 @@ class AsyncResult(object):
         else:
             raise error.TimeoutError("Result not ready.")
 
+    def _check_ready(self):
+        if not self.ready():
+            raise error.TimeoutError("Result not ready.")
+    
     def ready(self):
         """Return whether the call has completed."""
         if not self._ready:
             self.wait(0)
+        elif not self._outputs_ready:
+            self._wait_for_outputs(0)
+        
         return self._ready
 
     def wait(self, timeout=-1):
@@ -133,6 +146,7 @@ class AsyncResult(object):
         This method always returns None.
         """
         if self._ready:
+            self._wait_for_outputs(timeout)
             return
         self._ready = self._client.wait(self.msg_ids, timeout)
         if self._ready:
@@ -146,13 +160,16 @@ class AsyncResult(object):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:
                 self._success = True
             finally:
-                self._metadata = map(self._client.metadata.get, self.msg_ids)
+                if timeout is None or timeout < 0:
+                    # cutoff infinite wait at 10s
+                    timeout = 10
+                self._wait_for_outputs(timeout)
 
 
     def successful(self):
@@ -185,14 +202,13 @@ class AsyncResult(object):
 
     @property
     def result(self):
-        """result property wrapper for `get(timeout=0)`."""
+        """result property wrapper for `get(timeout=-1)`."""
         return self.get()
 
     # abbreviated alias:
     r = result
 
     @property
-    @check_ready
     def metadata(self):
         """property for accessing execution metadata."""
         if self._single_result:
@@ -231,15 +247,18 @@ class AsyncResult(object):
     # dict-access
     #-------------------------------------
 
-    @check_ready
     def __getitem__(self, key):
         """getitem returns result value(s) if keyed by int/slice, or metadata if key is str.
         """
         if isinstance(key, int):
+            self._check_ready()
             return error.collect_exceptions([self._result[key]], self._fname)[0]
         elif isinstance(key, slice):
+            self._check_ready()
             return error.collect_exceptions(self._result[key], self._fname)
         elif isinstance(key, basestring):
+            # metadata proxy *does not* require that results are done
+            self.wait(0)
             values = [ md[key] for md in self._metadata ]
             if self._single_result:
                 return values[0]
@@ -366,17 +385,19 @@ class AsyncResult(object):
         """
         return self.timedelta(self.submitted, self.received)
     
-    def wait_interactive(self, interval=1., timeout=None):
+    def wait_interactive(self, interval=1., timeout=-1):
         """interactive wait, printing progress at regular intervals"""
+        if timeout is None:
+            timeout = -1
         N = len(self)
         tic = time.time()
-        while not self.ready() and (timeout is None or time.time() - tic <= timeout):
+        while not self.ready() and (timeout < 0 or time.time() - tic <= timeout):
             self.wait(interval)
             clear_output()
-            print "%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed),
+            print("%4i/%i tasks finished after %4i s" % (self.progress, N, self.elapsed), end="")
             sys.stdout.flush()
-        print
-        print "done"
+        print()
+        print("done")
     
     def _republish_displaypub(self, content, eid):
         """republish individual displaypub content dicts"""
@@ -388,24 +409,57 @@ class AsyncResult(object):
         md = content['metadata'] or {}
         md['engine'] = eid
         ip.display_pub.publish(content['source'], content['data'], md)
+    
+    def _display_stream(self, text, prefix='', file=None):
+        if not text:
+            # nothing to display
+            return
+        if file is None:
+            file = sys.stdout
+        end = '' if text.endswith('\n') else '\n'
         
+        multiline = text.count('\n') > int(text.endswith('\n'))
+        if prefix and multiline and not text.startswith('\n'):
+            prefix = prefix + '\n'
+        print("%s%s" % (prefix, text), file=file, end=end)
         
+    
     def _display_single_result(self):
-        
-        print self.stdout
-        print >> sys.stderr, self.stderr
+        self._display_stream(self.stdout)
+        self._display_stream(self.stderr, file=sys.stderr)
         
         try:
             get_ipython()
         except NameError:
             # displaypub is meaningless outside IPython
             return
-            
+        
         for output in self.outputs:
             self._republish_displaypub(output, self.engine_id)
         
         if self.pyout is not None:
             display(self.get())
+    
+    def _wait_for_outputs(self, timeout=-1):
+        """wait for the 'status=idle' message that indicates we have all outputs
+        """
+        if self._outputs_ready or not self._success:
+            # don't wait on errors
+            return
+        
+        # cast None to -1 for infinite timeout
+        if timeout is None:
+            timeout = -1
+        
+        tic = time.time()
+        self._client._flush_iopub(self._client._iopub_socket)
+        self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
+        while not self._outputs_ready:
+            time.sleep(0.01)
+            self._client._flush_iopub(self._client._iopub_socket)
+            self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
+            if timeout >= 0 and time.time() > tic + timeout:
+                break
     
     @check_ready
     def display_outputs(self, groupby="type"):
@@ -436,15 +490,13 @@ class AsyncResult(object):
                 several plots, and you would like to see all of the first
                 plots together, then all of the second plots, and so on.
         """
-        # flush iopub, just in case
-        self._client._flush_iopub(self._client._iopub_socket)
         if self._single_result:
             self._display_single_result()
             return
         
-        stdouts = [s.rstrip() for s in self.stdout]
-        stderrs = [s.rstrip() for s in self.stderr]
-        pyouts  = [p for p in self.pyout]
+        stdouts = self.stdout
+        stderrs = self.stderr
+        pyouts  = self.pyout
         output_lists = self.outputs
         results = self.get()
         
@@ -454,16 +506,17 @@ class AsyncResult(object):
             for eid,stdout,stderr,outputs,r,pyout in zip(
                     targets, stdouts, stderrs, output_lists, results, pyouts
                 ):
-                if stdout:
-                    print '[stdout:%i]' % eid, stdout
-                if stderr:
-                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
+                self._display_stream(stdout, '[stdout:%i] ' % eid)
+                self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
                 
                 try:
                     get_ipython()
                 except NameError:
                     # displaypub is meaningless outside IPython
                     return 
+                
+                if outputs or pyout is not None:
+                    _raw_text('[output:%i]' % eid)
                 
                 for output in outputs:
                     self._republish_displaypub(output, eid)
@@ -473,14 +526,12 @@ class AsyncResult(object):
         
         elif groupby in ('type', 'order'):
             # republish stdout:
-            if any(stdouts):
-                for eid,stdout in zip(targets, stdouts):
-                    print '[stdout:%i]' % eid, stdout
+            for eid,stdout in zip(targets, stdouts):
+                self._display_stream(stdout, '[stdout:%i] ' % eid)
         
             # republish stderr:
-            if any(stderrs):
-                for eid,stderr in zip(targets, stderrs):
-                    print >> sys.stderr, '[stderr:%i]' % eid, stderr
+            for eid,stderr in zip(targets, stderrs):
+                self._display_stream(stderr, '[stderr:%i] ' % eid, file=sys.stderr)
         
             try:
                 get_ipython()
@@ -495,10 +546,13 @@ class AsyncResult(object):
                     for eid in targets:
                         outputs = output_dict[eid]
                         if len(outputs) >= N:
+                            _raw_text('[output:%i]' % eid)
                             self._republish_displaypub(outputs[i], eid)
             else:
                 # republish displaypub output
                 for eid,outputs in zip(targets, output_lists):
+                    if outputs:
+                        _raw_text('[output:%i]' % eid)
                     for output in outputs:
                         self._republish_displaypub(output, eid)
         
@@ -600,7 +654,6 @@ class AsyncMapResult(AsyncResult):
                 yield r
 
 
-
 class AsyncHubResult(AsyncResult):
     """Class to wrap pending results that must be requested from the Hub.
 
@@ -608,6 +661,10 @@ class AsyncHubResult(AsyncResult):
     so use `AsyncHubResult.wait()` sparingly.
     """
 
+    def _wait_for_outputs(self, timeout=-1):
+        """no-op, because HubResults are never incomplete"""
+        self._outputs_ready = True
+    
     def wait(self, timeout=-1):
         """wait for result to complete."""
         start = time.time()
@@ -640,7 +697,7 @@ class AsyncHubResult(AsyncResult):
                 else:
                     results = error.collect_exceptions(results, self._fname)
                 self._result = self._reconstruct_result(results)
-            except Exception, e:
+            except Exception as e:
                 self._exception = e
                 self._success = False
             else:

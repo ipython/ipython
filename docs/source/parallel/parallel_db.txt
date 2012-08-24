@@ -4,19 +4,40 @@
 IPython's Task Database
 =======================
 
-The IPython Hub stores all task requests and results in a database. Currently supported backends
-are: MongoDB, SQLite (the default), and an in-memory DictDB.  The most common use case for
-this is clients requesting results for tasks they did not submit, via:
+Enabling a DB Backend
+=====================
+
+The IPython Hub can store all task requests and results in a database. 
+Currently supported backends are: MongoDB, SQLite, and an in-memory DictDB.
+
+This database behavior is optional due to its potential :ref:`db_cost`,
+so you must enable one, either at the command-line::
+
+    $> ipcontroller --dictb # or --mongodb or --sqlitedb
+
+or in your :file:`ipcontroller_config.py`:
+
+.. sourcecode:: python
+
+    c.HubFactory.db_class = "DictDB"
+    c.HubFactory.db_class = "MongoDB"
+    c.HubFactory.db_class = "SQLiteDB"
+
+
+Using the Task Database
+=======================
+
+The most common use case for this is clients requesting results for tasks they did not submit, via:
 
 .. sourcecode:: ipython
 
     In [1]: rc.get_result(task_id)
 
-However, since we have this DB backend, we provide a direct query method in the :class:`client`
+However, since we have this DB backend, we provide a direct query method in the :class:`~.Client`
 for users who want deeper introspection into their task history. The :meth:`db_query` method of
 the Client is modeled after MongoDB queries, so if you have used MongoDB it should look
-familiar.  In fact, when the MongoDB backend is in use, the query is relayed directly.  However,
-when using other backends, the interface is emulated and only a subset of queries is possible.
+familiar.  In fact, when the MongoDB backend is in use, the query is relayed directly.  
+When using other backends, the interface is emulated and only a subset of queries is possible.
 
 .. seealso::
 
@@ -39,18 +60,18 @@ header          dict            The request header
 content         dict            The request content (likely empty)
 buffers         list(bytes)     buffers containing serialized request objects
 submitted       datetime        timestamp for time of submission (set by client)
-client_uuid     uuid(bytes)     IDENT of client's socket
-engine_uuid     uuid(bytes)     IDENT of engine's socket
+client_uuid     uuid(ascii)     IDENT of client's socket
+engine_uuid     uuid(ascii)     IDENT of engine's socket
 started         datetime        time task began execution on engine
 completed       datetime        time task finished execution (success or failure) on engine
 resubmitted     uuid(ascii)     msg_id of resubmitted task (if applicable)
 result_header   dict            header for result
 result_content  dict            content for result
 result_buffers  list(bytes)     buffers containing serialized request objects
-queue           bytes           The name of the queue for the task ('mux' or 'task')
-pyin            <unused>        Python input (unused)
-pyout           <unused>        Python output (unused)
-pyerr           <unused>        Python traceback (unused)
+queue           str             The name of the queue for the task ('mux' or 'task')
+pyin            str             Python input source
+pyout           dict            Python output (pyout message content)
+pyerr           dict            Python traceback (pyerr message content)
 stdout          str             Stream of stdout data
 stderr          str             Stream of stderr data
 
@@ -77,15 +98,15 @@ The DB Query is useful for two primary cases:
 1. deep polling of task status or metadata
 2. selecting a subset of tasks, on which to perform a later operation (e.g. wait on result, purge records, resubmit,...)
 
+
 Example Queries
 ===============
-
 
 To get all msg_ids that are not completed, only retrieving their ID and start time:
 
 .. sourcecode:: ipython
 
-    In [1]: incomplete = rc.db_query({'complete' : None}, keys=['msg_id', 'started'])
+    In [1]: incomplete = rc.db_query({'completed' : None}, keys=['msg_id', 'started'])
 
 All jobs started in the last hour by me:
 
@@ -113,12 +134,13 @@ Result headers for all jobs on engine 3 or 4:
 
     In [2]: hist34 = rc.db_query({'engine_uuid' : {'$in' : uuids }, keys='result_header')
 
+.. _db_cost:
 
 Cost
 ====
 
 The advantage of the database backends is, of course, that large amounts of
-data can be stored that won't fit in memory.  The default 'backend' is actually
+data can be stored that won't fit in memory.  The basic DictDB 'backend' is actually
 to just store all of this information in a Python dictionary.  This is very fast,
 but will run out of memory quickly if you move a lot of data around, or your
 cluster is to run for a long time.

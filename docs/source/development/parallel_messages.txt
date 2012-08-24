@@ -30,7 +30,7 @@ large blocking requests or database actions in the Hub do not have the ability t
 job submission and results.
 
 Registration (``ROUTER``)
-***********************
+*************************
 
 The first function of the Hub is to facilitate and monitor connections of clients
 and engines. Both client and engine registration are handled by the same socket, so only
@@ -43,9 +43,7 @@ monitor the survival of the Engine process.
 Message type: ``registration_request``::
 
     content = {
-        'queue'   : 'abcd-1234-...', # the MUX queue zmq.IDENTITY
-        'control'   : 'abcd-1234-...', # the control queue zmq.IDENTITY
-        'heartbeat' : 'abcd-1234-...' # the heartbeat zmq.IDENTITY
+        'uuid'   : 'abcd-1234-...', # the zmq.IDENTITY of the engine's sockets
     }
 
 .. note::
@@ -63,10 +61,6 @@ Message type: ``registration_reply``::
         'status' : 'ok', # or 'error'
         # if ok:
         'id' : 0, # int, the engine id
-        'queue' : 'tcp://127.0.0.1:12345', # connection for engine side of the queue
-        'control' : 'tcp://...', # addr for control queue
-        'heartbeat' : ('tcp://...','tcp://...'), # tuple containing two interfaces needed for heartbeat
-        'task' : 'tcp://...', # addr for task queue, or None if no task queue running
     }
 
 Clients use the same socket as engines to start their connections. Connection requests
@@ -84,11 +78,6 @@ Message type: ``connection_reply``::
 
     content = {
         'status' : 'ok', # or 'error'
-        # if ok:
-        'queue' : 'tcp://127.0.0.1:12345', # connection for client side of the MUX queue
-        'task' : ('lru','tcp...'), # routing scheme and addr for task queue (len 2 tuple)
-        'query' : 'tcp...', # addr for methods to query the hub, like queue_request, etc.
-        'control' : 'tcp...', # addr for control methods, like abort, etc.
     }
 
 Heartbeat
@@ -110,18 +99,19 @@ Message type: ``registration_notification``::
 
     content = {
         'id' : 0, # engine ID that has been registered
-        'queue' : 'engine_id' # the IDENT for the engine's queue
+        'uuid' : 'engine_id' # the IDENT for the engine's sockets
     }
 
 Message type : ``unregistration_notification``::
 
     content = {
         'id' : 0 # engine ID that has been unregistered
+        'uuid' : 'engine_id' # the IDENT for the engine's sockets
     }
 
 
 Client Queries (``ROUTER``)
-*************************
+***************************
 
 The hub monitors and logs all queue traffic, so that clients can retrieve past
 results or monitor pending tasks. This information may reside in-memory on the Hub, or
@@ -252,8 +242,8 @@ Message type: ``task_destination``::
         'engine_id' : '1234-abcd-...', # the destination engine's zmq.IDENTITY
     }
 
-:func:`apply` and :func:`apply_bound`
-*************************************
+:func:`apply`
+*************
 
 In terms of message classes, the MUX scheduler and Task scheduler relay the exact same
 message types.  Their only difference lies in how the destination is selected.
@@ -270,18 +260,17 @@ code string, must be able to send arbitrary (pickleable) Python objects. And ide
 as little data as we can. The `buffers` property of a Message was introduced for this
 purpose.
 
-Utility method :func:`build_apply_message` in :mod:`IPython.zmq.streamsession` wraps a
+Utility method :func:`build_apply_message` in :mod:`IPython.zmq.serialize` wraps a
 function signature and builds a sendable buffer format for minimal data copying (exactly
 zero copies of numpy array data or buffers or large strings).
 
 Message type: ``apply_request``::
 
-    content = {
-        'bound' : True, # whether to execute in the engine's namespace or unbound
+    metadata = {
         'after' : ['msg_id',...], # list of msg_ids or output of Dependency.as_dict()
         'follow' : ['msg_id',...], # list of msg_ids or output of Dependency.as_dict()
-        
     }
+    content = {}
     buffers = ['...'] # at least 3 in length
                     # as built by build_apply_message(f,args,kwargs)
 
@@ -370,8 +359,8 @@ Split Sends
 Previously, messages were bundled as a single json object and one call to
 :func:`socket.send_json`. Since the hub inspects all messages, and doesn't need to
 see the content of the messages, which can be large, messages are now serialized and sent in
-pieces. All messages are sent in at least 3 parts: the header, the parent header, and the
-content. This allows the controller to unpack and inspect the (always small) header,
+pieces. All messages are sent in at least 4 parts: the header, the parent header, the metadata and the content.
+This allows the controller to unpack and inspect the (always small) header,
 without spending time unpacking the content unless the message is bound for the
 controller. Buffers are added on to the end of the message, and can be any objects that
 present the buffer interface.

@@ -93,7 +93,7 @@ def setup_environment():
     each testfunction needs a pristine environment.
     """
     global oldstuff, platformstuff
-    oldstuff = (env.copy(), os.name, path.get_home_dir, IPython.__file__, os.getcwd())
+    oldstuff = (env.copy(), os.name, sys.platform, path.get_home_dir, IPython.__file__, os.getcwd())
 
     if os.name == 'nt':
         platformstuff = (wreg.OpenKey, wreg.QueryValueEx,)
@@ -102,7 +102,7 @@ def setup_environment():
 def teardown_environment():
     """Restore things that were remebered by the setup_environment function
     """
-    (oldenv, os.name, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
+    (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
     os.chdir(old_wd)
     reload(path)
 
@@ -159,9 +159,8 @@ def test_get_home_dir_4():
     """get_home_dir() still works if $HOME is not set"""
 
     if 'HOME' in env: del env['HOME']
-    # this should still succeed, but we don't know what the answer should be
-    home = path.get_home_dir(True)
-    nt.assert_true(path._writable_dir(home))
+    # this should still succeed, but we don't care what the answer is
+    home = path.get_home_dir(False)
 
 @with_environment
 def test_get_home_dir_5():
@@ -234,7 +233,11 @@ def test_get_ipython_dir_3():
     env.pop('IPYTHONDIR', None)
     env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
     ipdir = path.get_ipython_dir()
-    nt.assert_equal(ipdir, os.path.join(XDG_TEST_DIR, "ipython"))
+    if sys.platform == "darwin":
+        expected = os.path.join("someplace", ".ipython")
+    else:
+        expected = os.path.join(XDG_TEST_DIR, "ipython")
+    nt.assert_equal(ipdir, expected)
 
 @with_environment
 def test_get_ipython_dir_4():
@@ -244,9 +247,12 @@ def test_get_ipython_dir_4():
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env['XDG_CONFIG_HOME'] = XDG_TEST_DIR
-    xdg_ipdir = os.path.join(XDG_TEST_DIR, "ipython")
     ipdir = path.get_ipython_dir()
-    nt.assert_equal(ipdir, xdg_ipdir)
+    if sys.platform == "darwin":
+        expected = os.path.join(HOME_TEST_DIR, ".ipython")
+    else:
+        expected = os.path.join(XDG_TEST_DIR, "ipython")
+    nt.assert_equal(ipdir, expected)
 
 @with_environment
 def test_get_ipython_dir_5():
@@ -280,19 +286,20 @@ def test_get_ipython_dir_6():
 def test_get_ipython_dir_7():
     """test_get_ipython_dir_7, test home directory expansion on IPYTHONDIR"""
     path._writable_dir = lambda path: True
-    home_dir = os.path.expanduser('~')
+    home_dir = os.path.normpath(os.path.expanduser('~'))
     env['IPYTHONDIR'] = os.path.join('~', 'somewhere')
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 
 
 @with_environment
-def test_get_xdg_dir_1():
-    """test_get_xdg_dir_1, check xdg_dir"""
+def test_get_xdg_dir_0():
+    """test_get_xdg_dir_0, check xdg_dir"""
     reload(path)
     path._writable_dir = lambda path: True
     path.get_home_dir = lambda : 'somewhere'
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -306,6 +313,7 @@ def test_get_xdg_dir_1():
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
@@ -317,13 +325,31 @@ def test_get_xdg_dir_2():
     reload(path)
     path.get_home_dir = lambda : HOME_TEST_DIR
     os.name = "posix"
+    sys.platform = "linux2"
     env.pop('IPYTHON_DIR', None)
     env.pop('IPYTHONDIR', None)
     env.pop('XDG_CONFIG_HOME', None)
     cfgdir=os.path.join(path.get_home_dir(), '.config')
-    os.makedirs(cfgdir)
+    if not os.path.exists(cfgdir):
+        os.makedirs(cfgdir)
 
     nt.assert_equal(path.get_xdg_dir(), cfgdir)
+
+@with_environment
+def test_get_xdg_dir_3():
+    """test_get_xdg_dir_3, check xdg_dir not used on OS X"""
+    reload(path)
+    path.get_home_dir = lambda : HOME_TEST_DIR
+    os.name = "posix"
+    sys.platform = "darwin"
+    env.pop('IPYTHON_DIR', None)
+    env.pop('IPYTHONDIR', None)
+    env.pop('XDG_CONFIG_HOME', None)
+    cfgdir=os.path.join(path.get_home_dir(), '.config')
+    if not os.path.exists(cfgdir):
+        os.makedirs(cfgdir)
+
+    nt.assert_equal(path.get_xdg_dir(), None)
 
 def test_filefind():
     """Various tests for filefind"""
@@ -347,13 +373,13 @@ def test_get_ipython_module_path():
 @dec.skip_if_not_win32
 def test_get_long_path_name_win32():
     p = path.get_long_path_name('c:\\docume~1')
-    nt.assert_equals(p,u'c:\\Documents and Settings')
+    nt.assert_equal(p,u'c:\\Documents and Settings')
 
 
 @dec.skip_win32
 def test_get_long_path_name():
     p = path.get_long_path_name('/usr/local')
-    nt.assert_equals(p,'/usr/local')
+    nt.assert_equal(p,'/usr/local')
 
 @dec.skip_win32 # can't create not-user-writable dir on win
 @with_environment
@@ -373,36 +399,36 @@ def test_not_writable_ipdir():
 
 def test_unquote_filename():
     for win32 in (True, False):
-        nt.assert_equals(path.unquote_filename('foo.py', win32=win32), 'foo.py')
-        nt.assert_equals(path.unquote_filename('foo bar.py', win32=win32), 'foo bar.py')
-    nt.assert_equals(path.unquote_filename('"foo.py"', win32=True), 'foo.py')
-    nt.assert_equals(path.unquote_filename('"foo bar.py"', win32=True), 'foo bar.py')
-    nt.assert_equals(path.unquote_filename("'foo.py'", win32=True), 'foo.py')
-    nt.assert_equals(path.unquote_filename("'foo bar.py'", win32=True), 'foo bar.py')
-    nt.assert_equals(path.unquote_filename('"foo.py"', win32=False), '"foo.py"')
-    nt.assert_equals(path.unquote_filename('"foo bar.py"', win32=False), '"foo bar.py"')
-    nt.assert_equals(path.unquote_filename("'foo.py'", win32=False), "'foo.py'")
-    nt.assert_equals(path.unquote_filename("'foo bar.py'", win32=False), "'foo bar.py'")
+        nt.assert_equal(path.unquote_filename('foo.py', win32=win32), 'foo.py')
+        nt.assert_equal(path.unquote_filename('foo bar.py', win32=win32), 'foo bar.py')
+    nt.assert_equal(path.unquote_filename('"foo.py"', win32=True), 'foo.py')
+    nt.assert_equal(path.unquote_filename('"foo bar.py"', win32=True), 'foo bar.py')
+    nt.assert_equal(path.unquote_filename("'foo.py'", win32=True), 'foo.py')
+    nt.assert_equal(path.unquote_filename("'foo bar.py'", win32=True), 'foo bar.py')
+    nt.assert_equal(path.unquote_filename('"foo.py"', win32=False), '"foo.py"')
+    nt.assert_equal(path.unquote_filename('"foo bar.py"', win32=False), '"foo bar.py"')
+    nt.assert_equal(path.unquote_filename("'foo.py'", win32=False), "'foo.py'")
+    nt.assert_equal(path.unquote_filename("'foo bar.py'", win32=False), "'foo bar.py'")
 
 @with_environment
 def test_get_py_filename():
     os.chdir(TMP_TEST_DIR)
     for win32 in (True, False):
         with make_tempfile('foo.py'):
-            nt.assert_equals(path.get_py_filename('foo.py', force_win32=win32), 'foo.py')
-            nt.assert_equals(path.get_py_filename('foo', force_win32=win32), 'foo.py')
+            nt.assert_equal(path.get_py_filename('foo.py', force_win32=win32), 'foo.py')
+            nt.assert_equal(path.get_py_filename('foo', force_win32=win32), 'foo.py')
         with make_tempfile('foo'):
-            nt.assert_equals(path.get_py_filename('foo', force_win32=win32), 'foo')
+            nt.assert_equal(path.get_py_filename('foo', force_win32=win32), 'foo')
             nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
         nt.assert_raises(IOError, path.get_py_filename, 'foo', force_win32=win32)
         nt.assert_raises(IOError, path.get_py_filename, 'foo.py', force_win32=win32)
         true_fn = 'foo with spaces.py'
         with make_tempfile(true_fn):
-            nt.assert_equals(path.get_py_filename('foo with spaces', force_win32=win32), true_fn)
-            nt.assert_equals(path.get_py_filename('foo with spaces.py', force_win32=win32), true_fn)
+            nt.assert_equal(path.get_py_filename('foo with spaces', force_win32=win32), true_fn)
+            nt.assert_equal(path.get_py_filename('foo with spaces.py', force_win32=win32), true_fn)
             if win32:
-                nt.assert_equals(path.get_py_filename('"foo with spaces.py"', force_win32=True), true_fn)
-                nt.assert_equals(path.get_py_filename("'foo with spaces.py'", force_win32=True), true_fn)
+                nt.assert_equal(path.get_py_filename('"foo with spaces.py"', force_win32=True), true_fn)
+                nt.assert_equal(path.get_py_filename("'foo with spaces.py'", force_win32=True), true_fn)
             else:
                 nt.assert_raises(IOError, path.get_py_filename, '"foo with spaces.py"', force_win32=False)
                 nt.assert_raises(IOError, path.get_py_filename, "'foo with spaces.py'", force_win32=False)

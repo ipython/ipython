@@ -218,6 +218,6 @@ def enable_gui(gui, kernel=None):
                 " and no IPython Application with a kernel appears to be running."
             )
     loop = loop_map[gui]
-    if kernel.eventloop is not None and kernel.eventloop is not loop:
-        raise RuntimeError("Cannot activate multiple GUI eventloops")
+    if loop and kernel.eventloop is not None and kernel.eventloop is not loop:
+            raise RuntimeError("Cannot activate multiple GUI eventloops")
     kernel.eventloop = loop

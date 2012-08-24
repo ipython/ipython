@@ -154,7 +154,7 @@ class IGridRenderer(wx.grid.PyGridCellRenderer):
         try:
             value = self.table._displayattrs[col].value(self.table.items[row])
             (align, width, text) = ipipe.xformat(value, "cell", self.maxchars)
-        except Exception, exc:
+        except Exception as exc:
             (align, width, text) = ipipe.xformat(exc, "cell", self.maxchars)
         return (align, text)
 
@@ -292,7 +292,7 @@ class IGridTable(wx.grid.PyGridTableBase):
                 break
             except (KeyboardInterrupt, SystemExit):
                 raise
-            except Exception, exc:
+            except Exception as exc:
                 have += 1
                 self._append(exc)
                 self.iterator = None
@@ -413,7 +413,7 @@ class IGridGrid(wx.grid.Grid):
                 return None
         try:
             self.table.items = ipipe.deque(sorted(self.table.items, key=realkey, reverse=reverse))
-        except TypeError, exc:
+        except TypeError as exc:
             self.error_output("Exception encountered: %s" % exc)
             return
         # Find out where the object under the cursor went
@@ -478,7 +478,7 @@ class IGridGrid(wx.grid.Grid):
             (align, width, text) = ipipe.xformat(value, "cell", self.maxchars)
         except IndexError:
             raise IndexError
-        except Exception, exc:
+        except Exception as exc:
             (align, width, text) = ipipe.xformat(exc, "cell", self.maxchars)
         return text
 
@@ -505,7 +505,7 @@ class IGridGrid(wx.grid.Grid):
                                 break
                         except (KeyboardInterrupt, SystemExit):
                             raise
-                        except Exception, exc:
+                        except Exception as exc:
                             frame.SetStatusText(str(exc))
                             wx.Bell()
                             break  # break on error
@@ -529,7 +529,7 @@ class IGridGrid(wx.grid.Grid):
                                 break
                         except (KeyboardInterrupt, SystemExit):
                             raise
-                        except Exception, exc:
+                        except Exception as exc:
                             frame.SetStatusText(str(exc))
                             wx.Bell()
                             break  # break on error
@@ -739,7 +739,7 @@ class IGridGrid(wx.grid.Grid):
                 for i in xrange(count-1, current, -1): # some tabs don't close if we don't close in *reverse* order
                     nb.DeletePage(i)
                 frame._add_notebook(value)
-        except TypeError, exc:
+        except TypeError as exc:
             if exc.__class__.__module__ == "exceptions":
                 msg = "%s: %s" % (exc.__class__.__name__, exc)
             else:
@@ -750,7 +750,7 @@ class IGridGrid(wx.grid.Grid):
         try:
             attr = self.table._displayattrs[col]
             value = attr.value(self.table.items[row])
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self._doenter(value)
@@ -762,7 +762,7 @@ class IGridGrid(wx.grid.Grid):
     def enter(self, row):
         try:
             value = self.table.items[row]
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self._doenter(value)
@@ -774,7 +774,7 @@ class IGridGrid(wx.grid.Grid):
         try:
             attr = self.table._displayattrs[col]
             item = self.table.items[row]
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
@@ -784,7 +784,7 @@ class IGridGrid(wx.grid.Grid):
         try:
             attr = self.table._displayattrs[col]
             item = attr.value(self.table.items[row])
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             attrs = [ipipe.AttributeDetail(item, attr) for attr in ipipe.xattrs(item, "detail")]
@@ -819,7 +819,7 @@ class IGridGrid(wx.grid.Grid):
         """
         try:
             value = self.table.items[row]
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self.quit(value)
@@ -827,7 +827,7 @@ class IGridGrid(wx.grid.Grid):
     def pickinput(self, row):
         try:
             value = self.table.items[row]
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             api = ipapi.get()
@@ -838,7 +838,7 @@ class IGridGrid(wx.grid.Grid):
         try:
             attr = self.table._displayattrs[col]
             value = attr.value(self.table.items[row])
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             api = ipapi.get()
@@ -851,7 +851,7 @@ class IGridGrid(wx.grid.Grid):
         """
         try:
             value = [self.table.items[row] for row in rows]
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self.quit(value)
@@ -870,7 +870,7 @@ class IGridGrid(wx.grid.Grid):
                     raise
                 except Exception:
                     raise #pass
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self.quit(values)
@@ -879,7 +879,7 @@ class IGridGrid(wx.grid.Grid):
         try:
             attr = self.table._displayattrs[col]
             value = attr.value(self.table.items[row])
-        except Exception, exc:
+        except Exception as exc:
             self.error_output(str(exc))
         else:
             self.quit(value)
@@ -959,7 +959,7 @@ class IGridFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             try:
                 milliseconds = int(dlg.GetValue())
-            except ValueError, exc:
+            except ValueError as exc:
                 self.SetStatusText(str(exc))
             else:
                 table.timer.Start(milliseconds=milliseconds, oneShot=False)

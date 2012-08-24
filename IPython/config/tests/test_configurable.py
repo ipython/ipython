@@ -83,8 +83,8 @@ class TestConfigurable(TestCase):
         c1 = Configurable()
         c2 = Configurable(config=c1.config)
         c3 = Configurable(config=c2.config)
-        self.assertEquals(c1.config, c2.config)
-        self.assertEquals(c2.config, c3.config)
+        self.assertEqual(c1.config, c2.config)
+        self.assertEqual(c2.config, c3.config)
 
     def test_custom(self):
         config = Config()
@@ -93,15 +93,15 @@ class TestConfigurable(TestCase):
         c1 = Configurable(config=config)
         c2 = Configurable(config=c1.config)
         c3 = Configurable(config=c2.config)
-        self.assertEquals(c1.config, config)
-        self.assertEquals(c2.config, config)
-        self.assertEquals(c3.config, config)
+        self.assertEqual(c1.config, config)
+        self.assertEqual(c2.config, config)
+        self.assertEqual(c3.config, config)
         # Test that copies are not made
-        self.assert_(c1.config is config)
-        self.assert_(c2.config is config)
-        self.assert_(c3.config is config)
-        self.assert_(c1.config is c2.config)
-        self.assert_(c2.config is c3.config)
+        self.assertTrue(c1.config is config)
+        self.assertTrue(c2.config is config)
+        self.assertTrue(c3.config is config)
+        self.assertTrue(c1.config is c2.config)
+        self.assertTrue(c2.config is c3.config)
         
     def test_inheritance(self):
         config = Config()
@@ -109,10 +109,10 @@ class TestConfigurable(TestCase):
         config.MyConfigurable.b = 2.0
         c1 = MyConfigurable(config=config)
         c2 = MyConfigurable(config=c1.config)
-        self.assertEquals(c1.a, config.MyConfigurable.a)
-        self.assertEquals(c1.b, config.MyConfigurable.b)
-        self.assertEquals(c2.a, config.MyConfigurable.a)
-        self.assertEquals(c2.b, config.MyConfigurable.b)
+        self.assertEqual(c1.a, config.MyConfigurable.a)
+        self.assertEqual(c1.b, config.MyConfigurable.b)
+        self.assertEqual(c2.a, config.MyConfigurable.a)
+        self.assertEqual(c2.b, config.MyConfigurable.b)
 
     def test_parent(self):
         config = Config()
@@ -122,19 +122,19 @@ class TestConfigurable(TestCase):
         config.Bar.c = 100.0
         f = Foo(config=config)
         b = Bar(config=f.config)
-        self.assertEquals(f.a, 10)
-        self.assertEquals(f.b, 'wow')
-        self.assertEquals(b.b, 'gotit')
-        self.assertEquals(b.c, 100.0)
+        self.assertEqual(f.a, 10)
+        self.assertEqual(f.b, 'wow')
+        self.assertEqual(b.b, 'gotit')
+        self.assertEqual(b.c, 100.0)
 
     def test_override1(self):
         config = Config()
         config.MyConfigurable.a = 2
         config.MyConfigurable.b = 2.0
         c = MyConfigurable(a=3, config=config)
-        self.assertEquals(c.a, 3)
-        self.assertEquals(c.b, config.MyConfigurable.b)
-        self.assertEquals(c.c, 'no config')
+        self.assertEqual(c.a, 3)
+        self.assertEqual(c.b, config.MyConfigurable.b)
+        self.assertEqual(c.c, 'no config')
 
     def test_override2(self):
         config = Config()
@@ -142,20 +142,20 @@ class TestConfigurable(TestCase):
         config.Bar.b = 'or'  # Up above b is config=False, so this won't do it.
         config.Bar.c = 10.0
         c = Bar(config=config)
-        self.assertEquals(c.a, config.Foo.a)
-        self.assertEquals(c.b, 'gotit')
-        self.assertEquals(c.c, config.Bar.c)
+        self.assertEqual(c.a, config.Foo.a)
+        self.assertEqual(c.b, 'gotit')
+        self.assertEqual(c.c, config.Bar.c)
         c = Bar(a=2, b='and', c=20.0, config=config)
-        self.assertEquals(c.a, 2)
-        self.assertEquals(c.b, 'and')
-        self.assertEquals(c.c, 20.0)
+        self.assertEqual(c.a, 2)
+        self.assertEqual(c.b, 'and')
+        self.assertEqual(c.c, 20.0)
 
     def test_help(self):
-        self.assertEquals(MyConfigurable.class_get_help(), mc_help)
+        self.assertEqual(MyConfigurable.class_get_help(), mc_help)
 
     def test_help_inst(self):
         inst = MyConfigurable(a=5, b=4)
-        self.assertEquals(MyConfigurable.class_get_help(inst), mc_help_inst)
+        self.assertEqual(MyConfigurable.class_get_help(inst), mc_help_inst)
 
 
 class TestSingletonConfigurable(TestCase):
@@ -163,21 +163,21 @@ class TestSingletonConfigurable(TestCase):
     def test_instance(self):
         from IPython.config.configurable import SingletonConfigurable
         class Foo(SingletonConfigurable): pass
-        self.assertEquals(Foo.initialized(), False)
+        self.assertEqual(Foo.initialized(), False)
         foo = Foo.instance()
-        self.assertEquals(Foo.initialized(), True)
-        self.assertEquals(foo, Foo.instance())
-        self.assertEquals(SingletonConfigurable._instance, None)
+        self.assertEqual(Foo.initialized(), True)
+        self.assertEqual(foo, Foo.instance())
+        self.assertEqual(SingletonConfigurable._instance, None)
 
     def test_inheritance(self):
         class Bar(SingletonConfigurable): pass
         class Bam(Bar): pass
-        self.assertEquals(Bar.initialized(), False)
-        self.assertEquals(Bam.initialized(), False)
+        self.assertEqual(Bar.initialized(), False)
+        self.assertEqual(Bam.initialized(), False)
         bam = Bam.instance()
         bam == Bar.instance()
-        self.assertEquals(Bar.initialized(), True)
-        self.assertEquals(Bam.initialized(), True)
-        self.assertEquals(bam, Bam._instance)
-        self.assertEquals(bam, Bar._instance)
-        self.assertEquals(SingletonConfigurable._instance, None)
+        self.assertEqual(Bar.initialized(), True)
+        self.assertEqual(Bam.initialized(), True)
+        self.assertEqual(bam, Bam._instance)
+        self.assertEqual(bam, Bar._instance)
+        self.assertEqual(SingletonConfigurable._instance, None)

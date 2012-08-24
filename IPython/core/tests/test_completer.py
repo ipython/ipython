@@ -52,7 +52,7 @@ def test_protect_filename():
     # run the actual tests
     for s1, s2 in pairs:
         s1p = completer.protect_filename(s1)
-        nt.assert_equals(s1p, s2)
+        nt.assert_equal(s1p, s2)
 
 
 def check_line_split(splitter, test_specs):
@@ -289,6 +289,8 @@ def test_func_kw_completions():
     nt.assert_in('b=', matches)
     # Simulate completing with cursor right after b (pos==10):
     s, matches = c.complete(None,'myfunc(1,b)', 10)
+    nt.assert_in('b=', matches)
+    s, matches = c.complete(None,'myfunc(a="escaped\\")string",b')
     nt.assert_in('b=', matches)
 
 

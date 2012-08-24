@@ -15,9 +15,8 @@ def win32_clipboard_get():
     try:
         import win32clipboard
     except ImportError:
-        message = ("Getting text from the clipboard requires the pywin32 "
-            "extensions: http://sourceforge.net/projects/pywin32/")
-        raise TryNext(_msg=message)
+        raise TryNext("Getting text from the clipboard requires the pywin32 "
+                      "extensions: http://sourceforge.net/projects/pywin32/")
     win32clipboard.OpenClipboard()
     text = win32clipboard.GetClipboardData(win32clipboard.CF_TEXT)
     # FIXME: convert \r\n to \n?
@@ -44,9 +43,8 @@ def tkinter_clipboard_get():
     try:
         import Tkinter
     except ImportError:
-        message = ("Getting text from the clipboard on this platform "
-            "requires Tkinter.")
-        raise TryNext(_msg=message)
+        raise TryNext("Getting text from the clipboard on this platform "
+                      "requires Tkinter.")
     root = Tkinter.Tk()
     root.withdraw()
     text = root.clipboard_get()

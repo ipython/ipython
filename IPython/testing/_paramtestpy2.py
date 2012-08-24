@@ -51,7 +51,7 @@ class ParametricTestCase(unittest.TestCase):
                 # Test execution
                 ok = False
                 try:
-                    testgen.next()
+                    next(testgen)
                     ok = True
                 except StopIteration:
                     # We stop the loop

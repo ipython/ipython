@@ -18,6 +18,7 @@ Authors:
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import os
 import sys
@@ -159,18 +160,18 @@ class CrashHandler(object):
 
         # print traceback to screen
         if self.show_crash_traceback:
-            print >> sys.stderr, traceback
+            print(traceback, file=sys.stderr)
 
         # and generate a complete report on disk
         try:
             report = open(report_name,'w')
         except:
-            print >> sys.stderr, 'Could not create crash report on disk.'
+            print('Could not create crash report on disk.', file=sys.stderr)
             return
 
         # Inform user on stderr of what happened
-        print >> sys.stderr, '\n'+'*'*70+'\n'
-        print >> sys.stderr, self.message_template.format(**self.info)
+        print('\n'+'*'*70+'\n', file=sys.stderr)
+        print(self.message_template.format(**self.info), file=sys.stderr)
 
         # Construct report on disk
         report.write(self.make_report(traceback))
@@ -210,5 +211,5 @@ def crash_handler_lite(etype, evalue, tb):
     else:
         # we are not in a shell, show generic config
         config = "c."
-    print >> sys.stderr, _lite_message_template.format(email=author_email, config=config)
+    print(_lite_message_template.format(email=author_email, config=config), file=sys.stderr)
 

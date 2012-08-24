@@ -168,6 +168,7 @@ print 'bye!'
 #  the file COPYING, distributed as part of this software.
 #
 #*****************************************************************************
+from __future__ import print_function
 
 import os
 import re
@@ -318,7 +319,7 @@ class Demo(object):
 
         if index is None:
             if self.finished:
-                print >>io.stdout, 'Demo finished.  Use <demo_name>.reset() if you want to rerun it.'
+                print('Demo finished.  Use <demo_name>.reset() if you want to rerun it.', file=io.stdout)
                 return None
             index = self.block_index
         else:
@@ -387,9 +388,9 @@ class Demo(object):
         if index is None:
             return
 
-        print >>io.stdout, self.marquee('<%s> block # %s (%s remaining)' %
-                           (self.title,index,self.nblocks-index-1))
-        print >>io.stdout,(self.src_blocks_colored[index])
+        print(self.marquee('<%s> block # %s (%s remaining)' %
+                           (self.title,index,self.nblocks-index-1)), file=io.stdout)
+        print((self.src_blocks_colored[index]), file=io.stdout)
         sys.stdout.flush()
 
     def show_all(self):
@@ -402,12 +403,12 @@ class Demo(object):
         marquee = self.marquee
         for index,block in enumerate(self.src_blocks_colored):
             if silent[index]:
-                print >>io.stdout, marquee('<%s> SILENT block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1))
+                print(marquee('<%s> SILENT block # %s (%s remaining)' %
+                              (title,index,nblocks-index-1)), file=io.stdout)
             else:
-                print >>io.stdout, marquee('<%s> block # %s (%s remaining)' %
-                              (title,index,nblocks-index-1))
-            print >>io.stdout, block,
+                print(marquee('<%s> block # %s (%s remaining)' %
+                              (title,index,nblocks-index-1)), file=io.stdout)
+            print(block, end=' ', file=io.stdout)
         sys.stdout.flush()
 
     def run_cell(self,source):
@@ -432,18 +433,18 @@ class Demo(object):
             next_block = self.src_blocks[index]
             self.block_index += 1
             if self._silent[index]:
-                print >>io.stdout, marquee('Executing silent block # %s (%s remaining)' %
-                              (index,self.nblocks-index-1))
+                print(marquee('Executing silent block # %s (%s remaining)' %
+                              (index,self.nblocks-index-1)), file=io.stdout)
             else:
                 self.pre_cmd()
                 self.show(index)
                 if self.auto_all or self._auto[index]:
-                    print >>io.stdout, marquee('output:')
+                    print(marquee('output:'), file=io.stdout)
                 else:
-                    print >>io.stdout, marquee('Press <q> to quit, <Enter> to execute...'),
+                    print(marquee('Press <q> to quit, <Enter> to execute...'), end=' ', file=io.stdout)
                     ans = raw_input().strip()
                     if ans:
-                        print >>io.stdout, marquee('Block NOT executed')
+                        print(marquee('Block NOT executed'), file=io.stdout)
                         return
             try:
                 save_argv = sys.argv
@@ -462,9 +463,9 @@ class Demo(object):
             mq1 = self.marquee('END OF DEMO')
             if mq1:
                 # avoid spurious print >>io.stdout,s if empty marquees are used
-                print >>io.stdout
-                print >>io.stdout, mq1
-                print >>io.stdout, self.marquee('Use <demo_name>.reset() if you want to rerun it.')
+                print(file=io.stdout)
+                print(mq1, file=io.stdout)
+                print(self.marquee('Use <demo_name>.reset() if you want to rerun it.'), file=io.stdout)
             self.finished = True
 
     # These methods are meant to be overridden by subclasses who may wish to

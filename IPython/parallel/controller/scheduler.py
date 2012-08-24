@@ -129,12 +129,14 @@ MET = Dependency([])
 
 class Job(object):
     """Simple container for a job"""
-    def __init__(self, msg_id, raw_msg, idents, msg, header, targets, after, follow, timeout):
+    def __init__(self, msg_id, raw_msg, idents, msg, header, metadata,
+                    targets, after, follow, timeout):
         self.msg_id = msg_id
         self.raw_msg = raw_msg
         self.idents = idents
         self.msg = msg
         self.header = header
+        self.metadata = metadata
         self.targets = targets
         self.after = after
         self.follow = follow
@@ -189,6 +191,7 @@ class TaskScheduler(SessionFactory):
     engine_stream = Instance(zmqstream.ZMQStream) # engine-facing stream
     notifier_stream = Instance(zmqstream.ZMQStream) # hub-facing sub stream
     mon_stream = Instance(zmqstream.ZMQStream) # hub-facing pub stream
+    query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
 
     # internals:
     graph = Dict() # dict by msg_id of [ msg_ids that depend on key ]
@@ -216,6 +219,9 @@ class TaskScheduler(SessionFactory):
         return self.session.bsession
 
     def start(self):
+        self.query_stream.on_recv(self.dispatch_query_reply)
+        self.session.send(self.query_stream, "connection_request", {})
+        
         self.engine_stream.on_recv(self.dispatch_result, copy=False)
         self.client_stream.on_recv(self.dispatch_submission, copy=False)
 
@@ -240,6 +246,24 @@ class TaskScheduler(SessionFactory):
     #-----------------------------------------------------------------------
     # [Un]Registration Handling
     #-----------------------------------------------------------------------
+    
+    
+    def dispatch_query_reply(self, msg):
+        """handle reply to our initial connection request"""
+        try:
+            idents,msg = self.session.feed_identities(msg)
+        except ValueError:
+            self.log.warn("task::Invalid Message: %r",msg)
+            return
+        try:
+            msg = self.session.unserialize(msg)
+        except ValueError:
+            self.log.warn("task::Unauthorized message from: %r"%idents)
+            return
+        
+        content = msg['content']
+        for uuid in content.get('engines', {}).values():
+            self._register_engine(cast_bytes(uuid))
 
     
     @util.log_errors
@@ -263,7 +287,7 @@ class TaskScheduler(SessionFactory):
             self.log.error("Unhandled message type: %r"%msg_type)
         else:
             try:
-                handler(cast_bytes(msg['content']['queue']))
+                handler(cast_bytes(msg['content']['uuid']))
             except Exception:
                 self.log.error("task::Invalid notification msg: %r", msg, exc_info=True)
 
@@ -327,13 +351,13 @@ class TaskScheduler(SessionFactory):
                 raise error.EngineError("Engine %r died while running task %r"%(engine, msg_id))
             except:
                 content = error.wrap_exception()
-            # build fake header
-            header = dict(
-                status='error',
+            # build fake metadata
+            md = dict(
+                status=u'error',
                 engine=engine,
                 date=datetime.now(),
             )
-            msg = self.session.msg('apply_reply', content, parent=parent, subheader=header)
+            msg = self.session.msg('apply_reply', content, parent=parent, metadata=md)
             raw_reply = map(zmq.Message, self.session.serialize(msg, ident=idents))
             # and dispatch it
             self.dispatch_result(raw_reply)
@@ -365,20 +389,21 @@ class TaskScheduler(SessionFactory):
         self.mon_stream.send_multipart([b'intask']+raw_msg, copy=False)
 
         header = msg['header']
+        md = msg['metadata']
         msg_id = header['msg_id']
         self.all_ids.add(msg_id)
 
         # get targets as a set of bytes objects
         # from a list of unicode objects
-        targets = header.get('targets', [])
+        targets = md.get('targets', [])
         targets = map(cast_bytes, targets)
         targets = set(targets)
 
-        retries = header.get('retries', 0)
+        retries = md.get('retries', 0)
         self.retries[msg_id] = retries
 
         # time dependencies
-        after = header.get('after', None)
+        after = md.get('after', None)
         if after:
             after = Dependency(after)
             if after.all:
@@ -402,10 +427,10 @@ class TaskScheduler(SessionFactory):
             after = MET
 
         # location dependencies
-        follow = Dependency(header.get('follow', []))
+        follow = Dependency(md.get('follow', []))
 
         # turn timeouts into datetime objects:
-        timeout = header.get('timeout', None)
+        timeout = md.get('timeout', None)
         if timeout:
             # cast to float, because jsonlib returns floats as decimal.Decimal,
             # which timedelta does not accept
@@ -413,7 +438,7 @@ class TaskScheduler(SessionFactory):
 
         job = Job(msg_id=msg_id, raw_msg=raw_msg, idents=idents, msg=msg,
                  header=header, targets=targets, after=after, follow=follow,
-                 timeout=timeout,
+                 timeout=timeout, metadata=md,
         )
 
         # validate and reduce dependencies:
@@ -585,10 +610,10 @@ class TaskScheduler(SessionFactory):
             self.log.error("task::Invaid result: %r", raw_msg, exc_info=True)
             return
 
-        header = msg['header']
+        md = msg['metadata']
         parent = msg['parent_header']
-        if header.get('dependencies_met', True):
-            success = (header['status'] == 'ok')
+        if md.get('dependencies_met', True):
+            success = (md['status'] == 'ok')
             msg_id = parent['msg_id']
             retries = self.retries[msg_id]
             if not success and retries > 0:
@@ -609,7 +634,7 @@ class TaskScheduler(SessionFactory):
         # first, relay result to client
         engine = idents[0]
         client = idents[1]
-        # swap_ids for XREP-XREP mirror
+        # swap_ids for ROUTER-ROUTER mirror
         raw_msg[:2] = [client,engine]
         # print (map(str, raw_msg[:4]))
         self.client_stream.send_multipart(raw_msg, copy=False)
@@ -714,7 +739,7 @@ class TaskScheduler(SessionFactory):
 
 
 
-def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
+def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, reg_addr, config=None,
                         logname='root', log_url=None, loglevel=logging.DEBUG,
                         identity=b'task', in_thread=False):
 
@@ -734,18 +759,21 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
         ctx = zmq.Context()
         loop = ioloop.IOLoop()
     ins = ZMQStream(ctx.socket(zmq.ROUTER),loop)
-    ins.setsockopt(zmq.IDENTITY, identity)
+    ins.setsockopt(zmq.IDENTITY, identity + b'_in')
     ins.bind(in_addr)
 
     outs = ZMQStream(ctx.socket(zmq.ROUTER),loop)
-    outs.setsockopt(zmq.IDENTITY, identity)
+    outs.setsockopt(zmq.IDENTITY, identity + b'_out')
     outs.bind(out_addr)
     mons = zmqstream.ZMQStream(ctx.socket(zmq.PUB),loop)
     mons.connect(mon_addr)
     nots = zmqstream.ZMQStream(ctx.socket(zmq.SUB),loop)
     nots.setsockopt(zmq.SUBSCRIBE, b'')
     nots.connect(not_addr)
-
+    
+    querys = ZMQStream(ctx.socket(zmq.DEALER),loop)
+    querys.connect(reg_addr)
+    
     # setup logging.
     if in_thread:
         log = Application.instance().log
@@ -757,6 +785,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, config=None,
 
     scheduler = TaskScheduler(client_stream=ins, engine_stream=outs,
                             mon_stream=mons, notifier_stream=nots,
+                            query_stream=querys,
                             loop=loop, log=log,
                             config=config)
     scheduler.start()

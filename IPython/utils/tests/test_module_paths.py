@@ -43,7 +43,6 @@ TMP_TEST_DIR = tempfile.mkdtemp()
 #
 
 old_syspath = sys.path
-sys.path = [TMP_TEST_DIR]
 
 def make_empty_file(fname):
     f = open(fname, 'w')
@@ -62,16 +61,19 @@ def setup():
     make_empty_file(join(TMP_TEST_DIR, "xmod/sub.py"))
     make_empty_file(join(TMP_TEST_DIR, "pack.py"))
     make_empty_file(join(TMP_TEST_DIR, "packpyc.pyc"))
+    sys.path = [TMP_TEST_DIR]
 
 def teardown():
     """Teardown testenvironment for the module:
 
             - Remove tempdir
+            - restore sys.path
     """
     # Note: we remove the parent test dir, which is the root of all test
     # subdirs we may have created.  Use shutil instead of os.removedirs, so
     # that non-empty directories are all recursively removed.
     shutil.rmtree(TMP_TEST_DIR)
+    sys.path = old_syspath
 
 
 def test_get_init_1():

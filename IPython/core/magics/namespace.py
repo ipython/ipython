@@ -79,7 +79,7 @@ class NamespaceMagics(Magics):
           In [3]: %pdef urllib.urlopen
           urllib.urlopen(url, data=None, proxies=None)
         """
-        self._inspect('pdef',parameter_s, namespaces)
+        self.shell._inspect('pdef',parameter_s, namespaces)
 
     @line_magic
     def pdoc(self, parameter_s='', namespaces=None):
@@ -87,12 +87,12 @@ class NamespaceMagics(Magics):
 
         If the given object is a class, it will print both the class and the
         constructor docstrings."""
-        self._inspect('pdoc',parameter_s, namespaces)
+        self.shell._inspect('pdoc',parameter_s, namespaces)
 
     @line_magic
     def psource(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the source code for an object."""
-        self._inspect('psource',parameter_s, namespaces)
+        self.shell._inspect('psource',parameter_s, namespaces)
 
     @line_magic
     def pfile(self, parameter_s=''):
@@ -108,12 +108,12 @@ class NamespaceMagics(Magics):
         viewer."""
 
         # first interpret argument as an object name
-        out = self._inspect('pfile',parameter_s)
+        out = self.shell._inspect('pfile',parameter_s)
         # if not, try the input as a filename
         if out == 'not found':
             try:
                 filename = get_py_filename(parameter_s)
-            except IOError,msg:
+            except IOError as msg:
                 print msg
                 return
             page.page(self.shell.inspector.format(open(filename).read()))
@@ -214,9 +214,9 @@ class NamespaceMagics(Magics):
         psearch = shell.inspector.psearch
 
         # select case options
-        if opts.has_key('i'):
+        if 'i' in opts:
             ignore_case = True
-        elif opts.has_key('c'):
+        elif 'c' in opts:
             ignore_case = False
         else:
             ignore_case = not shell.wildcards_case_sensitive
@@ -656,7 +656,7 @@ class NamespaceMagics(Magics):
 
         opts, regex = self.parse_options(parameter_s,'f')
 
-        if opts.has_key('f'):
+        if 'f' in opts:
             ans = True
         else:
             try:

@@ -46,6 +46,22 @@ def restore_bytes(nb):
 # output keys that are likely to have multiline values
 _multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 
+
+# FIXME: workaround for old splitlines()
+def _join_lines(lines):
+    """join lines that have been written by splitlines()
+    
+    Has logic to protect against `splitlines()`, which
+    should have been `splitlines(True)`
+    """
+    if lines and lines[0].endswith(('\n', '\r')):
+        # created by splitlines(True)
+        return u''.join(lines)
+    else:
+        # created by splitlines()
+        return u'\n'.join(lines)
+
+
 def rejoin_lines(nb):
     """rejoin multiline text into strings
     
@@ -60,17 +76,17 @@ def rejoin_lines(nb):
         for cell in ws.cells:
             if cell.cell_type == 'code':
                 if 'input' in cell and isinstance(cell.input, list):
-                    cell.input = u'\n'.join(cell.input)
+                    cell.input = _join_lines(cell.input)
                 for output in cell.outputs:
                     for key in _multiline_outputs:
                         item = output.get(key, None)
                         if isinstance(item, list):
-                            output[key] = u'\n'.join(item)
+                            output[key] = _join_lines(item)
             else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, list):
-                        cell[key] = u'\n'.join(item)
+                        cell[key] = _join_lines(item)
     return nb
 
 
@@ -86,17 +102,17 @@ def split_lines(nb):
         for cell in ws.cells:
             if cell.cell_type == 'code':
                 if 'input' in cell and isinstance(cell.input, basestring):
-                    cell.input = (cell.input + '\n').splitlines()
+                    cell.input = cell.input.splitlines(True)
                 for output in cell.outputs:
                     for key in _multiline_outputs:
                         item = output.get(key, None)
                         if isinstance(item, basestring):
-                            output[key] = (item + '\n').splitlines()
+                            output[key] = item.splitlines(True)
             else: # text, heading cell
                 for key in ['source', 'rendered']:
                     item = cell.get(key, None)
                     if isinstance(item, basestring):
-                        cell[key] = (item + '\n').splitlines()
+                        cell[key] = item.splitlines(True)
     return nb
 
 # b64 encode/decode are never actually used, because all bytes objects in

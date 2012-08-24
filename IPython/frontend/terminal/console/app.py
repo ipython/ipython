@@ -52,8 +52,6 @@ flags = dict(flags)
 frontend_flags = dict(app_flags)
 # add TerminalIPApp flags:
 frontend_flags.update(term_flags)
-# pylab is not frontend-specific in two-process IPython
-frontend_flags.pop('pylab')
 # disable quick startup, as it won't propagate to the kernel anyway
 frontend_flags.pop('quick')
 # update full dict with frontend flags:
@@ -98,7 +96,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
     """
     examples = _examples
 
-    classes = List([IPKernelApp, ZMQTerminalInteractiveShell, Session])
+    classes = [ZMQTerminalInteractiveShell] + IPythonConsoleApp.classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     frontend_aliases = Any(frontend_aliases)

@@ -13,6 +13,7 @@ reference the name under which an object is being read.
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
+from __future__ import print_function
 
 __all__ = ['Inspector','InspectColors']
 
@@ -230,6 +231,76 @@ def call_tip(oinfo, format_call=True):
     return call_line, doc
 
 
+def find_file(obj):
+    """Find the absolute path to the file where an object was defined.
+
+    This is essentially a robust wrapper around `inspect.getabsfile`.
+
+    Returns None if no file can be found.
+
+    Parameters
+    ----------
+    obj : any Python object
+
+    Returns
+    -------
+    fname : str
+      The absolute path to the file where the object was defined.
+    """
+    # get source if obj was decorated with @decorator
+    if hasattr(obj, '__wrapped__'):
+        obj = obj.__wrapped__
+
+    fname = None
+    try:
+        fname = inspect.getabsfile(obj)
+    except TypeError:
+        # For an instance, the file that matters is where its class was
+        # declared.
+        if hasattr(obj, '__class__'):
+            try:
+                fname = inspect.getabsfile(obj.__class__)
+            except TypeError:
+                # Can happen for builtins
+                pass
+    except:
+        pass
+    return fname
+
+
+def find_source_lines(obj):
+    """Find the line number in a file where an object was defined.
+
+    This is essentially a robust wrapper around `inspect.getsourcelines`.
+
+    Returns None if no file can be found.
+
+    Parameters
+    ----------
+    obj : any Python object
+
+    Returns
+    -------
+    lineno : int
+      The line number where the object definition starts.
+    """
+    # get source if obj was decorated with @decorator
+    if hasattr(obj, '__wrapped__'):
+        obj = obj.__wrapped__
+    
+    try:
+        try:
+            lineno = inspect.getsourcelines(obj)[1]
+        except TypeError:
+            # For instances, try the class object like getsource() does
+            if hasattr(obj, '__class__'):
+                lineno = inspect.getsourcelines(obj.__class__)[1]
+    except:
+        return None
+
+    return lineno
+
+
 class Inspector:
     def __init__(self, color_table=InspectColors,
                  code_color_table=PyColorize.ANSICodeColors,
@@ -259,25 +330,25 @@ class Inspector:
         return '%s%s%s' % (self.color_table.active_colors.header,h,
                            self.color_table.active_colors.normal)
 
-    def set_active_scheme(self,scheme):
+    def set_active_scheme(self, scheme):
         self.color_table.set_active_scheme(scheme)
         self.parser.color_table.set_active_scheme(scheme)
 
-    def noinfo(self,msg,oname):
+    def noinfo(self, msg, oname):
         """Generic message when no information is found."""
-        print 'No %s found' % msg,
+        print('No %s found' % msg, end=' ')
         if oname:
-            print 'for %s' % oname
+            print('for %s' % oname)
         else:
-            print
+            print()
 
-    def pdef(self,obj,oname=''):
+    def pdef(self, obj, oname=''):
         """Print the definition header for any callable object.
 
         If the object is a class, print the constructor information."""
 
         if not callable(obj):
-            print 'Object is not callable.'
+            print('Object is not callable.')
             return
 
         header = ''
@@ -285,14 +356,14 @@ class Inspector:
         if inspect.isclass(obj):
             header = self.__head('Class constructor information:\n')
             obj = obj.__init__
-        elif type(obj) is types.InstanceType:
+        elif (not py3compat.PY3) and type(obj) is types.InstanceType:
             obj = obj.__call__
 
         output = self._getdef(obj,oname)
         if output is None:
             self.noinfo('definition header',oname)
         else:
-            print >>io.stdout, header,self.format(output),
+            print(header,self.format(output), end=' ', file=io.stdout)
 
     # In Python 3, all classes are new-style, so they all have __init__.
     @skip_doctest_py3
@@ -366,37 +437,27 @@ class Inspector:
         else:
             page.page(self.format(py3compat.unicode_to_str(src)))
 
-    def pfile(self,obj,oname=''):
+    def pfile(self, obj, oname=''):
         """Show the whole file where an object was defined."""
-
-        try:
-            try:
-                lineno = inspect.getsourcelines(obj)[1]
-            except TypeError:
-                # For instances, try the class object like getsource() does
-                if hasattr(obj,'__class__'):
-                    lineno = inspect.getsourcelines(obj.__class__)[1]
-                    # Adjust the inspected object so getabsfile() below works
-                    obj = obj.__class__
-        except:
-            self.noinfo('file',oname)
+        
+        lineno = find_source_lines(obj)
+        if lineno is None:
+            self.noinfo('file', oname)
             return
 
-        # We only reach this point if object was successfully queried
-
-        # run contents of file through pager starting at line
-        # where the object is defined
-        ofile = inspect.getabsfile(obj)
-
+        ofile = find_file(obj)
+        # run contents of file through pager starting at line where the object
+        # is defined, as long as the file isn't binary and is actually on the
+        # filesystem.
         if ofile.endswith(('.so', '.dll', '.pyd')):
-            print 'File %r is binary, not printing.' % ofile
+            print('File %r is binary, not printing.' % ofile)
         elif not os.path.isfile(ofile):
-            print 'File %r does not exist, not printing.' % ofile
+            print('File %r does not exist, not printing.' % ofile)
         else:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
-            page.page(self.format(open(ofile).read()),lineno-1)
+            page.page(self.format(open(ofile).read()), lineno-1)
 
     def _format_fields(self, fields, title_width=12):
         """Formats a list of fields for display.
@@ -420,12 +481,15 @@ class Inspector:
 
     # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
     pinfo_fields1 = [("Type", "type_name"),
-                    ("Base Class", "base_class"),
-                    ("String Form", "string_form"),
-                    ("Namespace", "namespace"),
-                    ("Length", "length"),
+                    ]
+                    
+    pinfo_fields2 = [("String Form", "string_form"),
+                    ]
+
+    pinfo_fields3 = [("Length", "length"),
                     ("File", "file"),
-                    ("Definition", "definition")]
+                    ("Definition", "definition"),
+                    ]
 
     pinfo_fields_obj = [("Class Docstring", "class_docstring"),
                         ("Constructor Docstring","init_docstring"),
@@ -449,11 +513,26 @@ class Inspector:
         info = self.info(obj, oname=oname, formatter=formatter,
                             info=info, detail_level=detail_level)
         displayfields = []
-        for title, key in self.pinfo_fields1:
-            field = info[key]
-            if field is not None:
-                displayfields.append((title, field.rstrip()))
+        def add_fields(fields):
+            for title, key in fields:
+                field = info[key]
+                if field is not None:
+                    displayfields.append((title, field.rstrip()))
+        
+        add_fields(self.pinfo_fields1)
+        
+        # Base class for old-style instances
+        if (not py3compat.PY3) and isinstance(obj, types.InstanceType) and info['base_class']:
+            displayfields.append(("Base Class", info['base_class'].rstrip()))
+        
+        add_fields(self.pinfo_fields2)
+        
+        # Namespace
+        if info['namespace'] != 'Interactive':
+            displayfields.append(("Namespace", info['namespace'].rstrip()))
 
+        add_fields(self.pinfo_fields3)
+        
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
@@ -474,10 +553,7 @@ class Inspector:
 
         # Info for objects:
         else:
-            for title, key in self.pinfo_fields_obj:
-                field = info[key]
-                if field is not None:
-                    displayfields.append((title, field.rstrip()))
+            add_fields(self.pinfo_fields_obj)
 
         # Finally send to printer/pager:
         if displayfields:
@@ -570,24 +646,18 @@ class Inspector:
 
         # Filename where object was defined
         binary_file = False
-        try:
-            try:
-                fname = inspect.getabsfile(obj)
-            except TypeError:
-                # For an instance, the file that matters is where its class was
-                # declared.
-                if hasattr(obj,'__class__'):
-                    fname = inspect.getabsfile(obj.__class__)
-            if fname.endswith('<string>'):
-                fname = 'Dynamically generated function. No source code available.'
-            if fname.endswith(('.so', '.dll', '.pyd')):
-                binary_file = True
-            out['file'] = fname
-        except:
+        fname = find_file(obj)
+        if fname is None:
             # if anything goes wrong, we don't want to show source, so it's as
             # if the file was binary
             binary_file = True
-
+        else:
+            if fname.endswith(('.so', '.dll', '.pyd')):
+                binary_file = True
+            elif fname.endswith('<string>'):
+                fname = 'Dynamically generated function. No source code available.'
+            out['file'] = fname
+        
         # reconstruct the function definition and print it:
         defln = self._getdef(obj, oname)
         if defln:
@@ -606,10 +676,10 @@ class Inspector:
             source = None
             try:
                 try:
-                    source = getsource(obj,binary_file)
+                    source = getsource(obj, binary_file)
                 except TypeError:
-                    if hasattr(obj,'__class__'):
-                        source = getsource(obj.__class__,binary_file)
+                    if hasattr(obj, '__class__'):
+                        source = getsource(obj.__class__, binary_file)
                 if source is not None:
                     out['source'] = source.rstrip()
             except Exception:

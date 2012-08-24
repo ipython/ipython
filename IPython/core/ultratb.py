@@ -126,15 +126,10 @@ def inspect_error():
     error('Internal Python error in the inspect module.\n'
           'Below is the traceback from this internal error.\n')
 
-
-# N.B. This function is a monkeypatch we are currently not applying.
-# It was written some time ago, to fix an apparent Python bug with
-# codeobj.co_firstlineno . Unfortunately, we don't know under what conditions
-# the bug occurred, so we can't tell if it has been fixed. If it reappears, we
-# will apply the monkeypatch again. Also, note that findsource() is not called
-# by our code at this time - we don't know if it was when the monkeypatch was
-# written, or if the monkeypatch is needed for some other code (like a debugger).
-# For the discussion about not applying it, see gh-1229. TK, Jan 2011.
+# This function is a monkeypatch we apply to the Python inspect module. We have
+# now found when it's needed (see discussion on issue gh-1456), and we have a
+# test case (IPython.core.tests.test_ultratb.ChangedPyFileTest) that fails if
+# the monkeypatch is not applied. TK, Aug 2012.
 def findsource(object):
     """Return the entire source file and starting line number for an object.
 
@@ -210,10 +205,8 @@ def findsource(object):
         return lines, lnum
     raise IOError('could not find code object')
 
-# Not applying the monkeypatch - see above the function for details. TK, Jan 2012
-# Monkeypatch inspect to apply our bugfix.  This code only works with py25
-#if sys.version_info[:2] >= (2,5):
-#    inspect.findsource = findsource
+# Monkeypatch inspect to apply our bugfix.  This code only works with Python >= 2.5
+inspect.findsource = findsource
 
 def fix_frame_records_filenames(records):
     """Try to fix the filenames in each record from inspect.getinnerframes().
@@ -875,7 +868,7 @@ class VerboseTB(TBTools):
             except (IndexError, UnicodeDecodeError):
                 # signals exit of tokenizer
                 pass
-            except tokenize.TokenError,msg:
+            except tokenize.TokenError as msg:
                 _m = ("An unexpected error occurred while tokenizing input\n"
                       "The following traceback may be corrupted or invalid\n"
                       "The error message is: %s\n" % msg)
@@ -892,7 +885,7 @@ class VerboseTB(TBTools):
                 for name_full in unique_names:
                     name_base = name_full.split('.',1)[0]
                     if name_base in frame.f_code.co_varnames:
-                        if locals.has_key(name_base):
+                        if name_base in locals:
                             try:
                                 value = repr(eval(name_full,locals))
                             except:
@@ -901,7 +894,7 @@ class VerboseTB(TBTools):
                             value = undefined
                         name = tpl_local_var % name_full
                     else:
-                        if frame.f_globals.has_key(name_base):
+                        if name_base in frame.f_globals:
                             try:
                                 value = repr(eval(name_full,frame.f_globals))
                             except:
@@ -1103,8 +1096,8 @@ class FormattedTB(VerboseTB, ListTB):
                       len(self.valid_modes)
             self.mode = self.valid_modes[new_idx]
         elif mode not in self.valid_modes:
-            raise ValueError, 'Unrecognized mode in FormattedTB: <'+mode+'>\n'\
-                  'Valid modes: '+str(self.valid_modes)
+            raise ValueError('Unrecognized mode in FormattedTB: <'+mode+'>\n'
+                             'Valid modes: '+str(self.valid_modes))
         else:
             self.mode = mode
         # include variable details only in 'Verbose' mode
@@ -1205,7 +1198,8 @@ class SyntaxTB(ListTB):
 #----------------------------------------------------------------------------
 # module testing (minimal)
 if __name__ == "__main__":
-    def spam(c, (d, e)):
+    def spam(c, d_e):
+        (d, e) = d_e
         x = c + d
         y = c * d
         foo(x, y)
@@ -1231,7 +1225,7 @@ if __name__ == "__main__":
     try:
         print spam(1, (2, 3))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print ''
 
     handler = VerboseTB()
@@ -1239,6 +1233,6 @@ if __name__ == "__main__":
     try:
         print spam(1, (2, 3))
     except:
-        apply(handler, sys.exc_info() )
+        handler(*sys.exc_info())
     print ''
 

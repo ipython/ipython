@@ -243,7 +243,6 @@ and then on any cell that you need to protect, use::
   if script:
     # rest of the cell...
 
-    
 Keyboard use
 ------------
 
@@ -253,12 +252,19 @@ the notebook can be achieved with minimal mouse intervention.  The main
 key bindings you need to remember are:
 
 * :kbd:`Shift-Enter`: execute the current cell (similar to the Qt console),
-  show output (if any) and create a new cell below.  Note that in the notebook,
-  simply using :kbd:`Enter` *never* forces execution, it simply inserts a new
-  line in the current cell.  Therefore, in the notebook you must always use
-  :kbd:`Shift-Enter` to get execution (or use the mouse and click on the ``Run
-  Selected`` button).
+  show output (if any) and jump to the next cell below. If :kbd:`Shift-Enter` 
+  was invoked on the last input line, a new code cell will also be created. Note 
+  that in the notebook, simply using :kbd:`Enter` *never* forces execution, 
+  it simply inserts a new line in the current cell. Therefore, in the notebook 
+  you must always use :kbd:`Shift-Enter` to get execution (or use the mouse and 
+  click on the ``Run Selected`` button).
 
+* :kbd:`Alt-Enter`: this combination is similar to the previous one, with the 
+  exception that, if the next cell below is not empty, a new code cell will be 
+  added to the notebook, even if the cell execution happens not in the last cell. 
+  In this regard, :kbd:`Alt-Enter`: is simply a shortcut for the :kbd:`Shift-Enter`, 
+  :kbd:`Ctrl-m a` sequence. 
+  
 * :kbd:`Ctrl-Enter`: execute the current cell in "terminal mode", where any
   output is shown but the cursor stays in the current cell, whose input
   area is flushed empty.  This is convenient to do quick in-place experiments
@@ -326,9 +332,11 @@ notebook server over ``https://``, not over plain ``http://``.  The startup
 message from the server prints this, but it's easy to overlook and think the
 server is for some reason non-responsive.
 
+Quick how to's
+==============
 
-Quick Howto: running a public notebook server
-=============================================
+Running a public notebook server
+--------------------------------
 
 If you want to access your notebook server remotely with just a web browser,
 here is a quick set of instructions.  Start by creating a certificate file and
@@ -358,7 +366,7 @@ You can then start the notebook and access it later by pointing your browser to
 ``https://your.host.com:9999`` with ``ipython notebook --profile=nbserver``.
 
 Running with a different URL prefix
-===================================
+-----------------------------------
 
 The notebook dashboard (i.e. the default landing page with an overview
 of all your notebooks) typically lives at a URL path of
@@ -371,6 +379,27 @@ modifying ``ipython_notebook_config.py``)::
     c.NotebookApp.base_project_url = '/ipython/'
     c.NotebookApp.base_kernel_url = '/ipython/'
     c.NotebookApp.webapp_settings = {'static_url_prefix':'/ipython/static/'}
+
+Using a different notebook store
+--------------------------------
+
+By default the notebook server stores notebooks as files in the working 
+directory of the notebook server, also known as the ``notebook_dir``. This 
+logic is implemented in the :class:`FileNotebookManager` class. However, the 
+server can be configured to use a different notebook manager class, which can 
+store the notebooks in a different format. Currently, we ship a 
+:class:`AzureNotebookManager` class that stores notebooks in Azure blob 
+storage. This can be used by adding the following lines to your 
+``ipython_notebook_config.py`` file::
+
+    c.NotebookApp.notebook_manager_class = 'IPython.frontend.html.notebook.azurenbmanager.AzureNotebookManager'
+    c.AzureNotebookManager.account_name = u'paste_your_account_name_here'
+    c.AzureNotebookManager.account_key = u'paste_your_account_key_here'
+    c.AzureNotebookManager.container = u'notebooks'
+
+In addition to providing your Azure Blob Storage account name and key, you will 
+have to provide a container name; you can use multiple containers to organize 
+your Notebooks.
 
 .. _notebook_format:
 
@@ -416,7 +445,7 @@ cell, when exported to python format::
     print "hello IPython"
 
 
-Known Issues
+Known issues
 ============
 
 When behind a proxy, especially if your system or browser is set to autodetect

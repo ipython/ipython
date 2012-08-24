@@ -75,7 +75,9 @@ class HistoryMagics(Magics):
 
           -g: treat the arg as a pattern to grep for in (full) history.
           This includes the saved history (almost all commands ever written).
-          Use '%hist -g' to show full saved history (may be very long).
+          The pattern may contain '?' to match one unknown character and '*'
+          to match any number of unknown characters. Use '%hist -g' to show
+          full saved history (may be very long).
 
           -l: get the last n lines from all sessions. Specify n as a single
           arg, or the default is the last 10 lines.
@@ -91,10 +93,10 @@ class HistoryMagics(Magics):
         --------
         ::
 
-          In [6]: %hist -n 4-6
+          In [6]: %history -n 4-6
           4:a = 12
           5:print a**2
-          6:%hist -n 4-6
+          6:%history -n 4-6
 
         """
 
@@ -187,15 +189,8 @@ class HistoryMagics(Magics):
         if close_at_end:
             outfile.close()
 
-    # For a long time we've had %hist as well as %history
     @line_magic
-    def hist(self, arg):
-        return self.history(arg)
-
-    hist.__doc__ = history.__doc__
-
-    @line_magic
-    def rep(self, arg):
+    def recall(self, arg):
         r"""Repeat a command, or get command to input line for editing.
 
         %recall and %rep are equivalent.
@@ -209,7 +204,7 @@ class HistoryMagics(Magics):
              In[1]: l = ["hei", "vaan"]
              In[2]: "".join(l)
             Out[2]: heivaan
-             In[3]: %rep
+             In[3]: %recall
              In[4]: heivaan_ <== cursor blinking
 
         %recall 45
@@ -244,7 +239,7 @@ class HistoryMagics(Magics):
         except Exception:           # Search for term in history
             histlines = self.shell.history_manager.search("*"+arg+"*")
             for h in reversed([x[2] for x in histlines]):
-                if 'rep' in h:
+                if 'recall' in h or 'rep' in h:
                     continue
                 self.shell.set_next_input(h.rstrip())
                 return

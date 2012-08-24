@@ -19,7 +19,7 @@ Limitations:
 # Module imports
 
 # From the standard library
-import __builtin__
+import __builtin__ as builtin_mod
 import commands
 import doctest
 import inspect
@@ -46,6 +46,12 @@ import nose.core
 
 from nose.plugins import doctests, Plugin
 from nose.util import anyp, getpackage, test_address, resolve_name, tolist
+
+# Our own imports
+
+# We're temporarily using TerminalMagics.cleanup_input() until the functionality
+# is moved into core.
+from IPython.frontend.terminal.interactiveshell import TerminalMagics
 
 #-----------------------------------------------------------------------------
 # Module globals and other constants
@@ -267,18 +273,18 @@ class DocTestCase(doctests.DocTestCase):
     def setUp(self):
         """Modified test setup that syncs with ipython namespace"""
         #print "setUp test", self._dt_test.examples # dbg
-        if isinstance(self._dt_test.examples[0],IPExample):
+        if isinstance(self._dt_test.examples[0], IPExample):
             # for IPython examples *only*, we swap the globals with the ipython
             # namespace, after updating it with the globals (which doctest
             # fills with the necessary info from the module being tested).
             self.user_ns_orig = {}
             self.user_ns_orig.update(_ip.user_ns)
             _ip.user_ns.update(self._dt_test.globs)
+            # We must remove the _ key in the namespace, so that Python's
+            # doctest code sets it naturally
+            _ip.user_ns.pop('_', None)
+            _ip.user_ns['__builtins__'] = builtin_mod
             self._dt_test.globs = _ip.user_ns
-            # IPython must protect the _ key in the namespace (it can't exist)
-            # so that Python's doctest code sets it naturally, so we enable
-            # this feature of our testing namespace.
-            _ip.user_ns.protect_underscore = True
 
         super(DocTestCase, self).setUp()
 
@@ -286,13 +292,10 @@ class DocTestCase(doctests.DocTestCase):
 
         # Undo the test.globs reassignment we made, so that the parent class
         # teardown doesn't destroy the ipython namespace
-        if isinstance(self._dt_test.examples[0],IPExample):
+        if isinstance(self._dt_test.examples[0], IPExample):
             self._dt_test.globs = self._dt_test_globs_ori
             _ip.user_ns.clear()
             _ip.user_ns.update(self.user_ns_orig)
-            # Restore the behavior of the '_' key in the user namespace to
-            # normal after each doctest, so that unittests behave normally
-            _ip.user_ns.protect_underscore = False
 
         # XXX - fperez: I am not sure if this is truly a bug in nose 0.11, but
         # it does look like one to me: its tearDown method tries to run
@@ -311,7 +314,7 @@ class DocTestCase(doctests.DocTestCase):
         # and letting any other error propagate.
         try:
             super(DocTestCase, self).tearDown()
-        except AttributeError, exc:
+        except AttributeError as exc:
             if exc.args[0] != self._result_var:
                 raise
 
@@ -383,17 +386,7 @@ class IPDocTestParser(doctest.DocTestParser):
 
     def ip2py(self,source):
         """Convert input IPython source into valid Python."""
-        out = []
-        newline = out.append
-        #print 'IPSRC:\n',source,'\n###'  # dbg
-        # The input source must be first stripped of all bracketing whitespace
-        # and turned into lines, so it looks to the parser like regular user
-        # input
-        for lnum,line in enumerate(source.strip().splitlines()):
-            newline(_ip.prefilter(line,lnum>0))
-        newline('')  # ensure a closing newline, needed by doctest
-        #print "PYSRC:", '\n'.join(out)  # dbg
-        return '\n'.join(out)
+        return TerminalMagics(_ip).cleanup_input(source)
 
     def parse(self, string, name='<string>'):
         """

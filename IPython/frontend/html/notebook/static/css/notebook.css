@@ -35,7 +35,12 @@ span#notebook_name {
 }
 
 .ui-menu .ui-menu-item a {
+    border: 1px solid transparent;
     padding: 2px 1.6em;
+}
+
+.ui-menu .ui-menu-item a.ui-state-focus {
+    margin: 0;
 }
 
 .ui-menu hr {
@@ -99,7 +104,7 @@ div#notebook {
     width: 100%;
     /* This spaces the cell away from the edge of the notebook area */
     padding: 5px 5px 15px 5px;
-    margin: 0px
+    margin: 0px;
     background-color: white;
 }
 
@@ -113,6 +118,15 @@ div#pager {
     display: none;
 }
 
+div.ui-widget-content {
+    border: 1px solid #aaa;
+    outline: none;
+}
+
+.cell {
+    border: 1px solid transparent;
+}
+
 div.cell {
     width: 100%;
     padding: 5px 5px 5px 0px;
@@ -123,6 +137,7 @@ div.cell {
 div.code_cell {
     background-color: white;
 }
+
 /* any special styling for code cells that are currently running goes here */
 div.code_cell.running {
 }
@@ -154,13 +169,50 @@ div.input_prompt {
     border-top: 1px solid transparent;
 }
 
-div.output {
+div.output_wrapper {
     /* This is a spacer between the input and output of each cell */
     margin-top: 5px;
+    margin-left: 5px;
+    /* FF needs explicit width to stretch */
+    width: 100%;
+    /* this position must be relative to enable descendents to be absolute within it */
+    position: relative;
+}
+
+/* class for the output area when it should be height-limited */
+div.output_scroll {
+  /* ideally, this would be max-height, but FF barfs all over that */
+  height: 24em;
+  /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
+  width: 100%;
+  
+  overflow: auto;
+  border-radius: 3px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, .8);
+}
+
+/* output div while it is collapsed */
+div.output_collapsed {
+  margin-right: 5px;
+}
+
+div.out_prompt_overlay {
+  height: 100%;
+  padding: 0px;
+  position: absolute;
+  border-radius: 3px;
+}
+
+div.out_prompt_overlay:hover {
+  /* use inner shadow to get border that is computed the same on WebKit/FF */
+  box-shadow: inset 0 0 1px #000;
+  background: rgba(240, 240, 240, 0.5);
 }
 
 div.output_prompt {
     color: darkred;
+    /* 5px right shift to account for margin in parent container */
+    margin: 0 5px 0 -5px;
 }
 
 /* This class is the outer container of all output sections. */
@@ -172,7 +224,7 @@ div.output_area {
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
-    padding: 0.4em 6.1em 0.4em 0.4em;
+    padding: 0.4em 0.4em 0.4em 0.4em;
 }
 
 /* The rest of the output_* classes are for special styling of the different
@@ -232,6 +284,17 @@ div.text_cell_render {
     color: black;
 }
 
+/* The following gets added to the <head> if it is detected that the user has a
+ * monospace font with inconsistent normal/bold/italic height.  See
+ * notebookmain.js.  Such fonts will have keywords vertically offset with
+ * respect to the rest of the text.  The user should select a better font. 
+ * See: https://github.com/ipython/ipython/issues/1503
+ *
+ * .CodeMirror span {
+ *      vertical-align: bottom;
+ * }
+ */
+
 .CodeMirror {
     line-height: 1.231;  /* Changed from 1em to our global default */
 }
@@ -257,11 +320,11 @@ div.text_cell_render {
 .ansigrey {color: grey;}
 .ansibold {font-weight: bold;}
 
-.completions , .tooltip {
+.completions {
     position: absolute;
     z-index: 10;
-    overflow: auto;
-    border: 1px solid black;
+    overflow: hidden;
+    border: 1px solid grey;
 }
 
 .completions select {
@@ -270,64 +333,15 @@ div.text_cell_render {
     border: none;
     padding: 0px;
     margin: 0px;
+    overflow: auto;
     font-family: monospace;
 }
 
-@-moz-keyframes fadeIn {
-    from {opacity:0;}
-    to {opacity:1;}
+option.context {
+  background-color: #DEF7FF;
 }
-
-@-webkit-keyframes fadeIn {
-    from {opacity:0;}
-    to {opacity:1;}
-}
-
-@keyframes fadeIn {
-    from {opacity:0;}
-    to {opacity:1;}
-}
-
-/*"close" "expand" and "Open in pager button" of
-/* the tooltip*/
-.tooltip a {
-    float:right;
-}
-
-/*properties of tooltip after "expand"*/
-.bigtooltip {
-    height:30%;
-}
-
-/*properties of tooltip before "expand"*/
-.smalltooltip {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    height:15%;
-}
-
-.tooltip {
-    /*transition when "expand"ing tooltip */
-    -webkit-transition-property: height;
-    -webkit-transition-duration: 1s;
-    -moz-transition-property: height;
-    -moz-transition-duration: 1s;
-    transition-property: height;
-    transition-duration: 1s;
-    max-width:700px;
-    border-radius: 0px 10px 10px 10px;
-    box-shadow: 3px 3px 5px #999;
-    /*fade-in animation when inserted*/
-    -webkit-animation: fadeIn 200ms;
-    -moz-animation: fadeIn 200ms;
-    animation: fadeIn 200ms;
-    vertical-align: middle;
-    background: #FDFDD8;
-    outline: none;
-    padding: 3px;
-    margin: 0px;
-    font-family: monospace;
-    min-height:50px;
+option.introspection {
+  background-color: #EBF4EB;
 }
 
 /*fixed part of the completion*/
@@ -370,3 +384,11 @@ p.dialog {
    to not honor it correctly.  Webkit browsers (Chrome, rekonq, Safari) do.
  */
 pre, code, kbd, samp { white-space: pre-wrap; }
+
+#fonttest {
+    font-family: monospace;
+}
+
+.js-error {
+    color: darkred;
+}

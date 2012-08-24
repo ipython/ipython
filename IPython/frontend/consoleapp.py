@@ -108,6 +108,14 @@ aliases.update(app_aliases)
 # IPythonConsole
 #-----------------------------------------------------------------------------
 
+classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session]
+
+try:
+    from IPython.zmq.pylab.backend_inline import InlineBackend
+except ImportError:
+    pass
+else:
+    classes.append(InlineBackend)
 
 class IPythonConsoleApp(Configurable):
     name = 'ipython-console-mixin'
@@ -130,7 +138,7 @@ class IPythonConsoleApp(Configurable):
         
     """
 
-    classes = [IPKernelApp, ZMQInteractiveShell, ProfileDir, Session]
+    classes = classes
     flags = Dict(flags)
     aliases = Dict(aliases)
     kernel_manager_class = BlockingKernelManager
@@ -158,11 +166,11 @@ class IPythonConsoleApp(Configurable):
     hb_port = Int(0, config=True,
         help="set the heartbeat port [default: random]")
     shell_port = Int(0, config=True,
-        help="set the shell (XREP) port [default: random]")
+        help="set the shell (ROUTER) port [default: random]")
     iopub_port = Int(0, config=True,
         help="set the iopub (PUB) port [default: random]")
     stdin_port = Int(0, config=True,
-        help="set the stdin (XREQ) port [default: random]")
+        help="set the stdin (DEALER) port [default: random]")
     connection_file = Unicode('', config=True,
         help="""JSON file in which to store connection info [default: kernel-<pid>.json]
 

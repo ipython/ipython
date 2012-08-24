@@ -160,7 +160,7 @@ class Configurable(HasTraits):
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')
-        for k,v in cls.class_traits(config=True).iteritems():
+        for k,v in sorted(cls.class_traits(config=True).iteritems()):
             help = cls.class_get_trait_help(v, inst)
             final_help.append(help)
         return '\n'.join(final_help)

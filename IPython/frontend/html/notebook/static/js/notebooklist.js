@@ -43,64 +43,98 @@ var IPython = (function (IPython) {
         this.element.bind('dragover', function () {
             return false;
         });
-        this.element.bind('drop', function (event) {
-            var files = event.originalEvent.dataTransfer.files;
-            for (var i = 0, f; f = files[i]; i++) {
-                var reader = new FileReader();
-                reader.readAsText(f);
-                var fname = f.name.split('.'); 
-                var nbname = fname.slice(0,-1).join('.');
-                var nbformat = fname.slice(-1)[0];
-                if (nbformat === 'ipynb') {nbformat = 'json';};
-                if (nbformat === 'py' || nbformat === 'json') {
-                    var item = that.new_notebook_item(0);
-                    that.add_name_input(nbname, item);
-                    item.data('nbformat', nbformat);
-                    // Store the notebook item in the reader so we can use it later
-                    // to know which item it belongs to.
-                    $(reader).data('item', item);
-                    reader.onload = function (event) {
-                        var nbitem = $(event.target).data('item');
-                        that.add_notebook_data(event.target.result, nbitem);
-                        that.add_upload_button(nbitem);
-                    };
-                };
-            }
+        this.element.bind('drop', function(event){
+            that.handelFilesUpload(event,'drop');
             return false;
         });
     };
 
+    NotebookList.prototype.handelFilesUpload =  function(event, dropOrForm) {
+        var that = this;
+        var files;
+        if(dropOrForm =='drop'){
+            files = event.originalEvent.dataTransfer.files;
+        } else 
+        {
+            files = event.originalEvent.target.files
+        }
+        for (var i = 0, f; f = files[i]; i++) {
+            var reader = new FileReader();
+            reader.readAsText(f);
+            var fname = f.name.split('.'); 
+            var nbname = fname.slice(0,-1).join('.');
+            var nbformat = fname.slice(-1)[0];
+            if (nbformat === 'ipynb') {nbformat = 'json';};
+            if (nbformat === 'py' || nbformat === 'json') {
+                var item = that.new_notebook_item(0);
+                that.add_name_input(nbname, item);
+                item.data('nbformat', nbformat);
+                // Store the notebook item in the reader so we can use it later
+                // to know which item it belongs to.
+                $(reader).data('item', item);
+                reader.onload = function (event) {
+                    var nbitem = $(event.target).data('item');
+                    that.add_notebook_data(event.target.result, nbitem);
+                    that.add_upload_button(nbitem);
+                };
+            };
+        }
+        return false;
+        };
 
     NotebookList.prototype.clear_list = function () {
         this.element.children('.list_item').remove();
-    }
+    };
 
 
     NotebookList.prototype.load_list = function () {
-        this.clear_list();
+        var that = this;
         var settings = {
             processData : false,
             cache : false,
             type : "GET",
             dataType : "json",
-            success : $.proxy(this.list_loaded, this)
+            success : $.proxy(this.list_loaded, this),
+            error : $.proxy( function(){
+                that.list_loaded([], null, null, {msg:"Error connecting to server."});
+                             },this)
         };
+
         var url = $('body').data('baseProjectUrl') + 'notebooks';
         $.ajax(url, settings);
     };
 
 
-    NotebookList.prototype.list_loaded = function (data, status, xhr) {
+    NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
+        var message = 'Notebook list empty.';
+        if (param !== undefined && param.msg) {
+            var message = param.msg;
+        }
         var len = data.length;
-        // Todo: remove old children
+        this.clear_list();
+
+        if(len == 0)
+        {
+            $(this.new_notebook_item(0))
+                .append(
+                    $('<div style="margin:auto;text-align:center;color:grey"/>')
+                    .text(message)
+                    )
+        }
+
         for (var i=0; i<len; i++) {
             var notebook_id = data[i].notebook_id;
             var nbname = data[i].name;
+            var kernel = data[i].kernel_id;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
-                this.add_delete_button(item);
+                if(kernel == null){
+                    this.add_delete_button(item);
+                } else {
+                    this.add_shutdown_button(item,kernel);
+                }
             }
         };
     };
@@ -164,6 +198,32 @@ var IPython = (function (IPython) {
     };
 
 
+    NotebookList.prototype.add_shutdown_button = function (item,kernel) {
+        var new_buttons = $('<span/>').addClass('item_buttons');
+        var that = this;
+        var shutdown_button = $('<button>Shutdown</button>').button().
+            click(function (e) {
+                var settings = {
+                    processData : false,
+                    cache : false,
+                    type : "DELETE",
+                    dataType : "json",
+                    success : function (data, status, xhr) {
+                        that.load_list();
+                    }
+                };
+                var url = $('body').data('baseProjectUrl') + 'kernels/'+kernel;
+                $.ajax(url, settings);
+            });
+        new_buttons.append(shutdown_button);
+        var e = item.find('.item_buttons');
+        if (e.length === 0) {
+            item.append(new_buttons);
+        } else {
+            e.replaceWith(new_buttons);
+        };
+    };
+
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass('item_buttons');
         var delete_button = $('<button>Delete</button>').button().
@@ -217,6 +277,7 @@ var IPython = (function (IPython) {
         var that = this;
         var new_buttons = $('<span/>').addClass('item_buttons');
         var upload_button = $('<button>Upload</button>').button().
+            addClass('upload-button').
             click(function (e) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');

@@ -11,6 +11,7 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+from __future__ import print_function
 
 import sys
 
@@ -20,7 +21,7 @@ from subprocess import Popen, PIPE
 import nose.tools as nt
 
 from IPython.testing import decorators as dec
-from IPython.utils.io import Tee
+from IPython.utils.io import Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print
 
 #-----------------------------------------------------------------------------
@@ -33,7 +34,7 @@ def test_tee_simple():
     chan = StringIO()
     text = 'Hello'
     tee = Tee(chan, channel='stdout')
-    print >> chan, text
+    print(text, file=chan)
     nt.assert_equal(chan.getvalue(), text+"\n")
 
 
@@ -48,10 +49,10 @@ class TeeTestCase(dec.ParametricTestCase):
         setattr(sys, channel, trap)
 
         tee = Tee(chan, channel=channel)
-        print >> chan, text,
+        print(text, end='', file=chan)
         setattr(sys, channel, std_ori)
         trap_val = trap.getvalue()
-        nt.assert_equals(chan.getvalue(), text)
+        nt.assert_equal(chan.getvalue(), text)
         if check=='close':
             tee.close()
         else:
@@ -73,3 +74,13 @@ def test_io_init():
         # __class__ is a reference to the class object in Python 3, so we can't
         # just test for string equality.
         assert 'IPython.utils.io.IOStream' in classname, classname
+
+def test_capture_output():
+    """capture_output() context works"""
+    
+    with capture_output() as io:
+        print('hi, stdout')
+        print('hi, stderr', file=sys.stderr)
+    
+    nt.assert_equal(io.stdout, 'hi, stdout\n')
+    nt.assert_equal(io.stderr, 'hi, stderr\n')

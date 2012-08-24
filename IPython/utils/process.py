@@ -72,6 +72,15 @@ def find_cmd(cmd):
     return os.path.abspath(path)
 
 
+def is_cmd_found(cmd):
+    """Check whether executable `cmd` exists or not and return a bool."""
+    try:
+        find_cmd(cmd)
+        return True
+    except FindCmdError:
+        return False
+
+
 def pycmd2argv(cmd):
     r"""Take the path of a python command and return a list (argv-style).
 

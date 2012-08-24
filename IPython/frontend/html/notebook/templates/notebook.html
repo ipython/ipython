@@ -1,5 +1,4 @@
 {% extends page.html %}
-
 {% block stylesheet %}
 
 {% if mathjax_url %}
@@ -17,7 +16,10 @@ window.mathjax_url = "{{mathjax_url}}";
 <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
 <link rel="stylesheet" href="{{ static_url("css/notebook.css") }}" type="text/css" />
+<link rel="stylesheet" href="{{ static_url("css/tooltip.css") }}" type="text/css" />
 <link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
+
+<link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" media="print"/>
 
 {% end %}
 
@@ -65,6 +67,8 @@ data-notebook-id={{notebook_id}}
                 </li>
                 <hr/>
                 <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>
+                <hr/>
+                <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
             </ul>
         </li>
         <li><a href="#">Edit</a>
@@ -115,8 +119,15 @@ data-notebook-id={{notebook_id}}
                 <li id="to_heading5"><a href="#">Heading 5</a></li>
                 <li id="to_heading6"><a href="#">Heading 6</a></li>
                 <hr/>
-                <li id="toggle_output"><a href="#">Toggle Output</a></li>
-                <li id="clear_all_output"><a href="#">Clear All Output</a></li>
+                <li id="toggle_output"><a href="#">Toggle Current Output</a></li>
+                <li id="all_outputs"><a href="#">All Output</a>
+                    <ul>
+                        <li id="expand_all_output"><a href="#">Expand</a></li>
+                        <li id="scroll_all_output"><a href="#">Scroll Long</a></li>
+                        <li id="collapse_all_output"><a href="#">Collapse</a></li>
+                        <li id="clear_all_output"><a href="#">Clear</a></li>
+                    </ul>
+                </li>
             </ul>
         </li>
         <li><a href="#">Kernel</a>
@@ -192,6 +203,8 @@ data-notebook-id={{notebook_id}}
     </div>
 
 </div>
+<div id='tooltip' class='tooltip ui-corner-all' style='display:none'></div>
+
 
 {% end %}
 
@@ -216,8 +229,10 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/layoutmanager.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/initmathjax.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/outputarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/completer.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -227,7 +242,9 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/toolbar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
-{% end %}
+<script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
 
+{% end %}

@@ -34,19 +34,13 @@ The following will fail:
     In [3]: A = numpy.zeros(2)
     
     In [4]: def setter(a):
-       ...: a[0]=1
-       ...: return a
+       ...:   a[0]=1
+       ...:   return a
 
     In [5]: rc[0].apply_sync(setter, A)
     ---------------------------------------------------------------------------
-    RemoteError                               Traceback (most recent call last)
-    ...
-    RemoteError: RuntimeError(array is not writeable)
-    Traceback (most recent call last):
-      File "/path/to/site-packages/IPython/parallel/streamkernel.py", line 329, in apply_request
-        exec code in working, working
-      File "<string>", line 1, in <module>
-      File "<ipython-input-14-736187483856>", line 2, in setter
+    RuntimeError                              Traceback (most recent call last)<string> in <module>()
+    <ipython-input-12-c3e7afeb3075> in setter(a)
     RuntimeError: array is not writeable
 
 If you do need to edit the array in-place, just remember to copy the array if it's read-only.

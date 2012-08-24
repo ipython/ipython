@@ -24,6 +24,7 @@ http://www.python.org/2.2.3/license.html"""
 #
 #
 #*****************************************************************************
+from __future__ import print_function
 
 import bdb
 import linecache
@@ -46,7 +47,7 @@ if '--pydb' in sys.argv:
             # better protect against it.
             has_pydb = True
     except ImportError:
-        print "Pydb (http://bashdb.sourceforge.net/pydb/) does not seem to be available"
+        print("Pydb (http://bashdb.sourceforge.net/pydb/) does not seem to be available")
 
 if has_pydb:
     from pydb import Pdb as OldPdb
@@ -60,12 +61,12 @@ else:
 # the Tracer constructor.
 def BdbQuit_excepthook(et,ev,tb):
     if et==bdb.BdbQuit:
-        print 'Exiting Debugger.'
+        print('Exiting Debugger.')
     else:
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
 def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
-    print 'Exiting Debugger.'
+    print('Exiting Debugger.')
 
 
 class Tracer(object):
@@ -123,6 +124,22 @@ class Tracer(object):
 
         if colors is None:
             colors = def_colors
+
+        # The stdlib debugger internally uses a modified repr from the `repr`
+        # module, that limits the length of printed strings to a hardcoded
+        # limit of 30 characters.  That much trimming is too aggressive, let's
+        # at least raise that limit to 80 chars, which should be enough for
+        # most interactive uses.
+        try:
+            from repr import aRepr
+            aRepr.maxstring = 80
+        except:
+            # This is only a user-facing convenience, so any error we encounter
+            # here can be warned about but can be otherwise ignored.  These
+            # printouts will tell us about problems if this API changes 
+            import traceback
+            traceback.print_exc()
+
         self.debugger = Pdb(colors)
 
     def __call__(self):
@@ -278,7 +295,7 @@ class Pdb(OldPdb):
     def print_stack_entry(self,frame_lineno,prompt_prefix='\n-> ',
                           context = 3):
         #frame, lineno = frame_lineno
-        print >>io.stdout, self.format_stack_entry(frame_lineno, '', context)
+        print(self.format_stack_entry(frame_lineno, '', context), file=io.stdout)
 
         # vds: >>
         frame, lineno = frame_lineno
@@ -418,7 +435,7 @@ class Pdb(OldPdb):
                 src.append(line)
                 self.lineno = lineno
 
-            print >>io.stdout, ''.join(src)
+            print(''.join(src), file=io.stdout)
 
         except KeyboardInterrupt:
             pass
@@ -439,7 +456,7 @@ class Pdb(OldPdb):
                 else:
                     first = max(1, int(x) - 5)
             except:
-                print '*** Error in argument:', `arg`
+                print('*** Error in argument:', repr(arg))
                 return
         elif self.lineno is None:
             first = max(1, self.curframe.f_lineno - 5)
@@ -461,19 +478,20 @@ class Pdb(OldPdb):
         """The debugger interface to magic_pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pdef(arg, namespaces=namespaces)
+        self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
         """The debugger interface to magic_pdoc"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pdoc(arg, namespaces=namespaces)
+        self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
     def do_pinfo(self, arg):
         """The debugger equivalant of ?obj"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.magic_pinfo("pinfo %s" % arg, namespaces=namespaces)
+        self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
+                                            namespaces=namespaces)
 
     def checkline(self, filename, lineno):
         """Check whether specified line seems to be executable.
@@ -498,12 +516,12 @@ class Pdb(OldPdb):
         #######################################################################
 
         if not line:
-            print >>self.stdout, 'End of file'
+            print('End of file', file=self.stdout)
             return 0
         line = line.strip()
         # Don't allow setting breakpoint at a blank line
         if (not line or (line[0] == '#') or
              (line[:3] == '"""') or line[:3] == "'''"):
-            print >>self.stdout, '*** Blank or comment'
+            print('*** Blank or comment', file=self.stdout)
             return 0
         return lineno

@@ -33,13 +33,15 @@ except ImportError:
 
 # Our own packages
 from IPython.core import debugger, oinspect
+from IPython.core import magic_arguments
 from IPython.core import page
 from IPython.core.error import UsageError
 from IPython.core.macro import Macro
-from IPython.core.magic import (Magics, magics_class, line_magic, 
+from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
 from IPython.utils.path import get_py_filename, unquote_filename
@@ -224,20 +226,12 @@ python-profiler package from non-free.""")
 
         # Trap output.
         stdout_trap = StringIO()
-
-        if hasattr(stats,'stream'):
-            # In newer versions of python, the stats object has a 'stream'
-            # attribute to write into.
+        stats_stream = stats.stream
+        try:
             stats.stream = stdout_trap
             stats.print_stats(*lims)
-        else:
-            # For older versions, we manually redirect stdout during printing
-            sys_stdout = sys.stdout
-            try:
-                sys.stdout = stdout_trap
-                stats.print_stats(*lims)
-            finally:
-                sys.stdout = sys_stdout
+        finally:
+            stats.stream = stats_stream
 
         output = stdout_trap.getvalue()
         output = output.rstrip()
@@ -252,16 +246,16 @@ python-profiler package from non-free.""")
             dump_file = unquote_filename(dump_file)
             prof.dump_stats(dump_file)
             print '\n*** Profile stats marshalled to file',\
-                  `dump_file`+'.',sys_exit
+                  repr(dump_file)+'.',sys_exit
         if text_file:
             text_file = unquote_filename(text_file)
             pfile = open(text_file,'w')
             pfile.write(output)
             pfile.close()
             print '\n*** Profile printout saved to text file',\
-                  `text_file`+'.',sys_exit
+                  repr(text_file)+'.',sys_exit
 
-        if opts.has_key('r'):
+        if 'r' in opts:
             return stats
         else:
             return None
@@ -765,16 +759,21 @@ python-profiler package from non-free.""")
         # this code has tight coupling to the inner workings of timeit.Timer,
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
-
+        transform  = self.shell.input_splitter.transform_cell
         if cell is None:
             # called as line magic
             setup = 'pass'
-            stmt = timeit.reindent(stmt, 8)
+            stmt = timeit.reindent(transform(stmt), 8)
         else:
-            setup = timeit.reindent(stmt, 4)
-            stmt = timeit.reindent(cell, 8)
+            setup = timeit.reindent(transform(stmt), 4)
+            stmt = timeit.reindent(transform(cell), 8)
 
-        src = timeit.template % dict(stmt=stmt, setup=setup)
+        # From Python 3.3, this template uses new-style string formatting.
+        if sys.version_info >= (3, 3):
+            src = timeit.template.format(stmt=stmt, setup=setup)
+        else:
+            src = timeit.template % dict(stmt=stmt, setup=setup)
+
         # Track compilation time so it can be reported if too long
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
@@ -813,7 +812,7 @@ python-profiler package from non-free.""")
     @skip_doctest
     @needs_local_scope
     @line_magic
-    def time(self,parameter_s, user_locals):
+    def time(self,parameter_s, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
@@ -885,11 +884,11 @@ python-profiler package from non-free.""")
         wall_st = wtime()
         if mode=='eval':
             st = clock2()
-            out = eval(code, glob, user_locals)
+            out = eval(code, glob, local_ns)
             end = clock2()
         else:
             st = clock2()
-            exec code in glob, user_locals
+            exec code in glob, local_ns
             end = clock2()
             out = None
         wall_end = wtime()
@@ -983,3 +982,33 @@ python-profiler package from non-free.""")
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print '=== Macro contents: ==='
         print macro,
+    
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('output', type=str, default='', nargs='?',
+        help="""The name of the variable in which to store output.
+        This is a utils.io.CapturedIO object with stdout/err attributes
+        for the text of the captured output.
+        
+        CapturedOutput also has a show() method for displaying the output,
+        and __call__ as well, so you can use that to quickly display the
+        output.
+        
+        If unspecified, captured output is discarded.
+        """
+    )
+    @magic_arguments.argument('--no-stderr', action="store_true",
+        help="""Don't capture stderr."""
+    )
+    @magic_arguments.argument('--no-stdout', action="store_true",
+        help="""Don't capture stdout."""
+    )
+    @cell_magic
+    def capture(self, line, cell):
+        """run the cell, capturing stdout/err"""
+        args = magic_arguments.parse_argstring(self.capture, line)
+        out = not args.no_stdout
+        err = not args.no_stderr
+        with capture_output(out, err) as io:
+            self.shell.run_cell(cell)
+        if args.output:
+            self.shell.user_ns[args.output] = io
