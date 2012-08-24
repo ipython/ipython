@@ -28,12 +28,12 @@ var IPython = (function (IPython) {
             this.bind_events();
         }
         this.cell_id = utils.uuid();
-
     };
 
 
     // Subclasses must implement create_element.
     Cell.prototype.create_element = function () {};
+
 
     Cell.prototype.bind_events = function () {
         var that = this;

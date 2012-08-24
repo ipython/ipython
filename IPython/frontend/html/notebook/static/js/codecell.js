@@ -29,8 +29,8 @@ var IPython = (function (IPython) {
 
         var that = this;
         this.element.focusout(
-                function() { that.auto_highlight(); }
-            );
+            function() { that.auto_highlight(); }
+        );
     };
 
 
