@@ -29,6 +29,7 @@ import runpy
 import sys
 import tempfile
 import types
+import inspect
 
 # We need to use nested to support python 2.6, once we move to >=2.7, we can
 # use the with keyword's new builtin support for nested managers
@@ -1398,15 +1399,16 @@ class InteractiveShell(SingletonConfigurable):
         # found, then we look for all the remaining parts as members, and only
         # declare success if we can find them all.
         oname_parts = oname.split('.')
-        oname_head, oname_rest = oname_parts[0],oname_parts[1:]
+        oname_head, oname_middle, oname_last = oname_parts[0],oname_parts[1:-1],\
+                                               oname_parts[-1]
         for nsname,ns in namespaces:
             try:
                 obj = ns[oname_head]
             except KeyError:
                 continue
             else:
-                #print 'oname_rest:', oname_rest  # dbg
-                for part in oname_rest:
+                #print 'oname_middle:', oname_middle  # dbg
+                for part in oname_middle:
                     try:
                         parent = obj
                         obj = getattr(obj,part)
@@ -1416,7 +1418,15 @@ class InteractiveShell(SingletonConfigurable):
                         # AttributeError, which then crashes IPython.
                         break
                 else:
-                    # If we finish the for loop (no break), we got all members
+                    # If we finish the for loop (no break), we reached the
+                    # penultimate member. If the last member is a descriptor, we
+                    # don't want to call its __get__ method, so we retrieve it
+                    # via introspection.
+                    if len(oname_parts) > 1:
+                        obj = self._get_noinvoke(obj, oname_last)
+                        if obj is None:
+                            continue
+
                     found = True
                     ospace = nsname
                     if ns == alias_ns:
@@ -1450,6 +1460,44 @@ class InteractiveShell(SingletonConfigurable):
 
         return {'found':found, 'obj':obj, 'namespace':ospace,
                 'ismagic':ismagic, 'isalias':isalias, 'parent':parent}
+
+    def _get_noinvoke(self, obj, oname):
+        '''
+        Retrieve an object's property, taking care not to trigger __get__() if
+        the property is a descriptor. We seek to emulate object.__getattribute__'s
+        behavior here.
+        '''
+        mro = inspect.getmro(obj if inspect.isclass(obj) else obj.__class__)
+        closest_class_member = None
+        closest_metaclass_member = None
+
+        for cls in mro:
+            # we have a user-defined lookup function, give up
+            if '__getattribute__' in cls.__dict__ and cls is not object:
+                return cls.__getattribute__(obj, oname)
+
+        for cls in mro:
+            member = cls.__dict__.get(oname, None)
+            # data descriptors get highest priority
+            if inspect.isdatadescriptor(member):
+                return member
+            # cache the property lowest in the class tree for use later
+            closest_class_member = closest_class_member or member
+
+            if hasattr(cls, '__metaclass__') and oname in cls.__metaclass__:
+                closest_metaclass_member = closest_metaclass_member or \
+                    cls.__metaclass__[oname]
+
+        # instance properties get higher priority than class properties
+        if hasattr(obj, '__dict__') and oname in obj.__dict__:
+            return obj.__dict__[oname]
+        elif closest_class_member is not None:
+            return closest_class_member
+        elif closest_metaclass_member is not None:
+            return closest_metaclass_member
+        elif hasattr(obj, oname):
+            # if we have a user-defined __getattr__, this should catch it
+            return getattr(obj, oname)
 
     def _ofind_property(self, oname, info):
         """Second part of object finding, to look for property details."""
