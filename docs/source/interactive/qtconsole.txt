@@ -259,6 +259,8 @@ stylesheet:
     .in-prompt-number { font-weight: bold; }
     .out-prompt { color: darkred; }
     .out-prompt-number { font-weight: bold; }
+    /* .inverted is used to highlight selected completion */
+    .inverted { background-color: black ; color: white; }
 
 Fonts
 =====
