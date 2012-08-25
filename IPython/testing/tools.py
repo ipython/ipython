@@ -240,7 +240,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
     # If no errors or output on stderr was expected, match stdout
-    nt.assert_equal(out.strip(), expected_out.strip())
+    nt.assert_equal("\n".join(out.strip().splitlines()), "\n".join(expected_out.strip().splitlines()))
 
 
 class TempFileMixin(object):
