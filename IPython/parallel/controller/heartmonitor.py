@@ -170,20 +170,3 @@ class HeartMonitor(LoggingConfigurable):
         else:
             self.log.warn("heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)", msg[1], self.lifetime)
 
-
-if __name__ == '__main__':
-    loop = ioloop.IOLoop.instance()
-    context = zmq.Context()
-    pub = context.socket(zmq.PUB)
-    pub.bind('tcp://127.0.0.1:5555')
-    router = context.socket(zmq.ROUTER)
-    router.bind('tcp://127.0.0.1:5556')
-
-    outstream = zmqstream.ZMQStream(pub, loop)
-    instream = zmqstream.ZMQStream(router, loop)
-
-    hb = HeartMonitor(loop=loop, pingstream=outstream, pongstream=instream)
-    import logging
-    hb.log.setLevel(logging.DEBUG)
-    hb.start()
-    loop.start()
