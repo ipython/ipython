@@ -235,7 +235,7 @@ def ipexec_validate(fname, expected_out, expected_err='',
     # more informative than simply having an empty stdout.
     if err:
         if expected_err:
-            nt.assert_equal(err.strip(), expected_err.strip())
+            nt.assert_equal("\n".join(err.strip().splitlines()), "\n".join(expected_err.strip().splitlines()))
         else:
             raise ValueError('Running file %r produced error: %r' %
                              (fname, err))
