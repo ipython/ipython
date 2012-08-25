@@ -74,8 +74,10 @@ class EngineFactory(RegistrationFactory):
     kernel = Instance(Kernel)
     
     # States for the heartbeat monitoring
-    _hb_last_pinged = None
-    _hb_last_monitored = None
+    # Initial values for monitored and pinged must satisfy "monitored > pinged == False" so that 
+    # during the first check no "missed" ping is reported. Must be floats for Python 3 compatibility.
+    _hb_last_pinged = 0.0
+    _hb_last_monitored = 0.0
     _hb_missed_beats = 0
     # The zmq Stream which receives the pings from the Heart
     _hb_listener = None
