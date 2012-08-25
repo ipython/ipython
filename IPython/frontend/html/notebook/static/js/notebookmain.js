@@ -31,7 +31,8 @@ $(document).ready(function () {
     IPython.menubar = new IPython.MenuBar('#menubar')
     IPython.toolbar = new IPython.ToolBar('#toolbar')
     IPython.tooltip = new IPython.Tooltip()
-    IPython.notification_widget = new IPython.NotificationWidget('#notification')
+    IPython.notification_area = new IPython.NotificationArea('#notification_area')
+    IPython.notification_area.init_notification_widgets();
 
     IPython.layout_manager.do_resize();
 

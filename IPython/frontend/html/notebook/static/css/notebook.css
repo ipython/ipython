@@ -51,10 +51,20 @@ span#notebook_name {
     position: relative;
 }
 
-#notification {
+#notification_area {
     position: absolute;
-    right: 3px;
-    top: 3px;
+    right: 0px;
+    top: 0px;
+    height: 25px;
+    padding: 3px 0px;
+    padding-right: 3px;
+    z-index: 10;
+}
+
+.notification_widget{
+    float : right;
+    right: 0px;
+    top: 1px;
     height: 25px;
     padding: 3px 6px;
     z-index: 10;
