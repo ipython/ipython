@@ -613,7 +613,6 @@ class MainWindow(QtGui.QMainWindow):
         self.all_magic_menu.clear()
 
 
-        protected_magic = set(["more","less","load_ext","pycat","loadpy","load","save","psource"])
         mlist=ast.literal_eval(listofmagic)
         for magic in mlist:
             cell = (magic['type'] == 'cell')
@@ -625,11 +624,7 @@ class MainWindow(QtGui.QMainWindow):
                 prefix='%'
             magic_menu = self._get_magic_menu(mclass)
 
-            if name in protected_magic:
-                suffix = '?'
-            else :
-                suffix = ''
-            pmagic = '%s%s%s'%(prefix,name,suffix)
+            pmagic = '%s%s'%(prefix,name)
 
             xaction = QtGui.QAction(pmagic,
                 self,

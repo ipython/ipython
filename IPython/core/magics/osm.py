@@ -681,6 +681,9 @@ class OSMagics(Magics):
         %pycat myMacro
         %pycat http://www.example.com/myscript.py
         """
+        if not parameter_s:
+            raise UsageError('Missing filename, URL, input history range, '
+                             'or macro.')
 
         try :
             cont = self.shell.find_user_code(parameter_s)

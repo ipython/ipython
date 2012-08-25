@@ -19,7 +19,7 @@ import sys
 
 # Our own packages
 from IPython.core import page
-from IPython.core.error import StdinNotImplementedError
+from IPython.core.error import StdinNotImplementedError, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import DEFAULT_ENCODING
@@ -92,6 +92,8 @@ class NamespaceMagics(Magics):
     @line_magic
     def psource(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the source code for an object."""
+        if not parameter_s:
+            raise UsageError('Missing object name.')
         self.shell._inspect('psource',parameter_s, namespaces)
 
     @line_magic

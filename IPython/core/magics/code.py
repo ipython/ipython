@@ -21,7 +21,7 @@ import sys
 from urllib2 import urlopen
 
 # Our own packages
-from IPython.core.error import TryNext, StdinNotImplementedError
+from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
 from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
@@ -73,6 +73,8 @@ class CodeMagics(Magics):
         """
 
         opts,args = self.parse_options(parameter_s,'fra',mode='list')
+        if not args:
+            raise UsageError('Missing filename.')
         raw = 'r' in opts
         force = 'f' in opts
         append = 'a' in opts
@@ -178,6 +180,9 @@ class CodeMagics(Magics):
         %load http://www.example.com/myscript.py
         """
         opts,args = self.parse_options(arg_s,'y')
+        if not args:
+            raise UsageError('Missing filename, URL, input history range, '
+                             'or macro.')
 
         contents = self.shell.find_user_code(args)
         l = len(contents)
