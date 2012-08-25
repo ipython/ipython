@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # coding: utf-8
 from IPython.nbformat import current as nbf
 from  difflib import context_diff, ndiff, unified_diff
