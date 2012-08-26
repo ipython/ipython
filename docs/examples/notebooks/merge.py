@@ -26,7 +26,7 @@ def find_familly(dct,idset):
 
 
 class Cell(object):
-    
+
     def __init__(self,cell):
         self._json = cell
         self.uuid = cell['metadata']['uuid']
@@ -36,7 +36,7 @@ class Cell(object):
             self.input = cell['source']
 
 class NewCell(Cell):
-    
+
     def __init__(self,cell):
         super(NewCell, self).__init__(cell)
         self.ancesters = [];
@@ -47,7 +47,7 @@ class NewCell(Cell):
         s2p = '\n'.join([ x.input for x in ancesters])
         s2 = s2p.splitlines()
         if(len(ancesters) >1):
-            oldfile = '%d_old_cells'%(len(ancesters)) 
+            oldfile = '%d_old_cells'%(len(ancesters))
         else :
             oldfile = 'old_cell'
         return [ r.strip('\n') for r in unified_diff(s2, s1, fromfile=oldfile, tofile='1_new_cell', n=500)]
@@ -87,7 +87,7 @@ class NotebookDiffer(object):
 
     def get_new_cell(self,number=None, uuid=None):
         return self.get_cell(self.newcells, number, uuid)
-    
+
     def diff(self):
         l = []
         for i,c in enumerate(self.newcells):
@@ -100,6 +100,11 @@ class NotebookDiffer(object):
         for i,c in enumerate(self.newcells):
             l = []
             l.append('@@ diff for cell %d @@'%(i+1))
+            celldiff = c.diff()
+            # keep identical cell untouched.
+            if len(celldiff) == 0 :
+                cells.append(c._json);
+                continue
             l.extend(c.diff())
             cell = nbf.new_text_cell('raw', source='\n'.join(l))
             cells.append(cell)
