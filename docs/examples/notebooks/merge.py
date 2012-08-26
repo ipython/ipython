@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # coding: utf-8
+
 from IPython.nbformat import current as nbf
 from  difflib import context_diff, ndiff, unified_diff
 import json
-
+import argparse
 
 def find_cell_ancester(cell,known_ids) :
     if(cell['metadata']['uuid'] in known_ids) :
@@ -86,14 +87,14 @@ class NotebookDiffer(object):
     
     def diff(self):
         l = []
-        for i,c in enumerate(nbdiff.newcells):
+        for i,c in enumerate(self.newcells):
             l.append('@@ diff for cell %d @@'%(i+1))
             l.extend(c.diff())
         return l
 
     def jsondiff(self):
         cells = []
-        for i,c in enumerate(nbdiff.newcells):
+        for i,c in enumerate(self.newcells):
             l = []
             l.append('@@ diff for cell %d @@'%(i+1))
             l.extend(c.diff())
@@ -104,19 +105,36 @@ class NotebookDiffer(object):
         nb = nbf.new_notebook('mergedof', worksheets=[ws])
         return nb
 
+
+def main(*args):
+    parser = argparse.ArgumentParser(
+            description="""
+                output the diff of 2 notebooks
+                """
+            )
+
+    parser.add_argument('old',
+            type=str,
+            help="The oldest file",
+            metavar='old')
+    parser.add_argument('new',
+            type=str,
+            help="The newest file",
+            metavar='new')
+    args = parser.parse_args()
+
+    if args.old and args.new:
+        f = file(args.old)
+        nb1 = nbf.read(f,'ipynb')
+
+        f = file(args.new)
+        nb2 = nbf.read(f,'ipynb')
+
+        nbdiff = NotebookDiffer(nb1,nb2)
+
+        js = nbdiff.jsondiff()
+        print json.dumps(js, sort_keys=True, indent=1)
+
+
 if __name__ == '__main__':
-
-    f = file('000-test-merge-split.ipynb')
-    nb1 = nbf.read(f,'ipynb')
-
-    f = file('000-test-merge-split-step1.ipynb')
-    nb2 = nbf.read(f,'ipynb')
-
-    nbdiff = NotebookDiffer(nb1,nb2)
-
-    #print '\n'.join(nbdiff.diff())
-
-    js = nbdiff.jsondiff()
-    print json.dumps(js, sort_keys=True, indent=1)
-
-
+    main()
