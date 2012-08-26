@@ -106,7 +106,7 @@ class NotebookDiffer(object):
                 cells.append(c._json);
                 continue
             l.extend(c.diff())
-            cell = nbf.new_text_cell('raw', source='\n'.join(l))
+            cell = nbf.new_code_cell(input='\n'.join(l))
             cells.append(cell)
 
         ws = nbf.new_worksheet('u0',cells=cells)
