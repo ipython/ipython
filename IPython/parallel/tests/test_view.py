@@ -27,6 +27,7 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
+from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -577,6 +578,30 @@ class TestView(ClusterTestCase, ParametricTestCase):
         view = self.client[-1]
         ar = view.execute("1/0")
         self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
+    
+    def test_remoteerror_render_exception(self):
+        """RemoteErrors get nice tracebacks"""
+        view = self.client[-1]
+        ar = view.execute("1/0")
+        ip = get_ipython()
+        ip.user_ns['ar'] = ar
+        with capture_output() as io:
+            ip.run_cell("ar.get(2)")
+        
+        self.assertTrue('ZeroDivisionError' in io.stdout, io.stdout)
+    
+    def test_compositeerror_render_exception(self):
+        """CompositeErrors get nice tracebacks"""
+        view = self.client[:]
+        ar = view.execute("1/0")
+        ip = get_ipython()
+        ip.user_ns['ar'] = ar
+        with capture_output() as io:
+            ip.run_cell("ar.get(2)")
+        
+        self.assertEqual(io.stdout.count('ZeroDivisionError'), len(view) * 2, io.stdout)
+        self.assertEqual(io.stdout.count('integer division'), len(view), io.stdout)
+        self.assertEqual(io.stdout.count(':execute'), len(view), io.stdout)
     
     @dec.skipif_not_matplotlib
     def test_magic_pylab(self):
