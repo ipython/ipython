@@ -50,7 +50,7 @@ class NewCell(Cell):
             oldfile = '%d_old_cells'%(len(ancesters)) 
         else :
             oldfile = 'old_cell'
-        return [ r.strip('\n') for r in unified_diff(s2, s1, fromfile=oldfile, tofile='1_new_cell')]
+        return [ r.strip('\n') for r in unified_diff(s2, s1, fromfile=oldfile, tofile='1_new_cell', n=500)]
 
 class OldCell(Cell):
     pass
