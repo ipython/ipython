@@ -30,7 +30,10 @@ class Cell(object):
     def __init__(self,cell):
         self._json = cell
         self.uuid = cell['metadata']['uuid']
-        self.input = cell['input']
+        if hasattr(cell,'input'):
+            self.input = cell['input']
+        else:
+            self.input = cell['source']
 
 class NewCell(Cell):
     
