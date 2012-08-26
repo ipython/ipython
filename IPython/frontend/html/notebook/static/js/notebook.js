@@ -828,8 +828,10 @@ var IPython = (function (IPython) {
             var texta = cell.get_pre_cursor();
             var textb = cell.get_post_cursor();
             var uuid = cell.cell_id;
-            var family_tree = {}
-            family_tree= [{uuid:cell.parents_id}];
+            var family_tree = [];
+            var dummy = {};
+            dummy[uuid] = cell.parents_id;
+            familly_tree.push(dummy);
             var new_cell
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
