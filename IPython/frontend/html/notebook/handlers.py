@@ -208,16 +208,19 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        self.render(
-            'projectdashboard.html', project=project,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            read_only=self.read_only,
-            logged_in=self.logged_in,
-            login_available=self.login_available
-        )
+        if self.application.ipython_app.alternative_notebook_index_url != "":
+            self.redirect(self.application.ipython_app.alternative_notebook_index_url)
+        else:
+            nbm = self.application.notebook_manager
+            project = nbm.notebook_dir
+            self.render(
+                'projectdashboard.html', project=project,
+                base_project_url=self.application.ipython_app.base_project_url,
+                base_kernel_url=self.application.ipython_app.base_kernel_url,
+                read_only=self.read_only,
+                logged_in=self.logged_in,
+                login_available=self.login_available
+            )
 
 
 class LoginHandler(AuthenticatedHandler):
