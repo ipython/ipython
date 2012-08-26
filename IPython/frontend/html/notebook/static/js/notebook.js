@@ -831,7 +831,7 @@ var IPython = (function (IPython) {
             var family_tree = [];
             var dummy = {};
             dummy[uuid] = cell.parents_id;
-            familly_tree.push(dummy);
+            family_tree.push(dummy);
             var new_cell
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
