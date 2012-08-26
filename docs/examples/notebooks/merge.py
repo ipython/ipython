@@ -2,6 +2,7 @@
 # coding: utf-8
 from IPython.nbformat import current as nbf
 from  difflib import context_diff, ndiff, unified_diff
+import json
 
 
 def find_cell_ancester(cell,known_ids) :
@@ -90,6 +91,19 @@ class NotebookDiffer(object):
             l.extend(c.diff())
         return l
 
+    def jsondiff(self):
+        cells = []
+        for i,c in enumerate(nbdiff.newcells):
+            l = []
+            l.append('@@ diff for cell %d @@'%(i+1))
+            l.extend(c.diff())
+            cell = nbf.new_text_cell('raw', source='\n'.join(l))
+            cells.append(cell)
+
+        ws = nbf.new_worksheet('u0',cells=cells)
+        nb = nbf.new_notebook('mergedof', worksheets=[ws])
+        return nb
+
 if __name__ == '__main__':
 
     f = file('000-test-merge-split.ipynb')
@@ -100,6 +114,9 @@ if __name__ == '__main__':
 
     nbdiff = NotebookDiffer(nb1,nb2)
 
-    print '\n'.join(nbdiff.diff())
+    #print '\n'.join(nbdiff.diff())
+
+    js = nbdiff.jsondiff()
+    print json.dumps(js, sort_keys=True, indent=1)
 
 
