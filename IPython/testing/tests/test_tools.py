@@ -88,3 +88,49 @@ class TestAssertPrints(unittest.TestCase):
                 print b"ghi"
         
         self.assertRaises(AssertionError, func)
+
+
+class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
+    def test_main_path(self):
+        """Test with only stdout results.
+        """
+        self.mktmp("print('A')\n"
+                   "print('B')\n"
+                   )
+        out = "A\nB"
+        tt.ipexec_validate(self.fname, out)
+
+    def test_main_path2(self):
+        """Test with only stdout results, expecting windows line endings.
+        """
+        self.mktmp("print('A')\n"
+                   "print('B')\n"
+                   )
+        out = "A\r\nB"
+        tt.ipexec_validate(self.fname, out)
+
+    def test_exception_path(self):
+        """Test exception path in exception_validate.
+        """
+        self.mktmp("from __future__ import print_function\n"
+                   "import sys\n"
+                   "print('A')\n"
+                   "print('B')\n"
+                   "print('C', file=sys.stderr)\n"
+                   "print('D', file=sys.stderr)\n"
+                   )
+        out = "A\nB"
+        tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\nD")
+
+    def test_exception_path(self):
+        """Test exception path in exception_validate, expecting windows line endings.
+        """
+        self.mktmp("from __future__ import print_function\n"
+                   "import sys\n"
+                   "print('A')\n"
+                   "print('B')\n"
+                   "print('C', file=sys.stderr)\n"
+                   "print('D', file=sys.stderr)\n"
+                   )
+        out = "A\r\nB"
+        tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\r\nD")
