@@ -24,6 +24,7 @@ import sys
 import json
 import copy
 from shutil import rmtree
+from markdown import markdown
 
 inkscape = 'inkscape'
 if sys.platform == 'darwin':
@@ -842,9 +843,7 @@ class ConverterHTML(Converter):
     @DocInherit
     @text_cell
     def render_markdown(self, cell):
-        p = subprocess.Popen(['markdown'], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-        out, _ = p.communicate(cell.source.encode('utf-8'))
-        return [out.decode('utf-8')]
+        return [markdown(cell.source)]
 
     @DocInherit
     def render_raw(self, cell):
@@ -1311,13 +1310,7 @@ def md2html(infile):
     """Convert a markdown file to simplified html suitable for blogger.
 
     """
-
-    proc = subprocess.Popen(['markdown', infile],
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    html, stderr = proc.communicate()
-    if stderr:
-        raise IOError(stderr)
+    html = markdown(open(infile).read())
 
     from pygments.formatters import HtmlFormatter
     css = HtmlFormatter().get_style_defs('.highlight')
