@@ -533,33 +533,21 @@ class ConverterRST(Converter):
     def _unknown_lines(self, data):
         return rst_directive('.. warning:: Unknown cell') + [data]
 
+    @DocInherit
     def render_display_format_html(self, output):
-        """render the html part of an output
-
-        Returns list.
-        """
         return rst_directive('.. raw:: html', output.html)
 
+    @DocInherit
     def render_display_format_latex(self, output):
-        """render the latex part of an output
-
-        Returns list.
-        """
         return rst_directive('.. math::', output.latex)
 
+    @DocInherit
     def render_display_format_json(self, output):
-        """render the json part of an output
-
-        Returns list.
-        """
         return rst_directive('.. raw:: json', output.json)
 
 
+    @DocInherit
     def render_display_format_javascript(self, output):
-        """render the javascript part of an output
-
-        Returns list.
-        """
         return rst_directive('.. raw:: javascript', output.javascript)
 
 
@@ -664,33 +652,20 @@ class ConverterMarkdown(Converter):
     def _unknown_lines(self, data):
         return ['Warning: Unknown cell', data]
 
+    @DocInherit
     def render_display_format_html(self, output):
-        """render the html part of an output
-
-        Returns list.
-        """
         return [output.html]
 
+    @DocInherit
     def render_display_format_latex(self, output):
-        """render the latex part of an output
-
-        Returns list.
-        """
         return ['LaTeX::', indent(output.latex)]
 
+    @DocInherit
     def render_display_format_json(self, output):
-        """render the json part of an output
-
-        Returns list.
-        """
         return ['JSON:', indent(output.json)]
 
-
+    @DocInherit
     def render_display_format_javascript(self, output):
-        """render the javascript part of an output
-
-        Returns list.
-        """
         return ['JavaScript:', indent(output.javascript)]
 
 
@@ -887,62 +862,38 @@ class ConverterHTML(Converter):
         return ['<h2>Warning:: Unknown cell</h2>'] + self.in_tag('pre', data)
 
 
+    @DocInherit
     def render_display_format_png(self, output):
-        """render the png part of an output
-
-        Returns list.
-        """
         return ['<img src="data:image/png;base64,%s"></img>' % output.png]
 
+    @DocInherit
     def render_display_format_svg(self, output):
-        """render the svg part of an output
-
-        Returns list.
-        """
         return [output.svg]
 
+    @DocInherit
     def render_display_format_jpeg(self, output):
-        """render the jpeg part of an output
-
-        Returns list.
-        """
         return ['<img src="data:image/jpeg;base64,%s"></img>' % output.jpeg]
 
+    @DocInherit
     def render_display_format_text(self, output):
-        """render the text part of an output
-
-        Returns list.
-        """
         return self._ansi_colored(output.text)
 
+    @DocInherit
     def render_display_format_html(self, output):
-        """render the html part of an output
-
-        Returns list.
-        """
         return [output.html]
 
+    @DocInherit
     def render_display_format_latex(self, output):
-        """render the latex part of an output
-
-        Returns list.
-        """
         return [output.latex]
 
+    @DocInherit
     def render_display_format_json(self, output):
-        """render the json part of an output
-
-        Returns [].
-        """
         # html ignores json
         return []
 
 
+    @DocInherit
     def render_display_format_javascript(self, output):
-        """render the javascript part of an output
-
-        Returns list.
-        """
         return [output.javascript]
 
 
@@ -1119,36 +1070,24 @@ class ConverterLaTeX(Converter):
 
         return lines
 
+    @DocInherit
     def render_display_format_html(self, output):
-        """render the html part of an output
-
-        Returns [].
-        """
         return []
 
+    @DocInherit
     def render_display_format_latex(self, output):
-        """render the latex part of an output
-
-        Returns list.
-        """
         if type(output.latex) == type([]):
             return output.latex
         return [output.latex]
 
+    @DocInherit
     def render_display_format_json(self, output):
-        """render the json part of an output
-
-        Returns [].
-        """
         # latex ignores json
         return []
 
 
+    @DocInherit
     def render_display_format_javascript(self, output):
-        """render the javascript part of an output
-
-        Returns [].
-        """
         # latex ignores javascript
         return []
 
@@ -1224,33 +1163,21 @@ class ConverterNotebook(Converter):
     def render_display_format_text(self, output):
         return [output.text]
 
+    @DocInherit
     def render_display_format_html(self, output):
-        """render the html part of an output
-
-        Returns [].
-        """
         return [output.html]
 
+    @DocInherit
     def render_display_format_latex(self, output):
-        """render the latex part of an output
-
-        Returns list.
-        """
         return [output.latex]
 
+    @DocInherit
     def render_display_format_json(self, output):
-        """render the json part of an output
-
-        Returns [].
-        """
         return [output.json]
 
 
+    @DocInherit
     def render_display_format_javascript(self, output):
-        """render the javascript part of an output
-
-        Returns [].
-        """
         return [output.javascript]
 
 #-----------------------------------------------------------------------------
