@@ -9,15 +9,7 @@ _ipython_get_flags()
         opts=$__ipython_complete_last_res
         return
     fi
-    opts=$(cat <<EOF | python -
-try:
-    import IPython.${url} as mod;
-    for k in mod.${var}:
-        print "${dash}%s" % k,
-except:
-    pass
-EOF
-    )
+    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/=.*//;s/ <.*//")
     __ipython_complete_last="$url $var"
     __ipython_complete_last_res="$opts"
 }
@@ -43,16 +35,20 @@ _ipython()
 
     if [[ ${cur} == -* ]]; then
         if [[ $mode == "notebook" ]]; then
-            _ipython_get_flags frontend.html.notebook.notebookapp notebook_flags "--"
+            _ipython_get_flags notebook
             opts=$"${opts} ${baseopts}"
         elif [[ $mode == "qtconsole" ]]; then
-            _ipython_get_flags frontend.qt.console.qtconsoleapp qt_flags "--"
+            _ipython_get_flags qtconsole
             opts="${opts} ${baseopts}"
         elif [[ $mode == "console" ]]; then
-            _ipython_get_flags frontend.terminal.console.app frontend_flags "--"
+            _ipython_get_flags console
         elif [[ $mode == "kernel" ]]; then
-            _ipython_get_flags zmq.kernelapp "kernel_flags.keys()" "--"
+            _ipython_get_flags kernel
             opts="${opts} ${baseopts}"
+        elif [[ $mode == "profile" ]]; then
+            opts="list create"
+        elif [[ $mode == "locate" ]]; then
+            opts=""
         else
             opts=$baseopts
         fi
@@ -61,6 +57,22 @@ _ipython()
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
         _ipython_get_flags core.shellapp InteractiveShellApp.pylab.values
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ ${prev} == "--profile"* ]]; then
+        if [ -z  "$__ipython_complete_profiles" ]; then
+        __ipython_complete_profiles=$(cat <<EOF | python -
+try:
+    import IPython.core.profileapp
+    for k in IPython.core.profileapp.list_bundled_profiles():
+        print "%s" % k,
+    p = IPython.core.profileapp.ProfileList()
+    for k in IPython.core.profileapp.list_profiles_in(p.ipython_dir):
+        print "%s" % k,
+except:
+    pass
+EOF
+        )
+        fi
+        COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
     else
         if [ -z "$mode" ]; then
             COMPREPLY=( $(compgen -f -W "${subcommands}" -- ${cur}) )
