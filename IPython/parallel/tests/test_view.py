@@ -600,7 +600,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
             ip.run_cell("ar.get(2)")
 
         self.assertEqual(io.stdout.count('ZeroDivisionError'), len(view) * 2, io.stdout)
-        self.assertEqual(io.stdout.count('integer division'), len(view), io.stdout)
+        self.assertEqual(io.stdout.count('by zero'), len(view), io.stdout)
         self.assertEqual(io.stdout.count(':execute'), len(view), io.stdout)
 
     @dec.skipif_not_matplotlib
