@@ -21,7 +21,7 @@ _ipython()
     local subcommands="notebook qtconsole console kernel profile locate"
     local opts=""
     if [ -z "$__ipython_complete_baseopts" ]; then
-        _ipython_get_flags core.shellapp "shell_flags.keys()" "--"
+        _ipython_get_flags baseopts
         __ipython_complete_baseopts="${opts}"
     fi
     local baseopts="$__ipython_complete_baseopts"
@@ -37,7 +37,10 @@ _ipython()
         fi
     done
 
-    if [[ ${cur} == -* ]]; then
+    if [[ $mode == "profile" ]]; then
+        opts="list create"
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+    elif [[ ${cur} == -* ]]; then
         if [[ $mode == "notebook" ]]; then
             _ipython_get_flags notebook
             opts=$"${opts} ${baseopts}"
@@ -49,8 +52,6 @@ _ipython()
         elif [[ $mode == "kernel" ]]; then
             _ipython_get_flags kernel
             opts="${opts} ${baseopts}"
-        elif [[ $mode == "profile" ]]; then
-            opts="list create"
         elif [[ $mode == "locate" ]]; then
             opts=""
         else
