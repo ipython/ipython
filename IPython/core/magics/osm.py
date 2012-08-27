@@ -687,7 +687,7 @@ class OSMagics(Magics):
                              'or macro.')
 
         try :
-            cont = self.shell.find_user_code(parameter_s)
+            cont = self.shell.find_user_code(parameter_s, skip_encoding_cookie=False)
         except (ValueError, IOError):
             print "Error: no such file, variable, URL, history range or macro"
             return
