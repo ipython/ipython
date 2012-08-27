@@ -60,8 +60,18 @@ _ipython()
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
-        _ipython_get_flags core.shellapp InteractiveShellApp.pylab.values
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        if [ -z "$__ipython_complete_pylab" ]; then
+            __ipython_complete_pylab=$(cat <<EOF | python -
+try:
+    import IPython.core.shellapp as mod;
+    for k in mod.InteractiveShellApp.pylab.values:
+        print "%s" % k,
+except:
+    pass
+EOF
+        )
+        fi
+        COMPREPLY=( $(compgen -W "${__ipython_complete_pylab}" -- ${cur}) )
     elif [[ ${prev} == "--profile"* ]]; then
         if [ -z  "$__ipython_complete_profiles" ]; then
         __ipython_complete_profiles=$(cat <<EOF | python -
