@@ -30,6 +30,10 @@ _ipython()
         [ "$cur" = "$i" ] && break
         if [[ ${subcommands} == *${i}* ]]; then
             mode="$i"
+            break
+        elif [[ ${i} == "--"* ]]; then
+            mode="nosubcommand"
+            break
         fi
     done
 
