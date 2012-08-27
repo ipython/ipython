@@ -5,6 +5,7 @@ itself.
 """
 import functools
 import linecache
+import sys
 
 from IPython.utils import py3compat
 from IPython.utils import openpy
@@ -21,6 +22,7 @@ else:
     def getlines(filename, module_globals=None):
         """Get the lines (as unicode) for a file from the cache.
         Update the cache if it doesn't contain an entry for this file already."""
+        filename = py3compat.cast_bytes(filename, sys.getfilesystemencoding())
         lines = linecache.getlines(filename, module_globals=module_globals)
         
         # The bits we cache ourselves can be unicode.
