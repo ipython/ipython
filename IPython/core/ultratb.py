@@ -925,7 +925,7 @@ class VerboseTB(TBTools):
             etype_str,evalue_str = map(str,(etype,evalue))
         # ... and format it
         exception = ['%s%s%s: %s' % (Colors.excName, etype_str,
-                                     ColorsNormal, evalue_str)]
+                                     ColorsNormal, py3compat.cast_unicode(evalue_str))]
         if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
                 names = [w for w in dir(evalue) if isinstance(w, basestring)]
@@ -937,7 +937,7 @@ class VerboseTB(TBTools):
                 exception.append(_m % (Colors.excName,ColorsNormal))
                 etype_str,evalue_str = map(str,sys.exc_info()[:2])
                 exception.append('%s%s%s: %s' % (Colors.excName,etype_str,
-                                     ColorsNormal, evalue_str))
+                                     ColorsNormal, py3compat.cast_unicode(evalue_str)))
                 names = []
             for name in names:
                 value = text_repr(getattr(evalue, name))
