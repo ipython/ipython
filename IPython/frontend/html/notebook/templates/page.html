@@ -1,26 +1,31 @@
+
+
 <!DOCTYPE HTML>
+{% macro static_url(name) -%}
+    /static/{{ name }} 
+{%- endmacro %}
 <html>
 
 <head>
     <meta charset="utf-8">
 
-    <title>{% block title %}IPython Notebook{% end %}</title>
+    <title>{% block title %}IPython Notebook{% endblock %}</title>
 
     <link rel="stylesheet" href="{{static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/boilerplate.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/fbm.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/page.css") }}" type="text/css"/>
     {% block stylesheet %}
-    {% end %}
+    {% endblock %}
     <link rel="stylesheet" href="{{ static_url("css/custom.css") }}" type="text/css" />
 
 
     {% block meta %}
-    {% end %}
+    {% endblock %}
 
 </head>
 
-<body {% block params %}{% end %}>
+<body {% block params %}{% endblock %}>
 
 <div id="header">
     <span id="ipython_notebook"><h1><a href={{base_project_url}} alt='dashboard'><img src='{{static_url("ipynblogo.png") }}' alt='IPython Notebook'/></a></h1></span>
@@ -32,18 +37,18 @@
           <button id="logout">Logout</button>
         {% elif login_available and not logged_in %}
           <button id="login">Login</button>
-        {% end %}
+        {% endif %}
       </span>
 
-    {% end %}
+    {% endblock %}
 
     {% block header %}
-    {% end %}
+    {% endblock %}
 </div>
 
 <div id="site">
 {% block site %}
-{% end %}
+{% endblock %}
 </div>
 
 <script src="{{static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -53,7 +58,7 @@
 <script src="{{static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% block script %}
-{% end %}
+{% endblock %}
 
 <script src="{{static_url("js/custom.js") }}" type="text/javascript" charset="utf-8"></script>
 
