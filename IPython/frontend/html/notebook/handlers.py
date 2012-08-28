@@ -27,9 +27,12 @@ import stat
 import threading
 import time
 import uuid
+import os
 
 from tornado import web
 from tornado import websocket
+
+from jinja2 import Environment, FileSystemLoader
 
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
@@ -210,27 +213,29 @@ class ProjectDashboardHandler(AuthenticatedHandler):
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
-        self.render(
-            'projectdashboard.html', project=project,
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
+        nb = env.get_template('projectdashboard.html')
+        self.write( nb.render(project=project,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             read_only=self.read_only,
             logged_in=self.logged_in,
-            login_available=self.login_available
-        )
+            login_available=self.login_available))
 
 
 class LoginHandler(AuthenticatedHandler):
 
     def _render(self, message=None):
-        self.render('login.html',
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
+        nb = env.get_template('login.html')
+        self.write( nb.render(
                 next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
                 base_project_url=self.application.ipython_app.base_project_url,
                 message=message
-        )
+        ))
 
     def get(self):
         if self.current_user:
@@ -260,12 +265,14 @@ class LogoutHandler(AuthenticatedHandler):
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
 
-        self.render('logout.html',
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
+        nb = env.get_template('logout.html')
+        self.write( nb.render(        
                     read_only=self.read_only,
                     logged_in=self.logged_in,
                     login_available=self.login_available,
                     base_project_url=self.application.ipython_app.base_project_url,
-                    message=message)
+                    message=message))
 
 
 class NewHandler(AuthenticatedHandler):
@@ -277,7 +284,6 @@ class NewHandler(AuthenticatedHandler):
         notebook_id = nbm.new_notebook()
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
-
 class NamedNotebookHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
@@ -286,9 +292,9 @@ class NamedNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        self.render(
-            'notebook.html', project=project,
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
+        nb = env.get_template('notebook/notebook.html')
+        self.write( nb.render(project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -296,8 +302,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
             read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+            mathjax_url=self.application.ipython_app.mathjax_url,))
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
@@ -309,8 +314,10 @@ class PrintNotebookHandler(AuthenticatedHandler):
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         
-        self.render(
-            'printnotebook.html', project=project,
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
+        nb = env.get_template('printnotebook.html')
+        self.write( nb.render(
+             project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -319,7 +326,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+        ))
 
 #-----------------------------------------------------------------------------
 # Kernel handlers
