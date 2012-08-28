@@ -226,15 +226,10 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 class LoginHandler(AuthenticatedHandler):
 
     def _render(self, message=None):
-<<<<<<< HEAD
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
         nb = env.get_template('login.html')
         self.write( nb.render(
-                next=self.get_argument('next', default='/'),
-=======
-        self.render('login.html',
                 next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
->>>>>>> 011222a51264e5be8179c8c2c126b46b3c909100
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
@@ -287,23 +282,7 @@ class NewHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         notebook_id = nbm.new_notebook()
-<<<<<<< HEAD
-        #some fancy stuff to get the IPython directory with staticurl and tornado here
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
-        nb = env.get_template('notebook/notebook.html')
-        self.write( nb.render( project=project,
-            notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            kill_kernel=False,
-            read_only=False,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url))
-=======
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
->>>>>>> 011222a51264e5be8179c8c2c126b46b3c909100
-
 
 class NamedNotebookHandler(AuthenticatedHandler):
 
@@ -689,22 +668,7 @@ class NotebookCopyHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         notebook_id = nbm.copy_notebook(notebook_id)
-<<<<<<< HEAD
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.abspath("."), "IPython/frontend/html/notebook/templates")))
-        nb = env.get_template('notebook/notebook.html')
-        self.write( nb.render(project=project,
-            notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            kill_kernel=False,
-            read_only=False,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-        ))
-=======
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
->>>>>>> 011222a51264e5be8179c8c2c126b46b3c909100
 
 
 #-----------------------------------------------------------------------------
