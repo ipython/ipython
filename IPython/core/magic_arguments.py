@@ -66,7 +66,6 @@ class MagicArgumentParser(argparse.ArgumentParser):
                  usage=None,
                  description=None,
                  epilog=None,
-                 version=None,
                  parents=None,
                  formatter_class=MagicHelpFormatter,
                  prefix_chars='-',
@@ -76,7 +75,7 @@ class MagicArgumentParser(argparse.ArgumentParser):
         if parents is None:
             parents = []
         super(MagicArgumentParser, self).__init__(prog=prog, usage=usage,
-            description=description, epilog=epilog, version=version,
+            description=description, epilog=epilog,
             parents=parents, formatter_class=formatter_class,
             prefix_chars=prefix_chars, argument_default=argument_default,
             conflict_handler=conflict_handler, add_help=add_help)
