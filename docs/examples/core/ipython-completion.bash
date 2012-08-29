@@ -65,7 +65,7 @@ _ipython()
         return 0
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
         if [ -z "$__ipython_complete_pylab" ]; then
-            __ipython_complete_pylab=$(cat <<EOF | python -
+            __ipython_complete_pylab=`cat <<EOF | python -
 try:
     import IPython.core.shellapp as mod;
     for k in mod.InteractiveShellApp.pylab.values:
@@ -73,13 +73,13 @@ try:
 except:
     pass
 EOF
-        )
+        `
         fi
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_pylab}" -- ${cur}) )
     elif [[ ${prev} == "--profile"* ]]; then
         if [ -z  "$__ipython_complete_profiles" ]; then
-        __ipython_complete_profiles=$(cat <<EOF | python -
+        __ipython_complete_profiles=`cat <<EOF | python -
 try:
     import IPython.core.profileapp
     for k in IPython.core.profileapp.list_bundled_profiles():
@@ -90,7 +90,7 @@ try:
 except:
     pass
 EOF
-        )
+        `
         fi
         local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
