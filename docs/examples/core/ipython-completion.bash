@@ -9,7 +9,9 @@ _ipython_get_flags()
         opts=$__ipython_complete_last_res
         return
     fi
-    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/=.*//;s/ <.*//")
+    # pylab and profile don't need the = and the
+    # version without simplifies the special cased completion
+    opts=$(ipython ${url} --help-all | grep -E "^-{1,2}[^-]" | sed -e "s/<.*//" -e "s/[^=]$/& /" -e "s/^--pylab=$//" -e "s/^--profile=$/--profile /")
     __ipython_complete_last="$url $var"
     __ipython_complete_last_res="$opts"
 }
@@ -57,6 +59,8 @@ _ipython()
         else
             opts=$baseopts
         fi
+        # don't drop the trailing space
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     elif [[ ${prev} == "--pylab"* ]] || [[ ${prev} == "--gui"* ]]; then
@@ -65,12 +69,13 @@ _ipython()
 try:
     import IPython.core.shellapp as mod;
     for k in mod.InteractiveShellApp.pylab.values:
-        print "%s" % k,
+        print "%s " % k
 except:
     pass
 EOF
         )
         fi
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_pylab}" -- ${cur}) )
     elif [[ ${prev} == "--profile"* ]]; then
         if [ -z  "$__ipython_complete_profiles" ]; then
@@ -78,15 +83,16 @@ EOF
 try:
     import IPython.core.profileapp
     for k in IPython.core.profileapp.list_bundled_profiles():
-        print "%s" % k,
+        print "%s " % k
     p = IPython.core.profileapp.ProfileList()
     for k in IPython.core.profileapp.list_profiles_in(p.ipython_dir):
-        print "%s" % k,
+        print "%s " % k
 except:
     pass
 EOF
         )
         fi
+        local IFS=$'\t\n'
         COMPREPLY=( $(compgen -W "${__ipython_complete_profiles}" -- ${cur}) )
     else
         if [ -z "$mode" ]; then
@@ -97,4 +103,4 @@ EOF
     fi
 
 }
-complete -o default -F _ipython ipython
+complete -o default -o nospace -F _ipython ipython
