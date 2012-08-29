@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Backport pull requests to a particular branch.
 
