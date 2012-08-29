@@ -1165,6 +1165,26 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
 
+    Notebook.prototype.rename_existing_notebook = function () {
+        // We may want to move the name/id/nbformat logic inside toJSON?
+        var data = this.toJSON();
+        data.metadata.name = this.notebook_name;
+        data.nbformat = this.nbformat;
+        data.nbformat_minor = this.nbformat_minor;
+        // We do the call with settings so we can set cache to false.
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "RENAME",
+            data : JSON.stringify(data),
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(this.save_notebook_success,this),
+            error : $.proxy(this.save_notebook_error,this)
+        };
+        $([IPython.events]).trigger('notebook_saving.Notebook');
+        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
+        $.ajax(url, settings);
+    };
 
     Notebook.prototype.save_notebook_success = function (data, status, xhr) {
         this.dirty = false;

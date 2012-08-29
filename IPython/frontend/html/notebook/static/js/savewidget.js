@@ -86,9 +86,21 @@ var IPython = (function (IPython) {
                             "except :/\\. Please enter a new notebook name:"
                         );
                     } else {
-                        IPython.notebook.set_notebook_name(new_name);
-                        IPython.notebook.save_notebook();
-                        $(this).dialog('close');
+                        //IPython.notebook.save_notebook();
+                        //var present = 0;
+                        //for (var i=0;i<IPython.notebook_list.element.length;i++) {
+                          //  if (new_name == Ipython.notebook_list.element[i]) {
+                         //       present = 1
+                                //new dialogue box
+                         //       break
+                        //    }
+                        //}
+                        //if (present == 0) {
+                            IPython.notebook.set_notebook_name(new_name);
+                            IPython.notebook.rename_existing_notebook();
+                            //IPython.notebook.save_notebook();
+                            $(this).dialog('close');
+                        //}
                     }
                 },
                 "Cancel": function () {
@@ -106,7 +118,6 @@ var IPython = (function (IPython) {
             }
         });
     }
-
 
     SaveWidget.prototype.update_notebook_name = function () {
         var nbname = IPython.notebook.get_notebook_name();
