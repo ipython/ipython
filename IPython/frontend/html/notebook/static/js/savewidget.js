@@ -59,6 +59,7 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.rename_notebook = function () {
         var that = this;
+        var data;
         var dialog = $('<div/>');
         dialog.append(
             $('<h3/>').html('Enter a new notebook name:')
@@ -86,21 +87,16 @@ var IPython = (function (IPython) {
                             "except :/\\. Please enter a new notebook name:"
                         );
                     } else {
-                        //IPython.notebook.save_notebook();
-                        //var present = 0;
-                        //for (var i=0;i<IPython.notebook_list.element.length;i++) {
-                          //  if (new_name == Ipython.notebook_list.element[i]) {
-                         //       present = 1
-                                //new dialogue box
-                         //       break
-                        //    }
-                        //}
-                        //if (present == 0) {
-                            IPython.notebook.set_notebook_name(new_name);
-                            IPython.notebook.rename_existing_notebook();
-                            //IPython.notebook.save_notebook();
+                        data = that.load_list();
+                        if (that.is_present(new_name, data) == 0) {
+                            that.confirm_overwrite(new_name);
                             $(this).dialog('close');
-                        //}
+                        }
+                        else {
+                            IPython.notebook.set_notebook_name(new_name);
+                            IPython.notebook.save_notebook();
+                            $(this).dialog('close');                                                        
+                        }
                     }
                 },
                 "Cancel": function () {
@@ -117,6 +113,99 @@ var IPython = (function (IPython) {
                 });
             }
         });
+    }
+
+    SaveWidget.prototype.confirm_overwrite = function(new_name) {
+        var that = this;
+        var dialog = $('<div/>');
+        // $(document).append(dialog);
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Target File < " + new_name + " >" + " Already Exists",
+            closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
+            buttons : {
+                "Overwrite": function () {
+                    if (!IPython.notebook.test_notebook_name(new_name)) {
+                        $(this).find('h3').html(
+                            "Invalid notebook name. Notebook names must "+
+                            "have 1 or more characters and can contain any characters " +
+                            "except :/\\. Please enter a new notebook name:"
+                        );
+                    } else {
+                        IPython.notebook.set_notebook_name(new_name);
+                        IPython.notebook.save_notebook();
+                        $(this).dialog('close');
+                    }
+                },
+                "Rename Original": function () {
+                    if (!IPython.notebook.test_notebook_name(new_name)) {
+                        $(this).find('h3').html(
+                            "Invalid notebook name. Notebook names must "+
+                            "have 1 or more characters and can contain any characters " +
+                            "except :/\\. Please enter a new notebook name:"
+                        );
+                    } else {
+                        IPython.notebook.set_notebook_name(new_name);
+                        IPython.notebook.rename_existing_notebook();
+                        $(this).dialog('close');
+                    }
+                },
+                "Cancel": function() {
+                    $(this).dialog('close');
+                    that.rename_notebook();    
+                }
+            },
+            open : function (event, ui) {
+                var that = $(this);
+                that.find('input[type="text"]').keydown(function (event, ui) {
+                    if (event.which === utils.keycodes.ENTER) {
+                        that.parent().find('button').first().click();
+                    }
+                });
+            }
+        });
+    }
+    
+    SaveWidget.prototype.load_list = function () {
+        var that = this;
+        var names = new Array();
+        var settings = {
+            processData : false,
+            async : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : function(data) {  var len = data.length;
+                                        for (var i = 0; i<len;i++) {
+                                        names[i] = data[i].name;
+                                       }},
+            error : $.proxy( function(){
+                that.list_loaded([], null, null, {msg:"Error connecting to server."});
+                             },this)
+        };
+        var url = $('body').data('baseProjectUrl') + 'notebooks';
+        $.ajax(url, settings);
+        return names;
+    };
+
+
+    SaveWidget.prototype.list_loaded = function (data, status, xhr, param) {
+        var message = 'Notebook list empty.';
+        if (param !== undefined && param.msg) {
+            var message = param.msg;
+        }
+    };
+
+    SaveWidget.prototype.is_present = function (new_name, data) {
+        var len = data.length;
+        for (var i=0;i<len;i++) {
+            if (new_name == data[i]) {
+                return 0;
+            }
+        }
+        return 1;
     }
 
     SaveWidget.prototype.update_notebook_name = function () {

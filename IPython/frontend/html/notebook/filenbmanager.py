@@ -134,11 +134,6 @@ class FileNotebookManager(NotebookManager):
 
         if notebook_id not in self.mapping:
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        if new_name in self.rev_mapping:
-            if notebook_id != self.rev_mapping[new_name]:
-                self.append_notebook_with_lastmodified(self.rev_mapping[new_name])
-                # add copy of the previous one as appended with timestamp
                  
         old_name = self.mapping[notebook_id]
         #if old_name != new_name:

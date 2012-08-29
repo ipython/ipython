@@ -99,7 +99,6 @@ var IPython = (function (IPython) {
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
         };
-
         var url = $('body').data('baseProjectUrl') + 'notebooks';
         $.ajax(url, settings);
     };
