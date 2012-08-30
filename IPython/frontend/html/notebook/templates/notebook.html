@@ -1,9 +1,10 @@
-{% extends page.html %}
+{% extends "page.html" %}
+
 {% block stylesheet %}
 
 {% if mathjax_url %}
 <script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
-{% end %}
+{% endif %}
 <script type="text/javascript">
 // MathJax disabled, set as null to distingish from *missing* MathJax,
 // where it will be undefined, and should prompt a dialog later.
@@ -20,9 +21,7 @@ window.mathjax_url = "{{mathjax_url}}";
 <link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
 
 <link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" media="print"/>
-
-{% end %}
-
+{% endblock %}
 
 {% block params %}
 
@@ -32,7 +31,7 @@ data-base-kernel-url={{base_kernel_url}}
 data-read-only={{read_only and not logged_in}}
 data-notebook-id={{notebook_id}}
 
-{% end %}
+{% endblock %}
 
 
 {% block header %}
@@ -42,7 +41,7 @@ data-notebook-id={{notebook_id}}
     <span id="save_status"></span>
 </span>
 
-{% end %}
+{% endblock %}
 
 
 {% block site %}
@@ -207,7 +206,7 @@ data-notebook-id={{notebook_id}}
 <div id='tooltip' class='tooltip ui-corner-all' style='display:none'></div>
 
 
-{% end %}
+{% endblock %}
 
 
 {% block script %}
@@ -248,5 +247,7 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 <script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
+{% endblock %}
 
-{% end %}
+
+
