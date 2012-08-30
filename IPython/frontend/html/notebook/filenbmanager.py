@@ -136,7 +136,6 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
                  
         old_name = self.mapping[notebook_id]
-        #if old_name != new_name:
         path = self.get_path_by_name(new_name)
         try:
             with open(path,'w') as f:
@@ -144,7 +143,7 @@ class FileNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
-	    # save .py script as well
+	        # save .py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
@@ -167,10 +166,8 @@ class FileNotebookManager(NotebookManager):
             del self.rev_mapping[old_name]
         return notebook_id
 
-    #####added by me --- begin#######
-
     def rename_existing_notebook(self, nb, notebook_id=None):
-        """Save an existing notebook object by notebook_id."""
+        """Rename an existing notebook object by notebook_id."""
         try:
             new_name = nb.metadata.name
         except AttributeError:
@@ -189,7 +186,6 @@ class FileNotebookManager(NotebookManager):
                  
         
         old_name = self.mapping[notebook_id]
-        #if old_name != new_name:
         path = self.get_path_by_name(new_name)
         try:
             with open(path,'w') as f:
@@ -206,7 +202,7 @@ class FileNotebookManager(NotebookManager):
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
 	    
-		    # remove old files if the name changed
+		# remove old files if the name changed
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
@@ -231,7 +227,6 @@ class FileNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
-        # save .py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
@@ -242,7 +237,6 @@ class FileNotebookManager(NotebookManager):
         self.mapping[notebook_id] = new_name
         self.rev_mapping[new_name] = notebook_id
         return notebook_id
-    #####added by me --- end#######
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
