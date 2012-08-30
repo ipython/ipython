@@ -242,15 +242,16 @@ class ShellSocketChannel(ZMQSocketChannel):
             :func:`repr` as values.
 
         user_expressions : dict, optional
-            A dict with string keys and  to pull from the user's
-            namespace.  They will come back as a dict with these names as keys
-            and their :func:`repr` as values.
+            A dict mapping names to expressions to be evaluated in the user's
+            dict. The expression values are returned as strings formatted using
+            :func:`repr`.
 
-        allow_stdin : bool, optional
-            Flag for 
-            A dict with string keys and  to pull from the user's
-            namespace.  They will come back as a dict with these names as keys
-            and their :func:`repr` as values.
+        allow_stdin : bool, optional (default self.allow_stdin)
+            Flag for whether the kernel can send stdin requests to frontends.
+
+            Some frontends (e.g. the Notebook) do not support stdin requests. 
+            If raw_input is called from code executed from such a frontend, a
+            StdinNotImplementedError will be raised.
 
         Returns
         -------
