@@ -418,7 +418,7 @@ class Client(HasTraits):
         location = cfg.setdefault('location', None)
         
         proto,addr = cfg['interface'].split('://')
-        addr = util.disambiguate_ip_address(addr)
+        addr = util.disambiguate_ip_address(addr, location)
         cfg['interface'] = "%s://%s" % (proto, addr)
         
         # turn interface,port into full urls:
