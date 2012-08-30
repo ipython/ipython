@@ -189,7 +189,7 @@ class NotebookManager(LoggingConfigurable):
         self.rename_existing_notebook(nb, notebook_id)
 
     def rename_existing_notebook(self, nb, notebook_id):
-        """Delete notebook by notebook_id."""
+        """Renames notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
     def increment_filename(self, name):

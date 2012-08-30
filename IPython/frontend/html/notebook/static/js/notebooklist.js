@@ -327,7 +327,6 @@ var IPython = (function (IPython) {
     NotebookList.prototype.confirm_overwrite = function(new_name, nbformat, nbdata, content_type, item) {
         var that = this;
         var dialog = $('<div/>');
-        // $(document).append(dialog);
         dialog.dialog({
             resizable: false,
             modal: true,

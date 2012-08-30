@@ -118,7 +118,6 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.confirm_overwrite = function(new_name) {
         var that = this;
         var dialog = $('<div/>');
-        // $(document).append(dialog);
         dialog.dialog({
             resizable: false,
             modal: true,

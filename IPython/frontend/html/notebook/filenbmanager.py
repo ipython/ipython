@@ -167,7 +167,7 @@ class FileNotebookManager(NotebookManager):
         return notebook_id
 
     def rename_existing_notebook(self, nb, notebook_id=None):
-        """Rename an existing notebook object by notebook_id."""
+        """Rename an existing notebook object to a different name and also saves the renamed one with the existing name. """
         try:
             new_name = nb.metadata.name
         except AttributeError:
@@ -218,17 +218,20 @@ class FileNotebookManager(NotebookManager):
 
     def append_notebook_with_lastmodified(self, notebook_id):
         last_mod, nb = self.read_notebook_object(notebook_id)
+        old_name = self.mapping[notebook_id]
+        old_path = self.get_path_by_name(old_name)
         new_name = nb.metadata.name + '.SavedAt::' + str(last_mod)
         notebook_id = self.new_notebook_id(new_name)
-        path = self.get_path_by_name(new_name)
+        new_path = self.get_path_by_name(new_name)
+        os.rename(old_path, new_path)
         try:
-            with open(path,'w') as f:
+            with open(new_path,'w') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
         if self.save_script:
-            pypath = os.path.splitext(path)[0] + '.py'
+            pypath = os.new_path.splitext(new_path)[0] + '.py'
             try:
                 with io.open(pypath,'w', encoding='utf-8') as f:
                     current.write(nb, f, u'py')
