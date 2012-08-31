@@ -104,13 +104,10 @@ var IPython = (function (IPython) {
             // function that will be called if you press tab 1, 2, 3... times in a row
             this.tabs_functions = [function (cell, text) {
                 that._request_tooltip(cell, text);
-                IPython.notification_widget.set_message('tab again to expand pager', 2500);
             }, function () {
                 that.expand();
-                IPython.notification_widget.set_message('tab again to make pager sticky for 10s', 2500);
             }, function () {
                 that.stick();
-                IPython.notification_widget.set_message('tab again to open help in pager', 2500);
             }, function (cell) {
                 that.cancel_stick();
                 that.showInPager(cell);
