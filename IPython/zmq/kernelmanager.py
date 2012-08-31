@@ -812,8 +812,9 @@ class KernelManager(HasTraits):
         self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
-        """ Attempts to the stop the kernel process cleanly. If the kernel
-        cannot be stopped, it is killed, if possible.
+        """ Attempts to the stop the kernel process cleanly. 
+
+        If the kernel cannot be stopped and the kernel is local, it is killed.
         """
         # FIXME: Shutdown does not work on Windows due to ZMQ errors!
         if sys.platform == 'win32':
@@ -894,13 +895,17 @@ class KernelManager(HasTraits):
         return self.kernel is not None
 
     def kill_kernel(self):
-        """ Kill the running kernel. """
+        """ Kill the running kernel.
+
+        This method blocks until the kernel process has terminated.
+        """
         if self.has_kernel:
             # Pause the heart beat channel if it exists.
             if self._hb_channel is not None:
                 self._hb_channel.pause()
 
-            # Attempt to kill the kernel.
+            # Signal the kernel to terminate (sends SIGKILL on Unix and calls
+            # TerminateProcess() on Win32).
             try:
                 self.kernel.kill()
             except OSError as e:
@@ -915,13 +920,18 @@ class KernelManager(HasTraits):
                     from errno import ESRCH
                     if e.errno != ESRCH:
                         raise
+
+            # Block until the kernel terminates.
+            self.kernel.wait()
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
 
     def interrupt_kernel(self):
-        """ Interrupts the kernel. Unlike ``signal_kernel``, this operation is
-        well supported on all platforms.
+        """ Interrupts the kernel.
+
+        Unlike ``signal_kernel``, this operation is well supported on all
+        platforms.
         """
         if self.has_kernel:
             if sys.platform == 'win32':
@@ -933,8 +943,10 @@ class KernelManager(HasTraits):
             raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
 
     def signal_kernel(self, signum):
-        """ Sends a signal to the kernel. Note that since only SIGTERM is
-        supported on Windows, this function is only useful on Unix systems.
+        """ Sends a signal to the kernel.
+
+        Note that since only SIGTERM is supported on Windows, this function is
+        only useful on Unix systems.
         """
         if self.has_kernel:
             self.kernel.send_signal(signum)
