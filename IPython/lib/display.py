@@ -37,19 +37,19 @@ class YouTubeVideo(object):
             ></iframe>
         """%(self.width, self.height, self.id)
 
-class LocalFile(object):
+class FileLink(object):
     """Class for embedding a local file link in an IPython session, based on path
 
     e.g. to embed a link that was generated in the IPython notebook as my/data.txt
 
     you would do:
 
-    local_file = LocalFile("my/data.txt")
+    local_file = FileLink("my/data.txt")
     display(local_file)
     
     or in the HTML notebook, just
     
-    LocalFile("my/data.txt")
+    FileLink("my/data.txt")
     """
     
     def __init__(self,
@@ -93,21 +93,21 @@ class LocalFile(object):
 # Right now this is the same as a formatting for a single file, but 
 # we'll encorage users to reference these with a different class in
 # case we want to change this in the future.
-LocalDirectory = LocalFile
+DirectoryLink = FileLink
 
-class LocalFiles(LocalFile):
+class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
 
     e.g. to embed links to files that were generated in the IPython notebook under my/data
 
     you would do:
 
-    local_files = LocalFiles("my/data")
+    local_files = FileLinks("my/data")
     display(local_files)
     
     or in the HTML notebook, just
     
-    LocalFiles("my/data")
+    FileLinks("my/data")
     
     """
     def __init__(self,
@@ -120,11 +120,11 @@ class LocalFiles(LocalFile):
             included_suffixes : list of filename suffixes to include when
              formatting output [default: include all files]
              
-            See the LocalFile (baseclass of LocalDirectory) docstring for 
+            See the FileLink (baseclass of LocalDirectory) docstring for 
              information on additional parameters.
         """
         self._included_suffixes = _included_suffixes
-        LocalFile.__init__(self,
+        FileLink.__init__(self,
                            path,
                            _directory_prefix,
                            _result_html_prefix,
