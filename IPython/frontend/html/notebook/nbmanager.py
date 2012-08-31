@@ -117,7 +117,7 @@ class NotebookManager(LoggingConfigurable):
             # should match the Python in-memory format.
             kwargs['split_lines'] = False
         data = current.writes(nb, format, **kwargs)
-        name = nb.get('name','notebook')
+        name = nb.metadata.get('name','notebook')
         return last_modified, name, data
 
     def read_notebook_object(self, notebook_id):
