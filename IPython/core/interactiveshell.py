@@ -29,17 +29,11 @@ import runpy
 import sys
 import tempfile
 import types
-
-# We need to use nested to support python 2.6, once we move to >=2.7, we can
-# use the with keyword's new builtin support for nested managers
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
+import urllib
+from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
-from IPython.core import history as ipcorehist
 from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
