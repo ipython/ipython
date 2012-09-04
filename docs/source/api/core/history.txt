@@ -3,8 +3,6 @@
 history
 =======
 
-Module: :mod:`IPython.core.history`
------------------------------------
 Inheritance diagram for ``IPython.core.history``:
 
 .. inheritance-diagram:: IPython.core.history 
@@ -13,9 +11,6 @@ Inheritance diagram for ``IPython.core.history``:
 .. automodule:: IPython.core.history
 
 .. currentmodule:: IPython.core.history
-
-Classes
--------
 
 :class:`HistoryAccessor`
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,9 +43,8 @@ Classes
   :undoc-members:
   :show-inheritance:
 
-Functions
----------
-
+:func:`extract_hist_ranges`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. autofunction:: IPython.core.history.extract_hist_ranges
 
