@@ -18,3 +18,5 @@ IPython.core
    ultratb.txt
    oinspect.txt
    displayhook.txt
+   page.txt
+   compilerop.txt

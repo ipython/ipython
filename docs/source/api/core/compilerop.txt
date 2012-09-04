@@ -1,0 +1,20 @@
+compilerop
+==========
+
+.. automodule:: IPython.core.compilerop
+
+.. currentmodule:: IPython.core.compilerop
+
+:class:`CachingCompiler`
+------------------------
+
+.. autoclass:: CachingCompiler
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:func:`code_name`
+-----------------
+
+.. autofunction:: IPython.core.compilerop.code_name
+

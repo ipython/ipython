@@ -1,7 +1,5 @@
-.. AUTO-GENERATED FILE -- DO NOT EDIT!
-
-core.ultratb
-============
+ultratb
+=======
 
 .. automodule:: IPython.core.ultratb
 
