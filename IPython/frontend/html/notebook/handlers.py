@@ -441,7 +441,8 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.on_message = self.on_first_message
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie(self.settings['cookie_name'])
+        handler = self.session.handler
+        user_id = handler.get_secure_cookie(handler.settings['cookie_name'])
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id
