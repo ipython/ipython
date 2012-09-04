@@ -2,6 +2,84 @@
  0.13 Series
 =============
 
+Release 0.13.1
+==============
+
+0.13.1 is a bugfix release for 0.13.
+
+Notable:
+
+* ipcluster launchers were released with a few serious bugs in 0.13, preventing
+  the default configuration from working in just about any nontrivial environment
+  (SSH and PBS/SGE/LSF launchers all affected).
+* Various installation / name fixes required for Python 3.3.
+* Notebook frontend should no longer be vulnerable to errors in user javascript.
+* Notebook download/save/print should get the right title instead of 'notebook'.
+* Tab completion fixes when using ``IPython.embed_kernel()``.
+* A few NameErrors/AttributeErrors in magics due to the reorganized magics system.
+
+We closed a total of 52 issues, 34 pull requests and 18 regular issues;
+this is the full list (generated with the script :file:`tools/github_stats.py`):
+
+Pull Requests (34):
+
+* :ghpull:`2373`: fix missing imports in core.interactiveshell
+* :ghpull:`2365`: fix names of notebooks for download/save
+* :ghpull:`2345`: Remove references to 'version' no longer in argparse. Github issue #2343.
+* :ghpull:`2347`: adjust division error message checking to account for Python 3
+* :ghpull:`2305`: RemoteError._render_traceback_ calls self.render_traceback
+* :ghpull:`2280`: fix SSH passwordless check for OpenSSH
+* :ghpull:`2270`: SSHLauncher tweaks
+* :ghpull:`2261`: Fix: longest_substr([]) -> ''
+* :ghpull:`2250`: fix html in notebook example
+* :ghpull:`2235`: remove spurious print statement from setupbase.py
+* :ghpull:`2223`: Custom tracebacks
+* :ghpull:`2214`: use KernelApp.exec_lines/files in IPEngineApp
+* :ghpull:`2212`: catch errors in markdown javascript
+* :ghpull:`2194`: clean nan/inf in json_clean
+* :ghpull:`2169`: ipdb: pdef, pdoc, pinfo magics all broken
+* :ghpull:`2186`: removed references to h5py dependence in octave magic documentation
+* :ghpull:`2185`: added test for %store, fixed storemagic
+* :ghpull:`2177`: remove numpy install from travis/tox scripts
+* :ghpull:`2170`: Fix tab completion with IPython.embed_kernel().
+* :ghpull:`2163`: fix 'remote_profie_dir' typo in SSH launchers
+* :ghpull:`2117`: use explicit url in notebook example
+* :ghpull:`2126`: ipcluster broken with any batch launcher (PBS/LSF/SGE)
+* :ghpull:`2128`: open notebook copy in different tabs
+* :ghpull:`2073`: allows password and prefix for notebook
+* :ghpull:`2086`: re-alias %ed to %edit in qtconsole
+* :ghpull:`2101`: fix completer deleting newline
+* :ghpull:`2102`: Fix logging on interactive shell.
+* :ghpull:`2063`: Remove umlauts so py3 installations on LANG=C systems succeed.
+* :ghpull:`2068`: record sysinfo in sdist
+* :ghpull:`2067`: update tools/release_windows.py
+* :ghpull:`2065`: Fix parentheses typo
+* :ghpull:`2062`: Remove duplicates and auto-generated files from repo.
+* :ghpull:`2061`: use explicit tuple in exception
+* :ghpull:`2060`: change minus to \- or \(hy in manpages
+
+Issues (18):
+
+* :ghissue:`2372`: interactiveshell.py misses urllib and io_open imports
+* :ghissue:`2227`: print name for IPython Notebooks has become uninformative
+* :ghissue:`2343`: Installing in a python 3.3b2 or python 3.3rc1 virtual environment.
+* :ghissue:`2303`:  remote tracebacks broken since 952d0d6 (PR #2223)
+* :ghissue:`2266`: SSH passwordless check with OpenSSH checks for the wrong thing
+* :ghissue:`2252`: %paste throws an exception with empty clipboard
+* :ghissue:`2221`: Avoid importing from IPython.parallel in core
+* :ghissue:`2213`: Can't trigger startup code in Engines
+* :ghissue:`2187`: NaN in object_info_reply JSON causes parse error
+* :ghissue:`2173`: oct2py v >= 0.3.1 doesn't need h5py anymore
+* :ghissue:`2099`: storemagic needs to use self.shell
+* :ghissue:`2139`: 00_notebook_tour Image example broken on master
+* :ghissue:`2085`: %ed magic fails in qtconsole
+* :ghissue:`2082`: Qt Console output spacing
+* :ghissue:`2057`: setup fails for python3 with LANG=C
+* :ghissue:`2059`: duplicate and modified files in documentation
+* :ghissue:`2056`: except-shadows-builtin osm.py:687
+* :ghissue:`2058`: hyphen-used-as-minus-sign in manpages
+
+
 Release 0.13
 ============
 
