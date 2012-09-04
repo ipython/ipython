@@ -1,0 +1,11 @@
+script
+======
+
+.. automodule:: IPython.core.magics.script
+
+.. currentmodule:: IPython.core.magics.script
+
+.. autoclass:: ScriptMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

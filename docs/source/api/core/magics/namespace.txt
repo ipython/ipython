@@ -1,0 +1,11 @@
+namespace
+=========
+
+.. automodule:: IPython.core.magics.namespace
+
+.. currentmodule:: IPython.core.magics.namespace
+
+.. autoclass:: NamespaceMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

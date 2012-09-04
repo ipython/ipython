@@ -1,0 +1,11 @@
+history
+=======
+
+.. automodule:: IPython.core.magics.history
+
+.. currentmodule:: IPython.core.magics.history
+
+.. autoclass:: HistoryMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

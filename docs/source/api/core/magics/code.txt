@@ -1,0 +1,11 @@
+code
+====
+
+.. automodule:: IPython.core.magics.code
+
+.. currentmodule:: IPython.core.magics.code
+
+.. autoclass:: CodeMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

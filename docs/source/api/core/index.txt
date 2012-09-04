@@ -6,3 +6,4 @@ IPython.core
 .. toctree::
    
    history.txt
+   magics/index.txt

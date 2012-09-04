@@ -1,0 +1,11 @@
+config
+======
+
+.. automodule:: IPython.core.magics.config
+
+.. currentmodule:: IPython.core.magics.config
+
+.. autoclass:: ConfigMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

@@ -1,0 +1,27 @@
+magics
+======
+
+.. automodule:: IPython.core.magics
+
+.. toctree::
+
+   auto.txt
+   basic.txt
+   code.txt
+   config.txt
+   display.txt
+   execution.txt
+   extension.txt
+   history.txt
+   logging.txt
+   namespace.txt
+   osm.txt
+   pylab.txt
+   script.txt
+
+.. currentmodule:: IPython.core.magics
+
+.. autoclass:: UserMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

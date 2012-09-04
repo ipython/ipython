@@ -1,0 +1,11 @@
+basic
+=====
+
+.. automodule:: IPython.core.magics.basic
+
+.. currentmodule:: IPython.core.magics.basic
+
+.. autoclass:: BasicMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

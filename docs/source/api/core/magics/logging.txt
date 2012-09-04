@@ -1,0 +1,11 @@
+logging
+=======
+
+.. automodule:: IPython.core.magics.logging
+
+.. currentmodule:: IPython.core.magics.logging
+
+.. autoclass:: LoggingMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:
