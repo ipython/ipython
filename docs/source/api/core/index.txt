@@ -11,3 +11,4 @@ IPython.core
    history.txt
    magic.txt
    magics/index.txt
+   prompts.txt
