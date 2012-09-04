@@ -1,0 +1,56 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+history
+=======
+
+Module: :mod:`IPython.core.history`
+-----------------------------------
+Inheritance diagram for ``IPython.core.history``:
+
+.. inheritance-diagram:: IPython.core.history 
+   :parts: 3
+
+.. automodule:: IPython.core.history
+
+.. currentmodule:: IPython.core.history
+
+Classes
+-------
+
+:class:`HistoryAccessor`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HistoryAccessor
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+:class:`HistoryManager`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HistoryManager
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+:class:`HistorySavingThread`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: HistorySavingThread
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+Functions
+---------
+
+
+.. autofunction:: IPython.core.history.extract_hist_ranges
+

@@ -49,7 +49,7 @@ dist: html
 	cp -al build/html .
 	@echo "Build finished.  Final docs are in html/"
 
-html: api
+html:
 	mkdir -p build/html build/doctrees
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
 	@echo
@@ -78,7 +78,7 @@ htmlhelp:
 	@echo "Build finished; now you can run HTML Help Workshop with the" \
 	      ".hhp project file in build/htmlhelp."
 
-latex: api
+latex:
 	mkdir -p build/latex build/doctrees
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	@echo

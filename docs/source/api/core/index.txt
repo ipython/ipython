@@ -1,0 +1,8 @@
+.. _api-IPython-core:
+
+IPython.core
+============
+
+.. toctree::
+   
+   history.txt
