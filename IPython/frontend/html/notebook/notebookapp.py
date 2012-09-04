@@ -53,7 +53,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
-    FileFindHandler,
+    FileFindHandler, IOPubAndShellHandler,
 )
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -153,9 +153,11 @@ class NotebookWebApplication(web.Application):
         
         iopub_router = SockJSRouter(IOPubHandler, r"/kernels/%s/iopub" % _uuid_regex)
         shell_router = SockJSRouter(ShellHandler, r"/kernels/%s/shell" % _uuid_regex)
+        sock_router = SockJSRouter(IOPubAndShellHandler, r"/kernels/%s/sock" % _uuid_regex)
         
         handlers += shell_router.urls
         handlers += iopub_router.urls
+        handlers += sock_router.urls
 
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn

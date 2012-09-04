@@ -383,7 +383,7 @@ class ZMQStreamHandler(SockJSConnection):
     def request(self):
         return self.session.handler.request
 
-    def _reserialize_reply(self, msg_list):
+    def _reserialize_reply(self, msg_list, channel=None):
         """Reserialize a reply message using JSON.
 
         This takes the msg list from the ZMQ socket, unserializes it using
@@ -393,20 +393,13 @@ class ZMQStreamHandler(SockJSConnection):
         """
         idents, msg_list = self.ip_session.feed_identities(msg_list)
         msg = self.ip_session.unserialize(msg_list)
-        try:
-            msg['header'].pop('date')
-        except KeyError:
-            pass
-        try:
-            msg['parent_header'].pop('date')
-        except KeyError:
-            pass
-        msg.pop('buffers')
+        msg.pop('buffers', None)
+        msg['channel'] = channel
         return jsonapi.dumps(msg, default=date_default)
 
-    def _on_zmq_reply(self, msg_list):
+    def _on_zmq_reply(self, msg_list, channel=None):
         try:
-            msg = self._reserialize_reply(msg_list)
+            msg = self._reserialize_reply(msg_list, channel)
         except Exception:
             self.application.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
@@ -439,6 +432,12 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.ip_session = Session(config=cfg)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
+        
+        self.initialize()
+    
+    def initialize(self):
+        """override in subclasses"""
+        pass
 
     def get_current_user(self):
         handler = self.session.handler
@@ -465,6 +464,11 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
             logging.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
         self.on_message = self.save_on_message
+        self.create_streams()
+    
+    def create_streams(self):
+        """override in subclass"""
+        pass
 
 
 class IOPubHandler(AuthenticatedZMQStreamHandler):
@@ -473,28 +477,23 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
     _beating = False
     iopub_stream = None
     hb_stream = None
-
-    def on_first_message(self, msg):
-        try:
-            super(IOPubHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    
+    def initialize(self):
         km = self.application.kernel_manager
         self.time_to_dead = km.time_to_dead
         self.first_beat = km.first_beat
+    
+    def create_streams(self):
+        km = self.application.kernel_manager
         kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
             self.hb_stream = km.create_hb_stream(kernel_id)
-        except web.HTTPError:
-            # WebSockets don't response to traditional error codes so we
-            # close the connection.
-            if not self.stream.closed():
-                self.stream.close()
+        except Exception:
+            logging.error("Couldn't create streams", exc_info=True)
             self.close()
         else:
-            self.iopub_stream.on_recv(self._on_zmq_reply)
+            self.iopub_stream.on_recv(lambda msg: self._on_zmq_reply(msg, 'iopub'))
             self.start_hb(self.kernel_died)
 
     def on_message(self, msg):
@@ -566,7 +565,8 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         self.send(json.dumps(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
-             'content': {'execution_state':'dead'}
+             'content': {'execution_state':'dead'},
+             'channel': 'iopub',
             }
         ))
         self.on_close()
@@ -574,28 +574,23 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
 
 class ShellHandler(AuthenticatedZMQStreamHandler):
 
-    def initialize(self, *args, **kwargs):
-        self.shell_stream = None
-
-    def on_first_message(self, msg):
-        try:
-            super(ShellHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    shell_stream = None
+    max_msg_size = 65535
+    
+    def initialize(self):
         km = self.application.kernel_manager
         self.max_msg_size = km.max_msg_size
+    
+    def create_streams(self):
+        km = self.application.kernel_manager
         kernel_id = self.kernel_id
         try:
             self.shell_stream = km.create_shell_stream(kernel_id)
-        except web.HTTPError:
-            # WebSockets don't response to traditional error codes so we
-            # close the connection.
-            if not self.stream.closed():
-                self.stream.close()
+        except Exception:
+            logging.error("Couldn't create shell stream", exc_info=True)
             self.close()
         else:
-            self.shell_stream.on_recv(self._on_zmq_reply)
+            self.shell_stream.on_recv(lambda msg: self._on_zmq_reply(msg, 'shell'))
 
     def on_message(self, msg):
         if len(msg) < self.max_msg_size:
@@ -606,6 +601,20 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
         # Make sure the stream exists and is not already closed.
         if self.shell_stream is not None and not self.shell_stream.closed():
             self.shell_stream.close()
+
+class IOPubAndShellHandler(ShellHandler, IOPubHandler):
+    """single SockJS handler for IOPub + Shell zmq channels"""
+    def on_close(self):
+        ShellHandler.on_close(self)
+        IOPubHandler.on_close(self)
+    
+    def initialize(self):
+        ShellHandler.initialize(self)
+        IOPubHandler.initialize(self)
+    
+    def create_streams(self):
+        ShellHandler.create_streams(self)
+        IOPubHandler.create_streams(self)
 
 
 #-----------------------------------------------------------------------------
