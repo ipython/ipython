@@ -7,9 +7,6 @@ Authors:
 * Brian Granger
 * Fernando Perez
 * Min Ragan-Kelley
-
-Notes
------
 """
 
 #-----------------------------------------------------------------------------

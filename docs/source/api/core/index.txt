@@ -20,3 +20,4 @@ IPython.core
    displayhook.txt
    page.txt
    compilerop.txt
+   error.txt
