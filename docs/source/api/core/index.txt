@@ -5,6 +5,9 @@ IPython.core
 
 .. toctree::
    
+   interactiveshell.txt
+   alias.txt
    application.txt
    history.txt
+   magic.txt
    magics/index.txt

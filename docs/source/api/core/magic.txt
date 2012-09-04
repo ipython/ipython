@@ -1,0 +1,50 @@
+magic
+=====
+
+.. automodule:: IPython.core.magic
+
+.. currentmodule:: IPython.core.magic
+
+:class:`MagicAlias`
+~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: MagicAlias
+  :members:
+  :undoc-members:
+
+:class:`MagicsManager`
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: MagicsManager
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`Magics`
+~~~~~~~~~~~~~~~
+
+.. autoclass:: Magics
+  :members:
+  :undoc-members:
+  
+:func:`magics_class` decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.magic.magics_class
+
+:func:`needs_local_scope` decorator
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.magic.needs_local_scope
+
+Other functions
+~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.magic.compress_dhist
+
+.. autofunction:: IPython.core.magic.on_off
+
+.. autofunction:: IPython.core.magic.record_magic
+
+.. autofunction:: IPython.core.magic.validate_type

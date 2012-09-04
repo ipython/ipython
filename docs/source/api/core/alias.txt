@@ -1,0 +1,38 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+alias
+=====
+
+.. automodule:: IPython.core.alias
+
+.. currentmodule:: IPython.core.alias
+
+:class:`AliasManager`
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AliasManager
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`AliasError`
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AliasError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`InvalidAliasError`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: InvalidAliasError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:func:`default_aliases`
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.alias.default_aliases
+
