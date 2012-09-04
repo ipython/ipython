@@ -1,0 +1,15 @@
+displayhook
+===========
+
+.. automodule:: IPython.core.displayhook
+
+.. currentmodule:: IPython.core.displayhook
+
+:class:`DisplayHook`
+--------------------
+
+
+.. autoclass:: DisplayHook
+  :members:
+  :undoc-members:
+  :show-inheritance:
