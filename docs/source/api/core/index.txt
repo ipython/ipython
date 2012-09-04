@@ -8,7 +8,10 @@ IPython.core
    interactiveshell.txt
    alias.txt
    application.txt
+   shellapp.txt
+   profileapp.txt
    history.txt
    magic.txt
    magics/index.txt
    prompts.txt
+   extensions.txt

@@ -1,0 +1,14 @@
+extensions
+==========
+
+.. automodule:: IPython.core.extensions
+
+.. currentmodule:: IPython.core.extensions
+
+:class:`ExtensionManager`
+-------------------------
+
+.. autoclass:: ExtensionManager
+  :members:
+  :undoc-members:
+  :show-inheritance:

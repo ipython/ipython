@@ -1,0 +1,14 @@
+shellapp
+========
+
+.. automodule:: IPython.core.shellapp
+
+.. currentmodule:: IPython.core.shellapp
+
+:class:`InteractiveShellApp`
+----------------------------
+
+.. autoclass:: InteractiveShellApp
+  :members:
+  :undoc-members:
+  :show-inheritance:
