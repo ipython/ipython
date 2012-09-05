@@ -174,7 +174,7 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(400, u'Missing notebook name')
 
         if notebook_id is None:
-            notebook_id = self.new_notebook_id(new_name)
+            raise web.HTTPError(400, u'Unexpected Error while saving Notebook')
 
         if notebook_id not in self.mapping:
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
@@ -184,7 +184,6 @@ class FileNotebookManager(NotebookManager):
                 self.append_notebook_with_lastmodified(self.rev_mapping[new_name])
                 # add copy of the previous one as appended with timestamp
                  
-        
         old_name = self.mapping[notebook_id]
         path = self.get_path_by_name(new_name)
         try:
