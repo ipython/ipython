@@ -15,16 +15,17 @@ from __future__ import print_function
 # Standard library imports
 import __builtin__
 import logging
+import sys
 
 # Local imports
 from IPython.config.configurable import Configurable
 from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
-from IPython.core.interativeshell import InteractiveShell, InteractiveShellABC
+from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils import py3compat
 from IPython.utils.text import safe_unicode
-from IPython.utils.traitlets import Any, Dict, Instance, Unicode
+from IPython.utils.traitlets import Any, Dict, Instance, List, Unicode
 from kernelmagics import KernelMagics
 from session import BaseSession
 
@@ -55,7 +56,7 @@ class EmbeddedKernel(Configurable):
     # The list of frontends "connected" to this kernel. These frontends receive
     # all messages on the pub/sub channel.
     frontends = List(
-        Instance('IPython.embedded.kernel_manager.EmbeddedKernelManager')
+        Instance('IPython.embedded.kernel_manager.EmbeddedKernelManager'))
     
     user_module = Any()
     def _user_module_changed(self, name, old, new):
@@ -219,7 +220,7 @@ class EmbeddedKernel(Configurable):
     # Protected interface
     #---------------------------------------------------------------------------
 
-     def _no_raw_input(self):
+    def _no_raw_input(self):
         """ Raise StdinNotImplentedError if active frontend doesn't support
         stdin.
         """

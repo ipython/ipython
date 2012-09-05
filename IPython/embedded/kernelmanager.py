@@ -13,6 +13,7 @@
 
 # Local imports.
 from IPython.config.loader import Config
+from IPython.embedded.ipkernel import EmbeddedKernel
 from IPython.embedded.session import BaseSession
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type
 
@@ -30,8 +31,15 @@ class EmbeddedChannel(object):
         self._is_alive = False
 
     #--------------------------------------------------------------------------
-    # ShellChannel interface
+    # Channel interface
     #--------------------------------------------------------------------------
+
+    def call_handlers(self, msg):
+        """ This method is called in the main thread when a message arrives.
+
+        Subclasses should override this method to handle incoming messages.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def is_alive(self):
         return self._is_alive
@@ -41,6 +49,19 @@ class EmbeddedChannel(object):
 
     def stop(self):
         self._is_alive = False
+
+    #--------------------------------------------------------------------------
+    # EmbeddedChannel interface
+    #--------------------------------------------------------------------------
+
+    def call_handlers_later(self, *args, **kwds):
+        """ Call the message handlers later.
+
+        The default implementation just calls the handlers mmediately, but this
+        method exists so that GUI toolkits can defer calling the handlers until
+        after the event loop has run, as expected by GUI frontends.
+        """
+        self.call_handlers(*args, **kwds)
 
 
 class ShellEmbeddedChannel(EmbeddedChannel):
@@ -53,13 +74,6 @@ class ShellEmbeddedChannel(EmbeddedChannel):
     #--------------------------------------------------------------------------
     # ShellChannel interface
     #--------------------------------------------------------------------------
-
-    def call_handlers(self, msg):
-        """ This method is called in the main thread when a message arrives.
-
-        Subclasses should override this method to handle incoming messages.
-        """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def execute(self, code, silent=False, store_history=True,
                 user_variables=[], user_expressions={}, allow_stdin=None):
@@ -200,20 +214,13 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         Returns a message ID for the request.
         """
         reply_msg = self.manager.request(request_type, *args, **kwds)
-        self.call_handlers(reply_msg)
+        self.call_handlers_later(reply_msg)
         return reply_msg['parent_header']['msg_id']
 
 
 class SubEmbeddedChannel(EmbeddedChannel):
-    """The SUB channel which listens for messages that the kernel publishes.
+    """The SUB channel which listens for messages that the kernel publishes. 
     """
-
-    def call_handlers(self, msg):
-        """This method is called in the main thread when a message arrives.
-
-        Subclasses should override this method to handle incoming messages.
-        """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     def flush(self, timeout=1.0):
         """ Immediately processes all pending messages on the SUB channel.
@@ -224,17 +231,11 @@ class SubEmbeddedChannel(EmbeddedChannel):
 
 
 class StdInEmbeddedChannel(EmbeddedChannel):
-    """A reply channel to handle raw_input requests that the kernel makes."""
-
-    def call_handlers(self, msg):
-        """This method is called in the main thread when a message arrives.
-
-        Subclasses should override this method to handle incoming messages.
-        """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
+    """ A reply channel to handle raw_input requests that the kernel makes. """
 
     def input(self, string):
-        """ Send a string of raw input to the kernel. """
+        """ Send a string of raw input to the kernel. 
+        """
         kernel = self.manager.kernel
         if kernel is None:
             raise RuntimeError('Cannot send input reply. No kernel exists.')
@@ -242,13 +243,12 @@ class StdInEmbeddedChannel(EmbeddedChannel):
 
 
 class HBEmbeddedChannel(EmbeddedChannel):
-    """ A dummy heartbeat channel.
-    """
+    """ A dummy heartbeat channel. """
 
     time_to_dead = 3.0
 
     def __init__(self, *args, **kwds):
-        super(HBSocketChannel, self).__init__(*args, **kwds)
+        super(HBEmbeddedChannel, self).__init__(*args, **kwds)
         self._pause = True
 
     def pause(self):
