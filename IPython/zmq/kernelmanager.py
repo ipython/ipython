@@ -654,6 +654,8 @@ class KernelManager(HasTraits):
 
     # The Session to use for communication with the kernel.
     session = Instance(Session)
+    def _session_default(self):
+        return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance(Popen)
@@ -682,16 +684,10 @@ class KernelManager(HasTraits):
     _stdin_channel = Any
     _hb_channel = Any
     _connection_file_written=Bool(False)
-
-    def __init__(self, **kwargs):
-        super(KernelManager, self).__init__(**kwargs)
-        if self.session is None:
-            self.session = Session(config=self.config)
     
     def __del__(self):
         self.cleanup_connection_file()
     
-
     #--------------------------------------------------------------------------
     # Channel management methods:
     #--------------------------------------------------------------------------

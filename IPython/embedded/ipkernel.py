@@ -25,7 +25,8 @@ from IPython.utils.jsonutil import json_clean
 from IPython.utils import py3compat
 from IPython.utils.text import safe_unicode
 from IPython.utils.traitlets import Any, Dict, Instance, Unicode
-from IPython.zmq.kernelmagics import KernelMagics
+from kernelmagics import KernelMagics
+from session import BaseSession
 
 #-----------------------------------------------------------------------------
 # Embedded kernel class
@@ -46,6 +47,10 @@ class EmbeddedKernel(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     profile_dir = Instance('IPython.core.profiledir.ProfileDir')
     log = Instance(logging.Logger)
+
+    session = Instance(BaseSession)
+    def _session_default(self):
+        return BaseSession(config=self.config)
 
     # The list of frontends "connected" to this kernel. These frontends receive
     # all messages on the pub/sub channel.
@@ -74,27 +79,28 @@ class EmbeddedKernel(Configurable):
             user_ns     = self.user_ns)
 
     #---------------------------------------------------------------------------
-    # KernelManager request methods
+    # EmbeddedKernel request methods
     #---------------------------------------------------------------------------
 
     # Each method has the same signature as the corresponding KernelManager
-    # method, with two exceptions: 1) the first argument ('parent') is the
-    # frontend making the request, and 2) the return value is a reply content
-    # dict. This content conforms to the IPython messaging spec.
+    # method, with two exceptions: 1) the first argument ('sender') is the
+    # frontend making the request, and 2) the return value is a reply message.
+    # The message conforms to the IPython messaging spec, but no parent header
+    # is included.
 
     # FIXME: The execute() method duplicates a considerable amount of code from
     # IPython.zmq.ipkernel.Kernel. Is a refactor worthwhile?
 
-    def execute(self, parent, code, silent=False, store_history=True,
-                user_variables=[], user_expressions={}, allow_stdin=True):
-        """ Execute code in the kernel.
-        """
+    def execute_request(self, sender, code, silent=False, store_history=True,
+                        user_variables=[], user_expressions={},
+                        allow_stdin=True):
+        """ Execute code in the kernel. """
         shell = self.shell
 
         # Replace raw_input. Note that is not sufficient to replace
         # raw_input in the user namespace.
         if allow_stdin:
-            raw_input = lambda prompt='': self._raw_input(prompt, parent)
+            raw_input = lambda prompt='': self._raw_input(prompt, sender)
         else:
             raw_input = lambda prompt='' : self._no_raw_input()
 
@@ -151,12 +157,10 @@ class EmbeddedKernel(Configurable):
         sys.stdout.flush()
         sys.stderr.flush()
 
-        # Clean the reply content.
-        return json_clean(reply_content)
+        return self.session.msg('execute_reply', json_clean(reply_content))
 
-    def complete(self, parent, text, line, cursor_pos, block=None):
-        """ Tab complete text in the kernel's namespace.
-        """
+    def complete_request(self, sender, text, line, cursor_pos, block=None):
+        """ Tab complete text in the kernel's namespace. """
         try:
             cursor_pos = int(cursor_pos)
         except:
@@ -168,20 +172,20 @@ class EmbeddedKernel(Configurable):
                 cursor_pos = len(line)
 
         matched_text, matches = self.shell.complete(text, line, cursor_pos)
-        return json_clean(dict(matches = matches,
-                               matched_text = matched_text,
-                               status = 'ok'))
+        content = dict(matches = matches,
+                       matched_text = matched_text,
+                       status = 'ok')
 
-    def object_info(self, parent, oname, detail_level=0):
-        """ Get metadata information about an object.
-        """
-        object_info = self.shell.object_inspect(oname, detail_level)
-        return json_clean(object_info)
+        return self.session.msg('complete_reply', json_clean(content))
 
-    def history(self, parent, raw=True, output=False, hist_access_type='range',
-                **kw):
-        """ Get entries from the history list.
-        """
+    def object_info_request(self, sender, oname, detail_level=0):
+        """ Get metadata information about an object. """
+        content = self.shell.object_inspect(oname, detail_level)
+        return self.session.msg('object_info_reply', json_clean(content))
+
+    def history_request(self, sender, raw=True, output=False, 
+                        hist_access_type='range', **kw):
+        """ Get entries from the history list. """
         if hist_access_type == 'tail':
             n = kw['n']
             history = self.shell.history_manager.get_tail(
@@ -200,7 +204,16 @@ class EmbeddedKernel(Configurable):
         else:
             history = []
 
-        return json_clean(dict(history=history))
+        content = dict(history=history)
+        return self.session.msg('history_reply', json_clean(content))
+
+    #---------------------------------------------------------------------------
+    # EmbeddedKernel reply methods
+    #---------------------------------------------------------------------------
+
+    def input_reply(self, string):
+        """ Submit raw input to the kernel. """
+        raise NotImplementedError
 
     #---------------------------------------------------------------------------
     # Protected interface
@@ -213,7 +226,7 @@ class EmbeddedKernel(Configurable):
         raise StdinNotImplementedError("raw_input was called, but this "
                                        "frontend does not support stdin.") 
         
-    def _raw_input(self, prompt, parent):
+    def _raw_input(self, prompt, sender):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
