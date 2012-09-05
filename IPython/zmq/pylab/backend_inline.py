@@ -208,5 +208,8 @@ def flush_figures():
         show._draw_called = False
 
 
+# Changes to matplotlib in version 1.2 requires a mpl backend to supply a default
+# figurecanvas. This is set here to a Agg canvas
+# See https://github.com/matplotlib/matplotlib/pull/1125
 FigureCanvas = FigureCanvasAgg
 
