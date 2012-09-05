@@ -10,7 +10,7 @@ import sys
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_agg import new_figure_manager
+from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports.
@@ -206,4 +206,7 @@ def flush_figures():
         # clear flags for next round
         show._to_draw = []
         show._draw_called = False
+
+
+FigureCanvas = FigureCanvasAgg
 
