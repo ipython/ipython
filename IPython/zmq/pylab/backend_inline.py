@@ -10,7 +10,7 @@ import sys
 
 # Third-party imports
 import matplotlib
-from matplotlib.backends.backend_agg import new_figure_manager
+from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg
 from matplotlib._pylab_helpers import Gcf
 
 # Local imports.
@@ -222,3 +222,4 @@ def send_figure(fig):
         {mime : data}
     )
 
+FigureCanvas = FigureCanvasAgg
