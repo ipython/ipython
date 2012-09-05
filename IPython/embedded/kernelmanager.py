@@ -213,7 +213,11 @@ class ShellEmbeddedChannel(EmbeddedChannel):
 
         Returns a message ID for the request.
         """
-        reply_msg = self.manager.request(request_type, *args, **kwds)
+        kernel = self.manager.kernel
+        if kernel is None:
+            raise RuntimeError('Cannot send request. No kernel exists.')
+
+        reply_msg = kernel.request(self.manager, request_type, *args, **kwds)
         self.call_handlers_later(reply_msg)
         return reply_msg['parent_header']['msg_id']
 
@@ -417,18 +421,3 @@ class EmbeddedKernelManager(HasTraits):
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self)
         return self._hb_channel
-
-    #--------------------------------------------------------------------------
-    # EmmbededKernelManager-specific methods:
-    #--------------------------------------------------------------------------
-    
-    def request(self, request_type, *args, **kwds):
-        """ Send a request to the kernel and return a reply message.
-        """
-        kernel = self.kernel
-        if kernel is None:
-            raise RuntimeError('Cannot send request. No kernel exists.')
-
-        msg = getattr(kernel, request_type)(self, *args, **kwds)
-        msg['parent_header'] = self.session.msg_header(request_type)
-        return msg

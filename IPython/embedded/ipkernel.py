@@ -14,8 +14,11 @@ from __future__ import print_function
 
 # Standard library imports
 import __builtin__
+from contextlib import contextmanager
+from io import IOBase
 import logging
 import sys
+import traceback
 
 # Local imports
 from IPython.config.configurable import Configurable
@@ -30,6 +33,13 @@ from kernelmagics import KernelMagics
 from session import BaseSession
 
 #-----------------------------------------------------------------------------
+# Constants and trait definitions
+#-----------------------------------------------------------------------------
+
+FrontendTrait = Instance(
+    'IPython.embedded.kernelmanager.EmbeddedKernelManager')
+
+#-----------------------------------------------------------------------------
 # Embedded kernel class
 #-----------------------------------------------------------------------------
 
@@ -41,80 +51,69 @@ class EmbeddedKernel(Configurable):
     EmbeddedKernelManagers).
     """
 
-    #---------------------------------------------------------------------------
-    # EmbeddedKernel interface
-    #---------------------------------------------------------------------------
+    # The list of frontends "connected" to this kernel. These frontends receive
+    # all messages on the pub/sub channel.
+    frontends = List(FrontendTrait)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    session = Instance(BaseSession)
     profile_dir = Instance('IPython.core.profiledir.ProfileDir')
     log = Instance(logging.Logger)
 
-    session = Instance(BaseSession)
-    def _session_default(self):
-        return BaseSession(config=self.config)
-
-    # The list of frontends "connected" to this kernel. These frontends receive
-    # all messages on the pub/sub channel.
-    frontends = List(
-        Instance('IPython.embedded.kernel_manager.EmbeddedKernelManager'))
-    
     user_module = Any()
-    def _user_module_changed(self, name, old, new):
-        if self.shell is not None:
-            self.shell.user_module = new
-    
     user_ns = Dict(default_value=None)
-    def _user_ns_changed(self, name, old, new):
-        if self.shell is not None:
-            self.shell.user_ns = new
-            self.shell.init_user_ns()
 
-    def __init__(self, **kwargs):
-        super(EmbeddedKernel, self).__init__(**kwargs)
+    stdout = Any()
+    stderr = Any()
+    display_hook = Any()
 
-        # Initialize the InteractiveShell subclass
-        self.shell = EmbeddedInteractiveShell.instance(
-            config      = self.config,
-            profile_dir = self.profile_dir,
-            user_module = self.user_module,
-            user_ns     = self.user_ns)
+    # Protected traits.
+    _parent_frontend = FrontendTrait
+    _parent_header = Dict()
+
+    #---------------------------------------------------------------------------
+    # EmbeddedKernel public interface
+    #---------------------------------------------------------------------------
+
+    def request(self, frontend, request_type, *args, **kwds):
+        """ Make a request from a frontend.
+        """
+        assert frontend in self.frontends
+        request_method = getattr(self, request_type)
+
+        self._parent_frontend = frontend
+        self._parent_header = frontend.session.msg_header(request_type)
+        try:
+            return request_method(*args, **kwds)
+        finally:
+            self._parent_frontend = self._parent_header = None
 
     #---------------------------------------------------------------------------
     # EmbeddedKernel request methods
     #---------------------------------------------------------------------------
 
     # Each method has the same signature as the corresponding KernelManager
-    # method, with two exceptions: 1) the first argument ('sender') is the
-    # frontend making the request, and 2) the return value is a reply message.
-    # The message conforms to the IPython messaging spec, but no parent header
-    # is included.
+    # method, except that the return value is a reply message. The message
+    # conforms to the IPython messaging spec.
+
+    # These methods should *not* be called directly, but rather accessed through
+    # the generic ``request()`` method.
 
     # FIXME: The execute() method duplicates a considerable amount of code from
     # IPython.zmq.ipkernel.Kernel. Is a refactor worthwhile?
 
-    def execute_request(self, sender, code, silent=False, store_history=True,
+    def execute_request(self, code, silent=False, store_history=True,
                         user_variables=[], user_expressions={},
                         allow_stdin=True):
         """ Execute code in the kernel. """
         shell = self.shell
 
-        # Replace raw_input. Note that is not sufficient to replace
-        # raw_input in the user namespace.
-        if allow_stdin:
-            raw_input = lambda prompt='': self._raw_input(prompt, sender)
-        else:
-            raw_input = lambda prompt='' : self._no_raw_input()
-
-        if py3compat.PY3:
-            __builtin__.input = raw_input
-        else:
-            __builtin__.raw_input = raw_input
-
         # Execute the code.
         reply_content = {}
         try:
-            # FIXME: the shell calls the exception handler itself.
-            shell.run_cell(code, store_history=store_history, silent=silent)
+            with self._redirected_io(allow_stdin=allow_stdin):
+                # FIXME: the shell calls the exception handler itself.
+                shell.run_cell(code, store_history=store_history, silent=silent)
         except:
             status = u'error'
             # FIXME: this code right now isn't being used yet by default,
@@ -128,10 +127,17 @@ class EmbeddedKernel(Configurable):
             reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
             status = u'ok'
+        print(status)
         reply_content[u'status'] = status
 
         # Return the execution counter so clients can display prompts.
         reply_content['execution_count'] = shell.execution_count - 1
+
+        # FIXME - fish exception info out of shell, possibly left there by
+        # runlines.  We'll need to clean up this logic later.
+        if shell._reply_content is not None:
+            reply_content.update(shell._reply_content)
+            shell._reply_content = None
 
         # At this point, we can tell whether the main code execution succeeded
         # or not.  If it did, we proceed to evaluate user_variables/expressions
@@ -154,13 +160,10 @@ class EmbeddedKernel(Configurable):
         # it to sit in memory until the next execute_request comes in.
         shell.payload_manager.clear_payload()
 
-        # Flush output before sending the reply.
-        sys.stdout.flush()
-        sys.stderr.flush()
+        return self.session.msg('execute_reply', json_clean(reply_content),
+                                parent=self._parent_header)
 
-        return self.session.msg('execute_reply', json_clean(reply_content))
-
-    def complete_request(self, sender, text, line, cursor_pos, block=None):
+    def complete_request(self, text, line, cursor_pos, block=None):
         """ Tab complete text in the kernel's namespace. """
         try:
             cursor_pos = int(cursor_pos)
@@ -177,14 +180,16 @@ class EmbeddedKernel(Configurable):
                        matched_text = matched_text,
                        status = 'ok')
 
-        return self.session.msg('complete_reply', json_clean(content))
+        return self.session.msg('complete_reply', json_clean(content),
+                                parent=self._parent_header)
 
-    def object_info_request(self, sender, oname, detail_level=0):
+    def object_info_request(self, oname, detail_level=0):
         """ Get metadata information about an object. """
         content = self.shell.object_inspect(oname, detail_level)
-        return self.session.msg('object_info_reply', json_clean(content))
+        return self.session.msg('object_info_reply', json_clean(content),
+                                parent=self._parent_header)
 
-    def history_request(self, sender, raw=True, output=False, 
+    def history_request(self, raw=True, output=False, 
                         hist_access_type='range', **kw):
         """ Get entries from the history list. """
         if hist_access_type == 'tail':
@@ -206,7 +211,8 @@ class EmbeddedKernel(Configurable):
             history = []
 
         content = dict(history=history)
-        return self.session.msg('history_reply', json_clean(content))
+        return self.session.msg('history_reply', json_clean(content),
+                                parent=self._parent_header)
 
     #---------------------------------------------------------------------------
     # EmbeddedKernel reply methods
@@ -219,15 +225,8 @@ class EmbeddedKernel(Configurable):
     #---------------------------------------------------------------------------
     # Protected interface
     #---------------------------------------------------------------------------
-
-    def _no_raw_input(self):
-        """ Raise StdinNotImplentedError if active frontend doesn't support
-        stdin.
-        """
-        raise StdinNotImplementedError("raw_input was called, but this "
-                                       "frontend does not support stdin.") 
         
-    def _raw_input(self, prompt, sender):
+    def _raw_input(self, prompt):
         # Flush output before making the request.
         sys.stderr.flush()
         sys.stdout.flush()
@@ -236,11 +235,87 @@ class EmbeddedKernel(Configurable):
         content = json_clean(dict(prompt=prompt))
         raise NotImplementedError
 
+    def _no_raw_input(self):
+        """ Raise StdinNotImplentedError if active frontend doesn't support
+        stdin.
+        """
+        raise StdinNotImplementedError("raw_input was called, but this "
+                                       "frontend does not support stdin.")
+
+    @contextmanager
+    def _redirected_io(self, allow_stdin=True):
+        # Replace raw_input. Note that is not sufficient to replace
+        # raw_input in the user namespace.
+        if allow_stdin:
+            raw_input = lambda prompt='': self._raw_input(prompt)
+        else:
+            raw_input = lambda prompt='' : self._no_raw_input()
+        if py3compat.PY3:
+            sys_raw_input = __builtin__.input
+            __builtin__.input = raw_input
+        else:
+            sys_raw_input = __builtin__.raw_input
+            __builtin__.raw_input = raw_input
+
+        # Replace stdout/stderr.
+        sys_stdout, sys_stderr = sys.stdout, sys.stderr
+        sys.stdout, sys.stderr = self.stdout, self.stderr
+
+        yield
+
+        # Flush output before restoring old streams.
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+        # Restore stdout/stderr.
+        sys.stdout, sys.stderr = sys_stdout, sys_stderr 
+        
+        # Restore raw_input.
+        if py3compat.PY3:
+            __builtin__.input = sys_raw_input
+        else:
+            __builtin__.raw_input = sys_raw_input
+
+    #------ Trait initializers -----------------------------------------------
+
+    def _session_default(self):
+        return BaseSession(config=self.config)
+
+    def _shell_default(self):
+        return EmbeddedInteractiveShell.instance(
+            kernel      = self,
+            config      = self.config,
+            profile_dir = self.profile_dir,
+            user_module = self.user_module,
+            user_ns     = self.user_ns)
+
+    def _stdout_default(self):
+        return EmbeddedOutStream(self, 'stdout')
+
+    def _stderr_default(self):
+        return EmbeddedOutStream(self, 'stderr')
+
+    #------ Trait change handlers --------------------------------------------
+
+    def _user_module_changed(self, name, old, new):
+        if self.shell is not None:
+            self.shell.user_module = new
+
+    def _user_ns_changed(self, name, old, new):
+        if self.shell is not None:
+            self.shell.user_ns = new
+            self.shell.init_user_ns()
+
 #-----------------------------------------------------------------------------
 # Embedded interactive shell class
 #-----------------------------------------------------------------------------
 
 class EmbeddedInteractiveShell(InteractiveShell):
+
+    def __init__(self, kernel, *args, **kwds):
+        super(EmbeddedInteractiveShell, self).__init__(*args, **kwds)
+        self.kernel = kernel
+        self._reply_content = None
     
     #---------------------------------------------------------------------------
     # InteractiveShell interface
@@ -250,6 +325,10 @@ class EmbeddedInteractiveShell(InteractiveShell):
         super(EmbeddedInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
         self.magics_manager.register_alias('ed', 'edit')
+
+    def init_sys_modules(self):
+        # Don't take over the runtime environment.
+        pass
     
     def _showtraceback(self, etype, evalue, stb):
         """ Actually show a traceback.
@@ -260,14 +339,11 @@ class EmbeddedInteractiveShell(InteractiveShell):
             u'evalue' : safe_unicode(evalue)
         }
 
-        dh = self.displayhook
-        # Send exception info over pub socket for other clients than the caller
-        # to pick up
-        topic = None
-        if dh.topic:
-            topic = dh.topic.replace(b'pyout', b'pyerr')
-        
-        exc_msg = dh.session.send(dh.pub_socket, u'pyerr', json_clean(exc_content), dh.parent_header, ident=topic)
+        kernel = self.kernel
+        exc_msg = kernel.session.msg('pyerr', json_clean(exc_content),
+                                     parent=kernel._parent_header)
+        for frontend in kernel.frontends:
+            frontend.sub_channel.call_handlers(exc_msg)
 
         # FIXME - Hack: store exception info in shell object.  Right now, the
         # caller is reading this info after the fact, we need to fix this logic
@@ -281,3 +357,24 @@ class EmbeddedInteractiveShell(InteractiveShell):
         return exc_content
 
 InteractiveShellABC.register(EmbeddedInteractiveShell)
+
+#-----------------------------------------------------------------------------
+# IO streams and display hook
+#-----------------------------------------------------------------------------
+
+class EmbeddedOutStream(IOBase):
+
+    def __init__(self, kernel, name):
+        super(EmbeddedOutStream, self).__init__()
+        self.kernel = kernel
+        self.name = name
+
+    def writable(self):
+        return True
+
+    def write(self, string):
+        content = dict(name=self.name, data=string)
+        parent = self.kernel._parent_header
+        msg = self.kernel.session.msg('stream', content, parent=parent)
+        for frontend in self.kernel.frontends:
+            frontend.sub_channel.call_handlers(msg)
