@@ -724,7 +724,7 @@ def extract_hist_ranges(ranges_str):
     Example::
     
         >>> list(extract_hist_ranges("~8/5-~7/4 2"))
-        [(-8, 5, None), (-7, 1, 4), (0, 2, 3)]
+        [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     """
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)
