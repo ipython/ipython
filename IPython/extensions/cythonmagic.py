@@ -125,6 +125,11 @@ class CythonMagics(Magics):
              "multiple times)."
     )
     @magic_arguments.argument(
+        '-L', '--libpath', action='append', default=[],
+        help="Add a path to the list of libary directories (can be specified "
+             "multiple times)."
+    )
+    @magic_arguments.argument(
         '-I', '--include', action='append', default=[],
         help="Add a path to the list of include directories (can be specified "
              "multiple times)."
@@ -195,6 +200,7 @@ class CythonMagics(Magics):
                 name = module_name,
                 sources = [pyx_file],
                 include_dirs = c_include_dirs,
+                library_dirs = args.libpath,
                 extra_compile_args = args.compile_args,
                 extra_link_args = args.link_args,
                 libraries = args.lib,
