@@ -71,8 +71,8 @@ else:
 @decorator
 def catch_corrupt_db(f, self, *a, **kw):
     """A decorator which wraps HistoryAccessor method calls to catch errors from
-    a corrupt SQLite database, move the old database out of the way, create a
-    new one, and optionally retry the function.
+    a corrupt SQLite database, move the old database out of the way, and create
+    a new one.
     """
     try:
         return f(self, *a, **kw)
