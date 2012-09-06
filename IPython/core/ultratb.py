@@ -69,7 +69,7 @@ possible inclusion in future releases.
 #  the file COPYING, distributed as part of this software.
 #*****************************************************************************
 
-from __future__ import with_statement
+from __future__ import unicode_literals
 
 import inspect
 import keyword
@@ -99,9 +99,12 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import path as util_path
 from IPython.utils import py3compat
 from IPython.utils import pyfile
+from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
+from IPython.utils.openpy import read_py_file
 from IPython.utils.warn import info, error
 
 # Globals
@@ -229,7 +232,6 @@ def fix_frame_records_filenames(records):
 
 
 def _fixed_getinnerframes(etb, context=1,tb_offset=0):
-    import linecache
     LNUM_POS, LINES_POS, INDEX_POS =  2, 4, 5
 
     records  = fix_frame_records_filenames(inspect.getinnerframes(etb, context))
@@ -251,7 +253,7 @@ def _fixed_getinnerframes(etb, context=1,tb_offset=0):
         maybeStart = lnum-1 - context//2
         start =  max(maybeStart, 0)
         end   = start + context
-        lines = linecache.getlines(file)[start:end]
+        lines = ulinecache.getlines(file)[start:end]
         buf = list(records[i])
         buf[LNUM_POS] = lnum
         buf[INDEX_POS] = lnum - 1 - start
@@ -282,12 +284,7 @@ def _format_traceback_lines(lnum, index, lines, Colors, lvals=None,scheme=None):
     _line_format = _parser.format2
 
     for line in lines:
-        # FIXME: we need to ensure the source is a pure string at this point,
-        # else the coloring code makes a  royal mess.  This is in need of a
-        # serious refactoring, so that all of the ultratb and PyColorize code
-        # is unicode-safe.  So for now this is rather an ugly hack, but
-        # necessary to at least have readable tracebacks. Improvements welcome!
-        line = py3compat.cast_bytes_py2(line, 'utf-8')
+        line = py3compat.cast_unicode(line)
 
         new_line, err = _line_format(line, 'str', scheme)
         if not err: line = new_line
@@ -547,14 +544,13 @@ class ListTB(TBTools):
 
         Also lifted nearly verbatim from traceback.py
         """
-
         have_filedata = False
         Colors = self.Colors
         list = []
         stype = Colors.excName + etype.__name__ + Colors.Normal
         if value is None:
             # Not sure if this can still happen in Python 2.6 and above
-            list.append( str(stype) + '\n')
+            list.append( py3compat.cast_unicode(stype) + '\n')
         else:
             if etype is SyntaxError:
                 have_filedata = True
@@ -562,18 +558,22 @@ class ListTB(TBTools):
                 if not value.filename: value.filename = "<string>"
                 list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
                         (Colors.normalEm,
-                         Colors.filenameEm, value.filename, Colors.normalEm,
+                         Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
                          Colors.linenoEm, value.lineno, Colors.Normal  ))
-                if value.text is not None:
+                textline = ulinecache.getline(value.filename, value.lineno)
+                if textline == '':
+                    textline = py3compat.cast_unicode(value.text, "utf-8")
+
+                if textline is not None:
                     i = 0
-                    while i < len(value.text) and value.text[i].isspace():
+                    while i < len(textline) and textline[i].isspace():
                         i += 1
                     list.append('%s    %s%s\n' % (Colors.line,
-                                                  value.text.strip(),
+                                                  textline.strip(),
                                                   Colors.Normal))
                     if value.offset is not None:
                         s = '    '
-                        for c in value.text[i:value.offset-1]:
+                        for c in textline[i:value.offset-1]:
                             if c.isspace():
                                 s += c
                             else:
@@ -779,10 +779,9 @@ class VerboseTB(TBTools):
         abspath = os.path.abspath
         for frame, file, lnum, func, lines, index in records:
             #print '*** record:',file,lnum,func,lines,index  # dbg
-
             if not file:
                 file = '?'
-            elif not(file.startswith("<") and file.endswith(">")):
+            elif not(file.startswith(str("<")) and file.endswith(str(">"))):
                 # Guess that filenames like <string> aren't real filenames, so
                 # don't call abspath on them.                    
                 try:
@@ -791,7 +790,7 @@ class VerboseTB(TBTools):
                     # Not sure if this can still happen: abspath now works with
                     # file names like <string>
                     pass
-
+            file = py3compat.cast_unicode(file, util_path.fs_encoding)
             link = tpl_link % file
             args, varargs, varkw, locals = inspect.getargvalues(frame)
 
@@ -831,7 +830,7 @@ class VerboseTB(TBTools):
                 # Look up the corresponding source file.
                 file = pyfile.source_from_cache(file)
 
-            def linereader(file=file, lnum=[lnum], getline=linecache.getline):
+            def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
                 line = getline(file, lnum[0])
                 lnum[0] += 1
                 return line
@@ -926,7 +925,7 @@ class VerboseTB(TBTools):
             etype_str,evalue_str = map(str,(etype,evalue))
         # ... and format it
         exception = ['%s%s%s: %s' % (Colors.excName, etype_str,
-                                     ColorsNormal, evalue_str)]
+                                     ColorsNormal, py3compat.cast_unicode(evalue_str))]
         if (not py3compat.PY3) and type(evalue) is types.InstanceType:
             try:
                 names = [w for w in dir(evalue) if isinstance(w, basestring)]
@@ -938,7 +937,7 @@ class VerboseTB(TBTools):
                 exception.append(_m % (Colors.excName,ColorsNormal))
                 etype_str,evalue_str = map(str,sys.exc_info()[:2])
                 exception.append('%s%s%s: %s' % (Colors.excName,etype_str,
-                                     ColorsNormal, evalue_str))
+                                     ColorsNormal, py3compat.cast_unicode(evalue_str)))
                 names = []
             for name in names:
                 value = text_repr(getattr(evalue, name))

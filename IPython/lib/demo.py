@@ -1,3 +1,6 @@
+from __future__ import unicode_literals
+
+
 """Module for interactive demos using IPython.
 
 This module implements a few classes for running Python scripts interactively
@@ -179,7 +182,7 @@ from IPython.utils.PyColorize import Parser
 from IPython.utils import io
 from IPython.utils.io import file_read, file_readlines
 from IPython.utils.text import marquee
-
+from IPython.utils import openpy
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
 
 class DemoError(Exception): pass
@@ -264,13 +267,13 @@ class Demo(object):
             self.fobj = self.src
         else:
              # Assume it's a string or something that can be converted to one
-            self.fobj = open(self.fname)
+            self.fobj = openpy.open(self.fname)
 
     def reload(self):
         """Reload source from disk and initialize state."""
         self.fload()
 
-        self.src     = self.fobj.read()
+        self.src     = "".join(openpy.strip_encoding_cookie(self.fobj))
         src_b        = [b.strip() for b in self.re_stop.split(self.src) if b]
         self._silent = [bool(self.re_silent.findall(b)) for b in src_b]
         self._auto   = [bool(self.re_auto.findall(b)) for b in src_b]
