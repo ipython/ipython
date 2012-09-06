@@ -62,6 +62,37 @@ def needs_sqlite(f, self, *a, **kw):
         return f(self, *a, **kw)
 
 
+if sqlite3 is not None:
+    DatabaseError = sqlite3.DatabaseError
+else:
+    class DatabaseError(Exception):
+        "Dummy exception when sqlite could not be imported. Should never occur."
+
+@decorator
+def catch_corrupt_db(f, self, *a, **kw):
+    """A decorator which wraps HistoryAccessor method calls to catch errors from
+    a corrupt SQLite database, move the old database out of the way, create a
+    new one, and optionally retry the function.
+    """
+    try:
+        return f(self, *a, **kw)
+    except DatabaseError:
+        if os.path.isfile(self.hist_file):
+            # Try to move the file out of the way
+            base,ext = os.path.splitext(self.hist_file)
+            newpath = base + '-corrupt' + ext
+            os.rename(self.hist_file, newpath)
+            self.init_db()
+            print("ERROR! History file wasn't a valid SQLite database.",
+            "It was moved to %s" % newpath, "and a new file created.")
+            return []
+        
+        else:
+            # The hist_file is probably :memory: or something else.
+            raise
+        
+
+
 class HistoryAccessor(Configurable):
     """Access the history database without adding to it.
     
@@ -143,25 +174,7 @@ class HistoryAccessor(Configurable):
             warn("IPython History requires SQLite, your history will not be saved\n")
             self.enabled = False
         
-        if sqlite3 is not None:
-            DatabaseError = sqlite3.DatabaseError
-        else:
-            DatabaseError = Exception
-        
-        try:
-            self.init_db()
-        except DatabaseError:
-            if os.path.isfile(self.hist_file):
-                # Try to move the file out of the way
-                base,ext = os.path.splitext(self.hist_file)
-                newpath = base + '-corrupt' + ext
-                os.rename(self.hist_file, newpath)
-                print("ERROR! History file wasn't a valid SQLite database.",
-                "It was moved to %s" % newpath, "and a new file created.")
-                self.init_db()
-            else:
-                # The hist_file is probably :memory: or something else.
-                raise
+        self.init_db()
     
     def _get_hist_file_name(self, profile='default'):
         """Find the history file for the given profile name.
@@ -176,6 +189,7 @@ class HistoryAccessor(Configurable):
         """
         return os.path.join(locate_profile(profile), 'history.sqlite')
     
+    @catch_corrupt_db
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
         if not self.enabled:
@@ -207,6 +221,7 @@ class HistoryAccessor(Configurable):
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
+    @catch_corrupt_db
     def _run_sql(self, sql, params, raw=True, output=False):
         """Prepares and runs an SQL query for the history database.
 
@@ -235,6 +250,7 @@ class HistoryAccessor(Configurable):
         return cur
 
     @needs_sqlite
+    @catch_corrupt_db
     def get_session_info(self, session=0):
         """get info about a session
 
