@@ -858,6 +858,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         return result
 
+    def _append_block(self, block_format=None, before_prompt=False):
+        """ Appends an new QTextBlock to the end of the console buffer.
+        """
+        self._append_custom(self._insert_block, block_format, before_prompt)
+
     def _append_html(self, html, before_prompt=False):
         """ Appends HTML at the end of the console buffer.
         """
@@ -1545,6 +1550,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._continuation_prompt = self._insert_html_fetching_plain_text(
                 cursor, self._continuation_prompt_html)
 
+    def _insert_block(self, cursor, block_format=None):
+        """ Inserts an empty QTextBlock using the specified cursor.
+        """
+        if block_format is None:
+            block_format = QtGui.QTextBlockFormat()
+        cursor.insertBlock(block_format)
+
     def _insert_html(self, cursor, html):
         """ Inserts HTML using the specified cursor in such a way that future
             formatting is unaffected.
@@ -1866,7 +1878,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.Left,
                                 QtGui.QTextCursor.KeepAnchor)
             if cursor.selection().toPlainText() != '\n':
-                self._append_plain_text('\n')
+                self._append_block()
 
         # Write the prompt.
         self._append_plain_text(self._prompt_sep)
