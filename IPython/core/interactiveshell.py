@@ -2908,7 +2908,7 @@ class InteractiveShell(SingletonConfigurable):
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
 
-    def find_user_code(self, target, raw=True, py_only=False):
+    def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True):
         """Get a code string from history, file, url, or a string or macro.
 
         This is mainly used by magic functions.
@@ -2945,7 +2945,7 @@ class InteractiveShell(SingletonConfigurable):
         utarget = unquote_filename(target)
         try:
             if utarget.startswith(('http://', 'https://')):
-                return openpy.read_py_url(utarget, skip_encoding_cookie=True)
+                return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
                 response = urllib.urlopen(target)
@@ -2961,7 +2961,7 @@ class InteractiveShell(SingletonConfigurable):
         for tgt in potential_target :
             if os.path.isfile(tgt):                        # Read file
                 try :
-                    return openpy.read_py_file(tgt, skip_encoding_cookie=True)
+                    return openpy.read_py_file(tgt, skip_encoding_cookie=skip_encoding_cookie)
                 except UnicodeDecodeError :
                     if not py_only :
                         with io_open(tgt,'r', encoding='latin1') as f :
