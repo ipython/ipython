@@ -381,7 +381,7 @@ class EmbeddedKernelManager(HasTraits):
     def kill_kernel(self):
         """ Kill the running kernel. 
         """
-        self.kernel.frontends.pop(self)
+        self.kernel.frontends.remove(self)
         self.kernel = None
 
     def interrupt_kernel(self):

@@ -26,6 +26,7 @@ from IPython.core.application import ProfileDir
 from IPython.core.displayhook import DisplayHook
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
+from IPython.core.payloadpage import install_payload_page
 from IPython.utils.jsonutil import encode_images, json_clean
 from IPython.utils import py3compat
 from IPython.utils.text import safe_unicode
@@ -336,6 +337,9 @@ class EmbeddedInteractiveShell(InteractiveShell):
     # InteractiveShell interface
     #---------------------------------------------------------------------------
 
+    def init_environment(self):
+        install_payload_page()
+
     def init_magics(self):
         super(EmbeddedInteractiveShell, self).init_magics()
         self.register_magics(KernelMagics)
@@ -344,6 +348,42 @@ class EmbeddedInteractiveShell(InteractiveShell):
     def init_sys_modules(self):
         # Don't take over the runtime environment.
         pass
+
+    #---------------------------------------------------------------------------
+    # ZMQInteractiveShell payloads
+    #---------------------------------------------------------------------------
+
+    # FIXME: We are basically a ZMQInteractiveShell look-a-like, but do we still
+    # want to use its payload IDs? This is a bit smelly.
+
+    def ask_exit(self):
+        """ Engage the exit actions.
+        """
+        self.exit_now = True
+        payload = dict(
+            source = 'IPython.zmq.zmqshell.ZMQInteractiveShell.ask_exit',
+            exit = True,
+            keepkernel = False)
+        self.payload_manager.write_payload(payload)
+
+    def auto_rewrite_input(self, cmd):
+        """ Called to show the auto-rewritten input for autocall and friends.
+        """
+        new = self.prompt_manager.render('rewrite') + cmd
+        payload = dict(
+            source = 'IPython.zmq.zmqshell.ZMQInteractiveShell.'
+                     'auto_rewrite_input',
+            transformed_input = new)
+        self.payload_manager.write_payload(payload)
+
+    def set_next_input(self, text):
+        """ Send the specified text to the frontend to be presented at the next
+        input cell.
+        """
+        payload = dict(
+            source = 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input',
+            text = text)
+        self.payload_manager.write_payload(payload)
 
     #---------------------------------------------------------------------------
     # Protected interface

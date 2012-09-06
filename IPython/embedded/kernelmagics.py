@@ -16,6 +16,7 @@ import os
 # Local imports
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.magics import MacroToEdit, CodeMagics
+from IPython.core import page
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
 

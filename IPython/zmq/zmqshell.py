@@ -25,7 +25,6 @@ from zmq.eventloop import ioloop
 
 # Our own
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.core import page
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displaypub import DisplayPublisher
 from IPython.core.error import UsageError
