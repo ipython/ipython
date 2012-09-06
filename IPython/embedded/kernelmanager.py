@@ -34,13 +34,6 @@ class EmbeddedChannel(object):
     # Channel interface
     #--------------------------------------------------------------------------
 
-    def call_handlers(self, msg):
-        """ This method is called in the main thread when a message arrives.
-
-        Subclasses should override this method to handle incoming messages.
-        """
-        raise NotImplementedError('call_handlers must be defined in a subclass.')
-
     def is_alive(self):
         return self._is_alive
 
@@ -50,6 +43,13 @@ class EmbeddedChannel(object):
     def stop(self):
         self._is_alive = False
 
+    def call_handlers(self, msg):
+        """ This method is called in the main thread when a message arrives.
+
+        Subclasses should override this method to handle incoming messages.
+        """
+        raise NotImplementedError('call_handlers must be defined in a subclass.')
+
     #--------------------------------------------------------------------------
     # EmbeddedChannel interface
     #--------------------------------------------------------------------------
@@ -57,11 +57,19 @@ class EmbeddedChannel(object):
     def call_handlers_later(self, *args, **kwds):
         """ Call the message handlers later.
 
-        The default implementation just calls the handlers mmediately, but this
+        The default implementation just calls the handlers immediately, but this
         method exists so that GUI toolkits can defer calling the handlers until
         after the event loop has run, as expected by GUI frontends.
         """
         self.call_handlers(*args, **kwds)
+
+    def process_events(self):
+        """ Process any pending GUI events.
+
+        This method will be never be called from a frontend without an event
+        loop (e.g., a terminal frontend).
+        """
+        raise NotImplementedError
 
 
 class ShellEmbeddedChannel(EmbeddedChannel):

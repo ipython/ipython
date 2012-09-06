@@ -23,9 +23,10 @@ import traceback
 # Local imports
 from IPython.config.configurable import Configurable
 from IPython.core.application import ProfileDir
+from IPython.core.displayhook import DisplayHook
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.interactiveshell import InteractiveShell, InteractiveShellABC
-from IPython.utils.jsonutil import json_clean
+from IPython.utils.jsonutil import encode_images, json_clean
 from IPython.utils import py3compat
 from IPython.utils.text import safe_unicode
 from IPython.utils.traitlets import Any, Dict, Instance, List, Unicode
@@ -65,15 +66,23 @@ class EmbeddedKernel(Configurable):
 
     stdout = Any()
     stderr = Any()
-    display_hook = Any()
 
     # Protected traits.
     _parent_frontend = FrontendTrait
     _parent_header = Dict()
+    _raw_input_string = Any()
 
     #---------------------------------------------------------------------------
     # EmbeddedKernel public interface
     #---------------------------------------------------------------------------
+
+    def __init__(self, **traits):
+        # When an InteractiveShell is instantiated, it binds the current values
+        # of sys.stdout and sys.stderr. Create the shell early and with the
+        # redirected stdout/stderr.
+        super(EmbeddedKernel, self).__init__(**traits)
+        with self._redirected_io():
+            self.shell
 
     def request(self, frontend, request_type, *args, **kwds):
         """ Make a request from a frontend.
@@ -127,7 +136,6 @@ class EmbeddedKernel(Configurable):
             reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
             status = u'ok'
-        print(status)
         reply_content[u'status'] = status
 
         # Return the execution counter so clients can display prompts.
@@ -159,6 +167,10 @@ class EmbeddedKernel(Configurable):
         # Be agressive about clearing the payload because we don't want
         # it to sit in memory until the next execute_request comes in.
         shell.payload_manager.clear_payload()
+
+        # Flush output before sending the reply.
+        sys.stdout.flush()
+        sys.stderr.flush()
 
         return self.session.msg('execute_reply', json_clean(reply_content),
                                 parent=self._parent_header)
@@ -220,7 +232,7 @@ class EmbeddedKernel(Configurable):
 
     def input_reply(self, string):
         """ Submit raw input to the kernel. """
-        raise NotImplementedError
+        self._raw_input_string = string
 
     #---------------------------------------------------------------------------
     # Protected interface
@@ -233,7 +245,14 @@ class EmbeddedKernel(Configurable):
 
         # Send the input request.
         content = json_clean(dict(prompt=prompt))
-        raise NotImplementedError
+        msg = self.session.msg('input_request', content, self._parent_header)
+        self._raw_input_string = None
+        self._parent_frontend.stdin_channel.call_handlers(msg)
+
+        # Receive input reply.
+        while self._raw_input_string is None:
+            self._parent_frontend.stdin_channel.process_events()
+        return self._raw_input_string
 
     def _no_raw_input(self):
         """ Raise StdinNotImplentedError if active frontend doesn't support
@@ -263,12 +282,8 @@ class EmbeddedKernel(Configurable):
 
         yield
 
-        # Flush output before restoring old streams.
-        sys.stdout.flush()
-        sys.stderr.flush()
-
         # Restore stdout/stderr.
-        sys.stdout, sys.stderr = sys_stdout, sys_stderr 
+        sys.stdout, sys.stderr = sys_stdout, sys_stderr
         
         # Restore raw_input.
         if py3compat.PY3:
@@ -329,7 +344,11 @@ class EmbeddedInteractiveShell(InteractiveShell):
     def init_sys_modules(self):
         # Don't take over the runtime environment.
         pass
-    
+
+    #---------------------------------------------------------------------------
+    # Protected interface
+    #---------------------------------------------------------------------------
+        
     def _showtraceback(self, etype, evalue, stb):
         """ Actually show a traceback.
         """
@@ -356,6 +375,11 @@ class EmbeddedInteractiveShell(InteractiveShell):
 
         return exc_content
 
+    #------ Trait initializers -----------------------------------------------
+
+    def _displayhook_class_default(self):
+        return EmbeddedDisplayHook
+
 InteractiveShellABC.register(EmbeddedInteractiveShell)
 
 #-----------------------------------------------------------------------------
@@ -378,3 +402,23 @@ class EmbeddedOutStream(IOBase):
         msg = self.kernel.session.msg('stream', content, parent=parent)
         for frontend in self.kernel.frontends:
             frontend.sub_channel.call_handlers(msg)
+
+class EmbeddedDisplayHook(DisplayHook):
+
+    def start_displayhook(self):
+        kernel = self.shell.kernel
+        self.msg = kernel.session.msg(u'pyout', {}, kernel._parent_header)
+
+    def write_output_prompt(self):
+        self.msg['content']['execution_count'] = self.prompt_count
+
+    def write_format_data(self, format_dict):
+        self.msg['content']['data'] = encode_images(format_dict)
+
+    def finish_displayhook(self):
+        kernel = self.shell.kernel
+        kernel.stdout.flush()
+        kernel.stderr.flush()
+        for frontend in kernel.frontends:
+            frontend.sub_channel.call_handlers(self.msg)
+        self.msg = None

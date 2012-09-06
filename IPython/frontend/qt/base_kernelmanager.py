@@ -43,6 +43,11 @@ class ChannelQObject(SuperQObject):
         do_later = lambda: self.call_handlers(*args, **kwds)
         QtCore.QTimer.singleShot(0, do_later)
 
+    def process_events(self):
+        """ Process any pending GUI events.
+        """
+        QtCore.QCoreApplication.instance().processEvents()
+
 
 class QtShellChannelMixin(ChannelQObject):
 
