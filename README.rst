@@ -14,7 +14,7 @@ notebooks and standard formats:
 -   PDF
 -   Python script
 
-As these tools mature, these utilities will be merged into IPython
+As these tools mature, these utilities will be merged into IPython.
 
 Requirements
 ============
@@ -43,3 +43,15 @@ Running Tests
 
     $ pip install nose
     $ nosetests
+
+
+Using nbconvert
+===============
+
+You will need to either put the source repository in your ``$PATH`` or symlink
+the ``nbconvert.py`` script, as well as the ``css`` and ``js`` subdirectories
+to a directory in your ``$PATH``.  Once this is done, you can call it as::
+
+  nbconvert -f <FORMAT> notebook.ipynb
+
+Use ``nbconvert -h`` for up to date help on the available formats.
