@@ -18,17 +18,25 @@ As these tools mature, these utilities will be merged into IPython
 
 Requirements
 ============
-The latest development version of doctest is required. This can be installed via
-::
+
+The latest development version of doctest is required. This can be installed
+via ::
 
     $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.gz
     $ pip install -U docutils.gz
 
+Nbconvert also needs the `pandoc multiformat converter
+<http://johnmacfarlane.net/pandoc>`_ to do the actual text conversions.  Pandoc
+is included in most linux distributions package managers, and the author's
+website contains links to Mac OS X and Windows installers.
+    
 For conversion to HTML, pygments is also required
 ::
 
     $ pip install pygments
 
+
+    
 Running Tests
 =============
 ::
