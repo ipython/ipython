@@ -347,7 +347,7 @@ class HistoryAccessor(Configurable):
             lineclause = "line>=?"
             params = (session, start)
 
-        return self._run_sql("WHERE session==? AND %s""" % lineclause,
+        return self._run_sql("WHERE session==? AND %s" % lineclause,
                                     params, raw=raw, output=output)
 
     def get_range_by_str(self, rangestr, raw=True, output=False):
