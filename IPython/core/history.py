@@ -321,7 +321,7 @@ class HistoryAccessor(Configurable):
             params += (n,)
         cur = self._run_sql(sqlform, params, raw=raw, output=output)
         if n is not None:
-            cur = iter(reversed(list(cur)))
+            return reversed(list(cur))
         return cur
 
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
