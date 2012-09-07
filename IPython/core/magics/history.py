@@ -170,7 +170,8 @@ class HistoryMagics(Magics):
                 pattern = "*" + " ".join(args.pattern) + "*"
             else:
                 pattern = "*"
-            hist = history_manager.search(pattern, raw=raw, output=get_output)
+            hist = history_manager.search(pattern, raw=raw, output=get_output,
+                                          n=args.limit)
             print_nums = True
         elif getattr(args, 'limit_specified', False):
             n = 10 if args.limit is None else args.limit
