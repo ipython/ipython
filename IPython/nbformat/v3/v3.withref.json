@@ -1,0 +1,166 @@
+{
+    "description": "custom json structure with references to generate notebook schema",
+    "notebook":{
+      "type": "object",
+      "description": "notebook v3.0 root schema",
+      "$schema": "http://json-schema.org/draft-03/schema",
+      "id": "#notebook",
+      "required": true,
+      "additionalProperties": false,
+      "properties":{
+        "metadata": {
+          "type": "object",
+          "id": "metadata",
+          "required": true,
+          "description": "the metadata atribute can contain any additionnal information",
+          "additionalProperties": true,
+          "properties":{
+            "name": {
+              "id": "name",
+              "description": "the title of the notebook",
+              "type": "string",
+              "id": "name",
+              "required": true
+            }
+          }
+        },
+        "nbformat_minor": {
+          "description": "Notebook format, minor number. Incremented for slight variation of notebook format.",
+          "type": "number",
+          "id": "nbformat_minor",
+          "required": true
+        },
+        "nbformat": {
+          "description": "Notebook format, major number. Incremented between backward incompatible change is introduced.",
+          "type": "number",
+          "id": "nbformat",
+          "required": true
+        },
+        "worksheets": {
+          "description": "Array of worksheet, not used by the current implementation of ipython yet",
+          "type": "array",
+          "id": "worksheets",
+          "required": true,
+          "items": {"$ref": "/worksheet"}
+        }
+      }
+    },
+
+    "worksheet": {
+      "additionalProperties": false,
+      "properties":{
+        "cells": {
+          "type": "array",
+          "$schema": "http://json-schema.org/draft-03/schema",
+          "description": "array of cells of the current worksheet",
+          "id": "#cells",
+          "required": true,
+          "items": {"$ref": "/any_cell"}
+
+        },
+        "metadata": {
+          "type": "object",
+          "description": "metadata of the current worksheet",
+          "id": "metadata",
+          "required": true
+        }
+      }
+    },
+
+    "text_cell": {
+      "type": "object",
+      "description": "scheme for text cel and childrenm (level only optionnal argument for HEader cell)",
+      "$schema": "http://json-schema.org/draft-03/schema",
+      "id": "#cell",
+      "required": true,
+      "additionalProperties": false,
+      "properties":{
+        "cell_type": {
+          "type": "string",
+          "id": "cell_type",
+          "required": true
+        },
+        "level": {
+          "type": "number",
+          "id": "level",
+          "required": false
+        },
+        "metadata": {
+          "type": "object",
+          "id": "metadata",
+          "required": true
+        },
+        "source": {
+          "description": "for code cell, the source code",
+          "type": "array",
+          "id": "source",
+          "required": true,
+          "items":
+            {
+              "type": "string",
+              "description": "each item represent one line of the source code written, terminated by \n",
+              "id": "0",
+              "required": true
+            }
+        }
+      }
+
+    },
+
+    "any_cell": {
+        "description": "Meta cell type that match any cell type",
+        "type": [{"$ref": "/text_cell"},{"$ref":"/code_cell"}],
+        "$schema": "http://json-schema.org/draft-03/schema"
+    },
+
+    "code_cell":{
+      "type": "object",
+      "$schema": "http://json-schema.org/draft-03/schema",
+      "description": "Cell used to execute code",
+      "id": "#cell",
+      "required": true,
+      "additionalProperties": false,
+      "properties":{
+        "cell_type": {
+          "type": "string",
+          "id": "cell_type",
+          "required": true
+        },
+        "metadata": {
+          "type": "object",
+          "id": "metadata",
+          "required": true
+        },
+        "collapsed": {
+          "type": "boolean",
+          "required": true
+        },
+        "input": {
+          "description": "user input for text cells",
+          "type": "array",
+          "id": "input",
+          "required": true,
+          "items":
+            {
+              "type": "string",
+              "id": "input",
+              "required": true
+            }
+        },
+        "outputs": {
+            "description": "output for code cell, to be definied",
+            "required": true,
+            "type": "array"
+        },
+        "prompt_number": {
+            "type": ["number","string"],
+            "minimum": 0
+        },
+        "language": {
+            "type": "string",
+            "required": true
+        }
+      }
+
+    }
+}
