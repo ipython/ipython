@@ -42,7 +42,7 @@ from IPython.utils import io, openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
-from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
+from IPython.utils.traitlets import Any, Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook
 from IPython.zmq.datapub import ZMQDataPublisher
@@ -57,7 +57,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     """A display publisher that publishes data using a ZeroMQ PUB socket."""
 
     session = Instance(Session)
-    pub_socket = Instance('zmq.Socket')
+    pub_socket = Any()
     parent_header = Dict({})
     topic = CBytes(b'displaypub')
 
