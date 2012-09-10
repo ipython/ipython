@@ -346,7 +346,8 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         See Also
         --------
-        _handle_exec_callback : private method, deal with calling callback with reply
+        _handle_exec_callback : private method, deal with calling callback
+        with reply
 
         """
 
@@ -356,10 +357,12 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         msg_id = self.kernel_manager.shell_channel.execute('',
             silent=True, user_expressions={ local_uuid:expr })
         self._callback_dict[local_uuid] = callback
-        self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
+        self._request_info['execute'][msg_id] = self._ExecutionRequest(
+            msg_id, 'silent_exec_callback')
 
     def _handle_exec_callback(self, msg):
-        """Execute `callback` corresponding to `msg` reply, after ``_silent_exec_callback``
+        """Execute `callback` corresponding to `msg` reply, after 
+        ``_silent_exec_callback``
 
         Parameters
         ----------
@@ -633,8 +636,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 except RuntimeError:
                     self._append_plain_text('Kernel started externally. '
                                             'Cannot restart.\n',
-                                            before_prompt=True
-                                            )
+                                            before_prompt=True)
                 else:
                     self.reset()
             else:
@@ -643,8 +645,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         else:
             self._append_plain_text('Kernel process is either remote or '
                                     'unspecified. Cannot restart.\n',
-                                    before_prompt=True
-                                    )
+                                    before_prompt=True)
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
