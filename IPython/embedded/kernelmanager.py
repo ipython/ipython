@@ -13,6 +13,7 @@
 
 # Local imports.
 from IPython.config.loader import Config
+from IPython.embedded.socket import DummySocket
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type
 
 #-----------------------------------------------------------------------------
@@ -77,6 +78,10 @@ class ShellEmbeddedChannel(EmbeddedChannel):
     # flag for whether execute requests should be allowed to call raw_input
     allow_stdin = True
 
+    #--------------------------------------------------------------------------
+    # ShellChannel interface
+    #--------------------------------------------------------------------------
+
     def execute(self, code, silent=False, store_history=True,
                 user_variables=[], user_expressions={}, allow_stdin=None):
         """Execute code in the kernel.
@@ -115,7 +120,15 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         -------
         The msg_id of the message sent.
         """
-        raise NotImplementedError
+        if allow_stdin is None:
+            allow_stdin = self.allow_stdin
+        content = dict(code=code, silent=silent, store_history=store_history,
+                       user_variables=user_variables,
+                       user_expressions=user_expressions,
+                       allow_stdin=allow_stdin)
+        msg = self.manager.session.msg('execute_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
 
     def complete(self, text, line, cursor_pos, block=None):
         """Tab complete text in the kernel's namespace.
@@ -137,7 +150,10 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         -------
         The msg_id of the message sent.
         """
-        raise NotImplementedError
+        content = dict(text=text, line=line, block=block, cursor_pos=cursor_pos)
+        msg = self.manager.session.msg('complete_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
 
     def object_info(self, oname, detail_level=0):
         """Get metadata information about an object.
@@ -153,7 +169,10 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         -------
         The msg_id of the message sent.
         """
-        raise NotImplementedError
+        content = dict(oname=oname, detail_level=detail_level)
+        msg = self.manager.session.msg('object_info_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
 
     def history(self, raw=True, output=False, hist_access_type='range', **kwds):
         """Get entries from the history list.
@@ -187,7 +206,11 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         -------
         The msg_id of the message sent.
         """
-        raise NotImplementedError
+        content = dict(raw=raw, output=output,
+                       hist_access_type=hist_access_type, **kwds)
+        msg = self.manager.session.msg('history_request', content)
+        self._dispatch_to_kernel(msg)
+        return msg['header']['msg_id']
 
     def shutdown(self, restart=False):
         """ Request an immediate kernel shutdown.
@@ -196,6 +219,25 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         """
         # FIXME: What to do here?
         raise NotImplementedError('Shutdown not supported for embedded kernel')
+
+    #--------------------------------------------------------------------------
+    # Protected interface
+    #--------------------------------------------------------------------------
+
+    def _dispatch_to_kernel(self, msg):
+        """ Send a message to the kernel and handle a reply.
+        """
+        kernel = self.manager.kernel
+        if kernel is None:
+            raise RuntimeError('Cannot send request. No kernel exists.')
+
+        stream = DummySocket()
+        self.manager.session.send(stream, msg)
+        msg_parts = stream.recv_multipart()
+        kernel.dispatch_shell(stream, msg_parts)
+
+        idents, reply_msg = self.manager.session.recv(stream, copy=False)
+        self.call_handlers_later(reply_msg)
 
 
 class SubEmbeddedChannel(EmbeddedChannel):
@@ -216,7 +258,10 @@ class StdInEmbeddedChannel(EmbeddedChannel):
     def input(self, string):
         """ Send a string of raw input to the kernel. 
         """
-        raise NotImplementedError
+        kernel = self.manager.kernel
+        if kernel is None:
+            raise RuntimeError('Cannot send input reply. No kernel exists.')
+        kernel.raw_input_str = string
 
 
 class HBEmbeddedChannel(EmbeddedChannel):
