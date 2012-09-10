@@ -400,7 +400,7 @@ class TestClient(ClusterTestCase):
         """ensure KeyError on resubmit of nonexistant task"""
         self.assertRaisesRemote(KeyError, self.client.resubmit, ['invalid'])
 
-    def test_purge_results(self):
+    def test_purge_hub_results(self):
         # ensure there are some tasks
         for i in range(5):
             self.client[:].apply_sync(lambda : 1)
@@ -412,16 +412,63 @@ class TestClient(ClusterTestCase):
         hist = self.client.hub_history()
         ahr = rc2.get_result([hist[-1]])
         ahr.wait(10)
-        self.client.purge_results(hist[-1])
+        self.client.purge_hub_results(hist[-1])
         newhist = self.client.hub_history()
         self.assertEqual(len(newhist)+1,len(hist))
         rc2.spin()
         rc2.close()
+
+    def test_purge_local_results(self):
+        # ensure there are some tasks
+        res = []
+        for i in range(5):
+            res.append(self.client[:].apply_async(lambda : 1))
+        time.sleep(0.1)
+        self.client.wait(10) # wait for the results to come back
+        before = len(self.client.results)
+        self.assertEqual(len(self.client.metadata),before)
+        self.client.purge_local_results(res[-1])
+        self.assertEqual(len(self.client.results),before-len(res[-1]), msg="Not removed from results")
+        self.assertEqual(len(self.client.metadata),before-len(res[-1]), msg="Not removed from metadata")
         
-    def test_purge_all_results(self):
-        self.client.purge_results('all')
+    def test_purge_all_hub_results(self):
+        self.client.purge_hub_results('all')
         hist = self.client.hub_history()
         self.assertEqual(len(hist), 0)
+
+    def test_purge_all_local_results(self):
+        self.client.purge_local_results('all')
+        self.assertEqual(len(self.client.results), 0, msg="Results not empty")
+        self.assertEqual(len(self.client.metadata), 0, msg="metadata not empty")
+
+    def test_purge_all_results(self):
+        # ensure there are some tasks
+        for i in range(5):
+            self.client[:].apply_sync(lambda : 1)
+        self.client.wait(10)
+        self.client.purge_results('all')
+        self.assertEqual(len(self.client.results), 0, msg="Results not empty")
+        self.assertEqual(len(self.client.metadata), 0, msg="metadata not empty")
+        time.sleep(0.1)
+        hist = self.client.hub_history()#
+        self.assertEqual(len(hist), 0, msg="hub history not empty")
+        
+    def test_purge_everything(self):
+        # ensure there are some tasks
+        for i in range(5):
+            self.client[:].apply_sync(lambda : 1)
+        self.client.wait(10)
+        self.client.purge_everything()
+        # The client results
+        self.assertEqual(len(self.client.results), 0, msg="Results not empty")
+        self.assertEqual(len(self.client.metadata), 0, msg="metadata not empty")
+        # the hub results
+        hist = self.client.hub_history()
+        self.assertEqual(len(hist), 0, msg="hub history not empty")
+        # The client "bookkeeping"
+        self.assertEqual(len(self.client.session.digest_history), 0, msg="session digest not empty")
+        self.assertEqual(len(self.client.history), 0, msg="client history not empty")
+        
     
     def test_spin_thread(self):
         self.client.spin_thread(0.01)
