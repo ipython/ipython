@@ -1607,17 +1607,16 @@ class Client(HasTraits):
 
     def _build_msgids_from_target(self, targets=None):
         """Build a list of msg_ids from the list of engine targets"""
-        if targets == None: # needed as _build_targets otherwise uses all engines
+        if not targets: # needed as _build_targets otherwise uses all engines
             return []
         target_ids = self._build_targets(targets)[0] 
         return filter(lambda md_id: self.metadata[md_id]["engine_uuid"] in target_ids, self.metadata)
     
     def _build_msgids_from_jobs(self, jobs=None):
         """Build a list of msg_ids from "jobs" """
+        if not jobs:
+            return []
         msg_ids = []
-        if jobs == None:
-            return msg_ids
-        
         if isinstance(jobs, (basestring,AsyncResult)):
             jobs = [jobs]
         bad_ids = filter(lambda obj: not isinstance(obj, (basestring, AsyncResult)), jobs)
