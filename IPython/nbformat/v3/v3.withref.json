@@ -158,6 +158,7 @@
         },
         "prompt_number": {
             "type": ["integer","null"],
+            "required": true
             "minimum": 0
         },
         "language": {
