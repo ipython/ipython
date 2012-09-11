@@ -1716,7 +1716,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.write_err('No traceback available to show.\n')
                 return
             
-            if etype is SyntaxError:
+            if issubclass(etype, SyntaxError):
                 # Though this won't be called by syntax errors in the input
                 # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
@@ -1769,7 +1769,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         etype, value, last_traceback = self._get_exc_info()
 
-        if filename and etype is SyntaxError:
+        if filename and issubclass(etype, SyntaxError):
             try:
                 value.filename = filename
             except:
