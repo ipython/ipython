@@ -24,26 +24,7 @@ if ON_RTD:
     # see
     # http://read-the-docs.readthedocs.org/en/latest/faq.html
     tags.add('rtd')
-    class Mock(object):
-        def __init__(self, *args, **kwargs):
-            pass
-
-        def __call__(self, *args, **kwargs):
-            return Mock()
-
-        @classmethod
-        def __getattr__(self, name):
-            if name in ('__file__', '__path__'):
-                return '/dev/null'
-            elif name[0] == name[0].upper():
-                return type(name, (), {})
-            else:
-                return Mock()
-
-    MOCK_MODULES = ['matplotlib', 'matplotlib.sphinxext', 'numpy']
-    for mod_name in MOCK_MODULES:
-        sys.modules[mod_name] = Mock()
-
+    
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -63,9 +44,9 @@ execfile('../../IPython/core/release.py',iprelease)
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    # 'matplotlib.sphinxext.mathmpl',
+    'matplotlib.sphinxext.mathmpl',
     'matplotlib.sphinxext.only_directives',
-    # 'matplotlib.sphinxext.plot_directive',
+    'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'inheritance_diagram',
