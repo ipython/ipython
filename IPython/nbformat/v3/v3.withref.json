@@ -26,13 +26,13 @@
         },
         "nbformat_minor": {
           "description": "Notebook format, minor number. Incremented for slight variation of notebook format.",
-          "type": "number",
+          "type": "integer",
           "id": "nbformat_minor",
           "required": true
         },
         "nbformat": {
           "description": "Notebook format, major number. Incremented between backward incompatible change is introduced.",
-          "type": "number",
+          "type": "integer",
           "id": "nbformat",
           "required": true
         },
