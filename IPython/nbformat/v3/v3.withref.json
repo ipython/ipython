@@ -27,12 +27,14 @@
         "nbformat_minor": {
           "description": "Notebook format, minor number. Incremented for slight variation of notebook format.",
           "type": "integer",
+          "minimum": 0,
           "id": "nbformat_minor",
           "required": true
         },
         "nbformat": {
           "description": "Notebook format, major number. Incremented between backward incompatible change is introduced.",
           "type": "integer",
+          "minimum": 3,
           "id": "nbformat",
           "required": true
         },
@@ -81,7 +83,9 @@
           "required": true
         },
         "level": {
-          "type": "number",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6,
           "id": "level",
           "required": false
         },
