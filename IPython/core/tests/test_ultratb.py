@@ -73,3 +73,23 @@ class NonAsciiTest(unittest.TestCase):
             with tt.AssertPrints("ZeroDivisionError"):
                 with tt.AssertPrints(u'дбИЖ', suppress=False):
                     ip.run_cell('fail()')
+
+indentationerror_file = """if True:
+zoon()
+"""
+
+class IndentationErrorTest(unittest.TestCase):
+    def test_indentationerror_shows_line(self):
+        # See issue gh-2398
+        with tt.AssertPrints("IndentationError"):
+            with tt.AssertPrints("zoon()", suppress=False):
+                ip.run_cell(indentationerror_file)
+        
+        with TemporaryDirectory() as td:
+            fname = os.path.join(td, "foo.py")
+            with open(fname, "w") as f:
+                f.write(indentationerror_file)
+            
+            with tt.AssertPrints("IndentationError"):
+                with tt.AssertPrints("zoon()", suppress=False):
+                    ip.magic('run %s' % fname)
