@@ -805,7 +805,7 @@ class IPythonInputSplitter(InputSplitter):
     def _line_mode_cell_append(self, lines):
         """Append new content for a cell magic in line mode.
         """
-        # Only store the raw input.  Lines beyond the first one are only only
+        # Only store the raw input.  Lines beyond the first one are only 
         # stored for history purposes; for execution the caller will grab the
         # magic pieces from cell_magic_parts and will assemble the cell body
         self._store(lines, self._buffer_raw, 'source_raw')
