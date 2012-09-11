@@ -743,6 +743,11 @@ class IPythonInputSplitter(InputSplitter):
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
+    # List of input transforms to apply
+    transforms = [transform_ipy_prompt, transform_classic_prompt,
+                  transform_help_end, transform_escaped,
+                  transform_assign_system, transform_assign_magic]
+
     def __init__(self, input_mode=None):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
@@ -864,10 +869,6 @@ class IPythonInputSplitter(InputSplitter):
         # The rest of the processing is for 'normal' content, i.e. IPython
         # source that we process through our transformations pipeline.
         lines_list = lines.splitlines()
-
-        transforms = [transform_ipy_prompt, transform_classic_prompt,
-                      transform_help_end, transform_escaped,
-                      transform_assign_system, transform_assign_magic]
 
         # Transform logic
         #
