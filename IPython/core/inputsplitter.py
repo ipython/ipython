@@ -542,7 +542,7 @@ class InputSplitter(object):
 _assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
                                r'\s*=\s*!\s*(?P<cmd>.*)')
 
-def transform_assign_system(line):
+def transform_assign_system(line, line_number):
     """Handle the `files = !ls` syntax."""
     m = _assign_system_re.match(line)
     if m is not None:
@@ -556,7 +556,7 @@ def transform_assign_system(line):
 _assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
                                r'\s*=\s*%\s*(?P<cmd>.*)')
 
-def transform_assign_magic(line):
+def transform_assign_magic(line, line_number):
     """Handle the `a = %who` syntax."""
     m = _assign_magic_re.match(line)
     if m is not None:
@@ -569,7 +569,7 @@ def transform_assign_magic(line):
 
 _classic_prompt_re = re.compile(r'^([ \t]*>>> |^[ \t]*\.\.\. )')
 
-def transform_classic_prompt(line):
+def transform_classic_prompt(line, line_number):
     """Handle inputs that start with '>>> ' syntax."""
 
     if not line or line.isspace():
@@ -583,7 +583,7 @@ def transform_classic_prompt(line):
 
 _ipy_prompt_re = re.compile(r'^([ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
 
-def transform_ipy_prompt(line):
+def transform_ipy_prompt(line, line_number):
     """Handle inputs that start classic IPython prompt syntax."""
 
     if not line or line.isspace():
@@ -621,7 +621,7 @@ _help_end_re = re.compile(r"""(%{0,2}
                               re.VERBOSE)
 
 
-def transform_help_end(line):
+def transform_help_end(line, line_number):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
     if m is None or has_comment(line):
@@ -698,7 +698,7 @@ class EscapedTransformer(object):
         return '%s%s(%s)' % (line_info.pre, line_info.ifun,
                              ", ".join(line_info.the_rest.split()))
 
-    def __call__(self, line):
+    def __call__(self, line, line_number):
         """Class to transform lines that are explicitly escaped out.
 
         This calls the above _tr_* static methods for the actual line
@@ -905,11 +905,11 @@ class IPythonInputSplitter(InputSplitter):
             push = super(IPythonInputSplitter, self).push
             buf = self._buffer
             for line in lines_list:
+                line_number = len(buf)
                 if self._is_complete or not buf or \
                        (buf and buf[-1].rstrip().endswith((':', ','))):
-                    for f in transforms:
-                        line = f(line)
-
+                    for f in self.transforms:
+                        line = f(line, line_number)
                 out = push(line)
         finally:
             if changed_input_mode:
