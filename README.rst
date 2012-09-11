@@ -22,7 +22,7 @@ Requirements
 The latest development version of doctest is required. This can be installed
 via ::
 
-    $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.gz
+    $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz
     $ pip install -U docutils.gz
 
 Nbconvert also needs the `pandoc multiformat converter
