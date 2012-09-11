@@ -290,7 +290,7 @@ class HistoryAccessor(Configurable):
         return reversed(list(cur))
 
     def search(self, pattern="*", raw=True, search_raw=True,
-                                                        output=False):
+               output=False, n=None):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
 
@@ -302,6 +302,9 @@ class HistoryAccessor(Configurable):
           If True, search the raw input, otherwise, the parsed input
         raw, output : bool
           See :meth:`get_range`
+        n : None or int
+          If an integer is given, it defines the limit of
+          returned entries.
 
         Returns
         -------
@@ -311,9 +314,16 @@ class HistoryAccessor(Configurable):
         if output:
             tosearch = "history." + tosearch
         self.writeout_cache()
-        return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
-                                    raw=raw, output=output)
-    
+        sqlform = "WHERE %s GLOB ?" % tosearch
+        params = (pattern,)
+        if n is not None:
+            sqlform += " ORDER BY session DESC, line DESC LIMIT ?"
+            params += (n,)
+        cur = self._run_sql(sqlform, params, raw=raw, output=output)
+        if n is not None:
+            return reversed(list(cur))
+        return cur
+
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
 
