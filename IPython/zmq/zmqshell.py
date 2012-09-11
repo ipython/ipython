@@ -34,6 +34,7 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
+from IPython.embedded.socket import SocketABC
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
@@ -42,7 +43,7 @@ from IPython.utils import io, openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
-from IPython.utils.traitlets import Any, Instance, Type, Dict, CBool, CBytes
+from IPython.utils.traitlets import Instance, Type, Dict, CBool, CBytes
 from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook
 from IPython.zmq.datapub import ZMQDataPublisher
@@ -57,7 +58,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     """A display publisher that publishes data using a ZeroMQ PUB socket."""
 
     session = Instance(Session)
-    pub_socket = Any()
+    pub_socket = Instance(SocketABC)
     parent_header = Dict({})
     topic = CBytes(b'displaypub')
 
