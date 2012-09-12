@@ -714,9 +714,9 @@ class ConverterHTML(Converter):
     extension = 'html'
 
     def in_tag(self, tag, src, attrs=None):
-        attrs = {} if attrs is None else attrs
         """Return a list of elements bracketed by the given tag"""
-        attr_s = ' '.join( "%s=%s" % (attr, value) 
+        attr_s = '' if attrs is None else \
+                 ' '.join( "%s=%s" % (attr, value) 
                            for attr, value in attrs.iteritems() )
         return ['<%s %s>' % (tag, attr_s), src, '</%s>' % tag]
     
@@ -726,7 +726,7 @@ class ConverterHTML(Converter):
     def _stylesheet(self, fname):
         with io.open(fname, encoding='utf-8') as f:
             s = f.read()
-        return self.in_tag('style', s, dict(type='text/css'))
+        return self.in_tag('style', s, dict(type='"text/css"'))
 
     def _out_prompt(self, output):
         if output.output_type == 'pyout':
@@ -736,11 +736,12 @@ class ConverterHTML(Converter):
             content = ''
         return ['<div class="prompt output_prompt">%s</div>' % content]
 
-    def optional_header(self):
+    def header_body(self):
+        """Return the body of the header as a list of strings."""
+        
         from pygments.formatters import HtmlFormatter
-        
-        header = ['<html>', '<head>']
-        
+
+        header = []
         static = os.path.join(path.get_ipython_package_dir(),
         'frontend', 'html', 'notebook', 'static',
         )
@@ -762,27 +763,24 @@ class ConverterHTML(Converter):
         # pygments css
         pygments_css = HtmlFormatter().get_style_defs('.highlight')
         header.extend(['<meta charset="UTF-8">'])
-        header.extend(self.in_tag('style', pygments_css, dict(type='text/css')))
+        header.extend(self.in_tag('style', pygments_css, dict(type='"text/css"')))
         
         # TODO: this should be allowed to use local mathjax:
-        header.extend(self.in_tag('script', '', {'type':'text/javascript',
+        header.extend(self.in_tag('script', '', {'type':'"text/javascript"',
             'src': '"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"',
         }))
-        with io.open(os.path.join(here, 'js', 'initmathjax.js'), encoding='utf-8') as f:
+        with io.open(os.path.join(here, 'js', 'initmathjax.js'), 
+                     encoding='utf-8') as f:
             header.extend(self.in_tag('script', f.read(), 
                                       {'type': '"text/javascript"'}))
-        
-        header.extend(['</head>', '<body>'])
-        
         return header
 
+    def optional_header(self):
+        return ['<html>', '<head>'] + self.header_body() + \
+          ['</head>', '<body>']
+
     def optional_footer(self):
-        lines = []
-        lines.extend([
-            '</body>',
-            '</html>',
-        ])
-        return lines
+        return ['</body>', '</html>']
 
     @DocInherit
     @text_cell
@@ -900,6 +898,25 @@ class ConverterHTML(Converter):
     @DocInherit
     def render_display_format_javascript(self, output):
         return [output.javascript]
+
+
+class ConverterBloggerHTML(ConverterHTML):
+    """Convert a notebook to html suitable for easy pasting into Blogger.
+
+    It generates an html file that has *only* the pure HTML contents, and a
+    separate file with `_header` appended to the name with all header contents.
+    Typically, the header file only needs to be used once when setting up a
+    blog, as the CSS for all posts is stored in a single location in Blogger.
+    """
+    
+    def optional_header(self):
+        with io.open(self.outbase + '_header.html', 'w',
+                     encoding=self.default_encoding) as f:
+            f.write('\n'.join(self.header_body()))
+        return []
+
+    def optional_footer(self):
+        return []
 
 
 class ConverterLaTeX(Converter):
@@ -1395,7 +1412,7 @@ def cell_to_lines(cell):
     return s.split('\n')
 
 
-known_formats = "rst (default), html, quick-html, latex, markdown, py"
+known_formats = "rst (default), html, blogger-html, latex, markdown, py"
 
 def main(infile, format='rst'):
     """Convert a notebook to html in one step"""
@@ -1410,6 +1427,9 @@ def main(infile, format='rst'):
         converter.render()
     elif format == 'html':
         converter = ConverterHTML(infile)
+        htmlfname = converter.render()
+    elif format == 'blogger-html':
+        converter = ConverterBloggerHTML(infile)
         htmlfname = converter.render()
     elif format == 'latex':
         converter = ConverterLaTeX(infile)
