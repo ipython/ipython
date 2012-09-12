@@ -21,7 +21,7 @@ from argparse import Action
 # Our own packages
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.magic_arguments import (argument, magic_arguments,
+from IPython.core.magic_arguments import (argument, defaults, magic_arguments,
                                           parse_argstring)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
@@ -93,6 +93,7 @@ class HistoryMagics(Magics):
         arg, or the default is the last 10 lines.
         """)
     @argument('range', nargs='*')
+    @defaults(limit_specified=False)
     @skip_doctest
     @line_magic
     def history(self, parameter_s = ''):
@@ -173,7 +174,7 @@ class HistoryMagics(Magics):
             hist = history_manager.search(pattern, raw=raw, output=get_output,
                                           n=args.limit)
             print_nums = True
-        elif getattr(args, 'limit_specified', False):
+        elif args.limit_specified:
             n = 10 if args.limit is None else args.limit
             hist = history_manager.get_tail(n, raw=raw, output=get_output)
         else:
