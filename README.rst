@@ -19,7 +19,12 @@ As these tools mature, these utilities will be merged into IPython.
 Requirements
 ============
 
-The latest development version of doctest is required. This can be installed
+You will need the `python markdown module
+<http://pypi.python.org/pypi/Markdown>`_ ::
+
+    $ pip install markdown
+    
+as well as the latest development version of docutils. This can be installed
 via ::
 
     $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz
