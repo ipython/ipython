@@ -173,50 +173,51 @@ class magic_arguments(ArgDecorator):
         return func
 
 
-class argument(ArgDecorator):
+class ArgMethodWrapper(ArgDecorator):
+
+    """
+    Base class to define a wrapper for ArgumentParser method.
+
+    Child class must define either `_method_name` or `add_to_parser`.
+
+    """
+
+    _method_name = None
+
+    def __init__(self, *args, **kwds):
+        self.args = args
+        self.kwds = kwds
+
+    def add_to_parser(self, parser, group):
+        """ Add this object's information to the parser.
+        """
+        if group is not None:
+            parser = group
+        getattr(parser, self._method_name)(*self.args, **self.kwds)
+        return None
+
+
+class argument(ArgMethodWrapper):
     """ Store arguments and keywords to pass to add_argument().
 
     Instances also serve to decorate command methods.
     """
-    def __init__(self, *args, **kwds):
-        self.args = args
-        self.kwds = kwds
-
-    def add_to_parser(self, parser, group):
-        """ Add this object's information to the parser.
-        """
-        if group is not None:
-            parser = group
-        parser.add_argument(*self.args, **self.kwds)
-        return None
+    _method_name = 'add_argument'
 
 
-class defaults(ArgDecorator):
+class defaults(ArgMethodWrapper):
     """ Store arguments and keywords to pass to set_defaults().
 
     Instances also serve to decorate command methods.
     """
-    def __init__(self, *args, **kwds):
-        self.args = args
-        self.kwds = kwds
-
-    def add_to_parser(self, parser, group):
-        """ Add this object's information to the parser.
-        """
-        if group is not None:
-            parser = group
-        parser.set_defaults(*self.args, **self.kwds)
-        return None
+    _method_name = 'set_defaults'
 
 
-class argument_group(ArgDecorator):
+class argument_group(ArgMethodWrapper):
     """ Store arguments and keywords to pass to add_argument_group().
 
     Instances also serve to decorate command methods.
     """
-    def __init__(self, *args, **kwds):
-        self.args = args
-        self.kwds = kwds
 
     def add_to_parser(self, parser, group):
         """ Add this object's information to the parser.
