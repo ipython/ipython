@@ -255,6 +255,10 @@ class Converter(object):
         self.files_dir = files_dir
         self.outbase = os.path.join(self.infile_dir, infile_root)
 
+    def __del__(self):
+        if not os.listdir(self.files_dir):
+            os.rmdir(self.files_dir)
+
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code
         """
