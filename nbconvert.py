@@ -709,11 +709,11 @@ def text_cell(f):
 class ConverterHTML(Converter):
     extension = 'html'
 
-    def in_tag(self, tag, src, attrs={}):
+    def in_tag(self, tag, src, attrs=None):
+        attrs = {} if attrs is None else attrs
         """Return a list of elements bracketed by the given tag"""
-        attr_s = ""
-        for attr, value in attrs.iteritems():
-            attr_s += "%s=%s" % (attr, value)
+        attr_s = ' '.join( "%s=%s" % (attr, value) 
+                           for attr, value in attrs.iteritems() )
         return ['<%s %s>' % (tag, attr_s), src, '</%s>' % tag]
     
     def _ansi_colored(self, text):
@@ -765,7 +765,8 @@ class ConverterHTML(Converter):
             'src': '"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"',
         }))
         with io.open(os.path.join(here, 'js', 'initmathjax.js'), encoding='utf-8') as f:
-            header.extend(self.in_tag('script', f.read(), {'type': 'text/javascript'}))
+            header.extend(self.in_tag('script', f.read(), 
+                                      {'type': '"text/javascript"'}))
         
         header.extend(['</head>', '<body>'])
         
