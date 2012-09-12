@@ -191,6 +191,24 @@ class argument(ArgDecorator):
         return None
 
 
+class defaults(ArgDecorator):
+    """ Store arguments and keywords to pass to set_defaults().
+
+    Instances also serve to decorate command methods.
+    """
+    def __init__(self, *args, **kwds):
+        self.args = args
+        self.kwds = kwds
+
+    def add_to_parser(self, parser, group):
+        """ Add this object's information to the parser.
+        """
+        if group is not None:
+            parser = group
+        parser.set_defaults(*self.args, **self.kwds)
+        return None
+
+
 class argument_group(ArgDecorator):
     """ Store arguments and keywords to pass to add_argument_group().
 
