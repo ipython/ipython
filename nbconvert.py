@@ -1346,41 +1346,6 @@ def rst2simplehtml(infile):
 
     return newfname
 
-
-def md2html(infile):
-    """Convert a markdown file to simplified html suitable for blogger.
-
-    """
-    html = markdown(open(infile).read())
-
-    from pygments.formatters import HtmlFormatter
-    css = HtmlFormatter().get_style_defs('.highlight')
-
-    template = """
-<!DOCTYPE HTML>
-<html>
-
-<head>
-    <title>{infile}</title>
-    <style type="text/css">
-    {css}
-    </style>
-    
-</head>
-    
-<body>
-{html}
-</body>
-
-</html>
-    """
-    full_html = template.format(**locals())
-    newfname = os.path.splitext(infile)[0] + '.html'
-    with open(newfname, 'w') as f:
-        f.write(full_html)
-
-    return newfname
-
 #-----------------------------------------------------------------------------
 # Cell-level functions -- similar to IPython.nbformat.v3.rwbase functions
 # but at cell level instead of whole notebook level
