@@ -304,6 +304,16 @@ var IPython = (function (IPython) {
         });
     };
 
+    Notebook.prototype.scroll_to_cell = function (cell_number, time) {
+        var cells = this.get_cells();
+        var time = time || 0;
+        cell_number = Math.min(cells.length-1,cell_number);
+        cell_number = Math.max(0             ,cell_number);
+        scroll_value = cells[cell_number].element.position().top-cells[0].element.position().top ; 
+        this.element.animate({scrollTop:scroll_value}, time);
+        return scroll_value;
+    };
+
 
     Notebook.prototype.scroll_to_bottom = function () {
         this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
