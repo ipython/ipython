@@ -14,7 +14,7 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 from tempfile import NamedTemporaryFile, mkdtemp
-
+from os.path import split
 
 # Third-party imports
 import nose.tools as nt
@@ -77,8 +77,8 @@ def test_existing_path_FileLinks():
     actual = fl._repr_html_()
     actual = actual.split('\n')
     actual.sort()
-    expected = ["<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,tf2.name),
-                "<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,tf1.name)]
+    expected = ["<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,split(tf2.name)[1]),
+                "<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,split(tf1.name)[1])]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
@@ -110,7 +110,7 @@ def test_warning_on_non_existant_path_DirectoryLink():
     dl = display.DirectoryLink('example')
     nt.assert_true(dl._repr_html_().startswith('Path (<tt>example</tt>)'))
 
-def test_existing_path_FileLinks():
+def test_existing_path_DirectoryLink():
     """ Calling _repr_html_ functions as expected on existing directory """
     td = mkdtemp()
     dl = display.DirectoryLink(td)
