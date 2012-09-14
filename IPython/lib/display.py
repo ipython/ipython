@@ -56,7 +56,7 @@ class FileLink(object):
     
     def __init__(self,
                  path,
-                 url_prefix='files',
+                 url_prefix='files/',
                  result_html_prefix='',
                  result_html_suffix='<br>'):
         """
@@ -74,7 +74,7 @@ class FileLink(object):
         self.result_html_suffix = result_html_suffix
     
     def _format_path(self):
-        fp = '/'.join([self.url_prefix,self.path])
+        fp = ''.join([self.url_prefix,self.path])
         return ''.join([self.result_html_prefix,
                         self.html_link_str % (fp, self.path),
                         self.result_html_suffix])
@@ -118,7 +118,7 @@ class FileLinks(FileLink):
     """
     def __init__(self,
                  path,
-                 url_prefix='files',
+                 url_prefix='files/',
                  included_suffixes=None,
                  result_html_prefix='',
                  result_html_suffix='<br>'):
@@ -140,7 +140,7 @@ class FileLinks(FileLink):
         result_entries = []
         for root, dirs, files in walk(self.path):
             for fn in files:
-                fp = '/'.join([self.url_prefix,root,fn])
+                fp = ''.join([self.url_prefix,root,'/',fn])
                 # if all files are being included, or fp has a suffix
                 # that is in included_suffix, create a link to fp
                 if self.included_suffixes == None or \
