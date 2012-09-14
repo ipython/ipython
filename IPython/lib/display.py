@@ -52,6 +52,8 @@ class FileLink(object):
     FileLink("my/data.txt")
     """
     
+    link_str = "<a href='%s' target='_blank'>%s</a>"
+    
     def __init__(self,
                  path,
                  url_prefix='files',
@@ -68,14 +70,13 @@ class FileLink(object):
         """
         self.path = path
         self.url_prefix = url_prefix
-        self._link_str = "<a href='%s' target='_blank'>%s</a>"
         self._result_html_prefix = _result_html_prefix
         self._result_html_suffix = _result_html_suffix
     
     def _format_path(self):
         fp = join(self.url_prefix,self.path)
         return ''.join([self._result_html_prefix,
-                        self._link_str % (fp, self.path),
+                        self.link_str % (fp, self.path),
                         self._result_html_suffix])
         
     def _repr_html_(self):
@@ -140,6 +141,6 @@ class FileLinks(FileLink):
                 if self._included_suffixes == None or \
                    splitext(fn)[1] in self._included_suffixes:
                     result_entries.append(''.join([self._result_html_prefix,
-                                                   self._link_str % (fp,fn),
+                                                   self.link_str % (fp,fn),
                                                    self._result_html_suffix]))
         return '\n'.join(result_entries)
