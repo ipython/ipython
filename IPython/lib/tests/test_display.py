@@ -47,6 +47,14 @@ def test_existing_path_FileLink():
     expected = "<a href='files/%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
     nt.assert_equal(actual,expected)
 
+def test_existing_path_FileLink_repr():
+    """ Calling repr() functions as expected on existing filepath """
+    tf = NamedTemporaryFile()
+    fl = display.FileLink(tf.name)
+    actual = repr(fl)
+    expected = tf.name
+    nt.assert_equal(actual,expected)
+
 #--------------------------
 # FileLinks tests
 #--------------------------
@@ -71,6 +79,20 @@ def test_existing_path_FileLinks():
     actual.sort()
     expected = ["<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,tf2.name),
                 "<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,tf1.name)]
+    expected.sort()
+    # We compare the sorted list of links here as that's more reliable
+    nt.assert_equal(actual,expected)
+
+def test_existing_path_FileLinks_repr():
+    """ Calling repr() functions as expected on existing directory """
+    td = mkdtemp()
+    tf1 = NamedTemporaryFile(dir=td)
+    tf2 = NamedTemporaryFile(dir=td)
+    fl = display.FileLinks(td)
+    actual = repr(fl)
+    actual = actual.split('\n')
+    actual.sort()
+    expected = [tf1.name,tf2.name]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
