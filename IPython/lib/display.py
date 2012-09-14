@@ -4,7 +4,7 @@ Authors : MinRK, gregcaporaso
 """
 
 from os import walk
-from os.path import exists, isfile, splitext
+from os.path import exists, isfile, splitext, abspath
 
 
 class YouTubeVideo(object):
@@ -52,7 +52,7 @@ class FileLink(object):
     FileLink("my/data.txt")
     """
     
-    link_str = "<a href='%s' target='_blank'>%s</a>"
+    html_link_str = "<a href='%s' target='_blank'>%s</a>"
     
     def __init__(self,
                  path,
@@ -76,11 +76,11 @@ class FileLink(object):
     def _format_path(self):
         fp = '/'.join([self.url_prefix,self.path])
         return ''.join([self.result_html_prefix,
-                        self.link_str % (fp, self.path),
+                        self.html_link_str % (fp, self.path),
                         self.result_html_suffix])
         
     def _repr_html_(self):
-        """return link to local file
+        """return html link to file
         """
         if not exists(self.path):
             return ("Path (<tt>%s</tt>) doesn't exist. " 
@@ -89,10 +89,15 @@ class FileLink(object):
                     "incorrect path." % self.path)
         
         return self._format_path()
-
+    
+    def __repr__(self):
+        """return path to file
+        """
+        return abspath(self.path)
+        
 # Create an alias for formatting a single directory name as a link.
 # Right now this is the same as a formatting for a single file, but 
-# we'll encorage users to reference these with a different class in
+# we'll encourage users to reference these with a different class in
 # case we want to change this in the future.
 DirectoryLink = FileLink
 
@@ -135,12 +140,12 @@ class FileLinks(FileLink):
         result_entries = []
         for root, dirs, files in walk(self.path):
             for fn in files:
-                fp = join(self.url_prefix,root,fn)
+                fp = '/'.join([self.url_prefix,root,fn])
                 # if all files are being included, or fp has a suffix
                 # that is in included_suffix, create a link to fp
                 if self.included_suffixes == None or \
                    splitext(fn)[1] in self.included_suffixes:
                     result_entries.append(''.join([self.result_html_prefix,
-                                                   self.link_str % (fp,fn),
+                                                   self.html_link_str % (fp,fn),
                                                    self.result_html_suffix]))
         return '\n'.join(result_entries)
