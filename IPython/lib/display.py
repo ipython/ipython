@@ -54,7 +54,7 @@ class FileLink(object):
     
     def __init__(self,
                  path,
-                 _directory_prefix='files',
+                 url_prefix='files',
                  _result_html_prefix='',
                  _result_html_suffix='<br>'):
         """
@@ -67,13 +67,13 @@ class FileLink(object):
              [default: '<br>']
         """
         self.path = path
-        self._directory_prefix = _directory_prefix
+        self.url_prefix = url_prefix
         self._link_str = "<a href='%s' target='_blank'>%s</a>"
         self._result_html_prefix = _result_html_prefix
         self._result_html_suffix = _result_html_suffix
     
     def _format_path(self):
-        fp = join(self._directory_prefix,self.path)
+        fp = join(self.url_prefix,self.path)
         return ''.join([self._result_html_prefix,
                         self._link_str % (fp, self.path),
                         self._result_html_suffix])
@@ -112,7 +112,7 @@ class FileLinks(FileLink):
     """
     def __init__(self,
                  path,
-                 _directory_prefix='files',
+                 url_prefix='files',
                  _included_suffixes=None,
                  _result_html_prefix='',
                  _result_html_suffix='<br>'):
@@ -126,7 +126,7 @@ class FileLinks(FileLink):
         self._included_suffixes = _included_suffixes
         FileLink.__init__(self,
                            path,
-                           _directory_prefix,
+                           url_prefix,
                            _result_html_prefix,
                            _result_html_suffix)
     
@@ -134,7 +134,7 @@ class FileLinks(FileLink):
         result_entries = []
         for root, dirs, files in walk(self.path):
             for fn in files:
-                fp = join(self._directory_prefix,root,fn)
+                fp = join(self.url_prefix,root,fn)
                 # if all files are being included, or fp has a suffix
                 # that is in included_suffix, create a link to fp
                 if self._included_suffixes == None or \
