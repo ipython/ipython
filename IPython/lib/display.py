@@ -4,7 +4,7 @@ Authors : MinRK, gregcaporaso
 """
 
 from os import walk
-from os.path import join, exists, isfile, splitext
+from os.path import exists, isfile, splitext
 
 
 class YouTubeVideo(object):
@@ -74,7 +74,7 @@ class FileLink(object):
         self.result_html_suffix = result_html_suffix
     
     def _format_path(self):
-        fp = join(self.url_prefix,self.path)
+        fp = '/'.join([self.url_prefix,self.path])
         return ''.join([self.result_html_prefix,
                         self.link_str % (fp, self.path),
                         self.result_html_suffix])

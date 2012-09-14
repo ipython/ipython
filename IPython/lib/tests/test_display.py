@@ -44,12 +44,7 @@ def test_existing_path_FileLink():
     tf = NamedTemporaryFile()
     fl = display.FileLink(tf.name)
     actual = fl._repr_html_()
-    # Note: this is a bit awkward since tf.name has to be a full path
-    # for it to exist, but that won't happen in our applications. While
-    # in practice "files/" would be prepended to the href path, os.join
-    # doesn't do that if the second value is an absolute path. So, the
-    # expected here is slightly different than what we get in practice.
-    expected = "<a href='%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
+    expected = "<a href='files/%s' target='_blank'>%s</a><br>" % (tf.name,tf.name)
     nt.assert_equal(actual,expected)
 
 #--------------------------
@@ -74,13 +69,8 @@ def test_existing_path_FileLinks():
     actual = fl._repr_html_()
     actual = actual.split('\n')
     actual.sort()
-    # Note: this is a bit awkward since tf.name has to be a full path
-    # for it to exist, but that won't happen in our applications. While
-    # in practice "files/" would be prepended to the href path, os.join
-    # doesn't do that if the second value is an absolute path. So, the
-    # expected here is slightly different than what we get in practice.
-    expected = ["<a href='%s' target='_blank'>%s</a><br>" % (tf2.name,tf2.name.split('/')[-1]),
-                "<a href='%s' target='_blank'>%s</a><br>" % (tf1.name,tf1.name.split('/')[-1])]
+    expected = ["<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,tf2.name),
+                "<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,tf1.name)]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
@@ -103,10 +93,5 @@ def test_existing_path_FileLinks():
     td = mkdtemp()
     dl = display.DirectoryLink(td)
     actual = dl._repr_html_()
-    # Note: this is a bit awkward since tf.name has to be a full path
-    # for it to exist, but that won't happen in our applications. While
-    # in practice "files/" would be prepended to the href path, os.join
-    # doesn't do that if the second value is an absolute path. So, the
-    # expected here is slightly different than what we get in practice.
-    expected = "<a href='%s' target='_blank'>%s</a><br>" % (td,td)
+    expected = "<a href='files/%s' target='_blank'>%s</a><br>" % (td,td)
     nt.assert_equal(actual,expected)
