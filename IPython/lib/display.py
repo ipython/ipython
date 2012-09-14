@@ -57,8 +57,8 @@ class FileLink(object):
     def __init__(self,
                  path,
                  url_prefix='files',
-                 _result_html_prefix='',
-                 _result_html_suffix='<br>'):
+                 result_html_prefix='',
+                 result_html_suffix='<br>'):
         """
             path : path to the file or directory that should be formatted
             directory_prefix : prefix to be prepended to all files to form a
@@ -70,14 +70,14 @@ class FileLink(object):
         """
         self.path = path
         self.url_prefix = url_prefix
-        self._result_html_prefix = _result_html_prefix
-        self._result_html_suffix = _result_html_suffix
+        self.result_html_prefix = result_html_prefix
+        self.result_html_suffix = result_html_suffix
     
     def _format_path(self):
         fp = join(self.url_prefix,self.path)
-        return ''.join([self._result_html_prefix,
+        return ''.join([self.result_html_prefix,
                         self.link_str % (fp, self.path),
-                        self._result_html_suffix])
+                        self.result_html_suffix])
         
     def _repr_html_(self):
         """return link to local file
@@ -114,9 +114,9 @@ class FileLinks(FileLink):
     def __init__(self,
                  path,
                  url_prefix='files',
-                 _included_suffixes=None,
-                 _result_html_prefix='',
-                 _result_html_suffix='<br>'):
+                 included_suffixes=None,
+                 result_html_prefix='',
+                 result_html_suffix='<br>'):
         """
             included_suffixes : list of filename suffixes to include when
              formatting output [default: include all files]
@@ -124,12 +124,12 @@ class FileLinks(FileLink):
             See the FileLink (baseclass of LocalDirectory) docstring for 
              information on additional parameters.
         """
-        self._included_suffixes = _included_suffixes
+        self.included_suffixes = included_suffixes
         FileLink.__init__(self,
                            path,
                            url_prefix,
-                           _result_html_prefix,
-                           _result_html_suffix)
+                           result_html_prefix,
+                           result_html_suffix)
     
     def _format_path(self):
         result_entries = []
@@ -138,9 +138,9 @@ class FileLinks(FileLink):
                 fp = join(self.url_prefix,root,fn)
                 # if all files are being included, or fp has a suffix
                 # that is in included_suffix, create a link to fp
-                if self._included_suffixes == None or \
-                   splitext(fn)[1] in self._included_suffixes:
-                    result_entries.append(''.join([self._result_html_prefix,
+                if self.included_suffixes == None or \
+                   splitext(fn)[1] in self.included_suffixes:
+                    result_entries.append(''.join([self.result_html_prefix,
                                                    self.link_str % (fp,fn),
-                                                   self._result_html_suffix]))
+                                                   self.result_html_suffix]))
         return '\n'.join(result_entries)
