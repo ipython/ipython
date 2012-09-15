@@ -53,7 +53,7 @@ var IPython = (function (IPython) {
                     .click(function(){that.detach()})
                     .attr('style','position: absolute; right: 10px;')
                     .append(
-                        $('<span>').addClass("ui-icon ui-icon-arrowstop-l-n")
+                        $('<span>').addClass("ui-icon ui-icon-extlink")
                     )
         )
     };
@@ -138,6 +138,9 @@ var IPython = (function (IPython) {
                 .attr('rel',"stylesheet")
                 .attr('href',"/static/css/notebook.css")
                 .attr('type',"text/css")
+        )
+        .append(
+                $('<title>').text("IPython Pager")
         );
         var pager_body = $(w.document.body)
             pager_body.attr('style','overflow:scroll');
