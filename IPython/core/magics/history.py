@@ -80,7 +80,7 @@ class HistoryMagics(Magics):
     @argument(
         '-g', dest='pattern', nargs='*', default=None,
         help="""
-        treat the arg as a pattern to grep for in (full) history.
+        treat the arg as a glob pattern to search for in (full) history.
         This includes the saved history (almost all commands ever written).
         The pattern may contain '?' to match one unknown character and '*'
         to match any number of unknown characters. Use '%%hist -g' to show
