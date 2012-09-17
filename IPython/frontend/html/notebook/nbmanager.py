@@ -42,6 +42,11 @@ class NotebookManager(LoggingConfigurable):
     """)
     def _notebook_dir_changed(self, name, old, new):
         """do a bit of validation of the notebook dir"""
+        if not os.path.isabs(new):
+            # If we receive a non-absolute path, make it absolute.
+            abs_new = os.path.abspath(new)
+            self.notebook_dir = abs_new
+            return
         if os.path.exists(new) and not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
         if not os.path.exists(new):
