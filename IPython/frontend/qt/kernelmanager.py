@@ -7,7 +7,6 @@ from IPython.zmq.kernelmanager import ShellSocketChannel, SubSocketChannel, \
     StdInSocketChannel, HBSocketChannel, KernelManager
 from base_kernelmanager import QtShellChannelMixin, QtSubChannelMixin, \
     QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin
-from util import MetaQObjectHasTraits, SuperQObject
 
 
 class QtShellSocketChannel(QtShellChannelMixin, ShellSocketChannel):
@@ -23,11 +22,9 @@ class QtHBSocketChannel(QtHBChannelMixin, HBSocketChannel):
     pass
 
 
-class QtKernelManager(QtKernelManagerMixin, KernelManager, SuperQObject):
+class QtKernelManager(QtKernelManagerMixin, KernelManager):
     """ A KernelManager that provides signals and slots.
     """
-
-    __metaclass__ = MetaQObjectHasTraits
 
     sub_channel_class = Type(QtSubSocketChannel)
     shell_channel_class = Type(QtShellSocketChannel)

@@ -5,8 +5,8 @@
 from IPython.external.qt import QtCore
 
 # IPython imports.
-from IPython.utils.traitlets import Type
-from util import SuperQObject
+from IPython.utils.traitlets import HasTraits, Type
+from util import MetaQObjectHasTraits, SuperQObject
 
 
 class ChannelQObject(SuperQObject):
@@ -189,9 +189,11 @@ class QtHBChannelMixin(ChannelQObject):
         self.kernel_died.emit(since_last_heartbeat)
 
 
-class QtKernelManagerMixin(object):
+class QtKernelManagerMixin(HasTraits, SuperQObject):
     """ A KernelManager that provides signals and slots.
     """
+
+    __metaclass__ = MetaQObjectHasTraits
 
     # Emitted when the kernel manager has started listening.
     started_kernel = QtCore.Signal()
