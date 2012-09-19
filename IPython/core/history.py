@@ -221,7 +221,6 @@ class HistoryAccessor(Configurable):
     ## -------------------------------
     ## Methods for retrieving history:
     ## -------------------------------
-    @catch_corrupt_db
     def _run_sql(self, sql, params, raw=True, output=False):
         """Prepares and runs an SQL query for the history database.
 
@@ -278,6 +277,7 @@ class HistoryAccessor(Configurable):
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
 
+    @catch_corrupt_db
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
 
@@ -305,6 +305,7 @@ class HistoryAccessor(Configurable):
             return reversed(list(cur)[1:])
         return reversed(list(cur))
 
+    @catch_corrupt_db
     def search(self, pattern="*", raw=True, search_raw=True,
                output=False, n=None):
         """Search the database using unix glob-style matching (wildcards
@@ -339,7 +340,8 @@ class HistoryAccessor(Configurable):
         if n is not None:
             return reversed(list(cur))
         return cur
-
+    
+    @catch_corrupt_db
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
 
