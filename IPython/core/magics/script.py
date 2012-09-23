@@ -12,6 +12,7 @@
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import errno
 import os
 import re
 import sys
@@ -184,8 +185,15 @@ class ScriptMagics(Magics, Configurable):
         """
         argv = arg_split(line, posix = not sys.platform.startswith('win'))
         args, cmd = self.shebang.parser.parse_known_args(argv)
-
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        
+        try:
+            p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                print "Couldn't find program: %r" % cmd[0]
+                return
+            else:
+                raise
         
         cell = cell.encode('utf8', 'replace')
         if args.bg:
