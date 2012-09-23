@@ -41,6 +41,7 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
+            onUpdate: $.proxy(function(){this.set_input_prompt()},this),
             extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
@@ -210,10 +211,33 @@ var IPython = (function (IPython) {
     };
 
 
+
+
+
+    CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
+        var ns = prompt_value || "&nbsp;";
+        return 'In&nbsp;[' + ns + ']:'
+    };
+    
+    CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
+        var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
+        for(var i=1; i < lines_number; i++){html.push(['...:'])};
+        return html.join('</br>')
+    };
+    
+    CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
+
+
     CodeCell.prototype.set_input_prompt = function (number) {
-        this.input_prompt_number = number;
-        var ns = number || "&nbsp;";
-        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
+        var nline = 1
+        if( this.code_mirror != undefined) {
+           nline = this.code_mirror.lineCount();
+        }
+        if (number){
+            this.input_prompt_number = number;
+        }
+        var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
+        this.element.find('div.input_prompt').html(prompt_html);
     };
 
 
