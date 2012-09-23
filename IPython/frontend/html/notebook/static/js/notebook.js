@@ -550,6 +550,11 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.insert_cell_at_bottom = function (type){
+        var len = this.ncells();
+        return this.insert_cell_below(type,len-1);
+    }
+
     Notebook.prototype.insert_cell_below = function (type, index) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert below selected
