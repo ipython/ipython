@@ -14,7 +14,7 @@ Useful for test suites and blocking terminal interfaces.
 #-----------------------------------------------------------------------------
 
 # Local imports.
-from IPython.embedded.blockingkernelmanager import BlockingChannelMixin
+from IPython.inprocess.blockingkernelmanager import BlockingChannelMixin
 from IPython.utils.traitlets import Type
 from kernelmanager import KernelManager, SubSocketChannel, HBSocketChannel, \
     ShellSocketChannel, StdInSocketChannel

@@ -1,4 +1,4 @@
-""" An embedded (in-process) kernel. """
+""" An in-process kernel. """
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012  The IPython Development Team
@@ -17,7 +17,7 @@ import logging
 import sys
 
 # Local imports.
-from IPython.embedded.socket import DummySocket
+from IPython.inprocess.socket import DummySocket
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Any, Instance, List
 from IPython.zmq.ipkernel import Kernel
@@ -26,14 +26,14 @@ from IPython.zmq.ipkernel import Kernel
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-class EmbeddedKernel(Kernel):
+class InProcessKernel(Kernel):
 
     #-------------------------------------------------------------------------
-    # EmbeddedKernel interface
+    # InProcessKernel interface
     #-------------------------------------------------------------------------
 
     frontends = List(
-        Instance('IPython.embedded.kernelmanager.EmbeddedKernelManager'))
+        Instance('IPython.inprocess.kernelmanager.InProcessKernelManager'))
 
     raw_input_str = Any()
     stdout = Any()
@@ -52,21 +52,21 @@ class EmbeddedKernel(Kernel):
         # When an InteractiveShell is instantiated by our base class, it binds
         # the current values of sys.stdout and sys.stderr.
         with self._redirected_io():
-            super(EmbeddedKernel, self).__init__(**traits)
+            super(InProcessKernel, self).__init__(**traits)
 
         self.iopub_socket.on_trait_change(self._io_dispatch, 'message_sent')
 
     def execute_request(self, stream, ident, parent):
         """ Override for temporary IO redirection. """
         with self._redirected_io():
-            super(EmbeddedKernel, self).execute_request(stream, ident, parent)
+            super(InProcessKernel, self).execute_request(stream, ident, parent)
 
     def start(self):
         """ Override registration of dispatchers for streams. """
         self.shell.exit_now = False
 
     def _abort_queue(self, stream):
-        """ The embedded kernel don't abort requests. """
+        """ The in-process kernel doesn't abort requests. """
         pass
 
     def _raw_input(self, prompt, ident, parent):

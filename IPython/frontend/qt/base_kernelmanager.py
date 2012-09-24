@@ -34,7 +34,7 @@ class ChannelQObject(SuperQObject):
         self.stopped.emit()
 
     #---------------------------------------------------------------------------
-    # EmbeddedChannel interface
+    # InProcessChannel interface
     #---------------------------------------------------------------------------
 
     def call_handlers_later(self, *args, **kwds):

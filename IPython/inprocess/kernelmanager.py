@@ -1,4 +1,4 @@
-""" A kernel manager for embedded (in-process) kernels. """
+""" A kernel manager for in-process kernels. """
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012  The IPython Development Team
@@ -13,19 +13,19 @@
 
 # Local imports.
 from IPython.config.loader import Config
-from IPython.embedded.socket import DummySocket
+from IPython.inprocess.socket import DummySocket
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type
 
 #-----------------------------------------------------------------------------
 # Channel classes
 #-----------------------------------------------------------------------------
 
-class EmbeddedChannel(object):
-    """ Base class for embedded channels.
+class InProcessChannel(object):
+    """ Base class for in-process channels.
     """
 
     def __init__(self, manager):
-        super(EmbeddedChannel, self).__init__()
+        super(InProcessChannel, self).__init__()
         self.manager = manager
         self._is_alive = False
 
@@ -50,7 +50,7 @@ class EmbeddedChannel(object):
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
     #--------------------------------------------------------------------------
-    # EmbeddedChannel interface
+    # InProcessChannel interface
     #--------------------------------------------------------------------------
 
     def call_handlers_later(self, *args, **kwds):
@@ -71,7 +71,7 @@ class EmbeddedChannel(object):
         raise NotImplementedError
 
 
-class ShellEmbeddedChannel(EmbeddedChannel):
+class ShellInProcessChannel(InProcessChannel):
     """The DEALER channel for issues request/replies to the kernel.
     """
 
@@ -215,10 +215,10 @@ class ShellEmbeddedChannel(EmbeddedChannel):
     def shutdown(self, restart=False):
         """ Request an immediate kernel shutdown.
 
-        A dummy method for the embedded kernel.
+        A dummy method for the in-process kernel.
         """
         # FIXME: What to do here?
-        raise NotImplementedError('Shutdown not supported for embedded kernel')
+        raise NotImplementedError('Cannot shutdown in-process kernel')
 
     #--------------------------------------------------------------------------
     # Protected interface
@@ -240,19 +240,19 @@ class ShellEmbeddedChannel(EmbeddedChannel):
         self.call_handlers_later(reply_msg)
 
 
-class SubEmbeddedChannel(EmbeddedChannel):
+class SubInProcessChannel(InProcessChannel):
     """The SUB channel which listens for messages that the kernel publishes. 
     """
 
     def flush(self, timeout=1.0):
         """ Immediately processes all pending messages on the SUB channel.
 
-        A dummy method for the embedded kernel.
+        A dummy method for the in-process kernel.
         """
         pass
 
 
-class StdInEmbeddedChannel(EmbeddedChannel):
+class StdInInProcessChannel(InProcessChannel):
     """ A reply channel to handle raw_input requests that the kernel makes. """
 
     def input(self, string):
@@ -264,13 +264,13 @@ class StdInEmbeddedChannel(EmbeddedChannel):
         kernel.raw_input_str = string
 
 
-class HBEmbeddedChannel(EmbeddedChannel):
+class HBInProcessChannel(InProcessChannel):
     """ A dummy heartbeat channel. """
 
     time_to_dead = 3.0
 
     def __init__(self, *args, **kwds):
-        super(HBEmbeddedChannel, self).__init__(*args, **kwds)
+        super(HBInProcessChannel, self).__init__(*args, **kwds)
         self._pause = True
 
     def pause(self):
@@ -290,8 +290,8 @@ class HBEmbeddedChannel(EmbeddedChannel):
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
-class EmbeddedKernelManager(HasTraits):
-    """ A manager for an embedded kernel.
+class InProcessKernelManager(HasTraits):
+    """ A manager for an in-process kernel.
 
     This class implements most of the interface of
     ``IPython.zmq.kernelmanager.KernelManager`` and allows (asynchronous)
@@ -307,13 +307,13 @@ class EmbeddedKernelManager(HasTraits):
         return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.
-    kernel = Instance('IPython.embedded.ipkernel.EmbeddedKernel')
+    kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(ShellEmbeddedChannel)
-    sub_channel_class = Type(SubEmbeddedChannel)
-    stdin_channel_class = Type(StdInEmbeddedChannel)
-    hb_channel_class = Type(HBEmbeddedChannel)
+    shell_channel_class = Type(ShellInProcessChannel)
+    sub_channel_class = Type(SubInProcessChannel)
+    stdin_channel_class = Type(StdInInProcessChannel)
+    hb_channel_class = Type(HBInProcessChannel)
 
     # Protected traits.
     _shell_channel = Any
@@ -365,8 +365,8 @@ class EmbeddedKernelManager(HasTraits):
     def start_kernel(self, **kwds):
         """ Starts a kernel process and configures the manager to use it.
         """
-        from IPython.embedded.ipkernel import EmbeddedKernel
-        self.kernel = EmbeddedKernel()
+        from IPython.inprocess.ipkernel import InProcessKernel
+        self.kernel = InProcessKernel()
         self.kernel.frontends.append(self)
 
     def shutdown_kernel(self):
@@ -398,11 +398,11 @@ class EmbeddedKernelManager(HasTraits):
 
     def interrupt_kernel(self):
         """ Interrupts the kernel. """
-        raise NotImplementedError("Cannot interrupt embedded kernel.")
+        raise NotImplementedError("Cannot interrupt in-process kernel.")
 
     def signal_kernel(self, signum):
         """ Sends a signal to the kernel. """
-        raise NotImplementedError("Cannot signal embedded kernel.")
+        raise NotImplementedError("Cannot signal in-process kernel.")
 
     @property
     def is_alive(self):

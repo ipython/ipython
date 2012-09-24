@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 
 from IPython.config import Configurable
-from IPython.embedded.socket import SocketABC
+from IPython.inprocess.socket import SocketABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Dict, CBytes
 from IPython.zmq.serialize import serialize_object
