@@ -47,7 +47,8 @@ from IPython.utils import py3compat
 from IPython.utils.frame import extract_module_locals
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
-    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode
+    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode,
+    Type
 )
 
 from entry_point import base_launch_kernel
@@ -75,6 +76,8 @@ class Kernel(Configurable):
         loop.add_timeout(time.time()+0.1, self.enter_eventloop)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell_class = Type(ZMQInteractiveShell)
+
     session = Instance(Session)
     profile_dir = Instance('IPython.core.profiledir.ProfileDir')
     shell_streams = List()
@@ -137,7 +140,7 @@ class Kernel(Configurable):
         super(Kernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
-        self.shell = ZMQInteractiveShell.instance(config=self.config,
+        self.shell = self.shell_class.instance(config=self.config,
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,
