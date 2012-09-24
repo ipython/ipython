@@ -6,23 +6,17 @@ from docutils import io, nodes, statemachine, utils
 from docutils.error_reporting import ErrorString
 from docutils.parsers.rst import Directive, convert_directive_function
 from docutils.parsers.rst import directives, roles, states
-from docutils.parsers.rst.directives.body import CodeBlock, NumberLines
 from docutils.parsers.rst.roles import set_classes
 from docutils.transforms import misc
 
 from nbconvert import ConverterHTML
 
+
 class Notebook(Directive):
-
     """
-    Pass through content unchanged
-
-    Content is included in output based on type argument
-
-    Content may be included inline (content section of directive) or
-    imported from a file or url.
+    Use nbconvert to insert a notebook into the environment.
+    This is based on the Raw directive in docutils
     """
-
     required_arguments = 1
     optional_arguments = 0
     final_argument_whitespace = True
@@ -38,7 +32,7 @@ class Notebook(Directive):
         attributes = {'format': 'html'}
         encoding = self.options.get(
             'encoding', self.state.document.settings.input_encoding)
-        e_handler=self.state.document.settings.input_encoding_error_handler
+        e_handler = self.state.document.settings.input_encoding_error_handler
 
         # get path to notebook
         source_dir = os.path.dirname(
@@ -50,9 +44,8 @@ class Notebook(Directive):
         # convert notebook to html
         converter = ConverterHTML(path)
         htmlfname = converter.render()
-
         htmlpath = utils.relative_path(None, htmlfname)
-            
+
         try:
             raw_file = io.FileInput(source_path=htmlpath,
                                     encoding=encoding,
@@ -70,21 +63,23 @@ class Notebook(Directive):
                               % (self.name, ErrorString(error)))
         attributes['source'] = htmlpath
 
-        
+        nb_node = notebook('', text, **attributes)
+        (nb_node.source,
+        nb_node.line) = self.state_machine.get_source_and_line(self.lineno)
+        return [nb_node]
 
-        raw_node = nodes.raw('', text, **attributes)
-        (raw_node.source,
-        raw_node.line) = self.state_machine.get_source_and_line(self.lineno)
-        return [raw_node]
 
-class notebook(nodes.General, nodes.Element):
+class notebook(nodes.raw):
     pass
+
 
 def visit_notebook_node(self, node):
     self.visit_raw(node)
 
+
 def depart_notebook_node(self, node):
     self.depart_raw(node)
+
 
 def setup(app):
     app.add_node(notebook,
