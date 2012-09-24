@@ -34,7 +34,7 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
-from IPython.embedded.socket import SocketABC
+from IPython.inprocess.socket import SocketABC
 from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )

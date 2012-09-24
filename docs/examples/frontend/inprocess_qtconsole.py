@@ -1,6 +1,6 @@
-from IPython.embedded.ipkernel import EmbeddedKernel
+from IPython.inprocess.ipkernel import InProcessKernel
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.embedded_kernelmanager import QtEmbeddedKernelManager
+from IPython.frontend.qt.inprocess_kernelmanager import QtInProcessKernelManager
 from IPython.lib import guisupport
 
 
@@ -8,11 +8,11 @@ def main():
     app = guisupport.get_app_qt4()
 
     # Create a kernel and populate the namespace.
-    kernel = EmbeddedKernel()
+    kernel = InProcessKernel()
     kernel.shell.push({'x': 0, 'y': 1, 'z': 2})
 
     # Create a kernel manager for the frontend and register it with the kernel.
-    km = QtEmbeddedKernelManager(kernel=kernel)
+    km = QtInProcessKernelManager(kernel=kernel)
     km.start_channels()
     kernel.frontends.append(km)
 

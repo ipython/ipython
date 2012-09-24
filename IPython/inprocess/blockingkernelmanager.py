@@ -20,8 +20,8 @@ from threading import Event
 
 # Local imports.
 from IPython.utils.traitlets import Type
-from kernelmanager import EmbeddedKernelManager, ShellEmbeddedChannel, \
-    SubEmbeddedChannel, StdInEmbeddedChannel
+from kernelmanager import InProcessKernelManager, ShellInProcessChannel, \
+    SubInProcessChannel, StdInInProcessChannel
 
 #-----------------------------------------------------------------------------
 # Utility classes
@@ -58,18 +58,18 @@ class BlockingChannelMixin(object):
 # Blocking kernel manager
 #-----------------------------------------------------------------------------
 
-class BlockingShellEmbeddedChannel(BlockingChannelMixin, ShellEmbeddedChannel):
+class BlockingShellInProcessChannel(BlockingChannelMixin, ShellInProcessChannel):
     pass
 
-class BlockingSubEmbeddedChannel(BlockingChannelMixin, SubEmbeddedChannel):
+class BlockingSubInProcessChannel(BlockingChannelMixin, SubInProcessChannel):
     pass
 
-class BlockingStdInEmbeddedChannel(BlockingChannelMixin, StdInEmbeddedChannel):
+class BlockingStdInInProcessChannel(BlockingChannelMixin, StdInInProcessChannel):
     pass
 
-class BlockingEmbeddedKernelManager(EmbeddedKernelManager):
+class BlockingInProcessKernelManager(InProcessKernelManager):
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingShellEmbeddedChannel)
-    sub_channel_class = Type(BlockingSubEmbeddedChannel)
-    stdin_channel_class = Type(BlockingStdInEmbeddedChannel)
+    shell_channel_class = Type(BlockingShellInProcessChannel)
+    sub_channel_class = Type(BlockingSubInProcessChannel)
+    stdin_channel_class = Type(BlockingStdInInProcessChannel)
