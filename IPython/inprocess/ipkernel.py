@@ -17,10 +17,12 @@ import logging
 import sys
 
 # Local imports.
+from IPython.core.interactiveshell import InteractiveShellABC
 from IPython.inprocess.socket import DummySocket
 from IPython.utils.jsonutil import json_clean
-from IPython.utils.traitlets import Any, Instance, List
+from IPython.utils.traitlets import Any, Enum, Instance, List, Type
 from IPython.zmq.ipkernel import Kernel
+from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -32,8 +34,16 @@ class InProcessKernel(Kernel):
     # InProcessKernel interface
     #-------------------------------------------------------------------------
 
+    # The frontends connected to this kernel.
     frontends = List(
         Instance('IPython.inprocess.kernelmanager.InProcessKernelManager'))
+
+    # The GUI environment that the kernel is running under. This need not be
+    # specified for the normal operation for the kernel, but is required for
+    # IPython's GUI support (including pylab). The default is 'inline' because
+    # it is safe under all GUI toolkits.
+    gui = Enum(('tk', 'gtk', 'wx', 'qt', 'qt4', 'inline'),
+               default_value='inline')
 
     raw_input_str = Any()
     stdout = Any()
@@ -43,6 +53,7 @@ class InProcessKernel(Kernel):
     # Kernel interface
     #-------------------------------------------------------------------------
 
+    shell_class = Type()
     shell_streams = List()
     control_stream = Any()
     iopub_socket = Instance(DummySocket, ())
@@ -55,6 +66,7 @@ class InProcessKernel(Kernel):
             super(InProcessKernel, self).__init__(**traits)
 
         self.iopub_socket.on_trait_change(self._io_dispatch, 'message_sent')
+        self.shell.kernel = self
 
     def execute_request(self, stream, ident, parent):
         """ Override for temporary IO redirection. """
@@ -122,6 +134,9 @@ class InProcessKernel(Kernel):
         from IPython.zmq.session import Session
         return Session(config=self.config)
 
+    def _shell_class_default(self):
+        return InProcessInteractiveShell
+
     def _stdout_default(self):
         from IPython.zmq.iostream import OutStream
         return OutStream(self.session, self.iopub_socket, u'stdout')
@@ -129,3 +144,33 @@ class InProcessKernel(Kernel):
     def _stderr_default(self):
         from IPython.zmq.iostream import OutStream
         return OutStream(self.session, self.iopub_socket, u'stderr')
+
+#-----------------------------------------------------------------------------
+# Interactive shell subclass
+#-----------------------------------------------------------------------------
+
+class InProcessInteractiveShell(ZMQInteractiveShell):
+
+    kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
+
+    #-------------------------------------------------------------------------
+    # InteractiveShell interface
+    #-------------------------------------------------------------------------
+
+    def enable_gui(self, gui=None):
+        """ Enable GUI integration for the kernel.
+        """
+        from IPython.zmq.eventloops import enable_gui
+        if not gui:
+            gui = self.kernel.gui
+        enable_gui(gui, kernel=self.kernel)
+
+    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+        """ Activate pylab support at runtime.
+        """
+        if not gui:
+            gui = self.kernel.gui
+        super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
+                                                            welcome_message)
+
+InteractiveShellABC.register(InProcessInteractiveShell)

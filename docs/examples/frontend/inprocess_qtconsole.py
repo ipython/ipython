@@ -14,8 +14,18 @@ from IPython.lib import guisupport
 def main():
     app = guisupport.get_app_qt4()
 
-    # Create a kernel and populate the namespace.
-    kernel = InProcessKernel()
+    # Create a kernel. 
+    #
+    # Setting the GUI is not necessary for the normal operation of the kernel,
+    # but it is used for IPython GUI's integration, particularly in pylab. By
+    # default, the inline backend is used, which is safe under all toolkits.
+    #
+    # WARNING: Under no circumstances should another GUI toolkit, like wx, be
+    # used when running a Qt application. This will lead to unexpected behavior,
+    # including segfaults.
+    kernel = InProcessKernel(gui='qt4')
+
+    # Populate the kernel's namespace.
     kernel.shell.push({'x': 0, 'y': 1, 'z': 2})
 
     # Create a kernel manager for the frontend and register it with the kernel.
