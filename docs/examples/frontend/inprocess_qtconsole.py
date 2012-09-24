@@ -1,3 +1,10 @@
+""" A simple example of using the Qt console with an in-process kernel.
+
+We shall see how to create the frontend widget, create an in-process kernel,
+push Python objects into the kernel's namespace, and execute code in the
+kernel, both directly and via the frontend widget.
+"""
+
 from IPython.inprocess.ipkernel import InProcessKernel
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.inprocess_kernelmanager import QtInProcessKernelManager
