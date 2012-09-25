@@ -902,8 +902,8 @@ class IPythonInputSplitter(InputSplitter):
             push = super(IPythonInputSplitter, self).push
             buf = self._buffer
             for line in lines_list:
-                if self._is_complete or not buf or \
-                       (buf and buf[-1].rstrip().endswith((':', ','))):
+                if (self._is_complete or not buf or
+                       buf[-1].rstrip().endswith((':', ',')) or buf[-1].lstrip().startswith('@')):
                     for f in transforms:
                         line = f(line)
 
