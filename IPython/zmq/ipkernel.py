@@ -84,6 +84,7 @@ class Kernel(Configurable):
     control_stream = Instance(ZMQStream)
     iopub_socket = Instance(zmq.Socket)
     stdin_socket = Instance(zmq.Socket)
+    sys_raw_input = Any()
     log = Instance(logging.Logger)
     
     user_module = Any()
@@ -352,8 +353,10 @@ class Kernel(Configurable):
             raw_input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
+            self.sys_raw_input = __builtin__.input
             __builtin__.input = raw_input
         else:
+            self.sys_raw_input = __builtin__.raw_input
             __builtin__.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
@@ -385,6 +388,12 @@ class Kernel(Configurable):
             reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
             status = u'ok'
+        finally:
+            # Restore raw_input.
+             if py3compat.PY3:
+                 __builtin__.input = self.sys_raw_input
+             else:
+                 __builtin__.raw_input = self.sys_raw_input
 
         reply_content[u'status'] = status
 
