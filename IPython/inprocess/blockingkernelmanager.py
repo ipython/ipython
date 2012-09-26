@@ -19,6 +19,7 @@ import Queue
 from threading import Event
 
 # Local imports.
+from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Type
 from kernelmanager import InProcessKernelManager, ShellInProcessChannel, \
     SubInProcessChannel, StdInInProcessChannel
@@ -65,7 +66,18 @@ class BlockingSubInProcessChannel(BlockingChannelMixin, SubInProcessChannel):
     pass
 
 class BlockingStdInInProcessChannel(BlockingChannelMixin, StdInInProcessChannel):
-    pass
+    
+    def call_handlers(self, msg):
+        """ Overridden for the in-process channel.
+
+        This methods simply calls raw_input directly.
+        """
+        msg_type = msg['header']['msg_type']
+        if msg_type == 'input_request':
+            raw_input = self.manager.kernel.sys_raw_input
+            prompt = msg['content']['prompt']
+            raw_print(prompt, end='')
+            self.input(raw_input())
 
 class BlockingInProcessKernelManager(InProcessKernelManager):
 

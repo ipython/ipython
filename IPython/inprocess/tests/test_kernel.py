@@ -11,6 +11,8 @@
 from __future__ import print_function
 
 # Standard library imports
+from StringIO import StringIO
+import sys
 import unittest
 
 # Local imports
@@ -33,6 +35,21 @@ class InProcessKernelTestCase(unittest.TestCase):
         km.shell_channel.execute('%pylab')
         msg = get_stream_message(km)
         self.assert_('Welcome to pylab' in msg['content']['data'])
+
+    def test_raw_input(self):
+        """ Does the in-process kernel handle raw_input correctly?
+        """
+        km = BlockingInProcessKernelManager()
+        km.start_kernel()
+
+        io = StringIO('foobar\n')
+        sys_stdin = sys.stdin
+        sys.stdin = io
+        try:
+            km.shell_channel.execute('x = raw_input()')
+        finally:
+            sys.stdin = sys_stdin
+        self.assertEqual(km.kernel.shell.user_ns.get('x'), 'foobar')
 
     def test_stdout(self):
         """ Does the in-process kernel correctly capture IO?
