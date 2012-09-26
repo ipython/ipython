@@ -438,6 +438,31 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertNotPrints('-55'):
             ip.run_cell('print (n)')
 
+class IntegerWrapper(ast.NodeTransformer):
+    """Wraps all integers in a call to Integer()"""
+    def visit_Num(self, node):
+        if isinstance(node.n, int):
+            return ast.Call(func=ast.Name(id='Integer', ctx=ast.Load()),
+                            args=[node], keywords=[])
+
+class TestAstTransform2(unittest.TestCase):
+    def setUp(self):
+        self.intwrapper = IntegerWrapper()
+        ip.ast_transformers.append(self.intwrapper)
+        
+        self.calls = []
+        def Integer(*args):
+            self.calls.append(args)
+        ip.push({"Integer": Integer})
+    
+    def tearDown(self):
+        ip.ast_transformers.remove(self.intwrapper)
+        del ip.user_ns['Integer']
+    
+    def test_run_cell(self):
+        ip.run_cell("n = 2")
+        self.assertEqual(self.calls, [(2,)])
+
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
     def visit_Num(self):
