@@ -31,6 +31,7 @@ from IPython.config.configurable import Configurable
 from IPython.config.loader import Config
 from IPython.core import pylabtools
 from IPython.utils import py3compat
+from IPython.utils.contexts import preserve_keys
 from IPython.utils.path import filefind
 from IPython.utils.traitlets import (
     Unicode, Instance, List, Bool, CaselessStrEnum
@@ -277,20 +278,18 @@ class InteractiveShellApp(Configurable):
             sys.argv = [ py3compat.cast_bytes(a) for a in sys.argv ]
         try:
             if os.path.isfile(full_filename):
-                if full_filename.endswith('.ipy'):
-                    self.log.info("Running file in user namespace: %s" %
-                                  full_filename)
-                    self.shell.safe_execfile_ipy(full_filename)
-                else:
-                    # default to python, even without extension
-                    self.log.info("Running file in user namespace: %s" %
-                                  full_filename)
-                    # Ensure that __file__ is always defined to match Python behavior
+                self.log.info("Running file in user namespace: %s" %
+                              full_filename)
+                # Ensure that __file__ is always defined to match Python
+                # behavior.
+                with preserve_keys(self.shell.user_ns, '__file__'):
                     self.shell.user_ns['__file__'] = fname
-                    try:
-                        self.shell.safe_execfile(full_filename, self.shell.user_ns)
-                    finally:
-                        del self.shell.user_ns['__file__']
+                    if full_filename.endswith('.ipy'):
+                        self.shell.safe_execfile_ipy(full_filename)
+                    else:
+                        # default to python, even without extension
+                        self.shell.safe_execfile(full_filename,
+                                                 self.shell.user_ns)
         finally:
             sys.argv = save_argv
 
