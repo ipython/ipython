@@ -60,6 +60,18 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         km.shell_channel.execute('foo = 1')
         self.assertEquals(km.kernel.shell.user_ns['foo'], 1)
 
+    def test_complete(self):
+        """ Does requesting completion from an in-process kernel work?
+        """
+        km = BlockingInProcessKernelManager()
+        km.start_kernel()
+        km.kernel.shell.push({'my_bar': 0, 'my_baz': 1})
+        km.shell_channel.complete('my_ba', 'my_ba', 5)
+        msg = km.shell_channel.get_msg()
+        self.assertEquals(msg['header']['msg_type'], 'complete_reply')
+        self.assertEquals(sorted(msg['content']['matches']),
+                          ['my_bar', 'my_baz'])
+
     def test_object_info(self):
         """ Does requesting object information from an in-process kernel work?
         """
@@ -71,6 +83,19 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         self.assertEquals(msg['header']['msg_type'], 'object_info_reply')
         self.assertEquals(msg['content']['name'], 'foo')
         self.assertEquals(msg['content']['type_name'], 'int')
+
+    def test_history(self):
+        """ Does requesting history from an in-process kernel work?
+        """
+        km = BlockingInProcessKernelManager()
+        km.start_kernel()
+        km.shell_channel.execute('%who')
+        km.shell_channel.history(hist_access_type='tail', n=1)
+        msg = km.shell_channel.get_msgs()[-1]
+        self.assertEquals(msg['header']['msg_type'], 'history_reply')
+        history = msg['content']['history']
+        self.assertEquals(len(history), 1)
+        self.assertEquals(history[0][2], '%who')
 
 
 if __name__ == '__main__':
