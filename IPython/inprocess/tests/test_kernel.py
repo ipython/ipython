@@ -19,6 +19,7 @@ import unittest
 from IPython.inprocess.blockingkernelmanager import \
     BlockingInProcessKernelManager
 from IPython.inprocess.ipkernel import InProcessKernel
+from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
 
 #-----------------------------------------------------------------------------
@@ -27,6 +28,7 @@ from IPython.utils.io import capture_output
 
 class InProcessKernelTestCase(unittest.TestCase):
 
+    @skipif_not_matplotlib
     def test_pylab(self):
         """ Does pylab work in the in-process kernel?
         """
