@@ -892,20 +892,31 @@ python-profiler package from non-free.""")
         # fail immediately if the given expression can't be compiled
 
         expr = self.shell.prefilter(parameter_s,False)
+        
+        # Minimum time above which parse time will be reported
+        tp_min = 0.1
+        
+        t0 = clock()
+        expr_ast = ast.parse(expr)
+        tp = clock()-t0
+        
+        # Apply AST transformations
+        expr_ast = self.shell.transform_ast(expr_ast)
 
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
-        try:
+        if len(expr_ast.body)==1 and isinstance(expr_ast.body[0], ast.Expr):
             mode = 'eval'
-            t0 = clock()
-            code = compile(expr,'<timed eval>',mode)
-            tc = clock()-t0
-        except SyntaxError:
+            source = '<timed eval>'
+            expr_ast = ast.Expression(expr_ast.body[0].value)
+        else:
             mode = 'exec'
-            t0 = clock()
-            code = compile(expr,'<timed exec>',mode)
-            tc = clock()-t0
+            source = '<timed exec>'
+        t0 = clock()
+        code = compile(expr_ast, source, mode)
+        tc = clock()-t0
+        
         # skew measurement as little as possible
         glob = self.shell.user_ns
         wtime = time.time
@@ -931,6 +942,8 @@ python-profiler package from non-free.""")
         print "Wall time: %.2f s" % wall_time
         if tc > tc_min:
             print "Compiler : %.2f s" % tc
+        if tp > tp_min:
+            print "Parser   : %.2f s" % tp
         return out
 
     @skip_doctest

@@ -452,6 +452,23 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertPrints("best of "):
             ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
         self.assertEqual(called, set([-2, -3]))
+    
+    def test_time(self):
+        called = []
+        def f(x):
+            called.append(x)
+        ip.push({'f':f})
+        
+        # Test with an expression
+        with tt.AssertPrints("CPU times"):
+            ip.run_line_magic("time", "f(5+9)")
+        self.assertEqual(called, [-14])
+        called[:] = []
+        
+        # Test with a statement (different code path)
+        with tt.AssertPrints("CPU times"):
+            ip.run_line_magic("time", "a = f(-3 + -2)")
+        self.assertEqual(called, [5])
 
 class IntegerWrapper(ast.NodeTransformer):
     """Wraps all integers in a call to Integer()"""
