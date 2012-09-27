@@ -99,8 +99,9 @@ indentationerror_file2 = """    class PastedClass:
         foo = 1
         bar = 3
 
-print PastedClass.__name__
-print 'foo is', PastedClass.foo
+from __future__ import print_function
+print(PastedClass.__name__)
+print('foo is', PastedClass.foo)
 """
 
 class IndentationErrorRetryTest(unittest.TestCase):
