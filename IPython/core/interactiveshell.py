@@ -501,7 +501,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _ipython_dir_changed(self, name, new):
         if not os.path.isdir(new):
-            os.makedirs(new, mode = 0777)
+            os.makedirs(new, mode = 0o777)
 
     def set_autoindent(self,value=None):
         """Set the autoindent flag, checking for readline support.
