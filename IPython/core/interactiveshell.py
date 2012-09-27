@@ -2611,13 +2611,20 @@ class InteractiveShell(SingletonConfigurable):
 
                 with self.display_trap:
                     try:
-                        code_ast = self.compile.ast_parse(cell,
-                                                          filename=cell_name)
-                    except IndentationError:
-                        self.showindentationerror()
-                        if store_history:
-                            self.execution_count += 1
-                        return None
+                        try:  # try a few ways of handling indentation errors
+                            code_ast = self.compile.ast_parse(cell,
+                                                            filename=cell_name)
+                        except IndentationError:
+                            #import ipdb; ipdb.set_trace()
+                            indent_safe_cell = 'if True:\n' + cell
+                            try:
+                                code_ast = self.compile.ast_parse(indent_safe_cell,
+                                                            filename=cell_name)
+                            except IndentationError:
+                                self.showindentationerror()
+                                if store_history:
+                                    self.execution_count += 1
+                                return None
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
                         self.showsyntaxerror()
