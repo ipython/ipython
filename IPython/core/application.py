@@ -181,7 +181,7 @@ class BaseIPythonApplication(Application):
             sys.path.remove(old)
         sys.path.append(os.path.abspath(new))
         if not os.path.isdir(new):
-            os.makedirs(new, mode=0777)
+            os.makedirs(new, mode=0o777)
         readme = os.path.join(new, 'README')
         if not os.path.exists(readme):
             path = os.path.join(get_ipython_package_dir(), u'config', u'profile')
