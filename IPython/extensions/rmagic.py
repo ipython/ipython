@@ -114,13 +114,60 @@ def Rconverter(Robj, dataframe=False):
         Robj = np.rec.fromarrays(Robj, names = names)
     return np.asarray(Robj)
 
+
+def df2struct_array(df):
+    """
+
+    This converts a pandas data-frame into a struct array and corrects its
+    dtype along the way, assuming that object dtypes are actually strings.
+
+    """
+    df_dtypes = df.dtypes
+    arr_dtype = zip([str(k) for k in df_dtypes.keys()],
+                    [df_dtypes[k] for k in df_dtypes.keys()])
+
+    k = df_dtypes.keys()
+
+    for i, this_k in enumerate(k):
+        # We don't want 'object' dtype stuff because R doesn't know what to do
+        # with them exactly. Try to coerce this into a string instead:
+        if arr_dtype[i][1] == np.dtype('object'):
+            arr_dtype[i] = (k[i], 'S3')
+
+    struct_array = np.asarray([tuple(this) for this in np.array(df)],
+                               dtype=arr_dtype)
+
+    return struct_array
+
+def converter(x):
+    """
+    This is a converter function from whatever. The default behavior is to
+    simply run np.asarray over the input, pushing into rpy an array.
+
+    However, if the input is a pandas DataFrame, we need to preprocess it
+    slightly, by adjusting its dtype.
+
+    This is done using the df2struct_array function.
+    """
+    try:
+        # If you don't have pandas available, we will just do np.asarray
+        # anyhow:
+        import pandas as pd
+        if isinstance(x, pd.DataFrame):
+            return df2struct_array(x)
+        else:
+            return np.asarray(x)
+    except ImportError:
+        return np.asarray(x)
+
+
 @magics_class
 class RMagics(Magics):
     """A set of magics useful for interactive work with R via rpy2.
     """
 
     def __init__(self, shell, Rconverter=Rconverter,
-                 pyconverter=np.asarray,
+                 pyconverter=converter,
                  cache_display_data=False):
         """
         Parameters
