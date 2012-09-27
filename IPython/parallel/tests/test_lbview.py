@@ -21,6 +21,7 @@ import time
 
 import zmq
 from nose import SkipTest
+from nose.plugins.attrib import attr
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -38,9 +39,9 @@ class TestLoadBalancedView(ClusterTestCase):
         ClusterTestCase.setUp(self)
         self.view = self.client.load_balanced_view()
 
+    @attr('crash')
     def test_z_crash_task(self):
         """test graceful handling of engine death (balanced)"""
-        raise SkipTest("crash tests disabled, due to undesirable crash reports")
         # self.add_engines(1)
         ar = self.view.apply_async(crash)
         self.assertRaisesRemote(error.EngineError, ar.get, 10)
