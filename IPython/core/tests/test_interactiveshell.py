@@ -469,6 +469,16 @@ class TestAstTransform(unittest.TestCase):
         with tt.AssertPrints("CPU times"):
             ip.run_line_magic("time", "a = f(-3 + -2)")
         self.assertEqual(called, [5])
+    
+    def test_macro(self):
+        ip.push({'a':10})
+        # The AST transformation makes this do a+=-1
+        ip.define_macro("amacro", "a+=1\nprint(a)")
+        
+        with tt.AssertPrints("9"):
+            ip.run_cell("amacro")
+        with tt.AssertPrints("8"):
+            ip.run_cell("amacro")
 
 class IntegerWrapper(ast.NodeTransformer):
     """Wraps all integers in a call to Integer()"""
