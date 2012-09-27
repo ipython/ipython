@@ -110,10 +110,10 @@ class ProfileDir(LoggingConfigurable):
 
     def check_security_dir(self):
         if not os.path.isdir(self.security_dir):
-            os.mkdir(self.security_dir, 0700)
+            os.mkdir(self.security_dir, 0o700)
         else:
             try:
-                os.chmod(self.security_dir, 0700)
+                os.chmod(self.security_dir, 0o700)
             except OSError:
                 self.log.warn("Could not set security dir permissions to private.")
 
@@ -122,10 +122,10 @@ class ProfileDir(LoggingConfigurable):
 
     def check_pid_dir(self):
         if not os.path.isdir(self.pid_dir):
-            os.mkdir(self.pid_dir, 0700)
+            os.mkdir(self.pid_dir, 0o700)
         else:
             try:
-                os.chmod(self.pid_dir, 0700)
+                os.chmod(self.pid_dir, 0o700)
             except OSError:
                 self.log.warn("Could not set pid dir permissions to private.")
 

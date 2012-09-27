@@ -75,7 +75,7 @@ class ExtensionManager(Configurable):
 
     def _on_ipython_dir_changed(self):
         if not os.path.isdir(self.ipython_extension_dir):
-            os.makedirs(self.ipython_extension_dir, mode = 0777)
+            os.makedirs(self.ipython_extension_dir, mode = 0o777)
 
     def load_extension(self, module_str):
         """Load an IPython extension by its module name.
@@ -138,7 +138,7 @@ class ExtensionManager(Configurable):
         """
         # Ensure the extension directory exists
         if not os.path.isdir(self.ipython_extension_dir):
-            os.makedirs(self.ipython_extension_dir, mode = 0777)
+            os.makedirs(self.ipython_extension_dir, mode = 0o777)
         
         if os.path.isfile(url):
             src_filename = os.path.basename(url)
