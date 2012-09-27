@@ -141,13 +141,15 @@ def df2struct_array(df):
 
 def converter(x):
     """
-    This is a converter function from whatever. The default behavior is to
-    simply run np.asarray over the input, pushing into rpy an array.
+    This is a custom converter from the python side into the R side. The
+    default behavior is to simply run np.asarray over the input, providing rpy
+    with an array and letting it do what it does with arrays.
 
     However, if the input is a pandas DataFrame, we need to preprocess it
     slightly, by adjusting its dtype.
 
     This is done using the df2struct_array function.
+
     """
     try:
         # If you don't have pandas available, we will just do np.asarray
