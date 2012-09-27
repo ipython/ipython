@@ -24,6 +24,7 @@ from StringIO import StringIO
 
 import zmq
 from nose import SkipTest
+from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
@@ -51,9 +52,9 @@ class TestView(ClusterTestCase, ParametricTestCase):
             time.sleep(2)
         super(TestView, self).setUp()
 
+    @attr('crash')
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
-        raise SkipTest("crash tests disabled, due to undesirable crash reports")
         # self.add_engines(1)
         eid = self.client.ids[-1]
         ar = self.client[eid].apply_async(crash)
