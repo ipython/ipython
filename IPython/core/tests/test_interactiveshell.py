@@ -437,6 +437,21 @@ class TestAstTransform(unittest.TestCase):
         ip.user_ns['n'] = 55
         with tt.AssertNotPrints('-55'):
             ip.run_cell('print (n)')
+    
+    def test_timeit(self):
+        called = set()
+        def f(x):
+            called.add(x)
+        ip.push({'f':f})
+        
+        with tt.AssertPrints("best of "):
+            ip.run_line_magic("timeit", "-n1 f(1)")
+        self.assertEqual(called, set([-1]))
+        called.clear()
+        
+        with tt.AssertPrints("best of "):
+            ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
+        self.assertEqual(called, set([-2, -3]))
 
 class IntegerWrapper(ast.NodeTransformer):
     """Wraps all integers in a call to Integer()"""
@@ -453,6 +468,7 @@ class TestAstTransform2(unittest.TestCase):
         self.calls = []
         def Integer(*args):
             self.calls.append(args)
+            return args
         ip.push({"Integer": Integer})
     
     def tearDown(self):
@@ -462,6 +478,21 @@ class TestAstTransform2(unittest.TestCase):
     def test_run_cell(self):
         ip.run_cell("n = 2")
         self.assertEqual(self.calls, [(2,)])
+    
+    def test_timeit(self):
+        called = set()
+        def f(x):
+            called.add(x)
+        ip.push({'f':f})
+        
+        with tt.AssertPrints("best of "):
+            ip.run_line_magic("timeit", "-n1 f(1)")
+        self.assertEqual(called, set([(1,)]))
+        called.clear()
+        
+        with tt.AssertPrints("best of "):
+            ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
+        self.assertEqual(called, set([(2,), (3,)]))
 
 class ErrorTransformer(ast.NodeTransformer):
     """Throws an error when it sees a number."""
