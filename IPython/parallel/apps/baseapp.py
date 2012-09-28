@@ -169,8 +169,13 @@ class BaseParallelApplication(BaseIPythonApplication):
         log_dir = self.profile_dir.log_dir
         if self.clean_logs:
             for f in os.listdir(log_dir):
-                if re.match(r'%s-\d+\.(log|err|out)'%self.name,f):
-                    os.remove(os.path.join(log_dir, f))
+                if re.match(r'%s-\d+\.(log|err|out)' % self.name, f):
+                    try:
+                        os.remove(os.path.join(log_dir, f))
+                    except (OSError, IOError):
+                        # probably just conflict from sibling process
+                        # already removing it
+                        pass
         if self.log_to_file:
             # Start logging to the new log file
             log_filename = self.name + u'-' + str(os.getpid()) + u'.log'
