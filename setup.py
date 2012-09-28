@@ -272,6 +272,7 @@ if 'setuptools' in sys.modules:
                 'lib2to3.fixes.fix_apply',
                 'lib2to3.fixes.fix_except',
                 'lib2to3.fixes.fix_has_key',
+                'lib2to3.fixes.fix_import',
                 'lib2to3.fixes.fix_next',
                 'lib2to3.fixes.fix_repr',
                 'lib2to3.fixes.fix_tuple_params',
