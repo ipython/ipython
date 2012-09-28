@@ -396,6 +396,8 @@ class IPTester(object):
         """Run the stored commands"""
         try:
             retcode = self._run_cmd()
+        except KeyboardInterrupt:
+            return -signal.SIGINT
         except:
             import traceback
             traceback.print_exc()
@@ -412,17 +414,22 @@ class IPTester(object):
                 continue # process is already dead
 
             try:
-                print('Cleaning stale PID: %d' % subp.pid)
+                print('Cleaning up stale PID: %d' % subp.pid)
                 subp.kill()
             except: # (OSError, WindowsError) ?
                 # This is just a best effort, if we fail or the process was
                 # really gone, ignore it.
                 pass
+            else:
+                for i in range(10):
+                    if subp.poll() is None:
+                        time.sleep(0.1)
+                    else:
+                        break
 
             if subp.poll() is None:
                 # The process did not die...
-                print('... failed. Manual cleanup may be required.'
-                      % subp.pid)
+                print('... failed. Manual cleanup may be required.')
 
 def make_runners(inc_slow=False):
     """Define the top-level packages that need to be tested.
@@ -535,6 +542,9 @@ def run_iptestall(inc_slow=False):
             res = runner.run()
             if res:
                 failed.append( (name, runner) )
+                if res == -signal.SIGINT:
+                    print("Interrupted")
+                    break
     finally:
         os.chdir(curdir)
     t_end = time.time()
