@@ -25,7 +25,7 @@ from __future__ import print_function
 
 import __builtin__
 
-from sys import platform
+import sys
 
 
 from IPython.config.configurable import Configurable
@@ -270,6 +270,6 @@ class DisplayHook(Configurable):
         import gc
         # TODO: Is this really needed?
         # IronPython blocks here forever
-        if platform!="cli":
+        if sys.platform != "cli":
             gc.collect()
 

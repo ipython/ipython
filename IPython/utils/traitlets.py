@@ -932,9 +932,9 @@ else:
                 # note that int(n > sys.maxint) returns a long, so
                 # we don't need a condition on this cast
                 return int(value)
-            if sys.platform=="cli":
+            if sys.platform == "cli":
                 from System import Int64
-                if isinstance(value,Int64):
+                if isinstance(value, Int64):
                     return int(value)
             self.error(obj, value)
 
