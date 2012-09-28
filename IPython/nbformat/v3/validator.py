@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-from jsonschema import  Validator, validate, ValidationError
-import jsonpointer
+from IPython.external.jsonschema import  Validator, validate, ValidationError
+import IPython.external.jsonpointer as jsonpointer
 import argparse
 import traceback
 import json
