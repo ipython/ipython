@@ -302,7 +302,6 @@ var IPython = (function (IPython) {
 
     RawCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        this.code_mirror.refresh();
         this.code_mirror.focus();
     };
 

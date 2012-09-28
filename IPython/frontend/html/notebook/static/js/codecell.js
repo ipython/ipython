@@ -170,11 +170,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
-        this.code_mirror.refresh();
-        this.code_mirror.focus();
-        // We used to need an additional refresh() after the focus, but
-        // it appears that this has been fixed in CM. This bug would show
-        // up on FF when a newly loaded markdown cell was edited.
     };
 
 
