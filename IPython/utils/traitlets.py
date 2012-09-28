@@ -1225,7 +1225,7 @@ class List(Container):
     """An instance of a Python list."""
     klass = list
 
-    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxint,
+    def __init__(self, trait=None, default_value=None, minlen=0, maxlen=sys.maxsize,
                 allow_none=True, **metadata):
         """Create a List trait type from a list, set, or tuple.
 
@@ -1254,7 +1254,7 @@ class List(Container):
         minlen : Int [ default 0 ]
             The minimum length of the input list
 
-        maxlen : Int [ default sys.maxint ]
+        maxlen : Int [ default sys.maxsize ]
             The maximum length of the input list
 
         allow_none : Bool [ default True ]
