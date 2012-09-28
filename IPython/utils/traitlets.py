@@ -927,11 +927,15 @@ else:
         def validate(self, obj, value):
             if isinstance(value, int):
                 return value
-            elif isinstance(value, long):
+            if isinstance(value, long):
                 # downcast longs that fit in int:
                 # note that int(n > sys.maxint) returns a long, so
                 # we don't need a condition on this cast
                 return int(value)
+            if sys.platform == "cli":
+                from System import Int64
+                if isinstance(value, Int64):
+                    return int(value)
             self.error(obj, value)
 
 
