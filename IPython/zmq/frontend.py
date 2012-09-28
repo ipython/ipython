@@ -17,8 +17,8 @@ import uuid
 
 # our own
 import zmq
-import session
-import completer
+from . import session
+from . import completer
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.zmq.session import Message
 

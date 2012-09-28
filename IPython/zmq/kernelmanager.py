@@ -41,7 +41,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import write_connection_file
-from session import Session
+from .session import Session
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -827,7 +827,7 @@ class KernelManager(HasTraits):
         self._launch_args = kw.copy()
         launch_kernel = kw.pop('launcher', None)
         if launch_kernel is None:
-            from ipkernel import launch_kernel
+            from .ipkernel import launch_kernel
         self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
@@ -954,7 +954,7 @@ class KernelManager(HasTraits):
         """
         if self.has_kernel:
             if sys.platform == 'win32':
-                from parentpoller import ParentPollerWindows as Poller
+                from .parentpoller import ParentPollerWindows as Poller
                 Poller.send_interrupt(self.kernel.win32_interrupt_event)
             else:
                 self.kernel.send_signal(signal.SIGINT)

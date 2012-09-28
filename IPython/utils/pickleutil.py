@@ -30,9 +30,9 @@ try:
 except:
     numpy = None
 
-import codeutil
-import py3compat
-from importstring import import_item
+from . import codeutil
+from . import py3compat
+from .importstring import import_item
 
 from IPython.config import Application
 

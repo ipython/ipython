@@ -47,7 +47,7 @@ from IPython.utils.warn import warn, error
 from IPython.zmq.displayhook import ZMQShellDisplayHook
 from IPython.zmq.datapub import ZMQDataPublisher
 from IPython.zmq.session import extract_header
-from session import Session
+from .session import Session
 
 #-----------------------------------------------------------------------------
 # Functions and classes

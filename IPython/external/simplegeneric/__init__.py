@@ -1,4 +1,4 @@
 try:
     from simplegeneric import *
 except ImportError:
-    from _simplegeneric import *
+    from ._simplegeneric import *

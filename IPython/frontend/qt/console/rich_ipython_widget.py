@@ -17,7 +17,7 @@ from IPython.external.qt import QtCore, QtGui
 # Local imports
 from IPython.utils.traitlets import Bool
 from IPython.frontend.qt.svg import save_svg, svg_to_clipboard, svg_to_image
-from ipython_widget import IPythonWidget
+from .ipython_widget import IPythonWidget
 
 
 class RichIPythonWidget(IPythonWidget):

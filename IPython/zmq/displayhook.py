@@ -4,7 +4,7 @@ import sys
 from IPython.core.displayhook import DisplayHook
 from IPython.utils.jsonutil import encode_images
 from IPython.utils.traitlets import Instance, Dict
-from session import extract_header, Session
+from .session import extract_header, Session
 
 class ZMQDisplayHook(object):
     """A simple displayhook that publishes the object's repr over a ZeroMQ

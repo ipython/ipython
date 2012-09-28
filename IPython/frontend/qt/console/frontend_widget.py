@@ -16,11 +16,11 @@ from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Bool, Instance, Unicode
-from bracket_matcher import BracketMatcher
-from call_tip_widget import CallTipWidget
-from completion_lexer import CompletionLexer
-from history_console_widget import HistoryConsoleWidget
-from pygments_highlighter import PygmentsHighlighter
+from .bracket_matcher import BracketMatcher
+from .call_tip_widget import CallTipWidget
+from .completion_lexer import CompletionLexer
+from .history_console_widget import HistoryConsoleWidget
+from .pygments_highlighter import PygmentsHighlighter
 
 
 class FrontendHighlighter(PygmentsHighlighter):

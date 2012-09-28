@@ -8,7 +8,7 @@ from IPython.external.qt import QtCore
 from IPython.utils.traitlets import Type
 from IPython.zmq.kernelmanager import KernelManager, SubSocketChannel, \
     ShellSocketChannel, StdInSocketChannel, HBSocketChannel
-from util import MetaQObjectHasTraits, SuperQObject
+from .util import MetaQObjectHasTraits, SuperQObject
 
 
 class SocketChannelQObject(SuperQObject):
