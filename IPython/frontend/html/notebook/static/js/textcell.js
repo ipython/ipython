@@ -258,11 +258,19 @@ var IPython = (function (IPython) {
         this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'raw';
+        var that = this
+
+        this.element.focusout(
+                function() { that.auto_highlight(); }
+            );
     };
 
 
     RawCell.prototype = new TextCell();
 
+    RawCell.prototype.auto_highlight = function () {
+        this._auto_highlight(IPython.config.raw_cell_highlight);
+    };
 
     RawCell.prototype.render = function () {
         this.rendered = true;
