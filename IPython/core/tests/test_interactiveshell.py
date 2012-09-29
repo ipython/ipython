@@ -486,6 +486,7 @@ class IntegerWrapper(ast.NodeTransformer):
         if isinstance(node.n, int):
             return ast.Call(func=ast.Name(id='Integer', ctx=ast.Load()),
                             args=[node], keywords=[])
+        return node
 
 class TestAstTransform2(unittest.TestCase):
     def setUp(self):
@@ -505,6 +506,10 @@ class TestAstTransform2(unittest.TestCase):
     def test_run_cell(self):
         ip.run_cell("n = 2")
         self.assertEqual(self.calls, [(2,)])
+        
+        # This shouldn't throw an error
+        ip.run_cell("o = 2.0")
+        self.assertEqual(ip.user_ns['o'], 2.0)
     
     def test_timeit(self):
         called = set()
