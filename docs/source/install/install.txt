@@ -357,8 +357,9 @@ For unusual needs, IPython can tell you what directory it wants to find MathJax 
 
 	python -m IPython.external.mathjax -d
 
-All of these options require write access to the IPython install directory, so if
-you have a system-wide Python install, it may need to be done with ``sudo``.
+By default Mathjax will be installed in your ipython profile directory, but you
+can make system wide install, please refere to the documentation and helper function 
+of IPython.external.mathjax
 
 Browser Compatibility
 ---------------------
