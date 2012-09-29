@@ -1,11 +1,35 @@
 import abc
 import re
+from StringIO import StringIO
+import tokenize
 
 from IPython.core.splitinput import split_user_input, LineInfo
-from IPython.core.inputsplitter import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
-                                        ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
-                                        ESC_QUOTE, ESC_QUOTE2, ESC_PAREN)
-from IPython.core.inputsplitter import EscapedTransformer, _make_help_call, has_comment
+
+#-----------------------------------------------------------------------------
+# Globals
+#-----------------------------------------------------------------------------
+
+# The escape sequences that define the syntax transformations IPython will
+# apply to user input.  These can NOT be just changed here: many regular
+# expressions and other parts of the code may use their hardcoded values, and
+# for all intents and purposes they constitute the 'IPython syntax', so they
+# should be considered fixed.
+
+ESC_SHELL  = '!'     # Send line to underlying system shell
+ESC_SH_CAP = '!!'    # Send line to system shell and capture output
+ESC_HELP   = '?'     # Find information about object
+ESC_HELP2  = '??'    # Find extra-detailed information about object
+ESC_MAGIC  = '%'     # Call magic function
+ESC_MAGIC2 = '%%'    # Call cell-magic function
+ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
+ESC_QUOTE2 = ';'     # Quote all args as a single string, call
+ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
+
+ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
+                 ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,\
+                 ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
+
+
 
 class InputTransformer(object):
     __metaclass__ = abc.ABCMeta
@@ -44,16 +68,81 @@ class CoroutineInputTransformer(InputTransformer):
     def reset(self):
         self.coro.send(None)
 
+
+# Utilities
+def _make_help_call(target, esc, lspace, next_input=None):
+    """Prepares a pinfo(2)/psearch call from a target name and the escape
+    (i.e. ? or ??)"""
+    method  = 'pinfo2' if esc == '??' \
+                else 'psearch' if '*' in target \
+                else 'pinfo'
+    arg = " ".join([method, target])
+    if next_input is None:
+        return '%sget_ipython().magic(%r)' % (lspace, arg)
+    else:
+        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
+           (lspace, next_input, arg)
+
 @CoroutineInputTransformer
 def escaped_transformer():
-    et = EscapedTransformer()
+    """Translate lines beginning with one of IPython's escape characters."""
+    
+    # These define the transformations for the different escape characters.
+    def _tr_system(line_info):
+        "Translate lines escaped with: !"
+        cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
+        return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
+
+    def _tr_system2(line_info):
+        "Translate lines escaped with: !!"
+        cmd = line_info.line.lstrip()[2:]
+        return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
+
+    def _tr_help(line_info):
+        "Translate lines escaped with: ?/??"
+        # A naked help line should just fire the intro help screen
+        if not line_info.line[1:]:
+            return 'get_ipython().show_usage()'
+
+        return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
+
+    def _tr_magic(line_info):
+        "Translate lines escaped with: %"
+        tpl = '%sget_ipython().magic(%r)'
+        cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
+        return tpl % (line_info.pre, cmd)
+
+    def _tr_quote(line_info):
+        "Translate lines escaped with: ,"
+        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+                             '", "'.join(line_info.the_rest.split()) )
+
+    def _tr_quote2(line_info):
+        "Translate lines escaped with: ;"
+        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+                               line_info.the_rest)
+
+    def _tr_paren(line_info):
+        "Translate lines escaped with: /"
+        return '%s%s(%s)' % (line_info.pre, line_info.ifun,
+                             ", ".join(line_info.the_rest.split()))
+    
+    tr = { ESC_SHELL  : _tr_system,
+           ESC_SH_CAP : _tr_system2,
+           ESC_HELP   : _tr_help,
+           ESC_HELP2  : _tr_help,
+           ESC_MAGIC  : _tr_magic,
+           ESC_QUOTE  : _tr_quote,
+           ESC_QUOTE2 : _tr_quote2,
+           ESC_PAREN  : _tr_paren }
+    
     line = ''
     while True:
         line = (yield line)
         if not line or line.isspace():
             continue
         lineinf = LineInfo(line)
-        if lineinf.esc not in et.tr:
+        if lineinf.esc not in tr:
             continue
         
         parts = []
@@ -65,7 +154,7 @@ def escaped_transformer():
         
         # Output
         lineinf = LineInfo(' '.join(parts))
-        line = et.tr[lineinf.esc](lineinf)
+        line = tr[lineinf.esc](lineinf)
 
 _initial_space_re = re.compile(r'\s*')
 
@@ -76,8 +165,31 @@ _help_end_re = re.compile(r"""(%{0,2}
                               (\?\??)$                # ? or ??""",
                               re.VERBOSE)
 
+def has_comment(src):
+    """Indicate whether an input line has (i.e. ends in, or is) a comment.
+
+    This uses tokenize, so it can distinguish comments from # inside strings.
+
+    Parameters
+    ----------
+    src : string
+      A single line input string.
+
+    Returns
+    -------
+    Boolean: True if source has a comment.
+    """
+    readline = StringIO(src).readline
+    toktypes = set()
+    try:
+        for t in tokenize.generate_tokens(readline):
+            toktypes.add(t[0])
+    except tokenize.TokenError:
+        pass
+    return(tokenize.COMMENT in toktypes)
+
 @StatelessInputTransformer
-def transform_help_end(line):
+def help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
     if m is None or has_comment(line):

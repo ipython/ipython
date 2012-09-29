@@ -69,36 +69,24 @@ import ast
 import codeop
 import re
 import sys
-import tokenize
-from StringIO import StringIO
 
 # IPython modules
 from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.utils.py3compat import cast_unicode
+from IPython.core.inputtransformer import (leading_indent,
+                                           classic_prompt,
+                                           ipy_prompt,
+                                           cellmagic,
+                                           help_end,
+                                           escaped_transformer,
+                                           assign_from_magic,
+                                           assign_from_system,
+                                           )
 
-#-----------------------------------------------------------------------------
-# Globals
-#-----------------------------------------------------------------------------
-
-# The escape sequences that define the syntax transformations IPython will
-# apply to user input.  These can NOT be just changed here: many regular
-# expressions and other parts of the code may use their hardcoded values, and
-# for all intents and purposes they constitute the 'IPython syntax', so they
-# should be considered fixed.
-
-ESC_SHELL  = '!'     # Send line to underlying system shell
-ESC_SH_CAP = '!!'    # Send line to system shell and capture output
-ESC_HELP   = '?'     # Find information about object
-ESC_HELP2  = '??'    # Find extra-detailed information about object
-ESC_MAGIC  = '%'     # Call magic function
-ESC_MAGIC2 = '%%'    # Call cell-magic function
-ESC_QUOTE  = ','     # Split args on whitespace, quote each as string and call
-ESC_QUOTE2 = ';'     # Quote all args as a single string, call
-ESC_PAREN  = '/'     # Call first argument with rest of line as arguments
-
-ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
-                 ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,\
-                 ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
+# Temporary!
+from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
+                                        ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
+                                        ESC_QUOTE, ESC_QUOTE2, ESC_PAREN, ESC_SEQUENCES)
 
 #-----------------------------------------------------------------------------
 # Utilities
@@ -204,29 +192,6 @@ def remove_comments(src):
     """
 
     return re.sub('#.*', '', src)
-
-def has_comment(src):
-    """Indicate whether an input line has (i.e. ends in, or is) a comment.
-
-    This uses tokenize, so it can distinguish comments from # inside strings.
-
-    Parameters
-    ----------
-    src : string
-      A single line input string.
-
-    Returns
-    -------
-    Boolean: True if source has a comment.
-    """
-    readline = StringIO(src).readline
-    toktypes = set()
-    try:
-        for t in tokenize.generate_tokens(readline):
-            toktypes.add(t[0])
-    except tokenize.TokenError:
-        pass
-    return(tokenize.COMMENT in toktypes)
 
 
 def get_input_encoding():
@@ -524,219 +489,15 @@ class InputSplitter(object):
         return u''.join(buffer)
 
 
-#-----------------------------------------------------------------------------
-# Functions and classes for IPython-specific syntactic support
-#-----------------------------------------------------------------------------
-
-# The escaped translators ALL receive a line where their own escape has been
-# stripped.  Only '?' is valid at the end of the line, all others can only be
-# placed at the start.
-
-# Transformations of the special syntaxes that don't rely on an explicit escape
-# character but instead on patterns on the input line
-
-# The core transformations are implemented as standalone functions that can be
-# tested and validated in isolation.  Each of these uses a regexp, we
-# pre-compile these and keep them close to each function definition for clarity
-
-_assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*!\s*(?P<cmd>.*)')
-
-def transform_assign_system(line):
-    """Handle the `files = !ls` syntax."""
-    m = _assign_system_re.match(line)
-    if m is not None:
-        cmd = m.group('cmd')
-        lhs = m.group('lhs')
-        new_line = '%s = get_ipython().getoutput(%r)' % (lhs, cmd)
-        return new_line
-    return line
-
-
-_assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*%\s*(?P<cmd>.*)')
-
-def transform_assign_magic(line):
-    """Handle the `a = %who` syntax."""
-    m = _assign_magic_re.match(line)
-    if m is not None:
-        cmd = m.group('cmd')
-        lhs = m.group('lhs')
-        new_line = '%s = get_ipython().magic(%r)' % (lhs, cmd)
-        return new_line
-    return line
-
-
-_classic_prompt_re = re.compile(r'^([ \t]*>>> |^[ \t]*\.\.\. )')
-
-def transform_classic_prompt(line):
-    """Handle inputs that start with '>>> ' syntax."""
-
-    if not line or line.isspace():
-        return line
-    m = _classic_prompt_re.match(line)
-    if m:
-        return line[len(m.group(0)):]
-    else:
-        return line
-
-
-_ipy_prompt_re = re.compile(r'^([ \t]*In \[\d+\]: |^[ \t]*\ \ \ \.\.\.+: )')
-
-def transform_ipy_prompt(line):
-    """Handle inputs that start classic IPython prompt syntax."""
-
-    if not line or line.isspace():
-        return line
-    #print 'LINE:  %r' % line # dbg
-    m = _ipy_prompt_re.match(line)
-    if m:
-        #print 'MATCH! %r -> %r' % (line, line[len(m.group(0)):]) # dbg
-        return line[len(m.group(0)):]
-    else:
-        return line
-
-
-def _make_help_call(target, esc, lspace, next_input=None):
-    """Prepares a pinfo(2)/psearch call from a target name and the escape
-    (i.e. ? or ??)"""
-    method  = 'pinfo2' if esc == '??' \
-                else 'psearch' if '*' in target \
-                else 'pinfo'
-    arg = " ".join([method, target])
-    if next_input is None:
-        return '%sget_ipython().magic(%r)' % (lspace, arg)
-    else:
-        return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
-           (lspace, next_input, arg)
-
-
-_initial_space_re = re.compile(r'\s*')
-
-_help_end_re = re.compile(r"""(%{0,2}
-                              [a-zA-Z_*][\w*]*        # Variable name
-                              (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
-                              )
-                              (\?\??)$                # ? or ??""",
-                              re.VERBOSE)
-
-
-def transform_help_end(line):
-    """Translate lines with ?/?? at the end"""
-    m = _help_end_re.search(line)
-    if m is None or has_comment(line):
-        return line
-    target = m.group(1)
-    esc = m.group(3)
-    lspace = _initial_space_re.match(line).group(0)
-
-    # If we're mid-command, put it back on the next prompt for the user.
-    next_input = line.rstrip('?') if line.strip() != m.group(0) else None
-
-    return _make_help_call(target, esc, lspace, next_input)
-
-
-class EscapedTransformer(object):
-    """Class to transform lines that are explicitly escaped out."""
-
-    def __init__(self):
-        tr = { ESC_SHELL  : self._tr_system,
-               ESC_SH_CAP : self._tr_system2,
-               ESC_HELP   : self._tr_help,
-               ESC_HELP2  : self._tr_help,
-               ESC_MAGIC  : self._tr_magic,
-               ESC_QUOTE  : self._tr_quote,
-               ESC_QUOTE2 : self._tr_quote2,
-               ESC_PAREN  : self._tr_paren }
-        self.tr = tr
-
-    # Support for syntax transformations that use explicit escapes typed by the
-    # user at the beginning of a line
-    @staticmethod
-    def _tr_system(line_info):
-        "Translate lines escaped with: !"
-        cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
-        return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
-
-    @staticmethod
-    def _tr_system2(line_info):
-        "Translate lines escaped with: !!"
-        cmd = line_info.line.lstrip()[2:]
-        return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
-
-    @staticmethod
-    def _tr_help(line_info):
-        "Translate lines escaped with: ?/??"
-        # A naked help line should just fire the intro help screen
-        if not line_info.line[1:]:
-            return 'get_ipython().show_usage()'
-
-        return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
-
-    @staticmethod
-    def _tr_magic(line_info):
-        "Translate lines escaped with: %"
-        tpl = '%sget_ipython().magic(%r)'
-        cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
-        return tpl % (line_info.pre, cmd)
-
-    @staticmethod
-    def _tr_quote(line_info):
-        "Translate lines escaped with: ,"
-        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
-                             '", "'.join(line_info.the_rest.split()) )
-
-    @staticmethod
-    def _tr_quote2(line_info):
-        "Translate lines escaped with: ;"
-        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
-                               line_info.the_rest)
-
-    @staticmethod
-    def _tr_paren(line_info):
-        "Translate lines escaped with: /"
-        return '%s%s(%s)' % (line_info.pre, line_info.ifun,
-                             ", ".join(line_info.the_rest.split()))
-
-    def __call__(self, line):
-        """Class to transform lines that are explicitly escaped out.
-
-        This calls the above _tr_* static methods for the actual line
-        translations."""
-
-        # Empty lines just get returned unmodified
-        if not line or line.isspace():
-            return line
-
-        # Get line endpoints, where the escapes can be
-        line_info = LineInfo(line)
-
-        if not line_info.esc in self.tr:
-            # If we don't recognize the escape, don't modify the line
-            return line
-
-        return self.tr[line_info.esc](line_info)
-
-
-# A function-looking object to be used by the rest of the code.  The purpose of
-# the class in this case is to organize related functionality, more than to
-# manage state.
-transform_escaped = EscapedTransformer()
-
-
 class IPythonInputSplitter(InputSplitter):
     """An input splitter that recognizes all of IPython's special syntax."""
 
     # String with raw, untransformed input.
     source_raw = ''
-
-    # Flag to track when we're in the middle of processing a cell magic, since
-    # the logic has to change.  In that case, we apply no transformations at
-    # all.
-    processing_cell_magic = False
-
-    # Storage for all blocks of input that make up a cell magic
-    cell_magic_parts = []
+    
+    # Flag to track when a transformer has stored input that it hasn't given
+    # back yet.
+    transformer_accumulating = False
 
     # Private attributes
 
@@ -747,14 +508,22 @@ class IPythonInputSplitter(InputSplitter):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         self._validate = True
+        self.transforms = [leading_indent,
+                           classic_prompt,
+                           ipy_prompt,
+                           cellmagic,
+                           help_end,
+                           escaped_transformer,
+                           assign_from_magic,
+                           assign_from_system,
+                          ]
 
     def reset(self):
         """Reset the input buffer and associated state."""
         super(IPythonInputSplitter, self).reset()
         self._buffer_raw[:] = []
         self.source_raw = ''
-        self.cell_magic_parts = []
-        self.processing_cell_magic = False
+        self.transformer_accumulating = False
 
     def source_raw_reset(self):
         """Return input and raw source and perform a full reset.
@@ -765,55 +534,10 @@ class IPythonInputSplitter(InputSplitter):
         return out, out_r
 
     def push_accepts_more(self):
-        if self.processing_cell_magic:
-            return not self._is_complete
+        if self.transformer_accumulating:
+            return True
         else:
             return super(IPythonInputSplitter, self).push_accepts_more()
-
-    def _handle_cell_magic(self, lines):
-        """Process lines when they start with %%, which marks cell magics.
-        """
-        self.processing_cell_magic = True
-        first, _, body = lines.partition('\n')
-        magic_name, _, line = first.partition(' ')
-        magic_name = magic_name.lstrip(ESC_MAGIC)
-        # We store the body of the cell and create a call to a method that
-        # will use this stored value. This is ugly, but it's a first cut to
-        # get it all working, as right now changing the return API of our
-        # methods would require major refactoring.
-        self.cell_magic_parts = [body]
-        tpl = 'get_ipython()._run_cached_cell_magic(%r, %r)'
-        tlines = tpl % (magic_name, line)
-        self._store(tlines)
-        self._store(lines, self._buffer_raw, 'source_raw')
-        # We can actually choose whether to allow for single blank lines here
-        # during input for clients that use cell mode to decide when to stop
-        # pushing input (currently only the Qt console).
-        # My first implementation did that, and then I realized it wasn't
-        # consistent with the terminal behavior, so I've reverted it to one
-        # line.  But I'm leaving it here so we can easily test both behaviors,
-        # I kind of liked having full blank lines allowed in the cell magics...
-        #self._is_complete = last_two_blanks(lines)
-        self._is_complete = last_blank(lines)
-        return self._is_complete
-
-    def _line_mode_cell_append(self, lines):
-        """Append new content for a cell magic in line mode.
-        """
-        # Only store the raw input.  Lines beyond the first one are only only
-        # stored for history purposes; for execution the caller will grab the
-        # magic pieces from cell_magic_parts and will assemble the cell body
-        self._store(lines, self._buffer_raw, 'source_raw')
-        self.cell_magic_parts.append(lines)
-        # Find out if the last stored block has a whitespace line as its
-        # last line and also this line is whitespace, case in which we're
-        # done (two contiguous blank lines signal termination).  Note that
-        # the storage logic *enforces* that every stored block is
-        # newline-terminated, so we grab everything but the last character
-        # so we can have the body of the block alone.
-        last_block = self.cell_magic_parts[-1]
-        self._is_complete = last_blank(last_block) and lines.isspace()
-        return self._is_complete
 
     def transform_cell(self, cell):
         """Process and translate a cell of input.
@@ -851,23 +575,9 @@ class IPythonInputSplitter(InputSplitter):
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
 
-        # If the entire input block is a cell magic, return after handling it
-        # as the rest of the transformation logic should be skipped.
-        if lines.startswith('%%') and not \
-          (len(lines.splitlines()) == 1 and lines.strip().endswith('?')):
-            return self._handle_cell_magic(lines)
-
-        # In line mode, a cell magic can arrive in separate pieces
-        if self.input_mode == 'line' and self.processing_cell_magic:
-            return self._line_mode_cell_append(lines)
-
         # The rest of the processing is for 'normal' content, i.e. IPython
         # source that we process through our transformations pipeline.
         lines_list = lines.splitlines()
-
-        transforms = [transform_ipy_prompt, transform_classic_prompt,
-                      transform_help_end, transform_escaped,
-                      transform_assign_system, transform_assign_magic]
 
         # Transform logic
         #
@@ -901,16 +611,24 @@ class IPythonInputSplitter(InputSplitter):
         self._store(lines, self._buffer_raw, 'source_raw')
 
         try:
-            push = super(IPythonInputSplitter, self).push
-            buf = self._buffer
             for line in lines_list:
-                if self._is_complete or not buf or \
-                       (buf and buf[-1].rstrip().endswith((':', ','))):
-                    for f in transforms:
-                        line = f(line)
-
-                out = push(line)
+                out = self.push_line(line)
         finally:
             if changed_input_mode:
                 self.input_mode = saved_input_mode
+        
         return out
+    
+    def push_line(self, line):
+        buf = self._buffer
+        not_in_string =  self._is_complete or not buf or \
+                                (buf and buf[-1].rstrip().endswith((':', ',')))
+        for transformer in self.transforms:
+            if not_in_string or transformer.look_in_string:
+                line = transformer.push(line)
+                if line is None:
+                    self.transformer_accumulating = True
+                    return False                
+
+        self.transformer_accumulating = False
+        return super(IPythonInputSplitter, self).push(line)

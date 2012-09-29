@@ -37,7 +37,7 @@ def test_transform_escaped():
     tt.check_pairs(wrap_transform(inputtransformer.escaped_transformer), esctransform_tests)
 
 def endhelp_test():
-    tt.check_pairs(inputtransformer.transform_help_end.push, syntax['end_help'])
+    tt.check_pairs(inputtransformer.help_end.push, syntax['end_help'])
 
 classic_prompt_tests = [
 (['>>> a=1'], ['a=1']),
