@@ -109,18 +109,6 @@ def test_remove_comments():
              ]
     tt.check_pairs(isp.remove_comments, tests)
 
-def test_has_comment():
-    tests = [('text', False),
-             ('text #comment', True),
-             ('text #comment\n', True),
-             ('#comment', True),
-             ('#comment\n', True),
-             ('a = "#string"', False),
-             ('a = "#string" # comment', True),
-             ('a #comment not "string"', True),
-             ]
-    tt.check_pairs(isp.has_comment, tests)
-
 
 def test_get_input_encoding():
     encoding = isp.get_input_encoding()
@@ -461,13 +449,16 @@ class IPythonInputTestCase(InputSplitterTestCase):
     def test_syntax_multiline(self):
         isp = self.isp
         for example in syntax_ml.itervalues():
-            out_t_parts = []
-            raw_parts = []
             for line_pairs in example:
+                out_t_parts = []
+                raw_parts = []
                 for lraw, out_t_part in line_pairs:
-                    isp.push(lraw)
-                    out_t_parts.append(out_t_part)
-                    raw_parts.append(lraw)
+                    if out_t_part is not None:
+                        out_t_parts.append(out_t_part)
+                    
+                    if lraw is not None:
+                        isp.push(lraw)
+                        raw_parts.append(lraw)
 
                 out, out_raw = isp.source_raw_reset()
                 out_t = '\n'.join(out_t_parts).rstrip()
@@ -490,12 +481,10 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
             raw_parts = []
             out_t_parts = []
             for line_pairs in example:
-                for raw, out_t_part in line_pairs:
-                    raw_parts.append(raw)
-                    out_t_parts.append(out_t_part)
+                raw_parts, out_t_parts = zip(*line_pairs)
 
-                raw = '\n'.join(raw_parts)
-                out_t = '\n'.join(out_t_parts)
+                raw = '\n'.join(r for r in raw_parts if r is not None)
+                out_t = '\n'.join(o for o in out_t_parts if o is not None)
 
                 isp.push(raw)
                 out, out_raw = isp.source_raw_reset()
@@ -509,8 +498,8 @@ class BlockIPythonInputTestCase(IPythonInputTestCase):
 
             out_t_parts = []
             for line_pairs in example:
-                raw = '\n'.join(r for r, _ in line_pairs)
-                out_t = '\n'.join(t for _,t in line_pairs)
+                raw = '\n'.join(r for r, _ in line_pairs if r is not None)
+                out_t = '\n'.join(t for _,t in line_pairs if t is not None)
                 out = isp.transform_cell(raw)
                 # Match ignoring trailing whitespace
                 self.assertEqual(out.rstrip(), out_t.rstrip())
@@ -595,9 +584,8 @@ class CellMagicsCommon(object):
         src = "%%cellm line\nbody\n"
         sp = self.sp
         sp.push(src)
-        nt.assert_equal(sp.cell_magic_parts, ['body\n'])
-        out = sp.source
-        ref = u"get_ipython()._run_cached_cell_magic({u}'cellm', {u}'line')\n"
+        out = sp.source_reset()
+        ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
 
     def tearDown(self):

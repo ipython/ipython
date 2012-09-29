@@ -508,14 +508,14 @@ class IPythonInputSplitter(InputSplitter):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         self._validate = True
-        self.transforms = [leading_indent,
-                           classic_prompt,
-                           ipy_prompt,
-                           cellmagic,
-                           help_end,
-                           escaped_transformer,
-                           assign_from_magic,
-                           assign_from_system,
+        self.transforms = [leading_indent(),
+                           classic_prompt(),
+                           ipy_prompt(),
+                           cellmagic(),
+                           help_end(),
+                           escaped_transformer(),
+                           assign_from_magic(),
+                           assign_from_system(),
                           ]
 
     def reset(self):

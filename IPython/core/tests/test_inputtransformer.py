@@ -8,6 +8,7 @@ u_fmt = py3compat.u_format
 from IPython.core import inputtransformer as ipt
 
 def transform_and_reset(transformer):
+    transformer = transformer()
     def transform(inp):
         try:
             return transformer.push(inp)
@@ -19,6 +20,7 @@ def transform_and_reset(transformer):
 # Transformer tests
 def transform_checker(tests, transformer):
     """Utility to loop over test inputs"""
+    transformer = transformer()
     try:
         for inp, tr in tests:
             nt.assert_equal(transformer.push(inp), tr)
@@ -191,7 +193,8 @@ syntax_ml = \
        
        leading_indent =
        [ [('    print "hi"','print "hi"'),
-          ('  for a in range(5):','for a in range(5):'),
+          ],
+         [('  for a in range(5):','for a in range(5):'),
           ('    a*2','  a*2'),
           ],
          [('    a="""','a="""'),
@@ -203,12 +206,12 @@ syntax_ml = \
        ],
        
        cellmagic =
-       [ [('%%foo a', None),
-          (None, "get_ipython().run_cell_magic('foo', 'a', '')"),
+       [ [(u'%%foo a', None),
+          (None, u_fmt("get_ipython().run_cell_magic({u}'foo', {u}'a', {u}'')")),
           ],
-         [('%%bar 123', None),
-          ('hello', None),
-          ('', "get_ipython().run_cell_magic('bar', '123', 'hello')"),
+         [(u'%%bar 123', None),
+          (u'hello', None),
+          (u'', u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
           ],
        ],
        
@@ -223,22 +226,22 @@ syntax_ml = \
        ],
        
        assign_magic =
-       [ [('a = %bc de \\', None),
-          ('fg', "a = get_ipython().magic('bc de  fg')"),
+       [ [(u'a = %bc de \\', None),
+          (u'fg', u_fmt("a = get_ipython().magic({u}'bc de  fg')")),
           ],
-         [('a = %bc de \\', None),
-          ('fg\\', None),
-          (None, "a = get_ipython().magic('bc de  fg')"),
+         [(u'a = %bc de \\', None),
+          (u'fg\\', None),
+          (None, u_fmt("a = get_ipython().magic({u}'bc de  fg')")),
           ],
        ],
        
        assign_system =
-       [ [('a = !bc de \\', None),
-          ('fg', "a = get_ipython().getoutput('bc de  fg')"),
+       [ [(u'a = !bc de \\', None),
+          (u'fg', u_fmt("a = get_ipython().getoutput({u}'bc de  fg')")),
           ],
-         [('a = !bc de \\', None),
-          ('fg\\', None),
-          (None, "a = get_ipython().getoutput('bc de  fg')"),
+         [(u'a = !bc de \\', None),
+          (u'fg\\', None),
+          (None, u_fmt("a = get_ipython().getoutput({u}'bc de  fg')")),
           ],
        ],
        )
@@ -258,6 +261,8 @@ def test_assign_magic():
 def test_classic_prompt():
     tt.check_pairs(transform_and_reset(ipt.classic_prompt), syntax['classic_prompt'])
     for example in syntax_ml['classic_prompt']:
+        transform_checker(example, ipt.classic_prompt)
+    for example in syntax_ml['multiline_datastructure']:
         transform_checker(example, ipt.classic_prompt)
 
 
@@ -303,3 +308,15 @@ def test_escaped_multiline():
 def test_cellmagic():
     for example in syntax_ml['cellmagic']:
         transform_checker(example, ipt.cellmagic)
+
+def test_has_comment():
+    tests = [('text', False),
+             ('text #comment', True),
+             ('text #comment\n', True),
+             ('#comment', True),
+             ('#comment\n', True),
+             ('a = "#string"', False),
+             ('a = "#string" # comment', True),
+             ('a #comment not "string"', True),
+             ]
+    tt.check_pairs(ipt.has_comment, tests)

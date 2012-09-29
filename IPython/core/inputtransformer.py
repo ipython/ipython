@@ -44,29 +44,34 @@ class InputTransformer(object):
     
     look_in_string = False
 
-class StatelessInputTransformer(InputTransformer):
-    """Decorator for a stateless input transformer implemented as a function."""
-    def __init__(self, func):
-        self.func = func
+def stateless_input_transformer(func):
+    class StatelessInputTransformer(InputTransformer):
+        """Decorator for a stateless input transformer implemented as a function."""
+        def __init__(self):
+            self.func = func
+        
+        def push(self, line):
+            return self.func(line)
+        
+        def reset(self):
+            pass
     
-    def push(self, line):
-        return self.func(line)
-    
-    def reset(self):
-        pass
+    return StatelessInputTransformer
 
-class CoroutineInputTransformer(InputTransformer):
-    """Decorator for an input transformer implemented as a coroutine."""
-    def __init__(self, coro):
-        # Prime it
-        self.coro = coro()
-        next(self.coro)
+def coroutine_input_transformer(coro):
+    class CoroutineInputTransformer(InputTransformer):
+        def __init__(self):
+            # Prime it
+            self.coro = coro()
+            next(self.coro)
+        
+        def push(self, line):
+            return self.coro.send(line)
+        
+        def reset(self):
+            return self.coro.send(None)
     
-    def push(self, line):
-        return self.coro.send(line)
-    
-    def reset(self):
-        return self.coro.send(None)
+    return CoroutineInputTransformer
 
 
 # Utilities
@@ -83,7 +88,7 @@ def _make_help_call(target, esc, lspace, next_input=None):
         return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
            (lspace, next_input, arg)
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def escaped_transformer():
     """Translate lines beginning with one of IPython's escape characters."""
     
@@ -188,7 +193,7 @@ def has_comment(src):
         pass
     return(tokenize.COMMENT in toktypes)
 
-@StatelessInputTransformer
+@stateless_input_transformer
 def help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
@@ -204,13 +209,18 @@ def help_end(line):
     return _make_help_call(target, esc, lspace, next_input)
     
                 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def cellmagic():
     tpl = 'get_ipython().run_cell_magic(%r, %r, %r)'
+    cellmagic_help_re = re.compile('%%\w+\?')
     line = ''
     while True:
         line = (yield line)
         if (not line) or (not line.startswith(ESC_MAGIC2)):
+            continue
+        
+        if cellmagic_help_re.match(line):
+            # This case will be handled by help_end
             continue
         
         first = line
@@ -223,7 +233,7 @@ def cellmagic():
         # Output
         magic_name, _, first = first.partition(' ')
         magic_name = magic_name.lstrip(ESC_MAGIC2)
-        line = tpl % (magic_name, first, '\n'.join(body))
+        line = tpl % (magic_name, first, u'\n'.join(body))
 
 def _strip_prompts(prompt1_re, prompt2_re):
     """Remove matching input prompts from a block of input."""
@@ -246,7 +256,7 @@ def _strip_prompts(prompt1_re, prompt2_re):
             while line is not None:
                 line = (yield line)
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def classic_prompt():
     prompt1_re = re.compile(r'^(>>> )')
     prompt2_re = re.compile(r'^(>>> |^\.\.\. )')
@@ -254,7 +264,7 @@ def classic_prompt():
 
 classic_prompt.look_in_string = True
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def ipy_prompt():
     prompt1_re = re.compile(r'^In \[\d+\]: ')
     prompt2_re = re.compile(r'^(In \[\d+\]: |^\ \ \ \.\.\.+: )')
@@ -262,7 +272,7 @@ def ipy_prompt():
 
 ipy_prompt.look_in_string = True
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def leading_indent():
     space_re = re.compile(r'^[ \t]+')
     line = ''
@@ -308,14 +318,14 @@ def _special_assignment(assignment_re, template):
         whole = assignment_re.match(' '.join(parts))
         line = template % (whole.group('lhs'), whole.group('cmd'))
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def assign_from_system():
     assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
                                r'\s*=\s*!\s*(?P<cmd>.*)')
     template = '%s = get_ipython().getoutput(%r)'
     return _special_assignment(assignment_re, template)
 
-@CoroutineInputTransformer
+@coroutine_input_transformer
 def assign_from_magic():
     assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
                                r'\s*=\s*%\s*(?P<cmd>.*)')
