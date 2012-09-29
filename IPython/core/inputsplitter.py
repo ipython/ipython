@@ -524,14 +524,30 @@ class IPythonInputSplitter(InputSplitter):
         self._buffer_raw[:] = []
         self.source_raw = ''
         self.transformer_accumulating = False
+        for t in self.transforms:
+            t.reset()
+    
+    def flush_transformers(self):
+        out = None
+        for t in self.transforms:
+            tmp = t.reset()
+            if tmp:
+                out = tmp
+        if out:
+            self._store(out)
 
     def source_raw_reset(self):
         """Return input and raw source and perform a full reset.
         """
+        self.flush_transformers()
         out = self.source
         out_r = self.source_raw
         self.reset()
         return out, out_r
+    
+    def source_reset(self):
+        self.flush_transformers()
+        return super(IPythonInputSplitter, self).source_reset()
 
     def push_accepts_more(self):
         if self.transformer_accumulating:

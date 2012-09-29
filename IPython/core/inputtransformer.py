@@ -66,7 +66,7 @@ class CoroutineInputTransformer(InputTransformer):
         return self.coro.send(line)
     
     def reset(self):
-        self.coro.send(None)
+        return self.coro.send(None)
 
 
 # Utilities
