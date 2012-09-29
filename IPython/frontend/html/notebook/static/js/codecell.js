@@ -14,6 +14,7 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
+    CodeMirror.modeURL = "/static/codemirror/mode/%N/%N.js";
 
     var CodeCell = function (kernel) {
         // The kernel doesn't have to be set at creation time, in that case
@@ -23,12 +24,22 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.tooltip_on_tab = true;
         this.collapsed = false;
+        this.default_mode = 'python';
         IPython.Cell.apply(this, arguments);
+
+        var that = this;
+        this.element.focusout(
+            function() { that.auto_highlight(); }
+        );
     };
 
 
     CodeCell.prototype = new IPython.Cell();
 
+
+    CodeCell.prototype.auto_highlight = function () {
+        this._auto_highlight(IPython.config.cell_magic_highlight)
+    };
 
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
@@ -76,6 +87,9 @@ var IPython = (function (IPython) {
         };
 
         var cur = editor.getCursor();
+        if (event.keyCode === key.ENTER){
+            this.auto_highlight();
+        }
 
         if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
@@ -172,6 +186,7 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
         this.code_mirror.focus();
+        this.auto_highlight();
         // We used to need an additional refresh() after the focus, but
         // it appears that this has been fixed in CM. This bug would show
         // up on FF when a newly loaded markdown cell was edited.
@@ -267,6 +282,7 @@ var IPython = (function (IPython) {
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
+                this.auto_highlight();
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);
