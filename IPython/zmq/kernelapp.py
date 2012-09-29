@@ -35,8 +35,10 @@ from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
-from IPython.utils.traitlets import (Any, Instance, Dict, Unicode, Integer, Bool,
-                                        DottedObjectName)
+from IPython.utils.traitlets import (
+    Any, Instance, Dict, Unicode, Integer, Bool, CaselessStrEnum,
+    DottedObjectName,
+)
 from IPython.utils.importstring import import_item
 # local imports
 from IPython.zmq.entry_point import write_connection_file
@@ -109,6 +111,7 @@ class KernelApp(BaseIPythonApplication):
         self.config_file_specified = False
         
     # connection info:
+    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
     ip = Unicode(LOCALHOST, config=True,
         help="Set the IP or interface on which the kernel will listen.")
     hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
@@ -154,11 +157,12 @@ class KernelApp(BaseIPythonApplication):
             self.poller = ParentPollerUnix()
 
     def _bind_socket(self, s, port):
-        iface = 'tcp://%s' % self.ip
-        if port <= 0:
+        iface = '%s://%s' % (self.transport, self.ip)
+        if port <= 0 and self.transport == 'tcp':
             port = s.bind_to_random_port(iface)
         else:
-            s.bind(iface + ':%i'%port)
+            c = ':' if self.transport == 'tcp' else '-'
+            s.bind(iface + c + str(port))
         return port
 
     def load_connection_file(self):
@@ -174,6 +178,7 @@ class KernelApp(BaseIPythonApplication):
         with open(fname) as f:
             s = f.read()
         cfg = json.loads(s)
+        self.transport = cfg.get('transport', self.transport)
         if self.ip == LOCALHOST and 'ip' in cfg:
             # not overridden by config or cl_args
             self.ip = cfg['ip']
@@ -191,7 +196,7 @@ class KernelApp(BaseIPythonApplication):
             cf = os.path.join(self.profile_dir.security_dir, self.connection_file)
         else:
             cf = self.connection_file
-        write_connection_file(cf, ip=self.ip, key=self.session.key,
+        write_connection_file(cf, ip=self.ip, key=self.session.key, transport=self.transport,
         shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
         iopub_port=self.iopub_port)
         
@@ -204,6 +209,19 @@ class KernelApp(BaseIPythonApplication):
             os.remove(cf)
         except (IOError, OSError):
             pass
+        
+        self._cleanup_ipc_files()
+    
+    def _cleanup_ipc_files(self):
+        """cleanup ipc files if we wrote them"""
+        if self.transport != 'ipc':
+            return
+        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
+            ipcfile = "%s-%i" % (self.ip, port)
+            try:
+                os.remove(ipcfile)
+            except (IOError, OSError):
+                pass
     
     def init_connection_file(self):
         if not self.connection_file:
@@ -238,7 +256,7 @@ class KernelApp(BaseIPythonApplication):
         # heartbeat doesn't share context, because it mustn't be blocked
         # by the GIL, which is accessed by libzmq when freeing zero-copy messages
         hb_ctx = zmq.Context()
-        self.heartbeat = Heartbeat(hb_ctx, (self.ip, self.hb_port))
+        self.heartbeat = Heartbeat(hb_ctx, (self.transport, self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
         self.heartbeat.start()
