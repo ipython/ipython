@@ -173,3 +173,39 @@ def leading_indent():
                 line = (yield line)
 
 leading_indent.look_in_string = True
+
+def _special_assignment(assignment_re, template):
+    line = ''
+    while True:
+        line = (yield line)
+        if not line or line.isspace():
+            continue
+        
+        m = assignment_re.match(line)
+        if not m:
+            continue
+        
+        parts = []
+        while line is not None:
+            parts.append(line.rstrip('\\'))
+            if not line.endswith('\\'):
+                break
+            line = (yield None)
+        
+        # Output
+        whole = assignment_re.match(' '.join(parts))
+        line = template % (whole.group('lhs'), whole.group('cmd'))
+
+@CoroutineInputTransformer
+def assign_from_system():
+    assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*!\s*(?P<cmd>.*)')
+    template = '%s = get_ipython().getoutput(%r)'
+    return _special_assignment(assignment_re, template)
+
+@CoroutineInputTransformer
+def assign_from_magic():
+    assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                               r'\s*=\s*%\s*(?P<cmd>.*)')
+    template = '%s = get_ipython().magic(%r)'
+    return _special_assignment(assignment_re, template)

@@ -66,3 +66,19 @@ leading_indent_tests = [
 
 def test_leading_indent():
     tt.check_pairs(wrap_transform(inputtransformer.leading_indent), leading_indent_tests)
+
+assign_magic_tests = [(i, [py3compat.u_format(ol) for ol in o]) for i,o in [
+(['a = %bc de \\', 'fg'], ["a = get_ipython().magic('bc de  fg')"]),
+(['a = %bc de \\', 'fg\\', None], ["a = get_ipython().magic('bc de  fg')"]),
+]]
+
+def test_assign_magic():
+    tt.check_pairs(wrap_transform(inputtransformer.assign_from_magic), assign_magic_tests)
+
+assign_system_tests = [(i, [py3compat.u_format(ol) for ol in o]) for i,o in [
+(['a = !bc de \\', 'fg'], ["a = get_ipython().getoutput('bc de  fg')"]),
+(['a = !bc de \\', 'fg\\', None], ["a = get_ipython().getoutput('bc de  fg')"]),
+]]
+
+def test_assign_system():
+    tt.check_pairs(wrap_transform(inputtransformer.assign_from_system), assign_system_tests)
