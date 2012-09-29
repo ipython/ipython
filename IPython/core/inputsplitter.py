@@ -569,15 +569,14 @@ class IPythonInputSplitter(InputSplitter):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-        if not lines:
-            return super(IPythonInputSplitter, self).push(lines)
 
         # We must ensure all input is pure unicode
         lines = cast_unicode(lines, self.encoding)
-
-        # The rest of the processing is for 'normal' content, i.e. IPython
-        # source that we process through our transformations pipeline.
+        
+        # ''.splitlines() --> [], but we need to push the empty line to transformers
         lines_list = lines.splitlines()
+        if not lines_list:
+            lines_list = ['']
 
         # Transform logic
         #
