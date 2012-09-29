@@ -1,6 +1,12 @@
 """Utility function for installing MathJax javascript library into
 the notebook's 'static' directory, for offline use.
 
+ Authors:
+
+ * Min RK
+ * Mark Sienkiewicz
+ * Matthias Bussonnier
+
 To download and install MathJax:
 
 From Python:
@@ -33,11 +39,6 @@ To find the directory where IPython would like MathJax installed:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-# Authors:
-#
-# * Min RK
-# * Mark Sienkiewicz at Space Telescope Science Institute (command line invocation)
-#
 
 #-----------------------------------------------------------------------------
 # Imports
@@ -50,16 +51,13 @@ import tarfile
 import urllib2
 import zipfile
 
-from IPython.frontend.html import notebook as nbmod
-
 #-----------------------------------------------------------------------------
 #
 #-----------------------------------------------------------------------------
 
 # Where mathjax will be installed.
 
-static = os.path.join(os.path.dirname(os.path.abspath(nbmod.__file__)), 'static')
-dest = os.path.join(static, 'mathjax')
+dest = os.path.join(locate_profile('default'), 'static')
 
 ##
 
@@ -67,11 +65,11 @@ dest = os.path.join(static, 'mathjax')
 
 def check_perms(replace=False):
     if not os.access(static, os.W_OK):
-        raise IOError("Need have write access to %s"%static)
+        raise IOError("Need have write access to %s" % static)
     if os.path.exists(dest):
         if replace:
             if not os.access(dest, os.W_OK):
-                raise IOError("Need have write access to %s"%dest)
+                raise IOError("Need have write access to %s" % dest)
             print "removing previous MathJax install"
             shutil.rmtree(dest)
             return True
@@ -116,8 +114,8 @@ def extract_zip( fd, dest ) :
 
 ##
 
-def install_mathjax(tag='v1.1', replace=False, fd=None, extractor=extract_tar ):
-    """Download and install MathJax for offline use.
+def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar ):
+    """Download and/or install MathJax for offline use.
 
     This will install mathjax to the 'static' dir in the IPython notebook
     package, so it will fail if the caller does not have write access
@@ -130,20 +128,24 @@ def install_mathjax(tag='v1.1', replace=False, fd=None, extractor=extract_tar ):
 
     replace : bool [False]
         Whether to remove and replace an existing install.
-    tag : str ['v1.1']
+    tag : str ['v2.0']
         Which tag to download. Default is 'v1.1', the current stable release,
         but alternatives include 'v1.1a' and 'master'.
+    file : file like object [ defualt to content of https://github.com/mathjax/MathJax/tarball/#{tag}]
+        File handle from which to untar/unzip/... mathjax
+    extractor : function
+        Method tu use to untar/unzip/... `file`
     """
 
     if not check_perms(replace) :
         return
 
-    if fd is None :
+    if file is None :
         # download mathjax
         mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s"%tag
         print "Downloading mathjax source from %s"%mathjax_url
         response = urllib2.urlopen(mathjax_url)
-        fd = response.fp
+        file = response.fp
 
     print "Extracting to %s"%dest
     extractor( fd, dest )
@@ -161,7 +163,7 @@ def test_func( remove ) :
     print "ok"
     if remove :
         shutil.rmtree( dest )
-    return 0
+    return status
 
 ##
 
