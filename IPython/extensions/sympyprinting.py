@@ -96,13 +96,14 @@ def print_latex(o):
     # Fallback to the string printer
     return None
 
-_loaded = False
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     import sympy
-    global _loaded
-    if not _loaded:
+    if not hasattr(ip, '_sympy_printing_loaded'):
+        ip._sympy_printing_loaded = False
+    
+    if not ip._sympy_printing_loaded:
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
 
         for cls in (object, str):
@@ -158,4 +159,4 @@ def load_ipython_extension(ip):
             # Use LaTeX only if every element is printable by latex
             latex_formatter.for_type(cls, print_latex)
 
-        _loaded = True
+        ip._sympy_printing_loaded = True
