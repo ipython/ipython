@@ -23,7 +23,11 @@ def transform_checker(tests, transformer):
     transformer = transformer()
     try:
         for inp, tr in tests:
-            nt.assert_equal(transformer.push(inp), tr)
+            if inp is None:
+                out = transformer.reset()
+            else:
+                out = transformer.push(inp)
+            nt.assert_equal(out, tr)
     finally:
         transformer.reset()
 
