@@ -3,82 +3,303 @@ import nose.tools as nt
 
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+u_fmt = py3compat.u_format
 
-from IPython.core import inputtransformer
-from IPython.core.tests.test_inputsplitter import syntax
+from IPython.core import inputtransformer as ipt
 
-def wrap_transform(transformer):
+def transform_and_reset(transformer):
     def transform(inp):
-        results = []
-        for line in inp:
-            res = transformer.push(line)
-            if res is not None:
-                results.append(res)
-        transformer.reset()
-        return results
+        try:
+            return transformer.push(inp)
+        finally:
+            transformer.reset()
     
     return transform
 
-cellmagic_tests = [
-(['%%foo a', None], ["get_ipython().run_cell_magic('foo', 'a', '')"]),
-(['%%bar 123', 'hello', ''], ["get_ipython().run_cell_magic('bar', '123', 'hello')"]),
-]
+# Transformer tests
+def transform_checker(tests, transformer):
+    """Utility to loop over test inputs"""
+    try:
+        for inp, tr in tests:
+            nt.assert_equal(transformer.push(inp), tr)
+    finally:
+        transformer.reset()
 
-def test_transform_cellmagic():
-    tt.check_pairs(wrap_transform(inputtransformer.cellmagic), cellmagic_tests)
+# Data for all the syntax tests in the form of lists of pairs of
+# raw/transformed input.  We store it here as a global dict so that we can use
+# it both within single-function tests and also to validate the behavior of the
+# larger objects
 
-esctransform_tests = [(i, [py3compat.u_format(ol) for ol in o]) for i,o in [
-(['%pdef zip'], ["get_ipython().magic({u}'pdef zip')"]),
-(['%abc def \\', 'ghi'], ["get_ipython().magic({u}'abc def  ghi')"]),
-(['%abc def \\', 'ghi\\', None], ["get_ipython().magic({u}'abc def  ghi')"]),
-]]
+syntax = \
+  dict(assign_system =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [(u'a =! ls', "a = get_ipython().getoutput({u}'ls')"),
+        (u'b = !ls', "b = get_ipython().getoutput({u}'ls')"),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ]],
 
-def test_transform_escaped():
-    tt.check_pairs(wrap_transform(inputtransformer.escaped_transformer), esctransform_tests)
+       assign_magic =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [(u'a =% who', "a = get_ipython().magic({u}'who')"),
+        (u'b = %who', "b = get_ipython().magic({u}'who')"),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ]],
 
-def endhelp_test():
-    tt.check_pairs(inputtransformer.help_end.push, syntax['end_help'])
+       classic_prompt =
+       [('>>> x=1', 'x=1'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ', '    '),  # blank lines are kept intact
+        ],
 
-classic_prompt_tests = [
-(['>>> a=1'], ['a=1']),
-(['>>> a="""','... 123"""'], ['a="""', '123"""']),
-(['a="""','... 123"""'], ['a="""', '... 123"""']),
-]
+       ipy_prompt =
+       [('In [1]: x=1', 'x=1'),
+        ('x=1', 'x=1'), # normal input is unmodified
+        ('    ','    '),  # blank lines are kept intact
+        ],
 
-def test_classic_prompt():
-    tt.check_pairs(wrap_transform(inputtransformer.classic_prompt), classic_prompt_tests)
+       # Tests for the escape transformer to leave normal code alone
+       escaped_noesc =
+       [ ('    ', '    '),
+         ('x=1', 'x=1'),
+         ],
 
-ipy_prompt_tests = [
-(['In [1]: a=1'], ['a=1']),
-(['In [2]: a="""','   ...: 123"""'], ['a="""', '123"""']),
-(['a="""','   ...: 123"""'], ['a="""', '   ...: 123"""']),
-]
+       # System calls
+       escaped_shell =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ (u'!ls', "get_ipython().system({u}'ls')"),
+         # Double-escape shell, this means to capture the output of the
+         # subprocess and return it
+         (u'!!ls', "get_ipython().getoutput({u}'ls')"),
+         ]],
 
-def test_ipy_prompt():
-    tt.check_pairs(wrap_transform(inputtransformer.ipy_prompt), ipy_prompt_tests)
+       # Help/object info
+       escaped_help =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ (u'?', 'get_ipython().show_usage()'),
+         (u'?x1', "get_ipython().magic({u}'pinfo x1')"),
+         (u'??x2', "get_ipython().magic({u}'pinfo2 x2')"),
+         (u'?a.*s', "get_ipython().magic({u}'psearch a.*s')"),
+         (u'?%hist1', "get_ipython().magic({u}'pinfo %hist1')"),
+         (u'?%%hist2', "get_ipython().magic({u}'pinfo %%hist2')"),
+         (u'?abc = qwe', "get_ipython().magic({u}'pinfo abc')"),
+         ]],
 
-leading_indent_tests = [
-(['    print "hi"'], ['print "hi"']),
-(['  for a in range(5):', '    a*2'], ['for a in range(5):', '  a*2']),
-(['    a="""','    123"""'], ['a="""', '123"""']),
-(['a="""','    123"""'], ['a="""', '    123"""']),
-]
+      end_help =
+      [(i,py3compat.u_format(o)) for i,o in \
+      [ (u'x3?', "get_ipython().magic({u}'pinfo x3')"),
+        (u'x4??', "get_ipython().magic({u}'pinfo2 x4')"),
+        (u'%hist1?', "get_ipython().magic({u}'pinfo %hist1')"),
+        (u'%hist2??', "get_ipython().magic({u}'pinfo2 %hist2')"),
+        (u'%%hist3?', "get_ipython().magic({u}'pinfo %%hist3')"),
+        (u'%%hist4??', "get_ipython().magic({u}'pinfo2 %%hist4')"),
+        (u'f*?', "get_ipython().magic({u}'psearch f*')"),
+        (u'ax.*aspe*?', "get_ipython().magic({u}'psearch ax.*aspe*')"),
+        (u'a = abc?', "get_ipython().set_next_input({u}'a = abc');"
+                      "get_ipython().magic({u}'pinfo abc')"),
+        (u'a = abc.qe??', "get_ipython().set_next_input({u}'a = abc.qe');"
+                          "get_ipython().magic({u}'pinfo2 abc.qe')"),
+        (u'a = *.items?', "get_ipython().set_next_input({u}'a = *.items');"
+                          "get_ipython().magic({u}'psearch *.items')"),
+        (u'plot(a?', "get_ipython().set_next_input({u}'plot(a');"
+                     "get_ipython().magic({u}'pinfo a')"),
+        (u'a*2 #comment?', 'a*2 #comment?'),
+        ]],
 
-def test_leading_indent():
-    tt.check_pairs(wrap_transform(inputtransformer.leading_indent), leading_indent_tests)
+       # Explicit magic calls
+       escaped_magic =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ (u'%cd', "get_ipython().magic({u}'cd')"),
+         (u'%cd /home', "get_ipython().magic({u}'cd /home')"),
+         # Backslashes need to be escaped.
+         (u'%cd C:\\User', "get_ipython().magic({u}'cd C:\\\\User')"),
+         (u'    %magic', "    get_ipython().magic({u}'magic')"),
+         ]],
 
-assign_magic_tests = [(i, [py3compat.u_format(ol) for ol in o]) for i,o in [
-(['a = %bc de \\', 'fg'], ["a = get_ipython().magic('bc de  fg')"]),
-(['a = %bc de \\', 'fg\\', None], ["a = get_ipython().magic('bc de  fg')"]),
-]]
+       # Quoting with separate arguments
+       escaped_quote =
+       [ (',f', 'f("")'),
+         (',f x', 'f("x")'),
+         ('  ,f y', '  f("y")'),
+         (',f a b', 'f("a", "b")'),
+         ],
 
-def test_assign_magic():
-    tt.check_pairs(wrap_transform(inputtransformer.assign_from_magic), assign_magic_tests)
+       # Quoting with single argument
+       escaped_quote2 =
+       [ (';f', 'f("")'),
+         (';f x', 'f("x")'),
+         ('  ;f y', '  f("y")'),
+         (';f a b', 'f("a b")'),
+         ],
 
-assign_system_tests = [(i, [py3compat.u_format(ol) for ol in o]) for i,o in [
-(['a = !bc de \\', 'fg'], ["a = get_ipython().getoutput('bc de  fg')"]),
-(['a = !bc de \\', 'fg\\', None], ["a = get_ipython().getoutput('bc de  fg')"]),
-]]
+       # Simply apply parens
+       escaped_paren =
+       [ ('/f', 'f()'),
+         ('/f x', 'f(x)'),
+         ('  /f y', '  f(y)'),
+         ('/f a b', 'f(a, b)'),
+         ],
+
+       # Check that we transform prompts before other transforms
+       mixed =
+       [(i,py3compat.u_format(o)) for i,o in \
+       [ (u'In [1]: %lsmagic', "get_ipython().magic({u}'lsmagic')"),
+         (u'>>> %lsmagic', "get_ipython().magic({u}'lsmagic')"),
+         (u'In [2]: !ls', "get_ipython().system({u}'ls')"),
+         (u'In [3]: abs?', "get_ipython().magic({u}'pinfo abs')"),
+         (u'In [4]: b = %who', "b = get_ipython().magic({u}'who')"),
+         ]],
+       )
+
+# multiline syntax examples.  Each of these should be a list of lists, with
+# each entry itself having pairs of raw/transformed input.  The union (with
+# '\n'.join() of the transformed inputs is what the splitter should produce
+# when fed the raw lines one at a time via push.
+syntax_ml = \
+  dict(classic_prompt =
+       [ [('>>> for i in range(10):','for i in range(10):'),
+          ('...     print i','    print i'),
+          ('... ', ''),
+          ],
+         [('>>> a="""','a="""'),
+          ('... 123"""','123"""'),
+          ],
+         [('a="""','a="""'),
+          ('... 123"""','... 123"""'),
+          ],
+        ],
+
+       ipy_prompt =
+       [ [('In [24]: for i in range(10):','for i in range(10):'),
+          ('   ....:     print i','    print i'),
+          ('   ....: ', ''),
+          ],
+         [('In [2]: a="""','a="""'),
+          ('   ...: 123"""','123"""'),
+          ],
+         [('a="""','a="""'),
+          ('   ...: 123"""','   ...: 123"""'),
+          ],
+         ],
+
+       multiline_datastructure =
+       [ [('>>> a = [1,','a = [1,'),
+          ('... 2]','2]'),
+         ],
+       ],
+       
+       leading_indent =
+       [ [('    print "hi"','print "hi"'),
+          ('  for a in range(5):','for a in range(5):'),
+          ('    a*2','  a*2'),
+          ],
+         [('    a="""','a="""'),
+          ('    123"""','123"""'),
+           ],
+         [('a="""','a="""'),
+          ('    123"""','    123"""'),
+          ],
+       ],
+       
+       cellmagic =
+       [ [('%%foo a', None),
+          (None, "get_ipython().run_cell_magic('foo', 'a', '')"),
+          ],
+         [('%%bar 123', None),
+          ('hello', None),
+          ('', "get_ipython().run_cell_magic('bar', '123', 'hello')"),
+          ],
+       ],
+       
+       escaped =
+       [ [('%abc def \\', None),
+          ('ghi', u_fmt("get_ipython().magic({u}'abc def  ghi')")),
+          ],
+         [('%abc def \\', None),
+          ('ghi\\', None),
+          (None, u_fmt("get_ipython().magic({u}'abc def  ghi')")),
+          ],
+       ],
+       
+       assign_magic =
+       [ [('a = %bc de \\', None),
+          ('fg', "a = get_ipython().magic('bc de  fg')"),
+          ],
+         [('a = %bc de \\', None),
+          ('fg\\', None),
+          (None, "a = get_ipython().magic('bc de  fg')"),
+          ],
+       ],
+       
+       assign_system =
+       [ [('a = !bc de \\', None),
+          ('fg', "a = get_ipython().getoutput('bc de  fg')"),
+          ],
+         [('a = !bc de \\', None),
+          ('fg\\', None),
+          (None, "a = get_ipython().getoutput('bc de  fg')"),
+          ],
+       ],
+       )
+
 
 def test_assign_system():
-    tt.check_pairs(wrap_transform(inputtransformer.assign_from_system), assign_system_tests)
+    tt.check_pairs(transform_and_reset(ipt.assign_from_system), syntax['assign_system'])
+    for example in syntax_ml['assign_system']:
+        transform_checker(example, ipt.assign_from_system)
+
+def test_assign_magic():
+    tt.check_pairs(transform_and_reset(ipt.assign_from_magic), syntax['assign_magic'])
+    for example in syntax_ml['assign_magic']:
+        transform_checker(example, ipt.assign_from_magic)
+
+
+def test_classic_prompt():
+    tt.check_pairs(transform_and_reset(ipt.classic_prompt), syntax['classic_prompt'])
+    for example in syntax_ml['classic_prompt']:
+        transform_checker(example, ipt.classic_prompt)
+
+
+def test_ipy_prompt():
+    tt.check_pairs(transform_and_reset(ipt.ipy_prompt), syntax['ipy_prompt'])
+    for example in syntax_ml['ipy_prompt']:
+        transform_checker(example, ipt.ipy_prompt)
+
+def test_help_end():
+    tt.check_pairs(transform_and_reset(ipt.help_end), syntax['end_help'])
+
+def test_escaped_noesc():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_noesc'])
+
+
+def test_escaped_shell():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_shell'])
+
+
+def test_escaped_help():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_help'])
+
+
+def test_escaped_magic():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_magic'])
+
+
+def test_escaped_quote():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_quote'])
+
+
+def test_escaped_quote2():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_quote2'])
+
+
+def test_escaped_paren():
+    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_paren'])
+
+def test_escaped_multiline():
+    for example in syntax_ml['escaped']:
+        transform_checker(example, ipt.escaped_transformer)
+
+def test_cellmagic():
+    for example in syntax_ml['cellmagic']:
+        transform_checker(example, ipt.cellmagic)
