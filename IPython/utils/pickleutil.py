@@ -98,12 +98,8 @@ class CannedFunction(CannedObject):
     def get_object(self, g=None):
         # try to load function back into its module:
         if not self.module.startswith('__'):
-            try:
-                __import__(self.module)
-            except ImportError:
-                pass
-            else:
-                g = sys.modules[self.module].__dict__
+            __import__(self.module)
+            g = sys.modules[self.module].__dict__
 
         if g is None:
             g = {}
