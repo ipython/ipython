@@ -992,8 +992,18 @@ var IPython = (function (IPython) {
         };
     };
 
+    Notebook.prototype.kill_kernel = function () {
+        if (this.read_only) { return; }
+        this.kernel.kill();
+    };
+
+    Notebook.prototype.interrupt_kernel = function () {
+        if (this.read_only) { return; }
+        this.kernel.interrupt();
+    };
 
     Notebook.prototype.restart_kernel = function () {
+        if (this.read_only) { return; }
         var that = this;
         var dialog = $('<div/>');
         dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
@@ -1017,6 +1027,10 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.execute_selected_cell = function (options) {
+        if (this.read_only) {
+          alert ("Cannot execute cells in a read-only notebook");
+          return;
+        }
         // add_new: should a new cell be added if we are at the end of the nb
         // terminal: execute in terminal mode, which stays in the current cell
         default_options = {terminal: false, add_new: true};
@@ -1045,6 +1059,10 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.execute_all_cells = function () {
+        if (this.read_only) {
+          alert ("Cannot execute cells in a read-only notebook");
+          return;
+        }
         var ncells = this.ncells();
         for (var i=0; i<ncells; i++) {
             this.select(i);
@@ -1155,6 +1173,10 @@ var IPython = (function (IPython) {
     };
 
     Notebook.prototype.save_notebook = function () {
+        if (this.read_only) {
+          alert ("Cannot save a read-only notebook");
+          return;
+        }
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
         data.metadata.name = this.notebook_name;
@@ -1266,6 +1288,9 @@ var IPython = (function (IPython) {
         // code execution upon loading, which is a security risk.
         if (! this.read_only) {
             this.start_kernel();
+        }
+        else {
+            alert ('This is a readonly notebook. You cannot execute code or save changes.');
         }
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
