@@ -163,7 +163,7 @@ def new_notebook(name=None, metadata=None, worksheets=None):
     if worksheets is None:
         nb.worksheets = []
     else:
-        nb.worksheets = list(worksheets)
+        nb.worksheets = worksheets
     if metadata is None:
         nb.metadata = new_metadata()
     else:

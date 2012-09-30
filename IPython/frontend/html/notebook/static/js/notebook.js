@@ -779,7 +779,18 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.copy_cell = function () {
         var cell = this.get_selected_cell();
-        this.clipboard = cell.toJSON();
+        var json = cell.toJSON();
+
+        //copied cell become ancestor of future pasted cells
+        var uuid = json.metadata.uuid
+        json.metadata.parents = [{uuid:json.metadata.parents}];
+
+        // we don't want to have du plicate uuid, so for now, we are carefull
+        // of deleting the uuid befor copying.
+        if( json.metadata.uuid != undefined){
+            delete  json.metadata.uuid
+        }
+        this.clipboard = json;
         this.enable_paste();
     };
 
@@ -789,6 +800,10 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
+            // generate uuid at cell paste
+            // for a cell can be paste many time and we need unique ids.
+            new_cell.cell_id = utils.uuid();
+
             old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
             this.select(this.find_cell_index(new_cell));
@@ -820,27 +835,38 @@ var IPython = (function (IPython) {
         // Todo: implement spliting for other cell types.
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
-            texta = cell.get_pre_cursor();
-            textb = cell.get_post_cursor();
+            var texta = cell.get_pre_cursor();
+            var textb = cell.get_post_cursor();
+            var uuid = cell.cell_id;
+            var family_tree = [];
+            var dummy = {};
+            dummy[uuid] = cell.parents_id;
+            family_tree.push(dummy);
+            var new_cell
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
-                var new_cell = this.insert_cell_below('code');
+                new_cell = this.insert_cell_below('code');
                 new_cell.set_text(textb);
             } else if (cell instanceof IPython.MarkdownCell) {
                 cell.set_text(texta);
                 cell.render();
-                var new_cell = this.insert_cell_below('markdown');
+                new_cell = this.insert_cell_below('markdown');
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(textb);
                 new_cell.render();
             } else if (cell instanceof IPython.HTMLCell) {
                 cell.set_text(texta);
                 cell.render();
-                var new_cell = this.insert_cell_below('html');
+                new_cell = this.insert_cell_below('html');
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(textb);
                 new_cell.render();
             };
+            // the 2 new cell have a new id and 
+            // are both daughter from the splitted cell
+            cell.cell_id = utils.uuid();
+            cell.parents_id = family_tree;
+            new_cell.parents_id = family_tree;
         };
     };
 
@@ -859,6 +885,18 @@ var IPython = (function (IPython) {
                 cell.set_text(upper_text+'\n'+text);
                 cell.render();
             };
+            var upper_id = upper_cell.cell_id;
+            var lower_id = cell.cell_id;
+            // when merging two cell, the new cell have obviously 2 parents
+            var upcell = {}
+            var lowcell= {}
+            upcell[upper_id] = upper_cell.parents_id ;
+            lowcell[lower_id] = cell.parents_id ;
+            var family_tree = [upcell,lowcell];
+            cell.cell_id = utils.uuid()
+            console.log(this.get_cell(index).parents_id)
+            this.get_cell(index).parents_id = family_tree;
+            console.log(index,this.get_cell(index).parents_id)
             this.delete_cell(index-1);
             this.select(this.find_cell_index(cell));
         };
@@ -879,6 +917,16 @@ var IPython = (function (IPython) {
                 cell.set_text(text+'\n'+lower_text);
                 cell.render();
             };
+            // when merging two cell, the new cell have obviously 2 parents
+            var upper_id = cell.cell_id
+            var lower_id = lower_cell.cell_id
+            var upcell = {}
+            var lowcell= {}
+            upcell[upper_id] = cell.parents_id ;
+            lowcell[lower_id] = lower_cell.parents_id ;
+            var family_tree = [upcell,lowcell];
+            cell.cell_id = utils.uuid()
+            cell.parents_id = family_tree;
             this.delete_cell(index+1);
             this.select(this.find_cell_index(cell));
         };
@@ -1082,6 +1130,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.fromJSON = function (data) {
         var ncells = this.ncells();
+        var uuid_dict = {};
         var i;
         for (i=0; i<ncells; i++) {
             // Always delete cell 0 as they get renumbered as they are deleted.
@@ -1110,8 +1159,19 @@ var IPython = (function (IPython) {
                 
                 new_cell = this.insert_cell_below(cell_data.cell_type);
                 new_cell.fromJSON(cell_data);
+                // dummy assigment using dict as set does not exist
+                uuid_dict[new_cell.cell_id]=0
+
             };
         };
+
+        if (ncells != uuid_dict.length){
+            console.log('warnng, it seems like you have 2 cells with the same uuid')
+            setTimeout(function(){
+                    IPython.notification_widget.set_message('Warning : Potentially duplicate cell UUID', 2000)
+                },3000);
+        }
+
         if (data.worksheets.length > 1) {
             var dialog = $('<div/>');
             dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
@@ -1140,9 +1200,17 @@ var IPython = (function (IPython) {
         var cells = this.get_cells();
         var ncells = cells.length;
         var cell_array = new Array(ncells);
+        var uuid_dict = {};
         for (var i=0; i<ncells; i++) {
-            cell_array[i] = cells[i].toJSON();
+            var json = cells[i].toJSON();
+            cell_array[i] = json
+            // dummy assigment using dict as set does not exist
+            uuid_dict[json.metadata.uuid]=0
         };
+        if (cell_array.length != uuid_dict.length){
+            console.log('warnng, it seems like you have 2 cells with the same uuid')
+            IPython.notification_widget.set_message('Potentially dupicate cell UUID', 5000);
+        }
         var data = {
             // Only handle 1 worksheet for now.
             worksheets : [{
