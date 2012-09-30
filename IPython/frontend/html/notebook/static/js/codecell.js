@@ -42,7 +42,11 @@ var IPython = (function (IPython) {
     };
 
     CodeCell.prototype.create_element = function () {
+        console.log("will init mui");
+        this.metaui = new IPython.MetaUI(this);
+
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
+        cell.append(this.metaui);
         cell.attr('tabindex','2');
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));
