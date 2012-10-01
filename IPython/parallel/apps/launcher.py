@@ -74,7 +74,7 @@ WINDOWS = os.name == 'nt'
 # Paths to the kernel apps
 #-----------------------------------------------------------------------------
 
-cmd = "from IPython.parallel.apps.%s import launch_new_instance; launch_new_instance()"
+cmd = '"from IPython.parallel.apps.%s import launch_new_instance; launch_new_instance()"'
 
 ipcluster_cmd_argv = [sys.executable, "-c", cmd % "ipclusterapp"]
 
