@@ -48,7 +48,7 @@ $(document).ready(function () {
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.toolbar = new IPython.ToolBar('#toolbar')
+    IPython.toolbar = new IPython.MainToolBar('#maintoolbar')
     IPython.tooltip = new IPython.Tooltip()
     IPython.notification_area = new IPython.NotificationArea('#notification_area')
     IPython.notification_area.init_notification_widgets();
