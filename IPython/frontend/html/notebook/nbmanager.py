@@ -180,6 +180,23 @@ class NotebookManager(LoggingConfigurable):
         """Delete notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
+    def rename_existing(self, notebook_id, data, name=None, format=u'json'):
+        if format not in self.allowed_formats:
+            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
+
+        try:
+            nb = current.reads(data.decode('utf-8'), format)
+        except:
+            raise web.HTTPError(400, u'Invalid JSON data')
+
+        if name is not None:
+            nb.metadata.name = name
+        self.rename_existing_notebook(nb, notebook_id)
+
+    def rename_existing_notebook(self, nb, notebook_id):
+        """Renames notebook by notebook_id."""
+        raise NotImplementedError('must be implemented in a subclass')
+
     def increment_filename(self, name):
         """Increment a filename to make it unique.
 

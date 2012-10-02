@@ -69,6 +69,7 @@ var IPython = (function (IPython) {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
                 item.data('nbformat', nbformat);
+                //alert($(reader));
                 // Store the notebook item in the reader so we can use it later
                 // to know which item it belongs to.
                 $(reader).data('item', item);
@@ -99,7 +100,6 @@ var IPython = (function (IPython) {
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
         };
-
         var url = $('body').data('baseProjectUrl') + 'notebooks';
         $.ajax(url, settings);
     };
@@ -280,6 +280,7 @@ var IPython = (function (IPython) {
             addClass('upload-button').
             click(function (e) {
                 var nbname = item.find('.item_name > input').attr('value');
+                var names = that.load_namelist();
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
                 var content_type = 'text/plain';
@@ -288,22 +289,26 @@ var IPython = (function (IPython) {
                 } else if (nbformat === 'py') {
                     content_type = 'application/x-python';
                 };
-                var settings = {
-                    processData : false,
-                    cache : false,
-                    type : 'POST',
-                    dataType : 'json',
-                    data : nbdata,
-                    headers : {'Content-Type': content_type},
-                    success : function (data, status, xhr) {
-                        that.add_link(data, nbname, item);
-                        that.add_delete_button(item);
-                    }
-                };
+                if (that.is_present(nbname, names) == 1) {
+                    var settings = {
+                        processData : false,
+                        cache : false,
+                        type : 'POST',
+                        dataType : 'json',
+                        data : nbdata,
+                        headers : {'Content-Type': content_type},
+                        success : function (data, status, xhr) {
+                            that.add_link(data, nbname, item);
+                            that.add_delete_button(item);
+                        }
+                    };
 
-                var qs = $.param({name:nbname, format:nbformat});
-                var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs;
-                $.ajax(url, settings);
+                    var qs = $.param({name:nbname, format:nbformat});
+                    var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs;
+                    $.ajax(url, settings);
+                } else {
+                    that.confirm_overwrite(nbname, nbformat, nbdata, content_type, item);
+                }
             });
         var cancel_button = $('<button>Cancel</button>').button().
             click(function (e) {
@@ -318,7 +323,91 @@ var IPython = (function (IPython) {
             e.replaceWith(new_buttons);
         };
     };
+    
+    NotebookList.prototype.confirm_overwrite = function(new_name, nbformat, nbdata, content_type, item) {
+        var that = this;
+        var dialog = $('<div/>');
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Target File < " + new_name + " >" + " Already Exists",
+            closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
+            buttons : {
+                "Overwrite": function () {
+                    var settings = {
+                        processData : false,
+                        cache : false,
+                        type : 'POST',
+                        dataType : 'json',
+                        data : nbdata,
+                        headers : {'Content-Type': content_type},
+                        success : function (data, status, xhr) {
+                            that.add_link(data, new_name, item);
+                            that.add_delete_button(item);
+                        }
+                    };
 
+                    var qs = $.param({name:new_name, format:nbformat});
+                    var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs;
+                    $.ajax(url, settings);
+                    that.load_list();
+                    $(this).dialog('close'); 
+                },
+                "EnterNewName": function() {
+                    $(this).dialog('close');    
+                }
+            },
+            open : function (event, ui) {
+                var that = $(this);
+                that.find('input[type="text"]').keydown(function (event, ui) {
+                    if (event.which === utils.keycodes.ENTER) {
+                        that.parent().find('button').first().click();
+                    }
+                });
+            }
+        });
+    }
+
+    NotebookList.prototype.load_namelist = function () {
+        var that = this;
+        var names = new Array();
+        var settings = {
+            processData : false,
+            async : false,
+            cache : false,
+            type : "GET",
+            dataType : "json",
+            success : function(data) {  var len = data.length;
+                                        for (var i = 0; i<len;i++) {
+                                        names[i] = data[i].name;
+                                       }},
+            error : $.proxy( function(){
+                that.list_nameloaded([], null, null, {msg:"Error connecting to server."});
+                             },this)
+        };
+        var url = $('body').data('baseProjectUrl') + 'notebooks';
+        $.ajax(url, settings);
+        return names;
+    };
+
+
+    NotebookList.prototype.list_nameloaded = function (data, status, xhr, param) {
+        var message = 'Notebook list empty.';
+        if (param !== undefined && param.msg) {
+            var message = param.msg;
+        }
+    };
+
+    NotebookList.prototype.is_present = function (new_name, data) {
+        var len = data.length;
+        for (var i=0;i<len;i++) {
+            if (new_name == data[i]) {
+                return 0;
+            }
+        }
+        return 1;
+    };
 
     IPython.NotebookList = NotebookList;
 

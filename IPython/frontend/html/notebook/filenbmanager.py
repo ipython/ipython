@@ -134,7 +134,7 @@ class FileNotebookManager(NotebookManager):
 
         if notebook_id not in self.mapping:
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-
+                 
         old_name = self.mapping[notebook_id]
         path = self.get_path_by_name(new_name)
         try:
@@ -143,7 +143,7 @@ class FileNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
-        # save .py script as well
+	        # save .py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
@@ -151,8 +151,8 @@ class FileNotebookManager(NotebookManager):
                     current.write(nb, f, u'py')
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
-        
-        # remove old files if the name changed
+	    
+		    # remove old files if the name changed
         if old_name != new_name:
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
@@ -164,7 +164,80 @@ class FileNotebookManager(NotebookManager):
             self.mapping[notebook_id] = new_name
             self.rev_mapping[new_name] = notebook_id
             del self.rev_mapping[old_name]
+        return notebook_id
+
+    def rename_existing_notebook(self, nb, notebook_id=None):
+        """Rename an existing notebook object to a different name and also saves the renamed one with the existing name. """
+        try:
+            new_name = nb.metadata.name
+        except AttributeError:
+            raise web.HTTPError(400, u'Missing notebook name')
+
+        if notebook_id is None:
+            raise web.HTTPError(400, u'Unexpected Error while saving Notebook')
+
+        if notebook_id not in self.mapping:
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         
+        if new_name in self.rev_mapping:
+            if notebook_id != self.rev_mapping[new_name]:
+                self.append_notebook_with_lastmodified(self.rev_mapping[new_name])
+                # add copy of the previous one as appended with timestamp
+                 
+        old_name = self.mapping[notebook_id]
+        path = self.get_path_by_name(new_name)
+        try:
+            with open(path,'w') as f:
+                current.write(nb, f, u'json')
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
+
+	    # save .py script as well
+        if self.save_script:
+            pypath = os.path.splitext(path)[0] + '.py'
+            try:
+                with io.open(pypath,'w', encoding='utf-8') as f:
+                    current.write(nb, f, u'py')
+            except Exception as e:
+                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
+	    
+		# remove old files if the name changed
+        if old_name != new_name:
+            old_path = self.get_path_by_name(old_name)
+            if os.path.isfile(old_path):
+                os.unlink(old_path)
+            if self.save_script:
+                old_pypath = os.path.splitext(old_path)[0] + '.py'
+                if os.path.isfile(old_pypath):
+                    os.unlink(old_pypath)
+            self.mapping[notebook_id] = new_name
+            self.rev_mapping[new_name] = notebook_id
+            del self.rev_mapping[old_name]
+        return notebook_id
+
+    def append_notebook_with_lastmodified(self, notebook_id):
+        last_mod, nb = self.read_notebook_object(notebook_id)
+        old_name = self.mapping[notebook_id]
+        old_path = self.get_path_by_name(old_name)
+        new_name = nb.metadata.name + '.SavedAt::' + str(last_mod)
+        notebook_id = self.new_notebook_id(new_name)
+        new_path = self.get_path_by_name(new_name)
+        os.rename(old_path, new_path)
+        try:
+            with open(new_path,'w') as f:
+                current.write(nb, f, u'json')
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
+
+        if self.save_script:
+            pypath = os.new_path.splitext(new_path)[0] + '.py'
+            try:
+                with io.open(pypath,'w', encoding='utf-8') as f:
+                    current.write(nb, f, u'py')
+            except Exception as e:
+                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
+        self.mapping[notebook_id] = new_name
+        self.rev_mapping[new_name] = notebook_id
         return notebook_id
 
     def delete_notebook(self, notebook_id):

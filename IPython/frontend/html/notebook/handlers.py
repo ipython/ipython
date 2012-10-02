@@ -620,7 +620,7 @@ class NotebookRootHandler(AuthenticatedHandler):
 
 class NotebookHandler(AuthenticatedHandler):
 
-    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
+    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE', 'RENAME')
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
@@ -645,6 +645,15 @@ class NotebookHandler(AuthenticatedHandler):
         nbm.save_notebook(notebook_id, self.request.body, name=name, format=format)
         self.set_status(204)
         self.finish()
+    
+    @web.authenticated
+    def rename(self, notebook_id):
+        nbm = self.application.notebook_manager
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        nbm.rename_existing(notebook_id, self.request.body, name=name, format=format)
+        self.set_status(204)
+        self.finish()
 
     @web.authenticated
     def delete(self, notebook_id):
@@ -662,7 +671,6 @@ class NotebookCopyHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         notebook_id = nbm.copy_notebook(notebook_id)
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
-
 
 #-----------------------------------------------------------------------------
 # Cluster handlers
