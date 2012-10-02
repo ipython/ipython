@@ -63,6 +63,7 @@ class ExtensionManager(Configurable):
         self.shell.on_trait_change(
             self._on_ipython_dir_changed, 'ipython_dir'
         )
+        self.loaded = set()
 
     def __del__(self):
         self.shell.on_trait_change(
@@ -89,7 +90,8 @@ class ExtensionManager(Configurable):
             with prepended_to_syspath(self.ipython_extension_dir):
                 __import__(module_str)
         mod = sys.modules[module_str]
-        return self._call_load_ipython_extension(mod)
+        if self._call_load_ipython_extension(mod):
+            self.loaded.add(module_str)
 
     def unload_extension(self, module_str):
         """Unload an IPython extension by its module name.
@@ -99,7 +101,8 @@ class ExtensionManager(Configurable):
         """
         if module_str in sys.modules:
             mod = sys.modules[module_str]
-            self._call_unload_ipython_extension(mod)
+            if self._call_unload_ipython_extension(mod):
+                self.loaded.discard(module_str)
 
     def reload_extension(self, module_str):
         """Reload an IPython extension by calling reload.
@@ -121,11 +124,13 @@ class ExtensionManager(Configurable):
 
     def _call_load_ipython_extension(self, mod):
         if hasattr(mod, 'load_ipython_extension'):
-            return mod.load_ipython_extension(self.shell)
+            mod.load_ipython_extension(self.shell)
+            return True
 
     def _call_unload_ipython_extension(self, mod):
         if hasattr(mod, 'unload_ipython_extension'):
-            return mod.unload_ipython_extension(self.shell)
+            mod.unload_ipython_extension(self.shell)
+            return True
     
     def install_extension(self, url, filename=None):
         """Download and install an IPython extension. 

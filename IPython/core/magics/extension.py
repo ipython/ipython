@@ -59,7 +59,7 @@ class ExtensionMagics(Magics):
         """Load an IPython extension by its module name."""
         if not module_str:
             raise UsageError('Missing module name.')
-        return self.shell.extension_manager.load_extension(module_str)
+        self.shell.extension_manager.load_extension(module_str)
 
     @line_magic
     def unload_ext(self, module_str):
