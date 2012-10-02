@@ -55,7 +55,6 @@ from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGI
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
-from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
@@ -386,7 +385,6 @@ class InteractiveShell(SingletonConfigurable):
     builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
-    plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
     magics_manager = Instance('IPython.core.magic.MagicsManager')
@@ -486,7 +484,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
-        self.init_plugin_manager()
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
@@ -2282,17 +2279,12 @@ class InteractiveShell(SingletonConfigurable):
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
-    # Things related to extensions and plugins
+    # Things related to extensions
     #-------------------------------------------------------------------------
 
     def init_extension_manager(self):
         self.extension_manager = ExtensionManager(shell=self, config=self.config)
         self.configurables.append(self.extension_manager)
-
-    def init_plugin_manager(self):
-        self.plugin_manager = PluginManager(config=self.config)
-        self.configurables.append(self.plugin_manager)
-        
 
     #-------------------------------------------------------------------------
     # Things related to payloads

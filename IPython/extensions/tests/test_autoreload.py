@@ -23,7 +23,7 @@ from StringIO import StringIO
 import nose.tools as nt
 import IPython.testing.tools as tt
 
-from IPython.extensions.autoreload import AutoreloadPlugin
+from IPython.extensions.autoreload import AutoreloadMagics
 from IPython.core.hooks import TryNext
 
 #-----------------------------------------------------------------------------
@@ -35,13 +35,13 @@ noop = lambda *a, **kw: None
 class FakeShell(object):
     def __init__(self):
         self.ns = {}
-        self.reloader = AutoreloadPlugin(shell=self)
+        self.auto_magics = AutoreloadMagics(shell=self)
 
     register_magics = set_hook = noop
 
     def run_code(self, code):
         try:
-            self.reloader.auto_magics.pre_run_code_hook(self)
+            self.auto_magics.pre_run_code_hook(self)
         except TryNext:
             pass
         exec code in self.ns
@@ -50,10 +50,10 @@ class FakeShell(object):
         self.ns.update(items)
 
     def magic_autoreload(self, parameter):
-        self.reloader.auto_magics.autoreload(parameter)
+        self.auto_magics.autoreload(parameter)
 
     def magic_aimport(self, parameter, stream=None):
-        self.reloader.auto_magics.aimport(parameter, stream=stream)
+        self.auto_magics.aimport(parameter, stream=stream)
 
 
 class Fixture(object):
@@ -72,7 +72,6 @@ class Fixture(object):
     def tearDown(self):
         shutil.rmtree(self.test_dir)
         sys.path = self.old_sys_path
-        self.shell.reloader.enabled = False
 
         self.test_dir = None
         self.old_sys_path = None

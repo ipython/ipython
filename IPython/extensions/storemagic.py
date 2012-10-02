@@ -28,9 +28,7 @@ import inspect, os, sys, textwrap
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.plugin import Plugin
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.traitlets import Bool, Instance
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -211,24 +209,12 @@ class StoreMagics(Magics):
                 print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
 
-class StoreMagic(Plugin):
-    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
-    autorestore = Bool(False, config=True)
-    
-    def __init__(self, shell, config):
-        super(StoreMagic, self).__init__(shell=shell, config=config)
-        shell.register_magics(StoreMagics)
-        
-        if self.autorestore:
-            restore_data(shell)
-
-
 _loaded = False
+
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        plugin = StoreMagic(shell=ip, config=ip.config)
-        ip.plugin_manager.register_plugin('storemagic', plugin)
+        ip.register_magics(StoreMagics)
         _loaded = True

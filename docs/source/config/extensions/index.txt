@@ -43,7 +43,7 @@ functions to load and unload it. Here is a template::
     def load_ipython_extension(ipython):
         # The `ipython` argument is the currently active `InteractiveShell`
         # instance, which can be used in any way. This allows you to register
-        # new magics, plugins or aliases, for example.
+        # new magics or aliases, for example.
 
     def unload_ipython_extension(ipython):
         # If you want your extension to be unloadable, put that logic here.
@@ -69,29 +69,6 @@ write extensions, you can also put your extensions in
 
 When your extension is ready for general use, please add it to the `extensions
 index <http://wiki.ipython.org/Extensions_Index>`_.
-
-Plugin class
-------------
-
-More advanced extensions might want to subclass :class:`IPython.core.plugin.Plugin`.
-A plugin can have options configured by IPython's main :ref:`configuration
-system <config_overview>`. The code to load and unload it looks like this::
-
-    def load_ipython_extension(ip):
-        """Load the plugin in IPython."""
-        plugin = MyPlugin(shell=ip, config=ip.config)
-        try:
-            ip.plugin_manager.register_plugin('myplugin', plugin)
-        except KeyError:
-            print("Already loaded")
-    
-    def unload_ipython_extension(ip):
-        ip.plugin_manager.unregister_plugin('myplugin')
-
-For examples, see these files:
-
-* :file:`IPython/extensions/autoreload.py`
-* :file:`IPython/extensions/storemagic.py`
 
 .. _bundled_extensions:
 

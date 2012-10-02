@@ -106,13 +106,10 @@ skip_doctest = True
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-import atexit
+
 import imp
-import inspect
 import os
 import sys
-import threading
-import time
 import traceback
 import types
 import weakref
@@ -409,7 +406,6 @@ def superreload(module, reload=reload, old_objects={}):
 
 from IPython.core.hooks import TryNext
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.plugin import Plugin
 
 @magics_class
 class AutoreloadMagics(Magics):
@@ -518,14 +514,6 @@ class AutoreloadMagics(Magics):
             pass
 
 
-class AutoreloadPlugin(Plugin):
-    def __init__(self, shell=None, config=None):
-        super(AutoreloadPlugin, self).__init__(shell=shell, config=config)
-        self.auto_magics = AutoreloadMagics(shell)
-        shell.register_magics(self.auto_magics)
-        shell.set_hook('pre_run_code_hook', self.auto_magics.pre_run_code_hook)
-
-
 _loaded = False
 
 
@@ -533,6 +521,7 @@ def load_ipython_extension(ip):
     """Load the extension in IPython."""
     global _loaded
     if not _loaded:
-        plugin = AutoreloadPlugin(shell=ip, config=ip.config)
-        ip.plugin_manager.register_plugin('autoreload', plugin)
+        auto_reload = AutoreloadMagics(ip)
+        ip.register_magics(auto_reload)
+        ip.set_hook('pre_run_code_hook', auto_reload.pre_run_code_hook)
         _loaded = True
