@@ -114,13 +114,15 @@ class ExtensionManager(Configurable):
         """
         from IPython.utils.syspathcontext import prepended_to_syspath
 
-        with prepended_to_syspath(self.ipython_extension_dir):
-            if module_str in sys.modules:
-                mod = sys.modules[module_str]
+        if (module_str in self.loaded) and (module_str in sys.modules):
+            self.unload_extension(module_str)
+            mod = sys.modules[module_str]
+            with prepended_to_syspath(self.ipython_extension_dir):
                 reload(mod)
-                self._call_load_ipython_extension(mod)
-            else:
-                self.load_extension(module_str)
+            if self._call_load_ipython_extension(mod):
+                self.loaded.add(module_str)
+        else:
+            self.load_extension(module_str)
 
     def _call_load_ipython_extension(self, mod):
         if hasattr(mod, 'load_ipython_extension'):
