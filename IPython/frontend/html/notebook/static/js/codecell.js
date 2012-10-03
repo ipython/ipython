@@ -41,7 +41,6 @@ var IPython = (function (IPython) {
             mode: 'python',
             theme: 'ipython',
             readOnly: this.read_only,
-            onUpdate: $.proxy(function(){this.set_input_prompt()},this),
             extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
