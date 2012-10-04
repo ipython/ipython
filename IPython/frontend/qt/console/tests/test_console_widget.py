@@ -2,7 +2,7 @@
 import unittest
 
 # System library imports
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.frontend.qt.console.console_widget import ConsoleWidget
@@ -40,3 +40,23 @@ class TestConsoleWidget(unittest.TestCase):
             self.assertEqual(expected_outputs[i], selection)
             # clear all the text
             cursor.insertText('')
+
+    def test_link_handling(self):
+        class event(object):
+            def __init__(self, pos):
+                self._pos = pos
+            def pos(self):
+                return self._pos
+            
+        w = ConsoleWidget()
+        cursor = w._get_prompt_cursor()
+        w._insert_html(cursor, '<a href="http://python.org">written in</a>')
+        self.assertEqual(w._anchor, None)
+        # should be over text
+        w.mouseMoveEvent(event(QtCore.QPoint(1,5)))
+        self.assertEqual(w._anchor, "http://python.org")
+        # should still be over text
+        w.mouseMoveEvent(event(QtCore.QPoint(5,5)))
+        # should be somewhere else
+        w.mouseMoveEvent(event(QtCore.QPoint(50,50)))
+        self.assertEqual(w._anchor, None)
