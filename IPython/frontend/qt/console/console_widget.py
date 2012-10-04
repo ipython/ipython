@@ -434,6 +434,16 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 obj == self._page_control:
             self._page_control.repaint()
             return True
+
+        elif etype == QtCore.QEvent.MouseMove:
+            anchor = self._control.anchorAt(event.pos())
+            if len(anchor) == 0:
+                self._anchor = None
+                QtGui.QToolTip.hideText()
+            elif anchor != self._anchor:
+                self._anchor = anchor
+                QtGui.QToolTip.showText(event.globalPos(), self._anchor)
+
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -1031,7 +1041,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
             control.setMouseTracking(True)
-            control.mouseMoveEvent = self.mouseMoveEvent
 
         # Install event filters. The filter on the viewport is needed for
         # mouse events and drag events.
@@ -1735,18 +1744,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._clear_temporary_buffer()
         else:
             self.input_buffer = ''
-
-    def mouseMoveEvent(self, event):
-        """ Show tooltip if the mouse is hovering over an anchor
-        """
-        pos = event.pos()
-        anchor = self._control.anchorAt(pos)
-        if len(anchor) == 0:
-            self._anchor = None
-            QtGui.QToolTip.hideText()
-        elif anchor != self._anchor:
-            self._anchor = anchor
-            QtGui.QToolTip.showText(pos, self._anchor)
 
     def _page(self, text, html=False):
         """ Displays text using the pager if it exceeds the height of the
