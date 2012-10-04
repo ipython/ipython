@@ -10,6 +10,7 @@ import re
 import sys
 from textwrap import dedent
 from unicodedata import category
+import webbrowser
 
 # System library imports
 from IPython.external.qt import QtCore, QtGui
@@ -264,6 +265,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.gui_completion == 'plain':
             self._completion_widget = CompletionPlain(self)
 
+        self._anchor = None
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
@@ -511,6 +513,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         self.layout().currentWidget().copy()
 
+    def copy_anchor(self):
+        """ Copy anchor text to the clipboard
+        """
+        if self._anchor:
+            QtGui.QApplication.clipboard().setText(self._anchor)
+
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it
             if it's inside the input buffer.
@@ -677,6 +685,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.font_changed.emit(font)
 
     font = property(_get_font, _set_font)
+
+    def open_anchor(self):
+        """ Open selected anchor in the default webbrowser
+        """
+        if self._anchor:
+            webbrowser.open( self._anchor )
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -971,6 +985,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste_action.setEnabled(self.can_paste())
         self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
+        if self._anchor:
+            menu.addSeparator()
+            self.copy_link_action = menu.addAction('Copy Link Address',
+                                                   self.copy_anchor)
+            self.open_link_action = menu.addAction('Open Link',
+                                                   self.open_anchor)
+
         menu.addSeparator()
         menu.addAction(self.select_all_action)
 
@@ -1009,6 +1030,8 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
+            control.setMouseTracking(True)
+            control.mouseMoveEvent = self.mouseMoveEvent
 
         # Install event filters. The filter on the viewport is needed for
         # mouse events and drag events.
@@ -1712,6 +1735,18 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._clear_temporary_buffer()
         else:
             self.input_buffer = ''
+
+    def mouseMoveEvent(self, event):
+        """ Show tooltip if the mouse is hovering over an anchor
+        """
+        pos = event.pos()
+        anchor = self._control.anchorAt(pos)
+        if len(anchor) == 0:
+            self._anchor = None
+            QtGui.QToolTip.hideText()
+        elif anchor != self._anchor:
+            self._anchor = anchor
+            QtGui.QToolTip.showText(pos, self._anchor)
 
     def _page(self, text, html=False):
         """ Displays text using the pager if it exceeds the height of the
