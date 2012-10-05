@@ -42,21 +42,32 @@ class TestConsoleWidget(unittest.TestCase):
             cursor.insertText('')
 
     def test_link_handling(self):
-        class event(object):
-            def __init__(self, pos):
-                self._pos = pos
-            def pos(self):
-                return self._pos
-            
+        noKeys = QtCore.Qt
+        noButton = QtCore.Qt.MouseButton(0)
+        noButtons = QtCore.Qt.MouseButtons(0)
+        noModifiers = QtCore.Qt.KeyboardModifiers(0)
+        MouseMove = QtCore.QEvent.MouseMove
+        QMouseEvent = QtGui.QMouseEvent
+        
         w = ConsoleWidget()
         cursor = w._get_prompt_cursor()
         w._insert_html(cursor, '<a href="http://python.org">written in</a>')
+        obj = w._control
         self.assertEqual(w._anchor, None)
+        
         # should be over text
-        w.mouseMoveEvent(event(QtCore.QPoint(1,5)))
+        overTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
+                                    noButton, noButtons, noModifiers)
+        w.eventFilter(obj, overTextEvent)
         self.assertEqual(w._anchor, "http://python.org")
+        
         # should still be over text
-        w.mouseMoveEvent(event(QtCore.QPoint(5,5)))
+        stillOverTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
+                                         noButton, noButtons, noModifiers)
+        w.eventFilter(obj, stillOverTextEvent)
+        
         # should be somewhere else
-        w.mouseMoveEvent(event(QtCore.QPoint(50,50)))
+        elsewhereEvent = QMouseEvent(MouseMove, QtCore.QPoint(50,50),
+                                         noButton, noButtons, noModifiers)
+        w.eventFilter(obj, elsewhereEvent)
         self.assertEqual(w._anchor, None)
