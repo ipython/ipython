@@ -155,7 +155,7 @@ var IPython = (function (IPython) {
         console.log("Starting SockJS:", ws_url);
         this.shell_channel = new SockJS(ws_url + "/sock");
         send_cookie = function(){
-            this.send(document.cookie);
+            this.send(document.cookie || ' ');
         };
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
