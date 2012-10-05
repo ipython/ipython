@@ -19,6 +19,7 @@ import sys
 import tempfile
 import warnings
 from hashlib import md5
+import glob
 
 import IPython
 from IPython.testing.skipdoctest import skip_doctest
@@ -353,6 +354,28 @@ def expand_path(s):
     if os.name=='nt':
         s = s.replace('IPYTHON_TEMP', '$\\')
     return s
+
+
+def unescape_glob(string):
+    """Unescape glob pattern in `string`."""
+    def unescape(s):
+        for pattern in '*[]!?':
+            s = s.replace(r'\{0}'.format(pattern), pattern)
+        return s
+    return '\\'.join(map(unescape, string.split('\\\\')))
+
+
+def shellglob(args):
+    """
+    Do glob expansion for each element in `args` and return a flattened list.
+
+    Unmatched glob pattern will remain as-is in the returned list.
+
+    """
+    expanded = []
+    for a in args:
+        expanded.extend(glob.glob(a) or [unescape_glob(a)])
+    return expanded
 
 
 def target_outdated(target,deps):

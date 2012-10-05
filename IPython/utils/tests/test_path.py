@@ -32,6 +32,7 @@ from IPython.testing.decorators import skip_if_not_win32, skip_win32
 from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path, io
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
@@ -444,3 +445,48 @@ def test_unicode_in_filename():
         path.get_py_filename(u'fooéè.py',  force_win32=False)
     except IOError as ex:
         str(ex)
+
+
+def test_shellglob():
+    """Test glob expansion for %run magic."""
+    filenames_start_with_a = map('a{0}'.format, range(3))
+    filenames_end_with_b = map('{0}b'.format, range(3))
+    filenames = filenames_start_with_a + filenames_end_with_b
+
+    with TemporaryDirectory() as td:
+        save = os.getcwdu()
+        try:
+            os.chdir(td)
+
+            # Create empty files
+            for fname in filenames:
+                open(os.path.join(td, fname), 'w').close()
+
+            def assert_match(patterns, matches):
+                # glob returns unordered list. that's why sorted is required.
+                nt.assert_equals(sorted(path.shellglob(patterns)),
+                                 sorted(matches))
+
+            assert_match(['*'], filenames)
+            assert_match(['a*'], filenames_start_with_a)
+            assert_match(['*c'], ['*c'])
+            assert_match(['*', 'a*', '*b', '*c'],
+                         filenames
+                         + filenames_start_with_a
+                         + filenames_end_with_b
+                         + ['*c'])
+
+            assert_match([r'\*'], ['*'])
+            assert_match([r'a\*', 'a*'], ['a*'] + filenames_start_with_a)
+            assert_match(['a[012]'], filenames_start_with_a)
+            assert_match([r'a\[012]'], ['a[012]'])
+        finally:
+            os.chdir(save)
+
+
+def test_unescape_glob():
+    nt.assert_equals(path.unescape_glob(r'\*\[\!\]\?'), '*[!]?')
+    nt.assert_equals(path.unescape_glob(r'\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\a'), r'\a')
+    nt.assert_equals(path.unescape_glob(r'\a'), r'\a')

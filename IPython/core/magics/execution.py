@@ -44,9 +44,10 @@ from IPython.utils import py3compat
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
-from IPython.utils.path import get_py_filename, unquote_filename
+from IPython.utils.path import get_py_filename, unquote_filename, shellglob
 from IPython.utils.timing import clock, clock2
 from IPython.utils.warn import warn, error
+
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -324,7 +325,7 @@ python-profiler package from non-free.""")
         """Run the named file inside IPython as a program.
 
         Usage:\\
-          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options]] file [args]
+          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options] -G] file [args]
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
@@ -344,6 +345,13 @@ python-profiler package from non-free.""")
         updated with all variables defined in the program (except for __name__
         and sys.argv). This allows for very convenient loading of code for
         interactive work, while giving each program a 'clean sheet' to run in.
+
+        Arguments are expanded using shell-like glob match.  Patterns
+        '*', '?', '[seq]' and '[!seq]' can be used.  Additionally,
+        tilde '~' will be expanded into user's home directory.  Unlike
+        real shells, quotation does not suppress expansions.  Use
+        *two* back slashes (e.g., '\\\\*') to suppress expansions.
+        To completely disable these expansions, you can use -G flag.
 
         Options:
 
@@ -439,10 +447,13 @@ python-profiler package from non-free.""")
 
         will run the example module.
 
+        -G: disable shell-like glob expansion of arguments.
+
         """
 
         # get arguments and set sys.argv for program to be run.
-        opts, arg_lst = self.parse_options(parameter_s, 'nidtN:b:pD:l:rs:T:em:',
+        opts, arg_lst = self.parse_options(parameter_s,
+                                           'nidtN:b:pD:l:rs:T:em:G',
                                            mode='list', list_all=1)
         if "m" in opts:
             modulename = opts["m"][0]
@@ -476,8 +487,11 @@ python-profiler package from non-free.""")
         # were run from a system shell.
         save_argv = sys.argv # save it for later restoring
 
-        # simulate shell expansion on arguments, at least tilde expansion
-        args = [ os.path.expanduser(a) for a in arg_lst[1:] ]
+        if 'G' in opts:
+            args = arg_lst[1:]
+        else:
+            # tilde and glob expansion
+            args = shellglob(map(os.path.expanduser,  arg_lst[1:]))
 
         sys.argv = [filename] + args  # put in the proper filename
         # protect sys.argv from potential unicode strings on Python 2:
