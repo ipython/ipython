@@ -21,7 +21,7 @@ from IPython.external.argparse import Action
 # Our own packages
 from IPython.core.error import StdinNotImplementedError
 from IPython.core.magic import Magics, magics_class, line_magic
-from IPython.core.magic_arguments import (argument, defaults, magic_arguments,
+from IPython.core.magic_arguments import (argument, magic_arguments,
                                           parse_argstring)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import io
@@ -31,10 +31,7 @@ from IPython.utils import io
 #-----------------------------------------------------------------------------
 
 
-class HistoryArgLimitAction(Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        namespace.limit_specified = True
-        namespace.limit = values
+_unspecified = object()
 
 
 @magics_class
@@ -87,13 +84,12 @@ class HistoryMagics(Magics):
         full saved history (may be very long).
         """)
     @argument(
-        '-l', dest='limit', type=int, nargs='?', action=HistoryArgLimitAction,
+        '-l', dest='limit', type=int, nargs='?', default=_unspecified,
         help="""
         get the last n lines from all sessions. Specify n as a single
         arg, or the default is the last 10 lines.
         """)
     @argument('range', nargs='*')
-    @defaults(limit_specified=False)
     @skip_doctest
     @line_magic
     def history(self, parameter_s = ''):
@@ -165,6 +161,7 @@ class HistoryMagics(Magics):
         raw = args.raw
 
         pattern = None
+        limit = None if args.limit is _unspecified else args.limit
 
         if args.pattern is not None:
             if args.pattern:
@@ -172,10 +169,10 @@ class HistoryMagics(Magics):
             else:
                 pattern = "*"
             hist = history_manager.search(pattern, raw=raw, output=get_output,
-                                          n=args.limit)
+                                          n=limit)
             print_nums = True
-        elif args.limit_specified:
-            n = 10 if args.limit is None else args.limit
+        elif args.limit is not _unspecified:
+            n = 10 if limit is None else limit
             hist = history_manager.get_tail(n, raw=raw, output=get_output)
         else:
             if args.range:      # Get history by ranges
