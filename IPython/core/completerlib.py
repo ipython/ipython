@@ -91,6 +91,7 @@ def module_list(path):
     # Now find actual path matches for packages or modules
     folder_list = [p for p in folder_list
                    if isfile(pjoin(path, p,'__init__.py'))
+                   or isfile(pjoin(path, p, '__init__.pyc'))
                    or is_importable_file(p) ]
 
     return [basename(p).split('.')[0] for p in folder_list]
