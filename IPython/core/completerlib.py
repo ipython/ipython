@@ -17,6 +17,7 @@ from __future__ import print_function
 
 # Stdlib imports
 import glob
+import imp
 import inspect
 import os
 import re
@@ -90,7 +91,8 @@ def module_list(path):
 
     # Now find actual path matches for packages or modules
     folder_list = [p for p in folder_list
-                   if isfile(pjoin(path, p,'__init__.py'))
+                   if any(isfile(pjoin(path, p, '__init__' + suffix[0])) for
+                       suffix in imp.get_suffixes())
                    or is_importable_file(p) ]
 
     return [basename(p).split('.')[0] for p in folder_list]
