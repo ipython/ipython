@@ -44,7 +44,7 @@
     opacity: 1;
   }
 }
-.tooltip a {
+.ipython_tooltip a {
   float: right;
 }
 /*properties of tooltip after "expand"*/
@@ -81,7 +81,7 @@
 
   padding-right: 30px;
 }
-.tooltip {
+.ipython_tooltip {
   max-width: 700px;
   border-radius: 4px;
   -moz-box-shadow: 0px 6px 10px -1px #adadad;
