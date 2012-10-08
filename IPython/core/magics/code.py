@@ -17,6 +17,7 @@ import inspect
 import io
 import json
 import os
+import re
 import sys
 from urllib2 import urlopen
 
@@ -38,6 +39,13 @@ from IPython.utils.warn import warn
 
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
+
+ipython_input_pat = re.compile(r"<ipython\-input\-(\d+)-[a-z\d]+>$")
+
+class InteractivelyDefined(Exception):
+    """Exception for interactively defined variable in magic_edit"""
+    def __init__(self, index):
+        self.index = index
 
 
 @magics_class
@@ -301,7 +309,11 @@ class CodeMagics(Magics):
                                     # target instead
                                     data = attr
                                     break
-
+                        
+                        m = ipython_input_pat.match(os.path.basename(filename))
+                        if m:
+                            raise InteractivelyDefined(int(m.groups()[0]))
+                        
                         datafile = 1
                     if filename is None:
                         filename = make_filename(args)
@@ -491,6 +503,11 @@ class CodeMagics(Magics):
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
             return
+        except InteractivelyDefined as e:
+            print "Editing In[%i]" % e.index
+            args = str(e.index)
+            filename, lineno, is_temp = self._find_edit_target(self.shell, 
+                                                       args, opts, last_call)
 
         # do actual editing here
         print 'Editing...',
