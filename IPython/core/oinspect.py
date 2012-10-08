@@ -296,7 +296,7 @@ def find_file(obj):
                 pass
     except:
         pass
-    return fname
+    return cast_unicode(fname)
 
 
 def find_source_lines(obj):
