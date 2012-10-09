@@ -26,6 +26,9 @@ from urlparse import urlparse
 from IPython.core.error import UsageError
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance
+from IPython.utils.py3compat import PY3
+if PY3:
+    from imp import reload
 
 #-----------------------------------------------------------------------------
 # Main class
