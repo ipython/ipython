@@ -17,8 +17,7 @@ IPython.mathjaxutils = (function (IPython) {
         if (window.MathJax) { 
             // MathJax loaded
             MathJax.Hub.Config({
-                TeX: { equationNumbers: { autoNumber: "AMS", useLabelIds: true },
-                       extensions: ["autoload-all.js"] },
+                TeX: { equationNumbers: { autoNumber: "AMS", useLabelIds: true } },
                 tex2jax: {
                     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
                     displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
@@ -220,11 +219,21 @@ IPython.mathjaxutils = (function (IPython) {
         return text;
     }
 
+    function queueRender() {
+        // see https://groups.google.com/forum/?fromgroups=#!topic/mathjax-users/cpwy5eCH1ZQ
+        MathJax.Hub.Queue( 
+          ["resetEquationNumbers",MathJax.InputJax.TeX], 
+          ["PreProcess",MathJax.Hub], 
+          ["Reprocess",MathJax.Hub] 
+          ); 
+    }
+
     return {
         init : init,
         processMath : processMath,
         removeMath : removeMath,
         replaceMath : replaceMath,
+        queueRender : queueRender
     };
 
 }(IPython));

@@ -250,6 +250,8 @@ var IPython = (function (IPython) {
 
                 return '<code class="prettyprint">' + code + '</code>';
             });
+
+            IPython.mathjaxutils.queueRender()
             this.rendered = true;
         }
     };
