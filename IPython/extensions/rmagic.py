@@ -116,28 +116,22 @@ def Rconverter(Robj, dataframe=False):
 
 
 def df2struct_array(df):
+    """Convert a Pandas DataFrame into an Rpy-safe strutured array.
+
+    It converts all fields that Pandas thinks are object type into strings.
+
     """
+    struct_array = df.to_records()
+    arr_dtype = struct_array.dtype.descr
+    for i, dtype in enumerate(arr_dtype):
+        if dtype[1] == np.dtype('object'):
+            arr_dtype[i] = (dtype[0], dtype[1].replace("|O", "|S"))
 
-    This converts a pandas data-frame into a struct array and corrects its
-    dtype along the way, assuming that object dtypes are actually strings.
-
-    """
-    df_dtypes = df.dtypes
-    arr_dtype = zip([str(k) for k in df_dtypes.keys()],
-                    [df_dtypes[k] for k in df_dtypes.keys()])
-
-    k = df_dtypes.keys()
-
-    for i, this_k in enumerate(k):
-        # We don't want 'object' dtype stuff because R doesn't know what to do
-        # with them exactly. Try to coerce this into a string instead:
-        if arr_dtype[i][1] == np.dtype('object'):
-            arr_dtype[i] = (k[i], 'S3')
-
-    struct_array = np.asarray([tuple(this) for this in np.array(df)],
-                               dtype=arr_dtype)
+    struct_array = np.asarray([tuple(d) for d in struct_array],
+                              dtype=arr_dtype)
 
     return struct_array
+
 
 def converter(x):
     """
