@@ -364,5 +364,4 @@ __doc__ = __doc__.format(
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    if 'octavemagic' not in ip.extension_manager.loaded:
-        ip.register_magics(OctaveMagics)
+    ip.register_magics(OctaveMagics)

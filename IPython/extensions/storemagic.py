@@ -211,5 +211,4 @@ class StoreMagics(Magics):
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    if 'storemagic' not in ip.extension_manager.loaded:
-        ip.register_magics(StoreMagics)
+    ip.register_magics(StoreMagics)

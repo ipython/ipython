@@ -516,7 +516,6 @@ class AutoreloadMagics(Magics):
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    if 'autoreload' not in ip.extension_manager.loaded:
-        auto_reload = AutoreloadMagics(ip)
-        ip.register_magics(auto_reload)
-        ip.set_hook('pre_run_code_hook', auto_reload.pre_run_code_hook)
+    auto_reload = AutoreloadMagics(ip)
+    ip.register_magics(auto_reload)
+    ip.set_hook('pre_run_code_hook', auto_reload.pre_run_code_hook)
