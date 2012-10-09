@@ -23,6 +23,7 @@ import sys
 from urllib import urlretrieve
 from urlparse import urlparse
 
+from IPython.core.error import UsageError
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance
 
@@ -44,10 +45,11 @@ class ExtensionManager(Configurable):
     the only argument.  You can do anything you want with IPython at
     that point, including defining new magic and aliases, adding new
     components, etc.
-
-    The :func:`load_ipython_extension` will be called again is you
-    load or reload the extension again.  It is up to the extension
-    author to add code to manage that.
+    
+    You can also optionaly define an :func:`unload_ipython_extension(ipython)`
+    function, which will be called if the user unloads or reloads the extension.
+    The extension manager will only call :func:`load_ipython_extension` again
+    if the extension is reloaded.
 
     You can put your extension modules anywhere you want, as long as
     they can be imported by Python's standard import mechanism.  However,
@@ -81,9 +83,12 @@ class ExtensionManager(Configurable):
     def load_extension(self, module_str):
         """Load an IPython extension by its module name.
 
-        If :func:`load_ipython_extension` returns anything, this function
-        will return that object.
+        Returns the string "already loaded" if the extension is already loaded,
+        otherwise None.
         """
+        if module_str in self.loaded:
+            return "already loaded"
+        
         from IPython.utils.syspathcontext import prepended_to_syspath
 
         if module_str not in sys.modules:
@@ -98,11 +103,20 @@ class ExtensionManager(Configurable):
 
         This function looks up the extension's name in ``sys.modules`` and
         simply calls ``mod.unload_ipython_extension(self)``.
+        
+        Returns the string "no unload function" if the extension doesn't define
+        a function to unload itself, "not loaded" if the extension isn't loaded,
+        otherwise None.
         """
+        if module_str not in self.loaded:
+            return "not loaded"
+        
         if module_str in sys.modules:
             mod = sys.modules[module_str]
             if self._call_unload_ipython_extension(mod):
                 self.loaded.discard(module_str)
+            else:
+                return "no unload function"
 
     def reload_extension(self, module_str):
         """Reload an IPython extension by calling reload.
