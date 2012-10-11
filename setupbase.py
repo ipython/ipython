@@ -204,12 +204,12 @@ def find_data_files():
     manpagebase = pjoin('share', 'man', 'man1')
 
     # Simple file lists can be made by hand
-    manpages  = filter(isfile, glob(pjoin('docs','man','*.1.gz')))
+    manpages = [f for f in glob(pjoin('docs','man','*.1.gz')) if isfile(f)]
     if not manpages:
         # When running from a source tree, the manpages aren't gzipped
-        manpages = filter(isfile, glob(pjoin('docs','man','*.1')))
-    igridhelpfiles = filter(isfile,
-                            glob(pjoin('IPython','extensions','igrid_help.*')))
+        manpages = [f for f in glob(pjoin('docs','man','*.1')) if isfile(f)]
+
+    igridhelpfiles = [f for f in glob(pjoin('IPython','extensions','igrid_help.*')) if isfile(f)]
 
     # For nested structures, use the utility above
     example_files = make_dir_struct(
