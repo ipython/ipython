@@ -179,8 +179,12 @@ def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
                          stdin=_stdin, stdout=_stdout, stderr=_stderr)
         else:
-            from _subprocess import DuplicateHandle, GetCurrentProcess, \
-                DUPLICATE_SAME_ACCESS
+            try:
+                from _winapi import DuplicateHandle, GetCurrentProcess, \
+                    DUPLICATE_SAME_ACCESS
+            except:
+                from _subprocess import DuplicateHandle, GetCurrentProcess, \
+                    DUPLICATE_SAME_ACCESS
             pid = GetCurrentProcess()
             handle = DuplicateHandle(pid, pid, pid, 0,
                                      True, # Inheritable by new processes.

@@ -100,7 +100,10 @@ class ParentPollerWindows(Thread):
     def run(self):
         """ Run the poll loop. This method never returns.
         """
-        from _subprocess import WAIT_OBJECT_0, INFINITE
+        try:
+            from _winapi import WAIT_OBJECT_0, INFINITE
+        except ImportError:
+            from _subprocess import WAIT_OBJECT_0, INFINITE
 
         # Build the list of handle to listen on.
         handles = []
