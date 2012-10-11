@@ -7,7 +7,7 @@ Release 0.13.1
 
 0.13.1 is a bugfix release for 0.13.
 
-Notable:
+Notable fixes:
 
 * ipcluster launchers were released with a few serious bugs in 0.13, preventing
   the default configuration from working in just about any nontrivial environment
@@ -18,11 +18,15 @@ Notable:
 * Tab completion fixes when using ``IPython.embed_kernel()``.
 * A few NameErrors/AttributeErrors in magics due to the reorganized magics system.
 
-We closed a total of 52 issues, 34 pull requests and 18 regular issues;
+We closed a total of 59 issues (38 pull requests and 21 regular issues);
 this is the full list (generated with the script :file:`tools/github_stats.py`):
 
-Pull Requests (34):
+Pull Requests (38):
 
+* :ghpull:`2479`: use new _winapi instead of removed _subprocess
+* :ghpull:`2437`: don't let log cleanup prevent engine start
+* :ghpull:`2405`: clarify TaskScheduler.hwm doc
+* :ghpull:`2377`: Fix installation of man pages in Python 3
 * :ghpull:`2373`: fix missing imports in core.interactiveshell
 * :ghpull:`2365`: fix names of notebooks for download/save
 * :ghpull:`2345`: Remove references to 'version' no longer in argparse. Github issue #2343.
@@ -58,8 +62,11 @@ Pull Requests (34):
 * :ghpull:`2061`: use explicit tuple in exception
 * :ghpull:`2060`: change minus to \- or \(hy in manpages
 
-Issues (18):
+Issues (21):
 
+* :ghissue:`2471`: _subprocess module removed in Python 3.3
+* :ghissue:`2374`: Issues with man pages
+* :ghissue:`2435`: ipengines fail if clean_logs enabled
 * :ghissue:`2372`: interactiveshell.py misses urllib and io_open imports
 * :ghissue:`2227`: print name for IPython Notebooks has become uninformative
 * :ghissue:`2343`: Installing in a python 3.3b2 or python 3.3rc1 virtual environment.
