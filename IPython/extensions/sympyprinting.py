@@ -81,7 +81,7 @@ def can_print_latex(o):
         return all(can_print_latex(i) for i in o)
     elif isinstance(o, dict):
         return all((isinstance(i, basestring) or can_print_latex(i)) and can_print_latex(o[i]) for i in o)
-    elif isinstance(o,(sympy.Basic, sympy.matrices.Matrix, int, long, float)):
+    elif isinstance(o,(sympy.Basic, sympy.matrices.Matrix, sympy.matrices.MutableMatrix, int, long, float)):
         return True
     return False
 
@@ -96,13 +96,14 @@ def print_latex(o):
     # Fallback to the string printer
     return None
 
-_loaded = False
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     import sympy
-    global _loaded
-    if not _loaded:
+    if not hasattr(ip, '_sympy_printing_loaded'):
+        ip._sympy_printing_loaded = False
+    
+    if not ip._sympy_printing_loaded:
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
 
         for cls in (object, str):
@@ -124,7 +125,10 @@ def load_ipython_extension(ip):
         plaintext_formatter.for_type_by_name(
             'sympy.matrices.matrices', 'Matrix', print_basic_unicode
         )
-
+        plaintext_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'MutableMatrix', print_basic_unicode
+        )
+        
         png_formatter = ip.display_formatter.formatters['image/png']
 
         png_formatter.for_type_by_name(
@@ -133,6 +137,10 @@ def load_ipython_extension(ip):
         png_formatter.for_type_by_name(
             'sympy.matrices.matrices', 'Matrix', print_display_png
         )
+        png_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'MutableMatrix', print_display_png
+        )
+        
         for cls in [dict, int, long, float] + printable_containers:
             png_formatter.for_type(cls, print_png)
 
@@ -143,9 +151,12 @@ def load_ipython_extension(ip):
         latex_formatter.for_type_by_name(
             'sympy.matrices.matrices', 'Matrix', print_latex
         )
-
+        latex_formatter.for_type_by_name(
+            'sympy.matrices.matrices', 'MutableMatrix', print_latex
+        )
+        
         for cls in printable_containers:
             # Use LaTeX only if every element is printable by latex
             latex_formatter.for_type(cls, print_latex)
 
-        _loaded = True
+        ip._sympy_printing_loaded = True
