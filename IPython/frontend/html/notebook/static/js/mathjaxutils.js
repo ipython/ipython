@@ -78,8 +78,12 @@ IPython.mathjaxutils = (function (IPython) {
         };
     };
 
-    // Some magic for deferring mathematical expressions to MathJaX
-    // Some of the code here is adapted with permission from Stack Exchange Inc.
+    // Some magic for deferring mathematical expressions to MathJax
+    // by hiding them from the Markdown parser.
+    // Some of the code here is adapted with permission from Davide Cervone
+    // under the terms of the Apache2 license governing the MathJax project.
+    // Other minor modifications are also due to StackExchange and are used with
+    // permission.
 
     var inline = "$"; // the inline math delimiter
     var blocks, start, end, last, braces; // used in searching for math
@@ -97,7 +101,7 @@ IPython.mathjaxutils = (function (IPython) {
     //  Clear the current math positions and store the index of the
     //    math, then push the math string onto the storage array.
     //  The preProcess function is called on all blocks if it has been passed in
-    function processMath(i, j, preProcess) {
+    var process_math = function (i, j, pre_process) {
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use HTML entity for &
         .replace(/</g, "&lt;") // use HTML entity for <
         .replace(/>/g, "&gt;") // use HTML entity for >
@@ -110,8 +114,8 @@ IPython.mathjaxutils = (function (IPython) {
             j--;
         }
         blocks[i] = "@@" + math.length + "@@"; // replace the current block text with a unique tag to find later
-        if (preProcess)
-            block = preProcess(block);
+        if (pre_process)
+            block = pre_process(block);
         math.push(block);
         start = end = last = null;
     }
@@ -122,7 +126,7 @@ IPython.mathjaxutils = (function (IPython) {
     //  Don't allow math to pass through a double linebreak
     //    (which will be a paragraph).
     //
-    function removeMath(text) {
+    var remove_math = function (text) {
         start = end = last = null; // for tracking math delimiters
         math = []; // stores math strings for later
         
@@ -133,14 +137,14 @@ IPython.mathjaxutils = (function (IPython) {
         //     `$foo` and `$bar` are varibales.  -->  <code>$foo ` and `$bar</code> are variables.
 
         var hasCodeSpans = /`/.test(text),
-            deTilde;
+            de_tilde;
         if (hasCodeSpans) {
             text = text.replace(/~/g, "~T").replace(/(^|[^\\])(`+)([^\n]*?[^`\n])\2(?!`)/gm, function (wholematch) {
                 return wholematch.replace(/\$/g, "~D");
             });
-            deTilde = function (text) { return text.replace(/~([TD])/g, function (wholematch, character) { return { T: "~", D: "$" }[character]; }) };
+            de_tilde = function (text) { return text.replace(/~([TD])/g, function (wholematch, character) { return { T: "~", D: "$" }[character]; }) };
         } else {
-            deTilde = function (text) { return text; };
+            de_tilde = function (text) { return text; };
         }
         
         blocks = IPython.utils.regex_split(text.replace(/\r\n?/g, "\n"),MATHSPLIT);
@@ -166,13 +170,13 @@ IPython.mathjaxutils = (function (IPython) {
                         last = i
                     }
                     else {
-                        processMath(start, i, deTilde)
+                        process_math(start, i, de_tilde)
                     }
                 }
                 else if (block.match(/\n.*\n/)) {
                     if (last) {
                         i = last;
-                        processMath(start, i, deTilde)
+                        process_math(start, i, de_tilde)
                     }
                     start = end = last = null;
                     braces = 0;
@@ -202,16 +206,16 @@ IPython.mathjaxutils = (function (IPython) {
             }
         }
         if (last) {
-            processMath(start, last, deTilde)
+            process_math(start, last, de_tilde)
         }
-        return deTilde(blocks.join(""));
+        return de_tilde(blocks.join(""));
     }
 
     //
     //  Put back the math strings that were saved,
     //    and clear the math array (no need to keep it around).
     //  
-    function replaceMath(text) {
+    var replace_math = function (text) {
         text = text.replace(/@@(\d+)@@/g, function (match, n) {
             return math[n]
         });
@@ -219,7 +223,7 @@ IPython.mathjaxutils = (function (IPython) {
         return text;
     }
 
-    function queueRender() {
+    var queue_render = function () {
         // see https://groups.google.com/forum/?fromgroups=#!topic/mathjax-users/cpwy5eCH1ZQ
         MathJax.Hub.Queue( 
           ["resetEquationNumbers",MathJax.InputJax.TeX], 
@@ -230,10 +234,10 @@ IPython.mathjaxutils = (function (IPython) {
 
     return {
         init : init,
-        processMath : processMath,
-        removeMath : removeMath,
-        replaceMath : replaceMath,
-        queueRender : queueRender
+        process_math : process_math,
+        remove_math : remove_math,
+        replace_math : replace_math,
+        queue_render : queue_render
     };
 
 }(IPython));
