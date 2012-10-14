@@ -904,7 +904,7 @@ class Hub(SessionFactory):
 
         self.log.debug("registration::register_engine(%i, %r)", eid, uuid)
 
-        content = dict(id=eid,status='ok')
+        content = dict(id=eid,status='ok',hb_period=self.heartmonitor.period)
         # check if requesting available IDs:
         if cast_bytes(uuid) in self.by_ident:
             try:
