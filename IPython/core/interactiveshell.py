@@ -30,6 +30,7 @@ import sys
 import tempfile
 import types
 import urllib
+import textwrap
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
@@ -2564,6 +2565,11 @@ class InteractiveShell(SingletonConfigurable):
             self._current_cell_magic_body = \
                                ''.join(self.input_splitter.cell_magic_parts)
         cell = self.input_splitter.source_reset()
+        
+        # remove common leading whitespace from all lines of the cell,
+        # letting pasted text run without IndentationError's.
+        #   Does this need a try/catch block as well?
+        cell = textwrap.dedent(cell)
 
         with self.builtin_trap:
             prefilter_failed = False

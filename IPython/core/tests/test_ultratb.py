@@ -93,3 +93,20 @@ class IndentationErrorTest(unittest.TestCase):
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
+
+
+indentationerror_file2 = """    class PastedClass:
+        foo = 1
+        bar = 3
+
+from __future__ import print_function
+print(PastedClass.__name__)
+print('foo is', PastedClass.foo)
+"""
+
+class IndentationErrorRetryTest(unittest.TestCase):
+    def test_no_indentationerror_on_pasted_text(self):
+        # See issue gh-995
+        with tt.AssertPrints("PastedClass", suppress=False):
+            with tt.AssertPrints("foo is 1", suppress=False):
+                ip.run_cell(indentationerror_file2)
