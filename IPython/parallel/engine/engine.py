@@ -53,7 +53,7 @@ class EngineFactory(RegistrationFactory):
     timeout=Float(5.0, config=True,
         help="""The time (in seconds) to wait for the Controller to respond
         to registration requests before giving up.""")
-    max_heartbeat_misses=Integer(0, config=True,
+    max_heartbeat_misses=Integer(50, config=True,
         help="""The maximum number of times a check for the heartbeat ping of a 
         controller can be missed before shutting down the engine.
         
