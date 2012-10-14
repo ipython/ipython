@@ -25,7 +25,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.external.ssh import tunnel
 # internal
 from IPython.utils.traitlets import (
-    Instance, Dict, Integer, Type, CFloat, Unicode, CBytes, Bool
+    Instance, Dict, Integer, Type, Float, Integer, Unicode, CBytes, Bool
 )
 from IPython.utils.py3compat import cast_bytes
 
@@ -50,9 +50,14 @@ class EngineFactory(RegistrationFactory):
         help="""The location (an IP address) of the controller.  This is
         used for disambiguating URLs, to determine whether
         loopback should be used to connect or the public address.""")
-    timeout=CFloat(5, config=True,
+    timeout=Float(5.0, config=True,
         help="""The time (in seconds) to wait for the Controller to respond
         to registration requests before giving up.""")
+    max_heartbeat_misses=Integer(50, config=True,
+        help="""The maximum number of times a check for the heartbeat ping of a 
+        controller can be missed before shutting down the engine.
+        
+        If set to 0, the check is disabled.""")
     sshserver=Unicode(config=True,
         help="""The SSH server to use for tunneling connections to the Controller.""")
     sshkey=Unicode(config=True,
@@ -60,12 +65,23 @@ class EngineFactory(RegistrationFactory):
     paramiko=Bool(sys.platform == 'win32', config=True,
         help="""Whether to use paramiko instead of openssh for tunnels.""")
 
+
     # not configurable:
     connection_info = Dict()
     user_ns = Dict()
     id = Integer(allow_none=True)
     registrar = Instance('zmq.eventloop.zmqstream.ZMQStream')
     kernel = Instance(Kernel)
+    hb_check_period=Integer()
+    
+    # States for the heartbeat monitoring
+    # Initial values for monitored and pinged must satisfy "monitored > pinged == False" so that 
+    # during the first check no "missed" ping is reported. Must be floats for Python 3 compatibility.
+    _hb_last_pinged = 0.0
+    _hb_last_monitored = 0.0
+    _hb_missed_beats = 0
+    # The zmq Stream which receives the pings from the Heart
+    _hb_listener = None
 
     bident = CBytes()
     ident = Unicode()
@@ -134,6 +150,11 @@ class EngineFactory(RegistrationFactory):
         # print (self.session.key)
         self.session.send(self.registrar, "registration_request", content=content)
 
+    def _report_ping(self, msg):
+        """Callback for when the heartmonitor.Heart receives a ping"""
+        #self.log.debug("Received a ping: %s", msg)
+        self._hb_last_pinged = time.time()
+
     def complete_registration(self, msg, connect, maybe_tunnel):
         # print msg
         self._abort_dc.stop()
@@ -156,8 +177,20 @@ class EngineFactory(RegistrationFactory):
             # possibly forward hb ports with tunnels
             hb_ping = maybe_tunnel(url('hb_ping'))
             hb_pong = maybe_tunnel(url('hb_pong'))
+            
+            hb_monitor = None
+            if self.max_heartbeat_misses > 0:
+                # Add a monitor socket which will record the last time a ping was seen
+                mon = self.context.socket(zmq.SUB)
+                mport = mon.bind_to_random_port('tcp://127.0.0.1')
+                mon.setsockopt(zmq.SUBSCRIBE, b"")
+                self._hb_listener = zmqstream.ZMQStream(mon, self.loop)
+                self._hb_listener.on_recv(self._report_ping)
+            
+            
+                hb_monitor = "tcp://127.0.0.1:%i"%mport
 
-            heart = Heart(hb_ping, hb_pong, heart_id=identity)
+            heart = Heart(hb_ping, hb_pong, hb_monitor , heart_id=identity)
             heart.start()
 
             # create Shell Connections (MUX, Task, etc.):
@@ -201,6 +234,20 @@ class EngineFactory(RegistrationFactory):
             
             self.kernel.shell.display_pub.topic = cast_bytes('engine.%i.displaypub' % self.id)
             
+                
+            # periodically check the heartbeat pings of the controller
+            # Should be started here and not in "start()" so that the right period can be taken 
+            # from the hubs HeartBeatMonitor.period
+            if self.max_heartbeat_misses > 0:
+                # Use a slightly bigger check period than the hub signal period to not warn unnecessary 
+                self.hb_check_period = int(content['hb_period'])+10
+                self.log.info("Starting to monitor the heartbeat signal from the hub every %i ms." , self.hb_check_period)
+                self._hb_reporter = ioloop.PeriodicCallback(self._hb_monitor, self.hb_check_period, self.loop)
+                self._hb_reporter.start()
+            else:
+                self.log.info("Monitoring of the heartbeat signal from the hub is not enabled.")
+
+            
             # FIXME: This is a hack until IPKernelApp and IPEngineApp can be fully merged
             app = IPKernelApp(config=self.config, shell=self.kernel.shell, kernel=self.kernel, log=self.log)
             app.init_profile_dir()
@@ -228,9 +275,29 @@ class EngineFactory(RegistrationFactory):
         time.sleep(1)
         sys.exit(255)
 
+    def _hb_monitor(self):
+        """Callback to monitor the heartbeat from the controller"""
+        self._hb_listener.flush()
+        if self._hb_last_monitored > self._hb_last_pinged:
+            self._hb_missed_beats += 1
+            self.log.warn("No heartbeat in the last %s ms (%s time(s) in a row).", self.hb_check_period, self._hb_missed_beats)
+        else:
+            #self.log.debug("Heartbeat received (after missing %s beats).", self._hb_missed_beats)
+            self._hb_missed_beats = 0
+
+        if self._hb_missed_beats >= self.max_heartbeat_misses:
+            self.log.fatal("Maximum number of heartbeats misses reached (%s times %s ms), shutting down.",
+                           self.max_heartbeat_misses, self.hb_check_period)
+            self.session.send(self.registrar, "unregistration_request", content=dict(id=self.id))
+            self.loop.stop()
+
+        self._hb_last_monitored = time.time()
+            
+        
     def start(self):
         dc = ioloop.DelayedCallback(self.register, 0, self.loop)
         dc.start()
         self._abort_dc = ioloop.DelayedCallback(self.abort, self.timeout*1000, self.loop)
         self._abort_dc.start()
+
 
