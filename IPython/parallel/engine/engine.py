@@ -178,15 +178,16 @@ class EngineFactory(RegistrationFactory):
             hb_ping = maybe_tunnel(url('hb_ping'))
             hb_pong = maybe_tunnel(url('hb_pong'))
             
-            # Add a monitor socket which will record the last time a ping was seen
-            mon = self.context.socket(zmq.SUB)
-            mport = mon.bind_to_random_port('tcp://127.0.0.1')
-            mon.setsockopt(zmq.SUBSCRIBE, b"")
-            self._hb_listener = zmqstream.ZMQStream(mon, self.loop)
-            self._hb_listener.on_recv(self._report_ping)
-            
             hb_monitor = None
             if self.max_heartbeat_misses > 0:
+                # Add a monitor socket which will record the last time a ping was seen
+                mon = self.context.socket(zmq.SUB)
+                mport = mon.bind_to_random_port('tcp://127.0.0.1')
+                mon.setsockopt(zmq.SUBSCRIBE, b"")
+                self._hb_listener = zmqstream.ZMQStream(mon, self.loop)
+                self._hb_listener.on_recv(self._report_ping)
+            
+            
                 hb_monitor = "tcp://127.0.0.1:%i"%mport
 
             heart = Heart(hb_ping, hb_pong, hb_monitor , heart_id=identity)
