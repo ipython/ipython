@@ -230,6 +230,7 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['entry_points'] = find_scripts(True)
     setup_args['extras_require'] = dict(
         parallel = 'pyzmq>=2.1.4',
+        qtconsole = 'pygments',
         zmq = 'pyzmq>=2.1.4',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
