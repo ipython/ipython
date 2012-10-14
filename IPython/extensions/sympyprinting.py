@@ -9,6 +9,11 @@ Usage
 Once the extension is loaded, Sympy Basic objects are automatically
 pretty-printed.
 
+As of SymPy 0.7.2, maintenance of this extension has moved to SymPy under
+sympy.interactive.ipythonprinting, any modifications to account for changes to
+SymPy should be submitted to SymPy rather than changed here. This module is
+maintained here for backwards compatablitiy with old SymPy versions.
+
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008  The IPython Development Team
@@ -29,6 +34,8 @@ try:
     from sympy import pretty, latex
 except ImportError:
     pass
+
+import warnings
 
 #-----------------------------------------------------------------------------
 # Definitions of special display functions for use with IPython
@@ -101,6 +108,19 @@ _loaded = False
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     import sympy
+
+    # sympyprinting extension has been moved to SymPy as of 0.7.2, if it
+    # exists there, warn the user and import it
+    try:
+        import sympy.interactive.ipythonprinting
+    except ImportError:
+        pass
+    else:
+        warnings.warn("The sympyprinting extension in IPython is deprecated, "
+            "use sympy.interactive.ipythonprinting")
+        ip.extension_manager.load_extension('sympy.interactive.ipythonprinting')
+        return
+
     global _loaded
     if not _loaded:
         plaintext_formatter = ip.display_formatter.formatters['text/plain']
