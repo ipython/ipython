@@ -18,11 +18,12 @@ Notable fixes:
 * Tab completion fixes when using ``IPython.embed_kernel()``.
 * A few NameErrors/AttributeErrors in magics due to the reorganized magics system.
 
-We closed a total of 60 issues (39 pull requests and 21 regular issues);
+We closed a total of 61 issues (40 pull requests and 21 regular issues);
 this is the full list (generated with the script :file:`tools/github_stats.py`):
 
-Pull Requests (39):
+Pull Requests (40):
 
+* :ghpull:`2480`: Add deprecation warnings for sympyprinting
 * :ghpull:`2384`: Adapt inline backend to changes in matplotlib
 * :ghpull:`2479`: use new _winapi instead of removed _subprocess
 * :ghpull:`2437`: don't let log cleanup prevent engine start
