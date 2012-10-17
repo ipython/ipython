@@ -123,6 +123,7 @@ var IPython = (function (IPython) {
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
             //Do not trim here because of tooltip
+            if (editor.somethingSelected()){return false}
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
             if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
