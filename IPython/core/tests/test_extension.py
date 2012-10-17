@@ -67,3 +67,7 @@ def test_extension_loading():
             # But can reload it
             with tt.AssertPrints("Running ext2 load"):
                 em.reload_extension('ext2')
+
+def test_non_extension():
+    em = get_ipython().extension_manager
+    nt.assert_equal(em.load_extension('sys'), "no load function")
