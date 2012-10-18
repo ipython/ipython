@@ -1300,6 +1300,11 @@ var IPython = (function (IPython) {
             });
         }
     }
+
+    Notebook.prototype.publish_notebook = function () {
+        alert("Publish.");
+    };
+
     
     IPython.Notebook = Notebook;
 
