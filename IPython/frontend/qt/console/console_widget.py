@@ -265,7 +265,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.gui_completion == 'plain':
             self._completion_widget = CompletionPlain(self)
 
-        self._anchor = None
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
@@ -437,12 +436,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         elif etype == QtCore.QEvent.MouseMove:
             anchor = self._control.anchorAt(event.pos())
-            if len(anchor) == 0:
-                self._anchor = None
-                QtGui.QToolTip.hideText()
-            elif anchor != self._anchor:
-                self._anchor = anchor
-                QtGui.QToolTip.showText(event.globalPos(), self._anchor)
+            QtGui.QToolTip.showText(event.globalPos(), anchor)
 
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
@@ -523,11 +517,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """
         self.layout().currentWidget().copy()
 
-    def copy_anchor(self):
+    def copy_anchor(self, anchor):
         """ Copy anchor text to the clipboard
         """
-        if self._anchor:
-            QtGui.QApplication.clipboard().setText(self._anchor)
+        QtGui.QApplication.clipboard().setText(anchor)
 
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it
@@ -696,11 +689,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
     font = property(_get_font, _set_font)
 
-    def open_anchor(self):
+    def open_anchor(self, anchor):
         """ Open selected anchor in the default webbrowser
         """
-        if self._anchor:
-            webbrowser.open( self._anchor )
+        webbrowser.open( anchor )
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -995,12 +987,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste_action.setEnabled(self.can_paste())
         self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
-        if self._anchor:
+        anchor = self._control.anchorAt(pos)
+        if anchor:
             menu.addSeparator()
-            self.copy_link_action = menu.addAction('Copy Link Address',
-                                                   self.copy_anchor)
-            self.open_link_action = menu.addAction('Open Link',
-                                                   self.open_anchor)
+            self.copy_link_action = menu.addAction(
+                'Copy Link Address', lambda: self.copy_anchor(anchor=anchor))
+            self.open_link_action = menu.addAction(
+                'Open Link', lambda: self.open_anchor(anchor=anchor))
 
         menu.addSeparator()
         menu.addAction(self.select_all_action)

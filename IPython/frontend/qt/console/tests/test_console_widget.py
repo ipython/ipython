@@ -53,21 +53,28 @@ class TestConsoleWidget(unittest.TestCase):
         cursor = w._get_prompt_cursor()
         w._insert_html(cursor, '<a href="http://python.org">written in</a>')
         obj = w._control
-        self.assertEqual(w._anchor, None)
+        tip = QtGui.QToolTip
+        self.assertEqual(tip.text(), u'')
         
+        # should be somewhere else
+        elsewhereEvent = QMouseEvent(MouseMove, QtCore.QPoint(50,50),
+                                     noButton, noButtons, noModifiers)
+        w.eventFilter(obj, elsewhereEvent)
+        self.assertEqual(tip.isVisible(), False)
+        self.assertEqual(tip.text(), u'')
+        
+        #self.assertEqual(tip.text(), u'')
         # should be over text
         overTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
                                     noButton, noButtons, noModifiers)
         w.eventFilter(obj, overTextEvent)
-        self.assertEqual(w._anchor, "http://python.org")
+        self.assertEqual(tip.isVisible(), True)
+        self.assertEqual(tip.text(), "http://python.org")
         
         # should still be over text
         stillOverTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
                                          noButton, noButtons, noModifiers)
         w.eventFilter(obj, stillOverTextEvent)
+        self.assertEqual(tip.isVisible(), True)
+        self.assertEqual(tip.text(), "http://python.org")
         
-        # should be somewhere else
-        elsewhereEvent = QMouseEvent(MouseMove, QtCore.QPoint(50,50),
-                                         noButton, noButtons, noModifiers)
-        w.eventFilter(obj, elsewhereEvent)
-        self.assertEqual(w._anchor, None)
