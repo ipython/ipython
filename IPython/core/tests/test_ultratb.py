@@ -93,3 +93,9 @@ class IndentationErrorTest(unittest.TestCase):
             with tt.AssertPrints("IndentationError"):
                 with tt.AssertPrints("zoon()", suppress=False):
                     ip.magic('run %s' % fname)
+
+class SyntaxErrorTest(unittest.TestCase):
+    def test_syntaxerror_without_lineno(self):
+        with tt.AssertNotPrints("TypeError"):
+            with tt.AssertPrints("line unknown"):
+                ip.run_cell("raise SyntaxError()")
