@@ -556,12 +556,16 @@ class ListTB(TBTools):
                 have_filedata = True
                 #print 'filename is',filename  # dbg
                 if not value.filename: value.filename = "<string>"
-                if not value.lineno: value.lineno = "unknown"
+                if value.lineno:
+                    lineno = value.lineno
+                    textline = ulinecache.getline(value.filename, value.lineno)
+                else:
+                    lineno = 'unknown'
+                    textline = ''
                 list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
                         (Colors.normalEm,
                          Colors.filenameEm, py3compat.cast_unicode(value.filename), Colors.normalEm,
-                         Colors.linenoEm, value.lineno, Colors.Normal  ))
-                textline = ulinecache.getline(value.filename, value.lineno)
+                         Colors.linenoEm, lineno, Colors.Normal  ))
                 if textline == '':
                     textline = py3compat.cast_unicode(value.text, "utf-8")
 
