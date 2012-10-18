@@ -74,7 +74,7 @@ var curVisualizerID = 1; // global to uniquely identify each ExecutionVisualizer
 //   updateOutputCallback - function to call (with 'this' as parameter)
 //                          whenever this.updateOutput() is called
 //                          (BEFORE rendering the output display)
-function ExecutionVisualizer(domRootID, dat, params) {
+function ExecutionVisualizer(domRoot, dat, params) {
   this.curInputCode = dat.code.rtrim(); // kill trailing spaces
   this.curTrace = dat.trace;
 
@@ -126,8 +126,8 @@ function ExecutionVisualizer(domRootID, dat, params) {
 
   // the root elements for jQuery and D3 selections, respectively.
   // ALWAYS use these and never use naked $(__) or d3.select(__)
-  this.domRoot = $('#' + domRootID);
-  this.domRootD3 = d3.select('#' + domRootID);
+  this.domRoot = domRoot;;
+  this.domRootD3 = d3.select(domRoot.get(0));
 
   // stick a new div.ExecutionVisualizer within domRoot and make that
   // the new domRoot:
@@ -135,6 +135,7 @@ function ExecutionVisualizer(domRootID, dat, params) {
 
   this.domRoot = this.domRoot.find('div.ExecutionVisualizer');
   this.domRootD3 = this.domRootD3.select('div.ExecutionVisualizer');
+  console.log(this.domRoot);
 
 
   // initialize in renderPyCodeOutput()
@@ -173,7 +174,7 @@ ExecutionVisualizer.prototype.render = function() {
   this.domRoot.html(
   '<table border="0" class="visualizer">\
     <tr>\
-      <td valign="top" id="left_pane">\
+      <td style="vertical-align:top;" id="left_pane">\
         <center>\
           <div id="pyCodeOutputDiv"/>\
           <div id="editCodeLinkDiv">\
@@ -195,7 +196,7 @@ ExecutionVisualizer.prototype.render = function() {
         <textarea id="pyStdout" cols="50" rows="13" wrap="off" readonly></textarea>\
         </div>\
       </td>\
-      <td valign="top">\
+      <td style="vertical-align:top;">\
         <div id="dataViz">\
           <table id="stackHeapTable">\
             <tr>\
@@ -679,7 +680,7 @@ ExecutionVisualizer.prototype.renderPyCodeOutput = function() {
   // create a left-most gutter td that spans ALL rows ...
   // (NB: valign="top" is CRUCIAL for this to work in IE)
   myViz.domRoot.find('#pyCodeOutput tr:first')
-    .prepend('<td id="gutterTD" valign="top" rowspan="' + this.codeOutputLines.length + '"><svg id="leftCodeGutterSVG"/></td>');
+    .prepend('<td id="gutterTD" style="vertical-align:top;" rowspan="' + this.codeOutputLines.length + '"><svg id="leftCodeGutterSVG"/></td>');
 
   // create prevLineArrow and curLineArrow
   myViz.domRootD3.select('svg#leftCodeGutterSVG')

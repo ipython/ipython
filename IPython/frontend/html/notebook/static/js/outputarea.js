@@ -211,7 +211,7 @@ var IPython = (function (IPython) {
             json.latex = data['text/latex'];
         };
         if (data['application/json'] !== undefined) {
-            json.json = data['application/json'];
+            json.json = $.parseJSON(data['application/json']);
         };
         if (data['application/javascript'] !== undefined) {
             json.javascript = data['application/javascript'];
@@ -341,6 +341,8 @@ var IPython = (function (IPython) {
             this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
             this.append_text(json.text, element);
+        } else if (json.json !== undefined) {
+            this.append_json(json.json, element);
         };
     };
 
@@ -448,6 +450,18 @@ var IPython = (function (IPython) {
         toinsert.append(latex);
         element.append(toinsert);
     };
+
+
+    OutputArea.prototype.append_json = function (json, element) {
+        console.log(json);
+        var toinsert = $("<div/>").attr('id','optviz');
+        element.append(toinsert);
+        var viz = new ExecutionVisualizer(toinsert, json, {embeddedMode: true});
+        console.log(viz);
+        $(window).resize(function() {
+          viz.redrawConnectors();
+        });
+    }
 
 
     OutputArea.prototype.handle_clear_output = function (content) {

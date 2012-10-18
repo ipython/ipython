@@ -82,33 +82,36 @@ else:
 
 
 # whitelist of module imports
-ALLOWED_MODULE_IMPORTS = ('math', 'random', 'datetime',
-                          'functools', 'operator', 'string',
-                          'collections', 're', 'json',
-                          'heapq', 'bisect')
+# ALLOWED_MODULE_IMPORTS = ('math', 'random', 'datetime',
+#                           'functools', 'operator', 'string',
+#                           'collections', 're', 'json',
+#                           'heapq', 'bisect')
 
 # PREEMPTIVELY import all of these modules, so that when the user's
 # script imports them, it won't try to do a file read (since they've
 # already been imported and cached in memory). Remember that when
 # the user's code runs, resource.setrlimit(resource.RLIMIT_NOFILE, (0, 0))
 # will already be in effect, so no more files can be opened.
-for m in ALLOWED_MODULE_IMPORTS:
-  __import__(m)
+# for m in ALLOWED_MODULE_IMPORTS:
+#   __import__(m)
 
 
 # Restrict imports to a whitelist
-def __restricted_import__(*args):
-  if args[0] in ALLOWED_MODULE_IMPORTS:
-    return BUILTIN_IMPORT(*args)
-  else:
-    raise ImportError('{0} not supported'.format(args[0]))
+# def __restricted_import__(*args):
+#   if args[0] in ALLOWED_MODULE_IMPORTS:
+#     return BUILTIN_IMPORT(*args)
+#   else:
+#     raise ImportError('{0} not supported'.format(args[0]))
 
 
 # blacklist of builtins
 BANNED_BUILTINS = ()
 
 
-IGNORE_VARS = set(('__user_stdout__', '__builtins__', '__name__', '__exception__', '__doc__', '__package__'))
+IGNORE_VARS = set((
+    '__builtins__', '__name__', '__exception__', '__doc__', '__package__',
+    '_dh', '_', '__', '___', 'quit', 'exit', 'get_ipython', '_sh', '_dh', '_oh', 'In', 'Out'
+))
 
 def get_user_stdout(frame):
   return frame.f_globals['__user_stdout__'].getvalue()
@@ -660,7 +663,8 @@ class PGLogger(bdb.Bdb):
                            ordered_globals=ordered_globals,
                            stack_to_render=stack_to_render,
                            heap=self.encoder.get_heap(),
-                           stdout=get_user_stdout(tos[0]))
+                           stdout='')
+                           # stdout=get_user_stdout(tos[0]))
 
         # if there's an exception, then record its info:
         if event_type == 'exception':
@@ -693,7 +697,7 @@ class PGLogger(bdb.Bdb):
         self.forget()
 
 
-    def _runscript(self, script_str):
+    def _runscript(self, script_str, localns, globalns):
         self.executed_script = script_str
 
         # When bdb sets tracing, a number of call and line events happens
@@ -706,34 +710,34 @@ class PGLogger(bdb.Bdb):
 
         # ok, let's try to sorta 'sandbox' the user script by not
         # allowing certain potentially dangerous operations.
-        user_builtins = {}
+        # user_builtins = {}
 
         # ugh, I can't figure out why in Python 2, __builtins__ seems to
         # be a dict, but in Python 3, __builtins__ seems to be a module,
         # so just handle both cases ... UGLY!
-        if type(__builtins__) is dict:
-          builtin_items = __builtins__.items()
-        else:
-          assert type(__builtins__) is types.ModuleType
-          builtin_items = []
-          for k in dir(__builtins__):
-            builtin_items.append((k, getattr(__builtins__, k)))
+        # if type(__builtins__) is dict:
+        #   builtin_items = __builtins__.items()
+        # else:
+        #   assert type(__builtins__) is types.ModuleType
+        #   builtin_items = []
+        #   for k in dir(__builtins__):
+        #     builtin_items.append((k, getattr(__builtins__, k)))
 
-        for (k, v) in builtin_items:
-          if k in BANNED_BUILTINS:
-            continue
-          elif k == '__import__':
-            user_builtins[k] = __restricted_import__
-          else:
-            user_builtins[k] = v
-
-
-        user_stdout = cStringIO.StringIO()
-
-        sys.stdout = user_stdout
-        user_globals = {"__name__"    : "__main__",
-                        "__builtins__" : user_builtins,
-                        "__user_stdout__" : user_stdout}
+        # for (k, v) in builtin_items:
+        #   if k in BANNED_BUILTINS:
+        #     continue
+        #   elif k == '__import__':
+        #     user_builtins[k] = __restricted_import__
+        #   else:
+        #     user_builtins[k] = v
+        # 
+        # 
+        # user_stdout = cStringIO.StringIO()
+        # 
+        # sys.stdout = user_stdout
+        # user_globals = {"__name__"    : "__main__",
+        #                 "__builtins__" : user_builtins,
+        #                 "__user_stdout__" : user_stdout}
 
         try:
           # enforce resource limits RIGHT BEFORE running script_str
@@ -749,27 +753,27 @@ class PGLogger(bdb.Bdb):
           # 
           #   # protect against unauthorized filesystem accesses ...
           #   resource.setrlimit(resource.RLIMIT_NOFILE, (0, 0)) # no opened files allowed
-          # 
-          #   # VERY WEIRD. If you activate this resource limitation, it
-          #   # ends up generating an EMPTY trace for the following program:
-          #   #   "x = 0\nfor i in range(10):\n  x += 1\n   print x\n  x += 1\n"
-          #   # (at least on my Webfaction hosting with Python 2.7)
-          #   #resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))  # (redundancy for paranoia)
-          # 
-          #   # sys.modules contains an in-memory cache of already-loaded
-          #   # modules, so if you delete modules from here, they will
-          #   # need to be re-loaded from the filesystem.
-          #   #
-          #   # Thus, as an extra precaution, remove these modules so that
-          #   # they can't be re-imported without opening a new file,
-          #   # which is disallowed by resource.RLIMIT_NOFILE
-          #   #
-          #   # Of course, this isn't a foolproof solution by any means,
-          #   # and it might lead to UNEXPECTED FAILURES later in execution.
-          #   del sys.modules['os']
-          #   del sys.modules['sys']
 
-          self.run(script_str, user_globals, user_globals)
+            # VERY WEIRD. If you activate this resource limitation, it
+            # ends up generating an EMPTY trace for the following program:
+            #   "x = 0\nfor i in range(10):\n  x += 1\n   print x\n  x += 1\n"
+            # (at least on my Webfaction hosting with Python 2.7)
+            #resource.setrlimit(resource.RLIMIT_FSIZE, (0, 0))  # (redundancy for paranoia)
+
+            # sys.modules contains an in-memory cache of already-loaded
+            # modules, so if you delete modules from here, they will
+            # need to be re-loaded from the filesystem.
+            #
+            # Thus, as an extra precaution, remove these modules so that
+            # they can't be re-imported without opening a new file,
+            # which is disallowed by resource.RLIMIT_NOFILE
+            #
+            # Of course, this isn't a foolproof solution by any means,
+            # and it might lead to UNEXPECTED FAILURES later in execution.
+            # del sys.modules['os']
+            # del sys.modules['sys']
+
+          self.run(script_str, localns, globalns)
         # sys.exit ...
         except SystemExit:
           #sys.exit(0)
@@ -809,7 +813,7 @@ class PGLogger(bdb.Bdb):
 
 
     def finalize(self):
-      sys.stdout = self.GAE_STDOUT # very important!
+      # sys.stdout = self.GAE_STDOUT # very important!
 
       assert len(self.trace) <= (MAX_EXECUTED_LINES + 1)
 
@@ -841,11 +845,11 @@ class PGLogger(bdb.Bdb):
 
 
 # the MAIN meaty function!!!
-def exec_script_str(script_str, cumulative_mode, finalizer_func):
+def exec_script_str(script_str, cumulative_mode, finalizer_func, localns, globalns):
   logger = PGLogger(cumulative_mode, finalizer_func)
 
   try:
-    logger._runscript(script_str)
+    logger._runscript(script_str, localns, globalns)
   except bdb.BdbQuit:
     pass
   finally:

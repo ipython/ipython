@@ -21,6 +21,9 @@ window.mathjax_url = "{{mathjax_url}}";
 
 <link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" media="print"/>
 
+<link rel="stylesheet" href="{{ static_url("opt/css/pytutor.css") }}" type="text/css"/>
+
+
 {% end %}
 
 
@@ -195,6 +198,10 @@ data-notebook-id={{notebook_id}}
 
 <script src="{{ static_url("prettify/prettify.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
+
+<script src="{{ static_url("opt/js/pytutor.js") }}" charset="utf-8"></script>
+<script src="http://d3js.org/d3.v2.js" charset="utf-8"></script>
+<script type="text/javascript" src="{{ static_url("opt/js/jquery.jsPlumb-1.3.10-all-min.js") }}"></script>
 
 <script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
