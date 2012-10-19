@@ -60,6 +60,7 @@ from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
+from IPython.utils.io import capture_output
 
 class RInterpreterError(ri.RRuntimeError):
     """An error when running R code in a %%R magic cell."""
@@ -156,18 +157,58 @@ class RMagics(Magics):
         {
             knit_hooks$restore()
             opts_chunk$set(dev = "png", highlight = FALSE)
-            hook.t = function(x, options) {
-                fn = tempfile()
+
+            hook.s = function(x, options) {
+                fn = paste(tempfile(), 'Rsource')
                 of = file(fn, "w")
                 writeChar(ke$indent_block(x), of)
                 close(of)
                 return(str_c('["text/plain","', fn, '"],'))
             }
-            hook.o = function(x, options) {
-                return(hook.t(x, options))
+
+            hook.s = function(x, options) {
+                fn = paste(tempfile(), '.Rsource')
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
             }
-            knit_hooks$set(source = hook.t, output = hook.o, warning = hook.t, error = hook.t, 
-                message = hook.t, inline = function(x) sprintf(if (inherits(x, 
+
+            hook.e = function(x, options) {
+                fn = paste(tempfile(), '.Rerror')
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
+            }
+
+            hook.o = function(x, options) {
+                fn = paste(tempfile(), '.Routput')
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
+            }
+
+            hook.w = function(x, options) {
+                fn = paste(tempfile(), '.Rwarning')
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
+            }
+
+            hook.m = function(x, options) {
+                fn = paste(tempfile(), '.Rwarning')
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
+            }
+
+            knit_hooks$set(source = hook.s, output = hook.o, warning = hook.w,
+                           error = hook.e, 
+                message = hook.m, inline = function(x) sprintf(if (inherits(x, 
                     "AsIs")) 
                     "%s"
                 else "`%s`", ke$.inline.hook(ke$format_sci(x, "html"))), plot = hook_plot_ipynb)
@@ -190,76 +231,93 @@ class RMagics(Magics):
         ri.baseenv['eval'](ri.parse(knitr_hooks))
         ri.set_writeconsole(old_writeconsole)
 
-    def eval(self, line):
+    def eval(self, code, knitr_args={}):
         '''
-        Parse and evaluate a line with rpy2.
+        Parse and evaluate a code with rpy2.
         Returns the output to R's stdout() connection
-        and the value of eval(parse(line)).
+        and the value of eval(parse(code)).
         '''
-        line = line.strip()
-        return_to_pager = False
-        sys.stderr.write('line: %s\n' % line)
-        if line.startswith('?'):
-            return_to_pager = True
-            sys.stderr.write('should return a page\n')
+        code = code.strip()
+        help_call = False
+        if code.startswith('?') or code.startswith('help'):
+            help_call = True
+
         old_writeconsole = ri.get_writeconsole()
         ri.set_writeconsole(self.write_console)
+
         try:
-            value = self.knitr('', not return_to_pager, cell=line)
+            with capture_output(True, False) as io:
+                display_data = self.knitr(code, **knitr_args)
         except ri.RRuntimeError as exception:
-            warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
             exception = str_to_unicode(str(exception))
-            exception = exception.replace(' in eval(expr, envir, enclos)','')
             sys.stderr.write(str_to_unicode(str(exception)))
-            value = ri.NULL
-        except ValueError as exception:
-            warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
-            raise RInterpreterError(line, str_to_unicode(str(exception)), warning_or_other_msg)
-        text_output = '' # self.flush()
-        ri.set_writeconsole(old_writeconsole)
+            display_data = {}
 
-        if return_to_pager:
-            page(`value`)
-            value = ri.NULL
-        return text_output, value
+        for tag, data in display_data:
+            # hack to catch messages when help(blah) fails
+            # the return values from knitr only have one item in each dict
+            value = data.values()[0]
+            key = data.keys()[0]
+            if ('plain' in key) and (("No documentation for" in value 
+                and "specified packages" in value) or
+                                     ("No vignettes or demos" in value 
+                and "fuzzy matching" in value)):
+                sys.stderr.write(value)
+            else:
+                publish_display_data(tag, data)
 
-    def knitr(self, line, publish, cell=None):
+        if help_call:
+            # help was called at the beginning of the code
+            # write the output to page
+
+            # it could be called more than once, but we only
+            # print the first call, as subsequent calls would not
+            # start the cell
+
+            help = 'R Help' + io.stdout.split('R Help')[0]
+            page(io.stdout)
+
+        return '', ri.NULL
+
+    def knitr(self, code, height=7, width=7, dpi=72):
 
         tmpd = tempfile.mkdtemp()
-        # tmpd = "/Users/jonathantaylor/Desktop/debug"
 
         Rmd_file = open("%s/code.Rmd" % tmpd, "w")
         md_filename = Rmd_file.name.replace("Rmd", "md")
+
+        interpolator = {'height': height,
+                        'width': width,
+                        'dpi': dpi,
+                        'path':tmpd,
+                        'code':code.strip()}
+
         Rmd_file.write("""
 
-``` {r fig.path="%s"}
-%s
+``` {r fig.path="%(path)s", fig.height=%(height)d, fig.width=%(width)d, dpi=%(dpi)d}
+%(code)s
 ```
 
-        """ % (tmpd, cell.strip()))
+        """ % interpolator)
         Rmd_file.close()
         ri.baseenv['eval'](ri.parse("library(knitr); knit('%s','%s')" % (Rmd_file.name, md_filename)))
-        # sys.stdout.flush(); sys.stderr.flush()
         json_str = '[' + open(md_filename, 'r').read().strip()[:-1].replace('\n','\\n') + ']'
         md_output = json.loads(json_str)
 
         display_data = []
 
         for mime, fname in md_output:
-            data = open(fname).read()
-            os.remove(fname)
-            if data:
-                display_data.append(('RMagic.R', {mime: data}))
+            if os.path.splitext(fname)[1] != '.Rerror':
+                data = open(fname).read().strip()
+                os.remove(fname)
+                if data:
+                    display_data.append(('RMagic.R', {mime: data}))
+            else:
+                sys.stderr.write(open(fname).read())
 
         # kill the temporary directory
         rmtree(tmpd)
 
-        sys.stderr.write('publish: %s\n' % `publish`)
-        if publish:
-            for tag, disp_d in display_data:
-                True
-                # publish_display_data(tag, disp_d)
-            return ri.NULL
         return display_data
 
     def write_console(self, output):
@@ -409,35 +467,24 @@ class RMagics(Magics):
         help='Names of variables to be pushed from rpy2 to shell.user_ns after executing cell body and applying self.Rconverter. Multiple names can be passed separated only by commas with no whitespace.'
         )
     @argument(
-        '-w', '--width', type=int,
-        help='Width of png plotting device sent as an argument to *png* in R.'
+        '-w', '--width', type=int, default=7,
+        help='Width of figure as "fig.width" sent to knitr.'
         )
     @argument(
-        '-h', '--height', type=int,
-        help='Height of png plotting device sent as an argument to *png* in R.'
+        '-h', '--height', type=int, default=7,
+        help='Height of figure as "fig.height" sent to knitr.'
         )
-
+    @argument('--dpi', default=72,
+              type=int,
+              help='Argument "dpi" passed to knitr.'
+              )
     @argument(
         '-d', '--dataframe', action='append',
         help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
-        '-u', '--units', type=int,
-        help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
-        )
-    @argument(
-        '-p', '--pointsize', type=int,
-        help='Pointsize of png plotting device sent as an argument to *png* in R.'
-        )
-    @argument(
         '-b', '--bg',
         help='Background of png plotting device sent as an argument to *png* in R.'
-        )
-    @argument(
-        '-n', '--noreturn',
-        help='Force the magic to not return anything.',
-        action='store_true',
-        default=False
         )
     @argument(
         'code',
@@ -447,39 +494,46 @@ class RMagics(Magics):
     @line_cell_magic
     def R(self, line, cell=None, local_ns=None):
         '''
-        Execute code in R, and pull some of the results back into the Python namespace.
-
-        In line mode, this will evaluate an expression and convert the returned value to a Python object.
-        The return value is determined by rpy2's behaviour of returning the result of evaluating the
-        final line. 
+        Execute code in R, execute through knitr and pull some of the results back into the Python namespace.
 
         Multiple R lines can be executed by joining them with semicolons::
 
-            In [9]: %R X=c(1,4,5,7); sd(X); mean(X)
-            Out[9]: array([ 4.25])
+            In [4]: %R X=c(1,4,5,7); sd(X); mean(X)
+                X = c(1, 4, 5, 7)
+
+                sd(X)
+
+                ## [1] 2.5
+
+                mean(X)
+
+                ## [1] 4.25
 
         As a cell, this will run a block of R code, without bringing anything back by default::
 
             In [10]: %%R
                ....: Y = c(2,4,3,9)
-               ....: print(summary(lm(Y~X)))
-               ....:
+               ....: summary(lm(Y~X))
+               ....: 
+                Y = c(2, 4, 3, 9)
+                summary(lm(Y ~ X))
 
-            Call:
-            lm(formula = Y ~ X)
-
-            Residuals:
-                1     2     3     4
-             0.88 -0.24 -2.28  1.64
-
-            Coefficients:
-                        Estimate Std. Error t value Pr(>|t|)
-            (Intercept)   0.0800     2.3000   0.035    0.975
-            X             1.0400     0.4822   2.157    0.164
-
-            Residual standard error: 2.088 on 2 degrees of freedom
-            Multiple R-squared: 0.6993,Adjusted R-squared: 0.549
-            F-statistic: 4.651 on 1 and 2 DF,  p-value: 0.1638
+                ## 
+                ## Call:
+                ## lm(formula = Y ~ X)
+                ## 
+                ## Residuals:
+                ##     1     2     3     4 
+                ##  0.88 -0.24 -2.28  1.64 
+                ## 
+                ## Coefficients:
+                ##             Estimate Std. Error t value Pr(>|t|)
+                ## (Intercept)    0.080      2.300    0.03     0.98
+                ## X              1.040      0.482    2.16     0.16
+                ## 
+                ## Residual standard error: 2.09 on 2 degrees of freedom
+                ## Multiple R-squared: 0.699,Adjusted R-squared: 0.549 
+                ## F-statistic: 4.65 on 1 and 2 DF,  p-value: 0.164
 
         In the notebook, plots are published as the output of the cell.
 
@@ -492,36 +546,19 @@ class RMagics(Magics):
 
         Objects can be passed back and forth between rpy2 and python via the -i -o flags in line::
 
-            In [14]: Z = np.array([1,4,5,10])
+            In [13]: Z = np.array([1,4,5,10]) 
 
-            In [15]: %R -i Z mean(Z)
-            Out[15]: array([ 5.])
+            In [14]: %R -i Z mean(Z)
+                mean(Z)
+
+                ## [1] 5
+
+            In [15]: %R -o W W=Z*mean(Z) 
+                W = Z * mean(Z)
 
 
-            In [16]: %R -o W W=Z*mean(Z)
+            In [16]: W
             Out[16]: array([  5.,  20.,  25.,  50.])
-
-            In [17]: W
-            Out[17]: array([  5.,  20.,  25.,  50.])
-
-        The return value is determined by these rules:
-
-        * If the cell is not None, the magic returns None.
-
-        * If the cell evaluates as False, the resulting value is returned
-        unless the final line prints something to the console, in
-        which case None is returned.
-
-        * If the final line results in a NULL value when evaluated
-        by rpy2, then None is returned.
-
-        * No attempt is made to convert the final value to a structured array.
-        Use the --dataframe flag or %Rget to push / return a structured array.
-
-        * If the -n flag is present, there is no return value.
-
-        * A trailing ';' will also result in no return value as the last
-        value in the line is an empty string.
 
         The --dataframe argument will attempt to return structured arrays. 
         This is useful for dataframes with
@@ -532,37 +569,41 @@ class RMagics(Magics):
 
             In [19]: datapy = np.array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5, 'e')], dtype=dtype)
 
-            In [20]: %%R -o datar
+            In [21]: %%R -o datar -i datapy
             datar = datapy
                ....: 
+                datar = datapy
 
-            In [21]: datar
-            Out[21]: 
+
+            In [22]: datar
+            Out[22]: 
             array([['1', '2', '3', '4'],
                    ['2', '3', '2', '5'],
                    ['a', 'b', 'c', 'e']], 
                   dtype='|S1')
 
-            In [22]: %%R -d datar
+            In [23]: %%R -d datar -i datapy
             datar = datapy
                ....: 
+                datar = datapy
 
-            In [23]: datar
-            Out[23]: 
+
+            In [24]: datar
+            Out[24]: 
             array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c'), (4, 5.0, 'e')], 
                   dtype=[('x', '<i4'), ('y', '<f8'), ('z', '|S1')])
 
         The --dataframe argument first tries colnames, then names.
         If both are NULL, it returns an ndarray (i.e. unstructured)::
 
-            In [1]: %R mydata=c(4,6,8.3); NULL
+            In [1]: %R mydata=c(4,6,8.3)
 
             In [2]: %R -d mydata
 
             In [3]: mydata
             Out[3]: array([ 4. ,  6. ,  8.3])
 
-            In [4]: %R names(mydata) = c('a','b','c'); NULL
+            In [4]: %R names(mydata) = c('a','b','c')
 
             In [5]: %R -d mydata
 
@@ -606,51 +647,19 @@ class RMagics(Magics):
                     val = self.shell.user_ns[input]
                 self.r.assign(input, self.pyconverter(val))
 
-        png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
-        png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])
-        # execute the R code in a temporary directory
-
-        tmpd = tempfile.mkdtemp()
-        self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+        knitr_argdict = dict([(n, getattr(args, n)) for n in ['height', 'width', 'dpi']])
 
         text_output = ''
         if line_mode:
             for line in code.split(';'):
-                text_result, result = self.eval(line)
+                text_result, result = self.eval(line, knitr_argdict)
                 text_output += text_result
             if text_result:
                 # the last line printed something to the console so we won't return it
                 return_output = False
         else:
-            text_result, result = self.eval(code)
+            text_result, result = self.eval(code, knitr_argdict)
             text_output += text_result
-
-        self.r('dev.off()')
-
-        # read out all the saved .png files
-
-        images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
-
-        # now publish the images
-        # mimicking IPython/zmq/pylab/backend_inline.py
-        fmt = 'png'
-        mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
-        mime = mimetypes[fmt]
-
-        # publish the printed R objects, if any
-
-        display_data = []
-        if text_output:
-            display_data.append(('RMagic.R', {'text/plain':text_output}))
-
-        # flush text streams before sending figures, helps a little with output
-        for image in images:
-            # synchronization in the console (though it's a bandaid, not a real sln)
-            sys.stdout.flush(); sys.stderr.flush()
-            display_data.append(('RMagic.R', {mime: image}))
-
-        # kill the temporary directory
-        rmtree(tmpd)
 
         # try to turn every output into a numpy array
         # this means that output are assumed to be castable
@@ -664,18 +673,9 @@ class RMagics(Magics):
             for output in ','.join(args.dataframe).split(','):
                 self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
 
-        for tag, disp_d in display_data:
-            publish_display_data(tag, disp_d)
-
-        # this will keep a reference to the display_data
-        # which might be useful to other objects who happen to use
-        # this method
-
-        if self.cache_display_data:
-            self.display_cache = display_data
-
         # if in line mode and return_output, return the result as an ndarray
-        if return_output and not args.noreturn:
+        return_output = False
+        if return_output:
             if result != ri.NULL:
                 return self.Rconverter(result, dataframe=False)
 
