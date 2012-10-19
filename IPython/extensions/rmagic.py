@@ -39,6 +39,7 @@ import tempfile
 from glob import glob
 from shutil import rmtree
 from getopt import getopt
+from warnings import warn
 
 # numpy and rpy2 imports
 
@@ -141,97 +142,125 @@ class RMagics(Magics):
         """
         super(RMagics, self).__init__(shell)
         self.cache_display_data = cache_display_data
-
+       
         self.r = ro.R()
 
         self.Rstdout_cache = []
         self.pyconverter = pyconverter
         self.Rconverter = Rconverter
 
-        knitr_hooks = """
-        library(knitr)
-        library(stringr)
+        # Check to see if knitr is installed
 
-        ke = environment(knit)
-        render_ipynb = function (strict = FALSE) 
-        {
-            knit_hooks$restore()
-            opts_chunk$set(dev = "png", highlight = FALSE)
+        old_writeconsole = ri.get_writeconsole()
+        ri.set_writeconsole(self.write_console)
+        self.knitr_installed = int(np.array(ri.baseenv['eval'](ri.parse('require(knitr)'))))
+        ri.set_writeconsole(old_writeconsole)
+        if not self.knitr_installed:
+            warn("library 'knitr' required for knitr-style output %R magic, can be installed with: install.packages('knitr')")
 
-            hook.s = function(x, options) {
-                fn = paste(tempfile(), 'Rsource')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
+        if self.knitr_installed:
+            knitr_hooks = """
+            library(knitr)
+            library(stringr)
+
+            ke = environment(knit)
+            render_ipynb = function (strict = FALSE) 
+            {
+                knit_hooks$restore()
+                opts_chunk$set(dev = "png", highlight = FALSE)
+
+                hook.s = function(x, options) {
+                    fn = paste(tempfile(), 'Rsource')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                hook.s = function(x, options) {
+                    fn = paste(tempfile(), '.Rsource')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                hook.e = function(x, options) {
+                    fn = paste(tempfile(), '.Rerror')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                hook.o = function(x, options) {
+                    fn = paste(tempfile(), '.Routput')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                hook.w = function(x, options) {
+                    fn = paste(tempfile(), '.Rwarning')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                hook.m = function(x, options) {
+                    fn = paste(tempfile(), '.Rwarning')
+                    of = file(fn, "w")
+                    writeChar(ke$indent_block(x), of)
+                    close(of)
+                    return(str_c('["text/plain","', fn, '"],'))
+                }
+
+                knit_hooks$set(source = hook.s, output = hook.o, warning = hook.w,
+                               error = hook.e, 
+                    message = hook.m, inline = function(x) sprintf(if (inherits(x, 
+                        "AsIs")) 
+                        "%s"
+                    else "`%s`", ke$.inline.hook(ke$format_sci(x, "html"))), plot = hook_plot_ipynb)
             }
 
-            hook.s = function(x, options) {
-                fn = paste(tempfile(), '.Rsource')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
+            hook_plot_ipynb = function (x, options) 
+            {
+                base = opts_knit$get("base.url")
+                if(is.null(base)) {
+                    base = ''
+                }
+                filename = sprintf("%s%s", base, ke$.upload.url(x));
+                return(sprintf('["image/png","%s"],', filename))
             }
 
-            hook.e = function(x, options) {
-                fn = paste(tempfile(), '.Rerror')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
-            }
+            render_ipynb()
+            """
+            ri.baseenv['eval'](ri.parse(knitr_hooks))
+            ri.set_writeconsole(old_writeconsole)
 
-            hook.o = function(x, options) {
-                fn = paste(tempfile(), '.Routput')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
-            }
-
-            hook.w = function(x, options) {
-                fn = paste(tempfile(), '.Rwarning')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
-            }
-
-            hook.m = function(x, options) {
-                fn = paste(tempfile(), '.Rwarning')
-                of = file(fn, "w")
-                writeChar(ke$indent_block(x), of)
-                close(of)
-                return(str_c('["text/plain","', fn, '"],'))
-            }
-
-            knit_hooks$set(source = hook.s, output = hook.o, warning = hook.w,
-                           error = hook.e, 
-                message = hook.m, inline = function(x) sprintf(if (inherits(x, 
-                    "AsIs")) 
-                    "%s"
-                else "`%s`", ke$.inline.hook(ke$format_sci(x, "html"))), plot = hook_plot_ipynb)
-        }
-
-        hook_plot_ipynb = function (x, options) 
-        {
-            base = opts_knit$get("base.url")
-            if(is.null(base)) {
-                base = ''
-            }
-            filename = sprintf("%s%s", base, ke$.upload.url(x));
-            return(sprintf('["image/png","%s"],', filename))
-        }
-
-        render_ipynb()
+    def eval_and_capture(self, code):
+        """
+        Parse and evalute some R code, capturing the console output.
         """
         old_writeconsole = ri.get_writeconsole()
         ri.set_writeconsole(self.write_console)
-        ri.baseenv['eval'](ri.parse(knitr_hooks))
+        result = ri.baseenv['eval'](ri.parse(code))
         ri.set_writeconsole(old_writeconsole)
+        return result
 
-    def eval(self, code, knitr_args={}):
+    def notknitr_eval(self, code):
+
+        try:
+            value = self.eval_and_capture(code)
+        except (ri.RRuntimeError, ValueError) as exception:
+            warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
+            raise RInterpreterError(code, str_to_unicode(str(exception)), warning_or_other_msg)
+        text_output = self.flush()
+        return text_output, value
+
+    def knitr_eval(self, code, knitr_args={}):
         '''
         Parse and evaluate a code with rpy2.
         Returns the output to R's stdout() connection
@@ -242,8 +271,6 @@ class RMagics(Magics):
         if code.startswith('?') or code.startswith('help'):
             help_call = True
 
-        old_writeconsole = ri.get_writeconsole()
-        ri.set_writeconsole(self.write_console)
 
         try:
             with capture_output(True, False) as io:
@@ -279,8 +306,10 @@ class RMagics(Magics):
 
         return '', ri.NULL
 
-    def knitr(self, code, height=7, width=7, dpi=72):
-
+    def knitr(self, code, height=7, width=7, dpi=72, echo=True):
+        """
+        Pass a snippet of code through knitr.
+        """
         tmpd = tempfile.mkdtemp()
 
         Rmd_file = open("%s/code.Rmd" % tmpd, "w")
@@ -290,17 +319,18 @@ class RMagics(Magics):
                         'width': width,
                         'dpi': dpi,
                         'path':tmpd,
-                        'code':code.strip()}
+                        'code':code.strip(),
+                        'echo':echo}
 
         Rmd_file.write("""
 
-``` {r fig.path="%(path)s", fig.height=%(height)d, fig.width=%(width)d, dpi=%(dpi)d}
+``` {r fig.path="%(path)s", fig.height=%(height)d, fig.width=%(width)d, dpi=%(dpi)d, echo=%(echo)s}
 %(code)s
 ```
 
         """ % interpolator)
         Rmd_file.close()
-        ri.baseenv['eval'](ri.parse("library(knitr); knit('%s','%s')" % (Rmd_file.name, md_filename)))
+        self.eval_and_capture("knit('%s','%s')" % (Rmd_file.name, md_filename))
         json_str = '[' + open(md_filename, 'r').read().strip()[:-1].replace('\n','\\n') + ']'
         md_output = json.loads(json_str)
 
@@ -319,6 +349,7 @@ class RMagics(Magics):
         rmtree(tmpd)
 
         return display_data
+
 
     def write_console(self, output):
         '''
@@ -416,6 +447,26 @@ class RMagics(Magics):
     @skip_doctest
     @magic_arguments()
     @argument(
+        '--repos', default="http://cran.us.r-project.org",
+        help='CRAN repository to install packages from.'
+        )
+    @argument(
+        'packages',
+        nargs='*',
+        )
+    @line_magic
+    def Rinstall(self, line):
+        '''
+        A line magic for R to install packages.
+
+        '''
+        args = parse_argstring(self.Rpull, line)
+        for package in args.packages:
+            self.r("install.packages('%s')" % package)
+
+    @skip_doctest
+    @magic_arguments()
+    @argument(
         '-d', '--as_dataframe', action='store_true',
         default=False,
         help='Convert objects to data.frames before returning to ipython.'
@@ -472,16 +523,44 @@ class RMagics(Magics):
         )
     @argument(
         '-w', '--width', type=int, default=7,
-        help='Width of figure as "fig.width" sent to knitr as a chunk option.'
+        help='Width of figure as "fig.width" sent to knitr as a chunk option. or to png if not_knitr'
         )
     @argument(
         '-h', '--height', type=int, default=7,
-        help='Height of figure as "fig.height" sent to knitr as a chunk option.'
+        help='Height of figure as "fig.height" sent to knitr as a chunk option or to png if not_knitr.'
         )
     @argument('--dpi', default=72,
               type=int,
               help='Argument "dpi" passed to knitr as a chunk option.'
               )
+    @argument('--echo', default='T',
+              choices=['T','F'],
+              help='Argument "echo" passed to knitr as a chunk option.'
+              )
+    @argument(
+        '-u', '--units', type=int,
+        help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
+        )
+    @argument(
+        '-p', '--pointsize', type=int,
+        help='Pointsize of png plotting device sent as an argument to *png* in R.'
+        )
+    @argument(
+        '-b', '--bg',
+        help='Background of png plotting device sent as an argument to *png* in R.'
+        )
+    @argument(
+        '-n', '--noreturn',
+        help='Force the magic to not return anything.',
+        action='store_true',
+        default=False
+        )
+    @argument(
+        '--not_knitr',
+        help="Don't use knitr.",
+        action='store_true',
+        default=False
+        )
     @argument(
         'code',
         nargs='*',
@@ -490,7 +569,10 @@ class RMagics(Magics):
     @line_cell_magic
     def R(self, line, cell=None, local_ns=None):
         '''
-        Execute code in R, execute through knitr and pull some of the results back into the Python namespace.
+        Execute code in R, execute through rpy2 and
+        optionally knitr and pull some of the results back into the Python namespace.
+
+        NOTE: docstring examples below assume not_knitr=False.
 
         Multiple R lines can be executed by joining them with semicolons::
 
@@ -643,19 +725,104 @@ class RMagics(Magics):
                     val = self.shell.user_ns[input]
                 self.r.assign(input, self.pyconverter(val))
 
-        knitr_argdict = dict([(n, getattr(args, n)) for n in ['height', 'width', 'dpi']])
+        knitr = (not args.not_knitr) and self.knitr_installed
 
-        text_output = ''
-        if line_mode:
-            for line in code.split(';'):
-                text_result, result = self.eval(line, knitr_argdict)
+        if knitr:
+            knitr_argdict = dict([(n, getattr(args, n)) for n in ['height', 'width', 'dpi', 'echo']])
+
+            text_output = ''
+            if line_mode:
+                for line in code.split(';'):
+                    text_result, result = self.knitr_eval(line, knitr_argdict)
+                    text_output += text_result
+                if text_result:
+                    # the last line printed something to the console so we won't return it
+                    return_output = False
+            else:
+                text_result, result = self.knitr_eval(code, knitr_argdict)
                 text_output += text_result
-            if text_result:
-                # the last line printed something to the console so we won't return it
-                return_output = False
-        else:
-            text_result, result = self.eval(code, knitr_argdict)
-            text_output += text_result
+            return None
+
+        else: 
+
+            self.flush()
+
+            # use the original R magic
+
+            png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
+            png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])
+            # execute the R code in a temporary directory
+
+            tmpd = tempfile.mkdtemp()
+            self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+
+            text_output = ''
+            if line_mode:
+                for line in code.split(';'):
+                    text_result, result = self.notknitr_eval(line)
+                    text_output += text_result
+                if text_result:
+                    # the last line printed something to the console so we won't return it
+                    return_output = False
+            else:
+                text_result, result = self.notknitr_eval(code)
+                text_output += text_result
+
+            self.r('dev.off()')
+
+            # read out all the saved .png files
+
+            images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
+
+            # now publish the images
+            # mimicking IPython/zmq/pylab/backend_inline.py
+            fmt = 'png'
+            mimetypes = { 'png' : 'image/png', 'svg' : 'image/svg+xml' }
+            mime = mimetypes[fmt]
+
+            # publish the printed R objects, if any
+
+            display_data = []
+            if text_output:
+                display_data.append(('RMagic.R', {'text/plain':text_output}))
+
+            # flush text streams before sending figures, helps a little with output
+            for image in images:
+                # synchronization in the console (though it's a bandaid, not a real sln)
+                sys.stdout.flush(); sys.stderr.flush()
+                display_data.append(('RMagic.R', {mime: image}))
+
+            # kill the temporary directory
+            rmtree(tmpd)
+
+            # try to turn every output into a numpy array
+            # this means that output are assumed to be castable
+            # as numpy arrays
+
+            if args.output:
+                for output in ','.join(args.output).split(','):
+                    self.shell.push({output:self.Rconverter(self.r(output), dataframe=False)})
+
+            if args.dataframe:
+                for output in ','.join(args.dataframe).split(','):
+                    self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
+
+            for tag, disp_d in display_data:
+                publish_display_data(tag, disp_d)
+
+            # this will keep a reference to the display_data
+            # which might be useful to other objects who happen to use
+            # this method
+
+            if self.cache_display_data:
+                self.display_cache = display_data
+
+            # if in line mode and return_output, return the result as an ndarray
+            if return_output and not args.noreturn:
+                if result != ri.NULL:
+                    return self.Rconverter(result, dataframe=False)
+
+
 
         # try to turn every output into a numpy array
         # this means that output are assumed to be castable
