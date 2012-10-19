@@ -308,7 +308,7 @@ class RMagics(Magics):
 
         for mime, fname in md_output:
             if os.path.splitext(fname)[1] != '.Rerror':
-                data = open(fname).read().strip()
+                data = open(fname).read()
                 os.remove(fname)
                 if data:
                     display_data.append(('RMagic.R', {mime: data}))
@@ -467,25 +467,21 @@ class RMagics(Magics):
         help='Names of variables to be pushed from rpy2 to shell.user_ns after executing cell body and applying self.Rconverter. Multiple names can be passed separated only by commas with no whitespace.'
         )
     @argument(
-        '-w', '--width', type=int, default=7,
-        help='Width of figure as "fig.width" sent to knitr.'
-        )
-    @argument(
-        '-h', '--height', type=int, default=7,
-        help='Height of figure as "fig.height" sent to knitr.'
-        )
-    @argument('--dpi', default=72,
-              type=int,
-              help='Argument "dpi" passed to knitr.'
-              )
-    @argument(
         '-d', '--dataframe', action='append',
         help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
-        '-b', '--bg',
-        help='Background of png plotting device sent as an argument to *png* in R.'
+        '-w', '--width', type=int, default=7,
+        help='Width of figure as "fig.width" sent to knitr as a chunk option.'
         )
+    @argument(
+        '-h', '--height', type=int, default=7,
+        help='Height of figure as "fig.height" sent to knitr as a chunk option.'
+        )
+    @argument('--dpi', default=72,
+              type=int,
+              help='Argument "dpi" passed to knitr as a chunk option.'
+              )
     @argument(
         'code',
         nargs='*',
