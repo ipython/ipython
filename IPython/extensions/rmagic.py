@@ -34,7 +34,7 @@ Usage
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import sys
+import sys, json, os
 import tempfile
 from glob import glob
 from shutil import rmtree
@@ -51,6 +51,7 @@ ro.conversion.py2ri = numpy2ri
 
 # IPython imports
 
+from IPython.core.page import page
 from IPython.core.displaypub import publish_display_data
 from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
                                 line_cell_magic, needs_local_scope)
@@ -146,22 +147,120 @@ class RMagics(Magics):
         self.pyconverter = pyconverter
         self.Rconverter = Rconverter
 
+        knitr_hooks = """
+        library(knitr)
+        library(stringr)
+
+        ke = environment(knit)
+        render_ipynb = function (strict = FALSE) 
+        {
+            knit_hooks$restore()
+            opts_chunk$set(dev = "png", highlight = FALSE)
+            hook.t = function(x, options) {
+                fn = tempfile()
+                of = file(fn, "w")
+                writeChar(ke$indent_block(x), of)
+                close(of)
+                return(str_c('["text/plain","', fn, '"],'))
+            }
+            hook.o = function(x, options) {
+                return(hook.t(x, options))
+            }
+            knit_hooks$set(source = hook.t, output = hook.o, warning = hook.t, error = hook.t, 
+                message = hook.t, inline = function(x) sprintf(if (inherits(x, 
+                    "AsIs")) 
+                    "%s"
+                else "`%s`", ke$.inline.hook(ke$format_sci(x, "html"))), plot = hook_plot_ipynb)
+        }
+
+        hook_plot_ipynb = function (x, options) 
+        {
+            base = opts_knit$get("base.url")
+            if(is.null(base)) {
+                base = ''
+            }
+            filename = sprintf("%s%s", base, ke$.upload.url(x));
+            return(sprintf('["image/png","%s"],', filename))
+        }
+
+        render_ipynb()
+        """
+        old_writeconsole = ri.get_writeconsole()
+        ri.set_writeconsole(self.write_console)
+        ri.baseenv['eval'](ri.parse(knitr_hooks))
+        ri.set_writeconsole(old_writeconsole)
+
     def eval(self, line):
         '''
         Parse and evaluate a line with rpy2.
         Returns the output to R's stdout() connection
         and the value of eval(parse(line)).
         '''
+        line = line.strip()
+        return_to_pager = False
+        sys.stderr.write('line: %s\n' % line)
+        if line.startswith('?'):
+            return_to_pager = True
+            sys.stderr.write('should return a page\n')
         old_writeconsole = ri.get_writeconsole()
         ri.set_writeconsole(self.write_console)
         try:
-            value = ri.baseenv['eval'](ri.parse(line))
-        except (ri.RRuntimeError, ValueError) as exception:
+            value = self.knitr('', not return_to_pager, cell=line)
+        except ri.RRuntimeError as exception:
+            warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
+            exception = str_to_unicode(str(exception))
+            exception = exception.replace(' in eval(expr, envir, enclos)','')
+            sys.stderr.write(str_to_unicode(str(exception)))
+            value = ri.NULL
+        except ValueError as exception:
             warning_or_other_msg = self.flush() # otherwise next return seems to have copy of error
             raise RInterpreterError(line, str_to_unicode(str(exception)), warning_or_other_msg)
-        text_output = self.flush()
+        text_output = '' # self.flush()
         ri.set_writeconsole(old_writeconsole)
+
+        if return_to_pager:
+            page(`value`)
+            value = ri.NULL
         return text_output, value
+
+    def knitr(self, line, publish, cell=None):
+
+        tmpd = tempfile.mkdtemp()
+        # tmpd = "/Users/jonathantaylor/Desktop/debug"
+
+        Rmd_file = open("%s/code.Rmd" % tmpd, "w")
+        md_filename = Rmd_file.name.replace("Rmd", "md")
+        Rmd_file.write("""
+
+``` {r fig.path="%s"}
+%s
+```
+
+        """ % (tmpd, cell.strip()))
+        Rmd_file.close()
+        ri.baseenv['eval'](ri.parse("library(knitr); knit('%s','%s')" % (Rmd_file.name, md_filename)))
+        # sys.stdout.flush(); sys.stderr.flush()
+        json_str = '[' + open(md_filename, 'r').read().strip()[:-1].replace('\n','\\n') + ']'
+        md_output = json.loads(json_str)
+
+        display_data = []
+
+        for mime, fname in md_output:
+            data = open(fname).read()
+            os.remove(fname)
+            if data:
+                display_data.append(('RMagic.R', {mime: data}))
+
+        # kill the temporary directory
+        rmtree(tmpd)
+
+        sys.stderr.write('publish: %s\n' % `publish`)
+        if publish:
+            for tag, disp_d in display_data:
+                True
+                # publish_display_data(tag, disp_d)
+            return ri.NULL
+        return display_data
 
     def write_console(self, output):
         '''
@@ -586,6 +685,8 @@ __doc__ = __doc__.format(
                 RPULL_DOC = ' '*8 + RMagics.Rpull.__doc__,
                 RGET_DOC = ' '*8 + RMagics.Rget.__doc__
 )
+
+
 
 
 _loaded = False
