@@ -70,12 +70,12 @@ try:
     import select
     import re
     import struct
-    import resource
+#    import resource
     import types
-    import pty
-    import tty
-    import termios
-    import fcntl
+#    import pty
+#    import tty
+#    import termios
+#    import fcntl
     import errno
     import traceback
     import signal
