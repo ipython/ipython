@@ -12,7 +12,7 @@
 
 $(document).ready(function () {
 
-    IPython.init_mathjax();
+    IPython.mathjaxutils.init();
 
     IPython.read_only = $('body').data('readOnly') === 'True';
     $('div#main_app').addClass('border-box-sizing ui-widget');
