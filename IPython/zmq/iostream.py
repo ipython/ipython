@@ -4,7 +4,7 @@ from io import StringIO
 
 from session import extract_header, Message
 
-from IPython.utils import io, text, encoding
+from IPython.utils import io, text
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
@@ -23,6 +23,7 @@ class OutStream(object):
     topic=None
 
     def __init__(self, session, pub_socket, name):
+        self.encoding = 'UTF-8'
         self.session = session
         self.pub_socket = pub_socket
         self.name = name
@@ -73,9 +74,8 @@ class OutStream(object):
         else:
             # Make sure that we're handling unicode
             if not isinstance(string, unicode):
-                enc = encoding.DEFAULT_ENCODING
-                string = string.decode(enc, 'replace')
-            
+                string = string.decode(self.encoding, 'replace')
+
             self._buffer.write(string)
             current_time = time.time()
             if self._start <= 0:
