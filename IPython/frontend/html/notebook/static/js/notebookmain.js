@@ -52,6 +52,7 @@ $(document).ready(function () {
     IPython.tooltip = new IPython.Tooltip()
     IPython.notification_area = new IPython.NotificationArea('#notification_area')
     IPython.notification_area.init_notification_widgets();
+    IPython.json_handlers = new IPython.JSONHandlers();
 
     IPython.layout_manager.do_resize();
 

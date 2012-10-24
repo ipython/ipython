@@ -211,7 +211,14 @@ var IPython = (function (IPython) {
             json.latex = data['text/latex'];
         };
         if (data['application/json'] !== undefined) {
-            json.json = data['application/json'];
+            try {
+                var json_data = $.parseJSON(data['application/json']);
+            } catch(err) {
+                var json_data = undefined;
+            } 
+            if (json_data !== undefined) {
+                json.json = json_data;
+            }
         };
         if (data['application/javascript'] !== undefined) {
             json.javascript = data['application/javascript'];
@@ -317,8 +324,10 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_display_data = function (json, dynamic) {
         var toinsert = this.create_output_area();
-        this.append_mime_type(json, toinsert, dynamic);
+        // Put the output area in the DOM before calling the handlers. This is needed because
+        // some widgets will require that things be on the page first.
         this.element.append(toinsert);
+        this.append_mime_type(json, toinsert, dynamic);
         // If we just output latex, typeset it.
         if ( (json.latex !== undefined) || (json.html !== undefined) ) {
             this.typeset();
@@ -341,6 +350,8 @@ var IPython = (function (IPython) {
             this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
             this.append_text(json.text, element);
+        } else if (json.json !== undefined) {
+            this.append_json(json.json, element)
         };
     };
 
@@ -449,6 +460,15 @@ var IPython = (function (IPython) {
         element.append(toinsert);
     };
 
+
+    OutputArea.prototype.append_json = function (json, element) {
+        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_json");
+        element.append(toinsert);
+        var key = json.handler
+        if (key !== undefined) {
+            IPython.json_handlers.call_handler(key, json, toinsert)
+        };
+    };
 
     OutputArea.prototype.handle_clear_output = function (content) {
         this.clear_output(content.stdout, content.stderr, content.other);
