@@ -10,6 +10,7 @@ import re
 import sys
 from textwrap import dedent
 from unicodedata import category
+import webbrowser
 
 # System library imports
 from IPython.external.qt import QtCore, QtGui
@@ -432,6 +433,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 obj == self._page_control:
             self._page_control.repaint()
             return True
+
+        elif etype == QtCore.QEvent.MouseMove:
+            anchor = self._control.anchorAt(event.pos())
+            QtGui.QToolTip.showText(event.globalPos(), anchor)
+
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -510,6 +516,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Copy the currently selected text to the clipboard.
         """
         self.layout().currentWidget().copy()
+
+    def copy_anchor(self, anchor):
+        """ Copy anchor text to the clipboard
+        """
+        QtGui.QApplication.clipboard().setText(anchor)
 
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it
@@ -677,6 +688,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.font_changed.emit(font)
 
     font = property(_get_font, _set_font)
+
+    def open_anchor(self, anchor):
+        """ Open selected anchor in the default webbrowser
+        """
+        webbrowser.open( anchor )
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -971,6 +987,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste_action.setEnabled(self.can_paste())
         self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
+        anchor = self._control.anchorAt(pos)
+        if anchor:
+            menu.addSeparator()
+            self.copy_link_action = menu.addAction(
+                'Copy Link Address', lambda: self.copy_anchor(anchor=anchor))
+            self.open_link_action = menu.addAction(
+                'Open Link', lambda: self.open_anchor(anchor=anchor))
+
         menu.addSeparator()
         menu.addAction(self.select_all_action)
 
@@ -1009,6 +1033,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
+            control.setMouseTracking(True)
 
         # Install event filters. The filter on the viewport is needed for
         # mouse events and drag events.
