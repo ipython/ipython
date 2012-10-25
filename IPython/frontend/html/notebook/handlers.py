@@ -286,7 +286,6 @@ class NamedNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
         self.render(
             'notebook.html', project=project,
             notebook_id=notebook_id,
@@ -297,6 +296,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
+            javascript_plugins=self.application.ipython_app.javascript_plugins
         )
 
 

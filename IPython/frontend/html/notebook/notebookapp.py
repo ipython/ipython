@@ -18,6 +18,7 @@ Authors:
 
 # stdlib
 import errno
+import glob
 import logging
 import os
 import random
@@ -381,6 +382,8 @@ class NotebookApp(BaseIPythonApplication):
         """return extra paths + the default location"""
         return self.extra_static_paths + [os.path.join(os.path.dirname(__file__), "static")]
 
+    javascript_plugins = List(Unicode)
+
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
     )
@@ -454,7 +457,17 @@ class NotebookApp(BaseIPythonApplication):
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
-    
+
+    def init_javascript_plugins(self):
+        plugins = []
+        for path in self.static_file_path:
+            pattern = os.path.join(path,'jsplugins','*.js')
+            filenames = glob.glob(pattern)
+            for f in filenames:
+                self.log.info('JavaScript plugin found: %s',f)
+                plugins.append('jsplugins/'+os.path.split(f)[1])
+        self.javascript_plugins = plugins
+
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
         self.web_app = NotebookWebApplication(
@@ -560,6 +573,7 @@ class NotebookApp(BaseIPythonApplication):
         self.init_logging()
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
+        self.init_javascript_plugins()
         self.init_webapp()
         self.init_signal()
 

@@ -222,4 +222,8 @@ data-notebook-id={{notebook_id}}
 
 <script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
 
+{% for jsplugin in javascript_plugins %}
+<script src="{{ static_url(jsplugin) }}" type="text/javascript" charset="utf-8"></script>
+{% end %}
+
 {% end %}

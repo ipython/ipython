@@ -32,7 +32,10 @@ var IPython = (function (IPython) {
     };
 
     IPython.JSONHandlers = JSONHandlers
-
+    // We need the instance to be created here, so JS plugins can call it before
+    // notebookmain.js runs.
+    IPython.json_handlers = new JSONHandlers();
+    
     return IPython;
 
 }(IPython));
