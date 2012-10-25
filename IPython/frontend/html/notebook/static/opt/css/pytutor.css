@@ -1,0 +1,481 @@
+/*
+
+Online Python Tutor
+https://github.com/pgbovine/OnlinePythonTutor/
+
+Copyright (C) 2010-2012 Philip J. Guo (philip@pgbovine.net)
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
+/* Most recent color scheme redesign on 2012-08-19 */
+
+/* To prevent CSS namespace clashes, prefix all rules with:
+     div.ExecutionVisualizer
+*/
+
+
+/* reset some styles to nullify effects of existing stylesheets
+   e.g., http://meyerweb.com/eric/tools/css/reset/
+*/
+div.ExecutionVisualizer {
+  /* none for now */
+}
+
+div.ExecutionVisualizer table.visualizer {
+  font-family: verdana, arial, helvetica, sans-serif;
+  font-size: 10pt;
+}
+
+div.ExecutionVisualizer td#stack_td,
+div.ExecutionVisualizer td#heap_td {
+  vertical-align:top;
+  font-size: 10pt; /* don't make fonts in the heap so big! */
+}
+
+div.ExecutionVisualizer #dataViz {
+  margin-left: 30px;
+}
+
+div.ExecutionVisualizer div#pyCodeOutputDiv {
+  max-width: 550px;
+  max-height: 450px;
+  /*max-height: 620px;*/
+  overflow: auto;
+  /*margin-bottom: 4px;*/
+}
+
+div.ExecutionVisualizer table#pyCodeOutput {
+  font-family: Andale mono, monospace;
+  font-size:12pt;
+  line-height:1.1em;
+  border-spacing: 0px;
+  border-top: 1px solid #bbb;
+  padding-top: 3px;
+  border-bottom: 1px solid #bbb;
+  /*margin-top: 6px;*/
+  margin: 6px auto; /* Center code in its pane */
+}
+
+/* don't wrap lines within code output ... FORCE scrollbars to appear */
+div.ExecutionVisualizer table#pyCodeOutput td {
+  white-space: nowrap;
+  vertical-align: middle; /* explicitly force, to override external CSS conflicts */
+}
+
+div.ExecutionVisualizer #leftCodeGutterSVG {
+  width: 18px;
+  height: 0px; /* programmatically set this later ... IE needs this to
+                  be 0 or it defaults to something arbitrary and gross */
+}
+
+div.ExecutionVisualizer #prevLegendArrowSVG,
+div.ExecutionVisualizer #curLegendArrowSVG {
+  width: 18px;
+  height: 10px;
+}
+
+div.ExecutionVisualizer .arrow {
+  font-size: 16pt;
+}
+
+div.ExecutionVisualizer table#pyCodeOutput .lineNo {
+  color: #aaa;
+  padding: 0.2em;
+  padding-left: 0.3em;
+  padding-right: 0.5em;
+  text-align: right;
+}
+
+div.ExecutionVisualizer table#pyCodeOutput .cod {
+  /*font-weight: bold;*/
+  margin-left: 3px;
+  padding-left: 7px;
+  text-align: left; /* necessary or else doesn't work properly in IE */
+}
+
+div.ExecutionVisualizer div#legendDiv {
+  margin-top: 20px;
+  padding: 0px;
+  text-align: left;
+  color: #666;
+  font-size: 9pt;
+}
+
+div.ExecutionVisualizer div#editCodeLinkDiv {
+  text-align: center;
+  /*
+  margin-top: 12px;
+  margin-bottom: 4px;
+  */
+  margin: 6px auto;
+}
+
+div.ExecutionVisualizer #errorOutput {
+  color: #e93f34; /* should match brightRed JavaScript variable */
+  font-size: 12pt;
+  padding: 2px;
+  line-height: 1.5em;
+  margin-bottom: 4px;
+}
+
+/* VCR control buttons for stepping through execution */
+
+div.ExecutionVisualizer #vcrControls {
+  margin: 15px auto;
+  width: 100%;
+  text-align: center;
+}
+
+div.ExecutionVisualizer #vcrControls button {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+div.ExecutionVisualizer #vcrControls #curInstr {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+div.ExecutionVisualizer #pyStdout {
+  border: 1px solid #999999;
+  font-size: 12pt;
+  padding: 4px;
+  font-family: Andale mono, monospace;
+}
+
+
+div.ExecutionVisualizer .vizFrame {
+  margin-bottom: 20px;
+  padding-left: 8px;
+  border-left: 2px solid #cccccc;
+}
+
+
+/* Rendering of primitive types */
+
+div.ExecutionVisualizer .nullObj {
+  font-size: 8pt;
+}
+
+div.ExecutionVisualizer .stringObj,
+div.ExecutionVisualizer .customObj,
+div.ExecutionVisualizer .funcObj {
+  font-family: Andale mono, monospace;
+  white-space: nowrap;
+}
+
+div.ExecutionVisualizer .retval {
+  font-size: 9pt;
+}
+
+div.ExecutionVisualizer .stackFrame .retval {
+  color: #e93f34; /* highlight non-zombie stack frame return values -
+                     should match brightRed JavaScript variable */
+}
+
+/* Rendering of basic compound types */
+
+div.ExecutionVisualizer table.listTbl,
+div.ExecutionVisualizer table.tupleTbl,
+div.ExecutionVisualizer table.setTbl {
+  background-color: #ffffc6;
+}
+
+
+div.ExecutionVisualizer table.listTbl {
+  border: 0px solid black;
+  border-spacing: 0px;
+}
+
+div.ExecutionVisualizer table.listTbl td.listHeader,
+div.ExecutionVisualizer table.tupleTbl td.tupleHeader {
+  padding-left: 4px;
+  padding-top: 2px;
+  padding-bottom: 3px;
+  font-size: 8pt;
+  color: #777;
+  text-align: left;
+  border-left: 1px solid #555555;
+}
+
+div.ExecutionVisualizer table.tupleTbl {
+  border-spacing: 0px;
+  color: black;
+
+  border-bottom: 1px solid #555555; /* must match td.tupleHeader border */
+  border-top: 1px solid #555555; /* must match td.tupleHeader border */
+  border-right: 1px solid #555555; /* must match td.tupleHeader border */
+}
+
+
+div.ExecutionVisualizer table.listTbl td.listElt {
+  border-bottom: 1px solid #555555; /* must match td.listHeader border */
+  border-left: 1px solid #555555; /* must match td.listHeader border */
+}
+
+div.ExecutionVisualizer table.tupleTbl td.tupleElt {
+  border-left: 1px solid #555555; /* must match td.tupleHeader border */
+}
+
+div.ExecutionVisualizer table.customObjTbl {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+}
+
+div.ExecutionVisualizer table.customObjTbl td.customObjElt {
+  padding: 5px;
+}
+
+div.ExecutionVisualizer table.listTbl td.listElt,
+div.ExecutionVisualizer table.tupleTbl td.tupleElt {
+  padding-top: 0px;
+  padding-bottom: 8px;
+  padding-left: 10px;
+  padding-right: 10px;
+  vertical-align: bottom;
+}
+
+div.ExecutionVisualizer table.setTbl {
+  border: 1px solid #555555;
+  border-spacing: 0px;
+  text-align: center;
+}
+
+div.ExecutionVisualizer table.setTbl td.setElt {
+  padding: 8px;
+}
+
+
+div.ExecutionVisualizer table.dictTbl,
+div.ExecutionVisualizer table.instTbl,
+div.ExecutionVisualizer table.classTbl {
+  border-spacing: 1px;
+}
+
+div.ExecutionVisualizer table.dictTbl td.dictKey,
+div.ExecutionVisualizer table.instTbl td.instKey,
+div.ExecutionVisualizer table.classTbl td.classKey {
+  background-color: #faebbf;
+}
+
+div.ExecutionVisualizer table.dictTbl td.dictVal,
+div.ExecutionVisualizer table.instTbl td.instVal,
+div.ExecutionVisualizer table.classTbl td.classVal {
+  background-color: #ffffc6;
+}
+
+
+div.ExecutionVisualizer table.dictTbl td.dictKey,
+div.ExecutionVisualizer table.instTbl td.instKey,
+div.ExecutionVisualizer table.classTbl td.classKey {
+  padding-top: 12px /*15px*/;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  padding-right: 4px;
+
+  text-align: right;
+}
+
+div.ExecutionVisualizer table.dictTbl td.dictVal,
+div.ExecutionVisualizer table.instTbl td.instVal,
+div.ExecutionVisualizer table.classTbl td.classVal {
+  padding-top: 12px /*15px*/;
+  padding-bottom: 5px;
+  padding-right: 10px;
+  padding-left: 4px;
+}
+
+
+div.ExecutionVisualizer table.classTbl td,
+div.ExecutionVisualizer table.instTbl td {
+  border-bottom: 1px #888 solid;
+}
+
+div.ExecutionVisualizer table.classTbl td.classVal,
+div.ExecutionVisualizer table.instTbl td.instVal {
+  border-left: 1px #888 solid;
+}
+
+div.ExecutionVisualizer table.classTbl {
+  border-collapse: collapse;
+  border: 1px #888 solid;
+}
+
+/* only add a border to dicts if they're embedded within another object */
+div.ExecutionVisualizer td.listElt table.dictTbl,
+div.ExecutionVisualizer td.tupleElt table.dictTbl,
+div.ExecutionVisualizer td.dictVal table.dictTbl,
+div.ExecutionVisualizer td.instVal table.dictTbl,
+div.ExecutionVisualizer td.classVal table.dictTbl {
+  border: 1px #888 solid;
+}
+
+
+div.ExecutionVisualizer .typeLabel {
+  font-size: 8pt;
+  color: #222222;
+  margin-bottom: 1px;
+}
+
+div.ExecutionVisualizer div#stack,
+div.ExecutionVisualizer div#globals_area {
+  padding-left: 10px;
+  padding-right: 30px;
+
+  /* no longer necessary ... */
+  /*float: left;*/
+  /* border-right: 1px dashed #bbbbbb; */
+}
+
+div.ExecutionVisualizer div.stackFrame,
+div.ExecutionVisualizer div.zombieStackFrame {
+  background-color: #ffffff;
+  margin-bottom: 15px;
+  padding: 2px;
+  padding-left: 6px;
+  padding-right: 6px;
+  padding-bottom: 4px;
+  font-size: 10pt;
+}
+
+div.ExecutionVisualizer div.zombieStackFrame {
+  border-left: 1px dotted #aaa;
+  /*color: #c0c0c0;*/
+  color: #b0b0b0;
+}
+
+div.ExecutionVisualizer div.highlightedStackFrame {
+  background-color: #d7e7fb;
+
+  /*background-color: #c0daf8;*/
+  /*background-color: #9eeaff #c5dfea;*/
+}
+
+div.ExecutionVisualizer div.stackFrame,
+div.ExecutionVisualizer div.highlightedStackFrame {
+  border-left: 1px solid #a6b3b6;
+}
+
+
+div.ExecutionVisualizer div.stackFrameHeader {
+  font-family: Andale mono, monospace;
+  font-size: 10pt;
+  margin-top: 4px;
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+div.ExecutionVisualizer td.stackFrameVar {
+  text-align: right;
+  padding-right: 8px;
+  padding-top: 3px;
+  padding-bottom: 3px;
+}
+
+div.ExecutionVisualizer td.stackFrameValue {
+  text-align: left;
+  border-bottom: 1px solid #aaaaaa;
+  border-left: 1px solid #aaaaaa;
+
+  padding-top: 3px;
+  padding-left: 3px;
+  padding-bottom: 3px;
+}
+
+div.ExecutionVisualizer .stackFrameVarTable tr {
+
+}
+
+div.ExecutionVisualizer .stackFrameVarTable {
+  text-align: right;
+  padding-top: 3px;
+
+  /* right-align the table */
+  margin-left: auto;
+  margin-right: 0px;
+}
+
+div.ExecutionVisualizer div#heap {
+  float: left;
+  padding-left: 30px;
+}
+
+div.ExecutionVisualizer td.toplevelHeapObject {
+  /* needed for d3 to do transitions */
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  /*
+  border: 2px dotted white;
+  border-color: white;
+  */
+}
+
+div.ExecutionVisualizer table.heapRow {
+  margin-bottom: 10px;
+}
+
+div.ExecutionVisualizer div.heapObject {
+  padding-left: 2px; /* leave a TINY amount of room for connector endpoints */
+}
+
+div.ExecutionVisualizer div#stackHeader {
+  margin-bottom: 15px;
+  text-align: right;
+}
+
+div.ExecutionVisualizer div#heapHeader {
+  /*margin-top: 2px;
+  margin-bottom: 13px;*/
+  margin-bottom: 15px;
+}
+
+div.ExecutionVisualizer div#stackHeader,
+div.ExecutionVisualizer div#heapHeader {
+  color: #333333;
+  font-size: 10pt;
+}
+
+div.ExecutionVisualizer #executionSlider {
+  width: 500px;
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+div.ExecutionVisualizer #executionSliderCaption {
+  font-size: 8pt;
+  color: #666666;
+  margin-top: 15px;
+}
+
+div.ExecutionVisualizer #executionSliderFooter {
+  margin-top: -7px; /* make it butt up against #executionSlider */
+}
+
+
+/* darken slider handle a bit */
+div.ExecutionVisualizer .ui-slider .ui-slider-handle {
+  border: 1px solid #999;
+}
+
