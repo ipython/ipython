@@ -21,6 +21,10 @@ window.mathjax_url = "{{mathjax_url}}";
 
 <link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" media="print"/>
 
+{% for css in extra_css %}
+<link rel="stylesheet" href="{{ static_url(css) }}" type="text/css" />
+{% end %}
+
 {% end %}
 
 
@@ -222,8 +226,8 @@ data-notebook-id={{notebook_id}}
 
 <script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
 
-{% for jsplugin in javascript_plugins %}
-<script src="{{ static_url(jsplugin) }}" type="text/javascript" charset="utf-8"></script>
+{% for js in extra_javascript %}
+<script src="{{ static_url(js) }}" type="text/javascript" charset="utf-8"></script>
 {% end %}
 
 {% end %}
