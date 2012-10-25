@@ -221,37 +221,36 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
+            else {
+                text = IPython.mathjaxutils.remove_math(text)
+                var html = IPython.markdown_converter.makeHtml(text);
+                html = IPython.mathjaxutils.replace_math(html)
+                try {
+                    this.set_rendered(html);
+                } catch (e) {
+                    console.log("Error running Javascript in Markdown:");
+                    console.log(e);
+                    this.set_rendered($("<div/>").addClass("js-error").html(
+                        "Error rendering Markdown!<br/>" + e.toString())
+                    );
+                }
+                this.element.find('div.text_cell_input').hide();
+                this.element.find("div.text_cell_render").show();
+                var code_snippets = this.element.find("pre > code");
+                code_snippets.replaceWith(function () {
+                    var code = $(this).html();
+                    /* Substitute br for newlines and &nbsp; for spaces
+                       before highlighting, since prettify doesn't
+                       preserve those on all browsers */
+                    code = code.replace(/(\r\n|\n|\r)/gm, "<br/>");
+                    code = code.replace(/ /gm, '&nbsp;');
+                    code = prettyPrintOne(code);
 
-            text = IPython.mathjaxutils.remove_math(text)
-            var html = IPython.markdown_converter.makeHtml(text);
-            html = IPython.mathjaxutils.replace_math(html)
+                    return '<code class="prettyprint">' + code + '</code>';
+                });
 
-            try {
-                this.set_rendered(html);
-            } catch (e) {
-                console.log("Error running Javascript in Markdown:");
-                console.log(e);
-                this.set_rendered($("<div/>").addClass("js-error").html(
-                    "Error rendering Markdown!<br/>" + e.toString())
-                );
+                IPython.mathjaxutils.queue_render()
             }
-            this.typeset()
-            this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
-            var code_snippets = this.element.find("pre > code");
-            code_snippets.replaceWith(function () {
-                var code = $(this).html();
-                /* Substitute br for newlines and &nbsp; for spaces
-                   before highlighting, since prettify doesn't
-                   preserve those on all browsers */
-                code = code.replace(/(\r\n|\n|\r)/gm, "<br/>");
-                code = code.replace(/ /gm, '&nbsp;');
-                code = prettyPrintOne(code);
-
-                return '<code class="prettyprint">' + code + '</code>';
-            });
-
-            IPython.mathjaxutils.queue_render()
             this.rendered = true;
         }
     };

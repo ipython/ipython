@@ -51,14 +51,6 @@ var IPython = (function (IPython) {
     };
 
 
-    // typeset with MathJax if MathJax is available
-    Cell.prototype.typeset = function () {
-        if (window.MathJax){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
-        }
-    };
-
-
     Cell.prototype.select = function () {
         this.element.addClass('ui-widget-content ui-corner-all');
         this.selected = true;

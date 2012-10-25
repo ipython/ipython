@@ -16,18 +16,6 @@ IPython.mathjaxutils = (function (IPython) {
     var init = function () {
         if (window.MathJax) { 
             // MathJax loaded
-            MathJax.Hub.Config({
-                TeX: { equationNumbers: { autoNumber: "AMS", useLabelIds: true } },
-                tex2jax: {
-                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-                    processEnvironments: true
-                },
-                displayAlign: 'left', // Change this to 'center' to center equations.
-                "HTML-CSS": {
-                    styles: {'.MathJax_Display': {"margin": 0}}
-                }
-            });
         } else if (window.mathjax_url != "") {
             // Don't have MathJax, but should. Show dialog.
             var dialog = $('<div></div>')
@@ -225,8 +213,14 @@ IPython.mathjaxutils = (function (IPython) {
 
     var queue_render = function () {
         // see https://groups.google.com/forum/?fromgroups=#!topic/mathjax-users/cpwy5eCH1ZQ
+        var jax = MathJax.Hub.getAllJax();
+
         MathJax.Hub.Queue( 
-          ["resetEquationNumbers",MathJax.InputJax.TeX], 
+           function () { 
+                if (MathJax.InputJax.TeX.resetEquationNumbers) { 
+                MathJax.InputJax.TeX.resetEquationNumbers(); 
+            } 
+          },
           ["PreProcess",MathJax.Hub], 
           ["Reprocess",MathJax.Hub] 
           ); 
