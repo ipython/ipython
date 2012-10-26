@@ -1049,13 +1049,25 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.execute_cells_below = function () {
+        this.execute_cell_range(this.get_selected_index(), this.ncells());
+        that.scroll_to_bottom();
+    };
+
+    Notebook.prototype.execute_cells_above = function () {
+        this.execute_cell_range(0, this.get_selected_index());
+    };
+
     Notebook.prototype.execute_all_cells = function () {
-        var ncells = this.ncells();
-        for (var i=0; i<ncells; i++) {
+        this.execute_cell_range(0, this.ncells());
+        that.scroll_to_bottom();
+    };
+
+    Notebook.prototype.execute_cell_range = function (start, end) {
+        for (var i=start; i<end; i++) {
             this.select(i);
             this.execute_selected_cell({add_new:false});
         };
-        this.scroll_to_bottom();
     };
 
     // Persistance and loading

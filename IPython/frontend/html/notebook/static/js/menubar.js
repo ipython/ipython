@@ -129,6 +129,12 @@ var IPython = (function (IPython) {
         this.element.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();
         });
+        this.element.find('#run_all_cells_above').click(function () {
+            IPython.notebook.execute_cells_above();
+        });
+        this.element.find('#run_all_cells_below').click(function () {
+            IPython.notebook.execute_cells_below();
+        });
         this.element.find('#to_code').click(function () {
             IPython.notebook.to_code();
         });
