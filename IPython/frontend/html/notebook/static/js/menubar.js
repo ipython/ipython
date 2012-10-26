@@ -128,13 +128,13 @@ var IPython = (function (IPython) {
         });
         this.element.find('#run_all_cells').click(function () {
             IPython.notebook.execute_all_cells();
-        });
+        }).attr('title', 'Run all cells in the notebook');
         this.element.find('#run_all_cells_above').click(function () {
             IPython.notebook.execute_cells_above();
-        });
+        }).attr('title', 'Run all cells above (but not including) this cell');
         this.element.find('#run_all_cells_below').click(function () {
             IPython.notebook.execute_cells_below();
-        });
+        }).attr('title', 'Run this cell and all cells below it');
         this.element.find('#to_code').click(function () {
             IPython.notebook.to_code();
         });
