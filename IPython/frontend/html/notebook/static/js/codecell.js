@@ -247,9 +247,7 @@ var IPython = (function (IPython) {
         if( this.code_mirror != undefined) {
            nline = this.code_mirror.lineCount();
         }
-        if (number){
-            this.input_prompt_number = number;
-        }
+        this.input_prompt_number = number;
         var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
         this.element.find('div.input_prompt').html(prompt_html);
     };
