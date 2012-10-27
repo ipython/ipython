@@ -195,6 +195,9 @@ def markdown2rst(src):
 
 
 def rst_directive(directive, text=''):
+    """
+    Makes ReST directive block and indents any text passed to it.
+    """
     out = [directive, '']
     if text:
         out.extend([indent(text), ''])
@@ -270,6 +273,22 @@ class Converter(object):
         return getattr(self, 'render_display_format_' + format, self.render_unknown_display)
 
     def convert(self, cell_separator='\n'):
+        """
+        Generic method to converts notebook to a string representation.
+
+        This is accomplished by dispatching on the cell_type, so subclasses of
+        Convereter class do not need to re-implement this method, but just
+        need implementation for the methods that will be dispatched.
+
+        Parameters
+        ----------
+        cell_separator : string
+          Character or string to join cells with. Default is "\n"
+
+        Returns
+        -------
+        out : string
+        """
         lines = []
         lines.extend(self.optional_header())
         converted_cells = []
@@ -308,9 +327,19 @@ class Converter(object):
         return os.path.abspath(outfile)
 
     def optional_header(self):
+        """
+        Optional header to insert at the top of the converted notebook
+
+        Returns a list
+        """
         return []
 
     def optional_footer(self):
+        """
+        Optional footer to insert at the end of the converted notebook
+
+        Returns a list
+        """
         return []
 
     def _new_figure(self, data, fmt):
