@@ -774,7 +774,7 @@ class ConverterHTML(Converter):
         static = os.path.join(path.get_ipython_package_dir(),
         'frontend', 'html', 'notebook', 'static',
         )
-        here = os.path.split(os.path.abspath(__file__))[0]
+        here = os.path.split(os.path.realpath(__file__))[0]
         css = os.path.join(static, 'css')
         for sheet in [
             # do we need jquery and prettify?
@@ -1014,8 +1014,7 @@ class ConverterLaTeX(Converter):
                  ]
         # Load our own preamble, which is stored next to the main file.  We
         # need to be careful in case the script entry point is a symlink
-        myfile = __file__ if not os.path.islink(__file__) else \
-          os.readlink(__file__)
+        myfile = os.path.realpath(__file__)
         with open(os.path.join(os.path.dirname(myfile), 'preamble.tex')) as f:
             final.append(f.read())
             
