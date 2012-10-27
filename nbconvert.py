@@ -23,6 +23,7 @@ import subprocess
 import sys
 import json
 import copy
+from types import FunctionType
 from shutil import rmtree
 from markdown import markdown
 
@@ -40,16 +41,12 @@ from IPython.nbformat.v3.nbjson import BytesEncoder
 from IPython.utils import path, py3compat
 
 # local
-from decorators import DocInherit
 from lexers import IPythonLexer
 
 
 #-----------------------------------------------------------------------------
 # Utility functions
 #-----------------------------------------------------------------------------
-
-def DocInherit(f):
-    return f
 
 def remove_fake_files_url(cell):
     """Remove from the cell source the /files/ pseudo-path we use.
@@ -233,8 +230,37 @@ def coalesce_streams(outputs):
 class ConversionException(Exception):
     pass
 
+class DocStringInheritor(type):
+    """
+    This metaclass will walk the list of bases until the desired
+    superclass method is found AND if that method has a docstring and only
+    THEN does it attach the superdocstring to the derived class method.
+
+    Please use carefully, I just did the metaclass thing by following
+    Michael Foord's Metaclass tutorial
+    (http://www.voidspace.org.uk/python/articles/metaclasses.shtml), I may
+    have missed a step or two.
+
+    source:
+    http://groups.google.com/group/comp.lang.python/msg/26f7b4fcb4d66c95
+    by Paul McGuire
+    """
+    def __new__(meta, classname, bases, classDict):
+        newClassDict = {}
+        for attributeName, attribute in classDict.items():
+            if type(attribute) == FunctionType:
+                # look through bases for matching function by name
+                for baseclass in bases:
+                    if hasattr(baseclass, attributeName):
+                        basefn = getattr(baseclass,attributeName)
+                        if basefn.__doc__:
+                            attribute.__doc__ = basefn.__doc__
+                            break
+            newClassDict[attributeName] = attribute
+        return type.__new__(meta, classname, bases, newClassDict)
 
 class Converter(object):
+    __metaclass__ = DocStringInheritor
     default_encoding = 'utf-8'
     extension = str()
     figures_counter = 0
@@ -505,12 +531,10 @@ class ConverterRST(Converter):
     extension = 'rst'
     heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
 
-    @DocInherit
     def render_heading(self, cell):
         marker = self.heading_level[cell.level]
         return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
-    @DocInherit
     def render_code(self, cell):
         if not cell.input:
             return []
@@ -524,19 +548,16 @@ class ConverterRST(Converter):
 
         return lines
 
-    @DocInherit
     def render_markdown(self, cell):
         #return [cell.source]
         return [markdown2rst(cell.source)]
 
-    @DocInherit
     def render_raw(self, cell):
         if self.raw_as_verbatim:
             return ['::', '', indent(cell.source), '']
         else:
             return [cell.source]
 
-    @DocInherit
     def render_pyout(self, output):
         lines = ['Out[%s]:' % output.prompt_number, '']
 
@@ -549,37 +570,29 @@ class ConverterRST(Converter):
 
         return lines
 
-    @DocInherit
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
         return ['::', '', indent(remove_ansi('\n'.join(output.traceback))), '']
 
-    @DocInherit
     def _img_lines(self, img_file):
         return ['.. image:: %s' % img_file, '']
     
-    @DocInherit
     def render_display_format_text(self, output):
         return rst_directive('.. parsed-literal::', output.text)
 
-    @DocInherit
     def _unknown_lines(self, data):
         return rst_directive('.. warning:: Unknown cell') + [data]
 
-    @DocInherit
     def render_display_format_html(self, output):
         return rst_directive('.. raw:: html', output.html)
 
-    @DocInherit
     def render_display_format_latex(self, output):
         return rst_directive('.. math::', output.latex)
 
-    @DocInherit
     def render_display_format_json(self, output):
         return rst_directive('.. raw:: json', output.json)
 
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         return rst_directive('.. raw:: javascript', output.javascript)
 
@@ -611,11 +624,9 @@ class ConverterMarkdown(Converter):
         self.show_prompts = show_prompts
         self.inline_prompt = inline_prompt
 
-    @DocInherit
     def render_heading(self, cell):
         return ['{0} {1}'.format('#'*cell.level, cell.source), '']
 
-    @DocInherit
     def render_code(self, cell):
         if not cell.input:
             return []
@@ -640,18 +651,15 @@ class ConverterMarkdown(Converter):
         lines.append('')
         return lines
 
-    @DocInherit
     def render_markdown(self, cell):
         return [cell.source, '']
 
-    @DocInherit
     def render_raw(self, cell):
         if self.raw_as_verbatim:
             return [indent(cell.source), '']
         else:
             return [cell.source, '']
 
-    @DocInherit
     def render_pyout(self, output):
         lines = []
         
@@ -668,43 +676,30 @@ class ConverterMarkdown(Converter):
         lines.append('')
         return lines
 
-    @DocInherit
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
         return [indent(remove_ansi('\n'.join(output.traceback))), '']
 
-    @DocInherit
     def _img_lines(self, img_file):
         return ['', '![](%s)' % img_file, '']
     
-    @DocInherit
     def render_display_format_text(self, output):
         return [indent(output.text)]
 
-    @DocInherit
     def _unknown_lines(self, data):
         return ['Warning: Unknown cell', data]
 
-    @DocInherit
     def render_display_format_html(self, output):
         return [output.html]
 
-    @DocInherit
     def render_display_format_latex(self, output):
         return ['LaTeX::', indent(output.latex)]
 
-    @DocInherit
     def render_display_format_json(self, output):
         return ['JSON:', indent(output.json)]
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         return ['JavaScript:', indent(output.javascript)]
-
-
-def return_list(x):
-    """Ensure that x is returned as a list or inside one"""
-    return x if isinstance(x, list) else [x]
 
 
 # decorators for HTML output
@@ -811,13 +806,11 @@ class ConverterHTML(Converter):
     def optional_footer(self):
         return ['</body>', '</html>']
 
-    @DocInherit
     @text_cell
     def render_heading(self, cell):
         marker = cell.level
         return [u'<h{1}>\n  {0}\n</h{1}>'.format(cell.source, marker)]
     
-    @DocInherit
     def render_code(self, cell):
         if not cell.input:
             return []
@@ -847,19 +840,16 @@ class ConverterHTML(Converter):
         
         return lines
 
-    @DocInherit
     @text_cell
     def render_markdown(self, cell):
         return [markdown(cell.source)]
 
-    @DocInherit
     def render_raw(self, cell):
         if self.raw_as_verbatim:
             return self.in_tag('pre', cell.source)
         else:
             return [cell.source]
 
-    @DocInherit
     @output_container
     def render_pyout(self, output):
         for fmt in ['html', 'latex', 'png', 'jpeg', 'svg', 'text']:
@@ -870,13 +860,11 @@ class ConverterHTML(Converter):
 
     render_display_data = render_pyout
 
-    @DocInherit
     @output_container
     def render_stream(self, output):
         return self._ansi_colored(output.text)
     
 
-    @DocInherit
     @output_container
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
@@ -885,46 +873,36 @@ class ConverterHTML(Converter):
         # stb = 
         return self._ansi_colored('\n'.join(output.traceback))
 
-    @DocInherit
     def _img_lines(self, img_file):
         return ['<img src="%s">' % img_file, '</img>']
 
-    @DocInherit
     def _unknown_lines(self, data):
         return ['<h2>Warning:: Unknown cell</h2>'] + self.in_tag('pre', data)
 
 
-    @DocInherit
     def render_display_format_png(self, output):
         return ['<img src="data:image/png;base64,%s"></img>' % output.png]
 
-    @DocInherit
     def render_display_format_svg(self, output):
         return [output.svg]
 
-    @DocInherit
     def render_display_format_jpeg(self, output):
         return ['<img src="data:image/jpeg;base64,%s"></img>' % output.jpeg]
 
-    @DocInherit
     def render_display_format_text(self, output):
         return self._ansi_colored(output.text)
 
-    @DocInherit
     def render_display_format_html(self, output):
         return [output.html]
 
-    @DocInherit
     def render_display_format_latex(self, output):
         return [output.latex]
 
-    @DocInherit
     def render_display_format_json(self, output):
         # html ignores json
         return []
 
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         return [output.javascript]
 
@@ -946,7 +924,6 @@ class ConverterBloggerHTML(ConverterHTML):
 
     def optional_footer(self):
         return []
-
 
 class ConverterLaTeX(Converter):
     """Converts a notebook to a .tex file suitable for pdflatex.
@@ -1033,12 +1010,10 @@ class ConverterLaTeX(Converter):
         # Retun value must be a string
         return '\n'.join(final)
         
-    @DocInherit
     def render_heading(self, cell):
         marker = self.heading_map[cell.level]
         return ['%s{%s}' % (marker, cell.source) ]
 
-    @DocInherit
     def render_code(self, cell):
         if not cell.input:
             return []
@@ -1063,7 +1038,6 @@ class ConverterLaTeX(Converter):
         return lines
 
 
-    @DocInherit
     def _img_lines(self, img_file):
         return self.in_env('center',
                 [r'\includegraphics[width=6in]{%s}' % img_file, r'\par'])
@@ -1075,11 +1049,9 @@ class ConverterLaTeX(Converter):
                                img_file])
         return self._img_lines(pdf_file)
 
-    @DocInherit
     def render_markdown(self, cell):
         return [markdown2latex(cell.source)]
         
-    @DocInherit
     def render_pyout(self, output):
         lines = []
 
@@ -1092,27 +1064,23 @@ class ConverterLaTeX(Converter):
 
         return lines
 
-    @DocInherit
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
         return self.in_env('traceback',
                         self.in_env('verbatim', 
                                  remove_ansi('\n'.join(output.traceback))))
 
-    @DocInherit
     def render_raw(self, cell):
         if self.raw_as_verbatim:
             return self.in_env('verbatim', cell.source)
         else:
             return [cell.source]
 
-    @DocInherit
     def _unknown_lines(self, data):
         return [r'{\vspace{5mm}\bf WARNING:: unknown cell:}'] + \
           self.in_env('verbatim', data)
 
 
-    @DocInherit
     def render_display_format_text(self, output):
         lines = []
 
@@ -1121,26 +1089,23 @@ class ConverterLaTeX(Converter):
 
         return lines
 
-    @DocInherit
     def render_display_format_html(self, output):
         return []
 
-    @DocInherit
     def render_display_format_latex(self, output):
         if type(output.latex) == type([]):
             return output.latex
         return [output.latex]
 
-    @DocInherit
     def render_display_format_json(self, output):
         # latex ignores json
         return []
 
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         # latex ignores javascript
         return []
+
 
 class ConverterNotebook(Converter):
     """
@@ -1186,48 +1151,37 @@ class ConverterNotebook(Converter):
 }"""
         return s.split('\n')
 
-    @DocInherit
     def render_heading(self, cell):
         return cell_to_lines(cell)
 
-    @DocInherit
     def render_code(self, cell):
         return cell_to_lines(cell)
 
-    @DocInherit
     def render_markdown(self, cell):
         return cell_to_lines(cell)
 
-    @DocInherit
     def render_raw(self, cell):
         return cell_to_lines(cell)
 
-    @DocInherit
     def render_pyout(self, output):
         return cell_to_lines(output)
 
-    @DocInherit
     def render_pyerr(self, output):
         return cell_to_lines(output)
 
-    @DocInherit
     def render_display_format_text(self, output):
         return [output.text]
 
-    @DocInherit
     def render_display_format_html(self, output):
         return [output.html]
 
-    @DocInherit
     def render_display_format_latex(self, output):
         return [output.latex]
 
-    @DocInherit
     def render_display_format_json(self, output):
         return [output.json]
 
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         return [output.javascript]
 
@@ -1258,11 +1212,9 @@ class ConverterPy(Converter):
         "returns every line in input as commented out"
         return "# "+input.replace("\n", "\n# ")
 
-    @DocInherit
     def render_heading(self, cell):
         return ['#{0} {1}'.format('#'*cell.level, cell.source), '']
 
-    @DocInherit
     def render_code(self, cell):
         if not cell.input:
             return []
@@ -1279,18 +1231,15 @@ class ConverterPy(Converter):
                 lines.extend(conv_fn(output))
         return lines
 
-    @DocInherit
     def render_markdown(self, cell):
         return [self.comment(cell.source), '']
 
-    @DocInherit
     def render_raw(self, cell):
         if self.raw_as_verbatim:
             return [self.comment(indent(cell.source)), '']
         else:
             return [self.comment(cell.source), '']
 
-    @DocInherit
     def render_pyout(self, output):
         lines = []
 
@@ -1307,36 +1256,28 @@ class ConverterPy(Converter):
         lines.append('')
         return lines
 
-    @DocInherit
     def render_pyerr(self, output):
         # Note: a traceback is a *list* of frames.
         return [indent(remove_ansi('\n'.join(output.traceback))), '']
 
-    @DocInherit
     def _img_lines(self, img_file):
         return [ self.comment('image file: %s' % img_file), '']
 
-    @DocInherit
     def render_display_format_text(self, output):
         return [self.comment(indent(output.text))]
 
-    @DocInherit
     def _unknown_lines(self, data):
         return [self.comment('Warning: Unknown cell'+ str(data))]
 
-    @DocInherit
     def render_display_format_html(self, output):
         return [self.comment(output.html)]
 
-    @DocInherit
     def render_display_format_latex(self, output):
         return []
 
-    @DocInherit
     def render_display_format_json(self, output):
         return []
 
-    @DocInherit
     def render_display_format_javascript(self, output):
         return []
 
