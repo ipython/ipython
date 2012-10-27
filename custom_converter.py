@@ -1,6 +1,6 @@
 """
-This module gives a simple example of a custom notebook converter taht only
-captures display data and deletes the cell inputs. 
+This module gives a simple example of a custom notebook converter that only
+captures display data and deletes the cell inputs.
 """
 
 import copy
