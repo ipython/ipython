@@ -132,28 +132,24 @@ class FileLinks(FileLink):
         """
         self.included_suffixes = included_suffixes
         
-        self.notebook_display_formatter = \
-         self._get_notebook_display_formatter(url_prefix,
-                                              result_html_prefix,
-                                              result_html_suffix,
-                                              included_suffixes)
-        self.terminal_display_formatter = \
-         self._get_terminal_display_formatter(url_prefix,
-                                              result_html_prefix,
-                                              result_html_suffix,
-                                              included_suffixes)
         FileLink.__init__(self,
                            path,
                            url_prefix,
                            result_html_prefix,
                            result_html_suffix)
+        
+        self.notebook_display_formatter = \
+         self._get_notebook_display_formatter()
+        self.terminal_display_formatter = \
+         self._get_terminal_display_formatter()
     
-    def _get_notebook_display_formatter(self,
-                                        url_prefix,
-                                        result_html_prefix,
-                                        result_html_suffix,
-                                        included_suffixes):
-        """ """
+    def _get_display_formatter(self,
+                               dirname_output_format,
+                               fname_output_format,
+                               fp_format):
+        
+        included_suffixes = self.included_suffixes
+
         def f(output_lines, dirname, fnames):
             """  """
             # begin by figuring out which filenames, if any, 
@@ -164,48 +160,47 @@ class FileLinks(FileLink):
                        (included_suffixes == None or
                         splitext(fname)[1] in included_suffixes)):
                       display_fnames.append(fname)
-            
+        
             if len(display_fnames) == 0:
                 pass
             else:
-                output_lines.append(''.join([result_html_prefix,
-                                             dirname,
-                                             result_html_suffix]))
+                dirname_output_line = dirname_output_format % dirname
+                output_lines.append(dirname_output_line)
                 for fname in display_fnames:
-                    fp = ''.join([self.url_prefix,dirname,'/',fname])
-                    output_lines.append(''.join([self.result_html_prefix,
-                                                   '&nbsp;&nbsp;',
-                                                   self.html_link_str % (fp,fname),
-                                                   self.result_html_suffix]))
+                    fp = fp_format % (dirname,fname)
+                    try:
+                        # output can include both a filepath and a filename...
+                        fname_output_line = fname_output_format % (fp, fname)
+                    except TypeError:
+                        # ... or just a single filepath
+                        fname_output_line = fname_output_format % fname
+                    output_lines.append(fname_output_line)
             return
         return f
+
+    def _get_notebook_display_formatter(self,
+                                        spacer="&nbsp;&nbsp;"):
+        """ """
+        dirname_output_format = \
+         self.result_html_prefix + "%s" + self.result_html_suffix
+        fname_output_format = \
+         self.result_html_prefix + spacer + self.html_link_str + self.result_html_suffix
+        fp_format = self.url_prefix + '%s/%s'
+        
+        return self._get_display_formatter(dirname_output_format,
+                                           fname_output_format,
+                                           fp_format)
 
     def _get_terminal_display_formatter(self,
-                                        url_prefix,
-                                        result_html_prefix,
-                                        result_html_suffix,
-                                        included_suffixes):
+                                        spacer="  "):
         """ """
-        def f(output_lines, dirname, fnames):
-            """  """
-            # begin by figuring out which filenames, if any, 
-            # are going to be displayed
-            display_fnames = []
-            for fname in fnames:
-                if (isfile(join(dirname,fname)) and
-                       (included_suffixes == None or
-                        splitext(fname)[1] in included_suffixes)):
-                      display_fnames.append(fname)
-
-            if len(display_fnames) == 0:
-                pass
-            else:
-                output_lines.append(dirname)
-                for fname in display_fnames:
-                    fp = abspath(join(dirname,fname))
-                    output_lines.append('  %s' % fp)
-            return
-        return f
+        dirname_output_format = "%s"
+        fname_output_format = spacer + "%s"
+        fp_format = '%s/%s'
+        
+        return self._get_display_formatter(dirname_output_format,
+                                           fname_output_format,
+                                           fp_format)
     
     def _format_path(self):
         result_lines = []
