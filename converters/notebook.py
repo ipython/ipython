@@ -1,4 +1,6 @@
 from converters.base import Converter
+from shutil import rmtree
+import json
 
 class ConverterNotebook(Converter):
     """

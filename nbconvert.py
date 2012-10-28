@@ -42,6 +42,8 @@ from converters.markdown import ConverterMarkdown
 from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
+from converters.notebook import ConverterNotebook
+from converters.python import ConverterPy
 
 known_formats = "rst (default), html, blogger-html, latex, markdown, py"
 

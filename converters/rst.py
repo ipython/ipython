@@ -1,4 +1,6 @@
 from converters.base import Converter
+from converters.utils import markdown2rst, rst_directive, remove_ansi
+from IPython.utils.text import indent
 
 class ConverterRST(Converter):
     extension = 'rst'

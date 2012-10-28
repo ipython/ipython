@@ -1,4 +1,6 @@
 from converters.base import Converter
+from converters.utils import highlight, remove_ansi
+from IPython.utils.text import indent
 
 class ConverterMarkdown(Converter):
     extension = 'md'

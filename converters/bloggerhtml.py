@@ -1,4 +1,5 @@
-from converters.html import ConverterHTML
+from converters.html import ConverterHTML 
+import io
 
 class ConverterBloggerHTML(ConverterHTML):
     """Convert a notebook to html suitable for easy pasting into Blogger.

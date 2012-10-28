@@ -1,10 +1,26 @@
 from __future__ import print_function
+from lexers import IPythonLexer
 import subprocess
 import re
+from IPython.utils.text import indent
 
 #-----------------------------------------------------------------------------
 # Utility functions
 #-----------------------------------------------------------------------------
+def highlight(src, lang='ipython'):
+    """Return a syntax-highlighted version of the input source.
+    """
+    from pygments import highlight
+    from pygments.lexers import get_lexer_by_name
+    from pygments.formatters import HtmlFormatter
+    
+    if lang == 'ipython':
+        lexer = IPythonLexer()
+    else:
+        lexer = get_lexer_by_name(lang, stripall=True)
+        
+    return highlight(src, lexer, HtmlFormatter())
+
 def output_container(f):
     """add a prompt-area next to an output"""
     def wrapped(self, output):

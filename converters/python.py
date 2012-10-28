@@ -1,4 +1,6 @@
-from converters.base import converter
+from converters.base import Converter
+from IPython.utils.text import indent
+from converters.utils import remove_ansi
 
 class ConverterPy(Converter):
     """

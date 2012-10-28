@@ -1,5 +1,13 @@
+from __future__ import absolute_import
+
 from converters.base import Converter
 from converters.utils import text_cell, output_container
+from converters.utils import highlight, coalesce_streams, ansi2html
+
+from IPython.utils import path
+from markdown import markdown
+import os
+import io
 
 class ConverterHTML(Converter):
     extension = 'html'
@@ -47,7 +55,7 @@ class ConverterHTML(Converter):
             os.path.join(css, 'notebook.css'),
             os.path.join(css, 'renderedhtml.css'),
             # our overrides:
-            os.path.join(here, 'css', 'static_html.css'),
+            os.path.join(here, '..','css', 'static_html.css'),
         ]:
             header.extend(self._stylesheet(sheet))
         
@@ -60,7 +68,7 @@ class ConverterHTML(Converter):
         header.extend(self.in_tag('script', '', {'type':'"text/javascript"',
             'src': '"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"',
         }))
-        with io.open(os.path.join(here, 'js', 'initmathjax.js'), 
+        with io.open(os.path.join(here, '..', 'js', 'initmathjax.js'), 
                      encoding='utf-8') as f:
             header.extend(self.in_tag('script', f.read(), 
                                       {'type': '"text/javascript"'}))
