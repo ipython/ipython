@@ -12,31 +12,11 @@ called nb_figure_NN.png.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Stdlib
-import codecs
-import io
-import logging
-import os
-import pprint
-import re
-import subprocess
-import sys
-import json
-import copy
-from types import FunctionType
-from shutil import rmtree
-from markdown import markdown
 
 # From IPython
 from IPython.external import argparse
-from IPython.nbformat import current as nbformat
-from IPython.utils.text import indent
-from IPython.nbformat.v3.nbjson import BytesEncoder
-from IPython.utils import path, py3compat
 
 # local
-from lexers import IPythonLexer
-
 from converters.html import ConverterHTML
 from converters.markdown import ConverterMarkdown
 from converters.bloggerhtml import ConverterBloggerHTML
@@ -60,13 +40,13 @@ def main(infile, format='rst'):
         converter.render()
     elif format == 'html':
         converter = ConverterHTML(infile)
-        htmlfname = converter.render()
+        converter.render()
     elif format == 'blogger-html':
         converter = ConverterBloggerHTML(infile)
-        htmlfname = converter.render()
+        converter.render()
     elif format == 'latex':
         converter = ConverterLaTeX(infile)
-        latexfname = converter.render()
+        converter.render()
     elif format == 'py':
         converter = ConverterPy(infile)
         converter.render()
