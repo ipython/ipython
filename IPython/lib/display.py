@@ -141,12 +141,13 @@ class FileLinks(FileLink):
         for root, dirs, files in walk(self.path):
             for fn in files:
                 fp = ''.join([self.url_prefix,root,'/',fn])
+                displayed_fn = join(root,fn)
                 # if all files are being included, or fp has a suffix
                 # that is in included_suffix, create a link to fp
                 if self.included_suffixes == None or \
                    splitext(fn)[1] in self.included_suffixes:
                     result_entries.append(''.join([self.result_html_prefix,
-                                                   self.html_link_str % (fp,fn),
+                                                   self.html_link_str % (fp,displayed_fn),
                                                    self.result_html_suffix]))
         return '\n'.join(result_entries)
     
