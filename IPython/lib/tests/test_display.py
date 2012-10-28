@@ -84,6 +84,24 @@ def test_existing_path_FileLinks():
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
 
+def test_existing_path_FileLinks_alt_formatter():
+    """ Calling _repr_html_ functions as expected with an alternative formatter
+    """
+    td = mkdtemp()
+    tf1 = NamedTemporaryFile(dir=td)
+    tf2 = NamedTemporaryFile(dir=td)
+    def fake_formatter(output_lines,dirname,fnames):
+        output_lines.extend(["hello","world"])
+        return
+    fl = display.FileLinks(td,notebook_display_formatter=fake_formatter)
+    actual = fl._repr_html_()
+    actual = actual.split('\n')
+    actual.sort()
+    expected = ["hello","world"]
+    expected.sort()
+    # We compare the sorted list of links here as that's more reliable
+    nt.assert_equal(actual,expected)
+
 def test_existing_path_FileLinks_repr():
     """ Calling repr() functions as expected on existing directory """
     td = mkdtemp()
@@ -94,6 +112,24 @@ def test_existing_path_FileLinks_repr():
     actual = actual.split('\n')
     actual.sort()
     expected = ['%s/' % td, '  %s' % split(tf1.name)[1],'  %s' % split(tf2.name)[1]]
+    expected.sort()
+    # We compare the sorted list of links here as that's more reliable
+    nt.assert_equal(actual,expected)
+    
+def test_existing_path_FileLinks_repr_alt_formatter():
+    """ Calling repr() functions as expected with an alternative formatter
+    """
+    td = mkdtemp()
+    tf1 = NamedTemporaryFile(dir=td)
+    tf2 = NamedTemporaryFile(dir=td)
+    def fake_formatter(output_lines,dirname,fnames):
+        output_lines.extend(["hello","world"])
+        return
+    fl = display.FileLinks(td,terminal_display_formatter=fake_formatter)
+    actual = repr(fl)
+    actual = actual.split('\n')
+    actual.sort()
+    expected = ["hello","world"]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
