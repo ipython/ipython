@@ -5,6 +5,8 @@ import subprocess
 import copy
 import json
 import re
+import os
+import sys
 
 from IPython.utils.text import indent
 from IPython.utils import path, py3compat
