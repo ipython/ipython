@@ -38,7 +38,7 @@ load-plugins=
 # Enable all checker(s) except those with the given id(s). This option conflict
 # with the disable-checker option
 disable-checker=C0323,W0142,C0301,C0103,C0111,E0213,C0302,C0203,W0703,R0201,C0111,C0103,C0301
-disable=R0201,C0111,C0103,C0301
+disable=R0201,C0111,C0103,C0301,R0904
 
 # Enable all messages in the listed categories.
 #enable-msg-cat=

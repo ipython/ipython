@@ -1,0 +1,4 @@
+docutils
+markdown
+ipython
+pygments
