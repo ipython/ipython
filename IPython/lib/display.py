@@ -129,6 +129,7 @@ class FileLinks(FileLink):
              
             See the FileLink (baseclass of LocalDirectory) docstring for 
              information on additional parameters.
+            
         """
         self.included_suffixes = included_suffixes
         
@@ -139,9 +140,9 @@ class FileLinks(FileLink):
                            result_html_suffix)
         
         self.notebook_display_formatter = \
-         self._get_notebook_display_formatter()
+             notebook_display_formatter or self._get_notebook_display_formatter()
         self.terminal_display_formatter = \
-         self._get_terminal_display_formatter()
+             terminal_display_formatter or self._get_terminal_display_formatter()
     
     def _get_display_formatter(self,
                                dirname_output_format,

@@ -93,7 +93,7 @@ def test_existing_path_FileLinks_repr():
     actual = repr(fl)
     actual = actual.split('\n')
     actual.sort()
-    expected = [td, '  %s' % tf1.name,'  %s' % tf2.name]
+    expected = [td, '  %s' % split(tf1.name)[1],'  %s' % split(tf2.name)[1]]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
