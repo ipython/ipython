@@ -3,8 +3,7 @@
 Authors : MinRK, gregcaporaso
 """
 
-from os import walk
-from os.path import exists, isfile, splitext, abspath, join
+from os.path import exists, isfile, splitext, abspath, join, isdir, walk
 
 
 class YouTubeVideo(object):
@@ -121,7 +120,9 @@ class FileLinks(FileLink):
                  url_prefix='files/',
                  included_suffixes=None,
                  result_html_prefix='',
-                 result_html_suffix='<br>'):
+                 result_html_suffix='<br>',
+                 notebook_display_formatter=None,
+                 terminal_display_formatter=None):
         """
             included_suffixes : list of filename suffixes to include when
              formatting output [default: include all files]
@@ -130,37 +131,90 @@ class FileLinks(FileLink):
              information on additional parameters.
         """
         self.included_suffixes = included_suffixes
+        
+        self.notebook_display_formatter = \
+         self._get_notebook_display_formatter(url_prefix,
+                                              result_html_prefix,
+                                              result_html_suffix,
+                                              included_suffixes)
+        self.terminal_display_formatter = \
+         self._get_terminal_display_formatter(url_prefix,
+                                              result_html_prefix,
+                                              result_html_suffix,
+                                              included_suffixes)
         FileLink.__init__(self,
                            path,
                            url_prefix,
                            result_html_prefix,
                            result_html_suffix)
     
-    def _format_path(self):
-        result_entries = []
-        for root, dirs, files in walk(self.path):
-            for fn in files:
-                fp = ''.join([self.url_prefix,root,'/',fn])
-                displayed_fn = join(root,fn)
-                # if all files are being included, or fp has a suffix
-                # that is in included_suffix, create a link to fp
-                if self.included_suffixes == None or \
-                   splitext(fn)[1] in self.included_suffixes:
-                    result_entries.append(''.join([self.result_html_prefix,
-                                                   self.html_link_str % (fp,displayed_fn),
+    def _get_notebook_display_formatter(self,
+                                        url_prefix,
+                                        result_html_prefix,
+                                        result_html_suffix,
+                                        included_suffixes):
+        """ """
+        def f(output_lines, dirname, fnames):
+            """  """
+            # begin by figuring out which filenames, if any, 
+            # are going to be displayed
+            display_fnames = []
+            for fname in fnames:
+                if (isfile(join(dirname,fname)) and
+                       (included_suffixes == None or
+                        splitext(fname)[1] in included_suffixes)):
+                      display_fnames.append(fname)
+            
+            if len(display_fnames) == 0:
+                pass
+            else:
+                output_lines.append(''.join([result_html_prefix,
+                                             dirname,
+                                             result_html_suffix]))
+                for fname in display_fnames:
+                    fp = ''.join([self.url_prefix,dirname,'/',fname])
+                    output_lines.append(''.join([self.result_html_prefix,
+                                                   '&nbsp;&nbsp;',
+                                                   self.html_link_str % (fp,fname),
                                                    self.result_html_suffix]))
-        return '\n'.join(result_entries)
+            return
+        return f
+
+    def _get_terminal_display_formatter(self,
+                                        url_prefix,
+                                        result_html_prefix,
+                                        result_html_suffix,
+                                        included_suffixes):
+        """ """
+        def f(output_lines, dirname, fnames):
+            """  """
+            # begin by figuring out which filenames, if any, 
+            # are going to be displayed
+            display_fnames = []
+            for fname in fnames:
+                if (isfile(join(dirname,fname)) and
+                       (included_suffixes == None or
+                        splitext(fname)[1] in included_suffixes)):
+                      display_fnames.append(fname)
+
+            if len(display_fnames) == 0:
+                pass
+            else:
+                output_lines.append(dirname)
+                for fname in display_fnames:
+                    fp = abspath(join(dirname,fname))
+                    output_lines.append('  %s' % fp)
+            return
+        return f
+    
+    def _format_path(self):
+        result_lines = []
+        walk(self.path, self.notebook_display_formatter, result_lines)
+        return '\n'.join(result_lines)
     
     def __repr__(self):
         """return newline-separated absolute paths
         """
-        result_entries = []
-        for root, dirs, files in walk(self.path):
-            for fn in files:
-                fp = abspath(join(root,fn))
-                # if all files are being included, or fp has a suffix
-                # that is in included_suffix, create a link to fp
-                if self.included_suffixes == None or \
-                   splitext(fn)[1] in self.included_suffixes:
-                    result_entries.append(fp)
-        return '\n'.join(result_entries)
+        result_lines = []
+        walk(self.path, self.terminal_display_formatter, result_lines)
+        return '\n'.join(result_lines)

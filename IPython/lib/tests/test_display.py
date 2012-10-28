@@ -77,8 +77,9 @@ def test_existing_path_FileLinks():
     actual = fl._repr_html_()
     actual = actual.split('\n')
     actual.sort()
-    expected = ["<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,split(tf2.name)[1]),
-                "<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,split(tf1.name)[1])]
+    expected = ["%s<br>" % td,
+                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,split(tf2.name)[1]),
+                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,split(tf1.name)[1])]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
@@ -92,7 +93,7 @@ def test_existing_path_FileLinks_repr():
     actual = repr(fl)
     actual = actual.split('\n')
     actual.sort()
-    expected = [tf1.name,tf2.name]
+    expected = [td, '  %s' % tf1.name,'  %s' % tf2.name]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
