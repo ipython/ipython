@@ -1,4 +1,5 @@
 from converters.base import Converter
+from converters.utils import cell_to_lines
 from shutil import rmtree
 import json
 
@@ -23,7 +24,7 @@ class ConverterNotebook(Converter):
         rmtree(self.files_dir)
 
     def convert(self):
-        return json.dumps(json.loads(Converter.convert(self, ',')), indent=1, sort_keys=True)
+        return unicode(json.dumps(json.loads(Converter.convert(self, ',')), indent=1, sort_keys=True))
 
     def optional_header(self):
         s = \

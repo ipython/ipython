@@ -72,7 +72,7 @@ class Converter(object):
     files_dir = str()
     with_preamble = True
     user_preamble = None
-    output = str()
+    output = unicode()
     raw_as_verbatim = False
     
     def __init__(self, infile):
@@ -140,6 +140,7 @@ class Converter(object):
         if not hasattr(self, 'nb'):
             self.read()
         self.output = self.convert()
+        assert(type(self.output) == unicode)
         return self.save()
 
     def read(self):

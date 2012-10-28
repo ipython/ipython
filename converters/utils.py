@@ -1,8 +1,14 @@
 from __future__ import print_function
 from lexers import IPythonLexer
+
 import subprocess
+import copy
+import json
 import re
+
 from IPython.utils.text import indent
+from IPython.utils import path, py3compat
+from IPython.nbformat.v3.nbjson import BytesEncoder
 
 #-----------------------------------------------------------------------------
 # Utility functions
