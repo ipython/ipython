@@ -291,6 +291,11 @@ class Converter(object):
         """
         lines = []
         lines.extend(self.optional_header())
+        lines.extend(self.main_body(cell_separator))
+        lines.extend(self.optional_footer())
+        return u'\n'.join(lines)
+
+    def main_body(self, cell_separator='\n'):
         converted_cells = []
         for worksheet in self.nb.worksheets:
             for cell in worksheet.cells:
@@ -300,9 +305,7 @@ class Converter(object):
                     remove_fake_files_url(cell)
                 converted_cells.append('\n'.join(conv_fn(cell)))
         cell_lines = cell_separator.join(converted_cells).split('\n')
-        lines.extend(cell_lines)
-        lines.extend(self.optional_footer())
-        return u'\n'.join(lines)
+        return cell_lines
 
     def render(self):
         "read, convert, and save self.infile"
