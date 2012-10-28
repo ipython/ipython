@@ -56,10 +56,10 @@ class ConverterLaTeX(Converter):
         out.append(ur'\end{%s}' % environment)
         return out
 
-    def convert(self):
+    def convert(self, *kwargs):
         # The main body is done by the logic in the parent class, and that's
         # all we need if preamble support has been turned off.
-        body = super(ConverterLaTeX, self).convert()
+        body = super(ConverterLaTeX, self).convert(*kwargs)
         if not self.with_preamble:
             return body
         # But if preamble is on, then we need to construct a proper, standalone

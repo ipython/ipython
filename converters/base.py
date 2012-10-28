@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 from converters.utils import remove_fake_files_url
 
 # Stdlib
@@ -7,23 +7,12 @@ import io
 import logging
 import os
 import pprint
-import re
-import subprocess
-import sys
-import json
-import copy
 from types import FunctionType
-from shutil import rmtree
 
 # From IPython
-from IPython.external import argparse
 from IPython.nbformat import current as nbformat
-from IPython.utils.text import indent
-from IPython.nbformat.v3.nbjson import BytesEncoder
-from IPython.utils import path, py3compat
 
 # local
-from lexers import IPythonLexer
 
 #-----------------------------------------------------------------------------
 # Class declarations
@@ -54,7 +43,7 @@ class DocStringInheritor(type):
                 # look through bases for matching function by name
                 for baseclass in bases:
                     if hasattr(baseclass, attributeName):
-                        basefn = getattr(baseclass,attributeName)
+                        basefn = getattr(baseclass, attributeName)
                         if basefn.__doc__:
                             attribute.__doc__ = basefn.__doc__
                             break
