@@ -722,6 +722,8 @@ def output_container(f):
         lines.append('<div class="hbox output_area">')
         lines.extend(self._out_prompt(output))
         classes = "output_subarea output_%s" % output.output_type
+        if 'html' in output.keys():
+            classes +=  ' output_html rendered_html'
         if output.output_type == 'stream':
             classes += " output_%s" % output.stream
         lines.append('<div class="%s">' % classes)
