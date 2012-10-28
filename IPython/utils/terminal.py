@@ -81,7 +81,7 @@ def _set_term_title_xterm(title):
 
 if os.name == 'posix':
     TERM = os.environ.get('TERM','')
-    if (TERM == 'xterm') or (TERM == 'xterm-color'):
+    if TERM.startswith('xterm'):
         _set_term_title = _set_term_title_xterm
 
 

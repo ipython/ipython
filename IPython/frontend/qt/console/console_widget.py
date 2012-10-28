@@ -10,6 +10,7 @@ import re
 import sys
 from textwrap import dedent
 from unicodedata import category
+import webbrowser
 
 # System library imports
 from IPython.external.qt import QtCore, QtGui
@@ -432,6 +433,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 obj == self._page_control:
             self._page_control.repaint()
             return True
+
+        elif etype == QtCore.QEvent.MouseMove:
+            anchor = self._control.anchorAt(event.pos())
+            QtGui.QToolTip.showText(event.globalPos(), anchor)
+
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -510,6 +516,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Copy the currently selected text to the clipboard.
         """
         self.layout().currentWidget().copy()
+
+    def copy_anchor(self, anchor):
+        """ Copy anchor text to the clipboard
+        """
+        QtGui.QApplication.clipboard().setText(anchor)
 
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it
@@ -677,6 +688,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.font_changed.emit(font)
 
     font = property(_get_font, _set_font)
+
+    def open_anchor(self, anchor):
+        """ Open selected anchor in the default webbrowser
+        """
+        webbrowser.open( anchor )
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -858,6 +874,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         return result
 
+    def _append_block(self, block_format=None, before_prompt=False):
+        """ Appends an new QTextBlock to the end of the console buffer.
+        """
+        self._append_custom(self._insert_block, block_format, before_prompt)
+
     def _append_html(self, html, before_prompt=False):
         """ Appends HTML at the end of the console buffer.
         """
@@ -966,6 +987,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste_action.setEnabled(self.can_paste())
         self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
+        anchor = self._control.anchorAt(pos)
+        if anchor:
+            menu.addSeparator()
+            self.copy_link_action = menu.addAction(
+                'Copy Link Address', lambda: self.copy_anchor(anchor=anchor))
+            self.open_link_action = menu.addAction(
+                'Open Link', lambda: self.open_anchor(anchor=anchor))
+
         menu.addSeparator()
         menu.addAction(self.select_all_action)
 
@@ -1004,6 +1033,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
+            control.setMouseTracking(True)
 
         # Install event filters. The filter on the viewport is needed for
         # mouse events and drag events.
@@ -1545,6 +1575,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._continuation_prompt = self._insert_html_fetching_plain_text(
                 cursor, self._continuation_prompt_html)
 
+    def _insert_block(self, cursor, block_format=None):
+        """ Inserts an empty QTextBlock using the specified cursor.
+        """
+        if block_format is None:
+            block_format = QtGui.QTextBlockFormat()
+        cursor.insertBlock(block_format)
+
     def _insert_html(self, cursor, html):
         """ Inserts HTML using the specified cursor in such a way that future
             formatting is unaffected.
@@ -1866,7 +1903,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.Left,
                                 QtGui.QTextCursor.KeepAnchor)
             if cursor.selection().toPlainText() != '\n':
-                self._append_plain_text('\n')
+                self._append_block()
 
         # Write the prompt.
         self._append_plain_text(self._prompt_sep)

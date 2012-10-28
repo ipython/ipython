@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2011  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -12,7 +12,26 @@
 
 $(document).ready(function () {
 
-    IPython.init_mathjax();
+    // monkey patch CM to be able to syntax highlight cell magics
+    // bug reported upstream,
+    // see https://github.com/marijnh/CodeMirror2/issues/670
+    if(CodeMirror.getMode(1,'text/plain').indent == undefined ){
+        console.log('patching CM for undefined indent');
+        CodeMirror.modes.null = function() { return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0}}}
+        }
+
+    CodeMirror.patchedGetMode = function(config, mode){
+            var cmmode = CodeMirror.getMode(config, mode);
+            if(cmmode.indent == null)
+            {
+                console.log('patch mode "' , mode, '" on the fly');
+                cmmode.indent = function(){return 0};
+            }
+            return cmmode;
+        }
+    // end monkey patching CodeMirror
+
+    IPython.mathjaxutils.init();
 
     IPython.read_only = $('body').data('readOnly') === 'True';
     $('div#main_app').addClass('border-box-sizing ui-widget');
@@ -29,9 +48,10 @@ $(document).ready(function () {
     IPython.notebook = new IPython.Notebook('div#notebook');
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar')
-    IPython.toolbar = new IPython.ToolBar('#toolbar')
+    IPython.toolbar = new IPython.MainToolBar('#maintoolbar')
     IPython.tooltip = new IPython.Tooltip()
-    IPython.notification_widget = new IPython.NotificationWidget('#notification')
+    IPython.notification_area = new IPython.NotificationArea('#notification_area')
+    IPython.notification_area.init_notification_widgets();
 
     IPython.layout_manager.do_resize();
 

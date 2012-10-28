@@ -24,6 +24,8 @@ import linecache
 import os
 import sys
 import types
+import io as stdlib_io
+
 from collections import namedtuple
 try:
     from itertools import izip_longest
@@ -35,10 +37,12 @@ from IPython.core import page
 from IPython.testing.skipdoctest import skip_doctest_py3
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.text import indent
 from IPython.utils.wildcard import list_namespace
 from IPython.utils.coloransi import *
+from IPython.utils.py3compat import cast_unicode
 
 #****************************************************************************
 # Builtin color schemes
@@ -90,6 +94,29 @@ def object_info(**kw):
     return infodict
 
 
+def get_encoding(obj):
+    """Get encoding for python source file defining obj
+
+    Returns None if obj is not defined in a sourcefile.
+    """
+    ofile = find_file(obj)
+    # run contents of file through pager starting at line where the object
+    # is defined, as long as the file isn't binary and is actually on the
+    # filesystem.
+    if ofile is None:
+        return None
+    elif ofile.endswith(('.so', '.dll', '.pyd')):
+        return None
+    elif not os.path.isfile(ofile):
+        return None
+    else:
+        # Print only text files, not extension binaries.  Note that
+        # getsourcelines returns lineno with 1-offset and page() uses
+        # 0-offset, so we must adjust.
+        buffer = stdlib_io.open(ofile, 'rb')   # Tweaked to use io.open for Python 2
+        encoding, lines = openpy.detect_encoding(buffer.readline)
+        return encoding
+
 def getdoc(obj):
     """Stable wrapper around inspect.getdoc.
 
@@ -109,10 +136,13 @@ def getdoc(obj):
             return inspect.cleandoc(ds)
     
     try:
-        return inspect.getdoc(obj)
+        docstr = inspect.getdoc(obj)
+        encoding = get_encoding(obj)
+        return py3compat.cast_unicode(docstr, encoding=encoding)
     except Exception:
         # Harden against an inspect failure, which can occur with
         # SWIG-wrapped extensions.
+        raise
         return None
 
 
@@ -143,7 +173,8 @@ def getsource(obj,is_binary=False):
         except TypeError:
             if hasattr(obj,'__class__'):
                 src = inspect.getsource(obj.__class__)
-        return src
+        encoding = get_encoding(obj)
+        return cast_unicode(src, encoding=encoding)
 
 def getargspec(obj):
     """Get the names and default values of a function's arguments.
@@ -319,9 +350,8 @@ class Inspector:
         exception is suppressed."""
 
         try:
-            # We need a plain string here, NOT unicode!
             hdef = oname + inspect.formatargspec(*getargspec(obj))
-            return py3compat.unicode_to_str(hdef, 'ascii')
+            return cast_unicode(hdef)
         except:
             return None
 
@@ -435,7 +465,7 @@ class Inspector:
         except:
             self.noinfo('source',oname)
         else:
-            page.page(self.format(py3compat.unicode_to_str(src)))
+            page.page(self.format(src))
 
     def pfile(self, obj, oname=''):
         """Show the whole file where an object was defined."""
@@ -457,7 +487,7 @@ class Inspector:
             # Print only text files, not extension binaries.  Note that
             # getsourcelines returns lineno with 1-offset and page() uses
             # 0-offset, so we must adjust.
-            page.page(self.format(open(ofile).read()), lineno-1)
+            page.page(self.format(openpy.read_py_file(ofile, skip_encoding_cookie=False)), lineno - 1)
 
     def _format_fields(self, fields, title_width=12):
         """Formats a list of fields for display.
@@ -476,7 +506,7 @@ class Inspector:
                 title = header(title + ":") + "\n"
             else:
                 title = header((title+":").ljust(title_width))
-            out.append(title + content)
+            out.append(cast_unicode(title) + cast_unicode(content))
         return "\n".join(out)
 
     # The fields to be displayed by pinfo: (fancy_name, key_in_info_dict)
@@ -536,7 +566,8 @@ class Inspector:
         # Source or docstring, depending on detail level and whether
         # source found.
         if detail_level > 0 and info['source'] is not None:
-            displayfields.append(("Source", self.format(py3compat.cast_bytes_py2(info['source']))))
+            displayfields.append(("Source", 
+                                  self.format(cast_unicode(info['source']))))
         elif info['docstring'] is not None:
             displayfields.append(("Docstring", info["docstring"]))
 

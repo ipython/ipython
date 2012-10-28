@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2008 The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -16,132 +16,76 @@ var IPython = (function (IPython) {
         if (this.selector !== undefined) {
             this.element = $(selector);
             this.style();
-            this.bind_events();
         }
     };
 
+    // add a group of button into the current toolbar.
+    //
+    // First argument : Mandatory
+    //      list of dict as argument, each dict should contain
+    //      3 mandatory keys and values :
+    //      label : string -- the text to show on hover
+    //      icon  : string -- the jQuery-ui icon to add on this button
+    //      callback : function -- the callback to execute on a click
+    //
+    //      and optionally an 'id' key that is assigned to the button element
+    //
+    // Second Argument, optional,
+    //      string reprensenting the id to give to the button group.
+    //
+    // Example
+    //
+    // IPython.toolbar.add_button_group([
+    //  {label:'my button',
+    //   icon:'ui-icon-disk',
+    //   callback:function(){alert('hoho'),
+    //   id : 'my_button_id',                 // this is optional
+    //   }
+    //  },
+    //  {label:'my second button',
+    //   icon:'ui-icon-scissors',
+    //   callback:function(){alert('be carefull I cut')}
+    //  }
+    //  ],
+    //  "my_button_group_id"
+    //  )
+    //
+    ToolBar.prototype.add_buttons_group = function (list, group_id) {
+        var span_group = $('<span/>');
+        if( group_id != undefined ) {
+            span_group.attr('id',group_id);
+        }
+        for(var el in list) {
+            var button  = $('<button/>').button({
+                icons : {primary : list[el].icon},
+                text  : false,
+                label : list[el].label
+                });
+            var id = list[el].id;
+            if( id != undefined )
+                button.attr('id',id);
+            var fun = list[el].callback;
+            button.click(fun);
+            span_group.append(button);
+        }
+        span_group.buttonset();
+        $(this.selector).append(span_group);
+    };
 
     ToolBar.prototype.style = function () {
         this.element.addClass('border-box-sizing').
-            addClass('ui-widget ui-widget-content').
+            addClass('ui-widget ui-widget-content toolbar').
             css('border-top-style','none').
             css('border-left-style','none').
             css('border-right-style','none');
-        this.element.find('#cell_type').addClass('ui-widget ui-widget-content');
-        this.element.find('#save_b').button({
-            icons : {primary: 'ui-icon-disk'},
-            text : false
-        });
-        this.element.find('#cut_b').button({
-            icons: {primary: 'ui-icon-scissors'},
-            text : false
-        });
-        this.element.find('#copy_b').button({
-            icons: {primary: 'ui-icon-copy'},
-            text : false
-        });
-        this.element.find('#paste_b').button({
-            icons: {primary: 'ui-icon-clipboard'},
-            text : false
-        });
-        this.element.find('#cut_copy_paste').buttonset();
-        this.element.find('#move_up_b').button({
-            icons: {primary: 'ui-icon-arrowthick-1-n'},
-            text : false
-        });
-        this.element.find('#move_down_b').button({
-            icons: {primary: 'ui-icon-arrowthick-1-s'},
-            text : false
-        });
-        this.element.find('#move_up_down').buttonset();
-        this.element.find('#insert_above_b').button({
-            icons: {primary: 'ui-icon-arrowthickstop-1-n'},
-            text : false
-        });
-        this.element.find('#insert_below_b').button({
-            icons: {primary: 'ui-icon-arrowthickstop-1-s'},
-            text : false
-        });
-        this.element.find('#insert_above_below').buttonset();
-        this.element.find('#run_b').button({
-            icons: {primary: 'ui-icon-play'},
-            text : false
-        });
-        this.element.find('#interrupt_b').button({
-            icons: {primary: 'ui-icon-stop'},
-            text : false
-        });
-        this.element.find('#run_int').buttonset();
-    };
-
-
-    ToolBar.prototype.bind_events = function () {
-        var that = this;
-        this.element.find('#save_b').click(function () {
-            IPython.notebook.save_notebook();
-        });
-        this.element.find('#cut_b').click(function () {
-            IPython.notebook.cut_cell();
-        });
-        this.element.find('#copy_b').click(function () {
-            IPython.notebook.copy_cell();
-        });
-        this.element.find('#paste_b').click(function () {
-            IPython.notebook.paste_cell();
-        });
-        this.element.find('#move_up_b').click(function () {
-            IPython.notebook.move_cell_up();
-        });
-        this.element.find('#move_down_b').click(function () {
-            IPython.notebook.move_cell_down();
-        });
-        this.element.find('#insert_above_b').click(function () {
-            IPython.notebook.insert_cell_above('code');
-        });
-        this.element.find('#insert_below_b').click(function () {
-            IPython.notebook.insert_cell_below('code');
-        });
-        this.element.find('#run_b').click(function () {
-            IPython.notebook.execute_selected_cell();
-        });
-        this.element.find('#interrupt_b').click(function () {
-            IPython.notebook.kernel.interrupt();
-        });
-        this.element.find('#cell_type').change(function () {
-            var cell_type = $(this).val();
-            if (cell_type === 'code') {
-                IPython.notebook.to_code();
-            } else if (cell_type === 'markdown')  {
-                IPython.notebook.to_markdown();
-            } else if (cell_type === 'raw')  {
-                IPython.notebook.to_raw();
-            } else if (cell_type === 'heading1')  {
-                IPython.notebook.to_heading(undefined, 1);
-            } else if (cell_type === 'heading2')  {
-                IPython.notebook.to_heading(undefined, 2);
-            } else if (cell_type === 'heading3')  {
-                IPython.notebook.to_heading(undefined, 3);
-            } else if (cell_type === 'heading4')  {
-                IPython.notebook.to_heading(undefined, 4);
-            } else if (cell_type === 'heading5')  {
-                IPython.notebook.to_heading(undefined, 5);
-            } else if (cell_type === 'heading6')  {
-                IPython.notebook.to_heading(undefined, 6);
-            };
-        });
-        $([IPython.events]).on('selected_cell_type_changed.Notebook', function (event, data) {
-            if (data.cell_type === 'heading') {
-                that.element.find('#cell_type').val(data.cell_type+data.level);
-            } else {
-                that.element.find('#cell_type').val(data.cell_type);
-            }
-        });
     };
 
 
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
-        IPython.layout_manager.do_resize();
+        if (IPython.layout_manager != undefined) {
+            IPython.layout_manager.do_resize();
+        }
     };
 
 

@@ -386,19 +386,20 @@ weighted: Weighted Two-Bin Random
 Greedy Assignment
 -----------------
 
-Tasks are assigned greedily as they are submitted. If their dependencies are
+Tasks can be assigned greedily as they are submitted. If their dependencies are
 met, they will be assigned to an engine right away, and multiple tasks can be
 assigned to an engine at a given time. This limit is set with the
-``TaskScheduler.hwm`` (high water mark) configurable:
+``TaskScheduler.hwm`` (high water mark) configurable in your
+:file:`ipcontroller_config.py` config file, with:
 
 .. sourcecode:: python
 
     # the most common choices are:
-    c.TaskSheduler.hwm = 0 # (minimal latency, default in IPython ≤ 0.12)
+    c.TaskSheduler.hwm = 0 # (minimal latency, default in IPython < 0.13)
     # or
-    c.TaskScheduler.hwm = 1 # (most-informed balancing, default in > 0.12)
+    c.TaskScheduler.hwm = 1 # (most-informed balancing, default in ≥ 0.13)
 
-In IPython ≤ 0.12,the default is 0, or no-limit. That is, there is no limit to the number of
+In IPython < 0.13, the default is 0, or no-limit. That is, there is no limit to the number of
 tasks that can be outstanding on a given engine. This greatly benefits the
 latency of execution, because network traffic can be hidden behind computation.
 However, this means that workload is assigned without knowledge of how long
@@ -406,10 +407,10 @@ each task might take, and can result in poor load-balancing, particularly for
 submitting a collection of heterogeneous tasks all at once. You can limit this
 effect by setting hwm to a positive integer, 1 being maximum load-balancing (a
 task will never be waiting if there is an idle engine), and any larger number
-being a compromise between load-balance and latency-hiding.
+being a compromise between load-balancing and latency-hiding.
 
 In practice, some users have been confused by having this optimization on by
-default, and the default value has been changed to 1. This can be slower,
+default, so the default value has been changed to 1 in IPython 0.13. This can be slower,
 but has more obvious behavior and won't result in assigning too many tasks to
 some engines in heterogeneous cases.
 

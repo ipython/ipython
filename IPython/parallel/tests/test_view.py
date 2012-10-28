@@ -24,9 +24,11 @@ from StringIO import StringIO
 
 import zmq
 from nose import SkipTest
+from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
+from IPython.utils.io import capture_output
 
 from IPython import parallel  as pmod
 from IPython.parallel import error
@@ -50,9 +52,9 @@ class TestView(ClusterTestCase, ParametricTestCase):
             time.sleep(2)
         super(TestView, self).setUp()
 
+    @attr('crash')
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
-        raise SkipTest("crash tests disabled, due to undesirable crash reports")
         # self.add_engines(1)
         eid = self.client.ids[-1]
         ar = self.client[eid].apply_async(crash)
@@ -578,6 +580,30 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("1/0")
         self.assertRaisesRemote(ZeroDivisionError, ar.get, 2)
     
+    def test_remoteerror_render_exception(self):
+        """RemoteErrors get nice tracebacks"""
+        view = self.client[-1]
+        ar = view.execute("1/0")
+        ip = get_ipython()
+        ip.user_ns['ar'] = ar
+        with capture_output() as io:
+            ip.run_cell("ar.get(2)")
+        
+        self.assertTrue('ZeroDivisionError' in io.stdout, io.stdout)
+    
+    def test_compositeerror_render_exception(self):
+        """CompositeErrors get nice tracebacks"""
+        view = self.client[:]
+        ar = view.execute("1/0")
+        ip = get_ipython()
+        ip.user_ns['ar'] = ar
+        with capture_output() as io:
+            ip.run_cell("ar.get(2)")
+        
+        self.assertEqual(io.stdout.count('ZeroDivisionError'), len(view) * 2, io.stdout)
+        self.assertEqual(io.stdout.count('by zero'), len(view), io.stdout)
+        self.assertEqual(io.stdout.count(':execute'), len(view), io.stdout)
+    
     @dec.skipif_not_matplotlib
     def test_magic_pylab(self):
         """%pylab works on engines"""
@@ -675,4 +701,22 @@ class TestView(ClusterTestCase, ParametricTestCase):
         drank = amr.get(5)
         self.assertEqual(drank, [ r*2 for r in ranks ])
         
+    def test_nested_getitem_setitem(self):
+        """get and set with view['a.b']"""
+        view = self.client[-1]
+        view.execute('\n'.join([
+            'class A(object): pass',
+            'a = A()',
+            'a.b = 128',
+            ]), block=True)
+        ra = pmod.Reference('a')
 
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 128)
+        self.assertEqual(view['a.b'], 128)
+
+        view['a.b'] = 0
+
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 0)
+        self.assertEqual(view['a.b'], 0)

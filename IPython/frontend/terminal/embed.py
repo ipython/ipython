@@ -264,8 +264,6 @@ class InteractiveShellEmbed(TerminalInteractiveShell):
         self.user_ns = orig_user_ns
         self.compile.flags = orig_compile_flags
 
-_embedded_shell = None
-
 
 def embed(**kwargs):
     """Call this to embed IPython at the current point in your program.
@@ -284,7 +282,7 @@ def embed(**kwargs):
         d = 40
         embed
 
-    Full customization can be done by passing a :class:`Struct` in as the
+    Full customization can be done by passing a :class:`Config` in as the
     config argument.
     """
     config = kwargs.get('config')
@@ -294,7 +292,5 @@ def embed(**kwargs):
         config = load_default_config()
         config.InteractiveShellEmbed = config.TerminalInteractiveShell
         kwargs['config'] = config
-    global _embedded_shell
-    if _embedded_shell is None:
-        _embedded_shell = InteractiveShellEmbed(**kwargs)
-    _embedded_shell(header=header, stack_depth=2, compile_flags=compile_flags)
+    shell = InteractiveShellEmbed.instance(**kwargs)
+    shell(header=header, stack_depth=2, compile_flags=compile_flags)

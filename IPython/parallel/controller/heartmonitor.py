@@ -19,7 +19,7 @@ import time
 import uuid
 
 import zmq
-from zmq.devices import ThreadDevice
+from zmq.devices import ThreadDevice, ThreadMonitoredQueue
 from zmq.eventloop import ioloop, zmqstream
 
 from IPython.config.configurable import LoggingConfigurable
@@ -39,8 +39,11 @@ class Heart(object):
     You can specify the DEALER's IDENTITY via the optional heart_id argument."""
     device=None
     id=None
-    def __init__(self, in_addr, out_addr, in_type=zmq.SUB, out_type=zmq.DEALER, heart_id=None):
-        self.device = ThreadDevice(zmq.FORWARDER, in_type, out_type)
+    def __init__(self, in_addr, out_addr, mon_addr=None, in_type=zmq.SUB, out_type=zmq.DEALER, mon_type=zmq.PUB, heart_id=None):
+        if mon_addr is None:
+            self.device = ThreadDevice(zmq.FORWARDER, in_type, out_type)
+        else:
+            self.device = ThreadMonitoredQueue(in_type, out_type, mon_type, in_prefix=b"", out_prefix=b"")
         # do not allow the device to share global Context.instance,
         # which is the default behavior in pyzmq > 2.1.10
         self.device.context_factory = zmq.Context
@@ -48,6 +51,8 @@ class Heart(object):
         self.device.daemon=True
         self.device.connect_in(in_addr)
         self.device.connect_out(out_addr)
+        if mon_addr is not None:
+            self.device.connect_mon(mon_addr)
         if in_type == zmq.SUB:
             self.device.setsockopt_in(zmq.SUBSCRIBE, b"")
         if heart_id is None:
@@ -122,7 +127,7 @@ class HeartMonitor(LoggingConfigurable):
         map(self.handle_heart_failure, heartfailures)
         self.on_probation = missed_beats.intersection(self.hearts)
         self.responses = set()
-        # print self.on_probation, self.hearts
+        #print self.on_probation, self.hearts
         # self.log.debug("heartbeat::beat %.3f, %i beating hearts", self.lifetime, len(self.hearts))
         self.pingstream.send(str_to_bytes(str(self.lifetime)))
         # flush stream to force immediate socket send
@@ -165,18 +170,3 @@ class HeartMonitor(LoggingConfigurable):
         else:
             self.log.warn("heartbeat::got bad heartbeat (possibly old?): %s (current=%.3f)", msg[1], self.lifetime)
 
-
-if __name__ == '__main__':
-    loop = ioloop.IOLoop.instance()
-    context = zmq.Context()
-    pub = context.socket(zmq.PUB)
-    pub.bind('tcp://127.0.0.1:5555')
-    router = context.socket(zmq.ROUTER)
-    router.bind('tcp://127.0.0.1:5556')
-
-    outstream = zmqstream.ZMQStream(pub, loop)
-    instream = zmqstream.ZMQStream(router, loop)
-
-    hb = HeartMonitor(loop, outstream, instream)
-
-    loop.start()

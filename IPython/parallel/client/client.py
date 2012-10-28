@@ -229,6 +229,13 @@ class Client(HasTraits):
         The name of the Cluster profile to be used to find connector information.
         If run from an IPython application, the default profile will be the same
         as the running application, otherwise it will be 'default'.
+    cluster_id : str
+        String id to added to runtime files, to prevent name collisions when using
+        multiple clusters with a single profile simultaneously.
+        When set, will look for files named like: 'ipcontroller-<cluster_id>-client.json'
+        Since this is text inserted into filenames, typical recommendations apply:
+        Simple character strings are ideal, and spaces are not recommended (but
+        should generally work)
     context : zmq.Context
         Pass an existing zmq.Context instance, otherwise the client will create its own.
     debug : bool
@@ -366,7 +373,7 @@ class Client(HasTraits):
     def __init__(self, url_file=None, profile=None, profile_dir=None, ipython_dir=None,
             context=None, debug=False,
             sshserver=None, sshkey=None, password=None, paramiko=None,
-            timeout=10, **extra_args
+            timeout=10, cluster_id=None, **extra_args
             ):
         if profile:
             super(Client, self).__init__(debug=debug, profile=profile)
@@ -388,7 +395,11 @@ class Client(HasTraits):
         
         if self._cd is not None:
             if url_file is None:
-                url_file = pjoin(self._cd.security_dir, 'ipcontroller-client.json')
+                if not cluster_id:
+                    client_json = 'ipcontroller-client.json'
+                else:
+                    client_json = 'ipcontroller-%s-client.json' % cluster_id
+                url_file = pjoin(self._cd.security_dir, client_json)
         if url_file is None:
             raise ValueError(
                 "I can't find enough information to connect to a hub!"
@@ -407,7 +418,7 @@ class Client(HasTraits):
         location = cfg.setdefault('location', None)
         
         proto,addr = cfg['interface'].split('://')
-        addr = util.disambiguate_ip_address(addr)
+        addr = util.disambiguate_ip_address(addr, location)
         cfg['interface'] = "%s://%s" % (proto, addr)
         
         # turn interface,port into full urls:
@@ -694,12 +705,9 @@ class Client(HasTraits):
             except:
                 content = error.wrap_exception()
             # build a fake message:
-            parent = {}
-            header = {}
-            parent['msg_id'] = msg_id
-            header['engine'] = uuid
-            header['date'] = datetime.now()
-            msg = dict(parent_header=parent, header=header, content=content)
+            msg = self.session.msg('apply_reply', content=content)
+            msg['parent_header']['msg_id'] = msg_id
+            msg['metadata']['engine'] = uuid
             self._handle_apply_reply(msg)
 
     def _handle_execute_reply(self, msg):

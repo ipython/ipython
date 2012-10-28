@@ -19,15 +19,26 @@ from __future__ import print_function
 
 import bdb
 import signal
+import os
 import sys
 import time
+import subprocess
+from io import BytesIO
+import base64
 
 from Queue import Empty
+
+try:
+    from contextlib import nested
+except:
+    from IPython.utils.nested_context import nested
 
 from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
+from IPython.utils.traitlets import List, Enum, Any
+from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.frontend.terminal.console.completer import ZMQCompleter
@@ -36,7 +47,64 @@ from IPython.frontend.terminal.console.completer import ZMQCompleter
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
-    
+
+    image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
+                         config=True, help=
+        """
+        Handler for image type output.  This is useful, for example,
+        when connecting to the kernel in which pylab inline backend is
+        activated.  There are four handlers defined.  'PIL': Use
+        Python Imaging Library to popup image; 'stream': Use an
+        external program to show the image.  Image will be fed into
+        the STDIN of the program.  You will need to configure
+        `stream_image_handler`; 'tempfile': Use an external program to
+        show the image.  Image will be saved in a temporally file and
+        the program is called with the temporally file.  You will need
+        to configure `tempfile_image_handler`; 'callable': You can set
+        any Python callable which is called with the image data.  You
+        will need to configure `callable_image_handler`.
+        """
+    )
+
+    stream_image_handler = List(config=True, help=
+        """
+        Command to invoke an image viewer program when you are using
+        'stream' image handler.  This option is a list of string where
+        the first element is the command itself and reminders are the
+        options for the command.  Raw image data is given as STDIN to
+        the program.
+        """
+    )
+
+    tempfile_image_handler = List(config=True, help=
+        """
+        Command to invoke an image viewer program when you are using
+        'tempfile' image handler.  This option is a list of string
+        where the first element is the command itself and reminders
+        are the options for the command.  You can use {file} and
+        {format} in the string to represent the location of the
+        generated image file and image format.
+        """
+    )
+
+    callable_image_handler = Any(config=True, help=
+        """
+        Callable object called via 'callable' image handler with one
+        argument, `data`, which is `msg["content"]["data"]` where
+        `msg` is the message from iopub channel.  For exmaple, you can
+        find base64 encoded PNG data as `data['image/png']`.
+        """
+    )
+
+    mime_preference = List(
+        default_value=['image/png', 'image/jpeg', 'image/svg+xml'],
+        config=True, allow_none=False, help=
+        """
+        Preferred object representation MIME type in order.  First
+        matched MIME type will be used.
+        """
+    )
+
     def __init__(self, *args, **kwargs):
         self.km = kwargs.pop('kernel_manager')
         self.session_id = self.km.session.session
@@ -163,6 +231,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 elif msg_type == 'pyout':
                     self.execution_count = int(sub_msg["content"]["execution_count"])
                     format_dict = sub_msg["content"]["data"]
+                    self.handle_rich_data(format_dict)
                     # taken from DisplayHook.__call__:
                     hook = self.displayhook
                     hook.start_displayhook()
@@ -170,6 +239,61 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                     hook.write_format_data(format_dict)
                     hook.log_output(format_dict)
                     hook.finish_displayhook()
+
+                elif msg_type == 'display_data':
+                    self.handle_rich_data(sub_msg["content"]["data"])
+
+    _imagemime = {
+        'image/png': 'png',
+        'image/jpeg': 'jpeg',
+        'image/svg+xml': 'svg',
+    }
+
+    def handle_rich_data(self, data):
+        for mime in self.mime_preference:
+            if mime in data and mime in self._imagemime:
+                self.handle_image(data, mime)
+                return
+
+    def handle_image(self, data, mime):
+        handler = getattr(
+            self, 'handle_image_{0}'.format(self.image_handler), None)
+        if handler:
+            handler(data, mime)
+
+    def handle_image_PIL(self, data, mime):
+        if mime not in ('image/png', 'image/jpeg'):
+            return
+        import PIL.Image
+        raw = base64.decodestring(data[mime].encode('ascii'))
+        img = PIL.Image.open(BytesIO(raw))
+        img.show()
+
+    def handle_image_stream(self, data, mime):
+        raw = base64.decodestring(data[mime].encode('ascii'))
+        imageformat = self._imagemime[mime]
+        fmt = dict(format=imageformat)
+        args = [s.format(**fmt) for s in self.stream_image_handler]
+        with open(os.devnull, 'w') as devnull:
+            proc = subprocess.Popen(
+                args, stdin=subprocess.PIPE,
+                stdout=devnull, stderr=devnull)
+            proc.communicate(raw)
+
+    def handle_image_tempfile(self, data, mime):
+        raw = base64.decodestring(data[mime].encode('ascii'))
+        imageformat = self._imagemime[mime]
+        filename = 'tmp.{0}'.format(imageformat)
+        with nested(NamedFileInTemporaryDirectory(filename),
+                    open(os.devnull, 'w')) as (f, devnull):
+            f.write(raw)
+            f.flush()
+            fmt = dict(file=f.name, format=imageformat)
+            args = [s.format(**fmt) for s in self.tempfile_image_handler]
+            subprocess.call(args, stdout=devnull, stderr=devnull)
+
+    def handle_image_callable(self, data, mime):
+        self.callable_image_handler(data)
 
     def handle_stdin_request(self, timeout=0.1):
         """ Method to capture raw_input

@@ -357,7 +357,7 @@ class TerminalInteractiveShell(InteractiveShell):
                  usage=None, banner1=None, banner2=None, display_banner=None):
 
         super(TerminalInteractiveShell, self).__init__(
-            config=config, profile_dir=profile_dir, user_ns=user_ns,
+            config=config, ipython_dir=ipython_dir, profile_dir=profile_dir, user_ns=user_ns,
             user_module=user_module, custom_exceptions=custom_exceptions
         )
         # use os.system instead of utils.process.system by default,

@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2008-2012  The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -221,7 +221,11 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
+
+            text = IPython.mathjaxutils.remove_math(text)
             var html = IPython.markdown_converter.makeHtml(text);
+            html = IPython.mathjaxutils.replace_math(html)
+
             try {
                 this.set_rendered(html);
             } catch (e) {
@@ -246,6 +250,8 @@ var IPython = (function (IPython) {
 
                 return '<code class="prettyprint">' + code + '</code>';
             });
+
+            IPython.mathjaxutils.queue_render()
             this.rendered = true;
         }
     };
@@ -258,11 +264,19 @@ var IPython = (function (IPython) {
         this.code_mirror_mode = 'rst';
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'raw';
+        var that = this
+
+        this.element.focusout(
+                function() { that.auto_highlight(); }
+            );
     };
 
 
     RawCell.prototype = new TextCell();
 
+    RawCell.prototype.auto_highlight = function () {
+        this._auto_highlight(IPython.config.raw_cell_highlight);
+    };
 
     RawCell.prototype.render = function () {
         this.rendered = true;

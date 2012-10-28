@@ -32,10 +32,10 @@ var IPython = (function (IPython) {
         }
         var menubar_height = $('div#menubar').outerHeight(true);
         var toolbar_height;
-        if ($('div#toolbar').css('display') === 'none') {
+        if ($('div#maintoolbar').css('display') === 'none') {
             toolbar_height = 0;
         } else {
-            toolbar_height = $('div#toolbar').outerHeight(true);
+            toolbar_height = $('div#maintoolbar').outerHeight(true);
         }
         return h-header_height-menubar_height-toolbar_height;  // content height
     }

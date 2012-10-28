@@ -25,10 +25,11 @@ import re
 import sys
 from unittest import TestCase
 
+import nose.tools as nt
 from nose import SkipTest
 
 from IPython.utils.traitlets import (
-    HasTraits, MetaHasTraits, TraitType, Any, CBytes,
+    HasTraits, MetaHasTraits, TraitType, Any, CBytes, Dict,
     Int, Long, Integer, Float, Complex, Bytes, Unicode, TraitError,
     Undefined, Type, This, Instance, TCPAddress, List, Tuple,
     ObjectName, DottedObjectName, CRegExp
@@ -906,3 +907,14 @@ class TestCRegExp(TraitTestBase):
     _default_value = re.compile(r'')
     _good_values = [r'\d+', re.compile(r'\d+')]
     _bad_values = [r'(', None, ()]
+
+class DictTrait(HasTraits):
+    value = Dict()
+
+def test_dict_assignment():
+    d = dict()
+    c = DictTrait()
+    c.value = d
+    d['a'] = 5
+    nt.assert_equal(d, c.value)
+    nt.assert_true(c.value is d)

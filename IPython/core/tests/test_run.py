@@ -86,6 +86,28 @@ def doctest_run_builtins():
        ....:
     """
 
+
+def doctest_run_option_parser():
+    r"""Test option parser in %run.
+
+    In [1]: %run print_argv.py
+    []
+
+    In [2]: %run print_argv.py print*.py
+    ['print_argv.py']
+
+    In [3]: %run print_argv.py print\\*.py
+    ['print*.py']
+
+    In [4]: %run print_argv.py 'print*.py'
+    ['print_argv.py']
+
+    In [5]: %run -G print_argv.py print*.py
+    ['print*.py']
+
+    """
+
+
 @py3compat.doctest_refactor_print
 def doctest_reset_del():
     """Test that resetting doesn't cause errors in __del__ methods.

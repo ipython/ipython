@@ -12,6 +12,7 @@
 #-----------------------------------------------------------------------------
 
 # Stdlib
+import errno
 import os
 import re
 import sys
@@ -30,7 +31,7 @@ from IPython.core.magic import  (
 from IPython.lib.backgroundjobs import BackgroundJobManager
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.process import find_cmd, FindCmdError, arg_split
+from IPython.utils.process import arg_split
 from IPython.utils.traitlets import List, Dict
 
 #-----------------------------------------------------------------------------
@@ -90,36 +91,23 @@ class ScriptMagics(Magics, Configurable):
         """,
     )
     def _script_magics_default(self):
-        """default to a common list of programs if we find them"""
+        """default to a common list of programs"""
         
-        defaults = []
-        to_try = []
-        if os.name == 'nt':
-            defaults.append('cmd')
-            to_try.append('powershell')
-        to_try.extend([
+        defaults = [
             'sh',
             'bash',
             'perl',
             'ruby',
+            'python',
             'python3',
             'pypy',
-        ])
+        ]
+        if os.name == 'nt':
+            defaults.extend([
+                'cmd',
+                'powershell',
+            ])
         
-        for cmd in to_try:
-            if cmd in self.script_paths:
-                defaults.append(cmd)
-            else:
-                try:
-                    find_cmd(cmd)
-                except FindCmdError:
-                    # command not found, ignore it
-                    pass
-                except ImportError:
-                    # Windows without pywin32, find_cmd doesn't work
-                    pass
-                else:
-                    defaults.append(cmd)
         return defaults
     
     script_paths = Dict(config=True,
@@ -197,8 +185,15 @@ class ScriptMagics(Magics, Configurable):
         """
         argv = arg_split(line, posix = not sys.platform.startswith('win'))
         args, cmd = self.shebang.parser.parse_known_args(argv)
-
-        p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        
+        try:
+            p = Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=PIPE)
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                print "Couldn't find program: %r" % cmd[0]
+                return
+            else:
+                raise
         
         cell = cell.encode('utf8', 'replace')
         if args.bg:

@@ -3,14 +3,14 @@
 This is copied from the stdlib and will be standard in Python 3.2 and onwards.
 """
 
+import os as _os
+
 # This code should only be used in Python versions < 3.2, since after that we
 # can rely on the stdlib itself.
 try:
     from tempfile import TemporaryDirectory
 
 except ImportError:
-    
-    import os as _os
     from tempfile import mkdtemp, template
 
     class TemporaryDirectory(object):
@@ -74,3 +74,33 @@ except ImportError:
                 self._rmdir(path)
             except self._os_error:
                 pass
+
+
+class NamedFileInTemporaryDirectory(object):
+
+    def __init__(self, filename, mode='w+b', bufsize=-1, **kwds):
+        """
+        Open a file named `filename` in a temporary directory.
+
+        This context manager is preferred over `NamedTemporaryFile` in
+        stdlib `tempfile` when one needs to reopen the file.
+
+        Arguments `mode` and `bufsize` are passed to `open`.
+        Rest of the arguments are passed to `TemporaryDirectory`.
+
+        """
+        self._tmpdir = TemporaryDirectory(**kwds)
+        path = _os.path.join(self._tmpdir.name, filename)
+        self.file = open(path, mode, bufsize)
+
+    def cleanup(self):
+        self.file.close()
+        self._tmpdir.cleanup()
+
+    __del__ = cleanup
+
+    def __enter__(self):
+        return self.file
+
+    def __exit__(self, type, value, traceback):
+        self.cleanup()

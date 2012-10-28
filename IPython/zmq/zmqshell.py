@@ -30,6 +30,7 @@ from IPython.core.interactiveshell import (
 from IPython.core import page
 from IPython.core.autocall import ZMQExitAutocall
 from IPython.core.displaypub import DisplayPublisher
+from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
@@ -37,7 +38,7 @@ from IPython.lib.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import io
+from IPython.utils import io, openpy
 from IPython.utils.jsonutil import json_clean, encode_images
 from IPython.utils.process import arg_split
 from IPython.utils import py3compat
@@ -349,9 +350,14 @@ class KernelMagics(Magics):
         """Show a file through the pager.
 
         Files ending in .py are syntax-highlighted."""
+        if not arg_s:
+            raise UsageError('Missing filename.')
+
         cont = open(arg_s).read()
         if arg_s.endswith('.py'):
-            cont = self.shell.pycolorize(cont)
+            cont = self.shell.pycolorize(openpy.read_py_file(arg_s, skip_encoding_cookie=False))
+        else:
+            cont = open(arg_s).read()
         page.page(cont)
 
     more = line_magic('more')(less)
