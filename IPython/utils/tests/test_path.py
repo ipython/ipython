@@ -471,9 +471,11 @@ class TestShellGlob(object):
     @contextmanager
     def in_tempdir(cls):
         save = os.getcwdu()
-        os.chdir(cls.tempdir.name)
-        yield
-        os.chdir(save)
+        try:
+            os.chdir(cls.tempdir.name)
+            yield
+        finally:
+            os.chdir(save)
 
     def check_match(self, patterns, matches):
         with self.in_tempdir():
