@@ -2,7 +2,7 @@
 
 Authors : MinRK
 """
-from datetime import timedelta, datetime
+from datetime import timedelta
 
 class YouTubeVideo(object):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
