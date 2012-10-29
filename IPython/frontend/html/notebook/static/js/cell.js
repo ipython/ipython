@@ -50,6 +50,9 @@ var IPython = (function (IPython) {
         });
     };
 
+    // prototype typeset method does nothing, see TextCell typeset
+    Cell.prototype.typeset = function () {
+    };
 
     Cell.prototype.select = function () {
         this.element.addClass('ui-widget-content ui-corner-all');
