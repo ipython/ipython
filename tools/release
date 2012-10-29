@@ -6,6 +6,7 @@ This should ONLY be run at real release time.
 from __future__ import print_function
 
 from toollib import *
+from gh_api import post_download
 
 # Get main ipython dir, this will raise if it doesn't pass some checks
 ipdir = get_ipdir()
@@ -52,6 +53,11 @@ sh('./setup.py register')
 sh(sdists + ' upload')
 cd(distdir)
 print( 'Uploading distribution files...')
+
+for fname in os.listdir('.'):
+    print('uploading %s to GitHub' % fname)
+    desc = "IPython %s source distribution" % version
+    post_download("ipython/ipython", fname, description=desc)
 
 # Make target dir if it doesn't exist
 sh('ssh %s "mkdir -p %s/release/%s" ' % (archive_user, archive_dir, version))
