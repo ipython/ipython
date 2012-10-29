@@ -39,11 +39,10 @@ var IPython = (function (IPython) {
             extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
-        this.cell_id = IPython.utils.uuid();
         // The tabindex=-1 makes this div focusable.
         // id is a unique cell_id necessary for updating MathJax intelligently
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
-            addClass('rendered_html').attr('tabindex','-1').attr('id',this.cell_id);
+            addClass('rendered_html').attr('tabindex','-1');
         cell.append(input_area).append(render_area);
         this.element = cell;
     };
@@ -81,7 +80,7 @@ var IPython = (function (IPython) {
 
     TextCell.prototype.typeset = function () {
         if (window.MathJax){
-            var cell_math = document.getElementById(this.cell_id);
+            var cell_math = this.element.get(0);
             MathJax.Hub.Queue(["Typeset",MathJax.Hub,cell_math]);
         }
     };
