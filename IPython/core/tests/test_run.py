@@ -119,8 +119,7 @@ def doctest_run_option_parser_for_posix():
     """
 
 
-@dec.skip_linux
-@dec.skip_osx
+@dec.skip_if_not_win32
 def doctest_run_option_parser_for_windows():
     r"""Test option parser in %run (Windows specific).
 
