@@ -30,7 +30,7 @@ class ConverterHTML(Converter):
     def _out_prompt(self, output):
         if output.output_type == 'pyout':
             n = output.prompt_number if output.prompt_number is not None else '&nbsp;'
-            content = 'Out [%s]:' % n
+            content = 'Out&nbsp;[%s]:' % n
         else:
             content = ''
         return ['<div class="prompt output_prompt">%s</div>' % content]
@@ -94,7 +94,7 @@ class ConverterHTML(Converter):
         
         lines.append('<div class="input hbox">')
         n = cell.prompt_number if getattr(cell, 'prompt_number', None) is not None else '&nbsp;'
-        lines.append('<div class="prompt input_prompt">In [%s]:</div>' % n)
+        lines.append('<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n)
         lines.append('<div class="input_area box-flex1">')
         lines.append(highlight(cell.input))
         lines.append('</div>') # input_area
