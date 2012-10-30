@@ -2,7 +2,7 @@
 
 Authors : MinRK
 """
-from datetime import timedelta
+import urllib
 
 class YouTubeVideo(object):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
@@ -16,27 +16,34 @@ class YouTubeVideo(object):
     vid = YouTubeVideo("foo")
     display(vid)
     
-    To start from a particular time offset:
+    To start from 30 seconds:
     
-    vid = YouTubeVideo("abc", start=timedelta(hours=1, minutes=47, seconds=3))
+    vid = YouTubeVideo("abc", start=30)
     display(vid)
+    
+    Other parameters can be provided as documented at 
+    https://developers.google.com/youtube/player_parameters#parameter-subheader
     """
 
-    def __init__(self, id, width=400, height=300, start=timedelta()):
+    def __init__(self, id, width=400, height=300, **kwargs):
         self.id = id
         self.width = width
         self.height = height
-        self.start = start.total_seconds()
+        self.params = **kwargs
 
     def _repr_html_(self):
         """return YouTube embed iframe for this video id"""
+        if self.params:
+            params = "?" + urllib.urlencode(self.params)
+        else:
+            params = ""
         return """
             <iframe
                 width="%i"
                 height="%i"
-                src="http://www.youtube.com/embed/%s?start=%i"
+                src="http://www.youtube.com/embed/%s%s"
                 frameborder="0"
                 allowfullscreen
             ></iframe>
-        """%(self.width, self.height, self.id, self.start)
+        """%(self.width, self.height, self.id, self.start, params)
 
