@@ -29,6 +29,7 @@ class ConverterLaTeX(Converter):
 
     (or set the equivalent flag at startup or in your configuration profile).
     """
+    inkscape = inkscape
     extension = 'tex'
     documentclass = 'article'
     documentclass_options = '11pt,english'
@@ -129,7 +130,7 @@ class ConverterLaTeX(Converter):
     def _svg_lines(self, img_file):
         base_file = os.path.splitext(img_file)[0]
         pdf_file = base_file + '.pdf'
-        subprocess.check_call([ inkscape, '--export-pdf=%s' % pdf_file,
+        subprocess.check_call([ self.inkscape, '--export-pdf=%s' % pdf_file,
                                img_file])
         return self._img_lines(pdf_file)
 
