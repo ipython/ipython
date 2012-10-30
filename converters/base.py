@@ -72,7 +72,7 @@ class Converter(object):
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
-        self.files_dir = os.path.abspath(files_dir)
+        self.files_dir = files_dir
         self.outbase = os.path.join(self.infile_dir, infile_root)
 
     def __del__(self):
