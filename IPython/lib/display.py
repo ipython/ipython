@@ -21,6 +21,8 @@ class YouTubeVideo(object):
     vid = YouTubeVideo("abc", start=30)
     display(vid)
     
+    To calculate seconds from time as hours, minutes, seconds use int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
+
     Other parameters can be provided as documented at 
     https://developers.google.com/youtube/player_parameters#parameter-subheader
     """
@@ -29,7 +31,7 @@ class YouTubeVideo(object):
         self.id = id
         self.width = width
         self.height = height
-        self.params = **kwargs
+        self.params = kwargs
 
     def _repr_html_(self):
         """return YouTube embed iframe for this video id"""
@@ -45,5 +47,4 @@ class YouTubeVideo(object):
                 frameborder="0"
                 allowfullscreen
             ></iframe>
-        """%(self.width, self.height, self.id, self.start, params)
-
+        """%(self.width, self.height, self.id, params)
