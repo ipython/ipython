@@ -52,6 +52,7 @@ from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputsplitter import InputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -2499,7 +2500,21 @@ class InteractiveShell(SingletonConfigurable):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read(), store_history=False)
+
+                    # split the code on all double newline characters (blank lines)
+                    # this is overzealous, since blank lines can exist inside of
+                    # multiline strings, functions, etc. Then, push each section
+                    # onto an inputsplitter, which will merge some blocks together
+                    # to make complete cells
+                    cells = []
+                    cellsplitter = InputSplitter()
+                    for section in thefile.read().split('\n\n'):
+                        if section != '':
+                            if cellsplitter.push(section + '\n\n'):
+                                cells.append(cellsplitter.source_reset())
+                    for cell in cells:
+                        self.run_cell(cell, store_history=False)
+                    # self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
