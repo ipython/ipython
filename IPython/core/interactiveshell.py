@@ -2477,6 +2477,7 @@ class InteractiveShell(SingletonConfigurable):
             The name of the file to execute.  The filename must have a
             .ipy extension.
         """
+        print("ROBERT safe_execfile_ipy interactiveshell.py line 2480%s" % fname)
         fname = os.path.abspath(os.path.expanduser(fname))
 
         # Make sure we can open the file
@@ -2499,7 +2500,11 @@ class InteractiveShell(SingletonConfigurable):
                     # raised in user code.  It would be nice if there were
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
-                    self.run_cell(thefile.read(), store_history=False)
+
+                    # ROBERT MODIFICATION
+                    for cell in thefile.read().split('\n\n'):
+                        self.run_cell(cell, store_history=False)
+                    #self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
