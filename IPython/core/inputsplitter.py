@@ -845,7 +845,6 @@ class IPythonInputSplitter(InputSplitter):
         this value is also stored as a private attribute (_is_complete), so it
         can be queried at any time.
         """
-
         if not lines:
             return super(IPythonInputSplitter, self).push(lines)
 

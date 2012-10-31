@@ -2512,8 +2512,9 @@ class InteractiveShell(SingletonConfigurable):
                         if section != '':
                             if cellsplitter.push(section + '\n\n'):
                                 cells.append(cellsplitter.source_reset())
-                    for cell in cells:    
+                    for cell in cells:
                         self.run_cell(cell, store_history=False)
+                    # self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
