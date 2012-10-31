@@ -261,8 +261,10 @@ var IPython = (function (IPython) {
         if (this.prompt_area) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
-        this.append_mime_type(json, toinsert, dynamic);
+        // Put the output area in the DOM before calling the handlers. This is needed because
+        // some widgets will require that things be on the page first.
         this.element.append(toinsert);
+        this.append_mime_type(json, toinsert, dynamic);
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
             this.typeset();
@@ -336,7 +338,9 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
-        if (json.javascript !== undefined && dynamic) {
+        if (json.json !== undefined) {
+            this.append_json(json.json, element)
+        } else if (json.javascript !== undefined && dynamic) {
             this.append_javascript(json.javascript, element, dynamic);
         } else if (json.html !== undefined) {
             this.append_html(json.html, element);
@@ -350,8 +354,6 @@ var IPython = (function (IPython) {
             this.append_jpeg(json.jpeg, element);
         } else if (json.text !== undefined) {
             this.append_text(json.text, element);
-        } else if (json.json !== undefined) {
-            this.append_json(json.json, element)
         };
     };
 
