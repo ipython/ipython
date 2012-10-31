@@ -27,6 +27,10 @@ def test_evens():
             yield test_conversion, conv,root+'.ipynb',root+'.'+ext
 
 @nottest
+def compfiles(stra, strb):
+    nt.assert_equal(map(unicode.strip,stra.split('\n')),map(unicode.strip,strb.split('\n')))
+
+@nottest
 def test_conversion(ConverterClass, ipynb, ref_file):
 
     converter = ConverterClass(ipynb)
@@ -34,6 +38,6 @@ def test_conversion(ConverterClass, ipynb, ref_file):
     cv =converter.convert()
     with io.open(ref_file) as ref:
         value = ref.read()
-        nt.assert_equal(cv.split('\n'),value.split('\n'))
+        compfiles(cv,value)
     
 
