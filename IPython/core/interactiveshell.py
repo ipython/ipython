@@ -52,6 +52,7 @@ from IPython.core.fakemodule import FakeModule, init_fakemod_dict
 from IPython.core.formatters import DisplayFormatter
 from IPython.core.history import HistoryManager
 from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGIC2
+from IPython.core.inputsplitter import InputSplitter
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
@@ -2477,7 +2478,6 @@ class InteractiveShell(SingletonConfigurable):
             The name of the file to execute.  The filename must have a
             .ipy extension.
         """
-        print("ROBERT safe_execfile_ipy interactiveshell.py line 2480%s" % fname)
         fname = os.path.abspath(os.path.expanduser(fname))
 
         # Make sure we can open the file
@@ -2501,10 +2501,19 @@ class InteractiveShell(SingletonConfigurable):
                     # versions of runlines, execfile that did raise, so
                     # we could catch the errors.
 
-                    # ROBERT MODIFICATION
-                    for cell in thefile.read().split('\n\n'):
+                    # split the code on all double newline characters (blank lines)
+                    # this is overzealous, since blank lines can exist inside of
+                    # multiline strings, functions, etc. Then, push each section
+                    # onto an inputsplitter, which will merge some blocks together
+                    # to make complete cells
+                    cells = []
+                    cellsplitter = InputSplitter()
+                    for section in thefile.read().split('\n\n'):
+                        if section != '':
+                            if cellsplitter.push(section + '\n\n'):
+                                cells.append(cellsplitter.source_reset())
+                    for cell in cells:    
                         self.run_cell(cell, store_history=False)
-                    #self.run_cell(thefile.read(), store_history=False)
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
