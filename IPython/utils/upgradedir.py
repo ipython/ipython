@@ -9,7 +9,7 @@ To be used by "upgrade" feature.
 try:
     from IPython.external.path import path
 except ImportError:
-    from path import path
+    from .path import path
 
 import hashlib, pickle
 

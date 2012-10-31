@@ -22,11 +22,11 @@ from IPython.frontend.qt.rich_text import HtmlExporter
 from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
 from IPython.utils.traitlets import Bool, Enum, Integer, Unicode
-from ansi_code_processor import QtAnsiCodeProcessor
-from completion_widget import CompletionWidget
-from completion_html import CompletionHtml
-from completion_plain import CompletionPlain
-from kill_ring import QtKillRing
+from .ansi_code_processor import QtAnsiCodeProcessor
+from .completion_widget import CompletionWidget
+from .completion_html import CompletionHtml
+from .completion_plain import CompletionPlain
+from .kill_ring import QtKillRing
 
 
 #-----------------------------------------------------------------------------

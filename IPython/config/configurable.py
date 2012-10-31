@@ -23,7 +23,7 @@ Authors:
 import datetime
 from copy import deepcopy
 
-from loader import Config
+from .loader import Config
 from IPython.utils.traitlets import HasTraits, Instance
 from IPython.utils.text import indent, wrap_paragraphs
 

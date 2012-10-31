@@ -18,7 +18,7 @@ from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.py3compat import bytes_to_str
 
 # Local imports.
-from parentpoller import ParentPollerWindows
+from .parentpoller import ParentPollerWindows
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
                          ip=LOCALHOST, key=b'', transport='tcp'):

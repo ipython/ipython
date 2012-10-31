@@ -12,7 +12,7 @@ except ImportError:
 import rlcompleter
 import time
 
-import session
+from . import session
 
 class KernelCompleter(object):
     """Kernel-side completion machinery."""

@@ -2,7 +2,7 @@ import sys
 import time
 from io import StringIO
 
-from session import extract_header, Message
+from .session import extract_header, Message
 
 from IPython.utils import io, text
 from IPython.utils import py3compat

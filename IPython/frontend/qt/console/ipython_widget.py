@@ -22,8 +22,8 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import IPythonInputSplitter, \
     transform_ipy_prompt
 from IPython.utils.traitlets import Bool, Unicode
-from frontend_widget import FrontendWidget
-import styles
+from .frontend_widget import FrontendWidget
+from . import styles
 
 #-----------------------------------------------------------------------------
 # Constants

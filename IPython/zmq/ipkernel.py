@@ -50,11 +50,11 @@ from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode
 )
 
-from entry_point import base_launch_kernel
-from kernelapp import KernelApp, kernel_flags, kernel_aliases
-from serialize import serialize_object, unpack_apply_message
-from session import Session, Message
-from zmqshell import ZMQInteractiveShell
+from .entry_point import base_launch_kernel
+from .kernelapp import KernelApp, kernel_flags, kernel_aliases
+from .serialize import serialize_object, unpack_apply_message
+from .session import Session, Message
+from .zmqshell import ZMQInteractiveShell
 
 
 #-----------------------------------------------------------------------------

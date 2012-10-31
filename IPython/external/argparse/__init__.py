@@ -7,5 +7,5 @@ try:
         from argparse import *
         from argparse import SUPPRESS
 except (ImportError, AttributeError):
-    from _argparse import *
-    from _argparse import SUPPRESS
+    from ._argparse import *
+    from ._argparse import SUPPRESS

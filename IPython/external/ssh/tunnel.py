@@ -34,7 +34,7 @@ try:
 except ImportError:
     paramiko = None
 else:
-    from forward import forward_tunnel
+    from .forward import forward_tunnel
 
 try:
     from IPython.external import pexpect
