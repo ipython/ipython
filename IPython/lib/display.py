@@ -1,6 +1,6 @@
 """Various display related classes.
 
-Authors : MinRK
+Authors : MinRK, dannystaple
 """
 import urllib
 
