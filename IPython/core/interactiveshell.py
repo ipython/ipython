@@ -629,7 +629,7 @@ class InteractiveShell(SingletonConfigurable):
         # override sys.stdout and sys.stderr themselves, you need to do that
         # *before* instantiating this class, because io holds onto
         # references to the underlying streams.
-        if sys.platform == 'win32' and self.has_readline:
+        if (sys.platform == 'win32' or sys.platform == 'cli') and self.has_readline:
             io.stdout = io.stderr = io.IOStream(self.readline._outputfile)
         else:
             io.stdout = io.IOStream(sys.stdout)
