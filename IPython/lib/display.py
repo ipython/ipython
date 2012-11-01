@@ -21,7 +21,8 @@ class YouTubeVideo(object):
     vid = YouTubeVideo("abc", start=30)
     display(vid)
     
-    To calculate seconds from time as hours, minutes, seconds use int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
+    To calculate seconds from time as hours, minutes, seconds use:
+    start=int(timedelta(hours=1, minutes=46, seconds=40).total_seconds())
 
     Other parameters can be provided as documented at 
     https://developers.google.com/youtube/player_parameters#parameter-subheader
