@@ -50,8 +50,11 @@ var IPython = (function (IPython) {
         });
     };
 
-    // prototype typeset method does nothing, see TextCell typeset
     Cell.prototype.typeset = function () {
+        if (window.MathJax){
+            var cell_math = this.element.get(0);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,cell_math]);
+        }
     };
 
     Cell.prototype.select = function () {

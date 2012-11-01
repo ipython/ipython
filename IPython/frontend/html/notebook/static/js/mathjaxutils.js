@@ -16,6 +16,18 @@ IPython.mathjaxutils = (function (IPython) {
     var init = function () {
         if (window.MathJax) {
             // MathJax loaded
+            MathJax.Hub.Config({
+                tex2jax: {
+                    inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                    displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                    processEnvironments: true
+                },
+                displayAlign: 'left', // Change this to 'center' to center equations.
+                "HTML-CSS": {
+                    styles: {'.MathJax_Display': {"margin": 0}}
+                }
+            });
+            MathJax.Hub.Configured();
         } else if (window.mathjax_url != "") {
             // Don't have MathJax, but should. Show dialog.
             var dialog = $('<div></div>')
@@ -89,12 +101,12 @@ IPython.mathjaxutils = (function (IPython) {
     //    math, then push the math string onto the storage array.
     //  The preProcess function is called on all blocks if it has been passed in
     var process_math = function (i, j, pre_process) {
-        var HUB = MathJax.Hub;
+        var hub = MathJax.Hub;
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use HTML entity for &
         .replace(/</g, "&lt;") // use HTML entity for <
         .replace(/>/g, "&gt;") // use HTML entity for >
         ;
-        if (HUB.Browser.isMSIE) {
+        if (hub.Browser.isMSIE) {
             block = block.replace(/(%[^\n]*)\n/g, "$1<br/>\n")
         }
         while (j > i) {

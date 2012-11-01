@@ -40,7 +40,6 @@ var IPython = (function (IPython) {
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         });
         // The tabindex=-1 makes this div focusable.
-        // id is a unique cell_id necessary for updating MathJax intelligently
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
         cell.append(input_area).append(render_area);
@@ -76,13 +75,6 @@ var IPython = (function (IPython) {
             return true;
         }
         return false;
-    };
-
-    TextCell.prototype.typeset = function () {
-        if (window.MathJax){
-            var cell_math = this.element.get(0);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub,cell_math]);
-        }
     };
 
 
@@ -229,35 +221,33 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            else {
-                text = IPython.mathjaxutils.remove_math(text)
-                var html = IPython.markdown_converter.makeHtml(text);
-                html = IPython.mathjaxutils.replace_math(html)
-                try {
-                    this.set_rendered(html);
-                } catch (e) {
-                    console.log("Error running Javascript in Markdown:");
-                    console.log(e);
-                    this.set_rendered($("<div/>").addClass("js-error").html(
-                        "Error rendering Markdown!<br/>" + e.toString())
-                    );
-                }
-                this.element.find('div.text_cell_input').hide();
-                this.element.find("div.text_cell_render").show();
-                var code_snippets = this.element.find("pre > code");
-                code_snippets.replaceWith(function () {
-                    var code = $(this).html();
-                    /* Substitute br for newlines and &nbsp; for spaces
-                       before highlighting, since prettify doesn't
-                       preserve those on all browsers */
-                    code = code.replace(/(\r\n|\n|\r)/gm, "<br/>");
-                    code = code.replace(/ /gm, '&nbsp;');
-                    code = prettyPrintOne(code);
-
-                    return '<code class="prettyprint">' + code + '</code>';
-                });
-                this.typeset()
+            text = IPython.mathjaxutils.remove_math(text)
+            var html = IPython.markdown_converter.makeHtml(text);
+            html = IPython.mathjaxutils.replace_math(html)
+            try {
+                this.set_rendered(html);
+            } catch (e) {
+                console.log("Error running Javascript in Markdown:");
+                console.log(e);
+                this.set_rendered($("<div/>").addClass("js-error").html(
+                    "Error rendering Markdown!<br/>" + e.toString())
+                );
             }
+            this.element.find('div.text_cell_input').hide();
+            this.element.find("div.text_cell_render").show();
+            var code_snippets = this.element.find("pre > code");
+            code_snippets.replaceWith(function () {
+                var code = $(this).html();
+                /* Substitute br for newlines and &nbsp; for spaces
+                   before highlighting, since prettify doesn't
+                   preserve those on all browsers */
+                code = code.replace(/(\r\n|\n|\r)/gm, "<br/>");
+                code = code.replace(/ /gm, '&nbsp;');
+                code = prettyPrintOne(code);
+
+                return '<code class="prettyprint">' + code + '</code>';
+            });
+            this.typeset()
             this.rendered = true;
         }
     };
