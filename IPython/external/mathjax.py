@@ -51,6 +51,7 @@ import tarfile
 import urllib2
 import zipfile
 
+from IPython.utils.path import locate_profile
 #-----------------------------------------------------------------------------
 #
 #-----------------------------------------------------------------------------
@@ -129,7 +130,7 @@ def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar 
     replace : bool [False]
         Whether to remove and replace an existing install.
     tag : str ['v2.0']
-        Which tag to download. Default is 'v1.1', the current stable release,
+        Which tag to download. Default is 'v2.0', the current stable release,
         but alternatives include 'v1.1a' and 'master'.
     file : file like object [ defualt to content of https://github.com/mathjax/MathJax/tarball/#{tag}]
         File handle from which to untar/unzip/... mathjax
@@ -241,27 +242,27 @@ python -c "from IPython.external.mathjax import install_mathjax; install_mathjax
 python -m IPython.external.mathjax -test -r
 
 # view http://www.mathjax.org/download/ in your browser
-# save-as the link for MathJax-1.1 near the bottom of the page.
-# The file it offers is mathjax-MathJax-v1.1-0-g5a7e4d7.zip
+# save-as the link for MathJax-2.0 near the bottom of the page.
+# The file it offers is mathjax-MathJax-v2.0-20-g07669ac.zip
 
-python -m IPython.external.mathjax mathjax-MathJax-v1.1-0-g5a7e4d7.zip
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.zip
 python -m IPython.external.mathjax -test -r
 
-# download https://github.com/mathjax/MathJax/tarball/v1.1 in your browser
+# download https://github.com/mathjax/MathJax/tarball/v2.0 in your browser
 # (this is the url used internally by install_mathjax)
-# The file it offers is mathjax-MathJax-v1.1-0-g5a7e4d7.tar.gz
+# The file it offers is mathjax-MathJax-v2.0-20-g07669ac.tar.gz
 
-python -m IPython.external.mathjax mathjax-MathJax-v1.1-0-g5a7e4d7.tar.gz
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
 
 python -m IPython.external.mathjax -test
         # note no -r
 
 # install it again while it is already there
 
-python -m IPython.external.mathjax mathjax-MathJax-v1.1-0-g5a7e4d7.tar.gz
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
     # says "offline MathJax apparently already installed"
 
-python -m IPython.external.mathjax  ~/mathjax-MathJax-v1.1-0-g5a7e4d7.tar.gz
+python -m IPython.external.mathjax  ~/mathjax-MathJax-v2.0-20-g07669ac.tar.gz
 python -m IPython.external.mathjax -test
 
 
