@@ -58,13 +58,13 @@ from IPython.utils.path import locate_profile
 
 # Where mathjax will be installed.
 
-dest = os.path.join(locate_profile('default'), 'static')
+default_dest = os.path.join(locate_profile('default'), 'static')
 
 ##
 
 # Test for access to install mathjax.
 
-def check_perms(replace=False):
+def check_perms(replace=False, dest=default_dest):
     if not os.access(static, os.W_OK):
         raise IOError("Need have write access to %s" % static)
     if os.path.exists(dest):
@@ -115,7 +115,7 @@ def extract_zip( fd, dest ) :
 
 ##
 
-def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar ):
+def install_mathjax(tag='v2.0', dest=default_dest, replace=False, file=None, extractor=extract_tar ):
     """Download and/or install MathJax for offline use.
 
     This will install mathjax to the 'static' dir in the IPython notebook
@@ -129,6 +129,8 @@ def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar 
 
     replace : bool [False]
         Whether to remove and replace an existing install.
+    dest : str [path to default profile]
+        Where to locally install mathjax
     tag : str ['v2.0']
         Which tag to download. Default is 'v2.0', the current stable release,
         but alternatives include 'v1.1a' and 'master'.
@@ -138,7 +140,7 @@ def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar 
         Method tu use to untar/unzip/... `file`
     """
 
-    if not check_perms(replace) :
+    if not check_perms(replace, dest=dest) :
         return
 
     if file is None :
@@ -153,7 +155,7 @@ def install_mathjax(tag='v2.0', replace=False, file=None, extractor=extract_tar 
 
 ##
 
-def test_func( remove ) :
+def test_func( remove, dest=default_dest) :
     """See if mathjax appears to be installed correctly"""
     if not os.path.isdir( dest ) :
         print "%s directory not found"%dest
@@ -191,7 +193,7 @@ def main( args ) :
 
     # undocumented test interface
     if '-test' in args :
-        return test_func( replace )
+        return test_func( replace, dest=dest)
 
     # do it
     if len(args) == 0 :
