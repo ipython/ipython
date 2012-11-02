@@ -14,10 +14,9 @@ IPython.namespace('IPython.mathjaxutils');
 IPython.mathjaxutils = (function (IPython) {
 
     var init = function () {
-        if (window.MathJax) { 
+        if (window.MathJax) {
             // MathJax loaded
             MathJax.Hub.Config({
-                TeX: { equationNumbers: { autoNumber: "AMS", useLabelIds: true } },
                 tex2jax: {
                     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
                     displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
@@ -28,6 +27,7 @@ IPython.mathjaxutils = (function (IPython) {
                     styles: {'.MathJax_Display': {"margin": 0}}
                 }
             });
+            MathJax.Hub.Configured();
         } else if (window.mathjax_url != "") {
             // Don't have MathJax, but should. Show dialog.
             var dialog = $('<div></div>')
@@ -88,7 +88,6 @@ IPython.mathjaxutils = (function (IPython) {
     var inline = "$"; // the inline math delimiter
     var blocks, start, end, last, braces; // used in searching for math
     var math; // stores math until pagedown (Markdown parser) is done
-    var HUB = MathJax.Hub;
 
     // MATHSPLIT contains the pattern for math delimiters and special symbols
     // needed for searching for math in the text input.   
@@ -102,11 +101,12 @@ IPython.mathjaxutils = (function (IPython) {
     //    math, then push the math string onto the storage array.
     //  The preProcess function is called on all blocks if it has been passed in
     var process_math = function (i, j, pre_process) {
+        var hub = MathJax.Hub;
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use HTML entity for &
         .replace(/</g, "&lt;") // use HTML entity for <
         .replace(/>/g, "&gt;") // use HTML entity for >
         ;
-        if (HUB.Browser.isMSIE) {
+        if (hub.Browser.isMSIE) {
             block = block.replace(/(%[^\n]*)\n/g, "$1<br/>\n")
         }
         while (j > i) {
@@ -127,6 +127,10 @@ IPython.mathjaxutils = (function (IPython) {
     //    (which will be a paragraph).
     //
     var remove_math = function (text) {
+        if (!window.MathJax) {
+            return text;
+        }
+
         start = end = last = null; // for tracking math delimiters
         math = []; // stores math strings for later
         
@@ -216,6 +220,10 @@ IPython.mathjaxutils = (function (IPython) {
     //    and clear the math array (no need to keep it around).
     //  
     var replace_math = function (text) {
+        if (!window.MathJax) {
+            return text;
+        }
+
         text = text.replace(/@@(\d+)@@/g, function (match, n) {
             return math[n]
         });
@@ -223,21 +231,11 @@ IPython.mathjaxutils = (function (IPython) {
         return text;
     }
 
-    var queue_render = function () {
-        // see https://groups.google.com/forum/?fromgroups=#!topic/mathjax-users/cpwy5eCH1ZQ
-        MathJax.Hub.Queue( 
-          ["resetEquationNumbers",MathJax.InputJax.TeX], 
-          ["PreProcess",MathJax.Hub], 
-          ["Reprocess",MathJax.Hub] 
-          ); 
-    }
-
     return {
         init : init,
         process_math : process_math,
         remove_math : remove_math,
-        replace_math : replace_math,
-        queue_render : queue_render
+        replace_math : replace_math
     };
 
 }(IPython));
