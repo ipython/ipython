@@ -1,0 +1,4 @@
+_jsonpointer.py
+
+extracted from jsonpointer.py following commit :
+97a06ecb9dde82bd54dc269052841035ca2a1390

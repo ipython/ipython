@@ -34,14 +34,20 @@
 http://tools.ietf.org/html/draft-ietf-appsawg-json-pointer-04 """
 
 # Will be parsed by setup.py to determine package metadata
-__author__ = 'Stefan K�gl <stefan@skoegl.net>'
+__author__ = 'Stefan Kögl <stefan@skoegl.net>'
 __version__ = '0.3'
 __website__ = 'https://github.com/stefankoegl/python-json-pointer'
 __license__ = 'Modified BSD License'
 
 
-import urllib
-from itertools import tee, izip
+try:
+    from urllib import unquote
+    from itertools import izip
+except ImportError: # Python 3
+    from urllib.parse import unquote
+    izip = zip
+
+from itertools import tee
 
 
 class JsonPointerException(Exception):
@@ -105,8 +111,8 @@ def set_pointer(doc, pointer, value):
     >>> obj = {'foo': 2, 'bar': [{'x': 5}]}
     >>> pointer = JsonPointer('/bar/0')
     >>> pointer.set(obj, 10, 'y/0')
-    >>> obj
-    {'foo': 2, 'bar': [{'y': [10], 'x': 5}]}
+    >>> obj == {'foo': 2, 'bar': [{'y': [10], 'x': 5}]}
+    True
     """
 
     pointer = JsonPointer(pointer)
@@ -121,7 +127,7 @@ class JsonPointer(object):
         if parts.pop(0) != '':
             raise JsonPointerException('location must starts with /')
 
-        parts = map(urllib.unquote, parts)
+        parts = map(unquote, parts)
         parts = [part.replace('~1', '/') for part in parts]
         parts = [part.replace('~0', '~') for part in parts]
         self.parts = parts
@@ -217,6 +223,6 @@ class JsonPointer(object):
 def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = tee(iterable)
-    next(b, None)
+    for _ in b:
+        break
     return izip(a, b)
-__author__ = 'Stefan Kögl <stefan@skoegl.net>'
