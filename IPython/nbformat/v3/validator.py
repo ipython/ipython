@@ -3,7 +3,7 @@
 
 from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
 import IPython.external.jsonpointer as jsonpointer
-import argparse
+from IPython.external import argparse
 import traceback
 import json
 
