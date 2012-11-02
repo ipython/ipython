@@ -348,10 +348,10 @@ A quick and easy method is to install it from a python session::
     install_mathjax()
 
 If you need tighter configuration control, you can download your own copy
-of MathJax from http://www.mathjax.org/download/ - use the MathJax-1.1 link.
+of MathJax from http://www.mathjax.org/download/ - use the MathJax-2.0 link.
 When you have the file stored locally, install it with::
 
-	python -m IPython.external.mathjax /path/to/source/mathjax-MathJax-v1.1-0-g5a7e4d7.zip
+	python -m IPython.external.mathjax /path/to/source/mathjax-MathJax-v2.0-20-g07669ac.zip
 
 For unusual needs, IPython can tell you what directory it wants to find MathJax in::
 
