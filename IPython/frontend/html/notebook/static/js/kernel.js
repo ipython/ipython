@@ -246,7 +246,7 @@ var IPython = (function (IPython) {
             allow_stdin : false
         };
         $.extend(true, content, options)
-        $([IPython.events]).trigger({type: 'Kernel.execution_request', kernel: this, content:content});
+        $([IPython.events]).trigger({type: 'execution_request.Kernel', kernel: this, content:content});
         var msg = this._get_msg("execute_request", content);
         this.shell_channel.send(JSON.stringify(msg));
         this.set_callbacks_for_msg(msg.header.msg_id, callbacks);
@@ -313,7 +313,7 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._handle_shell_reply = function (e) {
         reply = $.parseJSON(e.data);
-        $([IPython.events]).trigger({type: 'Kernel.shell_reply', kernel: this, reply:reply});
+        $([IPython.events]).trigger({type: 'shell_reply.Kernel', kernel: this, reply:reply});
         var header = reply.header;
         var content = reply.content;
         var metadata = reply.metadata;
