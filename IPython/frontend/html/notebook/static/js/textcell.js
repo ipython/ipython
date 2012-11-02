@@ -221,11 +221,9 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-
             text = IPython.mathjaxutils.remove_math(text)
             var html = IPython.markdown_converter.makeHtml(text);
             html = IPython.mathjaxutils.replace_math(html)
-
             try {
                 this.set_rendered(html);
             } catch (e) {
@@ -235,7 +233,6 @@ var IPython = (function (IPython) {
                     "Error rendering Markdown!<br/>" + e.toString())
                 );
             }
-            this.typeset()
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
             var code_snippets = this.element.find("pre > code");
@@ -250,8 +247,7 @@ var IPython = (function (IPython) {
 
                 return '<code class="prettyprint">' + code + '</code>';
             });
-
-            IPython.mathjaxutils.queue_render()
+            this.typeset()
             this.rendered = true;
         }
     };
