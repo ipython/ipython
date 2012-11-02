@@ -1,19 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
 
-from IPython.external.jsonschema import  Validator, validate, ValidationError
+from IPython.external.jsonschema import  Draft3Validator, validate, ValidationError
 import IPython.external.jsonpointer as jsonpointer
 import argparse
 import traceback
 import json
 
-v = Validator();
 def nbvalidate(nbjson, schema='v3.withref.json', key=None,verbose=True):
     v3schema = resolve_ref(json.load(open(schema,'r')))
     if key :
         v3schema = jsonpointer.resolve_pointer(v3schema,key)
     errors = 0
-    for error in v.iter_errors(nbjson, v3schema):
+    v = Draft3Validator(v3schema);
+    for error in v.iter_errors(nbjson):
         errors = errors + 1
         if verbose:
             print(error)
