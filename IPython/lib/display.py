@@ -48,4 +48,4 @@ class YouTubeVideo(object):
                 frameborder="0"
                 allowfullscreen
             ></iframe>
-        """%(self.width, self.height, self.id, params)
+        """ % (self.width, self.height, self.id, params)
