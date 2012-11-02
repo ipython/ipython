@@ -1,3 +1,4 @@
+#!/usr/bin/python
 """Utility function for installing MathJax javascript library into
 the notebook's 'static' directory, for offline use.
 
@@ -32,6 +33,7 @@ To find the directory where IPython would like MathJax installed:
 
 """
 
+
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
 #
@@ -51,22 +53,26 @@ import tarfile
 import urllib2
 import zipfile
 
+
 from IPython.utils.path import locate_profile
+from IPython.external import argparse
 #-----------------------------------------------------------------------------
 #
 #-----------------------------------------------------------------------------
 
 # Where mathjax will be installed.
 
-default_dest = os.path.join(locate_profile('default'), 'static')
+static = os.path.join(locate_profile('default'), 'static')
+default_dest = os.path.join(static, 'mathjax')
 
 ##
 
 # Test for access to install mathjax.
 
-def check_perms(replace=False, dest=default_dest):
-    if not os.access(static, os.W_OK):
-        raise IOError("Need have write access to %s" % static)
+def check_perms(dest, replace=False):
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    if not os.access(parent, os.W_OK):
+        raise IOError("Need have write access to %s" % parent)
     if os.path.exists(dest):
         if replace:
             if not os.access(dest, os.W_OK):
@@ -91,10 +97,11 @@ def extract_tar( fd, dest ) :
     topdir = tar.firstmember.path
 
     # extract the archive (contains a single directory) to the static/ directory
-    tar.extractall(static)
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    tar.extractall(parent)
 
     # it will be mathjax-MathJax-<sha>, rename to just mathjax
-    os.rename(os.path.join(static, topdir), dest)
+    os.rename(os.path.join(parent, topdir), dest)
 
 ##
 
@@ -106,12 +113,13 @@ def extract_zip( fd, dest ) :
     topdir = z.namelist()[0]
 
     # extract the archive (contains a single directory) to the static/ directory
-    z.extractall( static )
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    z.extractall( parent )
 
     # it will be mathjax-MathJax-<sha>, rename to just mathjax
-    d = os.path.join(static, topdir)
+    d = os.path.join(parent, topdir)
     print d
-    os.rename(os.path.join(static, topdir), dest)
+    os.rename(os.path.join(parent, topdir), dest)
 
 ##
 
@@ -139,83 +147,108 @@ def install_mathjax(tag='v2.0', dest=default_dest, replace=False, file=None, ext
     extractor : function
         Method tu use to untar/unzip/... `file`
     """
-
-    if not check_perms(replace, dest=dest) :
+    if not check_perms(dest, replace) :
         return
 
     if file is None :
         # download mathjax
-        mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s"%tag
-        print "Downloading mathjax source from %s"%mathjax_url
+        mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s" % tag
+        print "Downloading mathjax source from %s" % mathjax_url
         response = urllib2.urlopen(mathjax_url)
         file = response.fp
 
-    print "Extracting to %s"%dest
-    extractor( fd, dest )
+    print "Extracting to %s" % dest
+    extractor( file, dest )
 
 ##
 
-def test_func( remove, dest=default_dest) :
+def test_func( remove, dest) :
     """See if mathjax appears to be installed correctly"""
+    status = 0
     if not os.path.isdir( dest ) :
-        print "%s directory not found"%dest
-        status=1
+        print "%s directory not found" % dest
+        status = 1
     if not os.path.exists( dest + "/MathJax.js" ) :
-        print "MathJax.js not present in %s"%dest
-        status=1
+        print "MathJax.js not present in %s" % dest
+        status = 1
     print "ok"
-    if remove :
+    if remove and os.path.exists(dest):
         shutil.rmtree( dest )
     return status
 
 ##
 
-def main( args ) :
+def main() :
     # This main is just simple enough that it is not worth the
     # complexity of argparse
 
     # What directory is mathjax in?
-    if '-d' in args :
+    parser = argparse.ArgumentParser(
+            description="""Install mathjax from internet or local archive""",
+            )
+
+    parser.add_argument(
+            '-i',
+            '--install-dir',
+            default=default_dest,
+            help='installation directory (by default : %s)' % (default_dest))
+    parser.add_argument(
+            '-d',
+            '--dest',
+            action='store_true',
+            help='print where is current mathjax would be installed and exit')
+    parser.add_argument(
+            '-r',
+            '--replace',
+            action='store_true',
+            help='Wether to replace current mathjax if already exist')
+    parser.add_argument(
+            '-t',
+            '--test',
+            action='store_true')
+    parser.add_argument('tarball',
+            type=int,
+            help="the local tar/zip-ball containing mathjax",
+            nargs='?',
+            metavar='tarball')
+
+    pargs = parser.parse_args()
+
+    dest = pargs.install_dir
+    if pargs.dest :
         print dest
         return
 
-    # help
-    if '-h' in args or '--help' in args :
-        print __doc__
-        return
-
     # remove/replace existing mathjax?
-    if '-r' in args :
+    if pargs.replace :
         replace = True
-        args.remove('-r')
     else :
         replace = False
 
     # undocumented test interface
-    if '-test' in args :
-        return test_func( replace, dest=dest)
+    if pargs.test :
+        return test_func( replace, dest)
 
     # do it
-    if len(args) == 0 :
-        # This is compatible with the interface documented in ipython 0.13
-        install_mathjax( replace=replace )
-    else :
-        fname = args[0]
+    if pargs.tarball :
+        fname = pargs.tarball
 
         # automatically detect zip/tar - could do something based
-	    # on file content, but really not cost-effective here.
+        # on file content, but really not cost-effective here.
         if fname.endswith('.zip') :
             extractor = extract_zip
         else :
             extractor = extract_tar
-
         # do it
-        install_mathjax(fd=open(args[0],"r"), replace=replace, extractor=extractor )
+        install_mathjax(file=open(fname, "r"), replace=replace, extractor=extractor, dest=dest )
+    else:
+        install_mathjax(replace=replace, dest=dest)
+
 
 if __name__ == '__main__' :
-    sys.exit(main( sys.argv[1:] ))
+    sys.exit(main())
 
-__all__ = ['install_mathjax','main','dest']
+__all__ = ['install_mathjax', 'main', 'dest']
 
 """
 Test notes:
@@ -231,24 +264,24 @@ So, here is a manual procedure for testing this automatic installer.
 # remove mathjax from the installed ipython instance
 # IOError ok if mathjax was never installed yet.
 
-python -m IPython.external.mathjax -test -r
+python -m IPython.external.mathjax --test -r
 
 # download and install mathjax from command line:
 
 python -m IPython.external.mathjax
-python -m IPython.external.mathjax -test -r
+python -m IPython.external.mathjax --test -r
 
 # download and install from within python
 
 python -c "from IPython.external.mathjax import install_mathjax; install_mathjax()"
-python -m IPython.external.mathjax -test -r
+python -m IPython.external.mathjax --test -r
 
 # view http://www.mathjax.org/download/ in your browser
 # save-as the link for MathJax-2.0 near the bottom of the page.
 # The file it offers is mathjax-MathJax-v2.0-20-g07669ac.zip
 
 python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.zip
-python -m IPython.external.mathjax -test -r
+python -m IPython.external.mathjax --test -r
 
 # download https://github.com/mathjax/MathJax/tarball/v2.0 in your browser
 # (this is the url used internally by install_mathjax)
@@ -256,7 +289,7 @@ python -m IPython.external.mathjax -test -r
 
 python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
 
-python -m IPython.external.mathjax -test
+python -m IPython.external.mathjax --test
         # note no -r
 
 # install it again while it is already there
@@ -265,7 +298,7 @@ python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
     # says "offline MathJax apparently already installed"
 
 python -m IPython.external.mathjax  ~/mathjax-MathJax-v2.0-20-g07669ac.tar.gz
-python -m IPython.external.mathjax -test
+python -m IPython.external.mathjax --test
 
 
 """
