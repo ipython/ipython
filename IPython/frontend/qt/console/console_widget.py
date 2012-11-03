@@ -1773,6 +1773,32 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         else:
             self._append_plain_text(text)
 
+    def _set_paging(self, paging):
+        """
+        Change the pager to `paging` style.
+
+        XXX: currently, this is limited to switching between 'hsplit' and
+        'vsplit'.
+
+        Parameters:
+        -----------
+        paging : string
+            Either "hsplit", "vsplit", or "inside"
+        """
+        if self._splitter is None:
+            raise NotImplementedError("""can only switch if --paging=hsplit or
+                    --paging=vsplit is used.""")
+        if paging == 'hsplit':
+            self._splitter.setOrientation(QtCore.Qt.Horizontal)
+        elif paging == 'vsplit':
+            self._splitter.setOrientation(QtCore.Qt.Vertical)
+        elif paging == 'inside':
+            raise NotImplementedError("""switching to 'inside' paging not
+                    supported yet.""")
+        else:
+            raise ValueError("unknown paging method '%s'" % paging)
+        self.paging = paging
+
     def _prompt_finished(self):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
