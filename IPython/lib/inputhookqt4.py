@@ -85,11 +85,33 @@ def create_inputhook_qt4(mgr, app=None):
                 return 0
             app.processEvents(QtCore.QEventLoop.AllEvents, 300)
             if not stdin_ready():
+                # Generally a program would run QCoreApplication::exec()
+                # from main() to enter and process the Qt event loop until
+                # quit() or exit() is called and the program terminates.
+                #
+                # For our input hook integration, we need to repeatedly
+                # enter and process the Qt event loop for only a short
+                # amount of time (say 50ms) to ensure that Python stays
+                # responsive to other user inputs.
+                #
+                # A naive approach would be to repeatedly call
+                # QCoreApplication::exec(), using a timer to quit after a
+                # short amount of time. Unfortunately, QCoreApplication
+                # emits an aboutToQuit signal before stopping, which has
+                # the undesirable effect of closing all modal windows.
+                #
+                # To work around this problem, we instead create a
+                # QEventLoop and call QEventLoop::exec(). Other than
+                # setting some state variables which do not seem to be
+                # used anywhere, the only thing QCoreApplication adds is
+                # the aboutToQuit signal which is precisely what we are
+                # trying to avoid.
                 timer = QtCore.QTimer()
-                timer.timeout.connect(app.quit)
+                event_loop = QtCore.QEventLoop()
+                timer.timeout.connect(event_loop.quit)
                 while not stdin_ready():
                     timer.start(50)
-                    app.exec_()
+                    event_loop.exec_()
                     timer.stop()
         except KeyboardInterrupt:
             ignore_CTRL_C()
