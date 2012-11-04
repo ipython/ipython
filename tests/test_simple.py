@@ -14,6 +14,7 @@ def clean_dir():
     map(os.remove, glob.glob("./tests/*.rst"))
     map(os.remove, glob.glob("./tests/*.png"))
     map(os.remove, glob.glob("./tests/*.html"))
+    map(os.remove, glob.glob("./tests/test_files/*"))
 
 
 @nt.with_setup(clean_dir, clean_dir)

@@ -25,4 +25,4 @@ def test_command_line():
     proc = subprocess.Popen(['./rst2ipynb.py', test_rst_fname],
                             stdout=subprocess.PIPE)
     output = proc.communicate()[0]
-    nt.assert_equal(ref_output, output)
+    nt.assert_equal(ref_output.strip('\n'), output.strip('\n'))
