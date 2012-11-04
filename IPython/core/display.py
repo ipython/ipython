@@ -502,21 +502,22 @@ class Image(DisplayObject):
             super(Image,self).reload()
 
     def _repr_html_(self):
-        if not self.embed:
-            width = height = ''
-            if self.width:
-                width = ' width="%d"' % self.width
-            if self.height:
-                height = ' height="%d"' % self.height
-            return u'<img src="%s"%s%s/>' % (self.url, width, height)
+        width = height = ''
 
-    def _repr_png_(self):
-        if self.embed and self.format == u'png':
-            return self.data
+        if self.width:
+            width = ' width="%s" ' % self.width
+        if self.height:
+            height = ' height="%s" ' % self.height
 
-    def _repr_jpeg_(self):
-        if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
-            return self.data
+        if self.embed:
+            import base64
+            src = "data:image/%s;base64,%s" % (self.format,
+                                               base64.encodestring(self.data))
+        else:
+            src = self.url
+
+        return u'<img src="%s" %s %s>' % (src, width, height)
+
 
     def _find_ext(self, s):
         return unicode(s.split('.')[-1].lower())
