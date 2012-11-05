@@ -7,12 +7,18 @@ import io
 import logging
 import os
 import pprint
+import re
 from types import FunctionType
 
 # From IPython
 from IPython.nbformat import current as nbformat
 
 # local
+
+def clean_filename(filename):
+    """Remove unusual characters from filename, so it works with LaTeX"""
+    filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
+    return filename
 
 #-----------------------------------------------------------------------------
 # Class declarations
@@ -68,7 +74,7 @@ class Converter(object):
         self.infile = infile
         self.infile_dir, infile_root = os.path.split(infile)
         infile_root = os.path.splitext(infile_root)[0]
-        files_dir = os.path.join(self.infile_dir, infile_root + '_files')
+        files_dir = os.path.join(self.infile_dir, clean_filename(infile_root) + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
@@ -168,7 +174,7 @@ class Converter(object):
 
         Returns a path relative to the input file.
         """
-        figname = '%s_fig_%02i.%s' % (self.infile_root,
+        figname = '%s_fig_%02i.%s' % (clean_filename(self.infile_root),
                                       self.figures_counter, fmt)
         self.figures_counter += 1
         fullname = os.path.join(self.files_dir, figname)
