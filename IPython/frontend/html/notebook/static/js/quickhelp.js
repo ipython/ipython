@@ -49,7 +49,8 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m n', help: 'select next'},
             {key: 'Ctrl-m i', help: 'interrupt kernel'},
             {key: 'Ctrl-m .', help: 'restart kernel'},
-            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
+            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'},
+            {key: 'Ctrl-m z', help: 'undo last cell deletion'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
             dialog.append($('<div>').
