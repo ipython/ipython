@@ -39,6 +39,8 @@ class ConverterLaTeX(Converter):
                    4: r'\paragraph',
                    5: r'\subparagraph',
                    6: r'\subparagraph'}
+    user_preamble = None
+    exclude_cells = None
 
     def in_env(self, environment, lines):
         """Return list of environment lines for input lines

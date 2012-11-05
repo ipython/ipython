@@ -46,14 +46,13 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
 
-def main(infile, format='rst'):
+def main(infile, format='rst', preamble=None, exclude=None):
     """Convert a notebook to html in one step"""
-
     try:
         ConverterClass = converters[format]
     except KeyError:
         raise SystemExit("Unknown format '%s', " % format +
-                "known formats are: " + known_formats)
+                         "known formats are: " + known_formats)
 
     converter = ConverterClass(infile)
     converter.render()
@@ -74,5 +73,9 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--format', default='rst',
                         help='Output format. Supported formats: \n' +
                         known_formats)
+    parser.add_argument('-p', '--preamble',
+                        help='Path to a user-specified preamble file')
+    parser.add_argument('-e', '--exclude', help='Comma-separated list of cells to exclude')
     args = parser.parse_args()
-    main(infile=args.infile[0], format=args.format)
+    main(infile=args.infile[0], format=args.format,
+         preamble=args.preamble, exclude=args.exclude)
