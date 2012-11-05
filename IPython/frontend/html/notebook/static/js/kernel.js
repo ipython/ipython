@@ -86,6 +86,7 @@ var IPython = (function (IPython) {
         this.start_channels();
         this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
         this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
+        $([IPython.events]).trigger('status_started.Kernel', {kernel: this});
     };
 
 
