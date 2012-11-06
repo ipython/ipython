@@ -204,7 +204,7 @@ class RMagics(Magics):
         # split the line into fields separated by commas or spaces
         # i.e. 'a,b', 'a b', 'a, b', 'a ,b', 'a , b' should all be split
         # to ['a', 'b']
-        inputs = re.split('\s*[,\s]\s*', line)
+        inputs = re.split(r'\s*[,\s]\s*', line)
 
         # if there is no local namespace then default to an empty dict
         if local_ns is None:
