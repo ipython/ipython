@@ -261,6 +261,7 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 90 && that.control_key_active) {
+                // Undo last cell delete = z
                 that.undelete();
                 that.control_key_active = false;
                 return false;
