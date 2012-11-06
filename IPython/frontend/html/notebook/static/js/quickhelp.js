@@ -33,6 +33,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m c', help: 'copy cell'},
             {key: 'Ctrl-m v', help: 'paste cell'},
             {key: 'Ctrl-m d', help: 'delete cell'},
+            {key: 'Ctrl-m z', help: 'undo last cell deletion'},
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m o', help: 'toggle output'},
@@ -49,8 +50,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m n', help: 'select next'},
             {key: 'Ctrl-m i', help: 'interrupt kernel'},
             {key: 'Ctrl-m .', help: 'restart kernel'},
-            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'},
-            {key: 'Ctrl-m z', help: 'undo last cell deletion'}
+            {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
             dialog.append($('<div>').
