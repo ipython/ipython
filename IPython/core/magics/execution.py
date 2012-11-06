@@ -563,6 +563,11 @@ python-profiler package from non-free.""")
                                 return
                         # if we find a good linenumber, set the breakpoint
                         deb.do_break('%s:%s' % (filename, bp))
+
+                        # Mimic Pdb._runscript(...)
+                        deb._wait_for_mainpyfile = True
+                        deb.mainpyfile = deb.canonic(filename)
+
                         # Start file run
                         print "NOTE: Enter 'c' at the",
                         print "%s prompt to start your script." % deb.prompt
