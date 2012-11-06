@@ -574,6 +574,11 @@ var IPython = (function (IPython) {
         // index = cell index or undefined to insert below selected
         index = this.index_or_selected(index);
         var cell = null;
+        // This is intentionally < rather than <= for the sake of more
+        // sensible behavior in some cases.
+        if (this.undelete_index !== null && index < this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+        }
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
@@ -608,6 +613,9 @@ var IPython = (function (IPython) {
         // index = cell index or undefined to insert above selected
         index = this.index_or_selected(index);
         var cell = null;
+        if (this.undelete_index !== null && index <= this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+        }
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
