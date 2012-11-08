@@ -195,7 +195,8 @@ IPython.utils = (function (IPython) {
         tmp = txt;
         do {
             txt = tmp;
-            tmp = txt.replace(/^.*\r(?!\n)/gm, '');
+            tmp = txt.replace(/\r+\n/gm, '\n'); // \r followed by \n --> newline
+            tmp = tmp.replace(/^.*\r+/gm, '');  // Other \r --> clear line
         } while (tmp.length < txt.length);
         return txt;
     }
