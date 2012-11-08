@@ -89,11 +89,15 @@ def module_list(path):
         name, extension = os.path.splitext( path )
         return import_re.match(path) and py3compat.isidentifier(name)
 
-    # Now find actual path matches for packages or modules
-    folder_list = [p for p in folder_list
-                   if any(isfile(pjoin(path, p, '__init__' + suffix[0])) for
-                       suffix in imp.get_suffixes())
-                   or is_importable_file(p) ]
+    if path.endswith('.egg') and isfile(path):
+        folder_list = [x[0] for x in (y.split('/', 3) for y in 
+            (p for p in folder_list if p.endswith('/__init__.py'))) if len(x) == 2 and py3compat.isidentifier(x[0])]
+    else:
+        # Now find actual path matches for packages or modules
+        folder_list = [p for p in folder_list
+                       if any(isfile(pjoin(path, p, '__init__' + suffix[0])) for
+                           suffix in imp.get_suffixes())
+                       or is_importable_file(p) ]
 
     return [basename(p).split('.')[0] for p in folder_list]
 
