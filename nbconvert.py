@@ -75,7 +75,11 @@ if __name__ == '__main__':
                         known_formats)
     parser.add_argument('-p', '--preamble',
                         help='Path to a user-specified preamble file')
-    parser.add_argument('-e', '--exclude', help='Comma-separated list of cells to exclude')
+    parser.add_argument('-e', '--exclude', default='',
+                        help='Comma-separated list of cells to exclude')
+
     args = parser.parse_args()
+    exclude_cells = [s.strip() for s in args.exclude.split(',')]
+        
     main(infile=args.infile[0], format=args.format,
-         preamble=args.preamble, exclude=args.exclude)
+         preamble=args.preamble, exclude=exclude_cells)
