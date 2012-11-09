@@ -69,6 +69,9 @@ class Converter(object):
     user_preamble = None
     output = unicode()
     raw_as_verbatim = False
+    # Which display data format is best? Subclasses can override if
+    # they have specific requirements.
+    display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
 
     def __init__(self, infile):
         self.infile = infile
@@ -220,20 +223,31 @@ class Converter(object):
 
         Returns list.
         """
-        lines = []
+        # Choose preferred format if available
+        preferred = [xx for xx in self.display_data_priority if xx in output]
+        if preferred:
+            fmt = preferred[0]
+        else:
+            # Choose a format randomly if preference can't be satisfied
+            available = [k for k in output.keys() if k != 'output_type']
+            if available:
+                fmt = available[0]
+            else:
+                raise RuntimeError('no display data')
 
-        for fmt in output.keys():
-            if fmt in ['png', 'svg', 'jpg', 'pdf']:
-                img_file = self._new_figure(output[fmt], fmt)
-                # Subclasses can have format-specific render functions (e.g.,
-                # latex has to auto-convert all SVG to PDF first).
-                lines_fun = getattr(self, '_%s_lines' % fmt, None)
-                if not lines_fun:
-                    lines_fun = self._img_lines
-                lines.extend(lines_fun(img_file))
-            elif fmt != 'output_type':
-                conv_fn = self.dispatch_display_format(fmt)
-                lines.extend(conv_fn(output))
+        # Is it an image?
+        if fmt in ['png', 'svg', 'jpg', 'pdf']:
+            img_file = self._new_figure(output[fmt], fmt)
+            # Subclasses can have format-specific render functions (e.g.,
+            # latex has to auto-convert all SVG to PDF first).
+            lines_fun = getattr(self, '_%s_lines' % fmt, None)
+            if not lines_fun:
+                lines_fun = self._img_lines
+            lines = lines_fun(img_file)
+        else:
+            lines_fun = self.dispatch_display_format(fmt)
+            lines = lines_fun(output)
+
         return lines
 
     def render_raw(self, cell):
