@@ -18,8 +18,11 @@ var IPython = (function (IPython) {
     var key = IPython.utils.keycodes;
 
     /**
+     * Construct a new TextCell, codemirror mode is by default 'htmlmixed', and cell type is 'text'
+     * cell start as not redered.
+     *
      * @class TextCell
-     * @constructs TextCell
+     * @constructor TextCell
      */
     var TextCell = function () {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
@@ -30,7 +33,8 @@ var IPython = (function (IPython) {
 
     TextCell.prototype = new IPython.Cell();
 
-    /** create the DOM element of the TextCell
+    /**
+     * Create the DOM element of the TextCell
      * @method create_element
      * @private
      */
@@ -56,7 +60,8 @@ var IPython = (function (IPython) {
     };
 
 
-    /** bind the DOM evet to cell actions
+    /**
+     * Bind the DOM evet to cell actions
      * Need to be called after TextCell.create_element
      * @private
      * @method bind_event
@@ -77,13 +82,16 @@ var IPython = (function (IPython) {
         });
     };
 
-    /** This method gets called in CodeMirror's onKeyDown/onKeyPress
+    /**
+     * This method gets called in CodeMirror's onKeyDown/onKeyPress
      * handlers and is used to provide custom key handling.
      *
+     * Subclass should override this method to have custom handeling
+     *
      * @method handle_codemirror_keyevent
-     * @param {CodeMirror } editor - The codemirror instance bound to the cell
+     * @param {CodeMirror} editor - The codemirror instance bound to the cell
      * @param {event} event -
-     * @return {Boolean} <tt>true</tt> if CodeMirror should ignore the event, `false` Otherwise
+     * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
@@ -95,7 +103,7 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * Select the current cell
+     * Select the current cell and trigger 'focus'
      * @method select
      */
     TextCell.prototype.select = function () {
@@ -104,7 +112,8 @@ var IPython = (function (IPython) {
         output.trigger('focus');
     };
 
-    /** unselect the current cell
+    /**
+     * unselect the current cell and `render` it
      * @method unselect
      */
     TextCell.prototype.unselect = function() {
@@ -113,7 +122,9 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.unselect.apply(this);
     };
 
-    /** put the current cell in edition mode
+    /**
+     *
+     * put the current cell in edition mode
      * @method edit
      */
     TextCell.prototype.edit = function () {
@@ -137,7 +148,8 @@ var IPython = (function (IPython) {
     };
 
 
-    /** Subclasses must define render.
+    /**
+     * Empty, Subclasses must define render.
      * @method render
      */
     TextCell.prototype.render = function () {};
@@ -211,8 +223,10 @@ var IPython = (function (IPython) {
         }
     };
 
-    /** Create Text cell from JSON
+    /**
+     * Create Text cell from JSON
      * @param {json} data - JSON serialized text-cell
+     * @method fromJSON
      */
     TextCell.prototype.fromJSON = function (data) {
         IPython.Cell.prototype.fromJSON.apply(this, arguments);
@@ -229,7 +243,9 @@ var IPython = (function (IPython) {
         }
     };
 
-
+    /** Generate JSON from cell
+     * @return {object} cell data serialised to json
+     */
     TextCell.prototype.toJSON = function () {
         var data = IPython.Cell.prototype.toJSON.apply(this);
         data.cell_type = this.cell_type;
@@ -239,7 +255,7 @@ var IPython = (function (IPython) {
 
 
     /**
-     * @constructs HtmlCell
+     * @constructor HtmlCell
      * @class HtmlCell
      * @extends TextCell
      */
@@ -252,7 +268,9 @@ var IPython = (function (IPython) {
 
     HTMLCell.prototype = new TextCell();
 
-
+    /**
+     * @method render
+     */
     HTMLCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_text();
@@ -266,9 +284,9 @@ var IPython = (function (IPython) {
     };
 
 
-    // MarkdownCell
-    /** @class MarkdownCell
-     * @constructs MarkdownCell
+    /**
+     * @class MarkdownCell
+     * @constructor MarkdownCell
      * @extends HtmlCell
      */
     var MarkdownCell = function () {
@@ -280,7 +298,9 @@ var IPython = (function (IPython) {
 
     MarkdownCell.prototype = new TextCell();
 
-
+    /**
+     * @method render
+     */
     MarkdownCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_text();
@@ -319,7 +339,9 @@ var IPython = (function (IPython) {
 
     // RawCell
 
-    /** @construct RawCell
+    /**
+     * @class RawCell
+     * @constructor RawCell
      * @extends TextCell
      */
     var RawCell = function () {
@@ -337,21 +359,23 @@ var IPython = (function (IPython) {
 
     RawCell.prototype = new TextCell();
 
+    /**
+     * Trigger autodetection of highlight scheme for current cell
+     * @method auto_highlight
+     */
     RawCell.prototype.auto_highlight = function () {
         this._auto_highlight(IPython.config.raw_cell_highlight);
     };
 
+    /** @method render **/
     RawCell.prototype.render = function () {
         this.rendered = true;
         this.edit();
     };
 
 
+    /** @method handle_codemirror_keyevent **/
     RawCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        // This method gets called in CodeMirror's onKeyDown/onKeyPress
-        // handlers and is used to provide custom key handling. Its return
-        // value is used to determine if CodeMirror should ignore the event:
-        // true = ignore, false = don't ignore.
 
         var that = this;
         if (event.which === key.UPARROW && event.type === 'keydown') {
@@ -376,14 +400,14 @@ var IPython = (function (IPython) {
         return false;
     };
 
-
+    /** @method select **/
     RawCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
         this.code_mirror.focus();
     };
 
-
+    /** @method at_top **/
     RawCell.prototype.at_top = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === 0 && cursor.ch === 0) {
@@ -394,6 +418,7 @@ var IPython = (function (IPython) {
     };
 
 
+    /** @method at_bottom **/
     RawCell.prototype.at_bottom = function () {
         var cursor = this.code_mirror.getCursor();
         if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
@@ -404,20 +429,30 @@ var IPython = (function (IPython) {
     };
 
 
-    /** @constructs HeadingCell
+    /** 
+     * @class HeadingCell
+     * @extends TextCell
+     */
+
+    /**
+     * @constructor HeadingCell
      * @extends TextCell
      */
     var HeadingCell = function () {
         this.placeholder = "Type Heading Here";
         IPython.TextCell.apply(this, arguments);
-        this.cell_type = 'heading';
+        /**
+         * heading level of the cell, use getter and setter to access
+         * @property level
+         */
         this.level = 1;
+        this.cell_type = 'heading';
     };
 
 
     HeadingCell.prototype = new TextCell();
 
-    /** from json */
+    /** @method fromJSON */
     HeadingCell.prototype.fromJSON = function (data) {
         if (data.level != undefined){
             this.level = data.level;
@@ -426,6 +461,7 @@ var IPython = (function (IPython) {
     };
 
 
+    /** @method toJSON */
     HeadingCell.prototype.toJSON = function () {
         var data = IPython.TextCell.prototype.toJSON.apply(this);
         data.level = this.get_level();
@@ -433,6 +469,10 @@ var IPython = (function (IPython) {
     };
 
 
+    /**
+     * Change heading level of cell, and re-render
+     * @method set_level
+     */
     HeadingCell.prototype.set_level = function (level) {
         this.level = level;
         if (this.rendered) {
@@ -442,6 +482,7 @@ var IPython = (function (IPython) {
     };
 
     /** The depth of header cell, based on html (h1 to h6)
+     * @method get_level
      * @return {integer} level - for 1 to 6
      */
     HeadingCell.prototype.get_level = function () {
