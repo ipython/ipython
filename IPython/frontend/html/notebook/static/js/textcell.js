@@ -9,11 +9,18 @@
 // TextCell
 //============================================================================
 
+/**
+    A module that allow to create different type of Text Cell
+ */
 var IPython = (function (IPython) {
 
     // TextCell base class
     var key = IPython.utils.keycodes;
 
+    /**
+     * @class TextCell
+     * @constructs TextCell
+     */
     var TextCell = function () {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
         IPython.Cell.apply(this, arguments);
@@ -21,10 +28,12 @@ var IPython = (function (IPython) {
         this.cell_type = this.cell_type || 'text';
     };
 
-
     TextCell.prototype = new IPython.Cell();
 
-
+    /** create the DOM element of the TextCell
+     * @method create_element
+     * @private
+     */
     TextCell.prototype.create_element = function () {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing');
         cell.attr('tabindex','2');
@@ -47,6 +56,11 @@ var IPython = (function (IPython) {
     };
 
 
+    /** bind the DOM evet to cell actions
+     * Need to be called after TextCell.create_element
+     * @private
+     * @method bind_event
+     */
     TextCell.prototype.bind_events = function () {
         IPython.Cell.prototype.bind_events.apply(this);
         var that = this;
@@ -63,13 +77,16 @@ var IPython = (function (IPython) {
         });
     };
 
-
+    /** This method gets called in CodeMirror's onKeyDown/onKeyPress
+     * handlers and is used to provide custom key handling.
+     *
+     * @method handle_codemirror_keyevent
+     * @param {CodeMirror } editor - The codemirror instance bound to the cell
+     * @param {event} event -
+     * @return {Boolean} <tt>true</tt> if CodeMirror should ignore the event, `false` Otherwise
+     */
     TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        // This method gets called in CodeMirror's onKeyDown/onKeyPress
-        // handlers and is used to provide custom key handling. Its return
-        // value is used to determine if CodeMirror should ignore the event:
-        // true = ignore, false = don't ignore.
-        
+
         if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
             return true;
@@ -77,26 +94,33 @@ var IPython = (function (IPython) {
         return false;
     };
 
-
+    /**
+     * Select the current cell
+     * @method select
+     */
     TextCell.prototype.select = function () {
         IPython.Cell.prototype.select.apply(this);
         var output = this.element.find("div.text_cell_render");
         output.trigger('focus');
     };
 
-
+    /** unselect the current cell
+     * @method unselect
+     */
     TextCell.prototype.unselect = function() {
         // render on selection of another cell
         this.render();
         IPython.Cell.prototype.unselect.apply(this);
     };
 
-
+    /** put the current cell in edition mode
+     * @method edit
+     */
     TextCell.prototype.edit = function () {
         if ( this.read_only ) return;
         if (this.rendered === true) {
             var text_cell = this.element;
-            var output = text_cell.find("div.text_cell_render");  
+            var output = text_cell.find("div.text_cell_render");
             output.hide();
             text_cell.find('div.text_cell_input').show();
             this.code_mirror.refresh();
@@ -113,31 +137,55 @@ var IPython = (function (IPython) {
     };
 
 
-    // Subclasses must define render.
+    /** Subclasses must define render.
+     * @method render
+     */
     TextCell.prototype.render = function () {};
 
 
+    /**
+     * setter: {{#crossLink "TextCell/set_text"}}{{/crossLink}}
+     * @method get_text
+     * @retrun {string} CodeMirror current text value
+     */
     TextCell.prototype.get_text = function() {
         return this.code_mirror.getValue();
     };
 
-
+    /**
+     * @param {string} text - Codemiror text value
+     * @see TextCell#get_text
+     * @method set_text
+     * */
     TextCell.prototype.set_text = function(text) {
         this.code_mirror.setValue(text);
         this.code_mirror.refresh();
     };
 
-
+    /**
+     * setter :{{#crossLink "TextCell/set_rendered"}}{{/crossLink}}
+     * @method get_rendered
+     * @return {html} html of rendered element
+     * */
     TextCell.prototype.get_rendered = function() {
         return this.element.find('div.text_cell_render').html();
     };
 
-
+    /**
+     * @method set_rendered
+     */
     TextCell.prototype.set_rendered = function(text) {
         this.element.find('div.text_cell_render').html(text);
     };
 
-
+    /**
+     * not deprecated, but implementation wrong
+     * @method at_top
+     * @deprecated
+     * @return {Boolean} true is cell rendered, false otherwise
+     * I doubt this is what it is supposed to do
+     * this implementation is completly false
+     */
     TextCell.prototype.at_top = function () {
         if (this.rendered) {
             return true;
@@ -147,6 +195,14 @@ var IPython = (function (IPython) {
     };
 
 
+    /**
+     * not deprecated, but implementation wrong
+     * @method at_bottom
+     * @deprecated
+     * @return {Boolean} true is cell rendered, false otherwise
+     * I doubt this is what it is supposed to do
+     * this implementation is completly false
+     * */
     TextCell.prototype.at_bottom = function () {
         if (this.rendered) {
             return true;
@@ -155,7 +211,9 @@ var IPython = (function (IPython) {
         }
     };
 
-
+    /** Create Text cell from JSON
+     * @param {json} data - JSON serialized text-cell
+     */
     TextCell.prototype.fromJSON = function (data) {
         IPython.Cell.prototype.fromJSON.apply(this, arguments);
         if (data.cell_type === this.cell_type) {
@@ -180,8 +238,11 @@ var IPython = (function (IPython) {
     };
 
 
-    // HTMLCell
-
+    /**
+     * @constructs HtmlCell
+     * @class HtmlCell
+     * @extends TextCell
+     */
     var HTMLCell = function () {
         this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
@@ -206,7 +267,10 @@ var IPython = (function (IPython) {
 
 
     // MarkdownCell
-
+    /** @class MarkdownCell
+     * @constructs MarkdownCell
+     * @extends HtmlCell
+     */
     var MarkdownCell = function () {
         this.placeholder = "Type *Markdown* and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
@@ -255,6 +319,9 @@ var IPython = (function (IPython) {
 
     // RawCell
 
+    /** @construct RawCell
+     * @extends TextCell
+     */
     var RawCell = function () {
         this.placeholder = "Type plain text and LaTeX: $\\alpha^2$";
         this.code_mirror_mode = 'rst';
@@ -337,8 +404,9 @@ var IPython = (function (IPython) {
     };
 
 
-    // HTMLCell
-
+    /** @constructs HeadingCell
+     * @extends TextCell
+     */
     var HeadingCell = function () {
         this.placeholder = "Type Heading Here";
         IPython.TextCell.apply(this, arguments);
@@ -349,7 +417,7 @@ var IPython = (function (IPython) {
 
     HeadingCell.prototype = new TextCell();
 
-
+    /** from json */
     HeadingCell.prototype.fromJSON = function (data) {
         if (data.level != undefined){
             this.level = data.level;
@@ -373,7 +441,9 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /** The depth of header cell, based on html (h1 to h6)
+     * @return {integer} level - for 1 to 6
+     */
     HeadingCell.prototype.get_level = function () {
         return this.level;
     };
