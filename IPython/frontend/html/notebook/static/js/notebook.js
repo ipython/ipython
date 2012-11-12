@@ -142,8 +142,8 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 86 && that.control_key_active) {
-                // Paste selected cell = v
-                that.paste_cell();
+                // Paste above selected cell = v
+                that.paste_cell_above();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 68 && that.control_key_active) {
@@ -778,8 +778,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.enable_paste = function () {
         var that = this;
         if (!this.paste_enabled) {
-            $('#paste_cell').removeClass('ui-state-disabled')
-                .on('click', function () {that.paste_cell();});
+            $('#paste_cell_replace').removeClass('ui-state-disabled')
+                .on('click', function () {that.paste_cell_replace();});
             $('#paste_cell_above').removeClass('ui-state-disabled')
                 .on('click', function () {that.paste_cell_above();});
             $('#paste_cell_below').removeClass('ui-state-disabled')
@@ -791,7 +791,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.disable_paste = function () {
         if (this.paste_enabled) {
-            $('#paste_cell').addClass('ui-state-disabled').off('click');
+            $('#paste_cell_replace').addClass('ui-state-disabled').off('click');
             $('#paste_cell_above').addClass('ui-state-disabled').off('click');
             $('#paste_cell_below').addClass('ui-state-disabled').off('click');
             this.paste_enabled = false;
@@ -811,7 +811,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.paste_cell = function () {
+    Notebook.prototype.paste_cell_replace = function () {
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
