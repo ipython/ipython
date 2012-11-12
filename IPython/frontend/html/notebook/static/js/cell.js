@@ -8,12 +8,23 @@
 //============================================================================
 // Cell
 //============================================================================
+/**
+ * @module Cell
+ * An extendable module that provide base functionnality to create cell for notebook.
+ */
 
 var IPython = (function (IPython) {
 
     var utils = IPython.utils;
 
+    /**
+     * The Base `Cell` class from which to inherit 
+     * @class Cell
+     */
 
+    /*
+     * @constructor
+     */
     var Cell = function () {
         this.placeholder = this.placeholder || '';
         this.read_only = false;
@@ -31,10 +42,21 @@ var IPython = (function (IPython) {
     };
 
 
-    // Subclasses must implement create_element.
+    /**
+     * Empty. Subclasses must implement create_element.
+     * This should contain all the code to create the DOM element in notebook 
+     * and will be called by Base Class constructor.
+     * @method create_element
+     */
     Cell.prototype.create_element = function () {};
 
 
+    /**
+     * Empty. Subclasses must implement create_element.
+     * This should contain all the code to create the DOM element in notebook 
+     * and will be called by Base Class constructor.
+     * @method bind_events
+     */
     Cell.prototype.bind_events = function () {
         var that = this;
         // We trigger events so that Cell doesn't have to depend on Notebook.
