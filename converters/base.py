@@ -78,6 +78,7 @@ class Converter(object):
     extension = str()
     figures_counter = 0
     infile = str()
+    highlight_code = None
     infile_dir = str()
     infile_root = str()
     files_dir = str()
