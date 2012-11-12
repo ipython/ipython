@@ -344,7 +344,7 @@ class Inspector:
         self.set_active_scheme(scheme)
 
     def _getdef(self,obj,oname=''):
-        """Return the definition header for any callable object.
+        """Return the call signature for any callable object.
 
         If any exception is generated, None is returned instead and the
         exception is suppressed."""
@@ -373,7 +373,7 @@ class Inspector:
             print()
 
     def pdef(self, obj, oname=''):
-        """Print the definition header for any callable object.
+        """Print the call signature for any callable object.
 
         If the object is a class, print the constructor information."""
 
