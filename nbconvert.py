@@ -45,8 +45,8 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
 
-def main(infile, highlight_code=True, format='rst', preamble=None,
-         exclude=None):
+def main(infile, format='rst', preamble=None, exclude=None,
+         highlight_code=True):
     """Convert a notebook to html in one step"""
     try:
         ConverterClass = converters[format]
@@ -83,5 +83,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
     exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
-    main(infile=args.infile[0], highlight_code=args.plain_output,
-         format=args.format, preamble=args.preamble, exclude=exclude_cells)
+    main(infile=args.infile[0], format=args.format, preamble=args.preamble,
+         exclude=exclude_cells, highlight_code=args.plain_output)
