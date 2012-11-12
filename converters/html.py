@@ -30,7 +30,7 @@ class ConverterHTML(Converter):
     def _out_prompt(self, output):
         if output.output_type == 'pyout':
             n = output.prompt_number if output.prompt_number is not None else '&nbsp;'
-            content = 'Out&nbsp;[%s]:' % n
+            content = 'Out[%s]:' % n
         else:
             content = ''
         return ['<div class="prompt output_prompt">%s</div>' % content]
