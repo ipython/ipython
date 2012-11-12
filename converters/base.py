@@ -90,8 +90,9 @@ class Converter(object):
     # they have specific requirements.
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
 
-    def __init__(self, infile):
+    def __init__(self, infile, highlight):
         self.infile = infile
+        self.highlight = highlight
         self.infile_dir, infile_root = os.path.split(infile)
         infile_root = os.path.splitext(infile_root)[0]
         self.clean_name = clean_filename(infile_root)
