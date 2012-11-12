@@ -90,7 +90,7 @@ class Converter(object):
     # they have specific requirements.
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
 
-    def __init__(self, infile, highlight):
+    def __init__(self, infile, highlight=True):
         self.infile = infile
         self.highlight = highlight
         self.infile_dir, infile_root = os.path.split(infile)

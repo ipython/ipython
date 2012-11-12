@@ -45,7 +45,7 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
 
-def main(infile, highlight, format='rst', preamble=None, exclude=None):
+def main(infile, highlight=True, format='rst', preamble=None, exclude=None):
     """Convert a notebook to html in one step"""
     try:
         ConverterClass = converters[format]
@@ -77,8 +77,8 @@ if __name__ == '__main__':
                         help='Path to a user-specified preamble file')
     parser.add_argument('-e', '--exclude', default='',
                         help='Comma-separated list of cells to exclude')
-    parser.add_argument('-p', '--plain_output', action='store_false',
-                        help='Plain output which will contain no syntax highlighting.')
+    parser.add_argument('-H', '--no-highlighting', action='store_false',
+                        help='Disable syntax highlighting for code blocks.')
     args = parser.parse_args()
     exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
