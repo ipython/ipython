@@ -69,7 +69,7 @@ class NamespaceMagics(Magics):
     @skip_doctest
     @line_magic
     def pdef(self, parameter_s='', namespaces=None):
-        """Print the definition header for any callable object.
+        """Print the call signature for any callable object.
 
         If the object is a class, print the constructor information.
 

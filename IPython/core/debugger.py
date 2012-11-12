@@ -477,7 +477,7 @@ class Pdb(OldPdb):
     do_l = do_list
 
     def do_pdef(self, arg):
-        """Print the definition header for any callable object.
+        """Print the call signature for any callable object.
 
         The debugger interface to %pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
