@@ -23,6 +23,7 @@ var IPython = (function (IPython) {
      *
      * @class TextCell
      * @constructor TextCell
+     * @extend Cell
      */
     var TextCell = function () {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
@@ -429,7 +430,7 @@ var IPython = (function (IPython) {
     };
 
 
-    /** 
+    /**
      * @class HeadingCell
      * @extends TextCell
      */

@@ -18,7 +18,7 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
 
     /**
-     * The Base `Cell` class from which to inherit 
+     * The Base `Cell` class from which to inherit
      * @class Cell
      */
 
@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
 
     /**
      * Empty. Subclasses must implement create_element.
-     * This should contain all the code to create the DOM element in notebook 
+     * This should contain all the code to create the DOM element in notebook
      * and will be called by Base Class constructor.
      * @method create_element
      */
@@ -52,9 +52,9 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Empty. Subclasses must implement create_element.
-     * This should contain all the code to create the DOM element in notebook 
-     * and will be called by Base Class constructor.
+     * Subclasses can implement override bind_events.
+     * Be carefull to call the parent method when overwriting as it fires event.
+     * this will be triggerd after create_element in constructor.
      * @method bind_events
      */
     Cell.prototype.bind_events = function () {
@@ -72,6 +72,10 @@ var IPython = (function (IPython) {
         });
     };
 
+    /**
+     * Triger typsetting of math by mathjax on current cell element
+     * @method typeset
+     */
     Cell.prototype.typeset = function () {
         if (window.MathJax){
             var cell_math = this.element.get(0);
@@ -79,12 +83,20 @@ var IPython = (function (IPython) {
         }
     };
 
+    /**
+     * should be triggerd when cell is selected
+     * @method select
+     */
     Cell.prototype.select = function () {
         this.element.addClass('ui-widget-content ui-corner-all');
         this.selected = true;
     };
 
 
+    /**
+     * should be triggerd when cell is unselected
+     * @method unselect
+     */
     Cell.prototype.unselect = function () {
         this.element.removeClass('ui-widget-content ui-corner-all');
         this.selected = false;
