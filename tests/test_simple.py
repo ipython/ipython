@@ -39,8 +39,8 @@ def test_render_heading():
     for level in xrange(1, 7):
         cell = {
             'cell_type': 'heading',
-            'level'    : level,
-            'source'   :  ['Test for heading type H{0}'.format(level)]
+            'level': level,
+            'source':  ['Test for heading type H{0}'.format(level)]
             }
         # Convert cell dictionaries to NotebookNode
         cell_nb = nbformat.NotebookNode(cell)
@@ -53,7 +53,8 @@ def test_render_heading():
         # Render to rst
         c = ConverterRST('')
         rst_list = c.render_heading(cell_nb)
-        nt.assert_true(isinstance(rst_list, list))  # render should return a list
+        # render should return a list
+        nt.assert_true(isinstance(rst_list, list))
         rst_str = "".join(rst_list)
         # Confirm rst content
         chk_str = "Test for heading type H{0}\n{1}\n".format(
