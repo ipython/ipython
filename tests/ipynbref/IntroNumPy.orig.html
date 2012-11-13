@@ -2822,8 +2822,7 @@ The sum of elements along the columns is : [ 4  6  8 10]
 </div>
 </div>
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>As you can see in this example, the value of the <code>axis</code> parameter is the dimension which will be <em>consumed</em> once the operation has been carried out.  This is why to sum along the rows we use <code>axis=0</code>.<br />
-</p>
+<p>As you can see in this example, the value of the <code>axis</code> parameter is the dimension which will be <em>consumed</em> once the operation has been carried out.  This is why to sum along the rows we use <code>axis=0</code>.</p>
 <p>This can be easily illustrated with an example that has more dimensions; we create an array with 4 dimensions and shape <code>(3,4,5,6)</code> and sum along the axis number 2 (i.e. the <em>third</em> axis, since in Python all counts are 0-based).  That consumes the dimension whose length was 5, leaving us with a new array that has shape <code>(3,4,6)</code>:</p>
 </div>
 <div class="cell border-box-sizing code_cell vbox">
