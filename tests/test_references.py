@@ -1,4 +1,3 @@
-import os
 import io
 import nose.tools as nt
 from nbconvert import (

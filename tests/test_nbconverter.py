@@ -1,24 +1,35 @@
 from nbconvert import ConverterNotebook
 import nose.tools as nt
-import os, json
+import os
+import json
+import shutil
+import tempfile
 
-fname = 'tests/test.ipynb'
+
+# name = os.path.join(os.path.dirname(os.path.abspath(__file__), test.ipynb')
 outbase1 = 'newtest1'
-outbase2 = 'test' # will output to ./test.ipynb
+outbase2 = 'test'  # will output to ./test.ipynb
+
 
 def test_roundtrip():
-    converter = ConverterNotebook(fname, outbase1)
+    directory = tempfile.mkdtemp()
+    out1 = os.path.join(directory, outbase1)
+    out2 = os.path.join(directory, outbase2)
+    fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                         'test.ipynb')
+    converter = ConverterNotebook(fname, out1)
     converter.render()
 
-    converter2 = ConverterNotebook(outbase1+'.ipynb', outbase2)
+    converter2 = ConverterNotebook(out1 + '.ipynb', out2)
     converter2.render()
 
-    s1 = open(outbase1+'.ipynb', 'rb').read()
-    s2 = open(outbase2+'.ipynb', 'rb').read()
+    with open(out1 + '.ipynb', 'rb') as f:
+        s1 = f.read()
+    with open(out2 + '.ipynb', 'rb') as f:
+        s2 = f.read()
+
     nt.assert_true(s1.replace(outbase1, outbase2) == s2)
-    os.remove(outbase1+'.ipynb')
-    os.remove(outbase2+'.ipynb')
+    shutil.rmtree(directory)
 
     s0 = json.dumps(json.load(file(fname)), indent=1, sort_keys=True)
     nt.assert_true(s0 == s2)
-

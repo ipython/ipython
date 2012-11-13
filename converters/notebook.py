@@ -1,3 +1,4 @@
+import os
 from converters.base import Converter
 from converters.utils import cell_to_lines
 from shutil import rmtree
@@ -35,7 +36,7 @@ class ConverterNotebook(Converter):
  "nbformat": 3,
  "worksheets": [
  {
- "cells": [""" % {'name':self.outbase}
+ "cells": [""" % {'name': os.path.basename(self.outbase)}
 
         return s.split('\n')
 
