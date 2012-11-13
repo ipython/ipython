@@ -473,10 +473,11 @@ class NotebookApp(BaseIPythonApplication):
         if not self.ip:
             warning = "WARNING: The notebook server is listening on all IP addresses"
             if ssl_options is None:
-                warning += ", and not using any encryption"
+                self.log.critical(warning + " and not using encryption. This"
+                    "is not recommended.")
             if not self.password and not self.read_only:
-                warning += ", and not using authentication"
-            self.log.critical(warning + ". This is highly insecure and not recommended.")
+                self.log.critical(warning + "and not using authentication."
+                    "This is highly insecure and not recommended.")
         success = None
         for port in random_ports(self.port, self.port_retries+1):
             try:
