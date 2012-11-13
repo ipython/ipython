@@ -77,7 +77,8 @@ class Converter(object):
         self.infile = infile
         self.infile_dir, infile_root = os.path.split(infile)
         infile_root = os.path.splitext(infile_root)[0]
-        files_dir = os.path.join(self.infile_dir, clean_filename(infile_root) + '_files')
+        self.clean_name = clean_filename(infile_root)
+        files_dir = os.path.join(self.infile_dir, self.clean_name + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
@@ -177,7 +178,7 @@ class Converter(object):
 
         Returns a path relative to the input file.
         """
-        figname = '%s_fig_%02i.%s' % (clean_filename(self.infile_root),
+        figname = '%s_fig_%02i.%s' % (self.clean_name,
                                       self.figures_counter, fmt)
         self.figures_counter += 1
         fullname = os.path.join(self.files_dir, figname)
