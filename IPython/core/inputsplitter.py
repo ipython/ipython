@@ -504,19 +504,22 @@ class IPythonInputSplitter(InputSplitter):
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
-    def __init__(self, input_mode=None):
+    def __init__(self, input_mode=None, transforms=None):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         self._validate = True
-        self.transforms = [leading_indent(),
-                           classic_prompt(),
-                           ipy_prompt(),
-                           cellmagic(),
-                           help_end(),
-                           escaped_transformer(),
-                           assign_from_magic(),
-                           assign_from_system(),
-                          ]
+        if transforms is not None:
+            self.transforms = transforms
+        else:
+            self.transforms = [leading_indent(),
+                               classic_prompt(),
+                               ipy_prompt(),
+                               cellmagic(),
+                               help_end(),
+                               escaped_transformer(),
+                               assign_from_magic(),
+                               assign_from_system(),
+                              ]
 
     def reset(self):
         """Reset the input buffer and associated state."""

@@ -12,7 +12,8 @@ from IPython.external import qt
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
-from IPython.core.inputsplitter import InputSplitter, transform_classic_prompt
+from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
+from IPython.core.inputtransformer import classic_prompt
 from IPython.core.oinspect import call_tip
 from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Bool, Instance, Unicode
@@ -113,7 +114,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     exit_requested = QtCore.Signal(object)
 
     # Protected class variables.
-    _transform_prompt = staticmethod(transform_classic_prompt)
+    _prompt_transformer = IPythonInputSplitter(transforms=[classic_prompt()])
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
     _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
@@ -186,8 +187,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         elif self._control.hasFocus():
             text = self._control.textCursor().selection().toPlainText()
             if text:
-                lines = map(self._transform_prompt, text.splitlines())
-                text = '\n'.join(lines)
+                text = self._prompt_transformer.transform_cell(text)
                 QtGui.QApplication.clipboard().setText(text)
         else:
             self.log.debug("frontend widget : unknown copy target")
