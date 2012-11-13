@@ -471,12 +471,12 @@ class NotebookApp(BaseIPythonApplication):
         self.web_app.password = self.password
         self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
         if not self.ip:
-            warning = "WARNING: The notebook server is listening on all IP addresses. "
+            warning = "WARNING: The notebook server is listening on all IP addresses"
             if ssl_options is None:
-                warning += "And not using any encryption. "
-            if not (self.read_only and not self.password):
-                warning += "And not using authentication. "
-            self.log.critical(warning + "This is highly insecure and not recommended.")
+                warning += ", and not using any encryption"
+            if not self.password and not self.read_only:
+                warning += ", and not using authentication"
+            self.log.critical(warning + ". This is highly insecure and not recommended.")
         success = None
         for port in random_ports(self.port, self.port_retries+1):
             try:
