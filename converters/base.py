@@ -237,15 +237,13 @@ class Converter(object):
 
         Returns list.
         """
-        # Choose preferred format if available
-        preferred = [xx for xx in self.display_data_priority if xx in output]
-        if preferred:
-            fmt = preferred[0]
+        for fmt in self.display_data_priority:
+            if fmt in output:
+                break
         else:
-            # Choose a format randomly if preference can't be satisfied
-            available = [k for k in output.keys() if k != 'output_type']
-            if available:
-                fmt = available[0]
+            for fmt in output:
+                if fmt != 'output_type':
+                    break
             else:
                 raise RuntimeError('no display data')
 
