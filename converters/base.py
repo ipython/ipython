@@ -16,7 +16,20 @@ from IPython.nbformat import current as nbformat
 # local
 
 def clean_filename(filename):
-    """Remove unusual characters from filename, so it works with LaTeX"""
+    """
+    Remove non-alphanumeric characters from filenames.
+
+    Parameters
+    ----------
+    filename : str
+        The filename to be sanitized.
+
+    Returns
+    -------
+    clean : str
+        A sanitized filename that contains only alphanumeric
+        characters and underscores.
+    """
     filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
     return filename
 
