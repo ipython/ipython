@@ -296,19 +296,79 @@ var IPython = (function (IPython) {
         this.placeholder = "Type *Markdown* and LaTeX: $\\alpha^2$";
         IPython.TextCell.apply(this, arguments);
         this.cell_type = 'markdown';
+        this.meta_var_updated_requested = true;
     };
 
 
     MarkdownCell.prototype = new TextCell();
 
     /**
+     * Store some variabl repr into metadata to use tham while reloading/converting
+     * @method set_literate_data
+     */
+    MarkdownCell.prototype.set_literate_data = function (data) {
+        this.metadata.literate = {};
+        this.metadata.literate.data = data.user_variables;
+        this.metadata.literate.execution_count = data.execution_count;
+        this._render(data.user_variables, true);
+    }
+
+    /**
+     * @method edit
+     */
+    MarkdownCell.prototype.edit = function(){
+        this.meta_var_updated_requested = false;
+        TextCell.prototype.edit.call(this);
+
+    };
+
+    /**
      * @method render
      */
     MarkdownCell.prototype.render = function () {
-        if (this.rendered === false) {
+        var text = this.get_text();
+        if (text === "") { text = this.placeholder; }
+        text = IPython.mathjaxutils.remove_math(text);
+        var literateRegex = /::([a-z_0-9]+)::/ig,
+                matches,
+                variables = [];
+
+        while (matches = literateRegex.exec(text)) {
+            variables.push(matches[1]);
+        }
+        var that = this
+        if(this.meta_var_updated_requested == false) {
+            try {
+                IPython.notebook.kernel.execute('',
+                    {
+                        'execute_reply':function(data){that.set_literate_data(data)}
+                    },
+                    {
+                        'user_variables':variables
+                    });
+                this.meta_var_updated_requested = true;
+            } catch (e) {}
+        }
+        this.metadata.literate = this.metadata.literate || {};
+        return this._render(this.metadata.literate.data||{})
+    }
+
+    // data should be a dict of kernel value name and their representation
+    MarkdownCell.prototype._render = function (data, update) {
+        if (this.rendered === false || update) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            text = IPython.mathjaxutils.remove_math(text)
+            text = IPython.mathjaxutils.remove_math(text);
+
+
+            // replace ::xxx:: variable if possible:
+            if(data != undefined){
+                for (i in data){
+                    text = text.replace(new RegExp('::'+i+'::','g'), data[i]);
+                }
+            }
+
+
             var html = IPython.markdown_converter.makeHtml(text);
             html = IPython.mathjaxutils.replace_math(html)
             try {
