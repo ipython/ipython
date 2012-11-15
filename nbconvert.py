@@ -40,9 +40,11 @@ converters = OrderedDict([
         ('py', ConverterPy),
         ])
 
+default_format = 'py'
+
 # Extract the list of known formats and mark the first format as the default.
-known_formats = ', '.join([key + " (default)" if (i == 0) else key
-                           for (i, key) in enumerate(converters.keys())])
+known_formats = ', '.join([key + " (default)" if key == default_format else key
+                           for key in converters.keys()])
 
 
 def main(infile, format='rst'):
