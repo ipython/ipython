@@ -21,7 +21,7 @@ def clean_dir():
 def test_simple():
     c = ConverterRST(fname)
     f = c.render()
-    nt.assert_true('rst' in f, 'changed file extension to rst')
+    nt.assert_true(f.endswith('.rst'), 'changed file extension to rst')
 
 
 @nt.with_setup(clean_dir, clean_dir)
