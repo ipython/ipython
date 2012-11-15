@@ -11,7 +11,6 @@ called nb_figure_NN.png.
 # Imports
 #-----------------------------------------------------------------------------
 from __future__ import print_function
-from collections import OrderedDict
 
 # From IPython
 from IPython.external import argparse
@@ -31,16 +30,16 @@ from converters.python import ConverterPy
 # which gets printed in case an unknown format is encounteres, as well
 # as in the help
 
-converters = OrderedDict([
-        ('rst', ConverterRST),
-        ('markdown', ConverterMarkdown),
-        ('html', ConverterHTML),
-        ('blogger-html', ConverterBloggerHTML),
-        ('latex', ConverterLaTeX),
-        ('py', ConverterPy),
-        ])
+converters = {
+    'rst': ConverterRST,
+    'markdown': ConverterMarkdown,
+    'html': ConverterHTML,
+    'blogger-html': ConverterBloggerHTML,
+    'latex': ConverterLaTeX,
+    'py': ConverterPy,
+    }
 
-default_format = 'py'
+default_format = 'rst'
 
 # Extract the list of known formats and mark the first format as the default.
 known_formats = ', '.join([key + " (default)" if key == default_format else key
