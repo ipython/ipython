@@ -11,7 +11,7 @@ called nb_figure_NN.png.
 # Imports
 #-----------------------------------------------------------------------------
 from __future__ import print_function
-
+from collections import OrderedDict
 
 # From IPython
 from IPython.external import argparse
@@ -25,34 +25,37 @@ from converters.latex import ConverterLaTeX
 from converters.notebook import ConverterNotebook
 from converters.python import ConverterPy
 
-known_formats = "rst (default), html, blogger-html, latex, markdown, py"
+
+# When adding a new format, make sure to add it to the `converters`
+# dictionary below. This is used to create the list of known formats,
+# which gets printed in case an unknown format is encounteres, as well
+# as in the help
+
+converters = OrderedDict([
+        ('rst', ConverterRST),
+        ('markdown', ConverterMarkdown),
+        ('html', ConverterHTML),
+        ('blogger-html', ConverterBloggerHTML),
+        ('latex', ConverterLaTeX),
+        ('py', ConverterPy),
+        ])
+
+# Extract the list of known formats and mark the first format as the default.
+known_formats = ', '.join([key + " (default)" if (i == 0) else key
+                           for (i, key) in enumerate(converters.keys())])
+
 
 def main(infile, format='rst'):
     """Convert a notebook to html in one step"""
-    # XXX: this is just quick and dirty for now. When adding a new format,
-    # make sure to add it to the `known_formats` string above, which gets
-    # printed in in the catch-all else, as well as in the help
-    if format == 'rst':
-        converter = ConverterRST(infile)
-        converter.render()
-    elif format == 'markdown':
-        converter = ConverterMarkdown(infile)
-        converter.render()
-    elif format == 'html':
-        converter = ConverterHTML(infile)
-        converter.render()
-    elif format == 'blogger-html':
-        converter = ConverterBloggerHTML(infile)
-        converter.render()
-    elif format == 'latex':
-        converter = ConverterLaTeX(infile)
-        converter.render()
-    elif format == 'py':
-        converter = ConverterPy(infile)
-        converter.render()
-    else:
+
+    try:
+        ConverterClass = converters[format]
+    except KeyError:
         raise SystemExit("Unknown format '%s', " % format +
                 "known formats are: " + known_formats)
+
+    converter = ConverterClass(infile)
+    converter.render()
 
 #-----------------------------------------------------------------------------
 # Script main
