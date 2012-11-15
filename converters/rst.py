@@ -2,6 +2,7 @@ from converters.base import Converter
 from converters.utils import markdown2rst, rst_directive, remove_ansi
 from IPython.utils.text import indent
 
+
 class ConverterRST(Converter):
     extension = 'rst'
     heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
@@ -51,7 +52,7 @@ class ConverterRST(Converter):
 
     def _img_lines(self, img_file):
         return ['.. image:: %s' % img_file, '']
-    
+
     def render_display_format_text(self, output):
         return rst_directive('.. parsed-literal::', output.text)
 
@@ -67,7 +68,5 @@ class ConverterRST(Converter):
     def render_display_format_json(self, output):
         return rst_directive('.. raw:: json', output.json)
 
-
     def render_display_format_javascript(self, output):
         return rst_directive('.. raw:: javascript', output.javascript)
-

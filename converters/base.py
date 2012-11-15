@@ -18,8 +18,10 @@ from IPython.nbformat import current as nbformat
 # Class declarations
 #-----------------------------------------------------------------------------
 
+
 class ConversionException(Exception):
     pass
+
 
 class DocStringInheritor(type):
     """
@@ -49,6 +51,7 @@ class DocStringInheritor(type):
                             break
             newClassDict[attributeName] = attribute
         return type.__new__(meta, classname, bases, newClassDict)
+
 
 class Converter(object):
     __metaclass__ = DocStringInheritor
@@ -85,9 +88,12 @@ class Converter(object):
         return getattr(self, 'render_' + cell_type, self.render_unknown)
 
     def dispatch_display_format(self, format):
-        """return output_type dependent render method,  for example render_output_text
         """
-        return getattr(self, 'render_display_format_' + format, self.render_unknown_display)
+        return output_type dependent render method,  for example
+        render_output_text
+        """
+        return getattr(self, 'render_display_format_' + format,
+                       self.render_unknown_display)
 
     def convert(self, cell_separator='\n'):
         """
@@ -178,7 +184,8 @@ class Converter(object):
             data = data.decode('base64')
             fopen = lambda fname: open(fname, 'wb')
         else:
-            fopen = lambda fname: codecs.open(fname, 'wb', self.default_encoding)
+            fopen = lambda fname: codecs.open(fname, 'wb',
+                                              self.default_encoding)
 
         with fopen(fullname) as f:
             f.write(data)
@@ -267,7 +274,6 @@ class Converter(object):
         Returns list."""
         raise NotImplementedError
 
-
     def render_pyerr(self, output):
         """convert pyerr part of a code cell
 
@@ -320,4 +326,3 @@ class Converter(object):
         Returns list.
         """
         raise NotImplementedError
-
