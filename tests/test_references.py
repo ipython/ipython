@@ -1,7 +1,7 @@
 import io
 import nose.tools as nt
 from nose.tools import nottest
-from converts import (
+from converters import (
     ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML
 )
 
