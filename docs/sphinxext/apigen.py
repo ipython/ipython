@@ -249,9 +249,7 @@ class ApiDocWriter(object):
             ad += '\n.. autoclass:: ' + c + '\n'
             # must NOT exclude from index to keep cross-refs working
             ad += '  :members:\n' \
-                  '  :undoc-members:\n' \
                   '  :show-inheritance:\n' \
-                  '  :inherited-members:\n' \
                   '\n' \
                   '  .. automethod:: __init__\n'
         if multi_fx:
