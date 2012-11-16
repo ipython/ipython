@@ -10,7 +10,10 @@
  * (and should create it if it does not exist).
  * It will be executed by the ipython notebook at load time.
  *
- * Example
+ * Same thing with `profile/static/css/custom.css` to inject custom css into the notebook.
+ *
+ * Example :
+ *
  * Create a custom button in toolbar that execute `%qtconsole` in kernel
  * and hence open a qtconsole attached to the same kernel as the current notebook
  *
