@@ -11,6 +11,8 @@
 
 /**
     A module that allow to create different type of Text Cell
+    @module IPython
+    @namespace IPython
  */
 var IPython = (function (IPython) {
 
