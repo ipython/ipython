@@ -1,3 +1,4 @@
+import os
 from converters.base import Converter
 from converters.utils import cell_to_lines
 from shutil import rmtree
@@ -7,7 +8,7 @@ class ConverterNotebook(Converter):
     """
     A converter that is essentially a null-op.
     This exists so it can be subclassed
-    for custom handlers of .ipynb files 
+    for custom handlers of .ipynb files
     that create new .ipynb files.
 
     What distinguishes this from JSONWriter is that
@@ -35,7 +36,7 @@ class ConverterNotebook(Converter):
  "nbformat": 3,
  "worksheets": [
  {
- "cells": [""" % {'name':self.outbase}
+ "cells": [""" % {'name': os.path.basename(self.outbase)}
 
         return s.split('\n')
 

@@ -63,7 +63,7 @@ class Converter(object):
     user_preamble = None
     output = unicode()
     raw_as_verbatim = False
-    
+
     def __init__(self, infile):
         self.infile = infile
         self.infile_dir, infile_root = os.path.split(infile)
@@ -168,7 +168,7 @@ class Converter(object):
 
         Returns a path relative to the input file.
         """
-        figname = '%s_fig_%02i.%s' % (self.infile_root, 
+        figname = '%s_fig_%02i.%s' % (self.infile_root,
                                       self.figures_counter, fmt)
         self.figures_counter += 1
         fullname = os.path.join(self.files_dir, figname)
@@ -179,10 +179,10 @@ class Converter(object):
             fopen = lambda fname: open(fname, 'wb')
         else:
             fopen = lambda fname: codecs.open(fname, 'wb', self.default_encoding)
-            
+
         with fopen(fullname) as f:
             f.write(data)
-            
+
         return fullname
 
     def render_heading(self, cell):
