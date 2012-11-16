@@ -11,6 +11,7 @@ import io
 
 class ConverterHTML(Converter):
     extension = 'html'
+    blank_symbol = '&nbsp;'
 
     def in_tag(self, tag, src, attrs=None):
         """Return a list of elements bracketed by the given tag"""
@@ -29,8 +30,7 @@ class ConverterHTML(Converter):
 
     def _out_prompt(self, output):
         if output.output_type == 'pyout':
-            n = output.prompt_number if output.prompt_number is not None else '&nbsp;'
-            content = 'Out[%s]:' % n
+            content = 'Out[%s]:' % self._get_prompt_number(output)
         else:
             content = ''
         return ['<div class="prompt output_prompt">%s</div>' % content]
@@ -93,7 +93,7 @@ class ConverterHTML(Converter):
         lines = ['<div class="cell border-box-sizing code_cell vbox">']
         
         lines.append('<div class="input hbox">')
-        n = cell.prompt_number if getattr(cell, 'prompt_number', None) is not None else '&nbsp;'
+        n = self._get_prompt_number(cell)
         lines.append('<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n)
         lines.append('<div class="input_area box-flex1">')
         lines.append(highlight(cell.input))

@@ -63,6 +63,7 @@ class Converter(object):
     user_preamble = None
     output = unicode()
     raw_as_verbatim = False
+    blank_symbol = " "
 
     def __init__(self, infile):
         self.infile = infile
@@ -78,6 +79,10 @@ class Converter(object):
     def __del__(self):
         if os.path.isdir(self.files_dir) and not os.listdir(self.files_dir):
             os.rmdir(self.files_dir)
+
+    def _get_prompt_number(self, cell):
+        return cell.prompt_number if hasattr(cell, 'prompt_number') \
+            else self.blank_symbol
 
     def dispatch(self, cell_type):
         """return cell_type dependent render method,  for example render_code

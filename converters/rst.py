@@ -15,12 +15,7 @@ class ConverterRST(Converter):
         if not cell.input:
             return []
 
-        try:
-            prompt_number = cell.prompt_number
-        except AttributeError:
-            prompt_number = " "
-
-        lines = ['In[%s]:' % prompt_number, '']
+        lines = ['In[%s]:' % self._get_prompt_number(cell), '']
         lines.extend(rst_directive('.. code:: python', cell.input))
 
         for output in cell.outputs:
@@ -40,7 +35,7 @@ class ConverterRST(Converter):
             return [cell.source]
 
     def render_pyout(self, output):
-        lines = ['Out[%s]:' % output.prompt_number, '']
+        lines = ['Out[%s]:' % self._get_prompt_number(output), '']
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:

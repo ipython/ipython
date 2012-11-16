@@ -19,10 +19,11 @@ class ConverterMarkdown(Converter):
         if not cell.input:
             return []
         lines = []
+        n = self._get_prompt_number(cell)
         if self.show_prompts and not self.inline_prompt:
-            lines.extend(['*In[%s]:*' % cell.prompt_number, ''])
+            lines.extend(['*In[%s]:*' % n, ''])
         if self.show_prompts and self.inline_prompt:
-            prompt = 'In[%s]: ' % cell.prompt_number
+            prompt = 'In[%s]: ' % n
             input_lines = cell.input.split('\n')
             src = prompt + input_lines[0] + '\n' + indent('\n'.join(input_lines[1:]), nspaces=len(prompt))
         else:
@@ -30,7 +31,7 @@ class ConverterMarkdown(Converter):
         src = highlight(src) if self.highlight_source else indent(src)
         lines.extend([src, ''])
         if cell.outputs and self.show_prompts and not self.inline_prompt:
-            lines.extend(['*Out[%s]:*' % cell.prompt_number, ''])
+            lines.extend(['*Out[%s]:*' % n, ''])
         for output in cell.outputs:
             conv_fn = self.dispatch(output.output_type)
             lines.extend(conv_fn(output))
@@ -52,7 +53,7 @@ class ConverterMarkdown(Converter):
         lines = []
         
         ## if 'text' in output:
-        ##     lines.extend(['*Out[%s]:*' % output.prompt_number, ''])
+        ##     lines.extend(['*Out[%s]:*' % self._get_prompt_number(cell), ''])
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:
