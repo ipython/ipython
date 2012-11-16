@@ -4,7 +4,8 @@
 
 from pygments.lexers import PythonLexer, BashLexer
 from pygments.lexer import bygroups, using
-from pygments.token import Keyword, Operator, Name, Text
+from pygments.token import Keyword, Operator, Text
+
 
 #-----------------------------------------------------------------------------
 # Classes

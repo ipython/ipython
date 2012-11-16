@@ -21,7 +21,6 @@ from converters.markdown import ConverterMarkdown
 from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
-from converters.notebook import ConverterNotebook
 from converters.python import ConverterPy
 
 
@@ -44,6 +43,7 @@ default_format = 'rst'
 # Extract the list of known formats and mark the first format as the default.
 known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
+
 
 
 def main(infile, format='rst'):

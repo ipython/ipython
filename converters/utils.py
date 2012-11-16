@@ -9,7 +9,7 @@ import os
 import sys
 
 from IPython.utils.text import indent
-from IPython.utils import path, py3compat
+from IPython.utils import py3compat
 from IPython.nbformat.v3.nbjson import BytesEncoder
 
 
