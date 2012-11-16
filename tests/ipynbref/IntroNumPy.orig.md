@@ -106,7 +106,7 @@ Let's plot both the function and the area below it in the trapezoid approximatio
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_00.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_00.svg)
 
 
 Compute the integral both at high accuracy and with the trapezoid approximation
@@ -498,7 +498,7 @@ For these methods, the above operations area all computed on all the elements of
     The sum of elements along the columns is : [ 4  6  8 10]
 
 
-As you can see in this example, the value of the `axis` parameter is the dimension which will be *consumed* once the operation has been carried out.  This is why to sum along the rows we use `axis=0`.  
+As you can see in this example, the value of the `axis` parameter is the dimension which will be *consumed* once the operation has been carried out.  This is why to sum along the rows we use `axis=0`.
 
 This can be easily illustrated with an example that has more dimensions; we create an array with 4 dimensions and shape `(3,4,5,6)` and sum along the axis number 2 (i.e. the *third* axis, since in Python all counts are 0-based).  That consumes the dimension whose length was 5, leaving us with a new array that has shape `(3,4,6)`:
 
@@ -843,7 +843,7 @@ The most frequently used function is simply called `plot`, here is how you can m
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_01.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_01.svg)
 
 
 You can control the style, color and other properties of the markers, for example:
@@ -853,7 +853,7 @@ You can control the style, color and other properties of the markers, for exampl
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_02.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_02.svg)
 
 
 <div class="highlight"><pre><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">&#39;r&#39;</span><span class="p">);</span>
@@ -861,7 +861,7 @@ You can control the style, color and other properties of the markers, for exampl
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_03.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_03.svg)
 
 
 We will now see how to create a few other common plot types, such as a simple error plot:
@@ -882,7 +882,7 @@ We will now see how to create a few other common plot types, such as a simple er
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_04.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_04.svg)
 
 
 A simple log plot
@@ -894,7 +894,7 @@ A simple log plot
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_05.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_05.svg)
 
 
 A histogram annotated with text inside the plot, using the `text` function:
@@ -916,7 +916,7 @@ A histogram annotated with text inside the plot, using the `text` function:
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_06.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_06.svg)
 
 
 ## Image display
@@ -929,7 +929,7 @@ The `imshow` command can display single or multi-channel images.  A simple array
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_07.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_07.svg)
 
 
 A real photograph is a multichannel image, `imshow` interprets it correctly:
@@ -943,7 +943,7 @@ A real photograph is a multichannel image, `imshow` interprets it correctly:
     Dimensions of the array img: (375, 500, 3)
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_08.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_08.svg)
 
 
 ## Simple 3d plotting with matplotlib
@@ -979,7 +979,7 @@ A simple surface plot:
 
 
 
-![](tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_09.svg)
+![](tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_09.svg)
 
 
 # IPython: a powerful interactive environment
