@@ -1,4 +1,5 @@
 include README.rst
+include COPYING.txt
 include ipython.py
 include setupbase.py
 include setupegg.py
