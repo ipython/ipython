@@ -1,4 +1,4 @@
-from nbconvert import ConverterRST, main
+from nbconvert import ConverterRST, main, converters
 import nose.tools as nt
 
 import os
@@ -24,20 +24,29 @@ class TestSimple(object):
         shutil.rmtree(self.wrkdir)
 
     def outfile_exists(self, fmt):
+        extension = converters[fmt].extension
         return os.path.exists(os.path.join(self.wrkdir,
-                                           self.basename + '.' + fmt))
+                                           self.basename + '.' + extension))
 
     def test_simple(self):
         c = ConverterRST(self.infile)
         f = c.render()
         nt.assert_true(f.endswith('.rst'), 'changed file extension to rst')
 
+    def run_main(self, fmt):
+        """
+        Run the 'main' method to convert the input file to the given
+        format and check that the expected output file exists.
+        """
+        main(self.infile, format=fmt)
+        nt.assert_true(self.outfile_exists(fmt))
+
     def test_main(self):
         """
-        Test main entry point
+        Test main entry point with all known formats.
         """
-        main(self.infile)
-        nt.assert_true(self.outfile_exists('rst'))
+        for fmt in converters:
+            yield self.run_main, fmt
 
     def test_render_heading(self):
         """
@@ -73,10 +82,3 @@ class TestSimple(object):
             chk_str = "Test for heading type H{0}\n{1}\n".format(
                  level, c.heading_level[level] * 24)
             nt.assert_equal(rst_str, chk_str)
-
-    def test_main_html(self):
-        """
-        Test main entry point
-        """
-        main(self.infile, format='html')
-        nt.assert_true(self.outfile_exists('html'))
