@@ -184,6 +184,7 @@ python-profiler package from non-free.""")
             namespace = self.shell.user_ns
             if cell is not None:
                 arg_str += '\n' + cell
+            arg_str = self.shell.input_splitter.transform_cell(arg_str)
         else:  # called to run a program by %run -p
             try:
                 filename = get_py_filename(arg_lst[0])
@@ -883,7 +884,7 @@ python-profiler package from non-free.""")
 
         # fail immediately if the given expression can't be compiled
 
-        expr = self.shell.prefilter(parameter_s,False)
+        expr = self.shell.input_splitter.transform_cell(parameter_s)
 
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
