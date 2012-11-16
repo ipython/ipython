@@ -16,21 +16,26 @@ dollar_pat = r"(?:^|(?<=\s))[$]([^\n]*?)(?<![\\])[$](?:$|(?=\s|[.,;\\]))"
 _dollar = re.compile(dollar_pat)
 _notdollar = re.compile(r"\\[$]")
 
+
 def replace_dollar(content):
     content = _dollar.sub(r":math:`\1`", content)
     content = _notdollar.sub("$", content)
     return content
 
+
 def rewrite_rst(app, docname, source):
     source[0] = replace_dollar(source[0])
 
+
 def rewrite_autodoc(app, what, name, obj, options, lines):
     lines[:] = [replace_dollar(L) for L in lines]
+
 
 def setup(app):
     app.connect('source-read', rewrite_rst)
     if 'autodoc-process-docstring' in app._events:
         app.connect('autodoc-process-docstring', rewrite_autodoc)
+
 
 def test_expr(expr, expect):
     result = replace_dollar(expr)
@@ -40,6 +45,7 @@ def test_expr(expr, expect):
         print 'OK: A result match expected one'
     else:
         print 'NG: A result %s does not match expected one!' % result
+
 
 def test_dollar():
     samples = {
@@ -59,8 +65,11 @@ def test_dollar():
     for expr, expect in samples.items():
         test_expr(expr, expect)
 
+
 if __name__ == "__main__":
-    import sys, locale, codecs
+    import sys
+    import locale
+    import codecs
     encoding = locale.getpreferredencoding()
     sys.stdout = codecs.getwriter(encoding)(sys.stdout)
     sys.stdin = codecs.getreader(encoding)(sys.stdin)

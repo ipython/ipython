@@ -6,6 +6,7 @@ captures display data and deletes the cell inputs.
 import copy
 import nbconvert as nb
 
+
 class CustomNotebookConverter(nb.ConverterNotebook):
 
     def render_code(self, cell):
@@ -24,4 +25,3 @@ if __name__ == '__main__':
     infile = 'tests/test_display.ipynb'
     converter = CustomNotebookConverter(infile, 'test_only_display')
     converter.render()
-

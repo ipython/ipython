@@ -19,7 +19,6 @@ def test_roundtrip():
                          'test.ipynb')
     converter = ConverterNotebook(fname, out1)
     converter.render()
-
     converter2 = ConverterNotebook(out1 + '.ipynb', out2)
     converter2.render()
 
@@ -30,6 +29,5 @@ def test_roundtrip():
 
     nt.assert_true(s1.replace(outbase1, outbase2) == s2)
     shutil.rmtree(directory)
-
     s0 = json.dumps(json.load(file(fname)), indent=1, sort_keys=True)
     nt.assert_true(s0 == s2)

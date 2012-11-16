@@ -40,7 +40,7 @@ def test_render_heading():
         cell = {
             'cell_type': 'heading',
             'level': level,
-            'source':  ['Test for heading type H{0}'.format(level)]
+            'source': ['Test for heading type H{0}'.format(level)]
             }
         # Convert cell dictionaries to NotebookNode
         cell_nb = nbformat.NotebookNode(cell)

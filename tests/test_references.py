@@ -1,9 +1,9 @@
 import io
 import nose.tools as nt
-from nbconvert import (
+from nose.tools import nottest
+from converts import (
     ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML
 )
-from nose.tools import nottest
 
 
 def test_evens():
@@ -17,7 +17,7 @@ def test_evens():
     # commenting rst for now as travis build
     # fail because of pandoc version.
     converters = [
-                 #(ConverterRST,'rst'),
+                 #(ConverterRST, 'rst'),
                   (ConverterMarkdown, 'md'),
                   (ConverterLaTeX, 'tex'),
                   (ConverterPy, 'py'),
