@@ -11,10 +11,16 @@ class ConverterRST(Converter):
         return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
     def render_code(self, cell):
+        # Note: cell has type 'IPython.nbformat.v3.nbbase.NotebookNode'
         if not cell.input:
             return []
 
-        lines = ['In[%s]:' % cell.prompt_number, '']
+        try:
+            prompt_number = cell.prompt_number
+        except AttributeError:
+            prompt_number = " "
+
+        lines = ['In[%s]:' % prompt_number, '']
         lines.extend(rst_directive('.. code:: python', cell.input))
 
         for output in cell.outputs:

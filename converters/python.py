@@ -33,16 +33,21 @@ class ConverterPy(Converter):
         return ['#{0} {1}'.format('#'*cell.level, cell.source), '']
 
     def render_code(self, cell):
+        try:
+            prompt_number = cell.prompt_number
+        except AttributeError:
+            prompt_number = " "
+
         if not cell.input:
             return []
         lines = []
         if self.show_prompts:
-            lines.extend(['# In[%s]:' % cell.prompt_number])
+            lines.extend(['# In[%s]:' % prompt_number])
         src = cell.input
         lines.extend([src, ''])
         if self.show_output:
             if cell.outputs :
-                lines.extend(['# Out[%s]:' % cell.prompt_number])
+                lines.extend(['# Out[%s]:' % prompt_number])
             for output in cell.outputs:
                 conv_fn = self.dispatch(output.output_type)
                 lines.extend(conv_fn(output))
