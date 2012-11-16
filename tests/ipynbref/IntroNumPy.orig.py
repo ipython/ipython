@@ -100,7 +100,7 @@ plt.fill_between(xint, 0, yint, facecolor='gray', alpha=0.4)
 plt.text(0.5 * (a + b), 30,r"$\int_a^b f(x)dx$", horizontalalignment='center', fontsize=20);
 
 # Out[3]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_00.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_00.svg
 
 # Compute the integral both at high accuracy and with the trapezoid approximation
 
@@ -436,7 +436,7 @@ print 'The sum of elements along the columns is :', arr.sum(axis=0)
 #     The sum of elements along the rows is    : [ 6 22]
 #     The sum of elements along the columns is : [ 4  6  8 10]
 # 
-# As you can see in this example, the value of the `axis` parameter is the dimension which will be *consumed* once the operation has been carried out.  This is why to sum along the rows we use `axis=0`.  
+# As you can see in this example, the value of the `axis` parameter is the dimension which will be *consumed* once the operation has been carried out.  This is why to sum along the rows we use `axis=0`.
 # 
 # This can be easily illustrated with an example that has more dimensions; we create an array with 4 dimensions and shape `(3,4,5,6)` and sum along the axis number 2 (i.e. the *third* axis, since in Python all counts are 0-based).  That consumes the dimension whose length was 5, leaving us with a new array that has shape `(3,4,6)`:
 
@@ -749,7 +749,7 @@ plt.xlabel('x')
 plt.ylabel('y');
 
 # Out[60]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_01.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_01.svg
 
 # You can control the style, color and other properties of the markers, for example:
 
@@ -757,13 +757,13 @@ plt.ylabel('y');
 plt.plot(x, y, linewidth=2);
 
 # Out[61]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_02.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_02.svg
 
 # In[62]:
 plt.plot(x, y, 'o', markersize=5, color='r');
 
 # Out[62]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_03.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_03.svg
 
 # We will now see how to create a few other common plot types, such as a simple error plot:
 
@@ -782,7 +782,7 @@ plt.errorbar(x, y, xerr=0.2, yerr=0.4)
 plt.title("Simplest errorbars, 0.2 in x, 0.4 in y");
 
 # Out[63]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_04.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_04.svg
 
 # A simple log plot
 
@@ -792,7 +792,7 @@ y = np.exp(-x**2)
 plt.semilogy(x, y);
 
 # Out[64]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_05.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_05.svg
 
 # A histogram annotated with text inside the plot, using the `text` function:
 
@@ -812,7 +812,7 @@ plt.axis([40, 160, 0, 0.03])
 plt.grid(True)
 
 # Out[65]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_06.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_06.svg
 
 ### Image display
 
@@ -823,7 +823,7 @@ from matplotlib import cm
 plt.imshow(np.random.rand(5, 10), cmap=cm.gray, interpolation='nearest');
 
 # Out[66]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_07.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_07.svg
 
 # A real photograph is a multichannel image, `imshow` interprets it correctly:
 
@@ -835,7 +835,7 @@ plt.imshow(img);
 # Out[67]:
 #     Dimensions of the array img: (375, 500, 3)
 # 
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_08.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_08.svg
 
 ### Simple 3d plotting with matplotlib
 
@@ -867,7 +867,7 @@ surf = ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap=cm.jet,
 ax.set_zlim3d(-1.01, 1.01);
 
 # Out[72]:
-# image file: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_09.svg
+# image file: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_09.svg
 
 ## IPython: a powerful interactive environment
 
