@@ -297,6 +297,22 @@ def test_func_kw_completions():
     nt.assert_in('key=', matches)
 
 
+def test_default_arguments_from_docstring():
+    doc = min.__doc__
+    ip = get_ipython()
+    c = ip.Completer
+    kwd = c._default_arguments_from_docstring(
+        'min(iterable[, key=func]) -> value')
+    nt.assert_equal(kwd,['key'])
+    #with cython type etc
+    kwd = c._default_arguments_from_docstring(
+        'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
+    nt.assert_equal(kwd,['ncall','resume','nsplit'])
+    #white spaces
+    kwd = c._default_arguments_from_docstring(
+        '\n Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
+    nt.assert_equal(kwd,['ncall','resume','nsplit'])
+
 def test_line_magics():
     ip = get_ipython()
     c = ip.Completer
