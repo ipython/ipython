@@ -11,10 +11,11 @@ class ConverterRST(Converter):
         return ['{0}\n{1}\n'.format(cell.source, marker * len(cell.source))]
 
     def render_code(self, cell):
+        # Note: cell has type 'IPython.nbformat.v3.nbbase.NotebookNode'
         if not cell.input:
             return []
 
-        lines = ['In[%s]:' % cell.prompt_number, '']
+        lines = ['In[%s]:' % self._get_prompt_number(cell), '']
         lines.extend(rst_directive('.. code:: python', cell.input))
 
         for output in cell.outputs:
@@ -34,7 +35,7 @@ class ConverterRST(Converter):
             return [cell.source]
 
     def render_pyout(self, output):
-        lines = ['Out[%s]:' % output.prompt_number, '']
+        lines = ['Out[%s]:' % self._get_prompt_number(output), '']
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:

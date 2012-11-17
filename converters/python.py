@@ -33,16 +33,17 @@ class ConverterPy(Converter):
         return ['#{0} {1}'.format('#'*cell.level, cell.source), '']
 
     def render_code(self, cell):
+        n = self._get_prompt_number(cell)
         if not cell.input:
             return []
         lines = []
         if self.show_prompts:
-            lines.extend(['# In[%s]:' % cell.prompt_number])
+            lines.extend(['# In[%s]:' % n])
         src = cell.input
         lines.extend([src, ''])
         if self.show_output:
             if cell.outputs :
-                lines.extend(['# Out[%s]:' % cell.prompt_number])
+                lines.extend(['# Out[%s]:' % n])
             for output in cell.outputs:
                 conv_fn = self.dispatch(output.output_type)
                 lines.extend(conv_fn(output))
@@ -61,7 +62,7 @@ class ConverterPy(Converter):
         lines = []
 
         ## if 'text' in output:
-        ##     lines.extend(['*Out[%s]:*' % output.prompt_number, ''])
+        ##     lines.extend(['*Out[%s]:*' % self._get_prompt_number(cell), ''])
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:
