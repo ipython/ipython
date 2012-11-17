@@ -10,7 +10,6 @@
 //============================================================================
 
 /**
- * An extendable module that provide base functionnality to create cell for notebook.
  * @module IPython
  * @namespace IPython
  * @submodule Kernel
