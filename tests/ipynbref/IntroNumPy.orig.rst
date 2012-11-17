@@ -210,7 +210,7 @@ In[3]:
     plt.fill_between(xint, 0, yint, facecolor='gray', alpha=0.4)
     plt.text(0.5 * (a + b), 30,r"$\int_a^b f(x)dx$", horizontalalignment='center', fontsize=20);
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_00.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_00.svg
 
 Compute the integral both at high accuracy and with the trapezoid
 approximation
@@ -1328,7 +1328,7 @@ In[60]:
     plt.xlabel('x')
     plt.ylabel('y');
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_01.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_01.svg
 
 You can control the style, color and other properties of the markers,
 for example:
@@ -1339,7 +1339,7 @@ In[61]:
 
     plt.plot(x, y, linewidth=2);
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_02.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_02.svg
 
 In[62]:
 
@@ -1347,7 +1347,7 @@ In[62]:
 
     plt.plot(x, y, 'o', markersize=5, color='r');
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_03.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_03.svg
 
 We will now see how to create a few other common plot types, such as a
 simple error plot:
@@ -1369,7 +1369,7 @@ In[63]:
     plt.errorbar(x, y, xerr=0.2, yerr=0.4)
     plt.title("Simplest errorbars, 0.2 in x, 0.4 in y");
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_04.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_04.svg
 
 A simple log plot
 
@@ -1381,7 +1381,7 @@ In[64]:
     y = np.exp(-x**2)
     plt.semilogy(x, y);
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_05.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_05.svg
 
 A histogram annotated with text inside the plot, using the ``text``
 function:
@@ -1404,7 +1404,7 @@ In[65]:
     plt.axis([40, 160, 0, 0.03])
     plt.grid(True)
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_06.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_06.svg
 
 Image display
 -------------
@@ -1419,7 +1419,7 @@ In[66]:
     from matplotlib import cm
     plt.imshow(np.random.rand(5, 10), cmap=cm.gray, interpolation='nearest');
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_07.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_07.svg
 
 A real photograph is a multichannel image, ``imshow`` interprets it
 correctly:
@@ -1437,7 +1437,7 @@ In[67]:
     Dimensions of the array img: (375, 500, 3)
 
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_08.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_08.svg
 
 Simple 3d plotting with matplotlib
 ----------------------------------
@@ -1479,7 +1479,7 @@ In[72]:
             linewidth=0, antialiased=False)
     ax.set_zlim3d(-1.01, 1.01);
 
-.. image:: tests/ipynbref/IntroNumPy.orig_files/IntroNumPy.orig_fig_09.svg
+.. image:: tests/ipynbref/IntroNumPy_orig_files/IntroNumPy_orig_fig_09.svg
 
 IPython: a powerful interactive environment
 ===========================================
