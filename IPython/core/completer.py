@@ -666,6 +666,10 @@ class IPCompleter(Completer):
         return matches
 
     def _default_arguments_from_docstring(self,doc):
+        """Parse first line of docstring of the
+        form 'min(iterable[, key=func])\n' to find
+        keyword argument names.
+        """
         doc = doc.lstrip()
         sio = StringIO.StringIO(doc)
         #care only the firstline
@@ -773,7 +777,7 @@ class IPCompleter(Completer):
         for callableMatch in callableMatches:
             try:
                 namedArgs = self._default_arguments(eval(callableMatch,
-                                                     self.namespace))
+                                                        self.namespace))
             except:
                 continue
 
