@@ -76,6 +76,7 @@ import os
 import re
 import shlex
 import sys
+import StringIO
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -664,29 +665,64 @@ class IPCompleter(Completer):
 
         return matches
 
+    def _default_arguments_from_docstring(self,doc):
+        doc = doc.lstrip()
+        sio = StringIO.StringIO(doc)
+        #care only the firstline
+        #docstring can be long
+        line = sio.readline()
+        p = re.compile(r'^[\w]+\(([^)]*)\).*')
+        #'min(iterable[, key=func])\n' -> 'iterable[, key=func]'
+        sig = p.search(line)
+        if sig is None: return []
+        # iterable[, key=func]' -> ['iterable[' ,' key=func]']
+        sig = sig.groups()[0].split(',')
+        #use this if you want iterable to show up too
+        #q = re.compile('[\s|\[]*(\w+)(?:\s*=?\s*.*)')
+        q = re.compile('[\s|\[]*(\w+)(?:\s*=\s*.*)')
+        ret = []
+        for s in sig:
+            tmp = q.match(s)
+            if tmp is not None:
+                ret.append(tmp.groups()[0])
+        return ret
+
     def _default_arguments(self, obj):
         """Return the list of default arguments of obj if it is callable,
         or empty list otherwise."""
-
-        if not (inspect.isfunction(obj) or inspect.ismethod(obj)):
+        call_obj = obj
+        ret = []
+        if inspect.isbuiltin(obj):
+            #parse builtin docstring for signature
+            ret+=self._default_arguments_from_docstring(
+                 getattr(obj,'__doc__',''))
+        elif not (inspect.isfunction(obj) or inspect.ismethod(obj)):
             # for classes, check for __init__,__new__
             if inspect.isclass(obj):
-                obj = (getattr(obj,'__init__',None) or
+                #for cython embded signature it puts
+                #__init__ signature in class docstring not __init__'s one
+                ret = self._default_arguments_from_docstring(
+                        getattr(obj,'__doc__',''))
+                call_obj = (getattr(obj,'__init__',None) or
                        getattr(obj,'__new__',None))
+                ret += self._default_arguments_from_docstring(
+                        getattr(all_obj,'__doc__',''))
             # for all others, check if they are __call__able
             elif hasattr(obj, '__call__'):
-                obj = obj.__call__
-            # XXX: is there a way to handle the builtins ?
+                call_obj = obj.__call__
+
         try:
-            args,_,_1,defaults = inspect.getargspec(obj)
+            args,_,_1,defaults = inspect.getargspec(call_obj)
             if defaults:
-                return args[-len(defaults):]
-        except TypeError: pass
-        return []
+                ret+=args[-len(defaults):]
+        except TypeError:
+            pass
+
+        return list(set(ret))
 
     def python_func_kw_matches(self,text):
         """Match named parameters (kwargs) of the last open function"""
-
+        
         if "." in text: # a parameter cannot be dotted
             return []
         try: regexp = self.__funcParamsRegex
@@ -703,6 +739,7 @@ class IPCompleter(Completer):
         tokens = regexp.findall(self.text_until_cursor)
         tokens.reverse()
         iterTokens = iter(tokens); openPar = 0
+
         for token in iterTokens:
             if token == ')':
                 openPar -= 1
@@ -716,6 +753,7 @@ class IPCompleter(Completer):
         # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
         ids = []
         isId = re.compile(r'\w+$').match
+
         while True:
             try:
                 ids.append(next(iterTokens))
@@ -735,9 +773,10 @@ class IPCompleter(Completer):
         for callableMatch in callableMatches:
             try:
                 namedArgs = self._default_arguments(eval(callableMatch,
-                                                         self.namespace))
+                                                     self.namespace))
             except:
                 continue
+
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
