@@ -95,7 +95,6 @@ class IPYNBTranslator(nodes.GenericNodeVisitor):
             p = nbformat.new_text_cell('markdown', source=text)
             self.add_cell(p)
 
-
     def visit_section(self, node):
         self.section_level += 1
         self.default_visit(node)

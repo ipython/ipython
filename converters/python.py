@@ -2,6 +2,7 @@ from converters.base import Converter
 from IPython.utils.text import indent
 from converters.utils import remove_ansi
 
+
 class ConverterPy(Converter):
     """
     A converter that takes a notebook and converts it to a .py file.
@@ -27,10 +28,10 @@ class ConverterPy(Converter):
     @staticmethod
     def comment(input):
         "returns every line in input as commented out"
-        return "# "+input.replace("\n", "\n# ")
+        return "# " + input.replace("\n", "\n# ")
 
     def render_heading(self, cell):
-        return ['#{0} {1}'.format('#'*cell.level, cell.source), '']
+        return ['#{0} {1}'.format('#' * cell.level, cell.source), '']
 
     def render_code(self, cell):
         n = self._get_prompt_number(cell)
@@ -42,7 +43,7 @@ class ConverterPy(Converter):
         src = cell.input
         lines.extend([src, ''])
         if self.show_output:
-            if cell.outputs :
+            if cell.outputs:
                 lines.extend(['# Out[%s]:' % n])
             for output in cell.outputs:
                 conv_fn = self.dispatch(output.output_type)
@@ -79,13 +80,13 @@ class ConverterPy(Converter):
         return [indent(remove_ansi('\n'.join(output.traceback))), '']
 
     def _img_lines(self, img_file):
-        return [ self.comment('image file: %s' % img_file), '']
+        return [self.comment('image file: %s' % img_file), '']
 
     def render_display_format_text(self, output):
         return [self.comment(indent(output.text))]
 
     def _unknown_lines(self, data):
-        return [self.comment('Warning: Unknown cell'+ str(data))]
+        return [self.comment('Warning: Unknown cell' + str(data))]
 
     def render_display_format_html(self, output):
         return [self.comment(output.html)]

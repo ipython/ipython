@@ -4,6 +4,7 @@ from converters.utils import cell_to_lines
 from shutil import rmtree
 import json
 
+
 class ConverterNotebook(Converter):
     """
     A converter that is essentially a null-op.
@@ -25,7 +26,8 @@ class ConverterNotebook(Converter):
         rmtree(self.files_dir)
 
     def convert(self):
-        return unicode(json.dumps(json.loads(Converter.convert(self, ',')), indent=1, sort_keys=True))
+        return unicode(json.dumps(json.loads(Converter.convert(self, ',')),
+                                  indent=1, sort_keys=True))
 
     def optional_header(self):
         s = \
@@ -37,7 +39,6 @@ class ConverterNotebook(Converter):
  "worksheets": [
  {
  "cells": [""" % {'name': os.path.basename(self.outbase)}
-
         return s.split('\n')
 
     def optional_footer(self):
@@ -77,7 +78,6 @@ class ConverterNotebook(Converter):
 
     def render_display_format_json(self, output):
         return [output.json]
-
 
     def render_display_format_javascript(self, output):
         return [output.javascript]

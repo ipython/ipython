@@ -2,6 +2,7 @@ from converters.base import Converter
 from converters.utils import highlight, remove_ansi
 from IPython.utils.text import indent
 
+
 class ConverterMarkdown(Converter):
     extension = 'md'
 
@@ -13,7 +14,7 @@ class ConverterMarkdown(Converter):
         self.inline_prompt = inline_prompt
 
     def render_heading(self, cell):
-        return ['{0} {1}'.format('#'*cell.level, cell.source), '']
+        return ['{0} {1}'.format('#' * cell.level, cell.source), '']
 
     def render_code(self, cell):
         if not cell.input:
@@ -25,7 +26,8 @@ class ConverterMarkdown(Converter):
         if self.show_prompts and self.inline_prompt:
             prompt = 'In[%s]: ' % n
             input_lines = cell.input.split('\n')
-            src = prompt + input_lines[0] + '\n' + indent('\n'.join(input_lines[1:]), nspaces=len(prompt))
+            src = (prompt + input_lines[0] + '\n' +
+                   indent('\n'.join(input_lines[1:]), nspaces=len(prompt)))
         else:
             src = cell.input
         src = highlight(src) if self.highlight_source else indent(src)
@@ -51,7 +53,7 @@ class ConverterMarkdown(Converter):
 
     def render_pyout(self, output):
         lines = []
-        
+
         ## if 'text' in output:
         ##     lines.extend(['*Out[%s]:*' % self._get_prompt_number(cell), ''])
 
@@ -71,7 +73,7 @@ class ConverterMarkdown(Converter):
 
     def _img_lines(self, img_file):
         return ['', '![](%s)' % img_file, '']
-    
+
     def render_display_format_text(self, output):
         return [indent(output.text)]
 

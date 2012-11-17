@@ -9,25 +9,28 @@ import os
 import sys
 
 from IPython.utils.text import indent
-from IPython.utils import path, py3compat
+from IPython.utils import py3compat
 from IPython.nbformat.v3.nbjson import BytesEncoder
+
 
 #-----------------------------------------------------------------------------
 # Utility functions
 #-----------------------------------------------------------------------------
 def highlight(src, lang='ipython'):
-    """Return a syntax-highlighted version of the input source.
+    """
+    Return a syntax-highlighted version of the input source.
     """
     from pygments import highlight
     from pygments.lexers import get_lexer_by_name
     from pygments.formatters import HtmlFormatter
-    
+
     if lang == 'ipython':
         lexer = IPythonLexer()
     else:
         lexer = get_lexer_by_name(lang, stripall=True)
-        
+
     return highlight(src, lexer, HtmlFormatter())
+
 
 def output_container(f):
     """add a prompt-area next to an output"""
@@ -41,17 +44,18 @@ def output_container(f):
         lines.extend(self._out_prompt(output))
         classes = "output_subarea output_%s" % output.output_type
         if 'html' in output.keys():
-            classes +=  ' output_html rendered_html'
+            classes += ' output_html rendered_html'
         if output.output_type == 'stream':
             classes += " output_%s" % output.stream
         lines.append('<div class="%s">' % classes)
         lines.extend(rendered)
-        lines.append('</div>') # subarea
-        lines.append('</div>') # output_area
-        
+        lines.append('</div>')  # subarea
+        lines.append('</div>')  # output_area
+
         return lines
-    
+
     return wrapped
+
 
 def text_cell(f):
     """wrap text cells in appropriate divs"""
@@ -88,9 +92,9 @@ def remove_ansi(src):
 
 def ansi2html(txt):
     """Render ANSI colors as HTML colors
-    
+
     This is equivalent to util.fixConsole in utils.js
-    
+
     Parameters
     ----------
     txt : string
@@ -99,7 +103,7 @@ def ansi2html(txt):
     -------
     string
     """
-    
+
     ansi_colormap = {
         '30': 'ansiblack',
         '31': 'ansired',
@@ -111,7 +115,7 @@ def ansi2html(txt):
         '37': 'ansigrey',
         '01': 'ansibold',
     }
-    
+
     # do ampersand first
     txt = txt.replace('&', '&amp;')
     html_escapes = {
@@ -123,7 +127,7 @@ def ansi2html(txt):
     }
     for c, escape in html_escapes.iteritems():
         txt = txt.replace(c, escape)
-    
+
     ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
     m = ansi_re.search(txt)
     opened = False
@@ -133,20 +137,22 @@ def ansi2html(txt):
     while m:
         cmds = m.groups()[0].split(';')
         closer = '</span>' if opened else ''
-        opened = len(cmds) > 1 or cmds[0] != '0'*len(cmds[0]);
+        # True if there is there more than one element in cmds, *or*
+        # if there is only one but it is not equal to a string of zeroes.
+        opened = len(cmds) > 1 or cmds[0] != '0' * len(cmds[0])
         classes = []
         for cmd in cmds:
             if cmd in ansi_colormap:
                 classes.append(ansi_colormap.get(cmd))
-        
+
         if classes:
             opener = '<span class="%s">' % (' '.join(classes))
         else:
             opener = ''
         txt = re.sub(ansi_re, closer + opener, txt, 1)
-        
+
         m = ansi_re.search(txt)
-    
+
     if opened:
         txt += '</span>'
     return txt
@@ -177,7 +183,7 @@ def markdown2latex(src):
     if err:
         print(err, file=sys.stderr)
     #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
-    return unicode(out,'utf-8')
+    return unicode(out, 'utf-8')
 
 
 def markdown2rst(src):
@@ -203,7 +209,7 @@ def markdown2rst(src):
     if err:
         print(err, file=sys.stderr)
     #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
-    return unicode(out,'utf-8')
+    return unicode(out, 'utf-8')
 
 
 def rst_directive(directive, text=''):
@@ -218,9 +224,9 @@ def rst_directive(directive, text=''):
 
 def coalesce_streams(outputs):
     """merge consecutive sequences of stream output into single stream
-    
+
     to prevent extra newlines inserted at flush calls
-    
+
     TODO: handle \r deletion
     """
     new_outputs = []
@@ -234,7 +240,7 @@ def coalesce_streams(outputs):
             last.text += output.text
         else:
             new_outputs.append(output)
-    
+
     return new_outputs
 
 
@@ -270,8 +276,8 @@ def rst2simplehtml(infile):
     walker = iter(html.splitlines())
 
     # Find start of main text, break out to then print until we find end /div.
-    # This may only work if there's a real title defined so we get a 'div class'
-    # tag, I haven't really tried.
+    # This may only work if there's a real title defined so we get a 'div
+    # class' tag, I haven't really tried.
     for line in walker:
         if line.startswith('<body>'):
             break
@@ -286,6 +292,7 @@ def rst2simplehtml(infile):
 
     return newfname
 
+
 #-----------------------------------------------------------------------------
 # Cell-level functions -- similar to IPython.nbformat.v3.rwbase functions
 # but at cell level instead of whole notebook level
@@ -295,7 +302,7 @@ def writes_cell(cell, **kwargs):
     kwargs['cls'] = BytesEncoder
     kwargs['indent'] = 3
     kwargs['sort_keys'] = True
-    kwargs['separators'] = (',',': ')
+    kwargs['separators'] = (',', ': ')
     if kwargs.pop('split_lines', True):
         cell = split_lines_cell(copy.deepcopy(cell))
     return py3compat.str_to_unicode(json.dumps(cell, **kwargs), 'utf-8')
@@ -306,7 +313,7 @@ _multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 
 def split_lines_cell(cell):
     """
-    Split lines within a cell as in 
+    Split lines within a cell as in
     IPython.nbformat.v3.rwbase.split_lines
 
     """
@@ -318,7 +325,7 @@ def split_lines_cell(cell):
                 item = output.get(key, None)
                 if isinstance(item, basestring):
                     output[key] = (item + '\n').splitlines()
-    else: # text, heading cell
+    else:  # text, heading cell
         for key in ['source', 'rendered']:
             item = cell.get(key, None)
             if isinstance(item, basestring):

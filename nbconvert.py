@@ -21,7 +21,6 @@ from converters.markdown import ConverterMarkdown
 from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
-from converters.notebook import ConverterNotebook
 from converters.python import ConverterPy
 
 
@@ -66,7 +65,8 @@ if __name__ == '__main__':
             formatter_class=argparse.RawTextHelpFormatter)
     # TODO: consider passing file like object around, rather than filenames
     # would allow us to process stdin, or even http streams
-    #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin)
+    #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
+    #                    default=sys.stdin)
 
     #Require a filename as a positional argument
     parser.add_argument('infile', nargs=1)
