@@ -698,11 +698,11 @@ class IPCompleter(Completer):
         if inspect.isbuiltin(obj):
             pass
         elif not (inspect.isfunction(obj) or inspect.ismethod(obj)):
-            #for cython embededsignature=True the docstring belongs to
-            #the object itself not __init__ or __call__
-            ret += self._default_arguments_from_docstring(
-                        getattr(obj,'__doc__',''))
             if inspect.isclass(obj):
+                #for cython embededsignature=True the constructor docstring
+                #belongs to the object itself not __init__
+                ret += self._default_arguments_from_docstring(
+                            getattr(obj,'__doc__',''))
                 # for classes, check for __init__,__new__
                 call_obj = (getattr(obj,'__init__',None) or
                        getattr(obj,'__new__',None))
