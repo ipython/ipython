@@ -39,6 +39,8 @@ class ConverterLaTeX(Converter):
                    4: r'\paragraph',
                    5: r'\subparagraph',
                    6: r'\subparagraph'}
+    user_preamble = None
+    exclude_cells = []
 
     def in_env(self, environment, lines):
         """Return list of environment lines for input lines
@@ -105,14 +107,19 @@ class ConverterLaTeX(Converter):
 
         # Cell codes first carry input code, we use lstlisting for that
         lines = [ur'\begin{codecell}']
-        
-        lines.extend(self.in_env('codeinput',
-                              self.in_env('lstlisting', cell.input)))
+
+        if 'source' not in self.exclude_cells:
+            lines.extend(self.in_env('codeinput',
+                                     self.in_env('lstlisting', cell.input)))
+        else:
+            # Empty output is still needed for LaTeX formatting
+            lines.extend(self.in_env('codeinput', ''))
 
         outlines = []
-        for output in cell.outputs:
-            conv_fn = self.dispatch(output.output_type)
-            outlines.extend(conv_fn(output))
+        if 'output' not in self.exclude_cells:
+            for output in cell.outputs:
+                conv_fn = self.dispatch(output.output_type)
+                outlines.extend(conv_fn(output))
 
         # And then output of many possible types; use a frame for all of it.
         if outlines:

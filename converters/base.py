@@ -7,12 +7,31 @@ import io
 import logging
 import os
 import pprint
+import re
 from types import FunctionType
 
 # From IPython
 from IPython.nbformat import current as nbformat
 
 # local
+
+def clean_filename(filename):
+    """
+    Remove non-alphanumeric characters from filenames.
+
+    Parameters
+    ----------
+    filename : str
+        The filename to be sanitized.
+
+    Returns
+    -------
+    clean : str
+        A sanitized filename that contains only alphanumeric
+        characters and underscores.
+    """
+    filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
+    return filename
 
 #-----------------------------------------------------------------------------
 # Class declarations
@@ -64,12 +83,16 @@ class Converter(object):
     output = unicode()
     raw_as_verbatim = False
     blank_symbol = " "
+    # Which display data format is best? Subclasses can override if
+    # they have specific requirements.
+    display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
 
     def __init__(self, infile):
         self.infile = infile
         self.infile_dir, infile_root = os.path.split(infile)
         infile_root = os.path.splitext(infile_root)[0]
-        files_dir = os.path.join(self.infile_dir, infile_root + '_files')
+        self.clean_name = clean_filename(infile_root)
+        files_dir = os.path.join(self.infile_dir, self.clean_name + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
         self.infile_root = infile_root
@@ -173,7 +196,7 @@ class Converter(object):
 
         Returns a path relative to the input file.
         """
-        figname = '%s_fig_%02i.%s' % (self.infile_root,
+        figname = '%s_fig_%02i.%s' % (self.clean_name,
                                       self.figures_counter, fmt)
         self.figures_counter += 1
         fullname = os.path.join(self.files_dir, figname)
@@ -219,20 +242,29 @@ class Converter(object):
 
         Returns list.
         """
-        lines = []
+        for fmt in self.display_data_priority:
+            if fmt in output:
+                break
+        else:
+            for fmt in output:
+                if fmt != 'output_type':
+                    break
+            else:
+                raise RuntimeError('no display data')
 
-        for fmt in output.keys():
-            if fmt in ['png', 'svg', 'jpg', 'pdf']:
-                img_file = self._new_figure(output[fmt], fmt)
-                # Subclasses can have format-specific render functions (e.g.,
-                # latex has to auto-convert all SVG to PDF first).
-                lines_fun = getattr(self, '_%s_lines' % fmt, None)
-                if not lines_fun:
-                    lines_fun = self._img_lines
-                lines.extend(lines_fun(img_file))
-            elif fmt != 'output_type':
-                conv_fn = self.dispatch_display_format(fmt)
-                lines.extend(conv_fn(output))
+        # Is it an image?
+        if fmt in ['png', 'svg', 'jpg', 'pdf']:
+            img_file = self._new_figure(output[fmt], fmt)
+            # Subclasses can have format-specific render functions (e.g.,
+            # latex has to auto-convert all SVG to PDF first).
+            lines_fun = getattr(self, '_%s_lines' % fmt, None)
+            if not lines_fun:
+                lines_fun = self._img_lines
+            lines = lines_fun(img_file)
+        else:
+            lines_fun = self.dispatch_display_format(fmt)
+            lines = lines_fun(output)
+
         return lines
 
     def render_raw(self, cell):
