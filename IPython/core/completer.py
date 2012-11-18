@@ -672,11 +672,11 @@ class IPCompleter(Completer):
         return matches
 
     def _default_arguments_from_docstring(self, doc):
-        """Parse first line of docstring for call signature
+        """Parse first line of docstring for call signature.
 
         Docstring should be of the form 'min(iterable[, key=func])\n'.
-        I can also parse cython docstring of the form
-        'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)'
+        It can also parse cython docstring of the form
+        'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)'.
         """
         if doc is None:
             return []
