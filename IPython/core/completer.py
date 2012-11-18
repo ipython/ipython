@@ -497,6 +497,12 @@ class IPCompleter(Completer):
         else:
             self.clean_glob = self._clean_glob
 
+        #regexp to parse docstring for function signature
+        self.docstring_sig_re = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
+        self.docstring_kwd_re = re.compile(r'[\s|\[]*(\w+)(?:\s*=\s*.*)')
+        #use this if positional argument name is also needed
+        #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
+
         # All active matcher routines for completion
         self.matchers = [self.python_matches,
                          self.file_matches,
@@ -670,24 +676,23 @@ class IPCompleter(Completer):
         form 'min(iterable[, key=func])\n' to find
         keyword argument names.
         """
-        if doc is None: return []
-        doc = doc.lstrip()
-        sio = StringIO.StringIO(doc)
+        if doc is None:
+            return []
+        sio = StringIO.StringIO(doc.lstrip())
         #care only the firstline
         #docstring can be long
         line = sio.readline()
-        p = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
+        #p = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
         #'min(iterable[, key=func])\n' -> 'iterable[, key=func]'
-        sig = p.search(line)
-        if sig is None: return []
+        sig = self.docstring_sig_re.search(line)
+        if sig is None:
+            return []
         # iterable[, key=func]' -> ['iterable[' ,' key=func]']
         sig = sig.groups()[0].split(',')
-        #use this if you want iterable to show up too
-        #q = re.compile('[\s|\[]*(\w+)(?:\s*=?\s*.*)')
-        q = re.compile('[\s|\[]*(\w+)(?:\s*=\s*.*)')
         ret = []
         for s in sig:
-            ret += q.findall(s)
+            #re.compile(r'[\s|\[]*(\w+)(?:\s*=\s*.*)')
+            ret += self.docstring_kwd_re.findall(s)
         return ret
 
     def _default_arguments(self, obj):
@@ -702,16 +707,16 @@ class IPCompleter(Completer):
                 #for cython embededsignature=True the constructor docstring
                 #belongs to the object itself not __init__
                 ret += self._default_arguments_from_docstring(
-                            getattr(obj,'__doc__',''))
+                            getattr(obj, '__doc__', ''))
                 # for classes, check for __init__,__new__
-                call_obj = (getattr(obj,'__init__',None) or
-                       getattr(obj,'__new__',None))
+                call_obj = (getattr(obj, '__init__', None) or
+                       getattr(obj, '__new__', None))
             # for all others, check if they are __call__able
             elif hasattr(obj, '__call__'):
                 call_obj = obj.__call__
 
         ret += self._default_arguments_from_docstring(
-                 getattr(call_obj,'__doc__',''))
+                 getattr(call_obj, '__doc__', ''))
 
         try:
             args,_,_1,defaults = inspect.getargspec(call_obj)
