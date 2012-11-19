@@ -102,7 +102,7 @@ class ConverterHTML(Converter):
             '<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n
         )
         lines.append('<div class="input_area box-flex1">')
-        lines.append(highlight(cell.input) if self.highlight_code
+        lines.append(highlight(cell.input) if self.highlight_source
                      else cell.input)
         lines.append('</div>')  # input_area
         lines.append('</div>')  # input

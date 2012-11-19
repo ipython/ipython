@@ -46,7 +46,7 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
 
 
 def main(infile, format='rst', preamble=None, exclude=None,
-         highlight_code=True):
+         highlight_source=True):
     """Convert a notebook to html in one step"""
     try:
         ConverterClass = converters[format]
@@ -54,7 +54,7 @@ def main(infile, format='rst', preamble=None, exclude=None,
         raise SystemExit("Unknown format '%s', " % format +
                          "known formats are: " + known_formats)
 
-    converter = ConverterClass(infile, highlight_code)
+    converter = ConverterClass(infile, highlight_source=highlight_source)
     converter.render()
 
 #-----------------------------------------------------------------------------

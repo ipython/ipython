@@ -78,7 +78,7 @@ class Converter(object):
     extension = str()
     figures_counter = 0
     infile = str()
-    highlight_code = None
+    highlight_source = None
     infile_dir = str()
     infile_root = str()
     files_dir = str()
@@ -91,9 +91,9 @@ class Converter(object):
     # they have specific requirements.
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
 
-    def __init__(self, infile, highlight_code=True):
+    def __init__(self, infile, highlight_source=True):
         self.infile = infile
-        self.highlight_code = highlight_code
+        self.highlight_source = highlight_source
         self.infile_dir, infile_root = os.path.split(infile)
         infile_root = os.path.splitext(infile_root)[0]
         self.clean_name = clean_filename(infile_root)
