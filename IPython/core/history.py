@@ -307,7 +307,7 @@ class HistoryAccessor(Configurable):
 
     @catch_corrupt_db
     def search(self, pattern="*", raw=True, search_raw=True,
-               output=False, n=None):
+               output=False, n=None, unique=False):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
 
@@ -322,6 +322,8 @@ class HistoryAccessor(Configurable):
         n : None or int
           If an integer is given, it defines the limit of
           returned entries.
+        unique : bool
+          When it is true, return only unique entries.
 
         Returns
         -------
@@ -333,9 +335,13 @@ class HistoryAccessor(Configurable):
         self.writeout_cache()
         sqlform = "WHERE %s GLOB ?" % tosearch
         params = (pattern,)
+        if unique:
+            sqlform += ' GROUP BY {0}'.format(tosearch)
         if n is not None:
             sqlform += " ORDER BY session DESC, line DESC LIMIT ?"
             params += (n,)
+        elif unique:
+            sqlform += " ORDER BY session, line"
         cur = self._run_sql(sqlform, params, raw=raw, output=output)
         if n is not None:
             return reversed(list(cur))
