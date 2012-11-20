@@ -114,6 +114,12 @@ def test_history():
                              newhist[2],
                              newhist[3]])
 
+            gothist = ip.history_manager.search("*=*", unique=True, n=3)
+            nt.assert_equal(list(gothist),
+                            [(1, 3, hist[2]),
+                             newhist[2],
+                             newhist[3]])
+
             gothist = ip.history_manager.search("b*", output=True)
             nt.assert_equal(list(gothist), [(1,3,(hist[2],"spam"))] )
 
