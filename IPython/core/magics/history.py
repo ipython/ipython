@@ -89,6 +89,11 @@ class HistoryMagics(Magics):
         get the last n lines from all sessions. Specify n as a single
         arg, or the default is the last 10 lines.
         """)
+    @argument(
+        '-u', dest='unique', action='store_true',
+        help="""
+        when searching history using `-g`, show only unique history.
+        """)
     @argument('range', nargs='*')
     @skip_doctest
     @line_magic
@@ -165,7 +170,7 @@ class HistoryMagics(Magics):
             else:
                 pattern = "*"
             hist = history_manager.search(pattern, raw=raw, output=get_output,
-                                          n=limit)
+                                          n=limit, unique=args.unique)
             print_nums = True
         elif args.limit is not _unspecified:
             n = 10 if limit is None else limit
