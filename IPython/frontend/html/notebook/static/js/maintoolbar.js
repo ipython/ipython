@@ -51,10 +51,10 @@ var IPython = (function (IPython) {
                 },
                 {
                     id : 'paste_b',
-                    label : 'Paste Cell',
+                    label : 'Paste Cell Below',
                     icon : 'ui-icon-clipboard',
                     callback : function () {
-                        IPython.notebook.paste_cell();
+                        IPython.notebook.paste_cell_below();
                         }
                 }
             ],'cut_copy_paste');
