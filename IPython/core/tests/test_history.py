@@ -73,7 +73,7 @@ def test_history():
             gothist = ip.history_manager.get_range(-1, 1, 4)
             nt.assert_equal(list(gothist), zip([1,1,1],[1,2,3], hist))
 
-            newhist = [(2, i + 1, c) for (i, c) in enumerate(newcmds)]
+            newhist = [(2, i, c) for (i, c) in enumerate(newcmds, 1)]
 
             # Check get_hist_tail
             gothist = ip.history_manager.get_tail(5, output=True,
