@@ -150,7 +150,7 @@ class ConverterLaTeX(Converter):
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:
-            lines.extend(output.latex)
+            lines.extend(self.in_env('equation*', output.latex.lstrip('$$').rstrip('$$')))
 
         if 'text' in output:
             lines.extend(self.in_env('verbatim', output.text))
