@@ -142,8 +142,8 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 86 && that.control_key_active) {
-                // Paste above selected cell = v
-                that.paste_cell_above();
+                // Paste below selected cell = v
+                that.paste_cell_below();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 68 && that.control_key_active) {
