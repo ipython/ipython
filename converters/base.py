@@ -1,7 +1,23 @@
-from __future__ import print_function, absolute_import
-from converters.utils import remove_fake_files_url
+"""Base classes for the notebook conversion pipeline.
 
-# Stdlib
+This module defines Converter, from which all objects designed to implement
+a conversion of IPython notebooks to some other format should inherit.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+from __future__ import print_function, absolute_import
+
+# Stdlib imports
 import codecs
 import io
 import logging
@@ -10,10 +26,16 @@ import pprint
 import re
 from types import FunctionType
 
-# From IPython
+# IPython imports
 from IPython.nbformat import current as nbformat
 
-# local
+# Our own imports
+from converters.utils import remove_fake_files_url
+
+
+#-----------------------------------------------------------------------------
+# Local utilities
+#-----------------------------------------------------------------------------
 
 def clean_filename(filename):
     """
@@ -33,10 +55,10 @@ def clean_filename(filename):
     filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
     return filename
 
+
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
-
 
 class ConversionException(Exception):
     pass

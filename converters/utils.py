@@ -1,6 +1,24 @@
-from __future__ import print_function
-from lexers import IPythonLexer
+"""A one-line description.
 
+A longer description that spans multiple lines.  Explain the purpose of the
+file and provide a short list of the key classes/functions it contains.  This
+is the docstring shown when some does 'import foo;foo?' in IPython, so it
+should be reasonably useful and informative.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function
+
+# Stdlib imports
 import subprocess
 import copy
 import json
@@ -8,9 +26,18 @@ import re
 import os
 import sys
 
+# IPython imports
 from IPython.utils.text import indent
 from IPython.utils import py3compat
 from IPython.nbformat.v3.nbjson import BytesEncoder
+
+# Our own imports
+from lexers import IPythonLexer
+
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
+_multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 
 
 #-----------------------------------------------------------------------------
@@ -306,9 +333,6 @@ def writes_cell(cell, **kwargs):
     if kwargs.pop('split_lines', True):
         cell = split_lines_cell(copy.deepcopy(cell))
     return py3compat.str_to_unicode(json.dumps(cell, **kwargs), 'utf-8')
-
-
-_multiline_outputs = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 
 
 def split_lines_cell(cell):

@@ -1,15 +1,45 @@
-from converters.base import Converter
-from converters.utils import markdown2latex, remove_ansi
+"""Notebook export to LaTeX.
+
+This file implements a converter class for rendering IPython notebooks as
+LaTeX, suitable for rendering by pdflatex.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Stdlib imports
 import os
 import subprocess
 import sys
 
+# Our own imports
+from converters.base import Converter
+from converters.utils import markdown2latex, remove_ansi
+
+
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
+
+# XXX: This is a hack that needs to be addressed in a more principled fashion.
 inkscape = 'inkscape'
 if sys.platform == 'darwin':
     inkscape = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
     if not os.path.exists(inkscape):
         inkscape = None
 
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 
 class ConverterLaTeX(Converter):
     """Converts a notebook to a .tex file suitable for pdflatex.

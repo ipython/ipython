@@ -1,8 +1,29 @@
+"""Converter implementing Markdown export.
+
+Implements a Converter that allows IPython notebooks to reasonably rendered
+as a Markdown document.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Our own imports
 from converters.base import Converter
 from converters.utils import highlight, remove_ansi
 from IPython.utils.text import indent
 
 
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 class ConverterMarkdown(Converter):
     extension = 'md'
 

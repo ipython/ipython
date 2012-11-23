@@ -1,8 +1,32 @@
-from converters.base import Converter
+"""Notebook export to .py source code files.
+
+Since Python export is provided in the notebook itself (provided by classes
+in `IPython.nbformat`), this class serves mainly as a base class for other
+converters that may wish to implement cell-type-specific behaviors.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# IPython imports
 from IPython.utils.text import indent
+
+# Our own imports
+from converters.base import Converter
 from converters.utils import remove_ansi
 
 
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 class ConverterPy(Converter):
     """
     A converter that takes a notebook and converts it to a .py file.
