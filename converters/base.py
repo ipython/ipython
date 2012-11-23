@@ -100,7 +100,7 @@ class Converter(object):
     extension = str()
     figures_counter = 0
     infile = str()
-    highlight_source = None
+    highlight_source = True
     infile_dir = str()
     infile_root = str()
     files_dir = str()
