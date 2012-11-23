@@ -229,21 +229,24 @@ def interactive(f):
 @interactive
 def _push(**ns):
     """helper method for implementing `client.push` via `client.apply`"""
-    globals().update(ns)
+    user_ns = globals()
+    tmp = '_IP_PUSH_TMP_'
+    while tmp in user_ns:
+        tmp = tmp + '_'
+    try:
+        for name, value in ns.iteritems():
+            user_ns[tmp] = value
+            exec "%s = %s" % (name, tmp) in user_ns
+    finally:
+        user_ns.pop(tmp, None)
 
 @interactive
 def _pull(keys):
     """helper method for implementing `client.pull` via `client.apply`"""
-    user_ns = globals()
     if isinstance(keys, (list,tuple, set)):
-        for key in keys:
-            if key not in user_ns:
-                raise NameError("name '%s' is not defined"%key)
-        return map(user_ns.get, keys)
+        return map(lambda key: eval(key, globals()), keys)
     else:
-        if keys not in user_ns:
-            raise NameError("name '%s' is not defined"%keys)
-        return user_ns.get(keys)
+        return eval(keys, globals())
 
 @interactive
 def _execute(code):

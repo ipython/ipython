@@ -29,17 +29,11 @@ import runpy
 import sys
 import tempfile
 import types
-
-# We need to use nested to support python 2.6, once we move to >=2.7, we can
-# use the with keyword's new builtin support for nested managers
-try:
-    from contextlib import nested
-except:
-    from IPython.utils.nested_context import nested
+import urllib
+from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
 from IPython.core import debugger, oinspect
-from IPython.core import history as ipcorehist
 from IPython.core import magic
 from IPython.core import page
 from IPython.core import prefilter
@@ -61,7 +55,6 @@ from IPython.core.inputsplitter import IPythonInputSplitter, ESC_MAGIC, ESC_MAGI
 from IPython.core.logger import Logger
 from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
-from IPython.core.plugin import PluginManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
@@ -392,7 +385,6 @@ class InteractiveShell(SingletonConfigurable):
     builtin_trap = Instance('IPython.core.builtin_trap.BuiltinTrap')
     display_trap = Instance('IPython.core.display_trap.DisplayTrap')
     extension_manager = Instance('IPython.core.extensions.ExtensionManager')
-    plugin_manager = Instance('IPython.core.plugin.PluginManager')
     payload_manager = Instance('IPython.core.payload.PayloadManager')
     history_manager = Instance('IPython.core.history.HistoryManager')
     magics_manager = Instance('IPython.core.magic.MagicsManager')
@@ -492,7 +484,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_logstart()
         self.init_pdb()
         self.init_extension_manager()
-        self.init_plugin_manager()
         self.init_payload()
         self.hooks.late_startup_hook()
         atexit.register(self.atexit_operations)
@@ -507,7 +498,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def _ipython_dir_changed(self, name, new):
         if not os.path.isdir(new):
-            os.makedirs(new, mode = 0777)
+            os.makedirs(new, mode = 0o777)
 
     def set_autoindent(self,value=None):
         """Set the autoindent flag, checking for readline support.
@@ -638,7 +629,7 @@ class InteractiveShell(SingletonConfigurable):
         # override sys.stdout and sys.stderr themselves, you need to do that
         # *before* instantiating this class, because io holds onto
         # references to the underlying streams.
-        if sys.platform == 'win32' and self.has_readline:
+        if (sys.platform == 'win32' or sys.platform == 'cli') and self.has_readline:
             io.stdout = io.stderr = io.IOStream(self.readline._outputfile)
         else:
             io.stdout = io.IOStream(sys.stdout)
@@ -1722,7 +1713,7 @@ class InteractiveShell(SingletonConfigurable):
                 self.write_err('No traceback available to show.\n')
                 return
             
-            if etype is SyntaxError:
+            if issubclass(etype, SyntaxError):
                 # Though this won't be called by syntax errors in the input
                 # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
@@ -1775,7 +1766,7 @@ class InteractiveShell(SingletonConfigurable):
         """
         etype, value, last_traceback = self._get_exc_info()
 
-        if filename and etype is SyntaxError:
+        if filename and issubclass(etype, SyntaxError):
             try:
                 value.filename = filename
             except:
@@ -2288,17 +2279,12 @@ class InteractiveShell(SingletonConfigurable):
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
     #-------------------------------------------------------------------------
-    # Things related to extensions and plugins
+    # Things related to extensions
     #-------------------------------------------------------------------------
 
     def init_extension_manager(self):
         self.extension_manager = ExtensionManager(shell=self, config=self.config)
         self.configurables.append(self.extension_manager)
-
-    def init_plugin_manager(self):
-        self.plugin_manager = PluginManager(config=self.config)
-        self.configurables.append(self.plugin_manager)
-        
 
     #-------------------------------------------------------------------------
     # Things related to payloads
@@ -2461,9 +2447,6 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
-            # Ensure that __file__ is always defined to match Python behavior
-            save_fname = self.user_ns.get('__file__',None)
-            self.user_ns['__file__'] = fname
             try:
                 py3compat.execfile(fname,*where)
             except SystemExit as status:
@@ -2484,8 +2467,6 @@ class InteractiveShell(SingletonConfigurable):
                 if kw['raise_exceptions']:
                     raise
                 self.showtraceback()
-            finally:
-                self.user_ns['__file__'] = save_fname
 
     def safe_execfile_ipy(self, fname):
         """Like safe_execfile, but for .ipy files with IPython syntax.
@@ -2512,9 +2493,6 @@ class InteractiveShell(SingletonConfigurable):
         dname = os.path.dirname(fname)
 
         with prepended_to_syspath(dname):
-            # Ensure that __file__ is always defined to match Python behavior
-            save_fname = self.user_ns.get('__file__',None)
-            self.user_ns['__file__'] = fname
             try:
                 with open(fname) as thefile:
                     # self.run_cell currently captures all exceptions
@@ -2525,8 +2503,6 @@ class InteractiveShell(SingletonConfigurable):
             except:
                 self.showtraceback()
                 warn('Unknown failure executing file: <%s>' % fname)
-            finally:
-                self.user_ns['__file__'] = save_fname
 
     def safe_run_module(self, mod_name, where):
         """A safe version of runpy.run_module().
@@ -2914,7 +2890,7 @@ class InteractiveShell(SingletonConfigurable):
         lines = self.history_manager.get_range_by_str(range_str, raw=raw)
         return "\n".join(x for _, _, x in lines)
 
-    def find_user_code(self, target, raw=True, py_only=False):
+    def find_user_code(self, target, raw=True, py_only=False, skip_encoding_cookie=True):
         """Get a code string from history, file, url, or a string or macro.
 
         This is mainly used by magic functions.
@@ -2951,7 +2927,7 @@ class InteractiveShell(SingletonConfigurable):
         utarget = unquote_filename(target)
         try:
             if utarget.startswith(('http://', 'https://')):
-                return openpy.read_py_url(utarget, skip_encoding_cookie=True)
+                return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
                 response = urllib.urlopen(target)
@@ -2967,7 +2943,7 @@ class InteractiveShell(SingletonConfigurable):
         for tgt in potential_target :
             if os.path.isfile(tgt):                        # Read file
                 try :
-                    return openpy.read_py_file(tgt, skip_encoding_cookie=True)
+                    return openpy.read_py_file(tgt, skip_encoding_cookie=skip_encoding_cookie)
                 except UnicodeDecodeError :
                     if not py_only :
                         with io_open(tgt,'r', encoding='latin1') as f :

@@ -30,9 +30,9 @@ import bdb
 import linecache
 import sys
 
-from IPython.utils import PyColorize
+from IPython.utils import PyColorize, ulinecache
 from IPython.core import ipapi
-from IPython.utils import coloransi, io
+from IPython.utils import coloransi, io, openpy, py3compat
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.
@@ -304,16 +304,16 @@ class Pdb(OldPdb):
         # vds: <<
 
     def format_stack_entry(self, frame_lineno, lprefix=': ', context = 3):
-        import linecache, repr
+        import repr
 
         ret = []
 
         Colors = self.color_scheme_table.active_colors
         ColorsNormal = Colors.Normal
-        tpl_link = '%s%%s%s' % (Colors.filenameEm, ColorsNormal)
-        tpl_call = '%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
-        tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
-        tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
+        tpl_link = u'%s%%s%s' % (Colors.filenameEm, ColorsNormal)
+        tpl_call = u'%s%%s%s%%s%s' % (Colors.vName, Colors.valEm, ColorsNormal)
+        tpl_line = u'%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
+        tpl_line_em = u'%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line,
                                             ColorsNormal)
 
         frame, lineno = frame_lineno
@@ -327,7 +327,7 @@ class Pdb(OldPdb):
 
         #s = filename + '(' + `lineno` + ')'
         filename = self.canonic(frame.f_code.co_filename)
-        link = tpl_link % filename
+        link = tpl_link % py3compat.cast_unicode(filename)
 
         if frame.f_code.co_name:
             func = frame.f_code.co_name
@@ -348,10 +348,10 @@ class Pdb(OldPdb):
             ret.append('> ')
         else:
             ret.append('  ')
-        ret.append('%s(%s)%s\n' % (link,lineno,call))
+        ret.append(u'%s(%s)%s\n' % (link,lineno,call))
 
         start = lineno - 1 - context//2
-        lines = linecache.getlines(filename)
+        lines = ulinecache.getlines(filename)
         start = max(start, 0)
         start = min(start, len(lines) - context)
         lines = lines[start : start + context]
@@ -364,7 +364,6 @@ class Pdb(OldPdb):
             ret.append(self.__format_line(linetpl, filename,
                                           start + 1 + i, line,
                                           arrow = show_arrow) )
-
         return ''.join(ret)
 
     def __format_line(self, tpl_line, filename, lineno, line, arrow = False):
@@ -422,8 +421,11 @@ class Pdb(OldPdb):
             tpl_line = '%%s%s%%s %s%%s' % (Colors.lineno, ColorsNormal)
             tpl_line_em = '%%s%s%%s %s%%s%s' % (Colors.linenoEm, Colors.line, ColorsNormal)
             src = []
+            if filename == "<string>" and hasattr(self, "_exec_filename"):
+                filename = self._exec_filename
+            
             for lineno in range(first, last+1):
-                line = linecache.getline(filename, lineno)
+                line = ulinecache.getline(filename, lineno)
                 if not line:
                     break
 
@@ -475,23 +477,51 @@ class Pdb(OldPdb):
     do_l = do_list
 
     def do_pdef(self, arg):
-        """The debugger interface to magic_pdef"""
+        """Print the call signature for any callable object.
+
+        The debugger interface to %pdef"""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdef')(arg, namespaces=namespaces)
 
     def do_pdoc(self, arg):
-        """The debugger interface to magic_pdoc"""
+        """Print the docstring for an object.
+
+        The debugger interface to %pdoc."""
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
         self.shell.find_line_magic('pdoc')(arg, namespaces=namespaces)
 
-    def do_pinfo(self, arg):
-        """The debugger equivalant of ?obj"""
+    def do_pfile(self, arg):
+        """Print (or run through pager) the file where an object is defined.
+
+        The debugger interface to %pfile.
+        """
         namespaces = [('Locals', self.curframe.f_locals),
                       ('Globals', self.curframe.f_globals)]
-        self.shell.find_line_magic('pinfo')("pinfo %s" % arg,
-                                            namespaces=namespaces)
+        self.shell.find_line_magic('pfile')(arg, namespaces=namespaces)
+
+    def do_pinfo(self, arg):
+        """Provide detailed information about an object.
+
+        The debugger interface to %pinfo, i.e., obj?."""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('pinfo')(arg, namespaces=namespaces)
+
+    def do_pinfo2(self, arg):
+        """Provide extra detailed information about an object.
+
+        The debugger interface to %pinfo2, i.e., obj??."""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('pinfo2')(arg, namespaces=namespaces)
+
+    def do_psource(self, arg):
+        """Print (or run through pager) the source code for an object."""
+        namespaces = [('Locals', self.curframe.f_locals),
+                      ('Globals', self.curframe.f_globals)]
+        self.shell.find_line_magic('psource')(arg, namespaces=namespaces)
 
     def checkline(self, filename, lineno):
         """Check whether specified line seems to be executable.

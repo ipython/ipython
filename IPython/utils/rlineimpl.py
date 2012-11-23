@@ -73,7 +73,7 @@ if have_readline and hasattr(_rl, 'rlmain'):
                 line = lineobj.TextLine(line)
             return _rl.add_history(line)
 
-if sys.platform == 'win32' and have_readline:
+if (sys.platform == 'win32' or sys.platform == 'cli') and have_readline:
     try:
         _outputfile=_rl.GetOutputFile()
     except AttributeError:

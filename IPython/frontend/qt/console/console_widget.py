@@ -10,6 +10,7 @@ import re
 import sys
 from textwrap import dedent
 from unicodedata import category
+import webbrowser
 
 # System library imports
 from IPython.external.qt import QtCore, QtGui
@@ -267,7 +268,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
-        self._filter_drag = False
         self._filter_resize = False
         self._html_exporter = HtmlExporter(self._control)
         self._input_buffer_executing = ''
@@ -342,7 +342,51 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 triggered=self.reset_font)
         self.addAction(self.reset_font_size)
 
+        # Accept drag and drop events here. Drops were already turned off
+        # in self._control when that widget was created.
+        self.setAcceptDrops(True)
 
+    #---------------------------------------------------------------------------
+    # Drag and drop support
+    #---------------------------------------------------------------------------
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            # The link action should indicate to that the drop will insert
+            # the file anme.
+            e.setDropAction(QtCore.Qt.LinkAction)
+            e.accept()
+        elif e.mimeData().hasText():
+            # By changing the action to copy we don't need to worry about
+            # the user accidentally moving text around in the widget.
+            e.setDropAction(QtCore.Qt.CopyAction)
+            e.accept()
+
+    def dragMoveEvent(self, e):
+        if e.mimeData().hasUrls():
+            pass
+        elif e.mimeData().hasText():
+            cursor = self._control.cursorForPosition(e.pos())
+            if self._in_buffer(cursor.position()):
+                e.setDropAction(QtCore.Qt.CopyAction)
+                self._control.setTextCursor(cursor)
+            else:
+                e.setDropAction(QtCore.Qt.IgnoreAction)
+            e.accept()
+
+    def dropEvent(self, e):
+        if e.mimeData().hasUrls():
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+            filenames = [url.toLocalFile() for url in e.mimeData().urls()]
+            text = ', '.join("'" + f.replace("'", "'\"'\"'") + "'"
+                             for f in filenames)
+            self._insert_plain_text_into_buffer(cursor, text)
+        elif e.mimeData().hasText():
+            cursor = self._control.cursorForPosition(e.pos())
+            if self._in_buffer(cursor.position()):
+                text = e.mimeData().text()
+                self._insert_plain_text_into_buffer(cursor, text)
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -391,39 +435,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 event.key() in self._shortcuts:
             event.accept()
 
-        # Ensure that drags are safe. The problem is that the drag starting
-        # logic, which determines whether the drag is a Copy or Move, is locked
-        # down in QTextControl. If the widget is editable, which it must be if
-        # we're not executing, the drag will be a Move. The following hack
-        # prevents QTextControl from deleting the text by clearing the selection
-        # when a drag leave event originating from this widget is dispatched.
-        # The fact that we have to clear the user's selection is unfortunate,
-        # but the alternative--trying to prevent Qt from using its hardwired
-        # drag logic and writing our own--is worse.
-        elif etype == QtCore.QEvent.DragEnter and \
-                obj == self._control.viewport() and \
-                event.source() == self._control.viewport():
-            self._filter_drag = True
-        elif etype == QtCore.QEvent.DragLeave and \
-                obj == self._control.viewport() and \
-                self._filter_drag:
-            cursor = self._control.textCursor()
-            cursor.clearSelection()
-            self._control.setTextCursor(cursor)
-            self._filter_drag = False
-
-        # Ensure that drops are safe.
-        elif etype == QtCore.QEvent.Drop and obj == self._control.viewport():
-            cursor = self._control.cursorForPosition(event.pos())
-            if self._in_buffer(cursor.position()):
-                text = event.mimeData().text()
-                self._insert_plain_text_into_buffer(cursor, text)
-
-            # Qt is expecting to get something here--drag and drop occurs in its
-            # own event loop. Send a DragLeave event to end it.
-            QtGui.qApp.sendEvent(obj, QtGui.QDragLeaveEvent())
-            return True
-
         # Handle scrolling of the vsplit pager. This hack attempts to solve
         # problems with tearing of the help text inside the pager window.  This
         # happens only on Mac OS X with both PySide and PyQt. This fix isn't
@@ -432,6 +443,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 obj == self._page_control:
             self._page_control.repaint()
             return True
+
+        elif etype == QtCore.QEvent.MouseMove:
+            anchor = self._control.anchorAt(event.pos())
+            QtGui.QToolTip.showText(event.globalPos(), anchor)
+
         return super(ConsoleWidget, self).eventFilter(obj, event)
 
     #---------------------------------------------------------------------------
@@ -510,6 +526,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """ Copy the currently selected text to the clipboard.
         """
         self.layout().currentWidget().copy()
+
+    def copy_anchor(self, anchor):
+        """ Copy anchor text to the clipboard
+        """
+        QtGui.QApplication.clipboard().setText(anchor)
 
     def cut(self):
         """ Copy the currently selected text to the clipboard and delete it
@@ -677,6 +698,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.font_changed.emit(font)
 
     font = property(_get_font, _set_font)
+
+    def open_anchor(self, anchor):
+        """ Open selected anchor in the default webbrowser
+        """
+        webbrowser.open( anchor )
 
     def paste(self, mode=QtGui.QClipboard.Clipboard):
         """ Paste the contents of the clipboard into the input region.
@@ -858,6 +884,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         return result
 
+    def _append_block(self, block_format=None, before_prompt=False):
+        """ Appends an new QTextBlock to the end of the console buffer.
+        """
+        self._append_custom(self._insert_block, block_format, before_prompt)
+
     def _append_html(self, html, before_prompt=False):
         """ Appends HTML at the end of the console buffer.
         """
@@ -966,6 +997,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self.paste_action.setEnabled(self.can_paste())
         self.paste_action.setShortcut(QtGui.QKeySequence.Paste)
 
+        anchor = self._control.anchorAt(pos)
+        if anchor:
+            menu.addSeparator()
+            self.copy_link_action = menu.addAction(
+                'Copy Link Address', lambda: self.copy_anchor(anchor=anchor))
+            self.open_link_action = menu.addAction(
+                'Open Link', lambda: self.open_anchor(anchor=anchor))
+
         menu.addSeparator()
         menu.addAction(self.select_all_action)
 
@@ -1004,9 +1043,14 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         elif self.kind == 'rich':
             control = QtGui.QTextEdit()
             control.setAcceptRichText(False)
+            control.setMouseTracking(True)
+
+        # Prevent the widget from handling drops, as we already provide
+        # the logic in this class.
+        control.setAcceptDrops(False)
 
         # Install event filters. The filter on the viewport is needed for
-        # mouse events and drag events.
+        # mouse events.
         control.installEventFilter(self)
         control.viewport().installEventFilter(self)
 
@@ -1545,6 +1589,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._continuation_prompt = self._insert_html_fetching_plain_text(
                 cursor, self._continuation_prompt_html)
 
+    def _insert_block(self, cursor, block_format=None):
+        """ Inserts an empty QTextBlock using the specified cursor.
+        """
+        if block_format is None:
+            block_format = QtGui.QTextBlockFormat()
+        cursor.insertBlock(block_format)
+
     def _insert_html(self, cursor, html):
         """ Inserts HTML using the specified cursor in such a way that future
             formatting is unaffected.
@@ -1736,6 +1787,32 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         else:
             self._append_plain_text(text)
 
+    def _set_paging(self, paging):
+        """
+        Change the pager to `paging` style.
+
+        XXX: currently, this is limited to switching between 'hsplit' and
+        'vsplit'.
+
+        Parameters:
+        -----------
+        paging : string
+            Either "hsplit", "vsplit", or "inside"
+        """
+        if self._splitter is None:
+            raise NotImplementedError("""can only switch if --paging=hsplit or
+                    --paging=vsplit is used.""")
+        if paging == 'hsplit':
+            self._splitter.setOrientation(QtCore.Qt.Horizontal)
+        elif paging == 'vsplit':
+            self._splitter.setOrientation(QtCore.Qt.Vertical)
+        elif paging == 'inside':
+            raise NotImplementedError("""switching to 'inside' paging not
+                    supported yet.""")
+        else:
+            raise ValueError("unknown paging method '%s'" % paging)
+        self.paging = paging
+
     def _prompt_finished(self):
         """ Called immediately after a prompt is finished, i.e. when some input
             will be processed and a new prompt displayed.
@@ -1866,7 +1943,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             cursor.movePosition(QtGui.QTextCursor.Left,
                                 QtGui.QTextCursor.KeepAnchor)
             if cursor.selection().toPlainText() != '\n':
-                self._append_plain_text('\n')
+                self._append_block()
 
         # Write the prompt.
         self._append_plain_text(self._prompt_sep)

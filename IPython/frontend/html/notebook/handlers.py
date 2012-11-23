@@ -149,13 +149,13 @@ class AuthenticatedHandler(RequestHandler):
     """A RequestHandler with an authenticated user."""
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("username")
+        user_id = self.get_secure_cookie(self.settings['cookie_name'])
         # For now the user_id should not return empty, but it could eventually
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
-            self.clear_cookie('username')
+            self.clear_cookie(self.settings['cookie_name'])
             if not self.application.password and not self.application.read_only:
                 user_id = 'anonymous'
         return user_id
@@ -247,7 +247,7 @@ class LoginHandler(AuthenticatedHandler):
         pwd = self.get_argument('password', default=u'')
         if self.application.password:
             if passwd_check(self.application.password, pwd):
-                self.set_secure_cookie('username', str(uuid.uuid4()))
+                self.set_secure_cookie(self.settings['cookie_name'], str(uuid.uuid4()))
             else:
                 self._render(message={'error': 'Invalid password'})
                 return
@@ -258,7 +258,7 @@ class LoginHandler(AuthenticatedHandler):
 class LogoutHandler(AuthenticatedHandler):
 
     def get(self):
-        self.clear_cookie('username')
+        self.clear_cookie(self.settings['cookie_name'])
         if self.login_available:
             message = {'info': 'Successfully logged out.'}
         else:
@@ -435,7 +435,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         self.on_message = self.on_first_message
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie("username")
+        user_id = self.get_secure_cookie(self.settings['cookie_name'])
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id

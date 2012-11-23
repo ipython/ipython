@@ -19,6 +19,7 @@ import shutil
 import sys
 import tempfile
 from io import StringIO
+from contextlib import contextmanager
 
 from os.path import join, abspath, split
 
@@ -32,6 +33,7 @@ from IPython.testing.decorators import skip_if_not_win32, skip_win32
 from IPython.testing.tools import make_tempfile, AssertPrints
 from IPython.utils import path, io
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
 
 # Platform-dependent imports
 try:
@@ -444,3 +446,79 @@ def test_unicode_in_filename():
         path.get_py_filename(u'fooéè.py',  force_win32=False)
     except IOError as ex:
         str(ex)
+
+
+class TestShellGlob(object):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.filenames_start_with_a = map('a{0}'.format, range(3))
+        cls.filenames_end_with_b = map('{0}b'.format, range(3))
+        cls.filenames = cls.filenames_start_with_a + cls.filenames_end_with_b
+        cls.tempdir = TemporaryDirectory()
+        td = cls.tempdir.name
+
+        with cls.in_tempdir():
+            # Create empty files
+            for fname in cls.filenames:
+                open(os.path.join(td, fname), 'w').close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.tempdir.cleanup()
+
+    @classmethod
+    @contextmanager
+    def in_tempdir(cls):
+        save = os.getcwdu()
+        try:
+            os.chdir(cls.tempdir.name)
+            yield
+        finally:
+            os.chdir(save)
+
+    def check_match(self, patterns, matches):
+        with self.in_tempdir():
+            # glob returns unordered list. that's why sorted is required.
+            nt.assert_equals(sorted(path.shellglob(patterns)),
+                             sorted(matches))
+
+    def common_cases(self):
+        return [
+            (['*'], self.filenames),
+            (['a*'], self.filenames_start_with_a),
+            (['*c'], ['*c']),
+            (['*', 'a*', '*b', '*c'], self.filenames
+                                      + self.filenames_start_with_a
+                                      + self.filenames_end_with_b
+                                      + ['*c']),
+            (['a[012]'], self.filenames_start_with_a),
+        ]
+
+    @skip_win32
+    def test_match_posix(self):
+        for (patterns, matches) in self.common_cases() + [
+                ([r'\*'], ['*']),
+                ([r'a\*', 'a*'], ['a*'] + self.filenames_start_with_a),
+                ([r'a\[012]'], ['a[012]']),
+                ]:
+            yield (self.check_match, patterns, matches)
+
+    @skip_if_not_win32
+    def test_match_windows(self):
+        for (patterns, matches) in self.common_cases() + [
+                # In windows, backslash is interpreted as path
+                # separator.  Therefore, you can't escape glob
+                # using it.
+                ([r'a\*', 'a*'], [r'a\*'] + self.filenames_start_with_a),
+                ([r'a\[012]'], [r'a\[012]']),
+                ]:
+            yield (self.check_match, patterns, matches)
+
+
+def test_unescape_glob():
+    nt.assert_equals(path.unescape_glob(r'\*\[\!\]\?'), '*[!]?')
+    nt.assert_equals(path.unescape_glob(r'\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\\*'), r'\*')
+    nt.assert_equals(path.unescape_glob(r'\\a'), r'\a')
+    nt.assert_equals(path.unescape_glob(r'\a'), r'\a')

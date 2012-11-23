@@ -33,7 +33,7 @@ span#ipython_notebook {
     padding: 2px 2px 2px 5px;
 }
 
-span#ipython_notebook h1 img {
+span#ipython_notebook img {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     height: 24px;
     text-decoration:none;

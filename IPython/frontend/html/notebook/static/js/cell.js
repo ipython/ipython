@@ -20,6 +20,8 @@ var IPython = (function (IPython) {
         this.selected = false;
         this.element = null;
         this.metadata = {};
+        // load this from metadata later ?
+        this.user_highlight == 'auto';
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
@@ -48,14 +50,12 @@ var IPython = (function (IPython) {
         });
     };
 
-
-    // typeset with MathJax if MathJax is available
     Cell.prototype.typeset = function () {
         if (window.MathJax){
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
+            var cell_math = this.element.get(0);
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,cell_math]);
         }
     };
-
 
     Cell.prototype.select = function () {
         this.element.addClass('ui-widget-content ui-corner-all');
@@ -154,6 +154,61 @@ var IPython = (function (IPython) {
         this.code_mirror.refresh();
     };
 
+    Cell.prototype.force_highlight = function(mode) {
+        this.user_highlight = mode;
+        this.auto_highlight();
+    };
+
+    Cell.prototype._auto_highlight = function (modes) {
+        //Here we handle manually selected modes
+        if( this.user_highlight != undefined &&  this.user_highlight != 'auto' )
+        {
+            var mode = this.user_highlight;
+            CodeMirror.autoLoadMode(this.code_mirror, mode);
+            this.code_mirror.setOption('mode', mode);
+            return;
+        }
+        var first_line = this.code_mirror.getLine(0);
+        // loop on every pairs
+        for( var mode in modes) {
+            var regs = modes[mode]['reg'];
+            // only one key every time but regexp can't be keys...
+            for(var reg in regs ) {
+                // here we handle non magic_modes
+                if(first_line.match(regs[reg]) != null) {
+                    if (mode.search('magic_') != 0) {
+                        this.code_mirror.setOption('mode',mode);
+                        CodeMirror.autoLoadMode(this.code_mirror, mode);
+                        return;
+                    }
+                    var open = modes[mode]['open']|| "%%";
+                    var close = modes[mode]['close']|| "%%end";
+                    var mmode = mode;
+                    mode = mmode.substr(6);
+                    CodeMirror.autoLoadMode(this.code_mirror, mode);
+                    // create on the fly a mode that swhitch between
+                    // plain/text and smth else otherwise `%%` is
+                    // source of some highlight issues.
+                    // we use patchedGetMode to circumvent a bug in CM
+                    CodeMirror.defineMode(mmode , function(config) {
+                        return CodeMirror.multiplexingMode(
+                        CodeMirror.patchedGetMode(config, 'text/plain'),
+                            // always set someting on close
+                            {open: open, close: close,
+                             mode: CodeMirror.patchedGetMode(config, mode),
+                             delimStyle: "delimit"
+                            }
+                        );
+                    });
+                    this.code_mirror.setOption('mode', mmode);
+                    return;
+                }
+            }
+        }
+        // fallback on default (python)
+        var default_mode = this.default_mode || 'text/plain';
+        this.code_mirror.setOption('mode', default_mode);
+    };
 
     IPython.Cell = Cell;
 

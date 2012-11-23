@@ -62,6 +62,37 @@ def needs_sqlite(f, self, *a, **kw):
         return f(self, *a, **kw)
 
 
+if sqlite3 is not None:
+    DatabaseError = sqlite3.DatabaseError
+else:
+    class DatabaseError(Exception):
+        "Dummy exception when sqlite could not be imported. Should never occur."
+
+@decorator
+def catch_corrupt_db(f, self, *a, **kw):
+    """A decorator which wraps HistoryAccessor method calls to catch errors from
+    a corrupt SQLite database, move the old database out of the way, and create
+    a new one.
+    """
+    try:
+        return f(self, *a, **kw)
+    except DatabaseError:
+        if os.path.isfile(self.hist_file):
+            # Try to move the file out of the way
+            base,ext = os.path.splitext(self.hist_file)
+            newpath = base + '-corrupt' + ext
+            os.rename(self.hist_file, newpath)
+            self.init_db()
+            print("ERROR! History file wasn't a valid SQLite database.",
+            "It was moved to %s" % newpath, "and a new file created.")
+            return []
+        
+        else:
+            # The hist_file is probably :memory: or something else.
+            raise
+        
+
+
 class HistoryAccessor(Configurable):
     """Access the history database without adding to it.
     
@@ -143,25 +174,7 @@ class HistoryAccessor(Configurable):
             warn("IPython History requires SQLite, your history will not be saved\n")
             self.enabled = False
         
-        if sqlite3 is not None:
-            DatabaseError = sqlite3.DatabaseError
-        else:
-            DatabaseError = Exception
-        
-        try:
-            self.init_db()
-        except DatabaseError:
-            if os.path.isfile(self.hist_file):
-                # Try to move the file out of the way
-                base,ext = os.path.splitext(self.hist_file)
-                newpath = base + '-corrupt' + ext
-                os.rename(self.hist_file, newpath)
-                print("ERROR! History file wasn't a valid SQLite database.",
-                "It was moved to %s" % newpath, "and a new file created.")
-                self.init_db()
-            else:
-                # The hist_file is probably :memory: or something else.
-                raise
+        self.init_db()
     
     def _get_hist_file_name(self, profile='default'):
         """Find the history file for the given profile name.
@@ -176,6 +189,7 @@ class HistoryAccessor(Configurable):
         """
         return os.path.join(locate_profile(profile), 'history.sqlite')
     
+    @catch_corrupt_db
     def init_db(self):
         """Connect to the database, and create tables if necessary."""
         if not self.enabled:
@@ -235,6 +249,7 @@ class HistoryAccessor(Configurable):
         return cur
 
     @needs_sqlite
+    @catch_corrupt_db
     def get_session_info(self, session=0):
         """get info about a session
 
@@ -262,6 +277,7 @@ class HistoryAccessor(Configurable):
         query = "SELECT * from sessions where session == ?"
         return self.db.execute(query, (session,)).fetchone()
 
+    @catch_corrupt_db
     def get_tail(self, n=10, raw=True, output=False, include_latest=False):
         """Get the last n lines from the history database.
 
@@ -289,8 +305,9 @@ class HistoryAccessor(Configurable):
             return reversed(list(cur)[1:])
         return reversed(list(cur))
 
+    @catch_corrupt_db
     def search(self, pattern="*", raw=True, search_raw=True,
-                                                        output=False):
+               output=False, n=None):
         """Search the database using unix glob-style matching (wildcards
         * and ?).
 
@@ -302,6 +319,9 @@ class HistoryAccessor(Configurable):
           If True, search the raw input, otherwise, the parsed input
         raw, output : bool
           See :meth:`get_range`
+        n : None or int
+          If an integer is given, it defines the limit of
+          returned entries.
 
         Returns
         -------
@@ -311,9 +331,17 @@ class HistoryAccessor(Configurable):
         if output:
             tosearch = "history." + tosearch
         self.writeout_cache()
-        return self._run_sql("WHERE %s GLOB ?" % tosearch, (pattern,),
-                                    raw=raw, output=output)
+        sqlform = "WHERE %s GLOB ?" % tosearch
+        params = (pattern,)
+        if n is not None:
+            sqlform += " ORDER BY session DESC, line DESC LIMIT ?"
+            params += (n,)
+        cur = self._run_sql(sqlform, params, raw=raw, output=output)
+        if n is not None:
+            return reversed(list(cur))
+        return cur
     
+    @catch_corrupt_db
     def get_range(self, session, start=1, stop=None, raw=True,output=False):
         """Retrieve input by session.
 
@@ -347,7 +375,7 @@ class HistoryAccessor(Configurable):
             lineclause = "line>=?"
             params = (session, start)
 
-        return self._run_sql("WHERE session==? AND %s""" % lineclause,
+        return self._run_sql("WHERE session==? AND %s" % lineclause,
                                     params, raw=raw, output=output)
 
     def get_range_by_str(self, rangestr, raw=True, output=False):

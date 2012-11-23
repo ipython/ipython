@@ -21,7 +21,7 @@ from IPython.utils.py3compat import bytes_to_str
 from parentpoller import ParentPollerWindows
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         ip=LOCALHOST, key=b''):
+                         ip=LOCALHOST, key=b'', transport='tcp'):
     """Generates a JSON config file, including the selection of random ports.
     
     Parameters
@@ -54,17 +54,26 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         fname = tempfile.mktemp('.json')
     
     # Find open ports as necessary.
+    
     ports = []
     ports_needed = int(shell_port <= 0) + int(iopub_port <= 0) + \
                    int(stdin_port <= 0) + int(hb_port <= 0)
-    for i in xrange(ports_needed):
-        sock = socket.socket()
-        sock.bind(('', 0))
-        ports.append(sock)
-    for i, sock in enumerate(ports):
-        port = sock.getsockname()[1]
-        sock.close()
-        ports[i] = port
+    if transport == 'tcp':
+        for i in range(ports_needed):
+            sock = socket.socket()
+            sock.bind(('', 0))
+            ports.append(sock)
+        for i, sock in enumerate(ports):
+            port = sock.getsockname()[1]
+            sock.close()
+            ports[i] = port
+    else:
+        N = 1
+        for i in range(ports_needed):
+            while os.path.exists("%s-%s" % (ip, str(N))):
+                N += 1
+            ports.append(N)
+            N += 1
     if shell_port <= 0:
         shell_port = ports.pop(0)
     if iopub_port <= 0:
@@ -81,6 +90,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
               )
     cfg['ip'] = ip
     cfg['key'] = bytes_to_str(key)
+    cfg['transport'] = transport
     
     with open(fname, 'w') as f:
         f.write(json.dumps(cfg, indent=2))
@@ -179,8 +189,12 @@ def base_launch_kernel(code, fname, stdin=None, stdout=None, stderr=None,
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
                          stdin=_stdin, stdout=_stdout, stderr=_stderr)
         else:
-            from _subprocess import DuplicateHandle, GetCurrentProcess, \
-                DUPLICATE_SAME_ACCESS
+            try:
+                from _winapi import DuplicateHandle, GetCurrentProcess, \
+                    DUPLICATE_SAME_ACCESS
+            except:
+                from _subprocess import DuplicateHandle, GetCurrentProcess, \
+                    DUPLICATE_SAME_ACCESS
             pid = GetCurrentProcess()
             handle = DuplicateHandle(pid, pid, pid, 0,
                                      True, # Inheritable by new processes.

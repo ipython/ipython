@@ -3,7 +3,7 @@
 {% block stylesheet %}
 
 {% if mathjax_url %}
-<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
+<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML-full&delayStartupUntil=configured" charset="utf-8"></script>
 {% endif %}
 <script type="text/javascript">
 // MathJax disabled, set as null to distingish from *missing* MathJax,
@@ -74,9 +74,9 @@ data-notebook-id={{notebook_id}}
             <ul>
                 <li id="cut_cell"><a href="#">Cut Cell</a></li>
                 <li id="copy_cell"><a href="#">Copy Cell</a></li>
-                <li id="paste_cell" class="ui-state-disabled"><a href="#">Paste Cell</a></li>
                 <li id="paste_cell_above" class="ui-state-disabled"><a href="#">Paste Cell Above</a></li>
                 <li id="paste_cell_below" class="ui-state-disabled"><a href="#">Paste Cell Below</a></li>
+                <li id="paste_cell_replace" class="ui-state-disabled"><a href="#">Paste Cell &amp; Replace</a></li>
                 <li id="delete_cell"><a href="#">Delete</a></li>
                 <hr/>
                 <li id="split_cell"><a href="#">Split Cell</a></li>
@@ -107,6 +107,8 @@ data-notebook-id={{notebook_id}}
                 <li id="run_cell"><a href="#">Run</a></li>
                 <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
                 <li id="run_all_cells"><a href="#">Run All</a></li>
+                <li id="run_all_cells_above"><a href="#">Run All Above</a></li>
+                <li id="run_all_cells_below"><a href="#">Run All Below</a></li>
                 <hr/>
                 <li id="to_code"><a href="#">Code</a></li>
                 <li id="to_markdown"><a href="#">Markdown </a></li>
@@ -156,54 +158,22 @@ data-notebook-id={{notebook_id}}
 </div>
 
 
-<div id="toolbar">
-
-    <span>
-        <button id="save_b">Save</button>
-    </span>
-    <span id="cut_copy_paste">
-        <button id="cut_b" title="Cut Cell">Cut Cell</button>
-        <button id="copy_b" title="Copy Cell">Copy Cell</button>
-        <button id="paste_b" title="Paste Cell">Paste Cell</button>
-    </span>
-    <span id="move_up_down">
-        <button id="move_up_b" title="Move Cell Up">Move Cell Up</button>
-        <button id="move_down_b" title="Move Cell Down">Move Down</button>
-    </span>
-    <span id="insert_above_below">
-        <button id="insert_above_b" title="Insert Cell Above">Insert Cell Above</button>
-        <button id="insert_below_b" title="Insert Cell Below">Insert Cell Below</button>
-    </span>
-    <span id="run_int">
-        <button id="run_b" title="Run Cell">Run Cell</button>
-        <button id="interrupt_b" title="Interrupt">Interrupt</button>
-    </span>
-    <span>
-        <select id="cell_type">
-             <option value="code">Code</option>
-             <option value="markdown">Markdown</option>
-             <option value="raw">Raw Text</option>
-             <option value="heading1">Heading 1</option>
-             <option value="heading2">Heading 2</option>
-             <option value="heading3">Heading 3</option>
-             <option value="heading4">Heading 4</option>
-             <option value="heading5">Heading 5</option>
-             <option value="heading6">Heading 6</option>
-        </select>
-    </span>
-
-</div>
+<div id="maintoolbar"></div>
 
 <div id="main_app">
 
     <div id="notebook_panel">
         <div id="notebook"></div>
         <div id="pager_splitter"></div>
-        <div id="pager"></div>
+        <div id="pager_container">
+            <div id='pager_button_area'>
+            </div>
+            <div id="pager"></div>
+        </div>
     </div>
 
 </div>
-<div id='tooltip' class='tooltip ui-corner-all' style='display:none'></div>
+<div id='tooltip' class='ipython_tooltip ui-corner-all' style='display:none'></div>
 
 
 {% endblock %}
@@ -212,6 +182,8 @@ data-notebook-id={{notebook_id}}
 {% block script %}
 
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("codemirror/lib/util/multiplex.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/python/python.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
@@ -228,7 +200,7 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/layoutmanager.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/initmathjax.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/mathjaxutils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/outputarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
@@ -240,10 +212,12 @@ data-notebook-id={{notebook_id}}
 <script src="{{ static_url("js/pager.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/menubar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/toolbar.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/maintoolbar.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/config.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 <script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>

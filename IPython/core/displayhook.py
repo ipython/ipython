@@ -25,6 +25,9 @@ from __future__ import print_function
 
 import __builtin__
 
+import sys
+
+
 from IPython.config.configurable import Configurable
 from IPython.utils import io
 from IPython.utils.traitlets import Instance, List
@@ -266,5 +269,7 @@ class DisplayHook(Configurable):
             self.shell.user_ns.update({'_':None,'__':None, '___':None})
         import gc
         # TODO: Is this really needed?
-        gc.collect()
+        # IronPython blocks here forever
+        if sys.platform != "cli":
+            gc.collect()
 

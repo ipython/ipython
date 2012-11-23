@@ -57,6 +57,7 @@ for author, email in release.authors.itervalues():
     __author__ += author + ' <' + email + '>\n'
 __license__  = release.license
 __version__  = release.version
+version_info = release.version_info
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
     """Embed and start an IPython kernel in a given scope.

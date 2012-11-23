@@ -418,7 +418,7 @@ class Client(HasTraits):
         location = cfg.setdefault('location', None)
         
         proto,addr = cfg['interface'].split('://')
-        addr = util.disambiguate_ip_address(addr)
+        addr = util.disambiguate_ip_address(addr, location)
         cfg['interface'] = "%s://%s" % (proto, addr)
         
         # turn interface,port into full urls:
@@ -705,12 +705,9 @@ class Client(HasTraits):
             except:
                 content = error.wrap_exception()
             # build a fake message:
-            parent = {}
-            header = {}
-            parent['msg_id'] = msg_id
-            header['engine'] = uuid
-            header['date'] = datetime.now()
-            msg = dict(parent_header=parent, header=header, content=content)
+            msg = self.session.msg('apply_reply', content=content)
+            msg['parent_header']['msg_id'] = msg_id
+            msg['metadata']['engine'] = uuid
             self._handle_apply_reply(msg)
 
     def _handle_execute_reply(self, msg):

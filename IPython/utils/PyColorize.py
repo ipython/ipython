@@ -30,6 +30,8 @@ formatting (which is the hard part).
 """
 from __future__ import print_function
 
+from __future__ import unicode_literals
+
 __all__ = ['ANSICodeColors','Parser']
 
 _scheme_default = 'Linux'

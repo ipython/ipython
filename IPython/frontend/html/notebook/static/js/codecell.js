@@ -14,6 +14,7 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
+    CodeMirror.modeURL = "/static/codemirror/mode/%N/%N.js";
 
     var CodeCell = function (kernel) {
         // The kernel doesn't have to be set at creation time, in that case
@@ -23,12 +24,22 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.tooltip_on_tab = true;
         this.collapsed = false;
+        this.default_mode = 'python';
         IPython.Cell.apply(this, arguments);
+
+        var that = this;
+        this.element.focusout(
+            function() { that.auto_highlight(); }
+        );
     };
 
 
     CodeCell.prototype = new IPython.Cell();
 
+
+    CodeCell.prototype.auto_highlight = function () {
+        this._auto_highlight(IPython.config.cell_magic_highlight)
+    };
 
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
@@ -76,6 +87,9 @@ var IPython = (function (IPython) {
         };
 
         var cur = editor.getCursor();
+        if (event.keyCode === key.ENTER){
+            this.auto_highlight();
+        }
 
         if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
             // Always ignore shift-enter in CodeMirror as we handle it.
@@ -109,6 +123,7 @@ var IPython = (function (IPython) {
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
             //Do not trim here because of tooltip
+            if (editor.somethingSelected()){return false}
             var pre_cursor = editor.getRange({line:cur.line,ch:0},cur);
             if (pre_cursor.trim() === "") {
                 // Don't autocomplete if the part of the line before the cursor
@@ -172,6 +187,7 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.select.apply(this);
         this.code_mirror.refresh();
         this.code_mirror.focus();
+        this.auto_highlight();
         // We used to need an additional refresh() after the focus, but
         // it appears that this has been fixed in CM. This bug would show
         // up on FF when a newly loaded markdown cell was edited.
@@ -210,10 +226,31 @@ var IPython = (function (IPython) {
     };
 
 
+
+
+
+    CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
+        var ns = prompt_value || "&nbsp;";
+        return 'In&nbsp;[' + ns + ']:'
+    };
+    
+    CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
+        var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
+        for(var i=1; i < lines_number; i++){html.push(['...:'])};
+        return html.join('</br>')
+    };
+    
+    CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
+
+
     CodeCell.prototype.set_input_prompt = function (number) {
+        var nline = 1
+        if( this.code_mirror != undefined) {
+           nline = this.code_mirror.lineCount();
+        }
         this.input_prompt_number = number;
-        var ns = number || "&nbsp;";
-        this.element.find('div.input_prompt').html('In&nbsp;[' + ns + ']:');
+        var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
+        this.element.find('div.input_prompt').html(prompt_html);
     };
 
 
@@ -267,6 +304,7 @@ var IPython = (function (IPython) {
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 this.code_mirror.clearHistory();
+                this.auto_highlight();
             }
             if (data.prompt_number !== undefined) {
                 this.set_input_prompt(data.prompt_number);

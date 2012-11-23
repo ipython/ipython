@@ -588,10 +588,6 @@ __doc__ = __doc__.format(
 )
 
 
-_loaded = False
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    global _loaded
-    if not _loaded:
-        ip.register_magics(RMagics)
-        _loaded = True
+    ip.register_magics(RMagics)

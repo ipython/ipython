@@ -23,6 +23,7 @@ from IPython.core.error import StdinNotImplementedError, UsageError
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.encoding import DEFAULT_ENCODING
+from IPython.utils.openpy import read_py_file
 from IPython.utils.path import get_py_filename
 
 #-----------------------------------------------------------------------------
@@ -68,7 +69,7 @@ class NamespaceMagics(Magics):
     @skip_doctest
     @line_magic
     def pdef(self, parameter_s='', namespaces=None):
-        """Print the definition header for any callable object.
+        """Print the call signature for any callable object.
 
         If the object is a class, print the constructor information.
 
@@ -97,7 +98,7 @@ class NamespaceMagics(Magics):
         self.shell._inspect('psource',parameter_s, namespaces)
 
     @line_magic
-    def pfile(self, parameter_s=''):
+    def pfile(self, parameter_s='', namespaces=None):
         """Print (or run through pager) the file where an object is defined.
 
         The file opens at the line where the object definition begins. IPython
@@ -110,7 +111,7 @@ class NamespaceMagics(Magics):
         viewer."""
 
         # first interpret argument as an object name
-        out = self.shell._inspect('pfile',parameter_s)
+        out = self.shell._inspect('pfile',parameter_s, namespaces)
         # if not, try the input as a filename
         if out == 'not found':
             try:
@@ -118,7 +119,7 @@ class NamespaceMagics(Magics):
             except IOError as msg:
                 print msg
                 return
-            page.page(self.shell.inspector.format(open(filename).read()))
+            page.page(self.shell.pycolorize(read_py_file(filename, skip_encoding_cookie=False)))
 
     @line_magic
     def psearch(self, parameter_s=''):

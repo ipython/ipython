@@ -86,6 +86,56 @@ def doctest_run_builtins():
        ....:
     """
 
+
+def doctest_run_option_parser():
+    r"""Test option parser in %run.
+
+    In [1]: %run print_argv.py
+    []
+
+    In [2]: %run print_argv.py print*.py
+    ['print_argv.py']
+
+    In [3]: %run -G print_argv.py print*.py
+    ['print*.py']
+
+    """
+
+
+@dec.skip_win32
+def doctest_run_option_parser_for_posix():
+    r"""Test option parser in %run (Linux/OSX specific).
+
+    You need double quote to escape glob in POSIX systems:
+
+    In [1]: %run print_argv.py print\\*.py
+    ['print*.py']
+
+    You can't use quote to escape glob in POSIX systems:
+
+    In [2]: %run print_argv.py 'print*.py'
+    ['print_argv.py']
+
+    """
+
+
+@dec.skip_if_not_win32
+def doctest_run_option_parser_for_windows():
+    r"""Test option parser in %run (Windows specific).
+
+    In Windows, you can't escape ``*` `by backslash:
+
+    In [1]: %run print_argv.py print\\*.py
+    ['print\\*.py']
+
+    You can use quote to escape glob:
+
+    In [2]: %run print_argv.py 'print*.py'
+    ['print*.py']
+
+    """
+
+
 @py3compat.doctest_refactor_print
 def doctest_reset_del():
     """Test that resetting doesn't cause errors in __del__ methods.

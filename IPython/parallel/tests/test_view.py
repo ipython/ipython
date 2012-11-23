@@ -24,6 +24,7 @@ from StringIO import StringIO
 
 import zmq
 from nose import SkipTest
+from nose.plugins.attrib import attr
 
 from IPython.testing import decorators as dec
 from IPython.testing.ipunittest import ParametricTestCase
@@ -51,9 +52,9 @@ class TestView(ClusterTestCase, ParametricTestCase):
             time.sleep(2)
         super(TestView, self).setUp()
 
+    @attr('crash')
     def test_z_crash_mux(self):
         """test graceful handling of engine death (direct)"""
-        raise SkipTest("crash tests disabled, due to undesirable crash reports")
         # self.add_engines(1)
         eid = self.client.ids[-1]
         ar = self.client[eid].apply_async(crash)
@@ -700,4 +701,22 @@ class TestView(ClusterTestCase, ParametricTestCase):
         drank = amr.get(5)
         self.assertEqual(drank, [ r*2 for r in ranks ])
         
+    def test_nested_getitem_setitem(self):
+        """get and set with view['a.b']"""
+        view = self.client[-1]
+        view.execute('\n'.join([
+            'class A(object): pass',
+            'a = A()',
+            'a.b = 128',
+            ]), block=True)
+        ra = pmod.Reference('a')
 
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 128)
+        self.assertEqual(view['a.b'], 128)
+
+        view['a.b'] = 0
+
+        r = view.apply_sync(lambda x: x.b, ra)
+        self.assertEqual(r, 0)
+        self.assertEqual(view['a.b'], 0)

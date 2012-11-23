@@ -21,7 +21,7 @@ name = 'ipython'
 # version
 _version_major = 0
 _version_minor = 14
-_version_micro = ''  # use '' for first of series, number for 1 and above
+_version_micro = 0  # use 0 for first of series, number for 1 and above
 _version_extra = 'dev'
 #_version_extra = 'rc1'
 # _version_extra = ''  # Uncomment this for full releases
@@ -36,6 +36,7 @@ if _version_extra:
 __version__ = '.'.join(map(str, _ver))
 
 version = __version__  # backwards compatibility name
+version_info = (_version_major, _version_minor, _version_micro, _version_extra)
 
 description = "IPython: Productive Interactive Computing"
 

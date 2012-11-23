@@ -337,7 +337,7 @@ this is just a summary:
     * **%pdoc <object>**: Print (or run through a pager if too long) the
       docstring for an object. If the given object is a class, it will
       print both the class and the constructor docstrings.
-    * **%pdef <object>**: Print the definition header for any callable
+    * **%pdef <object>**: Print the call signature for any callable
       object. If the object is a class, print the constructor information.
     * **%psource <object>**: Print (or run through a pager if too long)
       the source code for an object.

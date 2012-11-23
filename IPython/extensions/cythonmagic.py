@@ -125,6 +125,11 @@ class CythonMagics(Magics):
              "multiple times)."
     )
     @magic_arguments.argument(
+        '-L', dest='library_dirs', metavar='dir', action='append', default=[],
+        help="Add a path to the list of libary directories (can be specified "
+             "multiple times)."
+    )
+    @magic_arguments.argument(
         '-I', '--include', action='append', default=[],
         help="Add a path to the list of include directories (can be specified "
              "multiple times)."
@@ -195,6 +200,7 @@ class CythonMagics(Magics):
                 name = module_name,
                 sources = [pyx_file],
                 include_dirs = c_include_dirs,
+                library_dirs = args.library_dirs,
                 extra_compile_args = args.compile_args,
                 extra_link_args = args.link_args,
                 libraries = args.lib,
@@ -267,11 +273,7 @@ class CythonMagics(Magics):
         html = '\n'.join(l for l in html.splitlines() if not r.match(l))
         return html
 
-_loaded = False
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    global _loaded
-    if not _loaded:
-        ip.register_magics(CythonMagics)
-        _loaded = True
+    ip.register_magics(CythonMagics)

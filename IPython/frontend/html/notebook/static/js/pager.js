@@ -15,6 +15,7 @@ var IPython = (function (IPython) {
 
     var Pager = function (pager_selector, pager_splitter_selector) {
         this.pager_element = $(pager_selector);
+        this.pager_button_area = $('#pager_button_area');
         var that = this;
         this.percentage_height = 0.40;
         this.pager_splitter_element = $(pager_splitter_selector)
@@ -39,7 +40,22 @@ var IPython = (function (IPython) {
             });
         this.expanded = false;
         this.style();
+        this.create_button_area();
         this.bind_events();
+    };
+
+    Pager.prototype.create_button_area = function(){
+        var that = this;
+        this.pager_button_area.append(
+            $('<a>').attr('role', "button")
+                    .attr('title',"open the pager in an external window")
+                    .addClass('ui-button')
+                    .click(function(){that.detach()})
+                    .attr('style','position: absolute; right: 10px;')
+                    .append(
+                        $('<span>').addClass("ui-icon ui-icon-extlink")
+                    )
+        )
     };
 
     Pager.prototype.style = function () {
@@ -114,6 +130,26 @@ var IPython = (function (IPython) {
         this.pager_element.empty();
     };
 
+    Pager.prototype.detach = function(){
+        var w = window.open("","_blank")
+        $(w.document.head)
+        .append(
+                $('<link>')
+                .attr('rel',"stylesheet")
+                .attr('href',"/static/css/notebook.css")
+                .attr('type',"text/css")
+        )
+        .append(
+                $('<title>').text("IPython Pager")
+        );
+        var pager_body = $(w.document.body)
+            pager_body.attr('style','overflow:scroll');
+
+        pager_body.append(this.pager_element.children())
+        w.document.close();
+        this.collapse();
+
+    }
 
     Pager.prototype.append_text = function (text) {
         var toinsert = $("<div/>").addClass("output_area output_stream");

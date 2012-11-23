@@ -22,6 +22,9 @@ var IPython = (function (IPython) {
         this.next_prompt_number = 1;
         this.kernel = null;
         this.clipboard = null;
+        this.undelete_backup = null;
+        this.undelete_index = null;
+        this.undelete_below = false;
         this.paste_enabled = false;
         this.dirty = false;
         this.metadata = {};
@@ -139,8 +142,8 @@ var IPython = (function (IPython) {
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 86 && that.control_key_active) {
-                // Paste selected cell = v
-                that.paste_cell();
+                // Paste below selected cell = v
+                that.paste_cell_below();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 68 && that.control_key_active) {
@@ -257,6 +260,11 @@ var IPython = (function (IPython) {
                 IPython.quick_help.show_keyboard_shortcuts();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 90 && that.control_key_active) {
+                // Undo last cell delete = z
+                that.undelete();
+                that.control_key_active = false;
+                return false;
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
@@ -302,6 +310,16 @@ var IPython = (function (IPython) {
             // pop up the "don't leave" dialog.
             return null;
         });
+    };
+
+    Notebook.prototype.scroll_to_cell = function (cell_number, time) {
+        var cells = this.get_cells();
+        var time = time || 0;
+        cell_number = Math.min(cells.length-1,cell_number);
+        cell_number = Math.max(0             ,cell_number);
+        scroll_value = cells[cell_number].element.position().top-cells[0].element.position().top ; 
+        this.element.animate({scrollTop:scroll_value}, time);
+        return scroll_value;
     };
 
 
@@ -526,13 +544,19 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.delete_cell = function (index) {
         var i = this.index_or_selected(index);
+        var cell = this.get_selected_cell();
+        this.undelete_backup = cell.toJSON();
         if (this.is_valid_cell_index(i)) {
             var ce = this.get_cell_element(i);
             ce.remove();
             if (i === (this.ncells())) {
                 this.select(i-1);
+                this.undelete_index = i - 1;
+                this.undelete_below = true;
             } else {
                 this.select(i);
+                this.undelete_index = i;
+                this.undelete_below = false;
             };
             this.dirty = true;
         };
@@ -540,11 +564,21 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.insert_cell_at_bottom = function (type){
+        var len = this.ncells();
+        return this.insert_cell_below(type,len-1);
+    }
+
     Notebook.prototype.insert_cell_below = function (type, index) {
         // type = ('code','html','markdown')
         // index = cell index or undefined to insert below selected
         index = this.index_or_selected(index);
         var cell = null;
+        // This is intentionally < rather than <= for the sake of more
+        // sensible behavior in some cases.
+        if (this.undelete_index !== null && index < this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+        }
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
@@ -579,6 +613,9 @@ var IPython = (function (IPython) {
         // index = cell index or undefined to insert above selected
         index = this.index_or_selected(index);
         var cell = null;
+        if (this.undelete_index !== null && index <= this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+        }
         if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
@@ -741,8 +778,8 @@ var IPython = (function (IPython) {
     Notebook.prototype.enable_paste = function () {
         var that = this;
         if (!this.paste_enabled) {
-            $('#paste_cell').removeClass('ui-state-disabled')
-                .on('click', function () {that.paste_cell();});
+            $('#paste_cell_replace').removeClass('ui-state-disabled')
+                .on('click', function () {that.paste_cell_replace();});
             $('#paste_cell_above').removeClass('ui-state-disabled')
                 .on('click', function () {that.paste_cell_above();});
             $('#paste_cell_below').removeClass('ui-state-disabled')
@@ -754,7 +791,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.disable_paste = function () {
         if (this.paste_enabled) {
-            $('#paste_cell').addClass('ui-state-disabled').off('click');
+            $('#paste_cell_replace').addClass('ui-state-disabled').off('click');
             $('#paste_cell_above').addClass('ui-state-disabled').off('click');
             $('#paste_cell_below').addClass('ui-state-disabled').off('click');
             this.paste_enabled = false;
@@ -774,7 +811,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.paste_cell = function () {
+    Notebook.prototype.paste_cell_replace = function () {
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
@@ -803,6 +840,33 @@ var IPython = (function (IPython) {
         };
     };
 
+    // Cell undelete
+
+    Notebook.prototype.undelete = function() {
+        if (this.undelete_backup !== null && this.undelete_index !== null) {
+            var current_index = this.get_selected_index();
+            if (this.undelete_index < current_index) {
+                current_index = current_index + 1;
+            }
+            if (this.undelete_index >= this.ncells()) {
+                this.select(this.ncells() - 1);
+            }
+            else {
+                this.select(this.undelete_index);
+            }
+            var cell_data = this.undelete_backup;
+            var new_cell = null;
+            if (this.undelete_below) {
+                new_cell = this.insert_cell_below(cell_data.cell_type);
+            } else {
+                new_cell = this.insert_cell_above(cell_data.cell_type);
+            }
+            new_cell.fromJSON(cell_data);
+            this.select(current_index);
+            this.undelete_backup = null;
+            this.undelete_index = null;
+        }
+    }
 
     // Split/merge
 
@@ -1034,13 +1098,25 @@ var IPython = (function (IPython) {
     };
 
 
+    Notebook.prototype.execute_cells_below = function () {
+        this.execute_cell_range(this.get_selected_index(), this.ncells());
+        that.scroll_to_bottom();
+    };
+
+    Notebook.prototype.execute_cells_above = function () {
+        this.execute_cell_range(0, this.get_selected_index());
+    };
+
     Notebook.prototype.execute_all_cells = function () {
-        var ncells = this.ncells();
-        for (var i=0; i<ncells; i++) {
+        this.execute_cell_range(0, this.ncells());
+        that.scroll_to_bottom();
+    };
+
+    Notebook.prototype.execute_cell_range = function (start, end) {
+        for (var i=start; i<end; i++) {
             this.select(i);
             this.execute_selected_cell({add_new:false});
         };
-        this.scroll_to_bottom();
     };
 
     // Persistance and loading

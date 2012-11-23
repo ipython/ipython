@@ -42,6 +42,11 @@ class NotebookManager(LoggingConfigurable):
     """)
     def _notebook_dir_changed(self, name, old, new):
         """do a bit of validation of the notebook dir"""
+        if not os.path.isabs(new):
+            # If we receive a non-absolute path, make it absolute.
+            abs_new = os.path.abspath(new)
+            self.notebook_dir = abs_new
+            return
         if os.path.exists(new) and not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
         if not os.path.exists(new):
@@ -117,7 +122,7 @@ class NotebookManager(LoggingConfigurable):
             # should match the Python in-memory format.
             kwargs['split_lines'] = False
         data = current.writes(nb, format, **kwargs)
-        name = nb.get('name','notebook')
+        name = nb.metadata.get('name','notebook')
         return last_modified, name, data
 
     def read_notebook_object(self, notebook_id):

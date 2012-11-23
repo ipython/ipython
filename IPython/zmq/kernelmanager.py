@@ -37,7 +37,7 @@ from zmq.eventloop import ioloop, zmqstream
 from IPython.config.loader import Config
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
-    HasTraits, Any, Instance, Type, Unicode, Integer, Bool
+    HasTraits, Any, Instance, Type, Unicode, Integer, Bool, CaselessStrEnum
 )
 from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import write_connection_file
@@ -103,7 +103,7 @@ class ZMQSocketChannel(Thread):
             The ZMQ context to use.
         session : :class:`session.Session`
             The session to use.
-        address : tuple
+        address : zmq url
             Standard (ip, port) tuple that the kernel is listening on.
         """
         super(ZMQSocketChannel, self).__init__()
@@ -111,9 +111,11 @@ class ZMQSocketChannel(Thread):
 
         self.context = context
         self.session = session
-        if address[1] == 0:
-            message = 'The port number for a channel cannot be 0.'
-            raise InvalidPortNumber(message)
+        if isinstance(address, tuple):
+            if address[1] == 0:
+                message = 'The port number for a channel cannot be 0.'
+                raise InvalidPortNumber(message)
+            address = "tcp://%s:%i" % address
         self._address = address
         atexit.register(self._notice_exit)
     
@@ -149,10 +151,7 @@ class ZMQSocketChannel(Thread):
 
     @property
     def address(self):
-        """Get the channel's address as an (ip, port) tuple.
-
-        By the default, the address is (localhost, 0), where 0 means a random
-        port.
+        """Get the channel's address as a zmq url string ('tcp://127.0.0.1:5555').
         """
         return self._address
 
@@ -196,7 +195,7 @@ class ShellSocketChannel(ZMQSocketChannel):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect('tcp://%s:%i' % self.address)
+        self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -242,15 +241,16 @@ class ShellSocketChannel(ZMQSocketChannel):
             :func:`repr` as values.
 
         user_expressions : dict, optional
-            A dict with string keys and  to pull from the user's
-            namespace.  They will come back as a dict with these names as keys
-            and their :func:`repr` as values.
+            A dict mapping names to expressions to be evaluated in the user's
+            dict. The expression values are returned as strings formatted using
+            :func:`repr`.
 
-        allow_stdin : bool, optional
-            Flag for 
-            A dict with string keys and  to pull from the user's
-            namespace.  They will come back as a dict with these names as keys
-            and their :func:`repr` as values.
+        allow_stdin : bool, optional (default self.allow_stdin)
+            Flag for whether the kernel can send stdin requests to frontends.
+
+            Some frontends (e.g. the Notebook) do not support stdin requests. 
+            If raw_input is called from code executed from such a frontend, a
+            StdinNotImplementedError will be raised.
 
         Returns
         -------
@@ -395,7 +395,7 @@ class SubSocketChannel(ZMQSocketChannel):
         self.socket = self.context.socket(zmq.SUB)
         self.socket.setsockopt(zmq.SUBSCRIBE,b'')
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect('tcp://%s:%i' % self.address)
+        self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -461,7 +461,7 @@ class StdInSocketChannel(ZMQSocketChannel):
         """The thread's main activity.  Call start() instead."""
         self.socket = self.context.socket(zmq.DEALER)
         self.socket.setsockopt(zmq.IDENTITY, self.session.bsession)
-        self.socket.connect('tcp://%s:%i' % self.address)
+        self.socket.connect(self.address)
         self.stream = zmqstream.ZMQStream(self.socket, self.ioloop)
         self.stream.on_recv(self._handle_recv)
         self._run_loop()
@@ -520,7 +520,7 @@ class HBSocketChannel(ZMQSocketChannel):
             self.socket.close()
         self.socket = self.context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.LINGER, 0)
-        self.socket.connect('tcp://%s:%i' % self.address)
+        self.socket.connect(self.address)
         
         self.poller.register(self.socket, zmq.POLLIN)
     
@@ -659,6 +659,10 @@ class KernelManager(HasTraits):
 
     # The addresses for the communication channels.
     connection_file = Unicode('')
+    
+    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp')
+    
+    
     ip = Unicode(LOCALHOST)
     def _ip_changed(self, name, old, new):
         if new == '*':
@@ -747,7 +751,20 @@ class KernelManager(HasTraits):
             self._connection_file_written = False
             try:
                 os.remove(self.connection_file)
-            except OSError:
+            except (IOError, OSError):
+                pass
+            
+            self._cleanup_ipc_files()
+    
+    def _cleanup_ipc_files(self):
+        """cleanup ipc files if we wrote them"""
+        if self.transport != 'ipc':
+            return
+        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
+            ipcfile = "%s-%i" % (self.ip, port)
+            try:
+                os.remove(ipcfile)
+            except (IOError, OSError):
                 pass
     
     def load_connection_file(self):
@@ -755,6 +772,9 @@ class KernelManager(HasTraits):
         with open(self.connection_file) as f:
             cfg = json.loads(f.read())
         
+        from pprint import pprint
+        pprint(cfg)
+        self.transport = cfg.get('transport', 'tcp')
         self.ip = cfg['ip']
         self.shell_port = cfg['shell_port']
         self.stdin_port = cfg['stdin_port']
@@ -767,7 +787,7 @@ class KernelManager(HasTraits):
         if self._connection_file_written:
             return
         self.connection_file,cfg = write_connection_file(self.connection_file,
-            ip=self.ip, key=self.session.key,
+            transport=self.transport, ip=self.ip, key=self.session.key,
             stdin_port=self.stdin_port, iopub_port=self.iopub_port,
             shell_port=self.shell_port, hb_port=self.hb_port)
         # write_connection_file also sets default ports:
@@ -794,7 +814,7 @@ class KernelManager(HasTraits):
         **kw : optional
              See respective options for IPython and Python kernels.
         """
-        if self.ip not in LOCAL_IPS:
+        if self.transport == 'tcp' and self.ip not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "
                                "Make sure that the '*_address' attributes are "
                                "configured properly. "
@@ -811,8 +831,9 @@ class KernelManager(HasTraits):
         self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
     def shutdown_kernel(self, restart=False):
-        """ Attempts to the stop the kernel process cleanly. If the kernel
-        cannot be stopped, it is killed, if possible.
+        """ Attempts to the stop the kernel process cleanly. 
+
+        If the kernel cannot be stopped and the kernel is local, it is killed.
         """
         # FIXME: Shutdown does not work on Windows due to ZMQ errors!
         if sys.platform == 'win32':
@@ -893,13 +914,17 @@ class KernelManager(HasTraits):
         return self.kernel is not None
 
     def kill_kernel(self):
-        """ Kill the running kernel. """
+        """ Kill the running kernel.
+
+        This method blocks until the kernel process has terminated.
+        """
         if self.has_kernel:
             # Pause the heart beat channel if it exists.
             if self._hb_channel is not None:
                 self._hb_channel.pause()
 
-            # Attempt to kill the kernel.
+            # Signal the kernel to terminate (sends SIGKILL on Unix and calls
+            # TerminateProcess() on Win32).
             try:
                 self.kernel.kill()
             except OSError as e:
@@ -914,13 +939,18 @@ class KernelManager(HasTraits):
                     from errno import ESRCH
                     if e.errno != ESRCH:
                         raise
+
+            # Block until the kernel terminates.
+            self.kernel.wait()
             self.kernel = None
         else:
             raise RuntimeError("Cannot kill kernel. No kernel is running!")
 
     def interrupt_kernel(self):
-        """ Interrupts the kernel. Unlike ``signal_kernel``, this operation is
-        well supported on all platforms.
+        """ Interrupts the kernel.
+
+        Unlike ``signal_kernel``, this operation is well supported on all
+        platforms.
         """
         if self.has_kernel:
             if sys.platform == 'win32':
@@ -932,8 +962,10 @@ class KernelManager(HasTraits):
             raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
 
     def signal_kernel(self, signum):
-        """ Sends a signal to the kernel. Note that since only SIGTERM is
-        supported on Windows, this function is only useful on Unix systems.
+        """ Sends a signal to the kernel.
+
+        Note that since only SIGTERM is supported on Windows, this function is
+        only useful on Unix systems.
         """
         if self.has_kernel:
             self.kernel.send_signal(signum)
@@ -961,13 +993,21 @@ class KernelManager(HasTraits):
     # Channels used for communication with the kernel:
     #--------------------------------------------------------------------------
 
+    def _make_url(self, port):
+        """make a zmq url with a port"""
+        if self.transport == 'tcp':
+            return "tcp://%s:%i" % (self.ip, port)
+        else:
+            return "%s://%s-%s" % (self.transport, self.ip, port)
+
     @property
     def shell_channel(self):
         """Get the REQ socket channel object to make requests of the kernel."""
         if self._shell_channel is None:
             self._shell_channel = self.shell_channel_class(self.context,
-                                                         self.session,
-                                                         (self.ip, self.shell_port))
+                                                           self.session,
+                                                           self._make_url(self.shell_port),
+            )
         return self._shell_channel
 
     @property
@@ -976,7 +1016,8 @@ class KernelManager(HasTraits):
         if self._sub_channel is None:
             self._sub_channel = self.sub_channel_class(self.context,
                                                        self.session,
-                                                       (self.ip, self.iopub_port))
+                                                       self._make_url(self.iopub_port),
+            )
         return self._sub_channel
 
     @property
@@ -984,8 +1025,9 @@ class KernelManager(HasTraits):
         """Get the REP socket channel object to handle stdin (raw_input)."""
         if self._stdin_channel is None:
             self._stdin_channel = self.stdin_channel_class(self.context,
-                                                       self.session,
-                                                       (self.ip, self.stdin_port))
+                                                           self.session,
+                                                           self._make_url(self.stdin_port),
+            )
         return self._stdin_channel
 
     @property
@@ -994,6 +1036,7 @@ class KernelManager(HasTraits):
         kernel is alive."""
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(self.context,
-                                                       self.session,
-                                                       (self.ip, self.hb_port))
+                                                     self.session,
+                                                     self._make_url(self.hb_port),
+            )
         return self._hb_channel

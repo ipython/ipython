@@ -627,7 +627,7 @@ Message type: ``history_request``::
       'start' : int,
       'stop' : int,
       
-      # If hist_access_type is 'tail', get the last n cells.
+      # If hist_access_type is 'tail' or 'search', get the last n cells.
       'n' : int,
       
       # If hist_access_type is 'search', get cells matching the specified glob

@@ -32,6 +32,7 @@ from IPython.core.magic import  (
 )
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.io import file_read, nlprint
+from IPython.utils.openpy import source_to_unicode
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
@@ -686,12 +687,12 @@ class OSMagics(Magics):
                              'or macro.')
 
         try :
-            cont = self.shell.find_user_code(parameter_s)
+            cont = self.shell.find_user_code(parameter_s, skip_encoding_cookie=False)
         except (ValueError, IOError):
             print "Error: no such file, variable, URL, history range or macro"
             return
 
-        page.page(self.shell.pycolorize(cont))
+        page.page(self.shell.pycolorize(source_to_unicode(cont)))
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(

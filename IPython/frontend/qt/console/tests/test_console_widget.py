@@ -2,7 +2,7 @@
 import unittest
 
 # System library imports
-from IPython.external.qt import QtGui
+from IPython.external.qt import QtCore, QtGui
 
 # Local imports
 from IPython.frontend.qt.console.console_widget import ConsoleWidget
@@ -40,3 +40,41 @@ class TestConsoleWidget(unittest.TestCase):
             self.assertEqual(expected_outputs[i], selection)
             # clear all the text
             cursor.insertText('')
+
+    def test_link_handling(self):
+        noKeys = QtCore.Qt
+        noButton = QtCore.Qt.MouseButton(0)
+        noButtons = QtCore.Qt.MouseButtons(0)
+        noModifiers = QtCore.Qt.KeyboardModifiers(0)
+        MouseMove = QtCore.QEvent.MouseMove
+        QMouseEvent = QtGui.QMouseEvent
+        
+        w = ConsoleWidget()
+        cursor = w._get_prompt_cursor()
+        w._insert_html(cursor, '<a href="http://python.org">written in</a>')
+        obj = w._control
+        tip = QtGui.QToolTip
+        self.assertEqual(tip.text(), u'')
+        
+        # should be somewhere else
+        elsewhereEvent = QMouseEvent(MouseMove, QtCore.QPoint(50,50),
+                                     noButton, noButtons, noModifiers)
+        w.eventFilter(obj, elsewhereEvent)
+        self.assertEqual(tip.isVisible(), False)
+        self.assertEqual(tip.text(), u'')
+        
+        #self.assertEqual(tip.text(), u'')
+        # should be over text
+        overTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
+                                    noButton, noButtons, noModifiers)
+        w.eventFilter(obj, overTextEvent)
+        self.assertEqual(tip.isVisible(), True)
+        self.assertEqual(tip.text(), "http://python.org")
+        
+        # should still be over text
+        stillOverTextEvent = QMouseEvent(MouseMove, QtCore.QPoint(1,5),
+                                         noButton, noButtons, noModifiers)
+        w.eventFilter(obj, stillOverTextEvent)
+        self.assertEqual(tip.isVisible(), True)
+        self.assertEqual(tip.text(), "http://python.org")
+        

@@ -7,7 +7,7 @@ Much of the code is taken from the tokenize module in Python 3.2.
 from __future__ import absolute_import
 
 import io
-from io import TextIOWrapper
+from io import TextIOWrapper, BytesIO
 import re
 import urllib
 
@@ -120,6 +120,32 @@ except ImportError:
         text.mode = 'r'
         return text   
 
+def source_to_unicode(txt, errors='replace', skip_encoding_cookie=True):
+    """Converts a bytes string with python source code to unicode.
+
+    Unicode strings are passed through unchanged. Byte strings are checked
+    for the python source file encoding cookie to determine encoding.
+    txt can be either a bytes buffer or a string containing the source
+    code.
+    """
+    if isinstance(txt, unicode):
+        return txt
+    if isinstance(txt, bytes):
+        buffer = BytesIO(txt)
+    else:
+        buffer = txt
+    try:
+        encoding, _ = detect_encoding(buffer.readline)
+    except SyntaxError:
+        encoding = "ascii"
+    buffer.seek(0)
+    text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
+    text.mode = 'r'
+    if skip_encoding_cookie:
+        return u"".join(strip_encoding_cookie(text))
+    else:
+        return text.read()
+
 def strip_encoding_cookie(filelike):
     """Generator to pull lines from a text-mode file, skipping the encoding
     cookie if it is found in the first two lines.
@@ -181,12 +207,13 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     """
     response = urllib.urlopen(url)
     buffer = io.BytesIO(response.read())
-    encoding, lines = detect_encoding(buffer.readline)
-    buffer.seek(0)
-    text = TextIOWrapper(buffer, encoding, errors=errors, line_buffering=True)
-    text.mode = 'r'
-    if skip_encoding_cookie:
-        return "".join(strip_encoding_cookie(text))
-    else:
-        return text.read()
+    return source_to_unicode(buffer, errors, skip_encoding_cookie)
 
+def _list_readline(x):
+    """Given a list, returns a readline() function that returns the next element
+    with each call.
+    """
+    x = iter(x)
+    def readline():
+        return next(x)
+    return readline

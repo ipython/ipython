@@ -3,7 +3,7 @@
 {% block stylesheet %}
 
 {% if mathjax_url %}
-<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML" charset="utf-8"></script>
+<script type="text/javascript" src="{{mathjax_url}}?config=TeX-AMS_HTML-full&delayStartupUntil=configured" charset="utf-8"></script>
 {% endif %}
 <script type="text/javascript">
 // MathJax disabled, set as null to distingish from *missing* MathJax,
@@ -69,7 +69,7 @@ data-notebook-id={{notebook_id}}
 
 <script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/initmathjax.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/mathjaxutils.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/outputarea.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
