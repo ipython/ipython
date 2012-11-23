@@ -26,6 +26,11 @@ from IPython.utils.text import indent
 #-----------------------------------------------------------------------------
 class ConverterMarkdown(Converter):
     extension = 'md'
+    # show_prompts controls the display of In[} and Out[] prompts for code
+    # cells.
+    show_prompts = False
+    # If inline_prompt is False, display prompts on a separate line.
+    inline_prompt = False
 
     def __init__(self, infile, highlight_source=True, show_prompts=False,
                  inline_prompt=False):

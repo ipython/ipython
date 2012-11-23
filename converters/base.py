@@ -109,6 +109,8 @@ class Converter(object):
     output = unicode()
     raw_as_verbatim = False
     blank_symbol = " "
+    outbase = str()
+    clean_name = str()
     # Which display data format is best? Subclasses can override if
     # they have specific requirements.
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
