@@ -47,13 +47,14 @@ class ConverterMarkdown(Converter):
             return []
         lines = []
         n = self._get_prompt_number(cell)
-        if self.show_prompts and not self.inline_prompt:
-            lines.extend(['*In[%s]:*' % n, ''])
-        if self.show_prompts and self.inline_prompt:
-            prompt = 'In[%s]: ' % n
-            input_lines = cell.input.split('\n')
-            src = (prompt + input_lines[0] + '\n' +
-                   indent('\n'.join(input_lines[1:]), nspaces=len(prompt)))
+        if self.show_prompts:
+            if not self.inline_prompt:
+                lines.extend(['*In[%s]:*' % n, ''])
+            else:
+                prompt = 'In[%s]: ' % n
+                input_lines = cell.input.split('\n')
+                src = (prompt + input_lines[0] + '\n' +
+                       indent('\n'.join(input_lines[1:]), nspaces=len(prompt)))
         else:
             src = cell.input
         src = highlight(src) if self.highlight_source else indent(src)
