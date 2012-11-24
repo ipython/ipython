@@ -173,7 +173,8 @@ class FileLinks(FileLink):
                                dirname_output_format,
                                fname_output_format,
                                fp_format):
-        """ generate func to pass to os.path.walk
+        """ generate function to format output- the resulting function will 
+             take a list to be populated with the output lines to print, 
         
            dirname_output_format: string to use for formatting directory 
             names, dirname will be substituted for a single "%s" which
@@ -190,8 +191,8 @@ class FileLinks(FileLink):
         
         included_suffixes = self.included_suffixes
 
-        def f(output_lines, dirname, fnames):
-            """ func to be passed to os.path.walk """
+        def f(dirname, fnames):
+            result = []
             # begin by figuring out which filenames, if any, 
             # are going to be displayed
             display_fnames = []
@@ -209,7 +210,7 @@ class FileLinks(FileLink):
                 # otherwise print the formatted directory name followed by 
                 # the formatted filenames
                 dirname_output_line = dirname_output_format % dirname
-                output_lines.append(dirname_output_line)
+                result.append(dirname_output_line)
                 for fname in display_fnames:
                     fp = fp_format % (dirname,fname)
                     try:
@@ -218,8 +219,8 @@ class FileLinks(FileLink):
                     except TypeError:
                         # ... or just a single filepath
                         fname_output_line = fname_output_format % fname
-                    output_lines.append(fname_output_line)
-            return
+                    result.append(fname_output_line)
+            return result
         return f
 
     def _get_notebook_display_formatter(self,
@@ -253,7 +254,7 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            self.notebook_display_formatter(result_lines,dirname, fnames)
+            result_lines += self.notebook_display_formatter(dirname, fnames)
         return '\n'.join(result_lines)
     
     def __repr__(self):
@@ -263,5 +264,5 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            self.terminal_display_formatter(result_lines, dirname, fnames)
+            result_lines += self.terminal_display_formatter(dirname, fnames)
         return '\n'.join(result_lines)

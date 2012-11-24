@@ -90,9 +90,8 @@ def test_existing_path_FileLinks_alt_formatter():
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
     tf2 = NamedTemporaryFile(dir=td)
-    def fake_formatter(output_lines,dirname,fnames):
-        output_lines.extend(["hello","world"])
-        return
+    def fake_formatter(dirname,fnames):
+        return ["hello","world"]
     fl = display.FileLinks(td,notebook_display_formatter=fake_formatter)
     actual = fl._repr_html_()
     actual = actual.split('\n')
@@ -122,9 +121,8 @@ def test_existing_path_FileLinks_repr_alt_formatter():
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
     tf2 = NamedTemporaryFile(dir=td)
-    def fake_formatter(output_lines,dirname,fnames):
-        output_lines.extend(["hello","world"])
-        return
+    def fake_formatter(dirname,fnames):
+        return ["hello","world"]
     fl = display.FileLinks(td,terminal_display_formatter=fake_formatter)
     actual = repr(fl)
     actual = actual.split('\n')
