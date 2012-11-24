@@ -18,6 +18,7 @@ PyMVPA project, which we've adapted for NIPY use.  PyMVPA is an MIT-licensed
 project."""
 
 # Stdlib imports
+import ast
 import os
 import re
 
@@ -94,21 +95,6 @@ class ApiDocWriter(object):
     package_name = property(get_package_name, set_package_name, None,
                             'get/set package_name')
 
-    def _get_object_name(self, line):
-        ''' Get second token in line
-        >>> docwriter = ApiDocWriter('sphinx')
-        >>> docwriter._get_object_name("  def func():  ")
-        'func'
-        >>> docwriter._get_object_name("  class Klass(object):  ")
-        'Klass'
-        >>> docwriter._get_object_name("  class Klass:  ")
-        'Klass'
-        '''
-        name = line.split()[1].split('(')[0].strip()
-        # in case we have classes which are not derived from object
-        # ie. old style classes
-        return name.rstrip(':')
-
     def _uri2path(self, uri):
         ''' Convert uri to absolute filepath
 
@@ -164,30 +150,31 @@ class ApiDocWriter(object):
         if filename is None:
             # nothing that we could handle here.
             return ([],[])
-        f = open(filename, 'rt')
-        functions, classes = self._parse_lines(f)
-        f.close()
-        return functions, classes
+        with open(filename, 'rb') as f:
+            mod = ast.parse(f.read())
+        return self._find_functions_classes(mod)
 
-    def _parse_lines(self, linesource):
-        ''' Parse lines of text for functions and classes '''
-        functions = []
-        classes = []
-        for line in linesource:
-            if line.startswith('def ') and line.count('('):
-                # exclude private stuff
-                name = self._get_object_name(line)
-                if not name.startswith('_'):
-                    functions.append(name)
-            elif line.startswith('class '):
-                # exclude private stuff
-                name = self._get_object_name(line)
-                if not name.startswith('_'):
-                    classes.append(name)
-            else:
-                pass
-        functions.sort()
-        classes.sort()
+    @staticmethod
+    def _find_functions_classes(mod):
+        """Extract top-level functions and classes from a module AST.
+        
+        Skips objects with an @undoc decorator, or a name starting with '_'.
+        """
+        def has_undoc_decorator(node):
+            return any(isinstance(d, ast.Name) and d.id == 'undoc' \
+                                        for d in node.decorator_list)
+        
+        functions, classes = [], []
+        for node in mod.body:
+            if isinstance(node, ast.FunctionDef) and \
+                        not node.name.startswith('_') and \
+                        not has_undoc_decorator(node):
+                functions.append(node.name)
+            elif isinstance(node, ast.ClassDef) and \
+                        not node.name.startswith('_') and \
+                        not has_undoc_decorator(node):
+                classes.append(node.name)
+        
         return functions, classes
 
     def generate_api_doc(self, uri):

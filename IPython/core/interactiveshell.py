@@ -64,6 +64,7 @@ from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils import openpy
+from IPython.utils.decorators import undoc
 from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
@@ -90,6 +91,7 @@ dedent_re = re.compile(r'^\s+raise|^\s+return|^\s+pass')
 # Utilities
 #-----------------------------------------------------------------------------
 
+@undoc
 def softspace(file, newvalue):
     """Copied from code.py, to remove the dependency"""
 
@@ -105,9 +107,10 @@ def softspace(file, newvalue):
         pass
     return oldvalue
 
-
+@undoc
 def no_op(*a, **kw): pass
 
+@undoc
 class NoOpContext(object):
     def __enter__(self): pass
     def __exit__(self, type, value, traceback): pass
@@ -115,6 +118,7 @@ no_op_context = NoOpContext()
 
 class SpaceInInput(Exception): pass
 
+@undoc
 class Bunch: pass
 
 
