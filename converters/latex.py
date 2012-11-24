@@ -42,6 +42,7 @@ class ConverterLaTeX(Converter):
                    6: r'\subparagraph'}
     user_preamble = None
     exclude_cells = []
+    display_data_priority = ['latex', 'pdf', 'svg', 'png', 'jpg', 'text']
 
     def in_env(self, environment, lines):
         """Return list of environment lines for input lines
@@ -96,7 +97,7 @@ class ConverterLaTeX(Converter):
         final.extend([r'\begin{document}', '',
                       body,
                       r'\end{document}', ''])
-        # Retun value must be a string
+        # Return value must be a string
         return '\n'.join(final)
 
     def render_heading(self, cell):
@@ -133,7 +134,7 @@ class ConverterLaTeX(Converter):
 
     def _img_lines(self, img_file):
         return self.in_env('center',
-                [r'\includegraphics[width=6in]{%s}' % img_file, r'\par'])
+                [r'\includegraphics[width=0.7\textwidth]{%s}' % os.path.relpath(img_file, self.infile_dir), r'\par'])
 
     def _svg_lines(self, img_file):
         base_file = os.path.splitext(img_file)[0]
@@ -150,9 +151,10 @@ class ConverterLaTeX(Converter):
 
         # output is a dictionary like object with type as a key
         if 'latex' in output:
-            lines.extend(self.in_env('equation*', output.latex.lstrip('$$').rstrip('$$')))
+            lines.extend(self.in_env('equation', output.latex.lstrip('$$').rstrip('$$')))
 
-        if 'text' in output:
+        #use text only if no latex representation is available
+        elif 'text' in output:
             lines.extend(self.in_env('verbatim', output.text))
 
         return lines
@@ -174,20 +176,13 @@ class ConverterLaTeX(Converter):
           self.in_env('verbatim', data)
 
     def render_display_format_text(self, output):
-        lines = []
-
-        if 'text' in output:
-            lines.extend(self.in_env('verbatim', output.text.strip()))
-
-        return lines
+        return self.in_env('verbatim', output.text.strip())
 
     def render_display_format_html(self, output):
         return []
 
     def render_display_format_latex(self, output):
-        if type(output.latex) == type([]):
-            return output.latex
-        return [output.latex]
+        return self.in_env('equation', output.latex.lstrip('$$').rstrip('$$'))
 
     def render_display_format_json(self, output):
         # latex ignores json
