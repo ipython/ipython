@@ -4,7 +4,8 @@ Authors : MinRK, gregcaporaso, dannystaple
 """
 import urllib
 
-from os.path import exists, isfile, splitext, abspath, join, isdir, walk
+from os.path import exists, isfile, splitext, abspath, join, isdir
+from os import walk
 
 
 class YouTubeVideo(object):
@@ -249,12 +250,18 @@ class FileLinks(FileLink):
     
     def _format_path(self):
         result_lines = []
-        walk(self.path, self.notebook_display_formatter, result_lines)
+        walked_dir = list(walk(self.path))
+        walked_dir.sort()
+        for dirname, subdirs, fnames in walked_dir:
+            self.notebook_display_formatter(result_lines,dirname, fnames)
         return '\n'.join(result_lines)
     
     def __repr__(self):
         """return newline-separated absolute paths
         """
         result_lines = []
-        walk(self.path, self.terminal_display_formatter, result_lines)
+        walked_dir = list(walk(self.path))
+        walked_dir.sort()
+        for dirname, subdirs, fnames in walked_dir:
+            self.terminal_display_formatter(result_lines, dirname, fnames)
         return '\n'.join(result_lines)
