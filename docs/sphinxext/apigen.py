@@ -22,6 +22,12 @@ import ast
 import os
 import re
 
+class Obj(object):
+    '''Namespace to hold arbitrary information.'''
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
 # Functions and classes
 class ApiDocWriter(object):
     ''' Class for automatic detection and parsing of API docs
@@ -173,7 +179,10 @@ class ApiDocWriter(object):
             elif isinstance(node, ast.ClassDef) and \
                         not node.name.startswith('_') and \
                         not has_undoc_decorator(node):
-                classes.append(node.name)
+                cls = Obj(name=node.name)
+                cls.has_init = any(isinstance(n, ast.FunctionDef) and \
+                                    n.name=='__init__' for n in node.body)
+                classes.append(cls)
         
         return functions, classes
 
@@ -202,17 +211,13 @@ class ApiDocWriter(object):
 
         ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
 
-        chap_title = uri_short
-        ad += (chap_title+'\n'+ self.rst_section_levels[1] * len(chap_title)
-               + '\n\n')
-
-        # Set the chapter title to read 'module' for all modules except for the
+        # Set the chapter title to read 'Module:' for all modules except for the
         # main packages
         if '.' in uri:
-            title = 'Module: :mod:`' + uri_short + '`'
+            chap_title = 'Module: :mod:`' + uri_short + '`'
         else:
-            title = ':mod:`' + uri_short + '`'
-        ad += title + '\n' + self.rst_section_levels[2] * len(title)
+            chap_title = ':mod:`' + uri_short + '`'
+        ad += chap_title + '\n' + self.rst_section_levels[1] * len(chap_title)
 
         if len(classes):
             ad += '\nInheritance diagram for ``%s``:\n\n' % uri
@@ -230,15 +235,15 @@ class ApiDocWriter(object):
             ad += '\n' + 'Class' + '\n' + \
                   self.rst_section_levels[2] * 5 + '\n'
         for c in classes:
-            ad += '\n:class:`' + c + '`\n' \
+            ad += '\n:class:`' + c.name + '`\n' \
                   + self.rst_section_levels[multi_class + 2 ] * \
-                  (len(c)+9) + '\n\n'
-            ad += '\n.. autoclass:: ' + c + '\n'
+                  (len(c.name)+9) + '\n\n'
+            ad += '\n.. autoclass:: ' + c.name + '\n'
             # must NOT exclude from index to keep cross-refs working
             ad += '  :members:\n' \
-                  '  :show-inheritance:\n' \
-                  '\n' \
-                  '  .. automethod:: __init__\n'
+                  '  :show-inheritance:\n'
+            if c.has_init:
+                  ad += '\n  .. automethod:: __init__\n'
         if multi_fx:
             ad += '\n' + 'Functions' + '\n' + \
                   self.rst_section_levels[2] * 9 + '\n\n'
