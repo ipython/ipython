@@ -148,25 +148,29 @@ class FileLinks(FileLink):
             See the FileLink (baseclass of LocalDirectory) docstring for 
              information on additional parameters.
              
-            notebook_display_formatter : func passed to os.path.walk when
-             formatting links for display in the notebook. This function
-             should be of the form: f(dirname, fnames) where dirname is the
-             name of a directory (a string) and fnames is a list of the
-             files in that directory (not including subdirectories) and 
-             returns a list of lines that should be used to print that text 
-             in the notebook. This function is iterated over for each
-             directory in self.path. A default formatter is in place, but
-             a function can be passed to support alternative formatting.
+            notebook_display_formatter : func used to format links for display 
+             in the notebook. See discussion of formatter function below.
             
-            terminal_display_formatter : func passed to os.path.walk when
-             formatting links for display in the terminal. This function
-             should be of the form: f(dirname, fnames) where dirname is the
-             name of a directory (a string) and fnames is a list of the
-             files in that directory (not including subdirectories) and 
-             returns a list of lines that should be used to print that text 
-             in the terminal. This function is iterated over for each
-             directory in self.path. A default formatter is in place, but
-             a function can be passed to support alternative formatting.
+            terminal_display_formatter : func used to format links for display 
+             in the terminal. See discussion of formatter function below.
+             
+            
+            Passing custom formatter functions
+            ----------------------------------
+             Formatter functions must be of the form:
+              f(dirname, fnames, included_suffixes)
+               dirname : the name of a directory (a string), 
+               fnames :  a list of the files in that directory 
+               included_suffixes : a list of the file suffixes that should be 
+                                   included in the output (passing None means 
+                                   to include all suffixes in the output in
+                                   the built-in formatters)
+               
+               returns a list of lines that should will be print in the 
+               notebook (if passing notebook_display_formatter) or the terminal
+               (if passing terminal_display_formatter). This function is iterated 
+               over for each directory in self.path. Default formatters are in 
+               place, can be passed here to support alternative formatting.
             
         """
         self.included_suffixes = included_suffixes
@@ -187,8 +191,10 @@ class FileLinks(FileLink):
                                dirname_output_format,
                                fname_output_format,
                                fp_format):
-        """ generate function to format output- the resulting function will 
-             take a list to be populated with the output lines to print, 
+        """ generate built-in formatter function
+           
+           this is used to define both the notebook and terminal built-in 
+            formatters as they only differ by some wrapper text for each entry
         
            dirname_output_format: string to use for formatting directory 
             names, dirname will be substituted for a single "%s" which
