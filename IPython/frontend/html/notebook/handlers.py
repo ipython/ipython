@@ -197,7 +197,13 @@ class AuthenticatedHandler(RequestHandler):
         if host == '':
             host = self.request.host # get from request
         return "%s://%s" % (proto, host)
-
+        
+    @property
+    def environment(self):
+        """ Jinja 2 template base directory
+        """
+        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
+        return env
 
 class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
@@ -212,9 +218,8 @@ class ProjectDashboardHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        nb = env.get_template('projectdashboard.html')
+        project = nbm.notebook_dir        
+        nb = self.environment.get_template('projectdashboard.html')
         self.write( nb.render(project=project,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -225,9 +230,8 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 
 class LoginHandler(AuthenticatedHandler):
 
-    def _render(self, message=None):
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        nb = env.get_template('login.html')
+    def _render(self, message=None):        
+        nb = self.environment.get_template('login.html')
         self.write( nb.render(
                 next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
@@ -264,9 +268,7 @@ class LogoutHandler(AuthenticatedHandler):
         else:
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
-
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        nb = env.get_template('logout.html')
+        nb = self.environment.get_template('logout.html')
         self.write( nb.render(        
                     read_only=self.read_only,
                     logged_in=self.logged_in,
@@ -291,10 +293,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        nb = env.get_template('notebook/notebook.html')
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
+        nb = self.environment.get_template('notebook.html')
         self.write( nb.render(project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
@@ -313,10 +313,8 @@ class PrintNotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        nb = env.get_template('printnotebook.html')
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)        
+        nb = self.environment.get_template('printnotebook.html')
         self.write( nb.render(
              project=project,
             notebook_id=notebook_id,
