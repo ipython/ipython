@@ -104,11 +104,11 @@ place a set of stop tags; the other tags are only there to let you fine-tune
 the execution.
 
 This is probably best explained with the simple example file below.  You can
-copy this into a file named ex_demo.py, and try running it via:
+copy this into a file named ex_demo.py, and try running it via::
 
-from IPython.demo import Demo
-d = Demo('ex_demo.py')
-d()  <--- Call the d object (omit the parens if you have autocall set to 2).
+    from IPython.demo import Demo
+    d = Demo('ex_demo.py')
+    d()
 
 Each time you call the demo object, it runs the next block.  The demo object
 has a few useful methods for navigation, like again(), edit(), jump(), seek()
