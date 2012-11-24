@@ -27,6 +27,40 @@ class Obj(object):
     def __init__(self, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+                                        
+class FuncClsScanner(ast.NodeVisitor):
+    """Scan a module for top-level functions and classes.
+    
+    Skips objects with an @undoc decorator, or a name starting with '_'.
+    """
+    def __init__(self):
+        ast.NodeVisitor.__init__(self)
+        self.classes = []
+        self.classes_seen = set()
+        self.functions = []
+    
+    @staticmethod
+    def has_undoc_decorator(node):
+        return any(isinstance(d, ast.Name) and d.id == 'undoc' \
+                                for d in node.decorator_list)
+    
+    def visit_FunctionDef(self, node):
+        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
+                and node.name not in self.functions:
+            self.functions.append(node.name)
+    
+    def visit_ClassDef(self, node):
+        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
+                and node.name not in self.classes_seen:
+            cls = Obj(name=node.name)
+            cls.has_init = any(isinstance(n, ast.FunctionDef) and \
+                                n.name=='__init__' for n in node.body)
+            self.classes.append(cls)
+            self.classes_seen.add(node.name)
+    
+    def scan(self, mod):
+        self.visit(mod)
+        return self.functions, self.classes
 
 # Functions and classes
 class ApiDocWriter(object):
@@ -158,33 +192,7 @@ class ApiDocWriter(object):
             return ([],[])
         with open(filename, 'rb') as f:
             mod = ast.parse(f.read())
-        return self._find_functions_classes(mod)
-
-    @staticmethod
-    def _find_functions_classes(mod):
-        """Extract top-level functions and classes from a module AST.
-        
-        Skips objects with an @undoc decorator, or a name starting with '_'.
-        """
-        def has_undoc_decorator(node):
-            return any(isinstance(d, ast.Name) and d.id == 'undoc' \
-                                        for d in node.decorator_list)
-        
-        functions, classes = [], []
-        for node in mod.body:
-            if isinstance(node, ast.FunctionDef) and \
-                        not node.name.startswith('_') and \
-                        not has_undoc_decorator(node):
-                functions.append(node.name)
-            elif isinstance(node, ast.ClassDef) and \
-                        not node.name.startswith('_') and \
-                        not has_undoc_decorator(node):
-                cls = Obj(name=node.name)
-                cls.has_init = any(isinstance(n, ast.FunctionDef) and \
-                                    n.name=='__init__' for n in node.body)
-                classes.append(cls)
-        
-        return functions, classes
+        return FuncClsScanner().scan(mod)
 
     def generate_api_doc(self, uri):
         '''Make autodoc documentation template string for a module
