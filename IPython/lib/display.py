@@ -149,10 +149,24 @@ class FileLinks(FileLink):
              information on additional parameters.
              
             notebook_display_formatter : func passed to os.path.walk when
-             formatting links for display in the notebook
+             formatting links for display in the notebook. This function
+             should be of the form: f(dirname, fnames) where dirname is the
+             name of a directory (a string) and fnames is a list of the
+             files in that directory (not including subdirectories) and 
+             returns a list of lines that should be used to print that text 
+             in the notebook. This function is iterated over for each
+             directory in self.path. A default formatter is in place, but
+             a function can be passed to support alternative formatting.
             
             terminal_display_formatter : func passed to os.path.walk when
-             formatting links for display in the terminal
+             formatting links for display in the terminal. This function
+             should be of the form: f(dirname, fnames) where dirname is the
+             name of a directory (a string) and fnames is a list of the
+             files in that directory (not including subdirectories) and 
+             returns a list of lines that should be used to print that text 
+             in the terminal. This function is iterated over for each
+             directory in self.path. A default formatter is in place, but
+             a function can be passed to support alternative formatting.
             
         """
         self.included_suffixes = included_suffixes
@@ -188,10 +202,7 @@ class FileLinks(FileLink):
             exactly two "%s" and the dirname will be subsituted for the first
             and fname will be substituted for the second
         """
-        
-        included_suffixes = self.included_suffixes
-
-        def f(dirname, fnames):
+        def f(dirname, fnames, included_suffixes=None):
             result = []
             # begin by figuring out which filenames, if any, 
             # are going to be displayed
@@ -225,7 +236,7 @@ class FileLinks(FileLink):
 
     def _get_notebook_display_formatter(self,
                                         spacer="&nbsp;&nbsp;"):
-        """ generate func to pass to os.path.walk for notebook formatting
+        """ generate function to use for notebook formatting
         """
         dirname_output_format = \
          self.result_html_prefix + "%s/" + self.result_html_suffix
@@ -239,7 +250,7 @@ class FileLinks(FileLink):
 
     def _get_terminal_display_formatter(self,
                                         spacer="  "):
-        """ generate func to pass to os.path.walk for terminal formatting
+        """ generate function to use for terminal formatting
         """
         dirname_output_format = "%s/"
         fname_output_format = spacer + "%s"
@@ -254,7 +265,7 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            result_lines += self.notebook_display_formatter(dirname, fnames)
+            result_lines += self.notebook_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
     
     def __repr__(self):
@@ -264,5 +275,5 @@ class FileLinks(FileLink):
         walked_dir = list(walk(self.path))
         walked_dir.sort()
         for dirname, subdirs, fnames in walked_dir:
-            result_lines += self.terminal_display_formatter(dirname, fnames)
+            result_lines += self.terminal_display_formatter(dirname, fnames, self.included_suffixes)
         return '\n'.join(result_lines)
