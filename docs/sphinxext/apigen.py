@@ -221,30 +221,24 @@ class ApiDocWriter(object):
 
         ad += '\n.. automodule:: ' + uri + '\n'
         ad += '\n.. currentmodule:: ' + uri + '\n'
-        multi_class = len(classes) > 1
-        multi_fx = len(functions) > 1
-        if multi_class:
-            ad += '\n' + 'Classes' + '\n' + \
-                  self.rst_section_levels[2] * 7 + '\n'
-        elif len(classes) and multi_fx:
-            ad += '\n' + 'Class' + '\n' + \
-                  self.rst_section_levels[2] * 5 + '\n'
+        
+        if classes:
+            subhead = str(len(classes)) + (' Classes' if len(classes) > 1 else ' Class')
+            ad += '\n'+ subhead + '\n' + \
+                  self.rst_section_levels[2] * len(subhead) + '\n'
+
         for c in classes:
-            ad += '\n:class:`' + c.name + '`\n' \
-                  + self.rst_section_levels[multi_class + 2 ] * \
-                  (len(c.name)+9) + '\n\n'
             ad += '\n.. autoclass:: ' + c.name + '\n'
             # must NOT exclude from index to keep cross-refs working
             ad += '  :members:\n' \
                   '  :show-inheritance:\n'
             if c.has_init:
                   ad += '\n  .. automethod:: __init__\n'
-        if multi_fx:
-            ad += '\n' + 'Functions' + '\n' + \
-                  self.rst_section_levels[2] * 9 + '\n\n'
-        elif len(functions) and multi_class:
-            ad += '\n' + 'Function' + '\n' + \
-                  self.rst_section_levels[2] * 8 + '\n\n'
+        
+        if functions:
+            subhead = str(len(functions)) + (' Functions' if len(functions) > 1 else ' Function')
+            ad += '\n'+ subhead + '\n' + \
+                  self.rst_section_levels[2] * len(subhead) + '\n'
         for f in functions:
             # must NOT exclude from index to keep cross-refs working
             ad += '\n.. autofunction:: ' + uri + '.' + f + '\n\n'
