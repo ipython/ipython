@@ -25,7 +25,7 @@ from converters.utils import remove_ansi
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 class ConverterPy(Converter):
     """

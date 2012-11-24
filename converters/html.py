@@ -35,7 +35,7 @@ from converters.utils import highlight, coalesce_streams, ansi2html
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 class ConverterHTML(Converter):
     extension = 'html'

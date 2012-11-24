@@ -38,7 +38,7 @@ if sys.platform == 'darwin':
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 
 class ConverterLaTeX(Converter):

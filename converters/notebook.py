@@ -27,7 +27,7 @@ from converters.utils import cell_to_lines
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 class ConverterNotebook(Converter):
     """

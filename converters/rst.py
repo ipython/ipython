@@ -24,7 +24,7 @@ from converters.utils import markdown2rst, rst_directive, remove_ansi
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 class ConverterRST(Converter):
     extension = 'rst'

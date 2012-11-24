@@ -24,7 +24,7 @@ from converters.html import ConverterHTML
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Classes declarations
 #-----------------------------------------------------------------------------
 
 class ConverterBloggerHTML(ConverterHTML):

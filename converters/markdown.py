@@ -22,7 +22,7 @@ from IPython.utils.text import indent
 
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class declarations
 #-----------------------------------------------------------------------------
 class ConverterMarkdown(Converter):
     extension = 'md'

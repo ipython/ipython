@@ -22,7 +22,7 @@ from pygments.token import Keyword, Operator, Text
 
 
 #-----------------------------------------------------------------------------
-# Classes
+# Class declarations
 #-----------------------------------------------------------------------------
 
 class IPythonLexer(PythonLexer):
