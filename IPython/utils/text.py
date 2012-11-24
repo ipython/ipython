@@ -1,6 +1,11 @@
 # encoding: utf-8
 """
 Utilities for working with strings and text.
+
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.utils.text
+   :parts: 3
 """
 
 #-----------------------------------------------------------------------------
