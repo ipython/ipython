@@ -195,9 +195,28 @@ IPython.utils = (function (IPython) {
         tmp = txt;
         do {
             txt = tmp;
-            tmp = txt.replace(/^.*\r(?!\n)/gm, '');
+            tmp = txt.replace(/\r+\n/gm, '\n'); // \r followed by \n --> newline
+            tmp = tmp.replace(/^.*\r+/gm, '');  // Other \r --> clear line
         } while (tmp.length < txt.length);
         return txt;
+    }
+
+    // Locate URLs in plain text and wrap them in spaces so that they can be
+    // better picked out by autoLinkUrls even after the text has been
+    // converted to HTML
+    function wrapUrls(txt) {
+        // Note this regexp is a modified version of one from
+        // Markdown.Converter For now it only supports http(s) and ftp URLs,
+        // but could easily support others (though file:// should maybe be
+        // avoided)
+        var url_re = /(^|\W)(https?|ftp)(:\/\/[-A-Z0-9+&@#\/%?=~_|\[\]\(\)!:,\.;]*[-A-Z0-9+&@#\/%=~_|\[\]])($|\W)/gi;
+        return txt.replace(url_re, "$1 $2$3 $4");
+    }
+
+    // Locate a URL with spaces around it and convert that to a anchor tag
+    function autoLinkUrls(txt) {
+        return txt.replace(/ ((https?|ftp):[^'">\s]+) /gi,
+            "<a target=\"_blank\" href=\"$1\">$1</a>");
     }
 
     grow = function(element) {
@@ -261,6 +280,8 @@ IPython.utils = (function (IPython) {
         keycodes : keycodes,
         grow : grow,
         fixCarriageReturn : fixCarriageReturn,
+        wrapUrls : wrapUrls,
+        autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels
     };
 

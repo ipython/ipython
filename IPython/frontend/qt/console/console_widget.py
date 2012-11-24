@@ -268,7 +268,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self._continuation_prompt = '> '
         self._continuation_prompt_html = None
         self._executing = False
-        self._filter_drag = False
         self._filter_resize = False
         self._html_exporter = HtmlExporter(self._control)
         self._input_buffer_executing = ''
@@ -343,7 +342,51 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 triggered=self.reset_font)
         self.addAction(self.reset_font_size)
 
+        # Accept drag and drop events here. Drops were already turned off
+        # in self._control when that widget was created.
+        self.setAcceptDrops(True)
 
+    #---------------------------------------------------------------------------
+    # Drag and drop support
+    #---------------------------------------------------------------------------
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasUrls():
+            # The link action should indicate to that the drop will insert
+            # the file anme.
+            e.setDropAction(QtCore.Qt.LinkAction)
+            e.accept()
+        elif e.mimeData().hasText():
+            # By changing the action to copy we don't need to worry about
+            # the user accidentally moving text around in the widget.
+            e.setDropAction(QtCore.Qt.CopyAction)
+            e.accept()
+
+    def dragMoveEvent(self, e):
+        if e.mimeData().hasUrls():
+            pass
+        elif e.mimeData().hasText():
+            cursor = self._control.cursorForPosition(e.pos())
+            if self._in_buffer(cursor.position()):
+                e.setDropAction(QtCore.Qt.CopyAction)
+                self._control.setTextCursor(cursor)
+            else:
+                e.setDropAction(QtCore.Qt.IgnoreAction)
+            e.accept()
+
+    def dropEvent(self, e):
+        if e.mimeData().hasUrls():
+            self._keep_cursor_in_buffer()
+            cursor = self._control.textCursor()
+            filenames = [url.toLocalFile() for url in e.mimeData().urls()]
+            text = ', '.join("'" + f.replace("'", "'\"'\"'") + "'"
+                             for f in filenames)
+            self._insert_plain_text_into_buffer(cursor, text)
+        elif e.mimeData().hasText():
+            cursor = self._control.cursorForPosition(e.pos())
+            if self._in_buffer(cursor.position()):
+                text = e.mimeData().text()
+                self._insert_plain_text_into_buffer(cursor, text)
 
     def eventFilter(self, obj, event):
         """ Reimplemented to ensure a console-like behavior in the underlying
@@ -391,39 +434,6 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 self._control_key_down(event.modifiers()) and \
                 event.key() in self._shortcuts:
             event.accept()
-
-        # Ensure that drags are safe. The problem is that the drag starting
-        # logic, which determines whether the drag is a Copy or Move, is locked
-        # down in QTextControl. If the widget is editable, which it must be if
-        # we're not executing, the drag will be a Move. The following hack
-        # prevents QTextControl from deleting the text by clearing the selection
-        # when a drag leave event originating from this widget is dispatched.
-        # The fact that we have to clear the user's selection is unfortunate,
-        # but the alternative--trying to prevent Qt from using its hardwired
-        # drag logic and writing our own--is worse.
-        elif etype == QtCore.QEvent.DragEnter and \
-                obj == self._control.viewport() and \
-                event.source() == self._control.viewport():
-            self._filter_drag = True
-        elif etype == QtCore.QEvent.DragLeave and \
-                obj == self._control.viewport() and \
-                self._filter_drag:
-            cursor = self._control.textCursor()
-            cursor.clearSelection()
-            self._control.setTextCursor(cursor)
-            self._filter_drag = False
-
-        # Ensure that drops are safe.
-        elif etype == QtCore.QEvent.Drop and obj == self._control.viewport():
-            cursor = self._control.cursorForPosition(event.pos())
-            if self._in_buffer(cursor.position()):
-                text = event.mimeData().text()
-                self._insert_plain_text_into_buffer(cursor, text)
-
-            # Qt is expecting to get something here--drag and drop occurs in its
-            # own event loop. Send a DragLeave event to end it.
-            QtGui.qApp.sendEvent(obj, QtGui.QDragLeaveEvent())
-            return True
 
         # Handle scrolling of the vsplit pager. This hack attempts to solve
         # problems with tearing of the help text inside the pager window.  This
@@ -1035,8 +1045,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             control.setAcceptRichText(False)
             control.setMouseTracking(True)
 
+        # Prevent the widget from handling drops, as we already provide
+        # the logic in this class.
+        control.setAcceptDrops(False)
+
         # Install event filters. The filter on the viewport is needed for
-        # mouse events and drag events.
+        # mouse events.
         control.installEventFilter(self)
         control.viewport().installEventFilter(self)
 
@@ -1772,6 +1786,32 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self._append_html(text)
         else:
             self._append_plain_text(text)
+
+    def _set_paging(self, paging):
+        """
+        Change the pager to `paging` style.
+
+        XXX: currently, this is limited to switching between 'hsplit' and
+        'vsplit'.
+
+        Parameters:
+        -----------
+        paging : string
+            Either "hsplit", "vsplit", or "inside"
+        """
+        if self._splitter is None:
+            raise NotImplementedError("""can only switch if --paging=hsplit or
+                    --paging=vsplit is used.""")
+        if paging == 'hsplit':
+            self._splitter.setOrientation(QtCore.Qt.Horizontal)
+        elif paging == 'vsplit':
+            self._splitter.setOrientation(QtCore.Qt.Vertical)
+        elif paging == 'inside':
+            raise NotImplementedError("""switching to 'inside' paging not
+                    supported yet.""")
+        else:
+            raise ValueError("unknown paging method '%s'" % paging)
+        self.paging = paging
 
     def _prompt_finished(self):
         """ Called immediately after a prompt is finished, i.e. when some input

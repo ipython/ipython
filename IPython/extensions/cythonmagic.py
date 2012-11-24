@@ -273,11 +273,7 @@ class CythonMagics(Magics):
         html = '\n'.join(l for l in html.splitlines() if not r.match(l))
         return html
 
-_loaded = False
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    global _loaded
-    if not _loaded:
-        ip.register_magics(CythonMagics)
-        _loaded = True
+    ip.register_magics(CythonMagics)

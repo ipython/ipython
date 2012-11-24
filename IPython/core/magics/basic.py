@@ -313,7 +313,8 @@ Currently the magic system has the following functions:""",
         import IPython.utils.rlineimpl as readline
 
         if not shell.colors_force and \
-                not readline.have_readline and sys.platform == "win32":
+                not readline.have_readline and \
+                (sys.platform == "win32" or sys.platform == "cli"):
             msg = """\
 Proper color support under MS Windows requires the pyreadline library.
 You can find it at:

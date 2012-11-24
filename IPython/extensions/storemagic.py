@@ -209,12 +209,6 @@ class StoreMagics(Magics):
                 print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
 
-_loaded = False
-
-
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    global _loaded
-    if not _loaded:
-        ip.register_magics(StoreMagics)
-        _loaded = True
+    ip.register_magics(StoreMagics)

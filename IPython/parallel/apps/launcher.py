@@ -650,18 +650,27 @@ class SSHClusterLauncher(SSHLauncher):
         
         If not specified, use calling profile, stripping out possible leading homedir.
         """)
-
-    def _remote_profile_dir_default(self):
-        """turns /home/you/.ipython/profile_foo into .ipython/profile_foo
-        """
+    
+    def _profile_dir_changed(self, name, old, new):
+        if not self.remote_profile_dir:
+            # trigger remote_profile_dir_default logic again,
+            # in case it was already triggered before profile_dir was set
+            self.remote_profile_dir = self._strip_home(new)
+    
+    @staticmethod
+    def _strip_home(path):
+        """turns /home/you/.ipython/profile_foo into .ipython/profile_foo"""
         home = get_home_dir()
         if not home.endswith('/'):
             home = home+'/'
         
-        if self.profile_dir.startswith(home):
-            return self.profile_dir[len(home):]
+        if path.startswith(home):
+            return path[len(home):]
         else:
-            return self.profile_dir
+            return path
+
+    def _remote_profile_dir_default(self):
+        return self._strip_home(self.profile_dir)
     
     def _cluster_id_changed(self, name, old, new):
         if new:
