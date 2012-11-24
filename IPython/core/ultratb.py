@@ -59,6 +59,11 @@ ColorSchemeTable class. Currently the following exist:
 You can implement other color schemes easily, the syntax is fairly
 self-explanatory. Please send back new schemes you develop to the author for
 possible inclusion in future releases.
+
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.core.ultratb
+   :parts: 3
 """
 
 #*****************************************************************************

@@ -1,105 +1,107 @@
 # -*- coding: utf-8 -*-
 """
-    pretty
-    ~~
+Python advanced pretty printer.  This pretty printer is intended to
+replace the old `pprint` python module which does not allow developers
+to provide their own pretty print callbacks.
 
-    Python advanced pretty printer.  This pretty printer is intended to
-    replace the old `pprint` python module which does not allow developers
-    to provide their own pretty print callbacks.
-
-    This module is based on ruby's `prettyprint.rb` library by `Tanaka Akira`.
+This module is based on ruby's `prettyprint.rb` library by `Tanaka Akira`.
 
 
-    Example Usage
-    =============
+Example Usage
+-------------
 
-    To directly print the representation of an object use `pprint`::
+To directly print the representation of an object use `pprint`::
 
-        from pretty import pprint
-        pprint(complex_object)
+    from pretty import pprint
+    pprint(complex_object)
 
-    To get a string of the output use `pretty`::
+To get a string of the output use `pretty`::
 
-        from pretty import pretty
-        string = pretty(complex_object)
-
-
-    Extending
-    =========
-
-    The pretty library allows developers to add pretty printing rules for their
-    own objects.  This process is straightforward.  All you have to do is to
-    add a `_repr_pretty_` method to your object and call the methods on the
-    pretty printer passed::
-
-        class MyObject(object):
-
-            def _repr_pretty_(self, p, cycle):
-                ...
-
-    Depending on the python version you want to support you have two
-    possibilities.  The following list shows the python 2.5 version and the
-    compatibility one.
+    from pretty import pretty
+    string = pretty(complex_object)
 
 
-    Here the example implementation of a `_repr_pretty_` method for a list
-    subclass for python 2.5 and higher (python 2.5 requires the with statement
-    __future__ import)::
+Extending
+---------
 
-        class MyList(list):
+The pretty library allows developers to add pretty printing rules for their
+own objects.  This process is straightforward.  All you have to do is to
+add a `_repr_pretty_` method to your object and call the methods on the
+pretty printer passed::
 
-            def _repr_pretty_(self, p, cycle):
-                if cycle:
-                    p.text('MyList(...)')
-                else:
-                    with p.group(8, 'MyList([', '])'):
-                        for idx, item in enumerate(self):
-                            if idx:
-                                p.text(',')
-                                p.breakable()
-                            p.pretty(item)
+    class MyObject(object):
 
-    The `cycle` parameter is `True` if pretty detected a cycle.  You *have* to
-    react to that or the result is an infinite loop.  `p.text()` just adds
-    non breaking text to the output, `p.breakable()` either adds a whitespace
-    or breaks here.  If you pass it an argument it's used instead of the
-    default space.  `p.pretty` prettyprints another object using the pretty print
-    method.
+        def _repr_pretty_(self, p, cycle):
+            ...
 
-    The first parameter to the `group` function specifies the extra indentation
-    of the next line.  In this example the next item will either be not
-    breaked (if the items are short enough) or aligned with the right edge of
-    the opening bracked of `MyList`.
+Depending on the python version you want to support you have two
+possibilities.  The following list shows the python 2.5 version and the
+compatibility one.
 
-    If you want to support python 2.4 and lower you can use this code::
 
-        class MyList(list):
+Here the example implementation of a `_repr_pretty_` method for a list
+subclass for python 2.5 and higher (python 2.5 requires the with statement
+__future__ import)::
 
-            def _repr_pretty_(self, p, cycle):
-                if cycle:
-                    p.text('MyList(...)')
-                else:
-                    p.begin_group(8, 'MyList([')
+    class MyList(list):
+
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('MyList(...)')
+            else:
+                with p.group(8, 'MyList([', '])'):
                     for idx, item in enumerate(self):
                         if idx:
                             p.text(',')
                             p.breakable()
                         p.pretty(item)
-                    p.end_group(8, '])')
 
-    If you just want to indent something you can use the group function
-    without open / close parameters.  Under python 2.5 you can also use this
-    code::
+The `cycle` parameter is `True` if pretty detected a cycle.  You *have* to
+react to that or the result is an infinite loop.  `p.text()` just adds
+non breaking text to the output, `p.breakable()` either adds a whitespace
+or breaks here.  If you pass it an argument it's used instead of the
+default space.  `p.pretty` prettyprints another object using the pretty print
+method.
 
-        with p.indent(2):
-            ...
+The first parameter to the `group` function specifies the extra indentation
+of the next line.  In this example the next item will either be not
+breaked (if the items are short enough) or aligned with the right edge of
+the opening bracked of `MyList`.
 
-    Or under python2.4 you might want to modify ``p.indentation`` by hand but
-    this is rather ugly.
+If you want to support python 2.4 and lower you can use this code::
 
-    :copyright: 2007 by Armin Ronacher.
-                Portions (c) 2009 by Robert Kern.
-    :license: BSD License.
+    class MyList(list):
+
+        def _repr_pretty_(self, p, cycle):
+            if cycle:
+                p.text('MyList(...)')
+            else:
+                p.begin_group(8, 'MyList([')
+                for idx, item in enumerate(self):
+                    if idx:
+                        p.text(',')
+                        p.breakable()
+                    p.pretty(item)
+                p.end_group(8, '])')
+
+If you just want to indent something you can use the group function
+without open / close parameters.  Under python 2.5 you can also use this
+code::
+
+    with p.indent(2):
+        ...
+
+Or under python2.4 you might want to modify ``p.indentation`` by hand but
+this is rather ugly.
+
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.lib.pretty
+   :parts: 3
+
+:copyright: 2007 by Armin Ronacher.
+            Portions (c) 2009 by Robert Kern.
+:license: BSD License.
 """
 from __future__ import with_statement
 from contextlib import contextmanager

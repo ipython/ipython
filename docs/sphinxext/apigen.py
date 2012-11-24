@@ -219,11 +219,6 @@ class ApiDocWriter(object):
             chap_title = ':mod:`' + uri_short + '`'
         ad += chap_title + '\n' + self.rst_section_levels[1] * len(chap_title)
 
-        if len(classes):
-            ad += '\nInheritance diagram for ``%s``:\n\n' % uri
-            ad += '.. inheritance-diagram:: %s \n' % uri
-            ad += '   :parts: 3\n'
-
         ad += '\n.. automodule:: ' + uri + '\n'
         ad += '\n.. currentmodule:: ' + uri + '\n'
         multi_class = len(classes) > 1
