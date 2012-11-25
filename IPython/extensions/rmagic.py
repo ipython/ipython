@@ -323,8 +323,12 @@ class RMagics(Magics):
         help='Convert these objects to data.frames and return as structured arrays.'
         )
     @argument(
-        '-u', '--units', type=int,
+        '-u', '--units', type=unicode, choices=["px", "in", "cm", "mm"],
         help='Units of png plotting device sent as an argument to *png* in R. One of ["px", "in", "cm", "mm"].'
+        )
+    @argument(
+        '-r', '--res', type=int,
+        help='Resolution of png plotting device sent as an argument to *png* in R. Defaults to 72 if *units* is one of ["in", "cm", "mm"].'
         )
     @argument(
         '-p', '--pointsize', type=int,
@@ -507,7 +511,12 @@ class RMagics(Magics):
                     val = self.shell.user_ns[input]
                 self.r.assign(input, self.pyconverter(val))
 
-        png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
+        if getattr(args, 'units') is not None:
+            if args.units != "px" and getattr(args, 'res') is None:
+                args.res = 72
+            args.units = '"%s"' % args.units
+
+        png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'res', 'height', 'width', 'bg', 'pointsize']])
         png_args = ','.join(['%s=%s' % (o,v) for o, v in png_argdict.items() if v is not None])
         # execute the R code in a temporary directory
 
