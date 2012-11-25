@@ -28,6 +28,7 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
+from IPython.zmq.rubykernel import RubyKernelManager
 from IPython.utils.traitlets import (
     Instance, Dict, List, Unicode, Float, Integer, Any, DottedObjectName,
 )
