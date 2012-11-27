@@ -60,8 +60,13 @@ class ConverterLaTeX(Converter):
 
     (or set the equivalent flag at startup or in your configuration profile).
     """
-    inkscape = inkscape
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'tex'
+    # LaTeX specific class configuration.
+    inkscape = inkscape
     documentclass = 'article'
     documentclass_options = '11pt,english'
     heading_map = {1: r'\section',

@@ -37,7 +37,12 @@ from converters.utils import highlight, coalesce_streams, ansi2html
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
+
 class ConverterHTML(Converter):
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'html'
     blank_symbol = '&nbsp;'
 

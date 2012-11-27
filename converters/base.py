@@ -118,7 +118,7 @@ class Converter(object):
     files_dir = str()
     outbase = str()
     #-------------------------------------------------------------------------
-    # Instance-level attributes that are set in the constructor for this
+    # Instance-level attributes that are set by other methods in the base
     # class.
     #-------------------------------------------------------------------------
     figures_counter = 0

@@ -27,6 +27,10 @@ from converters.utils import markdown2rst, rst_directive, remove_ansi
 # Class declarations
 #-----------------------------------------------------------------------------
 class ConverterRST(Converter):
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'rst'
     heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
 

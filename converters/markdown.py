@@ -25,7 +25,15 @@ from IPython.utils.text import indent
 # Class declarations
 #-----------------------------------------------------------------------------
 class ConverterMarkdown(Converter):
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'md'
+    #-------------------------------------------------------------------------
+    # Instance-level attributes that are set in the constructor for this
+    # class.
+    #-------------------------------------------------------------------------
     # show_prompts controls the display of In[} and Out[] prompts for code
     # cells.
     show_prompts = False
