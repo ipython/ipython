@@ -2,6 +2,11 @@
 
 """Classes and functions for kernel related errors and exceptions.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.parallel.error
+   :parts: 3
+
 Authors:
 
 * Brian Granger
