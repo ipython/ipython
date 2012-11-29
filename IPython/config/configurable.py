@@ -2,6 +2,11 @@
 """
 A base class for objects that are configurable.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.config.configurable
+   :parts: 3
+
 Authors:
 
 * Brian Granger

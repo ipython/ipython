@@ -1,6 +1,3 @@
-from __future__ import unicode_literals
-
-
 """Module for interactive demos using IPython.
 
 This module implements a few classes for running Python scripts interactively
@@ -10,7 +7,7 @@ control to IPython.
 
 
 Provided classes
-================
+----------------
 
 The classes are (see their docstrings for further details):
 
@@ -33,9 +30,13 @@ The classes are (see their docstrings for further details):
  - ClearDemo, ClearIPDemo: mixin-enabled versions of the Demo and IPythonDemo
    classes.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.lib.demo
+   :parts: 3
 
 Subclassing
-===========
+-----------
 
 The classes here all include a few methods meant to make customization by
 subclassing more convenient.  Their docstrings below have some more details:
@@ -50,7 +51,7 @@ subclassing more convenient.  Their docstrings below have some more details:
 
 
 Operation
-=========
+---------
 
 The file is run in its own empty namespace (though you can pass it a string of
 arguments as if in a command line environment, and it will see those as
@@ -103,11 +104,11 @@ place a set of stop tags; the other tags are only there to let you fine-tune
 the execution.
 
 This is probably best explained with the simple example file below.  You can
-copy this into a file named ex_demo.py, and try running it via:
+copy this into a file named ex_demo.py, and try running it via::
 
-from IPython.demo import Demo
-d = Demo('ex_demo.py')
-d()  <--- Call the d object (omit the parens if you have autocall set to 2).
+    from IPython.demo import Demo
+    d = Demo('ex_demo.py')
+    d()
 
 Each time you call the demo object, it runs the next block.  The demo object
 has a few useful methods for navigation, like again(), edit(), jump(), seek()
@@ -123,46 +124,50 @@ an IPython session, and type::
 and then follow the directions.
 
 Example
-=======
+-------
 
 The following is a very simple example of a valid demo file.
 
-#################### EXAMPLE DEMO <ex_demo.py> ###############################
-'''A simple interactive demo to illustrate the use of IPython's Demo class.'''
+::
 
-print 'Hello, welcome to an interactive IPython demo.'
+    #################### EXAMPLE DEMO <ex_demo.py> ###############################
+    '''A simple interactive demo to illustrate the use of IPython's Demo class.'''
 
-# The mark below defines a block boundary, which is a point where IPython will
-# stop execution and return to the interactive prompt. The dashes are actually
-# optional and used only as a visual aid to clearly separate blocks while
-# editing the demo code.
-# <demo> stop
+    print 'Hello, welcome to an interactive IPython demo.'
 
-x = 1
-y = 2
+    # The mark below defines a block boundary, which is a point where IPython will
+    # stop execution and return to the interactive prompt. The dashes are actually
+    # optional and used only as a visual aid to clearly separate blocks while
+    # editing the demo code.
+    # <demo> stop
 
-# <demo> stop
+    x = 1
+    y = 2
 
-# the mark below makes this block as silent
-# <demo> silent
+    # <demo> stop
 
-print 'This is a silent block, which gets executed but not printed.'
+    # the mark below makes this block as silent
+    # <demo> silent
 
-# <demo> stop
-# <demo> auto
-print 'This is an automatic block.'
-print 'It is executed without asking for confirmation, but printed.'
-z = x+y
+    print 'This is a silent block, which gets executed but not printed.'
 
-print 'z=',x
+    # <demo> stop
+    # <demo> auto
+    print 'This is an automatic block.'
+    print 'It is executed without asking for confirmation, but printed.'
+    z = x+y
 
-# <demo> stop
-# This is just another normal block.
-print 'z is now:', z
+    print 'z=',x
 
-print 'bye!'
-################### END EXAMPLE DEMO <ex_demo.py> ############################
+    # <demo> stop
+    # This is just another normal block.
+    print 'z is now:', z
+
+    print 'bye!'
+    ################### END EXAMPLE DEMO <ex_demo.py> ############################
 """
+
+from __future__ import unicode_literals
 
 #*****************************************************************************
 #     Copyright (C) 2005-2006 Fernando Perez. <Fernando.Perez@colorado.edu>

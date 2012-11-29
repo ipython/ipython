@@ -37,6 +37,11 @@ arguments::
           -o OPTION, --option OPTION
                                 An optional argument.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.core.magic_arguments
+   :parts: 3
+
 '''
 #-----------------------------------------------------------------------------
 # Copyright (C) 2010-2011, IPython Development Team.

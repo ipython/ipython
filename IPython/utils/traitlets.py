@@ -28,6 +28,11 @@ We choose to create this module because we need these capabilities, but
 we need them to be pure Python so they work in all Python implementations,
 including Jython and IronPython.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.utils.traitlets
+   :parts: 3
+
 Authors:
 
 * Brian Granger

@@ -18,16 +18,14 @@ contributed on the ipython-user list:
 
 http://mail.scipy.org/pipermail/ipython-user/2006-May/003539.html
 
-
-NOTES:
+Notes
+-----
 
  - This module requires pexpect, available in most linux distros, or which can
- be downloaded from
-
-    http://pexpect.sourceforge.net
+   be downloaded from http://pexpect.sourceforge.net
 
  - Because pexpect only works under Unix or Windows-Cygwin, this has the same
- limitations.  This means that it will NOT work under native windows Python.
+   limitations.  This means that it will NOT work under native windows Python.
 """
 from __future__ import print_function
 

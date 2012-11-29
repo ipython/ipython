@@ -23,20 +23,34 @@ except ImportError:
 
 github = '--github' in sys.argv
 
-cmd_t = "{py} setup.py bdist_wininst --plat-name={plat}"
+cmd_t = "{py} setup.py bdist_wininst"
 
 pypi = '--pypi' in sys.argv
 pypi_cmd_t = "python setup.py upload_wininst -f {fname}"
 
-for py in ['python', 'python3']:
+# Windows Python cannot normally cross-compile,
+# so you must have 4 Pythons to make 4 installers:
+# http://docs.python.org/2/distutils/builtdist.html#cross-compiling-on-windows
+
+pythons = {
+    2: {
+        'win32' : r'C:\\Python27\Python.exe',
+        'win-amd64': r'C:\\Python27_64\Python.exe',
+    },
+    3: {
+        'win32' : r'C:\\Python33\Python.exe',
+        'win-amd64': r'C:\\Python33_64\Python.exe',
+    },
+}
+
+for v,plat_py in pythons.items():
     # deliberately mangle the name,
     # so easy_install doesn't find these and do horrible wrong things
-    v = 3 if py.endswith('3') else 2
     try:
         shutil.rmtree('build')
     except OSError:
         pass
-    for plat in ['win32', 'win-amd64']:
+    for plat,py in plat_py.items():
         cmd = cmd_t.format(**locals())
         sh(cmd)
         orig = glob.glob(os.path.join('dist', 'ipython-*.{plat}.exe'.format(**locals())))[0]

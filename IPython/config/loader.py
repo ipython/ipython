@@ -1,5 +1,10 @@
 """A simple configuration system.
 
+Inheritance diagram:
+
+.. inheritance-diagram:: IPython.config.loader
+   :parts: 3
+
 Authors
 -------
 * Brian Granger

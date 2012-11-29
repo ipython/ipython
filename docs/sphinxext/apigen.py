@@ -18,8 +18,49 @@ PyMVPA project, which we've adapted for NIPY use.  PyMVPA is an MIT-licensed
 project."""
 
 # Stdlib imports
+import ast
 import os
 import re
+
+class Obj(object):
+    '''Namespace to hold arbitrary information.'''
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+                                        
+class FuncClsScanner(ast.NodeVisitor):
+    """Scan a module for top-level functions and classes.
+    
+    Skips objects with an @undoc decorator, or a name starting with '_'.
+    """
+    def __init__(self):
+        ast.NodeVisitor.__init__(self)
+        self.classes = []
+        self.classes_seen = set()
+        self.functions = []
+    
+    @staticmethod
+    def has_undoc_decorator(node):
+        return any(isinstance(d, ast.Name) and d.id == 'undoc' \
+                                for d in node.decorator_list)
+    
+    def visit_FunctionDef(self, node):
+        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
+                and node.name not in self.functions:
+            self.functions.append(node.name)
+    
+    def visit_ClassDef(self, node):
+        if not (node.name.startswith('_') or self.has_undoc_decorator(node)) \
+                and node.name not in self.classes_seen:
+            cls = Obj(name=node.name)
+            cls.has_init = any(isinstance(n, ast.FunctionDef) and \
+                                n.name=='__init__' for n in node.body)
+            self.classes.append(cls)
+            self.classes_seen.add(node.name)
+    
+    def scan(self, mod):
+        self.visit(mod)
+        return self.functions, self.classes
 
 # Functions and classes
 class ApiDocWriter(object):
@@ -94,21 +135,6 @@ class ApiDocWriter(object):
     package_name = property(get_package_name, set_package_name, None,
                             'get/set package_name')
 
-    def _get_object_name(self, line):
-        ''' Get second token in line
-        >>> docwriter = ApiDocWriter('sphinx')
-        >>> docwriter._get_object_name("  def func():  ")
-        'func'
-        >>> docwriter._get_object_name("  class Klass(object):  ")
-        'Klass'
-        >>> docwriter._get_object_name("  class Klass:  ")
-        'Klass'
-        '''
-        name = line.split()[1].split('(')[0].strip()
-        # in case we have classes which are not derived from object
-        # ie. old style classes
-        return name.rstrip(':')
-
     def _uri2path(self, uri):
         ''' Convert uri to absolute filepath
 
@@ -164,31 +190,9 @@ class ApiDocWriter(object):
         if filename is None:
             # nothing that we could handle here.
             return ([],[])
-        f = open(filename, 'rt')
-        functions, classes = self._parse_lines(f)
-        f.close()
-        return functions, classes
-
-    def _parse_lines(self, linesource):
-        ''' Parse lines of text for functions and classes '''
-        functions = []
-        classes = []
-        for line in linesource:
-            if line.startswith('def ') and line.count('('):
-                # exclude private stuff
-                name = self._get_object_name(line)
-                if not name.startswith('_'):
-                    functions.append(name)
-            elif line.startswith('class '):
-                # exclude private stuff
-                name = self._get_object_name(line)
-                if not name.startswith('_'):
-                    classes.append(name)
-            else:
-                pass
-        functions.sort()
-        classes.sort()
-        return functions, classes
+        with open(filename, 'rb') as f:
+            mod = ast.parse(f.read())
+        return FuncClsScanner().scan(mod)
 
     def generate_api_doc(self, uri):
         '''Make autodoc documentation template string for a module
@@ -215,51 +219,34 @@ class ApiDocWriter(object):
 
         ad = '.. AUTO-GENERATED FILE -- DO NOT EDIT!\n\n'
 
-        chap_title = uri_short
-        ad += (chap_title+'\n'+ self.rst_section_levels[1] * len(chap_title)
-               + '\n\n')
-
-        # Set the chapter title to read 'module' for all modules except for the
+        # Set the chapter title to read 'Module:' for all modules except for the
         # main packages
         if '.' in uri:
-            title = 'Module: :mod:`' + uri_short + '`'
+            chap_title = 'Module: :mod:`' + uri_short + '`'
         else:
-            title = ':mod:`' + uri_short + '`'
-        ad += title + '\n' + self.rst_section_levels[2] * len(title)
-
-        if len(classes):
-            ad += '\nInheritance diagram for ``%s``:\n\n' % uri
-            ad += '.. inheritance-diagram:: %s \n' % uri
-            ad += '   :parts: 3\n'
+            chap_title = ':mod:`' + uri_short + '`'
+        ad += chap_title + '\n' + self.rst_section_levels[1] * len(chap_title)
 
         ad += '\n.. automodule:: ' + uri + '\n'
         ad += '\n.. currentmodule:: ' + uri + '\n'
-        multi_class = len(classes) > 1
-        multi_fx = len(functions) > 1
-        if multi_class:
-            ad += '\n' + 'Classes' + '\n' + \
-                  self.rst_section_levels[2] * 7 + '\n'
-        elif len(classes) and multi_fx:
-            ad += '\n' + 'Class' + '\n' + \
-                  self.rst_section_levels[2] * 5 + '\n'
+        
+        if classes:
+            subhead = str(len(classes)) + (' Classes' if len(classes) > 1 else ' Class')
+            ad += '\n'+ subhead + '\n' + \
+                  self.rst_section_levels[2] * len(subhead) + '\n'
+
         for c in classes:
-            ad += '\n:class:`' + c + '`\n' \
-                  + self.rst_section_levels[multi_class + 2 ] * \
-                  (len(c)+9) + '\n\n'
-            ad += '\n.. autoclass:: ' + c + '\n'
+            ad += '\n.. autoclass:: ' + c.name + '\n'
             # must NOT exclude from index to keep cross-refs working
             ad += '  :members:\n' \
-                  '  :undoc-members:\n' \
-                  '  :show-inheritance:\n' \
-                  '  :inherited-members:\n' \
-                  '\n' \
-                  '  .. automethod:: __init__\n'
-        if multi_fx:
-            ad += '\n' + 'Functions' + '\n' + \
-                  self.rst_section_levels[2] * 9 + '\n\n'
-        elif len(functions) and multi_class:
-            ad += '\n' + 'Function' + '\n' + \
-                  self.rst_section_levels[2] * 8 + '\n\n'
+                  '  :show-inheritance:\n'
+            if c.has_init:
+                  ad += '\n  .. automethod:: __init__\n'
+        
+        if functions:
+            subhead = str(len(functions)) + (' Functions' if len(functions) > 1 else ' Function')
+            ad += '\n'+ subhead + '\n' + \
+                  self.rst_section_levels[2] * len(subhead) + '\n'
         for f in functions:
             # must NOT exclude from index to keep cross-refs working
             ad += '\n.. autofunction:: ' + uri + '.' + f + '\n\n'
