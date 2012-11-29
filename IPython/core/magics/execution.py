@@ -14,6 +14,7 @@
 
 # Stdlib
 import __builtin__ as builtin_mod
+import ast
 import bdb
 import os
 import sys
@@ -781,26 +782,54 @@ python-profiler package from non-free.""")
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
         transform  = self.shell.input_splitter.transform_cell
+        
         if cell is None:
             # called as line magic
-            setup = 'pass'
-            stmt = timeit.reindent(transform(stmt), 8)
+            ast_setup = ast.parse("pass")
+            ast_stmt = ast.parse(transform(stmt))
         else:
-            setup = timeit.reindent(transform(stmt), 4)
-            stmt = timeit.reindent(transform(cell), 8)
-
-        # From Python 3.3, this template uses new-style string formatting.
-        if sys.version_info >= (3, 3):
-            src = timeit.template.format(stmt=stmt, setup=setup)
-        else:
-            src = timeit.template % dict(stmt=stmt, setup=setup)
+            ast_setup = ast.parse(transform(stmt))
+            ast_stmt = ast.parse(transform(cell))
+        
+        ast_setup = self.shell.transform_ast(ast_setup)
+        ast_stmt = self.shell.transform_ast(ast_stmt)
+        
+        # This codestring is taken from timeit.template - we fill it in as an
+        # AST, so that we can apply our AST transformations to the user code
+        # without affecting the timing code.
+        timeit_ast_template = ast.parse('def inner(_it, _timer):\n'
+                                        '    setup\n'
+                                        '    _t0 = _timer()\n'
+                                        '    for _i in _it:\n'
+                                        '        stmt\n'
+                                        '    _t1 = _timer()\n'
+                                        '    return _t1 - _t0\n')
+        
+        class TimeitTemplateFiller(ast.NodeTransformer):
+            "This is quite tightly tied to the template definition above."
+            def visit_FunctionDef(self, node):
+                "Fill in the setup statement"
+                self.generic_visit(node)
+                if node.name == "inner":
+                    node.body[:1] = ast_setup.body
+                
+                return node
+            
+            def visit_For(self, node):
+                "Fill in the statement to be timed"
+                if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
+                    node.body = ast_stmt.body
+                return node
+        
+        timeit_ast = TimeitTemplateFiller().visit(timeit_ast_template)
+        timeit_ast = ast.fix_missing_locations(timeit_ast)
 
         # Track compilation time so it can be reported if too long
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
         t0 = clock()
-        code = compile(src, "<magic-timeit>", "exec")
+        code = compile(timeit_ast, "<magic-timeit>", "exec")
         tc = clock()-t0
 
         ns = {}
@@ -884,20 +913,31 @@ python-profiler package from non-free.""")
         # fail immediately if the given expression can't be compiled
 
         expr = self.shell.prefilter(parameter_s,False)
+        
+        # Minimum time above which parse time will be reported
+        tp_min = 0.1
+        
+        t0 = clock()
+        expr_ast = ast.parse(expr)
+        tp = clock()-t0
+        
+        # Apply AST transformations
+        expr_ast = self.shell.transform_ast(expr_ast)
 
         # Minimum time above which compilation time will be reported
         tc_min = 0.1
 
-        try:
+        if len(expr_ast.body)==1 and isinstance(expr_ast.body[0], ast.Expr):
             mode = 'eval'
-            t0 = clock()
-            code = compile(expr,'<timed eval>',mode)
-            tc = clock()-t0
-        except SyntaxError:
+            source = '<timed eval>'
+            expr_ast = ast.Expression(expr_ast.body[0].value)
+        else:
             mode = 'exec'
-            t0 = clock()
-            code = compile(expr,'<timed exec>',mode)
-            tc = clock()-t0
+            source = '<timed exec>'
+        t0 = clock()
+        code = compile(expr_ast, source, mode)
+        tc = clock()-t0
+        
         # skew measurement as little as possible
         glob = self.shell.user_ns
         wtime = time.time
@@ -923,6 +963,8 @@ python-profiler package from non-free.""")
         print "Wall time: %.2f s" % wall_time
         if tc > tc_min:
             print "Compiler : %.2f s" % tc
+        if tp > tp_min:
+            print "Parser   : %.2f s" % tp
         return out
 
     @skip_doctest

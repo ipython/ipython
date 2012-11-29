@@ -20,6 +20,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 # stdlib
+import ast
 import os
 import shutil
 import sys
@@ -426,6 +427,132 @@ class TestModules(unittest.TestCase, tt.TempFileMixin):
         out = "False\nFalse\nFalse\n"
         tt.ipexec_validate(self.fname, out)
 
+class Negator(ast.NodeTransformer):
+    """Negates all number literals in an AST."""
+    def visit_Num(self, node):
+        node.n = -node.n
+        return node
+
+class TestAstTransform(unittest.TestCase):
+    def setUp(self):
+        self.negator = Negator()
+        ip.ast_transformers.append(self.negator)
+    
+    def tearDown(self):
+        ip.ast_transformers.remove(self.negator)
+    
+    def test_run_cell(self):
+        with tt.AssertPrints('-34'):
+            ip.run_cell('print (12 + 22)')
+        
+        # A named reference to a number shouldn't be transformed.
+        ip.user_ns['n'] = 55
+        with tt.AssertNotPrints('-55'):
+            ip.run_cell('print (n)')
+    
+    def test_timeit(self):
+        called = set()
+        def f(x):
+            called.add(x)
+        ip.push({'f':f})
+        
+        with tt.AssertPrints("best of "):
+            ip.run_line_magic("timeit", "-n1 f(1)")
+        self.assertEqual(called, set([-1]))
+        called.clear()
+        
+        with tt.AssertPrints("best of "):
+            ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
+        self.assertEqual(called, set([-2, -3]))
+    
+    def test_time(self):
+        called = []
+        def f(x):
+            called.append(x)
+        ip.push({'f':f})
+        
+        # Test with an expression
+        with tt.AssertPrints("CPU times"):
+            ip.run_line_magic("time", "f(5+9)")
+        self.assertEqual(called, [-14])
+        called[:] = []
+        
+        # Test with a statement (different code path)
+        with tt.AssertPrints("CPU times"):
+            ip.run_line_magic("time", "a = f(-3 + -2)")
+        self.assertEqual(called, [5])
+    
+    def test_macro(self):
+        ip.push({'a':10})
+        # The AST transformation makes this do a+=-1
+        ip.define_macro("amacro", "a+=1\nprint(a)")
+        
+        with tt.AssertPrints("9"):
+            ip.run_cell("amacro")
+        with tt.AssertPrints("8"):
+            ip.run_cell("amacro")
+
+class IntegerWrapper(ast.NodeTransformer):
+    """Wraps all integers in a call to Integer()"""
+    def visit_Num(self, node):
+        if isinstance(node.n, int):
+            return ast.Call(func=ast.Name(id='Integer', ctx=ast.Load()),
+                            args=[node], keywords=[])
+        return node
+
+class TestAstTransform2(unittest.TestCase):
+    def setUp(self):
+        self.intwrapper = IntegerWrapper()
+        ip.ast_transformers.append(self.intwrapper)
+        
+        self.calls = []
+        def Integer(*args):
+            self.calls.append(args)
+            return args
+        ip.push({"Integer": Integer})
+    
+    def tearDown(self):
+        ip.ast_transformers.remove(self.intwrapper)
+        del ip.user_ns['Integer']
+    
+    def test_run_cell(self):
+        ip.run_cell("n = 2")
+        self.assertEqual(self.calls, [(2,)])
+        
+        # This shouldn't throw an error
+        ip.run_cell("o = 2.0")
+        self.assertEqual(ip.user_ns['o'], 2.0)
+    
+    def test_timeit(self):
+        called = set()
+        def f(x):
+            called.add(x)
+        ip.push({'f':f})
+        
+        with tt.AssertPrints("best of "):
+            ip.run_line_magic("timeit", "-n1 f(1)")
+        self.assertEqual(called, set([(1,)]))
+        called.clear()
+        
+        with tt.AssertPrints("best of "):
+            ip.run_cell_magic("timeit", "-n1 f(2)", "f(3)")
+        self.assertEqual(called, set([(2,), (3,)]))
+
+class ErrorTransformer(ast.NodeTransformer):
+    """Throws an error when it sees a number."""
+    def visit_Num(self):
+        raise ValueError("test")
+
+class TestAstTransformError(unittest.TestCase):
+    def test_unregistering(self):
+        err_transformer = ErrorTransformer()
+        ip.ast_transformers.append(err_transformer)
+        
+        with tt.AssertPrints("unregister", channel='stderr'):
+            ip.run_cell("1 + 2")
+        
+        # This should have been removed.
+        nt.assert_not_in(err_transformer, ip.ast_transformers)
 
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all

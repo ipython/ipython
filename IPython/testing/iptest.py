@@ -319,7 +319,7 @@ def make_exclude():
             continue
         fullpath = pjoin(parent, exclusion)
         if not os.path.exists(fullpath) and not glob.glob(fullpath + '.*'):
-            warn("Excluding nonexistent file: %r\n" % exclusion)
+            warn("Excluding nonexistent file: %r" % exclusion)
 
     return exclusions
 
