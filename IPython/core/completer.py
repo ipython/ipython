@@ -239,7 +239,8 @@ def current_cursor_arg(post_tokens, argspec):
     Parameters
     ----------
     post_tokens : str
-        Tokens after the last identifier, starting with an open parens
+        Tokens after the last unclosed parentheses on the current
+        line, starting with an open parens
     argspec : inspect.getargspec
         The argspec of a function
 
@@ -1009,6 +1010,12 @@ class IPCompleter(Completer):
             return []
 
         last_token = post_tokens[-1]
+
+        
+        # this code is specific to literal string matching, and will get 
+        # moved out of this routine and into a separate function. currently,
+        # i've only written the code for literal string matching, but it should
+        # be straightforward to do glob style matches, isinstance checks, etc.
 
         if isinstance(callback, basestring):
             callback = callback.split(' ')
