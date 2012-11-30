@@ -76,6 +76,8 @@ import os
 import re
 import shlex
 import sys
+import StringIO
+import tokenize as _tokenizelib
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -178,45 +180,69 @@ def compress_user(path, tilde_expand, tilde_val):
         return path
 
 
-_tokenizer = re.compile(r'''
-    '.*?(?<!\\)' |    # single quoted strings or
-    ".*?(?<!\\)" |    # double quoted strings or
-    \w+          |    # identifier
-    \S                # other characters
-    ''', re.VERBOSE | re.DOTALL)
-    
-def tokenize(line):
-    """Split a bit of python code into tokens
+def rindex(haystack, needle):
+    """last index of a needle in a haystack
 
     Parameters
     ----------
-    line : str
-        A perhaps partially enterered line of python code
+    haystack : list
+        A list to search through
+    needle : object
+        The object to search for
 
-    Examples
-    --------
-    >>> tokenize(' f(1+bar(x), b, a=1)- ')
-    ['f', '(', '1', '+', 'bar', '(', 'x', ')', ',', 'b', ',', 'a', '=', '1', ')']
-    
     Returns
     -------
-    tokens : list
-        The tokens
+    index : int
+        The index of the last occurane of `needle` in `haystack`
+
+    Raises
+    ------
+    ValueError
+        If the needle is not present.
+
+    See Also
+    --------
+    List.index
+        Gets the first occurance of a needle in a haystack
     """
-    # todo: replace this with the tokenizer in the stdlib
-    return _tokenizer.findall(line)
+
+    try:
+        return [i for i, e in enumerate(haystack) if e == needle][-1]
+    except IndexError:
+        raise ValueError('%s is not in list' % needle)
+
+
+def tokenize(src):
+    rawstr = StringIO.StringIO(src)
+    iter_tokens = _tokenizelib.generate_tokens(rawstr.readline)
+    def run():
+        try:
+            for toktype, toktext, (srow,scol), (erow,ecol), line  in iter_tokens:
+                yield toktype, toktext
+        except _tokenizelib.TokenError:
+            pass
+    toktype, toktext = map(list, zip(*list(run())))
+
+    try:
+        if rindex(toktype, 52) == len(toktype) - 2:
+            toktext[-2] += toktext[-1]
+            return toktext[:-1]
+    except ValueError:
+        pass
+
+    return toktext
 
 
 def current_cursor_arg(post_tokens, argspec):
     """Determine which argument the cursor is current entering
-    
+
     Parameters
     ----------
     post_tokens : str
         Tokens after the last identifier, starting with an open parens
     argspec : inspect.getargspec
         The argspec of a function
-        
+
     Examples
     --------
     >>> def f(a,b,c=1, d=2):
@@ -239,13 +265,13 @@ def current_cursor_arg(post_tokens, argspec):
     'd'
     >>> current_cursor_arg(tokenize('(a, bar(x=1), d'), argspec)
     'c'
-    
+
     Returns
     -------
     argname : str, None
         One of the entries in argnames, or None
     """
-    
+
     n_commas = 0
     n_open_parens = 0
     n_open_braces = 0
@@ -257,7 +283,7 @@ def current_cursor_arg(post_tokens, argspec):
                 # short circuit this stuff, they're using a named argument, so we'll
                 # just take that name
                 return iterTokens.next()
-        
+
             if token == ',':
                 n_commas += 1
 
@@ -275,7 +301,7 @@ def current_cursor_arg(post_tokens, argspec):
             n_open_braces -= 1
         elif token == ']':
             n_open_brackets -= 1
-        
+
     return argspec.args[n_commas]
 
 
@@ -346,7 +372,7 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     )
-    
+
 
     def __init__(self, namespace=None, global_namespace=None, config=None, **kwargs):
         """Create a new completer for the command line.
@@ -441,7 +467,7 @@ class Completer(Configurable):
         #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
-    
+
         if m:
             expr, attr = m.group(1, 3)
         elif self.greedy:
@@ -451,7 +477,7 @@ class Completer(Configurable):
             expr, attr = m2.group(1,2)
         else:
             return []
-    
+
         try:
             obj = eval(expr, self.namespace)
         except:
@@ -462,7 +488,7 @@ class Completer(Configurable):
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
-        else: 
+        else:
             words = dir2(obj)
 
         try:
@@ -485,7 +511,7 @@ def get__all__entries(obj):
         words = getattr(obj, '__all__')
     except:
         return []
-    
+
     return [w for w in words if isinstance(w, basestring)]
 
 
@@ -501,34 +527,34 @@ class IPCompleter(Completer):
 
         if self.readline:
             self.readline.set_completer_delims(self.splitter.delims)
-    
+
     merge_completions = CBool(True, config=True,
         help="""Whether to merge completion results into a single list
-        
+
         If False, only the completion results from the first non-empty
         completer will be returned.
         """
     )
     omit__names = Enum((0,1,2), default_value=2, config=True,
         help="""Instruct the completer to omit private method names
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When 2 [default]: all names that start with '_' will be excluded.
-        
+
         When 1: all 'magic' names (``__foo__``) will be excluded.
-        
+
         When 0: nothing will be excluded.
         """
     )
     limit_to__all__ = CBool(default_value=False, config=True,
         help="""Instruct the completer to use __all__ for the completion
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When True: only those names in obj.__all__ will be included.
-        
-        When False [default]: the __all__ attribute is ignored 
+
+        When False [default]: the __all__ attribute is ignored
         """
     )
 
@@ -603,8 +629,8 @@ class IPCompleter(Completer):
                          self.file_matches,
                          self.magic_matches,
                          self.alias_matches,
-                         self.python_func_kw_matches
-                         ]
+                         self.python_func_kw_matches,
+                        ]
 
     def all_completions(self, text):
         """
@@ -713,7 +739,7 @@ class IPCompleter(Completer):
         cell_magics = lsm['cell']
         pre = self.magic_escape
         pre2 = pre+pre
-        
+
         # Completion logic:
         # - user gives %%: only do cell magics
         # - user gives %: do both line and cell magics
@@ -743,7 +769,7 @@ class IPCompleter(Completer):
 
     def python_matches(self,text):
         """Match attributes or global python names"""
-        
+
         #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
         if "." in text:
             try:
@@ -798,42 +824,23 @@ class IPCompleter(Completer):
         except ValueError:
             return []
 
-        argMatches = []
-        for obj in self._ids_to_callables(ids):
-            try:
-                namedArgs = self._default_arguments(obj)
+        if len(ids) == 1:
+            callableMatches = self.global_matches(ids[0])
+        else:
+            callableMatches = self.attr_matches('.'.join(ids))
 
+        argMatches = []
+        for callableMatch in callableMatches:
+            try:
+                namedArgs = self._default_arguments(eval(callableMatch,
+                    self.namespace))
             except:
                 continue
+
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         return argMatches
-
-
-    def _ids_to_callables(self, ids):
-        """Get a callable in the approprate namespace from a list of identifiers
-        
-        Examples
-        --------
-        >>> class Foo(object):
-        ...    def bar(self):
-        ...        pass
-        >>> self._ids_to_callables(['foo', 'bar']).next()
-        <bound method Foo.bar of <__main__.Foo instance at 0x10172d710>>
-        
-        Returns
-        -------
-        callables : generator 
-            A generator over callables that match the identifiers
-    
-        """
-        if len(ids) == 1:
-            matches = self.global_matches(ids[0])
-        else:
-            matches = self.attr_matches('.'.join(ids))
-            
-        return (eval(match, self.namespace) for match in matches)
 
 
     def _parse_first_idens(self, text_until_cursor):
@@ -843,7 +850,7 @@ class IPCompleter(Completer):
         Parameters
         ----------
         text_until_cursor : str
-            A line of perhaps partially entered python code, hopefully a 
+            A line of perhaps partially entered python code, hopefully a
             partially entered function all
 
         Examples
@@ -854,7 +861,7 @@ class IPCompleter(Completer):
         (['foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
         >>> _parse_first_idens(' Klass.foo(1+bar(x), qux ')
         (['Klass', 'foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
-    
+
         Returns
         -------
         identifiers : list
@@ -869,14 +876,13 @@ class IPCompleter(Completer):
         ValueError if the line doesn't match
         """
         # This code is from IPython's python_func_kw_matches completer
-    
+
         # 1. pop off the tokens until we get to the first unclosed parens
         # as we pop them off, store them in a list
-        tokens = tokenize(text_until_cursor)
-        tokens.reverse()
-        iterTokens = iter(tokens)
+        tokens = list(tokenize(text_until_cursor))
+        iterTokens = iter(reversed(tokens))
         tokens_after_identifier = []
-    
+
         openPar = 0 # number of open parentheses
         for token in iterTokens:
             tokens_after_identifier.insert(0, token)
@@ -902,70 +908,139 @@ class IPCompleter(Completer):
                     break
             except StopIteration:
                 break
-    
+
         return identifiers[::-1], tokens_after_identifier
 
 
     def python_func_argcomplete(self, text):
-        """Robert's New Method
-        
-        
-        
+        """Function specific matches based on the arguments of that function.
+        For example, np.load(<tab> might only show files that match some glob
+        pattern.
+
+        Note that if this sucessfully matches, it will be the only set of
+        matches shown to the user. This behavior overrides the
+        merge_completions config variable. This behavior is set by the attribute
+        `exclusive_completions = True` which is set after the function.
+
+        Parameters
+        ----------
+        text : str
+            This argument is not used by this function, because we need to do
+            most of the tokenizing and lexing custom.
+
+        Returns
+        -------
+        matches : list
+            A list of strings to be displayed to the user via readline as
+            possible tab completions. These completions are function/argument
+            specific, and their appearance is based on decorators applied to the
+            functions that annotate specific function arguments with possible
+            tab completions.
+
+        Examples
+        --------
+        >>> @tabcompletion(mode=['read', 'write'])
+        >>> def loadfile(fname, mode='read'):
+        ...     pass
+
+        With this function, tab completion will recommend 'read' and 'write'
+        when you're trying to ender the mode argument, like this:
+
+        >>> loadfile('filename', mode=<TAB_CHARACTER>
+        'read'   'write'
+
+        Or like this:
+
+        >>> loadfile('filename', <TAB_CHARACTER>
+        'read'   'write'
         """
-        #print >> sys.stderr, '\nRobert!'
-        
-        try:
-            ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
-            #print >> sys.stderr, '\nidentifiers', ids
-            #print >> sys.stderr, 'post_tokens', post_tokens
-        except ValueError:
-            return []
-    
-        def get_argspec(callable):
-            """Get the argspec from inspect and the tab_completion attribute
-            of a function (which is added to use functions by the tabcomplete
-            decorator)"""
-            try:
-                return inspect.getargspec(callable), callable.tab_completion
-            except AttributeError, TypeError:
-                return None
+
+        # consider the example that the user has typed
+        # module.loadfile(fname, <TAB_CHARACTER>)
+        # where arg2 is the one that we have tab competion info on. this is
+        # the function in the docstring
 
         try:
-            # get the first entry from get_argspec(callable)
-            # that succeeds
-            iter_callables = self._ids_to_callables(ids)
-            not_none = lambda e: e is not None
-            argspec, tab_attr = itertools.takewhile(not_none, 
-                itertools.imap(get_argspec, iter_callables)).next()
-            #print >> sys.stderr, '\nargspec', argspec
-            #print >> sys.stderr, 'client_tab_attr', tab_attr
-        except StopIteration:
-            #print >> sys.stderr, 'Error2'
+            # ids is a list of the strings specifying the currently-being-typed
+            # function/method. In the example, we'll have ids=['module',
+            # 'loadfile']. Post tokens is a list of all the tokens after the
+            # ids (but before the cursor), so it'll be ['fname', ',', ' ']
+            ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
+        except ValueError:
             return []
-  
+
+        def match_object(obj_name):
+            "Find an object by name using eval -- need exact match"
+            try:
+                return eval(obj_name, self.namespace)
+            except:
+                try:
+                    return eval(obj_name, self.global_namespace)
+                except:
+                    return None
+
+
+        if len(ids) == 1:
+            try:
+                obj = match_object(ids[0])
+                argspec = inspect.getargspec(obj)
+                tab_attr = obj.tab_completion
+            except (AttributeError, TypeError) as e:
+                # the attribute error comes from obj not having been decorated
+                # the typeerror comes from it potentially not being
+                # inspect.argspec-able
+                return []
+        else:
+            # need to search like Completer.attr_matches, but for an exact
+            # matches. Basically use match_object to find ids[0] and then
+            # look inside that guys name space to find ids[1], then on and on.
+            raise NotImplementedError
+
+        # name of the argument that the cursor is currently entering, in the
+        # example it'll be argname='mode'
         argname = current_cursor_arg(post_tokens, argspec)
-        #print >> sys.stderr, '\nargname', argname
-        
+
         try:
+            # get the callback associated with mode. since the user's decorator
+            # was just @tabcompletion(mode=['read', 'write']), this'll be
+            # callback=['read', 'write']
             callback = tab_attr[argname]
         except KeyError:
             return []
-        
-        
-        # WORK
+
+        last_token = post_tokens[-1]
+
         if isinstance(callback, basestring):
             callback = callback.split(' ')
         if isinstance(callback, list):
             matches = []
-            if has_open_quotes(self.text_until_cursor):
-                #text = "'" + text
-                pass
             for cb in iter(callback):
                 if isinstance(cb, basestring):
-                    if cb.startswith(text):
+                    if last_token in [',', ' ', '=']:
+                        # this indicates that the token we're trying to tab
+                        # complete on hasn't started. i.e. the last token
+                        # that the user entered was, for instance, the comma
+                        # that ended the last arguments. So we need to show the
+                        # full list of recommended tab completions
+                        matches.append("'" + cb + "'")
+
+                    elif ("'" + cb).startswith(last_token):
+                        # adding "'" + cb + "'" to the matches when one quote
+                        # mark is already on the command line seems to cause
+                        # a two quote-marks to be inserted before cb.
+                        # this has to do with readline thinking that the quote
+                        # mark is a delimiter, but we're using it as part of the
+                        # token since we're trying to match string literals
                         matches.append(cb)
+
             return matches
-                
+
+        return []
+
+    # this is an extension to the API, where this method indicates
+    # that if it returns matches, they should be displayed to the user as
+    # the ONLY tab-completions
+    python_func_argcomplete.exclusive_completions = True
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
@@ -1076,7 +1151,17 @@ class IPCompleter(Completer):
                 self.matches = []
                 for matcher in self.matchers:
                     try:
-                        self.matches.extend(matcher(text))
+                        # this is an extension to the API, where this method
+                        # indicates that if it returns matches, they should be
+                        # displayed to the user as the ONLY tab-completions
+                        if hasattr(matcher, 'exclusive_completions') \
+                                and matcher.exclusive_completions is True:
+                            m = matcher(text)
+                            if m:
+                                self.matches = m
+                                break
+                        else:
+                            self.matches.extend(matcher(text))
                     except:
                         # Show the ugly traceback if the matcher causes an
                         # exception, but do NOT crash the kernel!
