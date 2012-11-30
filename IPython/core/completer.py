@@ -178,6 +178,107 @@ def compress_user(path, tilde_expand, tilde_val):
         return path
 
 
+_tokenizer = re.compile(r'''
+    '.*?(?<!\\)' |    # single quoted strings or
+    ".*?(?<!\\)" |    # double quoted strings or
+    \w+          |    # identifier
+    \S                # other characters
+    ''', re.VERBOSE | re.DOTALL)
+    
+def tokenize(line):
+    """Split a bit of python code into tokens
+
+    Parameters
+    ----------
+    line : str
+        A perhaps partially enterered line of python code
+
+    Examples
+    --------
+    >>> tokenize(' f(1+bar(x), b, a=1)- ')
+    ['f', '(', '1', '+', 'bar', '(', 'x', ')', ',', 'b', ',', 'a', '=', '1', ')']
+    
+    Returns
+    -------
+    tokens : list
+        The tokens
+    """
+    # todo: replace this with the tokenizer in the stdlib
+    return _tokenizer.findall(line)
+
+
+def current_cursor_arg(post_tokens, argspec):
+    """Determine which argument the cursor is current entering
+    
+    Parameters
+    ----------
+    post_tokens : str
+        Tokens after the last identifier, starting with an open parens
+    argspec : inspect.getargspec
+        The argspec of a function
+        
+    Examples
+    --------
+    >>> def f(a,b,c=1, d=2):
+    ...    pass
+    >>> argspec = inspect.getargspec(f)
+    >>> current_cursor_arg(tokenize('('), argspec)
+    'a'
+    >>> current_cursor_arg(tokenize('a='), argspec)
+    'a'
+    >>> current_cursor_arg(tokenize('[1,2], start_of_a_valid_to'), argspec)
+    'b'
+    >>> # note the space at the end here...
+    >>> current_cursor_arg(tokenize('[1,2], start_of_a_valid_to '), argspec)
+    None
+    >>> current_cursor_arg(tokenize('(set[(1,2,)], b, '), argspec)
+    'c'
+    >>> current_cursor_arg(tokenize('([1,2], b, d='), argspec)
+    'd'
+    >>> current_cursor_arg(tokenize('([1,2], b, d=token'), argspec)
+    'd'
+    >>> current_cursor_arg(tokenize('(a, bar(x=1), d'), argspec)
+    'c'
+    
+    Returns
+    -------
+    argname : str, None
+        One of the entries in argnames, or None
+    """
+    
+    n_commas = 0
+    n_open_parens = 0
+    n_open_braces = 0
+    n_open_brackets = 0
+    iterTokens = iter(reversed(post_tokens))
+    for token in iterTokens:
+        if n_open_parens == n_open_braces == n_open_brackets == 0:
+            if token == '=':
+                # short circuit this stuff, they're using a named argument, so we'll
+                # just take that name
+                return iterTokens.next()
+        
+            if token == ',':
+                n_commas += 1
+
+        if token == '(':
+            n_open_parens += 1
+            if n_open_parens > 0:
+                break
+        elif token == '{':
+            n_open_braces += 1
+        elif token == '[':
+            n_open_brackets += 1
+        elif token == ')':
+            n_open_parens -= 1
+        elif token == '}':
+            n_open_braces -= 1
+        elif token == ']':
+            n_open_brackets -= 1
+        
+    return argspec.args[n_commas]
+
+
 class Bunch(object): pass
 
 
@@ -497,11 +598,12 @@ class IPCompleter(Completer):
             self.clean_glob = self._clean_glob
 
         # All active matcher routines for completion
-        self.matchers = [self.python_matches,
+        self.matchers = [self.python_func_argcomplete,
+                         self.python_matches,
                          self.file_matches,
                          self.magic_matches,
                          self.alias_matches,
-                         self.python_func_kw_matches,
+                         self.python_func_kw_matches
                          ]
 
     def all_completions(self, text):
@@ -684,26 +786,100 @@ class IPCompleter(Completer):
         except TypeError: pass
         return []
 
-    def python_func_kw_matches(self,text):
+
+    def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
 
         if "." in text: # a parameter cannot be dotted
             return []
-        try: regexp = self.__funcParamsRegex
-        except AttributeError:
-            regexp = self.__funcParamsRegex = re.compile(r'''
-                '.*?(?<!\\)' |    # single quoted strings or
-                ".*?(?<!\\)" |    # double quoted strings or
-                \w+          |    # identifier
-                \S                # other characters
-                ''', re.VERBOSE | re.DOTALL)
-        # 1. find the nearest identifier that comes before an unclosed
-        # parenthesis before the cursor
-        # e.g. for "foo (1+bar(x), pa<cursor>,a=1)", the candidate is "foo"
-        tokens = regexp.findall(self.text_until_cursor)
+
+        try:
+            ids = self._parse_first_idens(self.text_until_cursor)[0]
+        except ValueError:
+            return []
+
+        argMatches = []
+        for obj in self._ids_to_callables(ids):
+            try:
+                namedArgs = self._default_arguments(obj)
+
+            except:
+                continue
+            for namedArg in namedArgs:
+                if namedArg.startswith(text):
+                    argMatches.append("%s=" %namedArg)
+        return argMatches
+
+
+    def _ids_to_callables(self, ids):
+        """Get a callable in the approprate namespace from a list of identifiers
+        
+        Examples
+        --------
+        >>> class Foo(object):
+        ...    def bar(self):
+        ...        pass
+        >>> self._ids_to_callables(['foo', 'bar']).next()
+        <bound method Foo.bar of <__main__.Foo instance at 0x10172d710>>
+        
+        Returns
+        -------
+        callables : generator 
+            A generator over callables that match the identifiers
+    
+        """
+        if len(ids) == 1:
+            matches = self.global_matches(ids[0])
+        else:
+            matches = self.attr_matches('.'.join(ids))
+            
+        return (eval(match, self.namespace) for match in matches)
+
+
+    def _parse_first_idens(self, text_until_cursor):
+        """Find the the nearest function name that comes before an unclosed
+        parenthesis
+
+        Parameters
+        ----------
+        text_until_cursor : str
+            A line of perhaps partially entered python code, hopefully a 
+            partially entered function all
+
+        Examples
+        --------
+        >>> _parse_first_idens(' f( ')
+        (['f'], ['('])
+        >>> _parse_first_idens(' foo(1+bar(x), qux ')
+        (['foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
+        >>> _parse_first_idens(' Klass.foo(1+bar(x), qux ')
+        (['Klass', 'foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
+    
+        Returns
+        -------
+        identifiers : list
+            A list of identifiers. On the line, they're the final bit before
+            the first unclosed parerentheses.
+        post_tokens : list
+            The tokens immediately afer the identifiers, up to the end of the
+            line
+
+        Raises
+        ------
+        ValueError if the line doesn't match
+        """
+        # This code is from IPython's python_func_kw_matches completer
+    
+        # 1. pop off the tokens until we get to the first unclosed parens
+        # as we pop them off, store them in a list
+        tokens = tokenize(text_until_cursor)
         tokens.reverse()
-        iterTokens = iter(tokens); openPar = 0
+        iterTokens = iter(tokens)
+        tokens_after_identifier = []
+    
+        openPar = 0 # number of open parentheses
         for token in iterTokens:
+            tokens_after_identifier.insert(0, token)
             if token == ')':
                 openPar -= 1
             elif token == '(':
@@ -712,36 +888,84 @@ class IPCompleter(Completer):
                     # found the last unclosed parenthesis
                     break
         else:
-            return []
+            raise ValueError
+
         # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
-        ids = []
+        identifiers = []
         isId = re.compile(r'\w+$').match
         while True:
             try:
-                ids.append(next(iterTokens))
-                if not isId(ids[-1]):
-                    ids.pop(); break
+                identifiers.append(next(iterTokens))
+                if not isId(identifiers[-1]):
+                    identifiers.pop(); break
                 if not next(iterTokens) == '.':
                     break
             except StopIteration:
                 break
-        # lookup the candidate callable matches either using global_matches
-        # or attr_matches for dotted names
-        if len(ids) == 1:
-            callableMatches = self.global_matches(ids[0])
-        else:
-            callableMatches = self.attr_matches('.'.join(ids[::-1]))
-        argMatches = []
-        for callableMatch in callableMatches:
+    
+        return identifiers[::-1], tokens_after_identifier
+
+
+    def python_func_argcomplete(self, text):
+        """Robert's New Method
+        
+        
+        
+        """
+        #print >> sys.stderr, '\nRobert!'
+        
+        try:
+            ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
+            #print >> sys.stderr, '\nidentifiers', ids
+            #print >> sys.stderr, 'post_tokens', post_tokens
+        except ValueError:
+            return []
+    
+        def get_argspec(callable):
+            """Get the argspec from inspect and the tab_completion attribute
+            of a function (which is added to use functions by the tabcomplete
+            decorator)"""
             try:
-                namedArgs = self._default_arguments(eval(callableMatch,
-                                                         self.namespace))
-            except:
-                continue
-            for namedArg in namedArgs:
-                if namedArg.startswith(text):
-                    argMatches.append("%s=" %namedArg)
-        return argMatches
+                return inspect.getargspec(callable), callable.tab_completion
+            except AttributeError, TypeError:
+                return None
+
+        try:
+            # get the first entry from get_argspec(callable)
+            # that succeeds
+            iter_callables = self._ids_to_callables(ids)
+            not_none = lambda e: e is not None
+            argspec, tab_attr = itertools.takewhile(not_none, 
+                itertools.imap(get_argspec, iter_callables)).next()
+            #print >> sys.stderr, '\nargspec', argspec
+            #print >> sys.stderr, 'client_tab_attr', tab_attr
+        except StopIteration:
+            #print >> sys.stderr, 'Error2'
+            return []
+  
+        argname = current_cursor_arg(post_tokens, argspec)
+        #print >> sys.stderr, '\nargname', argname
+        
+        try:
+            callback = tab_attr[argname]
+        except KeyError:
+            return []
+        
+        
+        # WORK
+        if isinstance(callback, basestring):
+            callback = callback.split(' ')
+        if isinstance(callback, list):
+            matches = []
+            if has_open_quotes(self.text_until_cursor):
+                #text = "'" + text
+                pass
+            for cb in iter(callback):
+                if isinstance(cb, basestring):
+                    if cb.startswith(text):
+                        matches.append(cb)
+            return matches
+                
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
@@ -859,7 +1083,10 @@ class IPCompleter(Completer):
                         sys.excepthook(*sys.exc_info())
             else:
                 for matcher in self.matchers:
-                    self.matches = matcher(text)
+                    try:
+                        self.matches = matcher(text)
+                    except:
+                        sys.excepthook(*sys.exc_info())
                     if self.matches:
                         break
         # FIXME: we should extend our api to return a dict with completions for
