@@ -282,7 +282,7 @@ def current_cursor_arg(post_tokens, argspec):
     for token in iterTokens:
         if (n_open_parens >= 0) or (n_open_braces >= 0) or \
                 (n_open_brackets >= 0):
-                
+
             if token == '=':
                 # short circuit this stuff, they're using a named argument, so we'll
                 # just take that name
@@ -959,19 +959,9 @@ class IPCompleter(Completer):
         'read'   'write'
         """
 
-        # consider the example that the user has typed
-        # module.loadfile(fname, <TAB_CHARACTER>)
-        # where arg2 is the one that we have tab competion info on. this is
-        # the function in the docstring
-
         try:
-            # ids is a list of the strings specifying the currently-being-typed
-            # function/method. In the example, we'll have ids=['module',
-            # 'loadfile']. Post tokens is a list of all the tokens after the
-            # ids (but before the cursor), so it'll be ['fname', ',', ' ']
             ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
         except ValueError:
-            print '0'
             return []
 
         def match_object(obj_name):
@@ -1004,27 +994,24 @@ class IPCompleter(Completer):
             # line is f((<TAB>
             return []
 
-        # name of the argument that the cursor is currently entering, in the
-        # example it'll be argname='mode'
         argname = current_cursor_arg(post_tokens, argspec)
 
         try:
-            # get the callback associated with mode. since the user's decorator
-            # was just @tabcompletion(mode=['read', 'write']), this'll be
-            # callback=['read', 'write']
             attr = annotations[argname]
         except KeyError:
             # this indicates that the __annotations__ is malformed
             return []
-            
-        # make the event namedtuple for the callback        
+
+        # make the event namedtuple for the callback
         if not hasattr(self, '__func_argcomplete_Event'):
-            # create the class, and stash it in self
+            # create the namedtuple type, and stash it in self
             self.__func_argcomplete_Event = collections.namedtuple('Event',
-                ['text', 'tokens', 'line'])
+                ['text', 'tokens', 'line', 'ipcompleter'])
         event = self.__func_argcomplete_Event(text=text,
-            tokens=post_tokens, line=self.text_until_cursor)
-        
+            tokens=post_tokens, line=self.text_until_cursor,
+            ipcompleter=self)
+
+
         matches = []
         if hasattr(attr, 'match'):
             m = attr.match(event)
@@ -1033,7 +1020,7 @@ class IPCompleter(Completer):
             for item in attr:
                 if hasattr(item, 'match'):
                     matches.extend(item.matches(event))
-        
+
         return matches
 
     # this is an extension to the API, where this method indicates
