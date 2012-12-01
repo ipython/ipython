@@ -1013,13 +1013,13 @@ class IPCompleter(Completer):
 
 
         matches = []
-        if hasattr(attr, 'match'):
-            m = attr.match(event)
+        if hasattr(attr, 'tab_matches'):
+            m = attr.tab_matches(event)
             matches.extend(m)
         elif hasattr(attr, '__iter__'):
             for item in attr:
-                if hasattr(item, 'match'):
-                    matches.extend(item.matches(event))
+                if hasattr(item, 'tab_matches'):
+                    matches.extend(item.tab_matches(event))
 
         return matches
 
