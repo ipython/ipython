@@ -54,9 +54,34 @@ def annotate(**kwargs):
 
 class TabBase(object):
     __metaclass__ = abc.ABCMeta
-    
+
     @abc.abstractmethod
-    def tab_matches(self, last_token):
+    def tab_matches(self, event):
+        """Callback for the function-annotation tab completion system.
+        
+        If the user attempts to do a tab completion on an argument
+        (to a function/method) that is annotated for tab completion,
+        this callback will be executed.
+        
+        Parameters
+        ----------
+        event : nametuple
+            event is a namedtuple containing four keys: 'text', 'tokens',
+            'line', and 'ipcompleter'
+            
+        `Event` Attributes
+        ------------------
+        event.line : str
+            event.line contains the full line entered by the IPython user.
+        event.text : str
+            event.text is the last portion of the line, formed by splitting
+            the line on a set of python-language delimiters, and returning you
+            the last portion.
+        event.tokens : list of strings
+            event.tokens is the result of running the python standard library
+            tokenizer on event.line, and 
+        
+        """
         pass
 
 
@@ -73,23 +98,21 @@ class tab_literal(TabBase):
         event : nametupled with keys 'text', 'line', 'tokens'
             event.text contains the current text being entered, which is
         """
-
         matches = []
-        
         for cb in self.completions:
             if isinstance(cb, basestring):
                 if event.tokens[-1] in [' ', '=', '(']:
                     matches.append("'%s'" % cb)
                 elif event.tokens[-1] == ',':
                     matches.append(" '%s'" % cb)
-                elif ("'" + cb).startswith(event.tokens[-1]):
+                elif event.tokens[-2] == "'" and cb.startswith(event.text):
                     # adding "'" + cb + "'" to the matches when one quote
                     # mark is already on the command line seems to cause
                     # a two quote-marks to be inserted before cb.
                     # this has to do with readline thinking that the quote
                     # mark is a delimiter, but we're using it as part of the
                     # token since we're trying to match string literals
-                    
+
                     # note we're not returning strings that start with "'"...
                     matches.append(cb)
             else:
@@ -109,32 +132,14 @@ class tab_glob(TabBase):
         matches = []
 
         if event.tokens[-1] in [' ', '=', '(']:
-            file_mod = "'%s'"
-            dir_mod = "'%s"
+            fmt = "'%s'"
         elif event.tokens[-1] == ',':
-            file_mod = " '%s'"
-            dir_mod = " '%s"
+            fmt = " '%s'"
         else:
-            file_mod = '%s' # no op
-            dir_mod = '%s'
+            fmt = '%s'
 
-        file_matches = [file_mod % m for m in glob.glob(event.text + self.glob_pattern)]
-        dir_matches = [dir_mod % m for m in glob.glob(event.text + '*/')]
-        
-        # note:
-        # somebody else seems to be closing the directories quotation mark that
-        # i'm trying to leave open
-        
-        # for example, 
-        
-        # In [1]: load(<TAB>
-        # 'COPYING.txt'       'build/             'ipython.egg-info/  'setupext/          
-        # 'IPython/           'docs/              'scripts/           'tools/
-        
-        # this looks good. Note that the directories aren't showing
-        # a close quotation mark, but the files are. but when you actually do
-        # tab completion on a directory, it'll complete in the closing quotation
-        # mark that I don't want...
+        file_matches = [fmt % m for m in glob.glob(event.text + self.glob_pattern)]
+        dir_matches = [fmt % m for m in glob.glob(event.text + '*/')]
 
         return file_matches + dir_matches
 
@@ -162,7 +167,7 @@ class tab_instance(TabBase):
 
 if __name__ == '__main__':
     # some testing code.
-    
+
     @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
     def load0(mode, filename):
         pass
@@ -170,7 +175,7 @@ if __name__ == '__main__':
     @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
     def load(filename, mode):
         pass
-        
+
     @annotate(filename=tab_literal(2234,233333,233322233333))
     def load2(filename, mode):
         pass

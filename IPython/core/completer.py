@@ -180,58 +180,80 @@ def compress_user(path, tilde_expand, tilde_val):
     else:
         return path
 
-
-def rindex(haystack, needle):
-    """last index of a needle in a haystack
-
-    Parameters
-    ----------
-    haystack : list
-        A list to search through
-    needle : object
-        The object to search for
-
-    Returns
-    -------
-    index : int
-        The index of the last occurane of `needle` in `haystack`
-
-    Raises
-    ------
-    ValueError
-        If the needle is not present.
-
-    See Also
-    --------
-    List.index
-        Gets the first occurance of a needle in a haystack
-    """
-
-    try:
-        return [i for i, e in enumerate(haystack) if e == needle][-1]
-    except IndexError:
-        raise ValueError('%s is not in list' % needle)
-
-
 def tokenize(src):
+    "Tokenize a line. This serves a similar function to "
     rawstr = StringIO.StringIO(src)
     iter_tokens = _tokenizelib.generate_tokens(rawstr.readline)
     def run():
         try:
             for toktype, toktext, (srow,scol), (erow,ecol), line  in iter_tokens:
-                yield toktype, toktext
+                if toktype != _tokenizelib.ENDMARKER:
+                    yield toktext
         except _tokenizelib.TokenError:
             pass
-    toktype, toktext = map(list, zip(*list(run())))
+    tokens = list(run())
+    return tokens
 
-    try:
-        if rindex(toktype, 52) == len(toktype) - 2:
-            toktext[-2] += toktext[-1]
-            return toktext[:-1]
-    except ValueError:
-        pass
+def open_iden_from_tokens(tokens):
+    """Find the the nearest function/method/callable name that comes
+    before the last unclosed parentheses
 
-    return toktext
+    Parameters
+    ----------
+    tokens : list of strings
+        tokens should be a list of python tokens produced by splittign
+        a line of input
+        
+    Returns
+    -------
+    identifiers : list
+        A list of tokens from `tokens` that are identifiers for the function
+        or method that comes before an unclosed partentheses
+    post_tokens : list
+        The subset of the tokens that occur after `identifiers` in the input
+
+    Raises
+    ------
+    ValueError if the line doesn't match
+    
+    See Also
+    --------
+    tokenize
+    current_cursor_arg
+    """
+
+    # 1. pop off the tokens until we get to the first unclosed parens
+    # as we pop them off, store them in a list
+    iterTokens = iter(reversed(tokens))
+    tokens_after_identifier = []
+
+    openPar = 0 # number of open parentheses
+    for token in iterTokens:
+        tokens_after_identifier.insert(0, token)
+        if token == ')':
+            openPar -= 1
+        elif token == '(':
+            openPar += 1
+            if openPar > 0:
+                # found the last unclosed parenthesis
+                break
+    else:
+        raise ValueError
+
+    # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
+    identifiers = []
+    isId = re.compile(r'\w+$').match
+    while True:
+        try:
+            identifiers.append(next(iterTokens))
+            if not isId(identifiers[-1]):
+                identifiers.pop(); break
+            if not next(iterTokens) == '.':
+                break
+        except StopIteration:
+            break
+
+    return identifiers[::-1], tokens_after_identifier
 
 
 def current_cursor_arg(post_tokens, argspec):
@@ -245,33 +267,16 @@ def current_cursor_arg(post_tokens, argspec):
     argspec : inspect.getargspec
         The argspec of a function
 
-    Examples
-    --------
-    >>> def f(a,b,c=1, d=2):
-    ...    pass
-    >>> argspec = inspect.getargspec(f)
-    >>> current_cursor_arg(tokenize('('), argspec)
-    'a'
-    >>> current_cursor_arg(tokenize('a='), argspec)
-    'a'
-    >>> current_cursor_arg(tokenize('[1,2], start_of_a_valid_to'), argspec)
-    'b'
-    >>> # note the space at the end here...
-    >>> current_cursor_arg(tokenize('[1,2], start_of_a_valid_to '), argspec)
-    None
-    >>> current_cursor_arg(tokenize('(set[(1,2,)], b, '), argspec)
-    'c'
-    >>> current_cursor_arg(tokenize('([1,2], b, d='), argspec)
-    'd'
-    >>> current_cursor_arg(tokenize('([1,2], b, d=token'), argspec)
-    'd'
-    >>> current_cursor_arg(tokenize('(a, bar(x=1), d'), argspec)
-    'c'
-
     Returns
     -------
     argname : str, None
         One of the entries in argnames, or None
+        
+    See ALso
+    --------
+    tokenize    
+    
+    
     """
 
     n_commas = 0
@@ -363,6 +368,7 @@ class CompletionSplitter(object):
     def split_line(self, line, cursor_pos=None):
         """Split a line of text with a cursor at the given position.
         """
+
         l = line if cursor_pos is None else line[:cursor_pos]
         return self._delim_re.split(l)[-1]
 
@@ -824,7 +830,8 @@ class IPCompleter(Completer):
             return []
 
         try:
-            ids = self._parse_first_idens(self.text_until_cursor)[0]
+            tokens = tokenize(self.text_until_cursor)
+            ids = open_iden_from_tokens(tokens)[0]
         except ValueError:
             return []
 
@@ -845,76 +852,6 @@ class IPCompleter(Completer):
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         return argMatches
-
-
-    def _parse_first_idens(self, text_until_cursor):
-        """Find the the nearest function name that comes before an unclosed
-        parenthesis
-
-        Parameters
-        ----------
-        text_until_cursor : str
-            A line of perhaps partially entered python code, hopefully a
-            partially entered function all
-
-        Examples
-        --------
-        >>> _parse_first_idens(' f( ')
-        (['f'], ['('])
-        >>> _parse_first_idens(' foo(1+bar(x), qux ')
-        (['foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
-        >>> _parse_first_idens(' Klass.foo(1+bar(x), qux ')
-        (['Klass', 'foo'], ['(', '1', '+', 'bar', '(', 'x', ')', ',', 'qux'])
-
-        Returns
-        -------
-        identifiers : list
-            A list of identifiers. On the line, they're the final bit before
-            the first unclosed parerentheses.
-        post_tokens : list
-            The tokens immediately afer the identifiers, up to the end of the
-            line
-
-        Raises
-        ------
-        ValueError if the line doesn't match
-        """
-        # This code is from IPython's python_func_kw_matches completer
-
-        # 1. pop off the tokens until we get to the first unclosed parens
-        # as we pop them off, store them in a list
-        tokens = list(tokenize(text_until_cursor))
-        iterTokens = iter(reversed(tokens))
-        tokens_after_identifier = []
-
-        openPar = 0 # number of open parentheses
-        for token in iterTokens:
-            tokens_after_identifier.insert(0, token)
-            if token == ')':
-                openPar -= 1
-            elif token == '(':
-                openPar += 1
-                if openPar > 0:
-                    # found the last unclosed parenthesis
-                    break
-        else:
-            raise ValueError
-
-        # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
-        identifiers = []
-        isId = re.compile(r'\w+$').match
-        while True:
-            try:
-                identifiers.append(next(iterTokens))
-                if not isId(identifiers[-1]):
-                    identifiers.pop(); break
-                if not next(iterTokens) == '.':
-                    break
-            except StopIteration:
-                break
-
-        return identifiers[::-1], tokens_after_identifier
-
 
     def python_func_argcomplete(self, text):
         """Function specific matches based on the arguments of that function.
@@ -960,7 +897,8 @@ class IPCompleter(Completer):
         """
 
         try:
-            ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
+            tokens = tokenize(self.text_until_cursor)
+            ids, post_tokens = open_iden_from_tokens(tokens)
         except ValueError:
             return []
 
@@ -1008,7 +946,7 @@ class IPCompleter(Completer):
             self.__func_argcomplete_Event = collections.namedtuple('Event',
                 ['text', 'tokens', 'line', 'ipcompleter'])
         event = self.__func_argcomplete_Event(text=text,
-            tokens=post_tokens, line=self.text_until_cursor,
+            tokens=tokens, line=self.text_until_cursor,
             ipcompleter=self)
 
 
@@ -1020,6 +958,7 @@ class IPCompleter(Completer):
             for item in attr:
                 if hasattr(item, 'tab_matches'):
                     matches.extend(item.tab_matches(event))
+        # else we just pass and return an empty matches
 
         return matches
 
