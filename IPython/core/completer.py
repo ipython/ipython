@@ -78,6 +78,7 @@ import shlex
 import sys
 import StringIO
 import tokenize as _tokenizelib
+import collections
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -279,7 +280,9 @@ def current_cursor_arg(post_tokens, argspec):
     n_open_brackets = 0
     iterTokens = iter(reversed(post_tokens))
     for token in iterTokens:
-        if n_open_parens == n_open_braces == n_open_brackets == 0:
+        if (n_open_parens >= 0) or (n_open_braces >= 0) or \
+                (n_open_brackets >= 0):
+                
             if token == '=':
                 # short circuit this stuff, they're using a named argument, so we'll
                 # just take that name
@@ -968,6 +971,7 @@ class IPCompleter(Completer):
             # ids (but before the cursor), so it'll be ['fname', ',', ' ']
             ids, post_tokens = self._parse_first_idens(self.text_until_cursor)
         except ValueError:
+            print '0'
             return []
 
         def match_object(obj_name):
@@ -980,22 +984,25 @@ class IPCompleter(Completer):
                 except:
                     return None
 
-
         if len(ids) == 1:
             try:
                 obj = match_object(ids[0])
                 argspec = inspect.getargspec(obj)
-                tab_attr = obj.tab_completion
+                annotations = obj.__annotations__
             except (AttributeError, TypeError) as e:
-                # the attribute error comes from obj not having been decorated
-                # the typeerror comes from it potentially not being
-                # inspect.argspec-able
+                # the attribute error comes from obj not having an
+                # __annotations__, the typeerror comes from it
+                # potentially not being inspect.argspec-able
                 return []
-        else:
+        elif len(ids) > 1:
             # need to search like Completer.attr_matches, but for an exact
             # matches. Basically use match_object to find ids[0] and then
             # look inside that guys name space to find ids[1], then on and on.
-            raise NotImplementedError
+            raise NotImplementedError(ids)
+        else:
+            # something wierd happened. this can happen for instance if the
+            # line is f((<TAB>
+            return []
 
         # name of the argument that the cursor is currently entering, in the
         # example it'll be argname='mode'
@@ -1005,44 +1012,29 @@ class IPCompleter(Completer):
             # get the callback associated with mode. since the user's decorator
             # was just @tabcompletion(mode=['read', 'write']), this'll be
             # callback=['read', 'write']
-            callback = tab_attr[argname]
+            attr = annotations[argname]
         except KeyError:
+            # this indicates that the __annotations__ is malformed
             return []
-
-        last_token = post_tokens[-1]
-
+            
+        # make the event namedtuple for the callback        
+        if not hasattr(self, '__func_argcomplete_Event'):
+            # create the class, and stash it in self
+            self.__func_argcomplete_Event = collections.namedtuple('Event',
+                ['text', 'tokens', 'line'])
+        event = self.__func_argcomplete_Event(text=text,
+            tokens=post_tokens, line=self.text_until_cursor)
         
-        # this code is specific to literal string matching, and will get 
-        # moved out of this routine and into a separate function. currently,
-        # i've only written the code for literal string matching, but it should
-        # be straightforward to do glob style matches, isinstance checks, etc.
-
-        if isinstance(callback, basestring):
-            callback = callback.split(' ')
-        if isinstance(callback, list):
-            matches = []
-            for cb in iter(callback):
-                if isinstance(cb, basestring):
-                    if last_token in [',', ' ', '=']:
-                        # this indicates that the token we're trying to tab
-                        # complete on hasn't started. i.e. the last token
-                        # that the user entered was, for instance, the comma
-                        # that ended the last arguments. So we need to show the
-                        # full list of recommended tab completions
-                        matches.append("'" + cb + "'")
-
-                    elif ("'" + cb).startswith(last_token):
-                        # adding "'" + cb + "'" to the matches when one quote
-                        # mark is already on the command line seems to cause
-                        # a two quote-marks to be inserted before cb.
-                        # this has to do with readline thinking that the quote
-                        # mark is a delimiter, but we're using it as part of the
-                        # token since we're trying to match string literals
-                        matches.append(cb)
-
-            return matches
-
-        return []
+        matches = []
+        if hasattr(attr, 'match'):
+            m = attr.match(event)
+            matches.extend(m)
+        elif hasattr(attr, '__iter__'):
+            for item in attr:
+                if hasattr(item, 'match'):
+                    matches.extend(item.matches(event))
+        
+        return matches
 
     # this is an extension to the API, where this method indicates
     # that if it returns matches, they should be displayed to the user as
