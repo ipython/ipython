@@ -634,7 +634,7 @@ class IPCompleter(Completer):
             self.clean_glob = self._clean_glob
 
         # All active matcher routines for completion
-        self.matchers = [self.python_func_argcomplete,
+        self.matchers = [self.annotations_argmatches,
                          self.python_matches,
                          self.file_matches,
                          self.magic_matches,
@@ -853,7 +853,7 @@ class IPCompleter(Completer):
                     argMatches.append("%s=" %namedArg)
         return argMatches
 
-    def python_func_argcomplete(self, text):
+    def annotations_argmatches(self, text):
         """Function specific matches based on the arguments of that function.
         For example, np.load(<tab> might only show files that match some glob
         pattern.
@@ -861,7 +861,9 @@ class IPCompleter(Completer):
         Note that if this sucessfully matches, it will be the only set of
         matches shown to the user. This behavior overrides the
         merge_completions config variable. This behavior is set by the attribute
-        `exclusive_completions = True` which is set after the function.
+        `exclusive_completions = True` which is set after the function. See
+        extensions/annotations.py for the user-facing code to hook into this
+        system
 
         Parameters
         ----------
@@ -877,23 +879,6 @@ class IPCompleter(Completer):
             specific, and their appearance is based on decorators applied to the
             functions that annotate specific function arguments with possible
             tab completions.
-
-        Examples
-        --------
-        >>> @tabcompletion(mode=['read', 'write'])
-        >>> def loadfile(fname, mode='read'):
-        ...     pass
-
-        With this function, tab completion will recommend 'read' and 'write'
-        when you're trying to ender the mode argument, like this:
-
-        >>> loadfile('filename', mode=<TAB_CHARACTER>
-        'read'   'write'
-
-        Or like this:
-
-        >>> loadfile('filename', <TAB_CHARACTER>
-        'read'   'write'
         """
 
         try:
@@ -965,7 +950,7 @@ class IPCompleter(Completer):
     # this is an extension to the API, where this method indicates
     # that if it returns matches, they should be displayed to the user as
     # the ONLY tab-completions
-    python_func_argcomplete.exclusive_completions = True
+    annotations_argmatches.exclusive_completions = True
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
