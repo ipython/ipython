@@ -71,17 +71,17 @@ class AnnotationCompleterBase(object):
     @abc.abstractmethod
     def tab_matches(self, event):
         """Callback for the function-annotation tab completion system.
-        
+
         If the user attempts to do a tab completion on an argument
         (to a function/method) that is annotated for tab completion,
         this callback will be executed.
-        
+
         Parameters
         ----------
         event : nametuple
             event is a namedtuple containing four keys: 'text', 'tokens',
             'line', and 'ipcompleter'
-            
+
         `Event` Attributes
         ------------------
         event.line : str
@@ -112,7 +112,7 @@ class tab_literal(AnnotationCompleterBase):
 
     def __init__(self, *completions):
         """Set up a tab completion callback.
-        
+
         Examples
         --------
         >>> def f(x : tab_literal(100, 200, 300)):
@@ -153,7 +153,7 @@ class tab_glob(AnnotationCompleterBase):
 
     def __init__(self, glob_pattern):
         """Set up a tab completion callback with glob matching
-        
+
         Examples
         --------
         >>> def f(x : tab_glob("*.txt")):
@@ -167,7 +167,7 @@ class tab_glob(AnnotationCompleterBase):
     def tab_matches(self, event):
         """Callback for the IPython annoation tab-completion system
         """
-        
+
         matches = []
 
         if event.tokens[-1] in [' ', '=', '(']:
@@ -187,15 +187,13 @@ class tab_instance(AnnotationCompleterBase):
     """Annotation for function arguments that recommends python variables in
     your namespace that an instance of supplied types"""
 
-    def __init__(self, *klasses, add_extras=True):
+    def __init__(self, *klasses):
         """Set up a tab completion callback with isinstance matching
-        
+
         Parameters
         ----------
         klasses : the classes you'd like to match on
-        add_extras : bool, optional
-            Add some extra classes like functiontype
-        
+
         Examples
         --------
         >>> x, y = 1, 2
@@ -204,7 +202,7 @@ class tab_instance(AnnotationCompleterBase):
 
         >>> f(<TAB>
         will show you files ending in .txt
-        
+
         Limitations
         -----------
         Because of python's dynamic typing, this can't check the type of the
@@ -213,14 +211,14 @@ class tab_instance(AnnotationCompleterBase):
         """
         self.klasses = set(klasses)
 
-        if add_extras:
-            self.klasses.update([types.FunctionType, types.BuiltinFunctionType,
+        # add some extras
+        self.klasses.update([types.FunctionType, types.BuiltinFunctionType,
                 types.TypeType, types.ModuleType])
 
     def tab_matches(self, event):
         """Callback for the IPython annoation tab-completion system
         """
-        
+
         matches = []
         for key in event.ipcompleter.python_matches(event.text):
             try:
