@@ -3,12 +3,9 @@ import io
 import os
 
 class ConverterSlider(ConverterMarkdown):
-    """Convert a notebook to html suitable for easy pasting into Blogger.
+    """Convert a notebook to a html slideshow suitable for oral presentations.
 
-    It generates an html file that has *only* the pure HTML contents, and a
-    separate file with `_header` appended to the name with all header contents.
-    Typically, the header file only needs to be used once when setting up a
-    blog, as the CSS for all posts is stored in a single location in Blogger.
+    It generates a static html slideshow based in markdown and reveal.js. 
     """
 
     def __init__(self, infile, highlight_source=False, show_prompts=True,
