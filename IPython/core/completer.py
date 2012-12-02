@@ -330,7 +330,7 @@ def current_cursor_arg(post_tokens, obj):
     --------
     tokenize
     """
-q
+
     argspec = inspect.getargspec(obj)
 
 
