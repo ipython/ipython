@@ -22,6 +22,7 @@ from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
 from converters.python import ConverterPy
+from converters.slider import ConverterSlider
 
 
 # When adding a new format, make sure to add it to the `converters`
@@ -36,6 +37,7 @@ converters = {
     'blogger-html': ConverterBloggerHTML,
     'latex': ConverterLaTeX,
     'py': ConverterPy,
+    'slider': ConverterSlider,
     }
 
 default_format = 'rst'
