@@ -4,8 +4,8 @@ Interact with the IPython tab completion system via function annotations.
 
 For example (python3):
 
-#>>> def load(filename : tab_glob('*.txt'), mode):
-#...     pass
+In[1]: def load(filename : tab_glob('*.txt'), mode):
+...        pass
 
 Will trigger the IPython tab completion system to recomment files ending in .txt
 to you, when you're calling the load function interactively.
@@ -35,8 +35,8 @@ def annotate(**kwargs):
     #...    pass
 
     Is evalent to the following python3 code:
-    #>>> def f(foo : 'bar', qux : str = 'hello'):
-    #...    pass
+    In[2]: def f(foo : 'bar', qux : str = 'hello'):
+    ...        pass
     """
 
     def wrapper(f):
@@ -115,9 +115,9 @@ class tab_literal(AnnotationCompleterBase):
 
         Example (python 3)
         ------------------
-        #>>> def f(x : tab_literal(100, 200, 300)):
-        #...    pass
-        #>>> f(1<HIT_THE_TAB_KEY>
+        In[3]: def f(x : tab_literal(100, 200, 300)):
+        ...        pass
+        In[4]: f(1<HIT_THE_TAB_KEY>
         will fill in the 100
         """
         self.completions = completions
@@ -155,10 +155,10 @@ class tab_glob(AnnotationCompleterBase):
 
         Example (python 3)
         ------------------
-        #>>> def f(x : tab_glob("*.txt")):
-        #...    pass
+        In[5]: def f(x : tab_glob("*.txt")):
+        ...        pass
 
-        #>>> f(<HIT_THE_TAB_KEY>
+        In[6]: f(<HIT_THE_TAB_KEY>
         will show you files ending in .txt
         """
         self.glob_pattern = glob_pattern
@@ -195,11 +195,11 @@ class tab_instance(AnnotationCompleterBase):
 
         Example (python 3)
         ------------------
-        #>>> x, y = 1, 2
-        #>>> def f(x : tab_instance(int)):
-        #...    pass
+        In[7]: x, y = 1, 2
+        In[8]: def f(x : tab_instance(int)):
+        ...        pass
 
-        #>>> f(<TAB>
+        In[9]: f(<TAB>
         will show you files ending in .txt
 
         Limitations

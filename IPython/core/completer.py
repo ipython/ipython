@@ -198,7 +198,7 @@ def tokenize(src):
 
     Examples
     --------
-    >>> tokenize('a + b = ["cdefg" + 10]')
+    In [1]: tokenize('a + b = ["cdefg" + 10]')
     ['a', '+', 'b', '=', '[', '"cdefg"', '+', '10', ']']
 
     Notes
@@ -209,9 +209,9 @@ def tokenize(src):
     by CompletionSplitter (or its regular expression engine), so something
     like this happens:
 
-    >>> a = CompletionSplitter()._delim_re.split('a+ "hello')
-    >>> b = CompletionSplitter()._delim_re.split('a+= hello')
-    >>> a == b
+    In[2]: a = CompletionSplitter()._delim_re.split('a+ "hello')
+    In[3]: b = CompletionSplitter()._delim_re.split('a+= hello')
+    In[4]: a == b
     True
 
     This makes it very tricky to do complicated types of tab completion.
@@ -314,16 +314,16 @@ def current_cursor_arg(post_tokens, obj):
 
     Examples
     --------
-    >>> def foo(x, y, z):
-    ...    pass
-    >>> line = "a = foo(1, bar"
-    >>> tokens = tokenize(line)
-    >>> identifier, post_tokens = open_iden_from_tokens(tokens)
-    >>> identifier == ['foo']
+    In[5]: def foo(x, y, z):
+    ...        pass
+    In[6]: line = "a = foo(1, bar"
+    In[7]: tokens = tokenize(line)
+    In[8]: identifier, post_tokens = open_iden_from_tokens(tokens)
+    In[9]: identifier == ['foo']
     True
-    >>> post_tokens == ['(', '1', ',', 'bar']
+    In[10]: post_tokens == ['(', '1', ',', 'bar']
     True
-    >>> current_cursor_arg(post_tokens, foo)
+    In[11]: current_cursor_arg(post_tokens, foo)
     'y'
 
     See ALso
