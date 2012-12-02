@@ -233,6 +233,12 @@ class tab_instance(AnnotationCompleterBase):
 if __name__ == '__main__':
     # some testing code.
 
+    class MyClass:
+        @classmethod
+        @annotate(x=tab_literal(2223, 3332))
+        def mymethod(self, x):
+            pass
+
     @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
     def load0(a, mode=1, filename=2):
         pass

@@ -296,7 +296,7 @@ def open_iden_from_tokens(tokens):
     return identifiers[::-1], tokens_after_identifier
 
 
-def current_cursor_arg(post_tokens, argspec):
+def current_cursor_arg(post_tokens, obj):
     """Determine which argument the cursor is current entering
 
     Parameters
@@ -304,18 +304,35 @@ def current_cursor_arg(post_tokens, argspec):
     post_tokens : str
         Tokens after the last unclosed parentheses on the current
         line, starting with an open parens
-    argspec : inspect.getargspec
-        The argspec of a function
+    obj : callable
+        The function or method being called
 
     Returns
     -------
     argname : str, None
-        One of the entries in argnames, or None
+        the name of one of the arguments to the function, or None
+
+    Examples
+    --------
+    >>> def foo(x, y, z):
+    ...    pass
+    >>> line = "a = foo(1, bar"
+    >>> tokens = tokenize(line)
+    >>> identifier, post_tokens = open_iden_from_tokens(tokens)
+    >>> identifier == ['foo']
+    True
+    >>> post_tokens == ['(', '1', ',', 'bar']
+    True
+    >>> current_cursor_arg(post_tokens, foo)
+    'y'
 
     See ALso
     --------
     tokenize
     """
+q
+    argspec = inspect.getargspec(obj)
+
 
     n_commas = 0
     n_open_parens = 0
@@ -351,6 +368,10 @@ def current_cursor_arg(post_tokens, argspec):
             n_open_braces -= 1
         elif token == ']':
             n_open_brackets -= 1
+
+    if inspect.ismethod(obj):
+        # need to ignore self
+        return argspec.args[n_commas+1]
 
     return argspec.args[n_commas]
 
@@ -938,27 +959,23 @@ class IPCompleter(Completer):
                 except:
                     return None
 
-        if len(ids) == 1:
+        if len(ids) >= 1:
             try:
-                obj = match_object(ids[0])
-                argspec = inspect.getargspec(obj)
+                obj = match_object('.'.join(ids))
                 annotations = obj.__annotations__
-            except (AttributeError, TypeError) as e:
+                argname = current_cursor_arg(post_tokens, obj)
+            except (AttributeError, TypeError, IndexError) as e:
                 # the attribute error comes from obj not having an
                 # __annotations__, the typeerror comes from it
                 # potentially not being inspect.argspec-able
+                # the indexerror comes if the user is trying to enter
+                # the nth argument for a function that takes less than
+                # n arguments
                 return []
-        elif len(ids) > 1:
-            # need to search like Completer.attr_matches, but for an exact
-            # matches. Basically use match_object to find ids[0] and then
-            # look inside that guys name space to find ids[1], then on and on.
-            raise NotImplementedError(ids)
         else:
             # something wierd happened. this can happen for instance if the
             # line is f((<TAB>
             return []
-
-        argname = current_cursor_arg(post_tokens, argspec)
 
         try:
             attr = annotations[argname]
