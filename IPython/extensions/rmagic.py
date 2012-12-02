@@ -35,7 +35,6 @@ Usage
 #-----------------------------------------------------------------------------
 
 import sys
-import re
 import tempfile
 from glob import glob
 from shutil import rmtree
@@ -179,9 +178,8 @@ class RMagics(Magics):
         return value
 
     @skip_doctest
-    @needs_local_scope
     @line_magic
-    def Rpush(self, line, local_ns=None):
+    def Rpush(self, line):
         '''
         A line-level magic for R that pushes
         variables from python to rpy2. The line should be made up
@@ -201,23 +199,10 @@ class RMagics(Magics):
             Out[11]: array([ 6.23333333])
 
         '''
-        # split the line into fields separated by commas or spaces
-        # i.e. 'a,b', 'a b', 'a, b', 'a ,b', 'a , b' should all be split
-        # to ['a', 'b']
-        inputs = re.split(r'\s*[,\s]\s*', line)
 
-        # if there is no local namespace then default to an empty dict
-        if local_ns is None:
-            local_ns = {}
-
+        inputs = line.split(' ')
         for input in inputs:
-            try:
-                val = local_ns[input]
-            except KeyError:
-                val = self.shell.user_ns[input]
-
-            self.r.assign(input, self.pyconverter(val))
-
+            self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
 
     @skip_doctest
     @magic_arguments()
