@@ -4,8 +4,8 @@ Interact with the IPython tab completion system via function annotations.
 
 For example (python3):
 
->>> def load(filename : tab_glob('*.txt'), mode):
-...     pass
+#>>> def load(filename : tab_glob('*.txt'), mode):
+#...     pass
 
 Will trigger the IPython tab completion system to recomment files ending in .txt
 to you, when you're calling the load function interactively.
@@ -30,13 +30,13 @@ def annotate(**kwargs):
 
     Examples
     --------
-    >>> @annotate(foo='bar', qux=str)
-    >>> def f(foo, qux='hello'):
-    ...    pass
+    #>>> @annotate(foo='bar', qux=str)
+    #>>> def f(foo, qux='hello'):
+    #...    pass
 
     Is evalent to the following python3 code:
-    >>> def f(foo : 'bar', qux : str = 'hello'):
-    ...    pass
+    #>>> def f(foo : 'bar', qux : str = 'hello'):
+    #...    pass
     """
 
     def wrapper(f):
@@ -113,12 +113,11 @@ class tab_literal(AnnotationCompleterBase):
     def __init__(self, *completions):
         """Set up a tab completion callback.
 
-        Examples
-        --------
-        >>> def f(x : tab_literal(100, 200, 300)):
-        ...    pass
-
-        >>> f(1<TAB>
+        Example (python 3)
+        ------------------
+        #>>> def f(x : tab_literal(100, 200, 300)):
+        #...    pass
+        #>>> f(1<HIT_THE_TAB_KEY>
         will fill in the 100
         """
         self.completions = completions
@@ -154,12 +153,12 @@ class tab_glob(AnnotationCompleterBase):
     def __init__(self, glob_pattern):
         """Set up a tab completion callback with glob matching
 
-        Examples
-        --------
-        >>> def f(x : tab_glob("*.txt")):
-        ...    pass
+        Example (python 3)
+        ------------------
+        #>>> def f(x : tab_glob("*.txt")):
+        #...    pass
 
-        >>> f(<TAB>
+        #>>> f(<HIT_THE_TAB_KEY>
         will show you files ending in .txt
         """
         self.glob_pattern = glob_pattern
@@ -194,13 +193,13 @@ class tab_instance(AnnotationCompleterBase):
         ----------
         klasses : the classes you'd like to match on
 
-        Examples
-        --------
-        >>> x, y = 1, 2
-        >>> def f(x : tab_instance(int)):
-        ...    pass
+        Example (python 3)
+        ------------------
+        #>>> x, y = 1, 2
+        #>>> def f(x : tab_instance(int)):
+        #...    pass
 
-        >>> f(<TAB>
+        #>>> f(<TAB>
         will show you files ending in .txt
 
         Limitations
