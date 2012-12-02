@@ -30,7 +30,7 @@ def osx_clipboard_get():
         stdout=subprocess.PIPE)
     text, stderr = p.communicate()
     # Text comes in with old Mac \r line endings. Change them to \n.
-    text = text.replace('\r', '\n')
+    text = text.replace(b'\r', b'\n')
     text = py3compat.cast_unicode(text, py3compat.DEFAULT_ENCODING)
     return text
 
