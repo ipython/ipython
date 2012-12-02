@@ -180,8 +180,47 @@ def compress_user(path, tilde_expand, tilde_val):
     else:
         return path
 
+
 def tokenize(src):
-    "Tokenize a line. This serves a similar function to "
+    """Tokenize a block of python source code using the stdlib's tokenizer.
+
+    Parameters
+    ----------
+    src : str
+        A string of potential python source code. The code isn't evaled, it's
+        just split into its representive tokens
+
+    Returns
+    -------
+    tokens : list of strings
+        A list of tokens. Tokenizer errors from invalid python source (like
+        unclosed string delimiters) are supressed.
+
+    Examples
+    --------
+    >>> tokenize('a + b = ["cdefg" + 10]')
+    ['a', '+', 'b', '=', '[', '"cdefg"', '+', '10', ']']
+
+    Notes
+    -----
+    This serves a similar function to simply splitting the source on delmiters
+    (as done by CompletionSplitter) but is slightly more sophisticated. In
+    particular, characters that are delmiters are never returned in the tokens
+    by CompletionSplitter (or its regular expression engine), so something
+    like this happens:
+
+    >>> a = CompletionSplitter()._delim_re.split('a+ "hello')
+    >>> b = CompletionSplitter()._delim_re.split('a+= hello')
+    >>> a == b
+    True
+
+    This makes it very tricky to do complicated types of tab completion.
+
+    This tokenizer instead uses the stdlib's tokenize, which is a little
+    bit more knowledgeable about python syntax. In particular, string literals
+    e.g. `tokenize("'a' + '''bc'''") == ["'a'", "+", "'''bc'''"]` get parsed
+    as single tokens.
+    """
     rawstr = StringIO.StringIO(src)
     iter_tokens = _tokenizelib.generate_tokens(rawstr.readline)
     def run():
@@ -194,16 +233,17 @@ def tokenize(src):
     tokens = list(run())
     return tokens
 
+
 def open_iden_from_tokens(tokens):
-    """Find the the nearest function/method/callable name that comes
-    before the last unclosed parentheses
+    """Find the the nearest identifier (function/method/callable name)
+    that comes before the last unclosed parentheses
 
     Parameters
     ----------
     tokens : list of strings
-        tokens should be a list of python tokens produced by splittign
+        tokens should be a list of python tokens produced by splitting
         a line of input
-        
+
     Returns
     -------
     identifiers : list
@@ -215,10 +255,10 @@ def open_iden_from_tokens(tokens):
     Raises
     ------
     ValueError if the line doesn't match
-    
+
     See Also
     --------
-    tokenize
+    tokenize : to generate `tokens`
     current_cursor_arg
     """
 
@@ -271,12 +311,10 @@ def current_cursor_arg(post_tokens, argspec):
     -------
     argname : str, None
         One of the entries in argnames, or None
-        
+
     See ALso
     --------
-    tokenize    
-    
-    
+    tokenize
     """
 
     n_commas = 0
@@ -291,7 +329,10 @@ def current_cursor_arg(post_tokens, argspec):
             if token == '=':
                 # short circuit this stuff, they're using a named argument, so we'll
                 # just take that name
-                return iterTokens.next()
+                try:
+                    return iterTokens.next()
+                except:
+                    return None
 
             if token == ',':
                 n_commas += 1

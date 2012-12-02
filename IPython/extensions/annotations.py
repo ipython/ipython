@@ -234,7 +234,7 @@ if __name__ == '__main__':
     # some testing code.
 
     @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
-    def load0(mode, filename):
+    def load0(a, mode=1, filename=2):
         pass
 
     @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
