@@ -31,11 +31,12 @@ def install_editor(run_template, wait=False):
         the call.
     """
 
-    for substitution in ['$file', '$line']:
-        if not substitution in run_template:
-            raise ValueError(('run_template should contain %s'
-            ' for string substitution. You supplied "%s"' % (substitution,
-                run_template)))
+    # not all editors support $line, so we'll leave out this check
+    # for substitution in ['$file', '$line']:
+    #    if not substitution in run_template:
+    #        raise ValueError(('run_template should contain %s'
+    #        ' for string substitution. You supplied "%s"' % (substitution,
+    #            run_template)))
 
     template = Template(run_template)
 
@@ -76,14 +77,19 @@ def jed(exe='jed'):
     install_editor(exe + ' +$line "$file"')
 
 
-def idle(exe=None):
+def idle(exe='idle'):
     """ Idle, the editor bundled with python
 
-    Should be pretty smart about finding the executable.
+    Parameters
+    ----------
+    exe : str, None
+        If none, should be pretty smart about finding the executable.
     """
     if exe is None:
         import idlelib
         p = os.path.dirname(idlelib.__file__)
+        # i'm not sure if this actually works. Is this idle.py script guarenteed
+        # to be executable?
         exe = os.path.join(p, 'idle.py')
     install_editor(exe + ' "$file"')
 
