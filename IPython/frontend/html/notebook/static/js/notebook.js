@@ -1100,7 +1100,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.execute_cells_below = function () {
         this.execute_cell_range(this.get_selected_index(), this.ncells());
-        that.scroll_to_bottom();
+        this.scroll_to_bottom();
     };
 
     Notebook.prototype.execute_cells_above = function () {
