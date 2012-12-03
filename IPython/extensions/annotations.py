@@ -17,10 +17,85 @@ import warnings
 import types
 import glob
 import abc
+try:
+    # python3
+    import builtins
+    typetype = builtins.type
+except ImportError:
+    #python2
+    typetype = types.TypeType
+
 from IPython.core.completer import has_open_quotes
 
 
 __all__ = ['annotate', 'tab_glob', 'tab_instance', 'tab_literal']
+
+def tab_completion(*args, **kwargs):
+    if (len(args) == 1 and len(kwargs.keys()) == 0 and
+        hasattr(args[0], '__call__')):
+        # this decorator was called with no arguments and is
+        # wrapping a function where the annotations are defined
+        # with py3k syntax
+        f = args[0] # rename
+        if not hasattr(f, '__annotations__'):
+            raise ValueError('f is not annotated')
+        f.__tab_completions__ = f.__annotations__
+        return f
+
+    # otherwise, this decorator is being called with arguments, indicating
+    # python2 syntax
+    def wrapper(f):
+        argspec = inspect.getargspec(f)
+        for key in kwargs.keys():
+            if (key not in argspec.args) and (key != argspec.varargs) \
+                    and (key != argspec.kwargs):
+                raise ValueError('%s is not an argument taken by %s' \
+                    % (key, wrapped.__name__))
+
+            if hasattr(f, '__tab_completions__'):
+                # check that the annotations being provided don't already exist
+                # if they do, we warn and overwrite. this decorator does not
+                # implement any scheme for composing annotations.
+                if key in f.__annotations__:
+                    warnings.warn('Overwriting tab completion on %s' % key,
+                        RuntimeWarning)
+
+        try:
+            f.__tab_completions__.update(kwargs)
+        except AttributeError:
+            f.__tab_completions__ = kwargs
+
+        return f
+
+    return wrapper
+
+
+def tab_completion_return(return_value_annotation):
+    """Register a tab completion annotation for the return value in python2.x
+    
+    Unfortunately, you won't be able to use
+    @tab_completion(return=tab_instance(x)) as a decorator, since it's a
+    syntax error. So use this instead
+
+    """
+    def wrapper(f):
+        argspec = inspect.getargspec(f)
+        if hasattr(f, '__tab_completions__'):
+            # check that the annotations being provided don't already exist
+            # if they do, we warn and overwrite. this decorator does not
+            # implement any scheme for composing annotations.
+            if 'return' in f.__annotations__:
+                warnings.warn('Overwriting tab completion on return',
+                              RuntimeWarning)
+
+        try:
+            f.__tab_completions__['return'] = return_value_annotation
+        except AttributeError:
+            f.__tab_completions__ = {'return' : return_value_annotation}
+
+        return f
+
+    return wrapper
 
 
 def annotate(**kwargs):
@@ -41,7 +116,7 @@ def annotate(**kwargs):
 
     def wrapper(f):
         argspec = inspect.getargspec(f)
-        for key in kwargs.iterkeys():
+        for key in kwargs.keys():
             if (key not in argspec.args) and (key != argspec.varargs) \
                     and (key != argspec.kwargs):
                 raise ValueError('%s is not an argument taken by %s' \
@@ -212,7 +287,7 @@ class tab_instance(AnnotationCompleterBase):
 
         # add some extras
         self.klasses.update([types.FunctionType, types.BuiltinFunctionType,
-                types.TypeType, types.ModuleType])
+            typetype, types.ModuleType])
 
     def tab_matches(self, event):
         """Callback for the IPython annoation tab-completion system
@@ -231,26 +306,35 @@ class tab_instance(AnnotationCompleterBase):
 
 if __name__ == '__main__':
     # some testing code.
+    text_file = tab_glob('*.txt')
+    isstring = tab_instance(str)
 
-    class MyClass:
-        @classmethod
-        @annotate(x=tab_literal(2223, 3332))
-        def mymethod(self, x):
-            pass
-
-    @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
-    def load0(a, mode=1, filename=2):
+    @tab_completion
+    def function1(arg1 : text_file, arg2):
         pass
 
-    @annotate(filename=['ignoreme!', tab_glob('*.txt')], mode=tab_literal('read', 'write', 1))
-    def load(filename, mode):
+    @tab_completion
+    def function2(arg1, arg2 : text_file):
         pass
 
-    @annotate(filename=tab_literal(2234,233333,233322233333))
-    def load2(filename, mode):
+    # this should be the same as function1
+    @tab_completion(arg1=text_file)
+    def function1_1(arg1, arg2):
+        pass
+    
+    assert function1.__tab_completions__ == function1_1.__tab_completions__
+
+    @tab_completion
+    def function4(arg1, arg2) -> isstring:
         pass
 
-
-    @annotate(filename=tab_glob('*.txt'), mode=tab_instance(str))
-    def load23(filename, mode):
+    @tab_completion_return(isstring)
+    def function4_1(arg1, arg2):
         pass
+
+    @tab_completion
+    def function5(arg1 : isstring):
+        pass
+
+    assert function4.__tab_completions__ == function4_1.__tab_completions__
+ 

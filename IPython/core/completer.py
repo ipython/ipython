@@ -330,8 +330,11 @@ def current_cursor_arg(post_tokens, obj):
     --------
     tokenize
     """
-
-    argspec = inspect.getargspec(obj)
+    try:
+        argspec = inspect.getargspec(obj)
+    except ValueError:
+        # python3
+        argspec = inspect.getfullargspec(obj)
 
 
     n_commas = 0
@@ -908,6 +911,7 @@ class IPCompleter(Completer):
                 namedArgs = self._default_arguments(eval(callableMatch,
                     self.namespace))
             except:
+                print 'err'
                 continue
 
             for namedArg in namedArgs:
@@ -962,7 +966,7 @@ class IPCompleter(Completer):
         if len(ids) >= 1:
             try:
                 obj = match_object('.'.join(ids))
-                annotations = obj.__annotations__
+                annotations = obj.__tab_completions__
                 argname = current_cursor_arg(post_tokens, obj)
             except (AttributeError, TypeError, IndexError) as e:
                 # the attribute error comes from obj not having an
