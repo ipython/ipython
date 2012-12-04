@@ -23,8 +23,8 @@ class SubprocessKernelManager(KernelManager, Configurable):
     kernel_launch_program = List(
         [],
         config=True,
-        help="""the command to launch a foreing language kernel, use '{connexion_file_name}' to have
-        the full path of the connexion file.
+        help="""the command to launch a foreign language kernel, use '{connection_file_name}' to have
+        the full path of the connection file.
         """
     )
 
@@ -37,7 +37,7 @@ class SubprocessKernelManager(KernelManager, Configurable):
             raise ValueError("""kernel_launch program should be defined
             in config with the following form :
 
-            c.SubprocessKernelManager.kernel_launch_program=['interpreter','program','{connexion_file_name}']
+            c.SubprocessKernelManager.kernel_launch_program=['interpreter','program','{connection_file_name}']
             """)
-        cmd = [ expanduser(_.format(connexion_file_name=fname)) for _ in self.kernel_launch_program]
+        cmd = [ expanduser(_.format(connection_file_name=fname)) for _ in self.kernel_launch_program]
         return Popen(cmd)
