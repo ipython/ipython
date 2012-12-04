@@ -16,6 +16,7 @@ from Queue import Empty
 import nose.tools as nt
 
 from ..blockingkernelmanager import BlockingKernelManager
+from .. import ipkernel
 
 
 from IPython.testing import decorators as dec
@@ -195,6 +196,12 @@ class CompleteReply(Reference):
     matches = List(Unicode)
 
 
+class VersionReply(Reference):
+    version = Enum((ipkernel.version))
+    version_major = Enum((ipkernel.version_major,))
+    version_minor = Enum((ipkernel.version_minor,))
+
+
 # IOPub messages
 
 class PyIn(Reference):
@@ -236,6 +243,7 @@ references = {
     'object_info_reply' : OInfoReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
+    'version_reply': VersionReply(),
     'pyin' : PyIn(),
     'pyout' : PyOut(),
     'pyerr' : PyErr(),
@@ -432,6 +440,18 @@ def test_complete():
     matches = reply['content']['matches']
     for name in ('alpha', 'albert'):
         yield nt.assert_true(name in matches, "Missing match: %r" % name)
+
+
+@dec.parametric
+def test_version_request():
+    flush_channels()
+
+    shell = KM.shell_channel
+
+    msg_id = shell.version()
+    reply = shell.get_msg(timeout=2)
+    for tst in validate_message(reply, 'version_reply', msg_id):
+        yield tst
 
 
 # IOPub channel

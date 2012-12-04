@@ -363,6 +363,12 @@ class ShellSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
+    def version(self):
+        """Request kernel version info."""
+        msg = self.session.msg('version_request')
+        self._queue_send(msg)
+        return msg['header']['msg_id']
+
     def shutdown(self, restart=False):
         """Request an immediate kernel shutdown.
 
