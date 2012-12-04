@@ -48,7 +48,6 @@ html,
 body {
 	width: 100%;
 	height: 100%;
-	min-height: 600px;
 	overflow: hidden;
 }
 
@@ -58,20 +57,40 @@ body {
 }
 
 ::selection {
-	background:#FF5E99;
-	color:#fff;
+	background: #FF5E99;
+	color: #fff;
 	text-shadow: none;
 }
 
-@media screen and (max-width: 900px) {
-	.reveal {
-		font-size: 30px;
+@media screen and (max-width: 900px), (max-height: 600px) {
+	.reveal .slides {
+		font-size: 0.82em;
+	}
+}
+
+@media screen and (max-width: 700px), (max-height: 400px) {
+	.reveal .slides {
+		font-size: 0.66em;
 	}
 }
 
 /*********************************************
  * HEADERS
  *********************************************/
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+	-webkit-hyphens: auto;
+	   -moz-hyphens: auto;
+	        hyphens: auto;
+
+	word-break: break-all;
+	word-break: break-word;
+}
 
 .reveal h1 { font-size: 3.77em; }
 .reveal h2 { font-size: 2.11em;	}
@@ -164,13 +183,15 @@ body {
  * DEFAULT ELEMENT STYLES
  *********************************************/
 
-.reveal .slides section {
-	line-height: 1.2em;
-	font-weight: normal;
+/* Fixes issue in Chrome where italic fonts did not appear when printing to PDF */
+.reveal:after {
+  content: '';
+  font-style: italic;
 }
 
-.reveal img {
-	/* preserve aspect ratio and scale image so it's bound within the section */
+/* Preserve aspect ratio and scale image so it's bound within the section */
+.reveal img,
+.reveal iframe {
 	max-width: 100%;
 	max-height: 100%;
 }
@@ -238,6 +259,10 @@ body {
 	background: rgba(255, 255, 255, 0.05);
 	box-shadow: 0px 0px 2px rgba(0,0,0,0.2);
 }
+	.reveal blockquote p:first-child,
+	.reveal blockquote p:last-child {
+		display: inline-block;
+	}
 	.reveal blockquote:before {
 		content: '\201C';
 	}
@@ -346,14 +371,14 @@ body {
 	margin-top: 1px;
 }
 
-.reveal .controls div.left {
+.reveal .controls div.navigate-left {
 	top: 42px;
 
 	border-right-width: 22px;
 	border-right-color: #eee;
 }
 
-.reveal .controls div.right {
+.reveal .controls div.navigate-right {
 	left: 74px;
 	top: 42px;
 
@@ -361,14 +386,14 @@ body {
 	border-left-color: #eee;
 }
 
-.reveal .controls div.up {
+.reveal .controls div.navigate-up {
 	left: 42px;
 
 	border-bottom-width: 22px;
 	border-bottom-color: #eee;
 }
 
-.reveal .controls div.down {
+.reveal .controls div.navigate-down {
 	left: 42px;
 	top: 74px;
 
@@ -495,18 +520,23 @@ body {
  * SLIDES
  *********************************************/
 
+.reveal {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 640px; /* min height + 40 to account for padding */
+}
+
 .reveal .slides {
 	position: absolute;
 	max-width: 900px;
+	min-height: 600px;
 	width: 80%;
-	height: 60%;
 	left: 50%;
 	top: 50%;
-	margin-top: -320px;
-	padding: 20px 0px;
+	
 	overflow: visible;
 	z-index: 1;
-
 	text-align: center;
 
 	-webkit-transition: -webkit-perspective .4s ease;
@@ -520,10 +550,10 @@ body {
 	    -ms-perspective: 600px;
 	        perspective: 600px;
 
-	-webkit-perspective-origin: 0% 25%;
-	   -moz-perspective-origin: 0% 25%;
-	    -ms-perspective-origin: 0% 25%;
-	        perspective-origin: 0% 25%;
+	-webkit-perspective-origin: 0px -100px;
+	   -moz-perspective-origin: 0px -100px;
+	    -ms-perspective-origin: 0px -100px;
+	        perspective-origin: 0px -100px;
 }
 
 .reveal .slides>section,
@@ -531,31 +561,57 @@ body {
 	display: none;
 	position: absolute;
 	width: 100%;
-	min-height: 600px;
+	padding: 20px 0px;
 
 	z-index: 10;
+	line-height: 1.2em;
+	font-weight: normal;
 
 	-webkit-transform-style: preserve-3d;
 	   -moz-transform-style: preserve-3d;
 	    -ms-transform-style: preserve-3d;
 	        transform-style: preserve-3d;
 
-	-webkit-transition: all 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	   -moz-transition: all 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	    -ms-transition: all 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	     -o-transition: all 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	        transition: all 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	-webkit-transition: -webkit-transform-origin 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+						-webkit-transform 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    visibility 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    opacity 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	   -moz-transition: -moz-transform-origin 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	   					-moz-transform 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    visibility 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    opacity 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	    -ms-transition: -ms-transform-origin 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	    				-ms-transform 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    visibility 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    opacity 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	     -o-transition: -o-transform-origin 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	     				-o-transform 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    visibility 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    opacity 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
+	        transition: transform-origin 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	        			transform 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    visibility 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985),
+	                    opacity 800ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
 }
 
-.reveal .slides>section.present {
+.reveal .slides>section {
+	left: -50%;
+	top: -50%;
+}
+
+.reveal .slides>section.present,
+.reveal .slides>section>section.present {
 	display: block;
 	z-index: 11;
 	opacity: 1;
 }
 
-.reveal .slides>section {
-	margin-left: -50%;
+.reveal.center,
+.reveal.center .slides,
+.reveal.center .slides section {
+	min-height: auto !important;
 }
+
 
 
 /*********************************************
@@ -585,19 +641,19 @@ body {
 	display: block;
 	opacity: 0;
 
-	-webkit-transform: translate3d(0, -50%, 0) rotateX(70deg) translate3d(0, -50%, 0);
-	   -moz-transform: translate3d(0, -50%, 0) rotateX(70deg) translate3d(0, -50%, 0);
-	    -ms-transform: translate3d(0, -50%, 0) rotateX(70deg) translate3d(0, -50%, 0);
-	        transform: translate3d(0, -50%, 0) rotateX(70deg) translate3d(0, -50%, 0);
+	-webkit-transform: translate3d(0, -300px, 0) rotateX(70deg) translate3d(0, -300px, 0);
+	   -moz-transform: translate3d(0, -300px, 0) rotateX(70deg) translate3d(0, -300px, 0);
+	    -ms-transform: translate3d(0, -300px, 0) rotateX(70deg) translate3d(0, -300px, 0);
+	        transform: translate3d(0, -300px, 0) rotateX(70deg) translate3d(0, -300px, 0);
 }
 .reveal .slides>section>section.future {
 	display: block;
 	opacity: 0;
 
-	-webkit-transform: translate3d(0, 50%, 0) rotateX(-70deg) translate3d(0, 50%, 0);
-	   -moz-transform: translate3d(0, 50%, 0) rotateX(-70deg) translate3d(0, 50%, 0);
-	    -ms-transform: translate3d(0, 50%, 0) rotateX(-70deg) translate3d(0, 50%, 0);
-	        transform: translate3d(0, 50%, 0) rotateX(-70deg) translate3d(0, 50%, 0);
+	-webkit-transform: translate3d(0, 300px, 0) rotateX(-70deg) translate3d(0, 300px, 0);
+	   -moz-transform: translate3d(0, 300px, 0) rotateX(-70deg) translate3d(0, 300px, 0);
+	    -ms-transform: translate3d(0, 300px, 0) rotateX(-70deg) translate3d(0, 300px, 0);
+	        transform: translate3d(0, 300px, 0) rotateX(-70deg) translate3d(0, 300px, 0);
 }
 
 
@@ -635,15 +691,6 @@ body {
 /*********************************************
  * ZOOM TRANSITION
  *********************************************/
-
-.reveal.zoom .slides>section,
-.reveal.zoom .slides>section>section {
-	-webkit-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	   -moz-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	    -ms-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	     -o-transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-	        transition: all 600ms cubic-bezier(0.260, 0.860, 0.440, 0.985);
-}
 
 .reveal.zoom .slides>section.past {
 	opacity: 0;
@@ -722,11 +769,6 @@ body {
  *********************************************/
 
 .reveal.cube .slides {
-	-webkit-perspective-origin: 0% 25%;
-	   -moz-perspective-origin: 0% 25%;
-	    -ms-perspective-origin: 0% 25%;
-	        perspective-origin: 0% 25%;
-
 	-webkit-perspective: 1300px;
 	   -moz-perspective: 1300px;
 	    -ms-perspective: 1300px;
@@ -735,6 +777,7 @@ body {
 
 .reveal.cube .slides section {
 	padding: 30px;
+	min-height: 600px;
 
 	-webkit-backface-visibility: hidden;
 	   -moz-backface-visibility: hidden;
@@ -745,6 +788,9 @@ body {
 	   -moz-box-sizing: border-box;
 	        box-sizing: border-box;
 }
+	.reveal.center.cube .slides section {
+		min-height: auto;
+	}
 	.reveal.cube .slides section:not(.stack):before {
 		content: '';
 		position: absolute;
@@ -843,9 +889,9 @@ body {
 
 .reveal.page .slides {
 	-webkit-perspective-origin: 0% 50%;
- 	   -moz-perspective-origin: 0% 50%;
- 	    -ms-perspective-origin: 0% 50%;
- 	        perspective-origin: 0% 50%;
+	   -moz-perspective-origin: 0% 50%;
+	    -ms-perspective-origin: 0% 50%;
+	        perspective-origin: 0% 50%;
 
 	-webkit-perspective: 3000px;
 	   -moz-perspective: 3000px;
@@ -855,6 +901,7 @@ body {
 
 .reveal.page .slides section {
 	padding: 30px;
+	min-height: 600px;
 
 	-webkit-box-sizing: border-box;
 	   -moz-box-sizing: border-box;
@@ -1024,6 +1071,11 @@ body {
  *********************************************/
 
 .reveal.overview .slides {
+	-webkit-perspective-origin: 0% 0%;
+	   -moz-perspective-origin: 0% 0%;
+	    -ms-perspective-origin: 0% 0%;
+	        perspective-origin: 0% 0%;
+
 	-webkit-perspective: 700px;
 	   -moz-perspective: 700px;
 	    -ms-perspective: 700px;
@@ -1031,8 +1083,7 @@ body {
 }
 
 .reveal.overview .slides section {
-	padding: 20px 0;
-	max-height: 600px;
+	height: 600px;
 	overflow: hidden;
 	opacity: 1!important;
 	visibility: visible!important;
@@ -1053,13 +1104,12 @@ body {
 	.reveal.overview .slides section:hover {
 		background: rgba(0,0,0,0.3);
 	}
-
 	.reveal.overview .slides section.present {
 		background: rgba(0,0,0,0.3);
 	}
 .reveal.overview .slides>section.stack {
-	background: none;
 	padding: 0;
+	background: none;
 	overflow: visible;
 }
 
@@ -1099,18 +1149,39 @@ body {
 	overflow-y: auto;
 }
 
+.no-transforms .slides {
+	top: 0;
+	left: 50%;
+	margin: 0;
+	text-align: center;
+}
+
 .no-transforms .slides section {
 	display: block!important;
 	opacity: 1!important;
 	position: relative!important;
 	height: auto;
 	min-height: auto;
-	margin-bottom: 100px;
+	top: 0;
+	left: -50%;
+	margin: 70px 0;
 
 	-webkit-transform: none;
 	   -moz-transform: none;
 	    -ms-transform: none;
 	        transform: none;
+}
+
+.no-transforms .slides section section {
+	left: 0;
+}
+
+.no-transition {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	    -ms-transition: none;
+	     -o-transition: none;
+	        transition: none;
 }
 
 
@@ -1138,6 +1209,32 @@ body {
 }
 .blackout .reveal .state-background {
 	background: rgba( 0, 0, 0, 0.6 );
+}
+
+
+/*********************************************
+ * RTL SUPPORT
+ *********************************************/
+
+.reveal.rtl .slides,
+.reveal.rtl .slides h1,
+.reveal.rtl .slides h2,
+.reveal.rtl .slides h3,
+.reveal.rtl .slides h4,
+.reveal.rtl .slides h5,
+.reveal.rtl .slides h6 {
+	direction: rtl;
+	font-family: sans-serif;
+}
+
+.reveal.rtl pre,
+.reveal.rtl code {
+	direction: ltr;
+}
+
+.reveal.rtl ol,
+.reveal.rtl ul {
+	text-align: right;
 }
 
 
