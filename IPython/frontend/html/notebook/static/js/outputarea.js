@@ -393,8 +393,50 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_svg = function (svg, element) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
-        toinsert.append(svg);
+        // The <svg> tag cannot be made resizable so we wrap it in a resizable <div>.
+        var img = $('<div/>');
+        img.html(svg);
+        toinsert.append(img);
         element.append(toinsert);
+        var svg = img.find('svg');
+        var w = parseFloat(svg.attr('width'));
+        var h = parseFloat(svg.attr('height'));
+        /* The SVG width should be from a stylesheet, but browsers do not
+         * properly implement percent-based sizes for svg.  Maybe someday it
+         * will be possible to remove the following 3 lines and use the
+         * stylesheet instead.  The SVG will behave as though it has a fixed
+         * size determined by widthpct*(width of parent), but will NOT reflow
+         * as though you had set widthpct using a stylesheet. */
+        var widthpct = 0.6;  /* percentage of output div */
+        // Use the input area to find the output area's width, because the
+        // output area is being drawn so its width is not available.
+        var parentwidth = img.offsetParent().find('.input_area').width();
+        img.height(widthpct*parentwidth/w*h);
+        img.width(widthpct*parentwidth);
+        var svg = img.find('svg');
+        $(img).dblclick(function() { /* reset size or maximize on double click */
+            var pw = img.parent().width();
+            var opw = img.offsetParent().width();
+            if(img.width() - widthpct*opw < 5) {
+                img.width(pw);
+                img.height(pw/w*h);
+            } else {
+                img.height(widthpct*opw/w*h);
+                img.width(widthpct*opw);
+            }
+            svg.width(img.width());
+            svg.height(img.height());
+        });
+        img.resizable({
+            'autoHide': true,
+            'aspectRatio': true,
+            'maxWidth': parentwidth,
+            'minWidth': 0.1*parentwidth,
+            'resize': function () {
+                svg.height($(this).height());
+                svg.width($(this).width());
+            }
+        });
     };
 
 

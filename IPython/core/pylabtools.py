@@ -97,10 +97,22 @@ def print_figure(fig, fmt='png'):
 
     fc = fig.get_facecolor()
     ec = fig.get_edgecolor()
-    bytes_io = BytesIO()
-    fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
-                            facecolor=fc, edgecolor=ec)
-    data = bytes_io.getvalue()
+    original_axes_colors = []
+    for ax in fig.axes:
+        patch = ax.patch
+        original_axes_colors.append((patch.get_facecolor(),
+                                     patch.get_edgecolor()))
+        patch.set_facecolor(fc)
+        patch.set_edgecolor(ec)
+    try:
+        bytes_io = BytesIO()
+        fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
+                                facecolor=fc, edgecolor=ec)
+        data = bytes_io.getvalue()
+    finally:
+        for ax, cc in zip(fig.axes, original_axes_colors):
+            ax.patch.set_facecolor(cc[0])
+            ax.patch.set_edgecolor(cc[1])
     return data
 
 
