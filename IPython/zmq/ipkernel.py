@@ -61,6 +61,12 @@ from zmqshell import ZMQInteractiveShell
 # Main kernel class
 #-----------------------------------------------------------------------------
 
+# Change this when incrementing the kernel protocol version
+version_major = 1
+version_minor = 1
+version = '{0}.{1}'.format(version_major, version_minor)
+
+
 class Kernel(Configurable):
 
     #---------------------------------------------------------------------------
@@ -156,6 +162,7 @@ class Kernel(Configurable):
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'history_request',
+                      'version_request',
                       'connect_request', 'shutdown_request',
                       'apply_request',
                     ]
@@ -507,6 +514,16 @@ class Kernel(Configurable):
             content = {}
         msg = self.session.send(stream, 'connect_reply',
                                 content, parent, ident)
+        self.log.debug("%s", msg)
+
+    def version_request(self, stream, ident, parent):
+        vinfo = {
+            'version': version,
+            'version_major': version_major,
+            'version_minor': version_minor,
+        }
+        msg = self.session.send(stream, 'version_reply',
+                                vinfo, parent, ident)
         self.log.debug("%s", msg)
 
     def shutdown_request(self, stream, ident, parent):
