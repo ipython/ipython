@@ -15,13 +15,6 @@ from __future__ import print_function
 # From IPython
 from IPython.external import argparse
 
-# All the stuff needed for the configurable things
-from IPython.config.application import Application, catch_config_error
-from IPython.config.configurable import Configurable, SingletonConfigurable
-from IPython.config.loader import Config, ConfigFileNotFound
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
-
-
 # local
 from converters.html import ConverterHTML
 from converters.markdown import ConverterMarkdown
@@ -30,7 +23,6 @@ from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
 from converters.python import ConverterPy
 from converters.reveal import ConverterReveal
-from converters.base import Converter
 
 
 # When adding a new format, make sure to add it to the `converters`
@@ -54,17 +46,18 @@ default_format = 'rst'
 known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
-class NbconvertApp(Application):
 
 
-    fmt = CaselessStrEnum(converters.keys(),
-                          default_value='rst',
-                          config=True,
-                          help="Supported conversion format")
+def main(infile, format='rst', preamble=None, exclude=None):
+    """Convert a notebook to html in one step"""
+    try:
+        ConverterClass = converters[format]
+    except KeyError:
+        raise SystemExit("Unknown format '%s', " % format +
+                         "known formats are: " + known_formats)
 
-    exclude = List( [],
-                    config=True,
-                    help = 'list of cells to exclude while converting')
+    converter = ConverterClass(infile)
+    converter.render()
 
     aliases = {
             'format':'NbconvertApp.fmt',
@@ -113,13 +106,21 @@ please consider using the new version.
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__,
+            formatter_class=argparse.RawTextHelpFormatter)
     # TODO: consider passing file like object around, rather than filenames
     # would allow us to process stdin, or even http streams
     #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
     #                    default=sys.stdin)
 
-    #parser.add_argument('-e', '--exclude', default='',
-    #                    help='Comma-separated list of cells to exclude')
-    #exclude_cells = [s.strip() for s in args.exclude.split(',')]
+    #Require a filename as a positional argument
+    parser.add_argument('infile', nargs=1)
+    parser.add_argument('-f', '--format', default='rst',
+                        help='Output format. Supported formats: \n' +
+                        known_formats)
+    parser.add_argument('-p', '--preamble',
+                        help='Path to a user-specified preamble file')
+    parser.add_argument('-e', '--exclude', default='',
+                        help='Comma-separated list of cells to exclude')
 
     main()
