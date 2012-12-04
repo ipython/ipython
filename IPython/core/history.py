@@ -749,10 +749,10 @@ $""", re.VERBOSE)
 def extract_hist_ranges(ranges_str):
     """Turn a string of history ranges into 3-tuples of (session, start, stop).
 
-    Examples
-    --------
-    list(extract_input_ranges("~8/5-~7/4 2"))
-    [(-8, 5, None), (-7, 1, 4), (0, 2, 3)]
+    Example::
+    
+        >>> list(extract_hist_ranges("~8/5-~7/4 2"))
+        [(-8, 5, None), (-7, 1, 5), (0, 2, 3)]
     """
     for range_str in ranges_str.split():
         rmatch = range_re.match(range_str)

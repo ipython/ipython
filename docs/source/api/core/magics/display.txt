@@ -1,0 +1,11 @@
+display
+=======
+
+.. automodule:: IPython.core.magics.display
+
+.. currentmodule:: IPython.core.magics.display
+
+.. autoclass:: DisplayMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

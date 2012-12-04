@@ -1,0 +1,11 @@
+execution
+=========
+
+.. automodule:: IPython.core.magics.execution
+
+.. currentmodule:: IPython.core.magics.execution
+
+.. autoclass:: ExecutionMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

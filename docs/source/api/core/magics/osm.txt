@@ -1,0 +1,11 @@
+osm
+===
+
+.. automodule:: IPython.core.magics.osm
+
+.. currentmodule:: IPython.core.magics.osm
+
+.. autoclass:: OSMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

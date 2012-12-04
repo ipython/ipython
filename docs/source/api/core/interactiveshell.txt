@@ -1,0 +1,54 @@
+interactiveshell - The heart of IPython
+=======================================
+
+.. automodule:: IPython.core.interactiveshell
+
+.. currentmodule:: IPython.core.interactiveshell
+
+:class:`InteractiveShell`
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: InteractiveShell
+  :members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+:class:`InteractiveShellABC`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: InteractiveShellABC
+  :members:
+  :show-inheritance:
+
+:class:`ReadlineNoRecord`
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ReadlineNoRecord
+  :members:
+  :undoc-members:
+
+:class:`SeparateUnicode`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: SeparateUnicode
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`SpaceInInput`
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SpaceInInput
+  :show-inheritance:
+
+:func:`get_default_colors`
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.interactiveshell.get_default_colors
+
+:func:`softspace`
+~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.interactiveshell.softspace

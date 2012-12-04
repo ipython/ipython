@@ -1,0 +1,43 @@
+error
+=====
+
+.. automodule:: IPython.core.error
+
+Inheritance diagram for ``IPython.core.error``:
+
+.. inheritance-diagram:: IPython.core.error 
+   :parts: 1
+
+.. currentmodule:: IPython.core.error
+
+:class:`IPythonCoreError`
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: IPythonCoreError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`StdinNotImplementedError`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: StdinNotImplementedError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`TryNext`
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: TryNext
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`UsageError`
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: UsageError
+  :members:
+  :undoc-members:
+  :show-inheritance:

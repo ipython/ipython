@@ -1,0 +1,19 @@
+application
+===========
+
+Inheritance diagram for ``IPython.core.application``:
+
+.. inheritance-diagram:: IPython.core.application 
+   :parts: 3
+
+.. automodule:: IPython.core.application
+
+.. currentmodule:: IPython.core.application
+
+:class:`BaseIPythonApplication`
+-------------------------------
+
+.. autoclass:: BaseIPythonApplication
+  :members:
+  :undoc-members:
+  :show-inheritance:

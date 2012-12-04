@@ -1,0 +1,40 @@
+prompts
+=======
+
+.. automodule:: IPython.core.prompts
+
+.. currentmodule:: IPython.core.prompts
+
+:class:`PromptManager`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: PromptManager
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`LazyEvaluate`
+~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: LazyEvaluate
+  :members:
+  :undoc-members:
+
+:class:`UserNSFormatter`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: UserNSFormatter
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+Functions
+~~~~~~~~~
+
+.. autofunction:: IPython.core.prompts.cwd_filt
+
+.. autofunction:: IPython.core.prompts.cwd_filt2
+
+.. autofunction:: IPython.core.prompts.multiple_replace

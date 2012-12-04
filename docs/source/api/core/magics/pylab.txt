@@ -1,0 +1,11 @@
+pylab
+=====
+
+.. automodule:: IPython.core.magics.pylab
+
+.. currentmodule:: IPython.core.magics.pylab
+
+.. autoclass:: PylabMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

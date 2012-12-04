@@ -1,0 +1,11 @@
+extension
+=========
+
+.. automodule:: IPython.core.magics.extension
+
+.. currentmodule:: IPython.core.magics.extension
+
+.. autoclass:: ExtensionMagics
+  :members:
+  :undoc-members:
+  :show-inheritance:

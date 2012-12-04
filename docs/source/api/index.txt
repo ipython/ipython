@@ -9,4 +9,7 @@
    :Release: |version|
    :Date: |today|
 
-.. include:: generated/gen.txt
+.. toctree::
+   :maxdepth: 2
+   
+   core/index.txt

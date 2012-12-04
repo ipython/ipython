@@ -1,0 +1,23 @@
+.. _api-IPython-core:
+
+IPython.core
+============
+
+.. toctree::
+   
+   interactiveshell.txt
+   alias.txt
+   application.txt
+   shellapp.txt
+   profileapp.txt
+   history.txt
+   magic.txt
+   magics/index.txt
+   prompts.txt
+   extensions.txt
+   ultratb.txt
+   oinspect.txt
+   displayhook.txt
+   page.txt
+   compilerop.txt
+   error.txt

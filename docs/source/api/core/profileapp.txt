@@ -1,0 +1,54 @@
+profileapp
+==========
+
+Inheritance diagram for ``IPython.core.profileapp``:
+
+.. inheritance-diagram:: IPython.core.profileapp 
+   :parts: 3
+
+.. automodule:: IPython.core.profileapp
+
+.. currentmodule:: IPython.core.profileapp
+
+:class:`ProfileApp`
+~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ProfileApp
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`ProfileCreate`
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ProfileCreate
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`ProfileList`
+~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: ProfileList
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`ProfileLocate`
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: ProfileLocate
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:func:`list_bundled_profiles`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autofunction:: IPython.core.profileapp.list_bundled_profiles
+
+:func:`list_profiles_in`
+~~~~~~~~~~~~~~~~~~~~~~~~
+.. autofunction:: IPython.core.profileapp.list_profiles_in
+

@@ -1,0 +1,77 @@
+ultratb
+=======
+
+.. automodule:: IPython.core.ultratb
+
+Inheritance diagram for ``IPython.core.ultratb``:
+
+.. inheritance-diagram:: IPython.core.ultratb 
+   :parts: 1
+
+.. currentmodule:: IPython.core.ultratb
+
+:class:`AutoFormattedTB`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: AutoFormattedTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`ColorTB`
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: ColorTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`FormattedTB`
+~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: FormattedTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  
+:class:`SyntaxTB`
+~~~~~~~~~~~~~~~~~
+
+.. autoclass:: SyntaxTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`ListTB`
+~~~~~~~~~~~~~~~
+
+.. autoclass:: ListTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+:class:`VerboseTB`
+~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: VerboseTB
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+  .. automethod:: __init__
+
+:class:`TBTools`
+~~~~~~~~~~~~~~~~
+
+.. autoclass:: TBTools
+  :members:
+  :undoc-members:
+  :show-inheritance:
+
+Functions
+~~~~~~~~~
+
+.. autofunction:: IPython.core.ultratb.fix_frame_records_filenames
+
+.. autofunction:: IPython.core.ultratb.inspect_error
+
