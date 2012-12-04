@@ -8,9 +8,20 @@
 //============================================================================
 // ToolBar
 //============================================================================
+/**
+ * @module IPython
+ * @namespace IPython
+ * @submodule ToolBar
+ */
 
 var IPython = (function (IPython) {
 
+    /**
+     * A generic toolbar on which one can add button
+     * @class ToolBar
+     * @constructor
+     * @param {Dom object} selector
+     */
     var ToolBar = function (selector) {
         this.selector = selector;
         if (this.selector !== undefined) {
@@ -19,37 +30,38 @@ var IPython = (function (IPython) {
         }
     };
 
-    // add a group of button into the current toolbar.
-    //
-    // First argument : Mandatory
-    //      list of dict as argument, each dict should contain
-    //      3 mandatory keys and values :
-    //      label : string -- the text to show on hover
-    //      icon  : string -- the jQuery-ui icon to add on this button
-    //      callback : function -- the callback to execute on a click
-    //
-    //      and optionally an 'id' key that is assigned to the button element
-    //
-    // Second Argument, optional,
-    //      string reprensenting the id to give to the button group.
-    //
-    // Example
-    //
-    // IPython.toolbar.add_button_group([
-    //  {label:'my button',
-    //   icon:'ui-icon-disk',
-    //   callback:function(){alert('hoho'),
-    //   id : 'my_button_id',                 // this is optional
-    //   }
-    //  },
-    //  {label:'my second button',
-    //   icon:'ui-icon-scissors',
-    //   callback:function(){alert('be carefull I cut')}
-    //  }
-    //  ],
-    //  "my_button_group_id"
-    //  )
-    //
+    /**
+     *  add a group of button into the current toolbar.
+     *
+     *
+     *  @example
+     *
+     *      IPython.toolbar.add_button_group([
+     *          {
+     *            label:'my button',
+     *            icon:'ui-icon-disk',
+     *            callback:function(){alert('hoho'),
+     *            id : 'my_button_id',    // this is optional
+     *          },
+     *          {
+     *            label:'my second button',
+     *            icon:'ui-icon-scissors',
+     *            callback:function(){alert('be carefull I cut')}
+     *          }
+     *        ],
+     *        "my_button_group_id"
+     *      )
+     *
+     *  @method add_buttons_group
+     *  @param list {List}
+     *      List of button of the group, with the following paramter for each :
+     *      @param list.label {string} text to show on button hover
+     *      @param list.icon {string} icon to choose from [jQuery ThemeRoller](http://jqueryui.com/themeroller/)
+     *      @param list.callback {function} function to be called on button click
+     *      @param [list.id] {String} id to give to the button
+     *  @param [group_id] {String} optionnal id to give to the group
+     *
+     */
     ToolBar.prototype.add_buttons_group = function (list, group_id) {
         var span_group = $('<span/>');
         if( group_id != undefined ) {
@@ -80,7 +92,10 @@ var IPython = (function (IPython) {
             css('border-right-style','none');
     };
 
-
+    /**
+     * Show and hide toolbar
+     * @method toggle
+     */
     ToolBar.prototype.toggle = function () {
         this.element.toggle();
         if (IPython.layout_manager != undefined) {

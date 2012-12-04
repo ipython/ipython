@@ -8,6 +8,12 @@
 //============================================================================
 // CodeCell
 //============================================================================
+/**
+ * An extendable module that provide base functionnality to create cell for notebook.
+ * @module IPython
+ * @namespace IPython
+ * @submodule CodeCell
+ */
 
 var IPython = (function (IPython) {
     "use strict";
@@ -16,9 +22,18 @@ var IPython = (function (IPython) {
     var key   = IPython.utils.keycodes;
     CodeMirror.modeURL = "/static/codemirror/mode/%N/%N.js";
 
+    /**
+     * A Cell conceived to write code.
+     *
+     * The kernel doesn't have to be set at creation time, in that case
+     * it will be null and set_kernel has to be called later.
+     * @class CodeCell
+     * @extends IPython.Cell
+     *
+     * @constructor
+     * @param {Object|null} kernel
+     */
     var CodeCell = function (kernel) {
-        // The kernel doesn't have to be set at creation time, in that case
-        // it will be null and set_kernel has to be called later.
         this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
@@ -36,11 +51,14 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype = new IPython.Cell();
 
-
+    /**
+     * @method auto_highlight
+     */
     CodeCell.prototype.auto_highlight = function () {
         this._auto_highlight(IPython.config.cell_magic_highlight)
     };
 
+    /** @method create_element */
     CodeCell.prototype.create_element = function () {
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
         cell.attr('tabindex','2');
@@ -69,11 +87,14 @@ var IPython = (function (IPython) {
         }
     };
 
+    /**
+     *  This method gets called in CodeMirror's onKeyDown/onKeyPress
+     *  handlers and is used to provide custom key handling. Its return
+     *  value is used to determine if CodeMirror should ignore the event:
+     *  true = ignore, false = don't ignore.
+     *  @method handle_codemirror_keyevent
+     */
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-        // This method gets called in CodeMirror's onKeyDown/onKeyPress
-        // handlers and is used to provide custom key handling. Its return
-        // value is used to determine if CodeMirror should ignore the event:
-        // true = ignore, false = don't ignore.
 
         if (this.read_only){
             return false;
@@ -155,7 +176,10 @@ var IPython = (function (IPython) {
         this.kernel = kernel;
     }
 
-
+    /**
+     * Execute current code cell to the kernel
+     * @method execute
+     */
     CodeCell.prototype.execute = function () {
         this.output_area.clear_output(true, true, true);
         this.set_input_prompt('*');
@@ -169,7 +193,10 @@ var IPython = (function (IPython) {
         var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false});
     };
 
-
+    /**
+     * @method _handle_execute_reply
+     * @private
+     */
     CodeCell.prototype._handle_execute_reply = function (content) {
         this.set_input_prompt(content.execution_count);
         this.element.removeClass("running");
@@ -226,20 +253,17 @@ var IPython = (function (IPython) {
     };
 
 
-
-
-
     CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
         var ns = prompt_value || "&nbsp;";
         return 'In&nbsp;[' + ns + ']:'
     };
-    
+
     CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
         var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
         for(var i=1; i < lines_number; i++){html.push(['...:'])};
         return html.join('</br>')
     };
-    
+
     CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
 
 
