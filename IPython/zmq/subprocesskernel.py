@@ -11,7 +11,7 @@
 
 
 from subprocess import Popen
-from os.path import expanduser as expanduser
+from os.path import expanduser
 
 from IPython.zmq.kernelmanager import KernelManager
 from IPython.utils.traitlets import List
