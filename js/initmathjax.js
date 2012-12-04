@@ -1,4 +1,5 @@
-init_mathjax = function() {
+init_mathjax = function(align) {
+    align = align || 'left';
     if (window.MathJax) {
         // MathJax loaded
         MathJax.Hub.Config({
@@ -6,7 +7,7 @@ init_mathjax = function() {
                 inlineMath: [ ['$','$'], ["\\(","\\)"] ],
                 displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
             },
-            displayAlign: 'center', // Change this to 'center' to center equations.
+            displayAlign: 'align', // Change this to 'center' to center equations.
             "HTML-CSS": {
                 styles: {'.MathJax_Display': {"margin": 0}}
             }

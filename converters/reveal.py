@@ -117,7 +117,7 @@ class ConverterReveal(ConverterMarkdown):
                 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
                 { src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
                 { src: 'https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML', async: true },                                     
-                { src: 'js/initmathjax.js', async: true}
+                { src: 'js/initmathjax.js?align=center', async: true}
                 ]
                 });
     </script>
