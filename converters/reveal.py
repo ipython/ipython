@@ -2,8 +2,8 @@ from converters.markdown import ConverterMarkdown
 import io
 import os
 
-class ConverterSlider(ConverterMarkdown):
-    """Convert a notebook to a html slideshow suitable for oral presentations.
+class ConverterReveal(ConverterMarkdown):
+    """Convert a notebook to a html slideshow.
 
     It generates a static html slideshow based in markdown and reveal.js. 
     """
