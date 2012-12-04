@@ -54,6 +54,9 @@ var IPython = (function (IPython) {
         this.element.find('#save_notebook').click(function () {
             IPython.notebook.save_notebook();
         });
+        this.element.find('#publish_notebook').click(function () {
+            IPython.notebook.publish_notebook();
+        });
         this.element.find('#download_ipynb').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + 'notebooks/' +
