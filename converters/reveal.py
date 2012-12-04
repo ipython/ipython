@@ -105,8 +105,8 @@ class ConverterReveal(ConverterMarkdown):
             progress: true,
             history: true,
 
-            theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-            transition: Reveal.getQueryHash().transition || 'page', // default/cube/page/concave/zoom/linear/none
+            theme: Reveal.getQueryHash().theme || 'night', // available themes are in /css/theme
+            transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
 
             // Optional libraries used to extend on reveal.js
             dependencies: [
