@@ -83,7 +83,17 @@ def execute(code='', **kwargs):
 
 
 class Reference(HasTraits):
-    
+
+    """
+    Base class for message spec specification testing.
+
+    This class is the core of the message specification test.  The
+    idea is that child classes implement trait attributes for each
+    message keys, so that message keys can be tested against these
+    traits using :meth:`check` method.
+
+    """
+
     def check(self, d):
         """validate a dict against our traits"""
         for key in self.trait_names():
@@ -232,6 +242,9 @@ references = {
     'stream' : Stream(),
     'display_data' : DisplayData(),
 }
+"""
+Specifications of `content` part of the reply messages.
+"""
 
 
 def validate_message(msg, msg_type=None, parent=None):
