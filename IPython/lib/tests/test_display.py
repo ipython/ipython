@@ -31,16 +31,18 @@ from IPython.lib import display
 #--------------------------
 
 def test_instantiation_FileLink():
-    """Test classes can be instantiated"""
+    """FileLink: Test class can be instantiated"""
     fl = display.FileLink('example.txt')
 
 def test_warning_on_non_existant_path_FileLink():
-    """Calling _repr_html_ on non-existant files returns a warning"""
+    """FileLink: Calling _repr_html_ on non-existant files returns a warning
+    """
     fl = display.FileLink('example.txt')
     nt.assert_true(fl._repr_html_().startswith('Path (<tt>example.txt</tt>)'))
 
 def test_existing_path_FileLink():
-    """ Calling _repr_html_ functions as expected on existing filepath """
+    """FileLink: Calling _repr_html_ functions as expected on existing filepath
+    """
     tf = NamedTemporaryFile()
     fl = display.FileLink(tf.name)
     actual = fl._repr_html_()
@@ -48,7 +50,8 @@ def test_existing_path_FileLink():
     nt.assert_equal(actual,expected)
 
 def test_existing_path_FileLink_repr():
-    """ Calling repr() functions as expected on existing filepath """
+    """FileLink: Calling repr() functions as expected on existing filepath
+    """
     tf = NamedTemporaryFile()
     fl = display.FileLink(tf.name)
     actual = repr(fl)
@@ -60,16 +63,19 @@ def test_existing_path_FileLink_repr():
 #--------------------------
 
 def test_instantiation_FileLinks():
-    """Test classes can be instantiated"""
+    """FileLinks: Test class can be instantiated
+    """
     fls = display.FileLinks('example')
 
 def test_warning_on_non_existant_path_FileLinks():
-    """Calling _repr_html_ on non-existant files returns a warning"""
+    """FileLinks: Calling _repr_html_ on non-existant files returns a warning
+    """
     fls = display.FileLinks('example')
     nt.assert_true(fls._repr_html_().startswith('Path (<tt>example</tt>)'))
 
 def test_existing_path_FileLinks():
-    """ Calling _repr_html_ functions as expected on existing directory """
+    """FileLinks: Calling _repr_html_ functions as expected on existing dir
+    """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
     tf2 = NamedTemporaryFile(dir=td)
@@ -85,7 +91,7 @@ def test_existing_path_FileLinks():
     nt.assert_equal(actual,expected)
 
 def test_existing_path_FileLinks_alt_formatter():
-    """ Calling _repr_html_ functions as expected with an alternative formatter
+    """FileLinks: Calling _repr_html_ functions as expected w/ an alt formatter
     """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
@@ -102,7 +108,7 @@ def test_existing_path_FileLinks_alt_formatter():
     nt.assert_equal(actual,expected)
 
 def test_existing_path_FileLinks_repr():
-    """ Calling repr() functions as expected on existing directory """
+    """FileLinks: Calling repr() functions as expected on existing directory """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
     tf2 = NamedTemporaryFile(dir=td)
@@ -116,7 +122,7 @@ def test_existing_path_FileLinks_repr():
     nt.assert_equal(actual,expected)
     
 def test_existing_path_FileLinks_repr_alt_formatter():
-    """ Calling repr() functions as expected with an alternative formatter
+    """FileLinks: Calling repr() functions as expected w/ alt formatter
     """
     td = mkdtemp()
     tf1 = NamedTemporaryFile(dir=td)
@@ -132,23 +138,3 @@ def test_existing_path_FileLinks_repr_alt_formatter():
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
 
-#--------------------------
-# DirectoryLink tests
-#--------------------------
-
-def test_instantiation_DirectoryLink():
-    """Test classes can be instantiated"""
-    dl = display.DirectoryLink('example')
-
-def test_warning_on_non_existant_path_DirectoryLink():
-    """Calling _repr_html_ on non-existant files returns a warning"""
-    dl = display.DirectoryLink('example')
-    nt.assert_true(dl._repr_html_().startswith('Path (<tt>example</tt>)'))
-
-def test_existing_path_DirectoryLink():
-    """ Calling _repr_html_ functions as expected on existing directory """
-    td = mkdtemp()
-    dl = display.DirectoryLink(td)
-    actual = dl._repr_html_()
-    expected = "<a href='files/%s' target='_blank'>%s</a><br>" % (td,td)
-    nt.assert_equal(actual,expected)

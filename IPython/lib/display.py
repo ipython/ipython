@@ -85,6 +85,10 @@ class FileLink(object):
             result_html_suffix : text to append at the end of link
              [default: '<br>']
         """
+        if isdir(path):
+            raise ValueError,\
+             ("Cannot display a directory as a FileLink object. "
+              "Use FileLinks to display '%s'." % path)
         self.path = path
         self.url_prefix = url_prefix
         self.result_html_prefix = result_html_prefix
@@ -111,12 +115,6 @@ class FileLink(object):
         """return absolute path to file
         """
         return abspath(self.path)
-        
-# Create an alias for formatting a single directory name as a link.
-# Right now this is the same as a formatting for a single file, but 
-# we'll encourage users to reference these with a different class in
-# case we want to change this in the future.
-DirectoryLink = FileLink
 
 class FileLinks(FileLink):
     """Class for embedding local file links in an IPython session, based on path
@@ -176,11 +174,11 @@ class FileLinks(FileLink):
         self.included_suffixes = included_suffixes
         # remove trailing slashs for more consistent output formatting
         path = path.rstrip('/')
-        FileLink.__init__(self,
-                           path,
-                           url_prefix,
-                           result_html_prefix,
-                           result_html_suffix)
+        
+        self.path = path
+        self.url_prefix = url_prefix
+        self.result_html_prefix = result_html_prefix
+        self.result_html_suffix = result_html_suffix
         
         self.notebook_display_formatter = \
              notebook_display_formatter or self._get_notebook_display_formatter()
