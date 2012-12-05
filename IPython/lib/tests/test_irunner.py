@@ -137,7 +137,7 @@ In [12]: exit
 
     def testPython(self):
         """Test the Python runner."""
-        runner = irunner.PythonRunner(out=self.out)
+        runner = irunner.PythonRunner(out=self.out, args=['-E'])
         source = doctest_refactor_print("""
 print 'hello, this is python'
 
