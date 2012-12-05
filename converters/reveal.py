@@ -5,7 +5,12 @@ import os
 class ConverterReveal(ConverterMarkdown):
     """Convert a notebook to a html slideshow.
 
-    It generates a static html slideshow based in markdown and reveal.js. 
+    It generates a static html slideshow based in markdown and reveal.js.
+    You have four ways to delimit the the slides: 
+    ##--- delimit horizontal slides
+    ##<<< open vertical slides
+    ##>>> close vertical slides
+    ##>>><<< close vertical slides and open new vertical slides. 
     """
 
     def __init__(self, infile, highlight_source=False, show_prompts=True,
@@ -34,12 +39,18 @@ class ConverterReveal(ConverterMarkdown):
         """
         lines = []
         lines.extend(self.optional_header())
-        top = '<section data-markdown><script type="text/template">'
-        bottom = '</script></section>'
+        left = '<section data-markdown><script type="text/template">'
+        right = '</script></section>'
         text = self.main_body(cell_separator)
         for i,j in enumerate(text):
-            if j == u'---':
-                text[i] = bottom + top 
+            if j == u'##---':
+                text[i] = right + left
+            if j == u'##<<<':
+                text[i] = right + '<section>' + left
+            if j == u'##>>>':
+                text[i] = right + '</section>' + left
+            if j == u'##>>><<<':
+                text[i] = right + '</section><section>' + left
         lines.extend(text)
         lines.extend(self.optional_footer())
         return u'\n'.join(lines)
