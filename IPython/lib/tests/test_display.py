@@ -58,6 +58,12 @@ def test_existing_path_FileLink_repr():
     expected = tf.name
     nt.assert_equal(actual,expected)
 
+def test_error_on_directory_to_FileLink():
+    """FileLink: Raises error when passed directory
+    """
+    td = mkdtemp()
+    nt.assert_raises(ValueError,display.FileLink,td)
+
 #--------------------------
 # FileLinks tests
 #--------------------------
@@ -137,4 +143,11 @@ def test_existing_path_FileLinks_repr_alt_formatter():
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
+    
+def test_error_on_file_to_FileLinks():
+    """FileLinks: Raises error when passed file
+    """
+    td = mkdtemp()
+    tf1 = NamedTemporaryFile(dir=td)
+    nt.assert_raises(ValueError,display.FileLinks,tf1.name)
 

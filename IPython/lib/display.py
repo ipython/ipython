@@ -87,7 +87,7 @@ class FileLink(object):
         """
         if isdir(path):
             raise ValueError,\
-             ("Cannot display a directory as a FileLink object. "
+             ("Cannot display a directory using FileLink. "
               "Use FileLinks to display '%s'." % path)
         self.path = path
         self.url_prefix = url_prefix
@@ -171,6 +171,10 @@ class FileLinks(FileLink):
                place, can be passed here to support alternative formatting.
             
         """
+        if isfile(path):
+            raise ValueError,\
+             ("Cannot display a file using FileLinks. "
+              "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashs for more consistent output formatting
         path = path.rstrip('/')
