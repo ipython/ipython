@@ -39,6 +39,8 @@ var IPython = (function (IPython) {
         this.style();
         this.create_elements();
         this.bind_events();
+        this.history_position = 0;    // Needed for navigating in history
+        this.history_ref = 0;		// History navigation reference cell
     };
 
 
@@ -114,6 +116,34 @@ var IPython = (function (IPython) {
                     event.preventDefault();
                     that.select_next();
                 };
+            } else if (event.which === key.UPARROW && event.shiftKey) {
+                var index = that.get_selected_index();
+                if (index != that.history_ref) {
+    		// We need to check for the last known position, and fix it, if the user navigated to another cell
+			that.history_ref = index;
+			that.history_position = index;
+		}
+		// Jump over current cell
+		if (that.history_position == index+1) that.history_position = index;
+		that.history_position = Math.max(0, that.history_position - 1);
+                var cell = that.get_cell(that.history_position);
+                var current_cell = that.get_selected_cell();
+                current_cell.fromJSON(cell.toJSON());
+                return false;
+            } else if (event.which === key.DOWNARROW && event.shiftKey) {
+                var index = that.get_selected_index();
+                if (index != that.history_ref) {
+		// We need to check for the last known position, and fix it, if the user navigated to another cell
+			that.history_ref = index;
+			that.history_position = index;
+		}
+		// Jump over current cell
+		if (that.history_position == index-1) that.history_position = index;				
+		that.history_position = Math.min(that.ncells()-1, that.history_position + 1);
+                var cell = that.get_cell(that.history_position);
+                var current_cell = that.get_selected_cell();
+                current_cell.fromJSON(cell.toJSON());
+                return false;
             } else if (event.which === key.ENTER && event.shiftKey) {
                 that.execute_selected_cell();
                 return false;
