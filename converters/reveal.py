@@ -135,7 +135,7 @@ class ConverterReveal(ConverterMarkdown):
 
     <script>
         Reveal.addEventListener( 'slidechanged', function( event ) {   
-        MathJax.Hub.Rerender();
+        MathJax.Hub.Rerender(event.currentSlide);
         });
     </script>
 
