@@ -80,7 +80,7 @@ $(document).ready(function () {
     IPython.layout_manager.do_resize();
     $([IPython.events]).on('notebook_loaded.Notebook', function () {
         IPython.layout_manager.do_resize();
-    })
+    });
     IPython.notebook.load_notebook($('body').data('notebookId'));
 
 });

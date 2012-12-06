@@ -71,7 +71,7 @@ IPython.utils = (function (IPython) {
             separator2, match, lastIndex, lastLength;
         str += ""; // Type-convert
 
-        compliantExecNpcg = typeof(/()??/.exec("")[1]) === "undefined"
+        var compliantExecNpcg = typeof(/()??/.exec("")[1]) === "undefined"
         if (!compliantExecNpcg) {
             // Doesn't need flags gy, but they don't hurt
             separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
@@ -157,7 +157,7 @@ IPython.utils = (function (IPython) {
 
 
     //Map from terminal commands to CSS classes
-    ansi_colormap = {
+    var ansi_colormap = {
         "30":"ansiblack", "31":"ansired",
         "32":"ansigreen", "33":"ansiyellow",
         "34":"ansiblue", "35":"ansipurple","36":"ansicyan",
@@ -192,7 +192,7 @@ IPython.utils = (function (IPython) {
     // Remove chunks that should be overridden by the effect of
     // carriage return characters
     function fixCarriageReturn(txt) {
-        tmp = txt;
+        var tmp = txt;
         do {
             txt = tmp;
             tmp = txt.replace(/\r+\n/gm, '\n'); // \r followed by \n --> newline
@@ -263,14 +263,14 @@ IPython.utils = (function (IPython) {
     };
 
 
-    points_to_pixels = function (points) {
+    var points_to_pixels = function (points) {
         // A reasonably good way of converting between points and pixels.
         var test = $('<div style="display: none; width: 10000pt; padding:0; border:0;"></div>');
         $(body).append(test);
         var pixel_per_point = test.width()/10000;
         test.remove();
         return Math.floor(points*pixel_per_point);
-    }
+    };
 
 
     return {

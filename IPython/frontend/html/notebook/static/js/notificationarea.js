@@ -47,7 +47,7 @@ var IPython = (function (IPython) {
         if(this.widget_dict[name] == undefined) {
             return this.new_notification_widget(name);
         }
-    return this.get_widget(name);
+        return this.get_widget(name);
     };
 
     NotificationArea.prototype.get_widget = function(name) {
