@@ -33,6 +33,7 @@ import webbrowser
 
 # Third party
 import zmq
+from jinja2 import Environment, FileSystemLoader
 
 # Install the pyzmq ioloop. This has to be done before anything else from
 # tornado is imported.
@@ -186,6 +187,8 @@ class NotebookWebApplication(web.Application):
         self.ipython_app = ipython_app
         self.read_only = self.ipython_app.read_only
         self.log = log
+        self.jinja2_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
+
 
 
 #-----------------------------------------------------------------------------

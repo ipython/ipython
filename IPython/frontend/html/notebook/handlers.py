@@ -32,8 +32,6 @@ import os
 from tornado import web
 from tornado import websocket
 
-from jinja2 import Environment, FileSystemLoader
-
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
@@ -198,12 +196,6 @@ class AuthenticatedHandler(RequestHandler):
             host = self.request.host # get from request
         return "%s://%s" % (proto, host)
         
-    @property
-    def environment(self):
-        """ Jinja 2 template base directory
-        """
-        env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
-        return env
 
 class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
@@ -219,7 +211,7 @@ class ProjectDashboardHandler(AuthenticatedHandler):
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir        
-        nb = self.environment.get_template('projectdashboard.html')
+        nb = self.application.jinja2_env.get_template('projectdashboard.html')
         self.write( nb.render(project=project,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -231,7 +223,7 @@ class ProjectDashboardHandler(AuthenticatedHandler):
 class LoginHandler(AuthenticatedHandler):
 
     def _render(self, message=None):        
-        nb = self.environment.get_template('login.html')
+        nb = self.application.jinja2_env.get_template('login.html')
         self.write( nb.render(
                 next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
@@ -268,7 +260,7 @@ class LogoutHandler(AuthenticatedHandler):
         else:
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
-        nb = self.environment.get_template('logout.html')
+        nb = self.application.jinja2_env.get_template('logout.html')
         self.write( nb.render(        
                     read_only=self.read_only,
                     logged_in=self.logged_in,
@@ -294,7 +286,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
-        nb = self.environment.get_template('notebook.html')
+        nb = self.application.jinja2_env.get_template('notebook.html')
         self.write( nb.render(project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
@@ -314,7 +306,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)        
-        nb = self.environment.get_template('printnotebook.html')
+        nb = self.application.jinja2_env.get_template('printnotebook.html')
         self.write( nb.render(
              project=project,
             notebook_id=notebook_id,
