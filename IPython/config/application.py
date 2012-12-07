@@ -419,13 +419,22 @@ class Application(SingletonConfigurable):
                 # it's a subcommand, and *not* a flag or class parameter
                 return self.initialize_subcommand(subc, subargv)
 
-        if '-h' in argv or '--help' in argv or '--help-all' in argv:
+        # Arguments after a '--' argument are for the script IPython may be
+        # about to run, not IPython iteslf. For arguments parsed here (help and
+        # version), we want to only search the arguments up to the first
+        # occurrence of '--', which we're calling interpreted_argv.
+        try:
+            interpreted_argv = argv[:argv.index('--')]
+        except ValueError:
+            interpreted_argv = argv
+
+        if any(x in interpreted_argv for x in ('-h', '--help-all', '--help')):
             self.print_description()
-            self.print_help('--help-all' in argv)
+            self.print_help('--help-all' in interpreted_argv)
             self.print_examples()
             self.exit(0)
 
-        if '--version' in argv or '-V' in argv:
+        if '--version' in interpreted_argv or '-V' in interpreted_argv:
             self.print_version()
             self.exit(0)
         
