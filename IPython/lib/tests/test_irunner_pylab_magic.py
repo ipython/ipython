@@ -17,11 +17,11 @@ from IPython.lib import irunner
 from IPython.testing import decorators
 
 def pylab_not_importable():
-    """Test if importing pylab fails with RuntimeError (true when having no display)"""
+    """Test if importing pylab fails. (For example, when having no display)"""
     try:
         import pylab
         return False
-    except RuntimeError:
+    except:
         return True
 
 # Testing code begins
