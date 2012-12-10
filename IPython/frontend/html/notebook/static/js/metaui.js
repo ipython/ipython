@@ -191,6 +191,8 @@ var IPython = (function (IPython) {
         // Yes we iterate on the class varaible, not the instance one.
         for ( var index in MetaUI._button_list){
             var local_div = $('<div/>').addClass('button_container');
+            // Note,
+            // do this the other way, wrap in try/catch and don't append if any errors.
             this.metainner.append(local_div)
             cdict[preset[index]](local_div,this.cell)
         }
@@ -309,6 +311,94 @@ var IPython = (function (IPython) {
 
     MetaUI.register_callback('example.toggle',toggle_test);
     example_preset.push('example.toggle');
+
+    /**
+     */
+    MetaUI.utils = {};
+
+    /**
+     * A utility function to generate bindings between a checkbox and metadata
+     * @method utils.checkbox_ui_generator
+     * @static
+     *
+     * @param name {string} Label in front of the checkbox
+     * @param setter {function( metadata_dict, newValue )} A setter method to set the newValue of the metadata dictionnary
+     * @param getter {function( metadata )} A getter methods which return the current value of the metadata.
+     *
+     * @return callback {function( div, cell )} Callback to be passed to `register_callback`
+     *
+     * @example
+     *
+     * An exmple that bind the subkey `slideshow.isSectionStart` to a checkbox with a `New Slide` label
+     *
+     *     var newSlide = MetaUI.utils.checkbox_ui_generator('New Slide',
+     *          // setter
+     *          function(metadata,value){
+     *              // we check that the slideshow namespace exist and create it if needed
+     *              if (metadata.slideshow == undefined){metadata.slideshow = {}}
+     *              // set the value
+     *              metadata.slideshow.isSectionStart = value
+     *              },
+     *          //geter
+     *          function(metadata){ var ns = metadata.slideshow;
+     *              // if the slideshow namespace does not exist return `undefined`
+     *              // (will be interpreted as `false` by checkbox) otherwise
+     *              // return the value
+     *              return (ns == undefined)? undefined: ns.isSectionStart
+     *              }
+     *      );
+     *
+     *      MetaUI.register_callback('newSlide', newSlide);
+     *
+     */
+    MetaUI.utils.checkbox_ui_generator = function(name,setter,getter){
+         return function(div, cell) {
+            var button_container = $(div)
+
+            var chkb = $('<input/>').attr('type','checkbox');
+            var lbl = $('<label/>').append($('<span/>').text(name).css('font-size','77%'));
+            lbl.append(chkb);
+            chkb.attr("checked",getter(cell.metadata));
+
+            chkb.click(function(){
+                        var v = getter(cell.metadata);
+                        setter(cell.metadata,!v);
+                        chkb.attr("checked",!v);
+                    })
+           button_container.append($('<div/>').append(lbl));
+
+        }
+    }
+    var hslide = MetaUI.utils.checkbox_ui_generator('New Section',
+            function(md,value){
+                if (md.slideshow == undefined){md.slideshow = {}}
+                return md.slideshow.new_section = value},
+            function(md){ var ns = md.slideshow;
+                return (ns == undefined)? undefined: ns.new_section});
+
+    var vslide = MetaUI.utils.checkbox_ui_generator('New Subsection',
+            function(md,value){
+                if (md.slideshow == undefined){md.slideshow = {}}
+                return md.slideshow.new_subsection = value},
+            function(md){ var ns = md.slideshow;
+                return (ns == undefined)? undefined: ns.new_subsection});
+
+    var fragment = MetaUI.utils.checkbox_ui_generator('New Fragment',
+            function(md,value){
+                if (md.slideshow == undefined){md.slideshow = {}}
+                return md.slideshow.new_fragment = value},
+            function(md){ var ns = md.slideshow;
+                return (ns == undefined)? undefined: ns.new_fragment});
+
+
+    MetaUI.register_callback('slideshow.hslide',hslide);
+    MetaUI.register_callback('slideshow.vslide',vslide);
+    MetaUI.register_callback('slideshow.fragment',fragment);
+
+    example_preset.push('slideshow.fragment');
+    example_preset.push('slideshow.vslide');
+    example_preset.push('slideshow.hslide');
+
 
     var checkbox_test =  function(div, cell) {
         var button_container = $(div)
