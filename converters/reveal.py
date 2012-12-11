@@ -18,14 +18,14 @@ class ConverterReveal(ConverterMarkdown):
         self.inline_prompt = inline_prompt
 
     def switch_meta(self, m_list):
-        "switch metadata delimiters to follow a specific pattern to build the slides" 
+        "switch metadata delimiters order to build properly the slides" 
         if len(m_list) > 1:
             if not (len(m_list) == 2 and m_list[1] == [u'new_fragment = True']):
                 m_list[0], m_list[1] = m_list[1], m_list[0]
         return m_list
 
     def meta2str(self, meta):
-        "transform metadata to a list containing delimiters for slides"
+        "transform metadata dictionary to a string containing delimiters for slides"
         try:
             meta_tuple = meta[u'slideshow'].items()
         except KeyError as e:
@@ -75,7 +75,7 @@ class ConverterReveal(ConverterMarkdown):
         return u'\n'.join(lines)
 
     def build_slides(self, cell_separator='\n'):
-        "build the slides from text list"
+        "build the slides structure from text list and delimiters"
         text = self.main_body(cell_separator)
         delim_false = [u'new_section = False', u'new_subsection = False', u'new_fragment = False']
         text = [x for x in text if not x in delim_false]
