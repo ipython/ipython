@@ -79,19 +79,32 @@ class ConverterReveal(ConverterMarkdown):
         right = '</script></section>'
         slides = [list(x[1]) for x in itertools.groupby(text, lambda x: x==u'new_section = True') if not x[0]] 
         for slide in slides:
+            slide.insert(0, u'')
             slide.insert(0,left)
             slide.append(right)
-            if slide[1] == u'new_subsection = True':
-                slide.pop(1)
+            if slide[2] == u'new_subsection = True':
+                slide.pop(2)
                 slide.insert(0,'<section>')
                 slide.append('</section>')
                 for i,j in enumerate(slide):
                     if j == u'new_subsection = True':
                         slide[i] = right + left
+                        slide.insert(i + 1, u'')
+            elif slide[4] == u'new_subsection = True':
+                slide[4] = right
+                slide.insert(5, u'')
+                slide.insert(5,left)  
+                slide.insert(5,'<section>')
+                slide.append('</section>')
+                for i,j in enumerate(slide):
+                    if j == u'new_subsection = True':
+                        slide[i] = right + left
+                        slide.insert(i + 1, u'')
             for i,j in enumerate(slide):
                 if j == u'new_fragment = True':
                     slide[i] = '<p class="fragment">'
                     slide[i + 2] = '</p>'
+                    slide.insert(i + 3, u'')
         return list(itertools.chain(*slides))
 
     def save(self, outfile=None, encoding=None):
