@@ -1,4 +1,5 @@
 from converters.markdown import ConverterMarkdown
+from IPython.utils.text import indent
 import io
 import os
 import itertools
@@ -7,11 +8,6 @@ class ConverterReveal(ConverterMarkdown):
     """Convert a notebook to a html slideshow.
 
     It generates a static html slideshow based in markdown and reveal.js.
-    You have four ways to delimit the the slides: 
-    ##--- delimit horizontal slides
-    ##<<< open vertical slides
-    ##>>> close vertical slides
-    ##>>><<< close vertical slides and open new vertical slides. 
     """
 
     def __init__(self, infile, highlight_source=False, show_prompts=True,
@@ -20,6 +16,30 @@ class ConverterReveal(ConverterMarkdown):
         self.highlight_source = highlight_source
         self.show_prompts = show_prompts
         self.inline_prompt = inline_prompt
+
+    def switch_meta(self, m_list):
+        if len(m_list) > 1:
+            if not (len(m_list) == 2 and m_list[1] == [u'new_fragment = True']):
+                m_list[0], m_list[1] = m_list[1], m_list[0]
+        return m_list
+
+    def meta2str(self, meta):
+        meta_tuple = meta[u'slideshow'].items()
+        meta_list = [[x + ' = ' + unicode(y)] for x, y in meta_tuple]
+        meta_list = self.switch_meta(meta_list)
+        return u'\n'.join(list(itertools.chain(*meta_list)))
+
+    def render_heading(self, cell):
+        return [self.meta2str(cell.metadata), '{0} {1}'.format('#' * cell.level, cell.source), '']
+
+    def render_markdown(self, cell):
+        return [self.meta2str(cell.metadata), cell.source, '']
+
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return [indent(self.meta2str(cell.metadata)), indent(cell.source), '']
+        else:
+            return [self.meta2str(cell.metadata), cell.source, '']
 
     def convert(self, cell_separator='\n'):
         """
@@ -40,25 +60,39 @@ class ConverterReveal(ConverterMarkdown):
         """
         lines = []
         lines.extend(self.optional_header())
-        start = ['<div class="reveal"><div class="slides"><section data-markdown><script type="text/template">']
-        lines.extend(start)
-        text = self.main_body(cell_separator)
-        left = '<section data-markdown><script type="text/template">'
-        right = '</script></section>'
-        for i,j in enumerate(text):
-            if j == u'##---':
-                text[i] = right + left
-            if j == u'##<<<':
-                text[i] = right + '<section>' + left
-            if j == u'##>>>':
-                text[i] = right + '</section>' + left
-            if j == u'##>>><<<':
-                text[i] = right + '</section><section>' + left
-        lines.extend(text)
-        end = ['</script></section></div></div>']
+        begin = ['<div class="reveal"><div class="slides">']
+        lines.extend(begin)
+        slides_list = self.build_slides(cell_separator)
+        lines.extend(slides_list)
+        end = ['</div></div>']
         lines.extend(end)
         lines.extend(self.optional_footer())
         return u'\n'.join(lines)
+
+    def build_slides(self, cell_separator='\n'):
+        "build the slides from text list"
+        text = self.main_body(cell_separator)
+        text = [x for x in text if x != u'new_section = False'
+            and x != u'new_subsection = False' 
+            and x != u'new_fragment = False']
+        left = '<section data-markdown><script type="text/template">'
+        right = '</script></section>'
+        slides = [list(x[1]) for x in itertools.groupby(text, lambda x: x==u'new_section = True') if not x[0]] 
+        for slide in slides:
+            slide.insert(0,left)
+            slide.append(right)
+            if slide[1] == u'new_subsection = True':
+                slide.pop(1)
+                slide.insert(0,'<section>')
+                slide.append('</section>')
+                for i,j in enumerate(slide):
+                    if j == u'new_subsection = True':
+                        slide[i] = right + left
+            for i,j in enumerate(slide):
+                if j == u'new_fragment = True':
+                    slide[i] = '<p class="fragment">'
+                    slide[i + 2] = '</p>'
+        return list(itertools.chain(*slides))
 
     def save(self, outfile=None, encoding=None):
         "read and parse notebook into self.nb"
@@ -92,3 +126,4 @@ class ConverterReveal(ConverterMarkdown):
     def optional_footer(self):
         optional_footer_body = self.template_split()
         return optional_footer_body[1]
+
