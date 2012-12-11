@@ -77,8 +77,8 @@ class ConverterReveal(ConverterMarkdown):
     def build_slides(self, cell_separator='\n'):
         "build the slides from text list"
         text = self.main_body(cell_separator)
-        delimiters = [u'new_section = False', u'new_subsection = False', u'new_fragment = False']
-        text = [x for x in text if not x in delimiters]
+        delim_false = [u'new_section = False', u'new_subsection = False', u'new_fragment = False']
+        text = [x for x in text if not x in delim_false]
         left = '<section data-markdown><script type="text/template">'
         right = '</script></section>'
         slides = [list(x[1]) for x in itertools.groupby(text, lambda x: x==u'new_section = True') if not x[0]] 
