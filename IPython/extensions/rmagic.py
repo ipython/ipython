@@ -460,9 +460,9 @@ class RMagics(Magics):
         A line magic for R to install packages.
 
         '''
-        args = parse_argstring(self.Rpull, line)
+        args = parse_argstring(self.Rinstall, line)
         for package in args.packages:
-            self.r("install.packages('%s')" % package)
+            self.r("install.packages('%s', repos='%s')" % (package, args.repos))
 
     @skip_doctest
     @magic_arguments()
