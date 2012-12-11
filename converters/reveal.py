@@ -24,7 +24,10 @@ class ConverterReveal(ConverterMarkdown):
         return m_list
 
     def meta2str(self, meta):
-        meta_tuple = meta[u'slideshow'].items()
+        try:
+            meta_tuple = meta[u'slideshow'].items()
+        except KeyError as e:
+            meta_tuple = ()
         meta_list = [[x + ' = ' + unicode(y)] for x, y in meta_tuple]
         meta_list = self.switch_meta(meta_list)
         return u'\n'.join(list(itertools.chain(*meta_list)))
