@@ -18,12 +18,14 @@ class ConverterReveal(ConverterMarkdown):
         self.inline_prompt = inline_prompt
 
     def switch_meta(self, m_list):
+        "switch metadata delimiters to follow a specific pattern to build the slides" 
         if len(m_list) > 1:
             if not (len(m_list) == 2 and m_list[1] == [u'new_fragment = True']):
                 m_list[0], m_list[1] = m_list[1], m_list[0]
         return m_list
 
     def meta2str(self, meta):
+        "transform metadata to a list containing delimiters for slides"
         try:
             meta_tuple = meta[u'slideshow'].items()
         except KeyError as e:
@@ -75,9 +77,8 @@ class ConverterReveal(ConverterMarkdown):
     def build_slides(self, cell_separator='\n'):
         "build the slides from text list"
         text = self.main_body(cell_separator)
-        text = [x for x in text if x != u'new_section = False'
-            and x != u'new_subsection = False' 
-            and x != u'new_fragment = False']
+        delimiters = [u'new_section = False', u'new_subsection = False', u'new_fragment = False']
+        text = [x for x in text if not x in delimiters]
         left = '<section data-markdown><script type="text/template">'
         right = '</script></section>'
         slides = [list(x[1]) for x in itertools.groupby(text, lambda x: x==u'new_section = True') if not x[0]] 
