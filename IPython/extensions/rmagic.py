@@ -71,8 +71,8 @@ class RInterpreterError(ri.RRuntimeError):
         self.stdout = stdout.rstrip()
     
     def __unicode__(self):
-        s = 'Failed to parse and evaluate line %r.\nR error message: %r' % \
-                (self.line, self.err)
+        s = 'R error message: %s' % \
+                self.err
         if self.stdout and (self.stdout != self.err):
             s += '\nR stdout:\n' + self.stdout
         return s
@@ -260,25 +260,29 @@ class RMagics(Magics):
         text_output = self.flush()
         return text_output, value
 
-    def knitr_eval(self, code, knitr_args={}):
+    def knitr_eval(self, code, raise_exceptions=True, knitr_args={}):
         '''
         Parse and evaluate a code with rpy2.
         Returns the output to R's stdout() connection
         and the value of eval(parse(code)).
         '''
+
         code = code.strip()
         help_call = False
         if code.startswith('?') or code.startswith('help'):
             help_call = True
 
 
-        try:
-            with capture_output(True, False) as io:
-                display_data = self.knitr(code, **knitr_args)
-        except ri.RRuntimeError as exception:
-            exception = str_to_unicode(str(exception))
-            sys.stderr.write(str_to_unicode(str(exception)))
-            display_data = {}
+        if raise_exceptions:
+            display_data = self.knitr(code, **knitr_args)
+        else:
+            try:
+                with capture_output(True, False) as io:
+                    display_data = self.knitr(code, **knitr_args)
+            except ri.RRuntimeError as exception:
+                exception = str_to_unicode(str(exception))
+                sys.stderr.write(str_to_unicode(str(exception)))
+                display_data = {}
 
         for tag, data in display_data:
             # hack to catch messages when help(blah) fails
@@ -343,7 +347,7 @@ class RMagics(Magics):
                 if data:
                     display_data.append(('RMagic.R', {mime: data}))
             else:
-                sys.stderr.write(open(fname).read())
+                raise RInterpreterError(code, str_to_unicode(str(open(fname).read())), '')
 
         # kill the temporary directory
         rmtree(tmpd)
@@ -411,7 +415,7 @@ class RMagics(Magics):
 
             In [18]: _ = %R x = c(3,4,6.7); y = c(4,6,7); z = c('a',3,4)
 
-            In [19]: %Rpull x  y z
+            In [19]: %Rpull x y z
 
             In [20]: x
             Out[20]: array([ 3. ,  4. ,  6.7])
@@ -558,6 +562,12 @@ class RMagics(Magics):
     @argument(
         '--not_knitr',
         help="Don't use knitr.",
+        action='store_true',
+        default=False
+        )
+    @argument(
+        '--ignore_errors',
+        help="Don't raise exceptions, write R error message to stderr instead.",
         action='store_true',
         default=False
         )
@@ -733,14 +743,28 @@ class RMagics(Magics):
             text_output = ''
             if line_mode:
                 for line in code.split(';'):
-                    text_result, result = self.knitr_eval(line, knitr_argdict)
+                    text_result, result = self.knitr_eval(line, not args.ignore_errors, knitr_argdict)
                     text_output += text_result
                 if text_result:
                     # the last line printed something to the console so we won't return it
                     return_output = False
             else:
-                text_result, result = self.knitr_eval(code, knitr_argdict)
+                text_result, result = self.knitr_eval(code, not args.ignore_errors, knitr_argdict)
                 text_output += text_result
+
+            # try to turn every output into a numpy array
+            # this means that output are assumed to be castable
+            # as numpy arrays
+
+            if args.output:
+                for output in ','.join(args.output).split(','):
+                    self.shell.push({output:self.Rconverter(self.r(output), dataframe=False)})
+
+            if args.dataframe:
+                for output in ','.join(args.dataframe).split(','):
+                    self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
+
+
             return None
 
         else: 
@@ -822,25 +846,11 @@ class RMagics(Magics):
                 if result != ri.NULL:
                     return self.Rconverter(result, dataframe=False)
 
-
-
-        # try to turn every output into a numpy array
-        # this means that output are assumed to be castable
-        # as numpy arrays
-
-        if args.output:
-            for output in ','.join(args.output).split(','):
-                self.shell.push({output:self.Rconverter(self.r(output), dataframe=False)})
-
-        if args.dataframe:
-            for output in ','.join(args.dataframe).split(','):
-                self.shell.push({output:self.Rconverter(self.r(output), dataframe=True)})
-
-        # if in line mode and return_output, return the result as an ndarray
-        return_output = False
-        if return_output:
-            if result != ri.NULL:
-                return self.Rconverter(result, dataframe=False)
+            # if in line mode and return_output, return the result as an ndarray
+            return_output = False
+            if return_output:
+                if result != ri.NULL:
+                    return self.Rconverter(result, dataframe=False)
 
 __doc__ = __doc__.format(
                 R_DOC = ' '*8 + RMagics.R.__doc__,
