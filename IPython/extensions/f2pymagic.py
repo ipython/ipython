@@ -56,7 +56,7 @@ class F2pyMagics(Magics):
             if not key.startswith('__'):
                 self.shell.push({key: value})
                 publish_display_data('F2pyMagic.Fortran',
-                                {'text/plain': "%s is eady for use" % key})
+                                {'text/plain': "%s is ready for use" % key})
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
