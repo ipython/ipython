@@ -197,9 +197,10 @@ class CompleteReply(Reference):
 
 
 class VersionReply(Reference):
-    version = Enum((ipkernel.version))
-    version_major = Enum((ipkernel.version_major,))
-    version_minor = Enum((ipkernel.version_minor,))
+    protocol_version = Enum((ipkernel.protocol_version,))
+    ipython_version = Enum((ipkernel.ipython_version,))
+    language_version = Enum((ipkernel.language_version,))
+    language = Enum(("python",))
 
 
 # IOPub messages
