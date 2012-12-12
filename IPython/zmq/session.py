@@ -43,7 +43,6 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-import IPython
 from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils.importstring import import_item
@@ -78,7 +77,6 @@ def squash_unicode(obj):
 # Change this when incrementing the kernel protocol version
 protocol_version = [1, 1]
 
-_version_info_list = list(IPython.version_info)
 # ISO8601-ify datetime objects
 json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
 json_unpacker = lambda s: extract_dates(jsonapi.loads(s))
@@ -191,7 +189,6 @@ class Message(object):
 
 def msg_header(msg_id, msg_type, username, session):
     date = datetime.now()
-    version = _version_info_list
     return locals()
 
 def extract_header(msg_or_header):
