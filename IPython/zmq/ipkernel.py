@@ -35,6 +35,7 @@ from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
+import IPython
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
@@ -53,7 +54,7 @@ from IPython.utils.traitlets import (
 from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from serialize import serialize_object, unpack_apply_message
-from session import Session, Message
+from session import Session, Message, protocol_version
 from zmqshell import ZMQInteractiveShell
 
 
@@ -61,10 +62,8 @@ from zmqshell import ZMQInteractiveShell
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-# Change this when incrementing the kernel protocol version
-version_major = 1
-version_minor = 1
-version = '{0}.{1}'.format(version_major, version_minor)
+ipython_version = list(IPython.version_info)
+language_version = list(sys.version_info[:3])
 
 
 class Kernel(Configurable):
@@ -518,9 +517,10 @@ class Kernel(Configurable):
 
     def version_request(self, stream, ident, parent):
         vinfo = {
-            'version': version,
-            'version_major': version_major,
-            'version_minor': version_minor,
+            'protocol_version': protocol_version,
+            'ipython_version': ipython_version,
+            'language_version': language_version,
+            'language': 'python',
         }
         msg = self.session.send(stream, 'version_reply',
                                 vinfo, parent, ident)
