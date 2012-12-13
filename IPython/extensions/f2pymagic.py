@@ -27,7 +27,8 @@ try:
 except ImportError:
     import md5 as hashlib
 
-from numpy.distutils.exec_command import exec_command
+from numpy.f2py.f2py2e import run_compile
+
 
 from IPython.core import magic_arguments
 from IPython.core.magic import (Magics, magics_class, cell_magic)
@@ -98,28 +99,58 @@ class F2pyMagics(Magics):
                        hashlib.md5(str(key).encode('utf-8')).hexdigest())
         module_path = os.path.join(lib_dir, module_name + self.so_ext)
 
-        have_module = os.path.isfile(module_path)
 
-        if not have_module:
+        have_module = lambda: os.path.isfile(module_path)
+
+        if not have_module():
             f90_file = os.path.join(lib_dir, module_name + '.f90')
+            f2py_out = os.path.join(lib_dir, module_name + '.f2pyout')
             f90_file = py3compat.cast_bytes_py2(f90_file,
                                         encoding=sys.getfilesystemencoding())
             with io.open(f90_file, 'w', encoding='utf-8') as codefile:
                 codefile.write(code)
 
             extra_args = ''
-            args = ' -c %s -m %s %s' % (extra_args, module_name, f90_file)
-            exe = '%s -c ' % sys.executable
-            script = '"import numpy.f2py as f2py2e;f2py2e.main()"'
-            cmd = exe + script + args
-            status, output = exec_command(cmd, execute_in=lib_dir)
-            if status != 0:
+            args = '-c -c %s -m %s %s' % (extra_args, module_name, f90_file)
+            # Execute f2py2e.run_compile in lib_dir
+            # to get the module.so file there
+            execute_in = os.path.abspath(lib_dir)
+            oldcwd = os.path.abspath(os.getcwd())
+            os.chdir(execute_in)
+            try:
+                # f2py require sys.stdout.fileno to be set
+                getattr(sys.stdout, "fileno")
+            except AttributeError:
+                sys.stdout.fileno = lambda: None
+            # Prepare sys.argv with the args for f2py
+            saved_sys_argv = sys.argv
+            sys.argv = args.split()
+            saved_sys_stdout = sys.stdout
+            output = open(f2py_out, 'w')
+            sys.stdout = output
+            try:
+                run_compile()
+            except:
+                output.close()
+                sys.stdout = saved_sys_stdout
+                messages = open(f2py_out, 'r').read()
                 publish_display_data('F2pyMagic.Fortran',
-                                     {'text/plain': output})
-                return
+                        {'text/plain': "Something went wrong...\n" + messages})
+            else:
+                output.close()
+                sys.stdout = saved_sys_stdout
+                publish_display_data('F2pyMagic.Fortran',
+                            {'text/plain': "Compilation went OK..."})
 
-        module = imp.load_dynamic(module_name, module_path)
-        self._import_all(module)
+            sys.argv = saved_sys_argv
+            os.chdir(oldcwd)
+
+
+        if have_module():
+            module = imp.load_dynamic(module_name, module_path)
+            self._import_all(module)
+
+
 
 
 def load_ipython_extension(ipy):
