@@ -87,15 +87,15 @@ var IPython = (function (IPython) {
         $(document).keydown(function (event) {
             // console.log(event);
             if (that.read_only) return true;
-            
-            // Save (CTRL+S) or (AppleKey+S) 
+
+            // Save (CTRL+S) or (AppleKey+S)
             //metaKey = applekey on mac
-            if ((event.ctrlKey || event.metaKey) && event.keyCode==83) { 
+            if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
                 that.save_notebook();
                 event.preventDefault();
                 return false;
             } else if (event.which === key.ESC) {
-                // Intercept escape at highest level to avoid closing 
+                // Intercept escape at highest level to avoid closing
                 // websocket connection with firefox
                 event.preventDefault();
             } else if (event.which === key.SHIFT) {
@@ -280,7 +280,7 @@ var IPython = (function (IPython) {
         }
 
         this.element.bind('collapse_pager', function (event,extrap) {
-            time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             collapse_time(time);
         });
 
@@ -288,12 +288,12 @@ var IPython = (function (IPython) {
             var app_height = $('div#main_app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var pager_height = $('div#pager').outerHeight(true);
-            var new_height = app_height - pager_height - splitter_height; 
+            var new_height = app_height - pager_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
         }
 
         this.element.bind('expand_pager', function (event, extrap) {
-            time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             expand_time(time);
         });
 
@@ -317,7 +317,7 @@ var IPython = (function (IPython) {
         var time = time || 0;
         cell_number = Math.min(cells.length-1,cell_number);
         cell_number = Math.max(0             ,cell_number);
-        scroll_value = cells[cell_number].element.position().top-cells[0].element.position().top ; 
+        var scroll_value = cells[cell_number].element.position().top-cells[0].element.position().top ;
         this.element.animate({scrollTop:scroll_value}, time);
         return scroll_value;
     };
@@ -447,11 +447,11 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.select = function (index) {
         if (index !== undefined && index >= 0 && index < this.ncells()) {
-            sindex = this.get_selected_index()
+            var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
             };
-            var cell = this.get_cell(index)
+            var cell = this.get_cell(index);
             cell.select();
             if (cell.cell_type === 'heading') {
                 $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
@@ -651,7 +651,7 @@ var IPython = (function (IPython) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             if (!(source_cell instanceof IPython.CodeCell)) {
-                target_cell = this.insert_cell_below('code',i);
+                var target_cell = this.insert_cell_below('code',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
@@ -673,7 +673,7 @@ var IPython = (function (IPython) {
             var source_element = this.get_cell_element(i);
             var source_cell = source_element.data("cell");
             if (!(source_cell instanceof IPython.MarkdownCell)) {
-                target_cell = this.insert_cell_below('markdown',i);
+                var target_cell = this.insert_cell_below('markdown',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
@@ -816,7 +816,7 @@ var IPython = (function (IPython) {
             var cell_data = this.clipboard;
             var new_cell = this.insert_cell_above(cell_data.cell_type);
             new_cell.fromJSON(cell_data);
-            old_cell = this.get_next_cell(new_cell);
+            var old_cell = this.get_next_cell(new_cell);
             this.delete_cell(this.find_cell_index(old_cell));
             this.select(this.find_cell_index(new_cell));
         };
@@ -874,8 +874,8 @@ var IPython = (function (IPython) {
         // Todo: implement spliting for other cell types.
         var cell = this.get_selected_cell();
         if (cell.is_splittable()) {
-            texta = cell.get_pre_cursor();
-            textb = cell.get_post_cursor();
+            var texta = cell.get_pre_cursor();
+            var textb = cell.get_post_cursor();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(texta);
                 var new_cell = this.insert_cell_below('code');
@@ -903,9 +903,9 @@ var IPython = (function (IPython) {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         if (index > 0) {
-            upper_cell = this.get_cell(index-1);
-            upper_text = upper_cell.get_text();
-            text = cell.get_text();
+            var upper_cell = this.get_cell(index-1);
+            var upper_text = upper_cell.get_text();
+            var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
             } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
@@ -923,9 +923,9 @@ var IPython = (function (IPython) {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
         if (index < this.ncells()-1) {
-            lower_cell = this.get_cell(index+1);
-            lower_text = lower_cell.get_text();
-            text = cell.get_text();
+            var lower_cell = this.get_cell(index+1);
+            var lower_text = lower_cell.get_text();
+            var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
             } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
@@ -1073,7 +1073,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_selected_cell = function (options) {
         // add_new: should a new cell be added if we are at the end of the nb
         // terminal: execute in terminal mode, which stays in the current cell
-        default_options = {terminal: false, add_new: true};
+        var default_options = {terminal: false, add_new: true};
         $.extend(default_options, options);
         var that = this;
         var cell = that.get_selected_cell();
@@ -1173,7 +1173,7 @@ var IPython = (function (IPython) {
                 if (cell_data.cell_type === 'plaintext'){
                     cell_data.cell_type = 'raw';
                 }
-                
+
                 new_cell = this.insert_cell_below(cell_data.cell_type);
                 new_cell.fromJSON(cell_data);
             };
@@ -1306,10 +1306,10 @@ var IPython = (function (IPython) {
             var that = this;
             var orig_vs = 'v' + data.nbformat + '.' + data.orig_nbformat_minor;
             var this_vs = 'v' + data.nbformat + '.' + this.nbformat_minor;
-            msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
+            var msg = "This notebook is version " + orig_vs + ", but we only fully support up to " +
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available."
-            
+
             var dialog = $('<div/>');
             dialog.html(msg);
             this.element.append(dialog);
@@ -1326,7 +1326,7 @@ var IPython = (function (IPython) {
                 },
                 width: 400
             });
-            
+
         }
         // Create the kernel after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
@@ -1339,7 +1339,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
         if (xhr.status === 500) {
-            msg = "An error occurred while loading this notebook. Most likely " +
+            var msg = "An error occurred while loading this notebook. Most likely " +
             "this notebook is in a newer format than is supported by this " +
             "version of IPython. This version can load notebook formats " +
             "v"+this.nbformat+" or earlier.";
@@ -1361,7 +1361,7 @@ var IPython = (function (IPython) {
             });
         }
     }
-    
+
     IPython.Notebook = Notebook;
 
 

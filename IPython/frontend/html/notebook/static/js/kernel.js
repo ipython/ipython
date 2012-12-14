@@ -159,7 +159,7 @@ var IPython = (function (IPython) {
             this.send(document.cookie);
         };
         var already_called_onclose = false; // only alert once
-        ws_closed_early = function(evt){
+        var ws_closed_early = function(evt){
             if (already_called_onclose){
                 return;
             }
@@ -168,7 +168,7 @@ var IPython = (function (IPython) {
                 that._websocket_closed(ws_url, true);
             }
         };
-        ws_closed_late = function(evt){
+        var ws_closed_late = function(evt){
             if (already_called_onclose){
                 return;
             }
@@ -379,7 +379,7 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype._handle_shell_reply = function (e) {
-        reply = $.parseJSON(e.data);
+        var reply = $.parseJSON(e.data);
         $([IPython.events]).trigger('shell_reply.Kernel', {kernel: this, reply:reply});
         var header = reply.header;
         var content = reply.content;

@@ -34,7 +34,7 @@ var IPython = (function (IPython) {
         this.element = null;
         this.metadata = {};
         // load this from metadata later ?
-        this.user_highlight == 'auto';
+        this.user_highlight = 'auto';
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
