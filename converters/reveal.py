@@ -42,6 +42,33 @@ class ConverterReveal(ConverterMarkdown):
         return [self.meta2str(cell.metadata),
             '{0} {1}'.format('#' * cell.level, cell.source), '']
 
+    def render_code(self, cell):
+        if not cell.input:
+            return []
+        lines = []
+        meta_code = self.meta2str(cell.metadata)
+        lines.extend([meta_code])
+        lines.extend(['<!-- hack -->'])  # to be proper parsed         
+        n = self._get_prompt_number(cell)
+        if self.show_prompts and not self.inline_prompt:
+            lines.extend(['*In[%s]:*' % n, ''])
+        if self.show_prompts and self.inline_prompt:
+            prompt = 'In[%s]: ' % n
+            input_lines = cell.input.split('\n')
+            src = (prompt + input_lines[0] + '\n' +
+                   indent('\n'.join(input_lines[1:]), nspaces=len(prompt)))
+        else:
+            src = cell.input
+        src = highlight(src) if self.highlight_source else indent(src)
+        lines.extend([src, ''])
+        if cell.outputs and self.show_prompts and not self.inline_prompt:
+            lines.extend(['*Out[%s]:*' % n, ''])
+        for output in cell.outputs:
+            conv_fn = self.dispatch(output.output_type)
+            lines.extend(conv_fn(output))
+        #lines.append('')
+        return lines
+
     def render_markdown(self, cell):
         return [self.meta2str(cell.metadata), cell.source, '']
 
