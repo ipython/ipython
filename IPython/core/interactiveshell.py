@@ -2864,6 +2864,10 @@ class InteractiveShell(SingletonConfigurable):
         except KeyError:
             error("Backend %r not supported" % gui)
             return
+        except ImportError:
+            error("pylab mode doesn't work as matplotlib could not be found." + \
+                  "\nIs it installed on the system?")
+            return
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
