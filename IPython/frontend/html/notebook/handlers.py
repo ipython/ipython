@@ -27,6 +27,7 @@ import stat
 import threading
 import time
 import uuid
+import os
 
 from tornado import web
 from tornado import websocket
@@ -194,7 +195,7 @@ class AuthenticatedHandler(RequestHandler):
         if host == '':
             host = self.request.host # get from request
         return "%s://%s" % (proto, host)
-
+        
 
 class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
@@ -209,28 +210,28 @@ class ProjectDashboardHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self):
         nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        self.render(
-            'projectdashboard.html', project=project,
+        project = nbm.notebook_dir        
+        template = self.application.jinja2_env.get_template('projectdashboard.html')
+        self.write( template.render(project=project,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             read_only=self.read_only,
             logged_in=self.logged_in,
-            login_available=self.login_available
-        )
+            login_available=self.login_available))
 
 
 class LoginHandler(AuthenticatedHandler):
 
-    def _render(self, message=None):
-        self.render('login.html',
+    def _render(self, message=None):        
+        template = self.application.jinja2_env.get_template('login.html')
+        self.write( template.render(
                 next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
                 base_project_url=self.application.ipython_app.base_project_url,
                 message=message
-        )
+        ))
 
     def get(self):
         if self.current_user:
@@ -259,13 +260,13 @@ class LogoutHandler(AuthenticatedHandler):
         else:
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
-
-        self.render('logout.html',
+        template = self.application.jinja2_env.get_template('logout.html')
+        self.write( template.render(        
                     read_only=self.read_only,
                     logged_in=self.logged_in,
                     login_available=self.login_available,
                     base_project_url=self.application.ipython_app.base_project_url,
-                    message=message)
+                    message=message))
 
 
 class NewHandler(AuthenticatedHandler):
@@ -277,7 +278,6 @@ class NewHandler(AuthenticatedHandler):
         notebook_id = nbm.new_notebook()
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
-
 class NamedNotebookHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
@@ -285,10 +285,9 @@ class NamedNotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        self.render(
-            'notebook.html', project=project,
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
+        template = self.application.jinja2_env.get_template('notebook.html')
+        self.write( template.render(project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -296,8 +295,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
             read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+            mathjax_url=self.application.ipython_app.mathjax_url,))
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
@@ -307,10 +305,10 @@ class PrintNotebookHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        
-        self.render(
-            'printnotebook.html', project=project,
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)        
+        template = self.application.jinja2_env.get_template('printnotebook.html')
+        self.write( template.render(
+             project=project,
             notebook_id=notebook_id,
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
@@ -319,7 +317,7 @@ class PrintNotebookHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
-        )
+        ))
 
 #-----------------------------------------------------------------------------
 # Kernel handlers
