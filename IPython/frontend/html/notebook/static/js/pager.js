@@ -69,12 +69,12 @@ var IPython = (function (IPython) {
         var that = this;
 
         this.pager_element.bind('collapse_pager', function (event, extrap) {
-            time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             that.pager_element.hide(time);
         });
 
         this.pager_element.bind('expand_pager', function (event, extrap) {
-            time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
+            var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             that.pager_element.show(time);
         });
 
