@@ -16,13 +16,12 @@ from Queue import Empty
 import nose.tools as nt
 
 from ..blockingkernelmanager import BlockingKernelManager
-from .. import ipkernel
 
 
 from IPython.testing import decorators as dec
 from IPython.utils import io
 from IPython.utils.traitlets import (
-    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum,
+    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
 
 #-----------------------------------------------------------------------------
@@ -196,11 +195,23 @@ class CompleteReply(Reference):
     matches = List(Unicode)
 
 
+def Version(num, trait=Integer):
+    return List(trait, default_value=[0] * num, minlen=num, maxlen=num)
+
+
 class VersionReply(Reference):
-    protocol_version = Enum((ipkernel.protocol_version,))
-    ipython_version = Enum((ipkernel.ipython_version,))
-    language_version = Enum((ipkernel.language_version,))
-    language = Enum(("python",))
+
+    protocol_version = Version(2)
+    ipython_version = Version(4, Any)
+    language_version = Version(3)
+    language = Unicode()
+
+    def _ipython_version_changed(self, name, old, new):
+        for v in new:
+            nt.assert_true(
+                isinstance(v, int) or isinstance(v, basestring),
+                'expected int or string as version component, got {!r}'
+                .format(v))
 
 
 # IOPub messages
