@@ -58,13 +58,13 @@ var IPython = (function (IPython) {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + 'notebooks/' +
                       notebook_id + '?format=json';
-            window.open(url,'_newtab');
+            window.location.assign(url);
         });
         this.element.find('#download_py').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = $('body').data('baseProjectUrl') + 'notebooks/' +
                       notebook_id + '?format=py';
-            window.open(url,'_newtab');
+            window.location.assign(url);
         });
         this.element.find('button#print_notebook').click(function () {
             IPython.print_widget.print_notebook();
