@@ -696,6 +696,9 @@ Message type: ``version_reply``::
 
         # IPython version number (optional).
         # Non-python kernel backend may not have this version number.
+        # The last component is an extra field, which may be 'dev' or
+        # 'rc1' in development version.  It is an empty string for
+        # released version.
         'ipython_version': [int, int, int, str],
 
         # Language version number (mandatory).
