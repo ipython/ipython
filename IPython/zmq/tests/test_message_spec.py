@@ -210,7 +210,7 @@ class VersionReply(Reference):
         for v in new:
             nt.assert_true(
                 isinstance(v, int) or isinstance(v, basestring),
-                'expected int or string as version component, got {!r}'
+                'expected int or string as version component, got {0!r}'
                 .format(v))
 
 
