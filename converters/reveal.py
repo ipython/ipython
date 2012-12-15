@@ -1,5 +1,6 @@
 from converters.markdown import ConverterMarkdown
-from IPython.utils.text import indent
+from IPython.utils.text import indent, dedent
+from converters.utils import highlight, remove_ansi
 import io
 import os
 import itertools
@@ -78,6 +79,47 @@ class ConverterReveal(ConverterMarkdown):
                 indent(cell.source), '']
         else:
             return [self.meta2str(cell.metadata), cell.source, '']
+
+    def render_pyout(self, output):
+        for fmt in ['html', 'latex', 'png', 'jpeg', 'svg', 'text']:
+            if fmt in output:
+                conv_fn = self.dispatch_display_format(fmt)
+                return conv_fn(output)
+        return []
+
+    def render_pyerr(self, output):
+        # Note: a traceback is a *list* of frames.
+        return [indent(remove_ansi('\n'.join(output.traceback))), '']
+
+    def _img_lines(self, img_file):
+        return ['![](%s)' % img_file, '']
+
+    def render_display_format_png(self, output):
+        return ['<img src="data:image/png;base64,%s"></img>' % output.png, '']
+
+    def render_display_format_svg(self, output):
+        return [output.svg, '']
+
+    def render_display_format_jpeg(self, output):
+        return ['<img src="data:image/jpeg;base64,%s"></img>' % output.jpeg, '']
+
+    def render_display_format_text(self, output):
+        return [indent(output.text), '']
+
+    def _unknown_lines(self, data):
+        return ['Warning: Unknown cell', data, '']
+
+    def render_display_format_html(self, output):
+        return [dedent(output.html), '']
+
+    def render_display_format_latex(self, output):
+        return ['LaTeX::', indent(output.latex), '']
+
+    def render_display_format_json(self, output):
+        return ['JSON:', indent(output.json), '']
+
+    def render_display_format_javascript(self, output):
+        return ['JavaScript:', indent(output.javascript), '']
 
     def convert(self, cell_separator='\n'):
         """
