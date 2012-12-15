@@ -51,9 +51,36 @@
     MetaUI.register_callback('slideshow.vslide',vslide);
     MetaUI.register_callback('slideshow.fragment',fragment);
 
-    slideshow_preset.push('slideshow.fragment');
-    slideshow_preset.push('slideshow.vslide');
-    slideshow_preset.push('slideshow.hslide');
+    //slideshow_preset.push('slideshow.fragment');
+    //slideshow_preset.push('slideshow.vslide');
+    //slideshow_preset.push('slideshow.hslide');
+
+    var select_type = MetaUI.utils.select_ui_generator([
+            ["-"            ,undefined      ],
+            ["Header Slide" ,"header_slide" ],
+            ["Slide"        ,"slide"        ],
+            ["Fragment"     ,"fragment"     ],
+            ["Skip"         ,"skip"         ],
+            ],
+            // setter
+            function(metadata,value){
+                // we check that the slideshow namespace exist and create it if needed
+                if (metadata.slideshow == undefined){metadata.slideshow = {}}
+                // set the value
+                metadata.slideshow.slide_type = value
+                },
+            //geter
+            function(metadata){ var ns = metadata.slideshow;
+                // if the slideshow namespace does not exist return `undefined`
+                // (will be interpreted as `false` by checkbox) otherwise
+                // return the value
+                return (ns == undefined)? undefined: ns.slide_type
+                },
+            "Slide Type");
+
+    MetaUI.register_callback('slideshow.select',select_type);
+
+    slideshow_preset.push('slideshow.select');
 
 
     MetaUI.register_preset('slideshow',slideshow_preset);
