@@ -322,8 +322,10 @@ var IPython = (function (IPython) {
      * @static
      *
      * @param name {string} Label in front of the checkbox
-     * @param setter {function( metadata_dict, newValue )} A setter method to set the newValue of the metadata dictionnary
-     * @param getter {function( metadata )} A getter methods which return the current value of the metadata.
+     * @param setter {function( metadata_dict, newValue )}
+     *        A setter method to set the newValue of the metadata dictionnary
+     * @param getter {function( metadata )}
+     *        A getter methods which return the current value of the metadata.
      *
      * @return callback {function( div, cell )} Callback to be passed to `register_callback`
      *
@@ -369,6 +371,71 @@ var IPython = (function (IPython) {
 
         }
     }
+
+    /**
+     * A utility function to generate bindings between a dropdown list and metadata
+     * @method utils.select_ui_generator
+     * @static
+     *
+     * @param list_list {list of sublist} List of sublist of metadata value and name in the dropdown list.
+     *        subslit shoud contain 2 element each, first a string that woul be displayed in the dropdown list,
+     *        and second the corresponding value for the metadata to be passed to setter/return by getter.
+     * @param setter {function( metadata_dict, newValue )}
+     *        A setter method to set the newValue of the metadata dictionnary
+     * @param getter {function( metadata )}
+     *        A getter methods which return the current value of the metadata.
+     * @param [label=""] {String} optionnal label for the dropdown menu
+     *
+     * @return callback {function( div, cell )} Callback to be passed to `register_callback`
+     *
+     * @example
+     *
+     *      var select_type = MetaUI.utils.select_ui_generator([
+     *              ["-"            ,undefined      ],
+     *              ["Header Slide" ,"header_slide" ],
+     *              ["Slide"        ,"slide"        ],
+     *              ["Fragment"     ,"fragment"     ],
+     *              ["Skip"         ,"skip"         ],
+     *              ],
+     *              // setter
+     *              function(metadata,value){
+     *                  // we check that the slideshow namespace exist and create it if needed
+     *                  if (metadata.slideshow == undefined){metadata.slideshow = {}}
+     *                  // set the value
+     *                  metadata.slideshow.slide_type = value
+     *                  },
+     *              //geter
+     *              function(metadata){ var ns = metadata.slideshow;
+     *                  // if the slideshow namespace does not exist return `undefined`
+     *                  // (will be interpreted as `false` by checkbox) otherwise
+     *                  // return the value
+     *                  return (ns == undefined)? undefined: ns.slide_type
+     *                  }
+     *      MetaUI.register_callback('slideshow.select',select_type);
+     *
+     */
+    MetaUI.utils.select_ui_generator = function(list_list,setter, getter, label){
+        label= label? label: "";
+        return function(div, cell) {
+            var button_container = $(div)
+            var lbl = $("<label/>").append($('<span/>').text(label).css('font-size','77%'));
+            var select = $('<select/>');
+            for(var itemn in list_list){
+                var opt = $('<option/>');
+                        opt.attr('value',list_list[itemn][1])
+                        opt.text(list_list[itemn][0])
+                select.append(opt);
+            }
+            select.val(getter(cell.metadata));
+
+            select.change(function(){
+                        setter(cell.metadata,select.val());
+                    });
+            button_container.append($('<div/>').append(lbl).append(select));
+
+        }
+    };
+
 
     IPython.MetaUI = MetaUI;
 
