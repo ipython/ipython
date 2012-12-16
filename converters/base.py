@@ -131,7 +131,7 @@ class Converter(object):
     user_preamble = None
     raw_as_verbatim = False
 
-    def __init__(self, infile, highlight_source=True, exclude=[]):
+    def __init__(self, infile, highlight_source=True, exclude=[],  **kw):
         # N.B. Initialized in the same order as defined above. Please try to
         # keep in this way for readability's sake.
         self.exclude_cells = exclude
