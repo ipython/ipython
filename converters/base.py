@@ -131,9 +131,10 @@ class Converter(object):
     user_preamble = None
     raw_as_verbatim = False
 
-    def __init__(self, infile, highlight_source=True):
+    def __init__(self, infile, highlight_source=True, exclude=[]):
         # N.B. Initialized in the same order as defined above. Please try to
         # keep in this way for readability's sake.
+        self.exclude_cells = exclude
         self.infile = infile
         self.highlight_source = highlight_source
         self.infile_dir, infile_root = os.path.split(infile)

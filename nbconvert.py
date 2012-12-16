@@ -54,7 +54,7 @@ def main(infile, format='rst', preamble=None, exclude=None,
         raise SystemExit("Unknown format '%s', " % format +
                          "known formats are: " + known_formats)
 
-    converter = ConverterClass(infile, highlight_source=highlight_source)
+    converter = ConverterClass(infile, highlight_source=highlight_source, exclude=exclude)
     converter.render()
 
 #-----------------------------------------------------------------------------
