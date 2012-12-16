@@ -1,10 +1,34 @@
+"""Base class for doing notebook-to-notebook transformations.
+
+This implements a converter class that turns an IPython notebook into another
+IPython notebook, mainly so that it can be subclassed to perform more useful
+and sophisticated transformations.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Stdlib imports
+import json
 import os
+from shutil import rmtree
+
+# Our own imports
 from converters.base import Converter
 from converters.utils import cell_to_lines
-from shutil import rmtree
-import json
 
 
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
 class ConverterNotebook(Converter):
     """
     A converter that is essentially a null-op.

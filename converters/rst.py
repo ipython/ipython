@@ -1,9 +1,36 @@
-from converters.base import Converter
-from converters.utils import markdown2rst, rst_directive, remove_ansi
+"""Notebook export to reStructuredText (rST).
+
+This file provides a converter class for rendering IPython notebooks as valid
+reStructuredText, suitable for inclusion in e.g. Sphinx documentation.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# IPython imports
 from IPython.utils.text import indent
 
+# Our own imports
+from converters.base import Converter
+from converters.utils import markdown2rst, rst_directive, remove_ansi
 
+
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
 class ConverterRST(Converter):
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'rst'
     heading_level = {1: '=', 2: '-', 3: '`', 4: '\'', 5: '.', 6: '~'}
 

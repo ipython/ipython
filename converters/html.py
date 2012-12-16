@@ -1,16 +1,48 @@
+"""Implements conversion to ordinary HTML output.
+
+This file implements a class that handles rendering IPython notebooks as
+HTML, suitable for posting to the web.
+
+Converters for more specific HTML generation needs (suitable for posting to
+a particular web service) can usefully subclass `ConverterHTML` and override
+certain methods. For output tuned to the Blogger blogging platform, see the
+`ConverterBloggerHTML` class.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from __future__ import absolute_import
 
+# Stdlib imports
+import io
+import os
+
+# Third-party imports
+from markdown import markdown
+
+# IPython imports
+from IPython.utils import path
+
+# Our own imports
 from converters.base import Converter
 from converters.utils import text_cell, output_container
 from converters.utils import highlight, coalesce_streams, ansi2html
 
-from IPython.utils import path
-from markdown import markdown
-import os
-import io
 
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
 
 class ConverterHTML(Converter):
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'html'
     blank_symbol = '&nbsp;'
 
@@ -102,7 +134,8 @@ class ConverterHTML(Converter):
             '<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n
         )
         lines.append('<div class="input_area box-flex1">')
-        lines.append(highlight(cell.input))
+        lines.append(highlight(cell.input) if self.highlight_source
+                     else cell.input)
         lines.append('</div>')  # input_area
         lines.append('</div>')  # input
 

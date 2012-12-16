@@ -1,7 +1,23 @@
-from __future__ import print_function, absolute_import
-from converters.utils import remove_fake_files_url
+"""Base classes for the notebook conversion pipeline.
 
-# Stdlib
+This module defines Converter, from which all objects designed to implement
+a conversion of IPython notebooks to some other format should inherit.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+from __future__ import print_function, absolute_import
+
+# Stdlib imports
 import codecs
 import io
 import logging
@@ -10,10 +26,16 @@ import pprint
 import re
 from types import FunctionType
 
-# From IPython
+# IPython imports
 from IPython.nbformat import current as nbformat
 
-# local
+# Our own imports
+from converters.utils import remove_fake_files_url
+
+
+#-----------------------------------------------------------------------------
+# Local utilities
+#-----------------------------------------------------------------------------
 
 def clean_filename(filename):
     """
@@ -33,10 +55,10 @@ def clean_filename(filename):
     filename = re.sub(r'[^a-zA-Z0-9_]', '_', filename)
     return filename
 
+
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
-
 
 class ConversionException(Exception):
     pass
@@ -74,33 +96,56 @@ class DocStringInheritor(type):
 
 class Converter(object):
     __metaclass__ = DocStringInheritor
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     default_encoding = 'utf-8'
     extension = str()
-    figures_counter = 0
-    infile = str()
-    infile_dir = str()
-    infile_root = str()
-    files_dir = str()
-    with_preamble = True
-    user_preamble = None
-    output = unicode()
-    raw_as_verbatim = False
     blank_symbol = " "
     # Which display data format is best? Subclasses can override if
     # they have specific requirements.
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
+    #-------------------------------------------------------------------------
+    # Instance-level attributes that are set in the constructor for this
+    # class.
+    #-------------------------------------------------------------------------
+    infile = str()
+    highlight_source = True
+    infile_dir = str()
+    infile_root = str()
+    clean_name = str()
+    files_dir = str()
+    outbase = str()
+    #-------------------------------------------------------------------------
+    # Instance-level attributes that are set by other methods in the base
+    # class.
+    #-------------------------------------------------------------------------
+    figures_counter = 0
+    output = unicode()
+    #-------------------------------------------------------------------------
+    # Instance-level attributes that are not actually mentioned further
+    # in this class. TODO: Could they be usefully moved to a subclass?
+    #-------------------------------------------------------------------------
+    with_preamble = True
+    user_preamble = None
+    raw_as_verbatim = False
 
-    def __init__(self, infile):
+    def __init__(self, infile, highlight_source=True):
+        # N.B. Initialized in the same order as defined above. Please try to
+        # keep in this way for readability's sake.
         self.infile = infile
+        self.highlight_source = highlight_source
         self.infile_dir, infile_root = os.path.split(infile)
-        infile_root = os.path.splitext(infile_root)[0]
-        self.clean_name = clean_filename(infile_root)
+        self.infile_root = os.path.splitext(infile_root)[0]
+        self.clean_name = clean_filename(self.infile_root)
+        # Handle the creation of a directory for ancillary files, for
+        # formats that need one.
         files_dir = os.path.join(self.infile_dir, self.clean_name + '_files')
         if not os.path.isdir(files_dir):
             os.mkdir(files_dir)
-        self.infile_root = infile_root
         self.files_dir = files_dir
-        self.outbase = os.path.join(self.infile_dir, infile_root)
+        self.outbase = os.path.join(self.infile_dir, self.infile_root)
 
     def __del__(self):
         if os.path.isdir(self.files_dir) and not os.listdir(self.files_dir):

@@ -1,15 +1,45 @@
-from converters.base import Converter
-from converters.utils import markdown2latex, remove_ansi
+"""Notebook export to LaTeX.
+
+This file implements a converter class for rendering IPython notebooks as
+LaTeX, suitable for rendering by pdflatex.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Stdlib imports
 import os
 import subprocess
 import sys
 
+# Our own imports
+from converters.base import Converter
+from converters.utils import markdown2latex, remove_ansi
+
+
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
+
+# XXX: This is a hack that needs to be addressed in a more principled fashion.
 inkscape = 'inkscape'
 if sys.platform == 'darwin':
     inkscape = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
     if not os.path.exists(inkscape):
         inkscape = None
 
+
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
 
 class ConverterLaTeX(Converter):
     """Converts a notebook to a .tex file suitable for pdflatex.
@@ -30,8 +60,13 @@ class ConverterLaTeX(Converter):
 
     (or set the equivalent flag at startup or in your configuration profile).
     """
-    inkscape = inkscape
+    #-------------------------------------------------------------------------
+    # Class-level attributes determining the behaviour of the class but
+    # probably not varying from instance to instance.
+    #-------------------------------------------------------------------------
     extension = 'tex'
+    # LaTeX specific class configuration.
+    inkscape = inkscape
     documentclass = 'article'
     documentclass_options = '11pt,english'
     heading_map = {1: r'\section',

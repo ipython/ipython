@@ -1,6 +1,31 @@
-from converters.html import ConverterHTML
+"""Notebook export in Blogger-aware HTML.
+
+This file contains `ConverterBloggerHTML`, a subclass of `ConverterHTML` that
+provides output suitable for easy pasting into a blog hosted on the Blogger
+platform. See the class docstring for more information.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2012, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
+# Stdlib imports
 import io
 
+# Our own imports
+from converters.html import ConverterHTML
+
+
+#-----------------------------------------------------------------------------
+# Classes declarations
+#-----------------------------------------------------------------------------
 
 class ConverterBloggerHTML(ConverterHTML):
     """Convert a notebook to html suitable for easy pasting into Blogger.
