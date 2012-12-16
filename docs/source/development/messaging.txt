@@ -670,8 +670,8 @@ Message type: ``connect_reply``::
     }
 
 
-Version
--------
+Kernel info
+-----------
 
 If a client needs to know what protocol the kernel supports, it can
 ask version number of the messaging protocol supported by the kernel.
@@ -679,12 +679,12 @@ This message can be used to fetch other core information of the
 kernel, including language (e.g., Python), language version number and
 IPython version number.
 
-Message type: ``version_request``::
+Message type: ``kernel_info_request``::
 
     content = {
     }
 
-Message type: ``version_reply``::
+Message type: ``kernel_info_reply``::
 
     content = {
         # Version of messaging protocol (mandatory).

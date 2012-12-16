@@ -161,7 +161,7 @@ class Kernel(Configurable):
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'history_request',
-                      'version_request',
+                      'kernel_info_request',
                       'connect_request', 'shutdown_request',
                       'apply_request',
                     ]
@@ -515,14 +515,14 @@ class Kernel(Configurable):
                                 content, parent, ident)
         self.log.debug("%s", msg)
 
-    def version_request(self, stream, ident, parent):
+    def kernel_info_request(self, stream, ident, parent):
         vinfo = {
             'protocol_version': protocol_version,
             'ipython_version': ipython_version,
             'language_version': language_version,
             'language': 'python',
         }
-        msg = self.session.send(stream, 'version_reply',
+        msg = self.session.send(stream, 'kernel_info_reply',
                                 vinfo, parent, ident)
         self.log.debug("%s", msg)
 
