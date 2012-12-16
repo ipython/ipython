@@ -66,7 +66,6 @@ class NbconvertApp(Application):
                     config=True,
                     help = 'list of cells to exclude while converting')
 
-    infile = Unicode("", config=True)
 
     converter = ConverterClass(infile, highlight_source=highlight_source, exclude=exclude)
     converter.render()
@@ -76,7 +75,6 @@ class NbconvertApp(Application):
             'format':'NbconvertApp.fmt',
             'highlight':'Converter.highlight_source',
             'preamble':'Converter.preamble',
-            'infile' : 'NbconvertApp.infile'
             }
 
     def __init__(self, **kwargs):

@@ -96,7 +96,6 @@ class DocStringInheritor(type):
         return type.__new__(meta, classname, bases, newClassDict)
 
 
-
 class Converter(Configurable):
     #__metaclass__ = DocStringInheritor
     #-------------------------------------------------------------------------
@@ -122,6 +121,10 @@ class Converter(Configurable):
     preamble = Unicode("" ,
                         config=True,
                         help="Path to a user-specified preamble file")
+    extract_figures = Bool( True,
+                            config=True,
+                            help="""extract base-64 encoded figures of the notebook into separate files,
+                                 replace by link to corresponding file in source.""")
 
     infile_dir = Unicode()
     infile_root = Unicode()
@@ -320,7 +323,8 @@ class Converter(Configurable):
                 raise RuntimeError('no display data')
 
         # Is it an image?
-        if fmt in ['png', 'svg', 'jpg', 'pdf']:
+        if fmt in ['png', 'svg', 'jpg', 'pdf'] and self.extract_figures:
+            print('I will extract this', fmt)
             img_file = self._new_figure(output[fmt], fmt)
             # Subclasses can have format-specific render functions (e.g.,
             # latex has to auto-convert all SVG to PDF first).
@@ -329,6 +333,7 @@ class Converter(Configurable):
                 lines_fun = self._img_lines
             lines = lines_fun(img_file)
         else:
+            print('I will NOT extract this', fmt)
             lines_fun = self.dispatch_display_format(fmt)
             lines = lines_fun(output)
 
