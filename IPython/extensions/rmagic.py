@@ -512,7 +512,7 @@ class RMagics(Magics):
         # execute the R code in a temporary directory
 
         tmpd = tempfile.mkdtemp()
-        self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd, png_args))
+        self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd.replace('\\', '/'), png_args))
 
         text_output = ''
         if line_mode:
