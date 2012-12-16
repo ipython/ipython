@@ -18,6 +18,7 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.lib import pretty
+from IPython.testing.decorators import skip_without
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -82,3 +83,12 @@ def test_callability_checking():
     expectedoutput = "Dummy1(...)"
 
     nt.assert_equal(gotoutput, expectedoutput)
+
+@skip_without('xxlimited')
+def test_pprint_heap_allocated_type():
+    """
+    Test that pprint works for heap allocated types.
+    """
+    import xxlimited
+    output = pretty.pretty(xxlimited.Null)
+    nt.assert_equal(output, 'xxlimited.Null')
