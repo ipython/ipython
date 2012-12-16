@@ -157,6 +157,7 @@ class Converter(Configurable):
         self.exclude_cells = exclude
         self.infile = infile
         if infile:
+            self.infile = infile
             self.infile_dir, infile_root = os.path.split(infile)
             self.infile_root = os.path.splitext(infile_root)[0]
             self.clean_name = clean_filename(self.infile_root)
@@ -327,7 +328,6 @@ class Converter(Configurable):
 
         # Is it an image?
         if fmt in ['png', 'svg', 'jpg', 'pdf'] and self.extract_figures:
-            print('I will extract this', fmt)
             img_file = self._new_figure(output[fmt], fmt)
             # Subclasses can have format-specific render functions (e.g.,
             # latex has to auto-convert all SVG to PDF first).
@@ -336,7 +336,6 @@ class Converter(Configurable):
                 lines_fun = self._img_lines
             lines = lines_fun(img_file)
         else:
-            print('I will NOT extract this', fmt)
             lines_fun = self.dispatch_display_format(fmt)
             lines = lines_fun(output)
 

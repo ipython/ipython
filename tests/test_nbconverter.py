@@ -17,9 +17,9 @@ def test_roundtrip():
     out2 = os.path.join(directory, outbase2)
     fname = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                          'test.ipynb')
-    converter = ConverterNotebook(fname, out1)
+    converter = ConverterNotebook(infile=fname, outbase=out1)
     converter.render()
-    converter2 = ConverterNotebook(out1 + '.ipynb', out2)
+    converter2 = ConverterNotebook(infile=out1 + '.ipynb', outbase=out2)
     converter2.render()
 
     with open(out1 + '.ipynb', 'rb') as f:
