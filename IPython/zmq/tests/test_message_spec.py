@@ -199,7 +199,7 @@ def Version(num, trait=Integer):
     return List(trait, default_value=[0] * num, minlen=num, maxlen=num)
 
 
-class VersionReply(Reference):
+class KernelInfoReply(Reference):
 
     protocol_version = Version(2)
     ipython_version = Version(4, Any)
@@ -255,7 +255,7 @@ references = {
     'object_info_reply' : OInfoReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
-    'version_reply': VersionReply(),
+    'kernel_info_reply': KernelInfoReply(),
     'pyin' : PyIn(),
     'pyout' : PyOut(),
     'pyerr' : PyErr(),
@@ -455,14 +455,14 @@ def test_complete():
 
 
 @dec.parametric
-def test_version_request():
+def test_kernel_info_request():
     flush_channels()
 
     shell = KM.shell_channel
 
     msg_id = shell.version()
     reply = shell.get_msg(timeout=2)
-    for tst in validate_message(reply, 'version_reply', msg_id):
+    for tst in validate_message(reply, 'kernel_info_reply', msg_id):
         yield tst
 
 
