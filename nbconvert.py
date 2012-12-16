@@ -47,6 +47,7 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
 
+    name = Unicode('thisIsNbconvertApp',config=True)
 
 def main(infile, format='rst', preamble=None, exclude=None):
     """Convert a notebook to html in one step"""
@@ -55,6 +56,14 @@ def main(infile, format='rst', preamble=None, exclude=None):
     except KeyError:
         raise SystemExit("Unknown format '%s', " % format +
                          "known formats are: " + known_formats)
+
+    preamble = Unicode("" ,
+                        config=True,
+                        help="Path to a user-specified preamble file")
+
+    highlight = Bool(True, 
+                     config=True,
+                     help="Enable syntax highlighting for code blocks.")
 
     converter = ConverterClass(infile)
     converter.render()
@@ -147,13 +156,12 @@ if __name__ == '__main__':
     #                    default=sys.stdin)
 
     #Require a filename as a positional argument
-    parser.add_argument('infile', nargs=1)
-    parser.add_argument('-f', '--format', default='rst',
-                        help='Output format. Supported formats: \n' +
-                        known_formats)
-    parser.add_argument('-p', '--preamble',
-                        help='Path to a user-specified preamble file')
-    parser.add_argument('-e', '--exclude', default='',
-                        help='Comma-separated list of cells to exclude')
+    #parser.add_argument('infile', nargs=1)
+    #parser.add_argument('-e', '--exclude', default='',
+    #                    help='Comma-separated list of cells to exclude')
+    #parser.add_argument('-H', '--no-highlighting', action='store_false',
+    #                    help='Disable syntax highlighting for code blocks.')
+    #args = parser.parse_args()
+    #exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
     main()
