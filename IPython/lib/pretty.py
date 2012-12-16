@@ -604,10 +604,16 @@ def _re_pattern_pprint(obj, p, cycle):
 
 def _type_pprint(obj, p, cycle):
     """The pprint for classes and types."""
-    if obj.__module__ in ('__builtin__', 'exceptions'):
+    try:
+        mod = obj.__module__
+    except AttributeError:
+        # Heap allocated types might not have the module attribute.
+        return p.text(obj.__name__)
+
+    if mod in ('__builtin__', 'exceptions'):
         name = obj.__name__
     else:
-        name = obj.__module__ + '.' + obj.__name__
+        name = mod + '.' + obj.__name__
     p.text(name)
 
 
