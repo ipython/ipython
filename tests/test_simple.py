@@ -1,4 +1,4 @@
-from nbconvert import main, converters
+from nbconvert import main, converters , NbconvertApp
 from converters.rst import ConverterRST
 import nose.tools as nt
 
@@ -26,11 +26,13 @@ class TestSimple(object):
 
     def outfile_exists(self, fmt):
         extension = converters[fmt].extension
+        print("==out to ==>>",os.path.join(self.wrkdir,
+                                           self.basename + '.' + extension))
         return os.path.exists(os.path.join(self.wrkdir,
                                            self.basename + '.' + extension))
 
     def test_simple(self):
-        c = ConverterRST(self.infile)
+        c = ConverterRST(infile=self.infile)
         f = c.render()
         nt.assert_true(f.endswith('.rst'), 'changed file extension to rst')
 
@@ -39,7 +41,13 @@ class TestSimple(object):
         Run the 'main' method to convert the input file to the given
         format and check that the expected output file exists.
         """
-        main(self.infile, format=fmt)
+        app = NbconvertApp.instance()
+        app.initialize()
+        app.extra_args = [self.infile]
+        app.fmt = fmt
+        app.start()
+
+        app.run()
         nt.assert_true(self.outfile_exists(fmt))
 
     def test_main(self):
@@ -77,7 +85,7 @@ class TestSimple(object):
                 cell_nb.source = '\n'.join(cell_nb.source)
 
             # Render to rst
-            c = ConverterRST('')
+            c = ConverterRST()
             rst_list = c.render_heading(cell_nb)
 
             # render should return a list

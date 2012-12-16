@@ -108,7 +108,8 @@ class NbconvertApp(Application):
     def run(self):
         """Convert a notebook to html in one step"""
         ConverterClass = converters[self.fmt]
-        converter = ConverterClass(infile=self.extra_args[0],  config=self.config)
+        infile = (self.extra_args or [None])[0]
+        converter = ConverterClass(infile=infile,  config=self.config)
         converter.render()
 
 def main():

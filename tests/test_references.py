@@ -50,7 +50,7 @@ def compfiles(stra, strb):
 
 @nottest
 def test_conversion(ConverterClass, ipynb, ref_file):
-    converter = ConverterClass(ipynb)
+    converter = ConverterClass(infile=ipynb)
     converter.read()
     cv = converter.convert()
     with io.open(ref_file) as ref:
