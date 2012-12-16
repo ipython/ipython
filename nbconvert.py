@@ -17,7 +17,7 @@ from IPython.external import argparse
 
 # All the stuff needed for the configurable things
 from IPython.config.application import Application, catch_config_error
-from IPython.config.configurable import Configurable
+from IPython.config.configurable import Configurable, SingletonConfigurable
 from IPython.config.loader import Config, ConfigFileNotFound
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
 
@@ -29,6 +29,7 @@ from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
 from converters.python import ConverterPy
+from converters.base import Converter
 
 
 # When adding a new format, make sure to add it to the `converters`
@@ -53,20 +54,11 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
 
 class NbconvertApp(Application):
 
-    name = Unicode('thisIsNbconvertApp',config=True)
 
     fmt = CaselessStrEnum(converters.keys(),
-                          default_value='rst', 
+                          default_value='rst',
                           config=True,
                           help="Supported conversion format")
-
-    preamble = Unicode("" ,
-                        config=True,
-                        help="Path to a user-specified preamble file")
-
-    highlight = Bool(True, 
-                     config=True,
-                     help="Enable syntax highlighting for code blocks.")
 
     exclude = List( [],
                     config=True,
@@ -80,19 +72,25 @@ class NbconvertApp(Application):
 
     aliases = {
             'format':'NbconvertApp.fmt',
-            'highlight':'NbconvertApp.highlight',
-            'preamble':'NbconvertApp.preamble',
+            'highlight':'Converter.highlight_source',
+            'preamble':'Converter.preamble',
             'infile' : 'NbconvertApp.infile'
             }
 
     def __init__(self, **kwargs):
         super(NbconvertApp, self).__init__(**kwargs)
+        # ensure those are registerd
+        self.classes.insert(0,Converter)
+        self.classes.insert(0,ConverterRST)
+        self.classes.insert(0,ConverterMarkdown)
+        self.classes.insert(0,ConverterBloggerHTML)
+        self.classes.insert(0,ConverterLaTeX)
+        self.classes.insert(0,ConverterPy)
 
     def initialize(self, argv=None):
         # don't hook up crash handler before parsing command-line
         self.parse_command_line(argv)
         cl_config = self.config
-        print(self.config)
         self.update_config(cl_config)
         #self.init_crash_handler()
         #self.foo = Cnf(config=self.config)
@@ -110,14 +108,13 @@ class NbconvertApp(Application):
     def run(self):
         """Convert a notebook to html in one step"""
         ConverterClass = converters[self.fmt]
-
-        converter = ConverterClass(self.infile, highlight_source=self.highlight, preamble=self.preamble, exclude=self.exclude)
+        converter = ConverterClass(infile=self.extra_args[0],  config=self.config)
         converter.render()
 
 def main():
     """Convert a notebook to html in one step"""
     app = NbconvertApp.instance()
-    print(app.classes)
+    app.description = __doc__
     app.initialize()
     app.start()
     app.run()
@@ -126,20 +123,13 @@ def main():
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    #parser = argparse.ArgumentParser(description=__doc__,
-    #        formatter_class=argparse.RawTextHelpFormatter)
     # TODO: consider passing file like object around, rather than filenames
     # would allow us to process stdin, or even http streams
     #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
     #                    default=sys.stdin)
 
-    #Require a filename as a positional argument
-    #parser.add_argument('infile', nargs=1)
     #parser.add_argument('-e', '--exclude', default='',
     #                    help='Comma-separated list of cells to exclude')
-    #parser.add_argument('-H', '--no-highlighting', action='store_false',
-    #                    help='Disable syntax highlighting for code blocks.')
-    #args = parser.parse_args()
     #exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
     main()

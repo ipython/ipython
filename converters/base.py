@@ -28,6 +28,8 @@ from types import FunctionType
 
 # IPython imports
 from IPython.nbformat import current as nbformat
+from IPython.config.configurable import Configurable, SingletonConfigurable
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
 
 # Our own imports
 from .utils import remove_fake_files_url
@@ -94,8 +96,9 @@ class DocStringInheritor(type):
         return type.__new__(meta, classname, bases, newClassDict)
 
 
-class Converter(object):
-    __metaclass__ = DocStringInheritor
+
+class Converter(Configurable):
+    #__metaclass__ = DocStringInheritor
     #-------------------------------------------------------------------------
     # Class-level attributes determining the behaviour of the class but
     # probably not varying from instance to instance.
@@ -110,33 +113,44 @@ class Converter(object):
     # Instance-level attributes that are set in the constructor for this
     # class.
     #-------------------------------------------------------------------------
-    infile = str()
-    highlight_source = True
-    infile_dir = str()
-    infile_root = str()
-    clean_name = str()
-    files_dir = str()
-    outbase = str()
+    infile = Unicode()
+
+    highlight_source = Bool(True,
+                     config=True,
+                     help="Enable syntax highlighting for code blocks.")
+
+    preamble = Unicode("" ,
+                        config=True,
+                        help="Path to a user-specified preamble file")
+
+    infile_dir = Unicode()
+    infile_root = Unicode()
+    clean_name = Unicode()
+    files_dir = Unicode()
+    outbase = Unicode()
     #-------------------------------------------------------------------------
     # Instance-level attributes that are set by other methods in the base
     # class.
     #-------------------------------------------------------------------------
     figures_counter = 0
-    output = unicode()
+    output = Unicode()
     #-------------------------------------------------------------------------
     # Instance-level attributes that are not actually mentioned further
     # in this class. TODO: Could they be usefully moved to a subclass?
     #-------------------------------------------------------------------------
-    with_preamble = True
+    with_preamble = Bool(True,config=True)
     user_preamble = None
     raw_as_verbatim = False
 
-    def __init__(self, infile, highlight_source=True, exclude=[],  **kw):
+
+    def __init__(self, infile=None, config=None, exclude=[] **kw):
+        super(Converter,self).__init__(config=config)
+
+        #DocStringInheritor.__init__(self=config)
         # N.B. Initialized in the same order as defined above. Please try to
         # keep in this way for readability's sake.
         self.exclude_cells = exclude
         self.infile = infile
-        self.highlight_source = highlight_source
         self.infile_dir, infile_root = os.path.split(infile)
         self.infile_root = os.path.splitext(infile_root)[0]
         self.clean_name = clean_filename(self.infile_root)
