@@ -84,4 +84,4 @@ if __name__ == '__main__':
     exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
     main(infile=args.infile[0], format=args.format, preamble=args.preamble,
-         exclude=exclude_cells, highlight_code=args.no_highlighting)
+         exclude=exclude_cells, highlight_source=args.no_highlighting)
