@@ -29,7 +29,8 @@ from types import FunctionType
 # IPython imports
 from IPython.nbformat import current as nbformat
 from IPython.config.configurable import Configurable, SingletonConfigurable
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
+from IPython.utils.traitlets import (List, Unicode, Type, Bool, Dict, CaselessStrEnum,
+                                    Any)
 
 # Our own imports
 from .utils import remove_fake_files_url
@@ -112,15 +113,16 @@ class Converter(Configurable):
     # Instance-level attributes that are set in the constructor for this
     # class.
     #-------------------------------------------------------------------------
-    infile = Unicode()
+    infile = Any()
 
     highlight_source = Bool(True,
                      config=True,
                      help="Enable syntax highlighting for code blocks.")
 
-    preamble = Unicode("" ,
+    preamble = Unicode( "" ,
                         config=True,
                         help="Path to a user-specified preamble file")
+
     extract_figures = Bool( True,
                             config=True,
                             help="""extract base-64 encoded figures of the notebook into separate files,
@@ -154,16 +156,17 @@ class Converter(Configurable):
         # keep in this way for readability's sake.
         self.exclude_cells = exclude
         self.infile = infile
-        self.infile_dir, infile_root = os.path.split(infile)
-        self.infile_root = os.path.splitext(infile_root)[0]
-        self.clean_name = clean_filename(self.infile_root)
-        # Handle the creation of a directory for ancillary files, for
-        # formats that need one.
-        files_dir = os.path.join(self.infile_dir, self.clean_name + '_files')
-        if not os.path.isdir(files_dir):
-            os.mkdir(files_dir)
-        self.files_dir = files_dir
-        self.outbase = os.path.join(self.infile_dir, self.infile_root)
+        if infile:
+            self.infile_dir, infile_root = os.path.split(infile)
+            self.infile_root = os.path.splitext(infile_root)[0]
+            self.clean_name = clean_filename(self.infile_root)
+            # Handle the creation of a directory for ancillary files, for
+            # formats that need one.
+            files_dir = os.path.join(self.infile_dir, self.clean_name + '_files')
+            if not os.path.isdir(files_dir):
+                os.mkdir(files_dir)
+            self.files_dir = files_dir
+            self.outbase = os.path.join(self.infile_dir, self.infile_root)
 
     def __del__(self):
         if os.path.isdir(self.files_dir) and not os.listdir(self.files_dir):
