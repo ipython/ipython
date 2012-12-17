@@ -1,6 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Cython related magics.
+=====================
+Cython related magics
+=====================
+
+Usage
+=====
+
+``%%cython``
+
+{CYTHON_DOC}
+
+``%%cython_inline``
+
+{CYTHON_INLINE_DOC}
+
+``%%cython_pyximport``
+
+{CYTHON_PYXIMPORT_DOC}
 
 Author:
 * Brian Granger
@@ -273,6 +290,11 @@ class CythonMagics(Magics):
         html = '\n'.join(l for l in html.splitlines() if not r.match(l))
         return html
 
+__doc__ = __doc__.format(
+                CYTHON_DOC = ' '*8 + CythonMagics.cython.__doc__,
+                CYTHON_INLINE_DOC = ' '*8 + CythonMagics.cython_inline.__doc__,
+                CYTHON_PYXIMPORT_DOC = ' '*8 + CythonMagics.cython_pyximport.__doc__,
+)
 
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
