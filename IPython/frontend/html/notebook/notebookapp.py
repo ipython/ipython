@@ -169,6 +169,8 @@ class NotebookWebApplication(web.Application):
             cookie_name='username-%s' % uuid.uuid4(),
         )
 
+        additional_handlers = settings_overrides.pop("handlers", [])
+
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
 
@@ -178,6 +180,11 @@ class NotebookWebApplication(web.Application):
             pattern = url_path_join(base_project_url, handler[0])
             new_handler = tuple([pattern]+list(handler[1:]))
             new_handlers.append( new_handler )
+
+        new_handlers += [
+            (a[0], import_item(a[1])) + tuple(a[2:])
+            for a in additional_handlers
+        ]
 
         super(NotebookWebApplication, self).__init__(new_handlers, **settings)
 
