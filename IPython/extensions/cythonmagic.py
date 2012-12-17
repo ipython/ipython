@@ -158,9 +158,15 @@ class CythonMagics(Magics):
         namespace. The usage is similar to that of `%%cython_pyximport` but
         you don't have to pass a module name::
 
-        %%cython
-        def f(x):
-            return 2.0*x
+            %%cython
+            def f(x):
+                return 2.0*x
+
+        To compile OpenMP codes, pass the required  `--compile-args`
+        and `--link-args`.  For example with gcc::
+
+            %%cython --compile-args=-fopenmp --link-args=-fopenmp
+            ...
         """
         args = magic_arguments.parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
