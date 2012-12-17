@@ -458,7 +458,7 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _edit(self, filename, line=None):
+    def _edit(self, filename, line=None, editor_template=None):
         """ Opens a Python script for editing.
 
         Parameters:
@@ -469,18 +469,28 @@ class IPythonWidget(FrontendWidget):
         line : int, optional
             A line of interest in the file.
         """
+
+        # this is a template sent by the kernel, which overrides
+        # what we might have configured here
+        if editor_template:
+            self.editor_line = editor_template
+
         if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
-        elif not self.editor:
+        elif (not self.editor and not self.editor_line):
             self._append_plain_text('No default editor available.\n'
             'Specify a GUI text editor in the `IPythonWidget.editor` '
-            'configurable to enable the %edit magic')
+            'configurable, or by calling one of the `IPython.lib.editorhooks` '
+            'to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
                 if line and self.editor_line:
                     command = self.editor_line.format(filename=filename,
                                                       line=line)
+                elif not line and self.editor_line:
+                    command = self.editor_line.format(filename=filename,
+                                                      line=0)
                 else:
                     try:
                         command = self.editor.format()
@@ -529,7 +539,7 @@ class IPythonWidget(FrontendWidget):
     # arguments.
 
     def _handle_payload_edit(self, item):
-        self._edit(item['filename'], item['line_number'])
+        self._edit(item['filename'], item['line_number'], item['editor_template'])
 
     def _handle_payload_exit(self, item):
         self._keep_kernel_on_exit = item['keepkernel']

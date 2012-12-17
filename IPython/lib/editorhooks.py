@@ -22,7 +22,7 @@ def install_editor(template, wait=False):
     ----------
     template : basestring
         run_template acts as a template for how your editor is invoked by
-        the shell. It should contain '{file}', which will be replaced on
+        the shell. It should contain '{filename}', which will be replaced on
         invokation with the file name, and '{line}', $line by line number
         (or 0) to invoke the file with.
     wait : bool
@@ -39,44 +39,44 @@ def install_editor(template, wait=False):
     #            run_template)))
 
 
-    def call_editor(self, file, line=0):
+    def call_editor(self, filename, line=0):
         if line is None:
             line = 0
-        cmd = template.format(file=file, line=line)
+        cmd = template.format(filename=filename, line=line)
         print ">", cmd
-        if os.system(cmd) != 0:
+        proc = subprocess.Popen(cmd, shell=True)
+        if wait and proc.wait() != 0:
             raise TryNext()
         if wait:
             raw_input("Press Enter when done editing:")
 
     get_ipython().set_hook('editor', call_editor)
-    ipython_widget.IPythonWidget.editor = template
+    get_ipython().editor = template
+
 
 # in these, exe is always the path/name of the executable. Useful
 # if you don't have the editor directory in your path
-
-
-def komodo(exe='komodo'):
+def komodo(exe=u'komodo'):
     """ Activestate Komodo [Edit] """
-    install_editor(exe + ' -l {line} "{file}"', wait=True)
+    install_editor(exe + u' -l {line} "{filename}"', wait=True)
 
 
-def scite(exe="scite"):
+def scite(exe=u"scite"):
     """ SciTE or Sc1 """
-    install_editor(exe + ' "{file}" -goto:{line}')
+    install_editor(exe + u' "{filename}" -goto:{line}')
 
 
-def notepadplusplus(exe='notepad++'):
+def notepadplusplus(exe=u'notepad++'):
     """ Notepad++ http://notepad-plus.sourceforge.net """
-    install_editor(exe + ' -n{line} "{file}"')
+    install_editor(exe + u' -n{line} "{filename}"')
 
 
-def jed(exe='jed'):
+def jed(exe=u'jed'):
     """ JED, the lightweight emacsish editor """
-    install_editor(exe + ' +{line} "{file}"')
+    install_editor(exe + u' +{line} "{filename}"')
 
 
-def idle(exe='idle'):
+def idle(exe=u'idle'):
     """ Idle, the editor bundled with python
 
     Parameters
@@ -86,17 +86,17 @@ def idle(exe='idle'):
     """
     if exe is None:
         import idlelib
-        p = os.path.dirname(idlelib.__file__)
+        p = os.path.dirname(idlelib.__filename__)
         # i'm not sure if this actually works. Is this idle.py script guarenteed
         # to be executable?
         exe = os.path.join(p, 'idle.py')
-    install_editor(exe + ' "{file}"')
+    install_editor(exe + u' "{filename}"')
 
 
-def mate(exe='mate'):
+def mate(exe=u'mate'):
     """ TextMate, the missing editor"""
     # wait=True is not required since we're using the -w flag to mate
-    install_editor(exe + ' -w -l {line} "{file}"')
+    install_editor(exe + u' -w -l {line} "{filename}"')
 
 
 # ##########################################
@@ -104,17 +104,17 @@ def mate(exe='mate'):
 # ##########################################
 
 
-def emacs(exe='emacs'):
-    install_editor(exe + ' +{line} "{file}"')
+def emacs(exe=u'emacs'):
+    install_editor(exe + u' +{line} "{filename}"')
 
 
-def gnuclient(exe='gnuclient'):
-    install_editor(exe + ' -nw +{line} "{file}"')
+def gnuclient(exe=u'gnuclient'):
+    install_editor(exe + u' -nw +{line} "{filename}"')
 
 
-def crimson_editor(exe='cedt.exe'):
-    install_editor(exe + ' /L:{line} "{file}"')
+def crimson_editor(exe=u'cedt.exe'):
+    install_editor(exe + u' /L:{line} "{filename}"')
 
 
-def kate(exe='kate'):
-    install_editor(exe + ' -u -l {line} "{file}"')
+def kate(exe=u'kate'):
+    install_editor(exe + u' -u -l {line} "{filename}"')
