@@ -748,10 +748,10 @@ class IPCompleter(Completer):
             iter_function_chain = iter(function_chain[:-1])
             while 1:
                 try:
-                    token = iter_function_chain.next()
+                    token = next(iter_function_chain)
                     if token == '(':
                         # skip ahead to matching close parentheses
-                        while iter_function_chain.next() != ')':
+                        while next(iter_function_chain) != ')':
                             pass
                         # and now resolve the return type of the function using
                         # its tab completion annotation
@@ -759,7 +759,7 @@ class IPCompleter(Completer):
                     elif token == '.':
                         # attribute access on a dot -- do a getattr
                         # call on the next token w.r.t. base
-                        obj = getattr(obj, iter_function_chain.next())
+                        obj = getattr(obj, next(iter_function_chain))
                     elif obj is None:
                         # if none of the above, but base is None, then we
                         # need to eval it
