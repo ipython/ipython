@@ -29,6 +29,7 @@ import time
 import uuid
 import os
 
+import tornado
 from tornado import web
 from tornado import websocket
 
@@ -225,7 +226,7 @@ class LoginHandler(AuthenticatedHandler):
     def _render(self, message=None):        
         template = self.application.jinja2_env.get_template('login.html')
         self.write( template.render(
-                next=self.get_argument('next', default=self.application.ipython_app.base_project_url),
+                next=tornado.escape.url_escape(self.get_argument('next', default=self.application.ipython_app.base_project_url)),
                 read_only=self.read_only,
                 logged_in=self.logged_in,
                 login_available=self.login_available,
