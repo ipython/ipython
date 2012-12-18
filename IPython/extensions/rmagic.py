@@ -178,8 +178,9 @@ class RMagics(Magics):
         return value
 
     @skip_doctest
+    @needs_local_scope
     @line_magic
-    def Rpush(self, line):
+    def Rpush(self, line, local_ns=None):
         '''
         A line-level magic for R that pushes
         variables from python to rpy2. The line should be made up
@@ -199,10 +200,16 @@ class RMagics(Magics):
             Out[11]: array([ 6.23333333])
 
         '''
+        if local_ns is None:
+            local_ns = {}
 
         inputs = line.split(' ')
         for input in inputs:
-            self.r.assign(input, self.pyconverter(self.shell.user_ns[input]))
+            try:
+                val = local_ns[input]
+            except KeyError:
+                val = self.shell.user_ns[input]
+            self.r.assign(input, self.pyconverter(val))
 
     @skip_doctest
     @magic_arguments()
