@@ -162,6 +162,7 @@ have['sqlite3'] = test_for('sqlite3')
 have['cython'] = test_for('Cython')
 have['oct2py'] = test_for('oct2py')
 have['tornado'] = test_for('tornado.version_info', (2,1,0), callback=None)
+have['jinja2'] = test_for('jinja2')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
@@ -299,6 +300,9 @@ def make_exclude():
 
     if not have['tornado']:
         exclusions.append(ipjoin('frontend', 'html'))
+
+    if not have['jinja2']:
+        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'notebookapp'))
 
     if not have['rpy2'] or not have['numpy']:
         exclusions.append(ipjoin('extensions', 'rmagic'))
