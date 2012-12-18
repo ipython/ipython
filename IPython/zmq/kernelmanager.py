@@ -363,8 +363,8 @@ class ShellSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
-    def version(self):
-        """Request kernel version info."""
+    def kernel_info(self):
+        """Request kernel info."""
         msg = self.session.msg('kernel_info_request')
         self._queue_send(msg)
         return msg['header']['msg_id']
