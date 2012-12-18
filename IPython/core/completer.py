@@ -76,6 +76,7 @@ import os
 import re
 import shlex
 import sys
+import collections
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -85,6 +86,8 @@ from IPython.utils import io
 from IPython.utils.dir2 import dir2
 from IPython.utils.process import arg_split
 from IPython.utils.traitlets import CBool, Enum
+from IPython.utils.tokens import (tokenize, last_open_identifier,
+    last_function_chain, cursor_argument)
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -245,7 +248,7 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     )
-    
+
 
     def __init__(self, namespace=None, global_namespace=None, config=None, **kwargs):
         """Create a new completer for the command line.
@@ -340,7 +343,7 @@ class Completer(Configurable):
         #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
         m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
-    
+
         if m:
             expr, attr = m.group(1, 3)
         elif self.greedy:
@@ -350,7 +353,7 @@ class Completer(Configurable):
             expr, attr = m2.group(1,2)
         else:
             return []
-    
+
         try:
             obj = eval(expr, self.namespace)
         except:
@@ -361,7 +364,7 @@ class Completer(Configurable):
 
         if self.limit_to__all__ and hasattr(obj, '__all__'):
             words = get__all__entries(obj)
-        else: 
+        else:
             words = dir2(obj)
 
         try:
@@ -384,7 +387,7 @@ def get__all__entries(obj):
         words = getattr(obj, '__all__')
     except:
         return []
-    
+
     return [w for w in words if isinstance(w, basestring)]
 
 
@@ -400,34 +403,34 @@ class IPCompleter(Completer):
 
         if self.readline:
             self.readline.set_completer_delims(self.splitter.delims)
-    
+
     merge_completions = CBool(True, config=True,
         help="""Whether to merge completion results into a single list
-        
+
         If False, only the completion results from the first non-empty
         completer will be returned.
         """
     )
     omit__names = Enum((0,1,2), default_value=2, config=True,
         help="""Instruct the completer to omit private method names
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When 2 [default]: all names that start with '_' will be excluded.
-        
+
         When 1: all 'magic' names (``__foo__``) will be excluded.
-        
+
         When 0: nothing will be excluded.
         """
     )
     limit_to__all__ = CBool(default_value=False, config=True,
         help="""Instruct the completer to use __all__ for the completion
-        
+
         Specifically, when completing on ``object.<tab>``.
-        
+
         When True: only those names in obj.__all__ will be included.
-        
-        When False [default]: the __all__ attribute is ignored 
+
+        When False [default]: the __all__ attribute is ignored
         """
     )
 
@@ -497,12 +500,13 @@ class IPCompleter(Completer):
             self.clean_glob = self._clean_glob
 
         # All active matcher routines for completion
-        self.matchers = [self.python_matches,
+        self.matchers = [self.annotations_argmatches,
+                         self.python_matches,
                          self.file_matches,
                          self.magic_matches,
                          self.alias_matches,
                          self.python_func_kw_matches,
-                         ]
+                        ]
 
     def all_completions(self, text):
         """
@@ -545,6 +549,12 @@ class IPCompleter(Completer):
             text_prefix = ''
 
         text_until_cursor = self.text_until_cursor
+        text_before_split = text_until_cursor[:text_until_cursor.rindex(text)]
+        if text.startswith('.') and text_before_split.endswith(')'):
+            # RTM addition to not show file completion on f().<TAB>
+            # even though text == '.'
+            return []
+
         # track strings with open quotes
         open_quotes = has_open_quotes(text_until_cursor)
 
@@ -611,7 +621,7 @@ class IPCompleter(Completer):
         cell_magics = lsm['cell']
         pre = self.magic_escape
         pre2 = pre+pre
-        
+
         # Completion logic:
         # - user gives %%: only do cell magics
         # - user gives %: do both line and cell magics
@@ -641,7 +651,7 @@ class IPCompleter(Completer):
 
     def python_matches(self,text):
         """Match attributes or global python names"""
-        
+
         #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
         if "." in text:
             try:
@@ -684,64 +694,215 @@ class IPCompleter(Completer):
         except TypeError: pass
         return []
 
-    def python_func_kw_matches(self,text):
+    def python_func_kw_matches(self, text):
         """Match named parameters (kwargs) of the last open function"""
 
         if "." in text: # a parameter cannot be dotted
             return []
-        try: regexp = self.__funcParamsRegex
-        except AttributeError:
-            regexp = self.__funcParamsRegex = re.compile(r'''
-                '.*?(?<!\\)' |    # single quoted strings or
-                ".*?(?<!\\)" |    # double quoted strings or
-                \w+          |    # identifier
-                \S                # other characters
-                ''', re.VERBOSE | re.DOTALL)
-        # 1. find the nearest identifier that comes before an unclosed
-        # parenthesis before the cursor
-        # e.g. for "foo (1+bar(x), pa<cursor>,a=1)", the candidate is "foo"
-        tokens = regexp.findall(self.text_until_cursor)
-        tokens.reverse()
-        iterTokens = iter(tokens); openPar = 0
-        for token in iterTokens:
-            if token == ')':
-                openPar -= 1
-            elif token == '(':
-                openPar += 1
-                if openPar > 0:
-                    # found the last unclosed parenthesis
-                    break
-        else:
+
+        try:
+            ids = last_open_identifier(self.tokens)[0]
+        except ValueError:
             return []
-        # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
-        ids = []
-        isId = re.compile(r'\w+$').match
-        while True:
-            try:
-                ids.append(next(iterTokens))
-                if not isId(ids[-1]):
-                    ids.pop(); break
-                if not next(iterTokens) == '.':
-                    break
-            except StopIteration:
-                break
-        # lookup the candidate callable matches either using global_matches
-        # or attr_matches for dotted names
+
         if len(ids) == 1:
             callableMatches = self.global_matches(ids[0])
         else:
-            callableMatches = self.attr_matches('.'.join(ids[::-1]))
+            callableMatches = self.attr_matches('.'.join(ids))
+
         argMatches = []
         for callableMatch in callableMatches:
             try:
                 namedArgs = self._default_arguments(eval(callableMatch,
-                                                         self.namespace))
+                    self.namespace))
             except:
                 continue
+
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
         return argMatches
+
+    def attr_matches(self, text):
+        """"Enhanced attr_matches that, even if not in greedy mode, can to some
+        static type guessing based on return value annotations
+        """
+        # attributes must have a dot in them
+        if not '.' in text:
+            return []
+
+        # in greedy mode, there's no reason to check return value
+        # annotations since we just execute the functions
+        if self.greedy:
+            return super(IPCompleter, self).attr_matches(text)
+
+        # rmcgibbo
+        function_chain = last_function_chain(self.tokens)
+
+        # resolve the final type of the function chain using gettattr and
+        # return annoations
+        try:
+            obj = None
+            iter_function_chain = iter(function_chain)
+            while 1:
+                try:
+                    token = iter_function_chain.next()
+                    if token == '(':
+                        # skip ahead to matching close parentheses
+                        while iter_function_chain.next() != ')':
+                            pass
+                        # and now resolve the return type of the function using
+                        # its tab completion annotation
+                        obj = obj._tab_completions['return']
+                    elif token == '.':
+                        # attribute access on a dot -- do a getattr
+                        # call on the next token w.r.t. base
+                        obj = getattr(obj, iter_function_chain.next())
+                    elif obj is None:
+                        # if none of the above, but base is None, then we
+                        # need to eval it
+                        obj = eval(token, self.namespace)
+                    else:
+                        # if we're falling through to this, it's bad news bears
+                        raise RuntimeError(token)
+                except StopIteration:
+                    break
+        except AttributeError as e:
+            return []
+
+        # `text` only gives the part of the line after the last close parens
+        # which is not enough to resolve function types, but is necessary
+        # for properly formatting the return to readline
+        m = re.match(r"(\S*(\.\w+)*)\.(\w*)$", text)
+        if m:
+            readline_base, attr = m.group(1, 3)
+        else:
+            return []
+
+        # respect configuration options
+        if self.limit_to__all__ and hasattr(obj, '__all__'):
+            words = get__all__entries(obj)
+        else:
+            words = dir2(obj)
+
+        # hack, because obj is the class (not an instance), but nobody
+        # wants to see the mro
+        if 'mro' in words:
+            words.remove('mro')
+
+        try:
+            words = generics.complete_object(obj, words)
+        except TryNext:
+            pass
+        except Exception:
+            # Silence errors from completion function
+            #raise # dbg
+            pass
+
+        # Build match list to return
+        n = len(attr)
+        res = ['%s.%s' % (readline_base, w) for w in words if w[:n] == attr]
+
+        return res
+
+
+    def annotations_argmatches(self, text):
+        """Function specific matches based on the arguments of that function.
+        For example, np.load(<tab> might only show files that match some glob
+        pattern.
+
+        Note that if this sucessfully matches, it will be the only set of
+        matches shown to the user. This behavior overrides the
+        merge_completions config variable. This behavior is set by the attribute
+        `exclusive_completions = True` which is set after the function. See
+        extensions/annotations.py for the user-facing code to hook into this
+        system
+
+        Parameters
+        ----------
+        text : str
+            This argument is not used by this function, because we need to do
+            most of the tokenizing and lexing custom.
+
+        Returns
+        -------
+        matches : list
+            A list of strings to be displayed to the user via readline as
+            possible tab completions. These completions are function/argument
+            specific, and their appearance is based on decorators applied to the
+            functions that annotate specific function arguments with possible
+            tab completions.
+        """
+
+        try:
+            ids, post_tokens = last_open_identifier(self.tokens)
+        except ValueError:
+            return []
+
+        def match_object(obj_name):
+            "Find an object by name using eval -- need exact match"
+            try:
+                return eval(obj_name, self.namespace)
+            except:
+                try:
+                    return eval(obj_name, self.global_namespace)
+                except:
+                    return None
+
+        if len(ids) >= 1:
+            try:
+                obj = match_object('.'.join(ids))
+                # bit of a hack to tab complete on the __init__ for classes
+                if inspect.isclass(obj):
+                    obj = obj.__init__
+
+                annotations = obj._tab_completions
+                argname = cursor_argument(post_tokens, obj)
+            except (AttributeError, TypeError, IndexError) as e:
+                # the attribute error comes from obj not having an
+                # __tab_completions__, the typeerror comes from it
+                # potentially not being inspect.argspec-able
+                # the indexerror comes if the user is trying to enter
+                # the nth argument for a function that takes less than
+                # n arguments
+                #raise
+                return []
+        else:
+            # something wierd happened. this can happen for instance if the
+            # line is f((<TAB>
+            return []
+
+        try:
+            attr = annotations[argname]
+        except KeyError:
+            # this indicates that the __annotations__ is malformed
+            return []
+
+        # make the event namedtuple for the callback
+        if not hasattr(self, '__func_argcomplete_Event'):
+            # create the namedtuple type, and stash it in self
+            self.__func_argcomplete_Event = collections.namedtuple('Event',
+                ['text', 'tokens', 'line', 'ipcompleter'])
+        event = self.__func_argcomplete_Event(text=self.tokens[-1],
+            tokens=self.tokens, line=self.text_until_cursor,
+            ipcompleter=self)
+
+        matches = []
+        if hasattr(attr, 'tab_matches'):
+            m = attr.tab_matches(event)
+            matches.extend(m)
+        elif hasattr(attr, '__iter__'):
+            for item in attr:
+                if hasattr(item, 'tab_matches'):
+                    matches.extend(item.tab_matches(event))
+        # else we just pass and return an empty matches
+
+        return matches
+
+    # this is an extension to the API, where this method indicates
+    # that if it returns matches, they should be displayed to the user as
+    # the ONLY tab-completions
+    annotations_argmatches.exclusive_completions = True
 
     def dispatch_custom_completer(self, text):
         #io.rprint("Custom! '%s' %s" % (text, self.custom_completers)) # dbg
@@ -836,6 +997,7 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
+        self.tokens = tokenize(self.text_until_cursor)
         #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
         # Start with a clean slate of completions
@@ -852,14 +1014,27 @@ class IPCompleter(Completer):
                 self.matches = []
                 for matcher in self.matchers:
                     try:
-                        self.matches.extend(matcher(text))
+                        # this is an extension to the API, where this method
+                        # indicates that if it returns matches, they should be
+                        # displayed to the user as the ONLY tab-completions
+                        if hasattr(matcher, 'exclusive_completions') \
+                                and matcher.exclusive_completions is True:
+                            m = matcher(text)
+                            if m:
+                                self.matches = m
+                                break
+                        else:
+                            self.matches.extend(matcher(text))
                     except:
                         # Show the ugly traceback if the matcher causes an
                         # exception, but do NOT crash the kernel!
                         sys.excepthook(*sys.exc_info())
             else:
                 for matcher in self.matchers:
-                    self.matches = matcher(text)
+                    try:
+                        self.matches = matcher(text)
+                    except:
+                        sys.excepthook(*sys.exc_info())
                     if self.matches:
                         break
         # FIXME: we should extend our api to return a dict with completions for
@@ -914,8 +1089,8 @@ class IPCompleter(Completer):
             # this flag on temporarily by uncommenting the second form (don't
             # flip the value in the first line, as the '# dbg' marker can be
             # automatically detected and is used elsewhere).
-            DEBUG = False
-            #DEBUG = True # dbg
+            #DEBUG = False
+            DEBUG = True # dbg
             if DEBUG:
                 try:
                     self.complete(text, line_buffer, cursor_pos)
