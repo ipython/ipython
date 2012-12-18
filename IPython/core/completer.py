@@ -549,9 +549,14 @@ class IPCompleter(Completer):
             text_prefix = ''
 
         text_until_cursor = self.text_until_cursor
-        text_before_split = text_until_cursor[:text_until_cursor.rindex(text)]
-        if text.startswith('.') and text_before_split.endswith(')'):
-            # do not show file completion on f().<TAB> even though text == '.'
+
+        try:
+            text_before_split = text_until_cursor[:text_until_cursor.rindex(text)]
+            if text.startswith('.') and text_before_split.endswith(')'):
+                # do not show file completion on f().<TAB> even though text == '.'
+                return []
+        except ValueError:
+            # when text is malformed and isn't a subsring of text_until_cursor
             return []
 
         # track strings with open quotes

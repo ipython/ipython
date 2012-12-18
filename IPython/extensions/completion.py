@@ -33,9 +33,9 @@ This makes for example the following workflow possible:
     string1  string2
 
     In [6]: @tab_complete
-      ...: def baz(x) -> str:
-      ...:     pass
-      ...:
+       ...: def baz(x) -> str:
+       ...:     pass
+       ...:
 
     In [7]: baz(notevaluated).<TAB>
     .capitalize  .find        .isspace     .partition   .rstrip      .translate
