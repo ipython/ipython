@@ -557,7 +557,7 @@ class IPCompleter(Completer):
                 return []
         except ValueError:
             # when text is malformed and isn't a subsring of text_until_cursor
-            return []
+            pass
 
         # track strings with open quotes
         open_quotes = has_open_quotes(text_until_cursor)
