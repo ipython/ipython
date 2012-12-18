@@ -551,8 +551,7 @@ class IPCompleter(Completer):
         text_until_cursor = self.text_until_cursor
         text_before_split = text_until_cursor[:text_until_cursor.rindex(text)]
         if text.startswith('.') and text_before_split.endswith(')'):
-            # RTM addition to not show file completion on f().<TAB>
-            # even though text == '.'
+            # do not show file completion on f().<TAB> even though text == '.'
             return []
 
         # track strings with open quotes
@@ -997,6 +996,8 @@ class IPCompleter(Completer):
 
         self.line_buffer = line_buffer
         self.text_until_cursor = self.line_buffer[:cursor_pos]
+
+        # tokenize the input line. these tokens are used by multiple matchers
         self.tokens = tokenize(self.text_until_cursor)
         #io.rprint('COMP2 %r %r %r' % (text, line_buffer, cursor_pos))  # dbg
 
@@ -1089,8 +1090,8 @@ class IPCompleter(Completer):
             # this flag on temporarily by uncommenting the second form (don't
             # flip the value in the first line, as the '# dbg' marker can be
             # automatically detected and is used elsewhere).
-            #DEBUG = False
-            DEBUG = True # dbg
+            DEBUG = False
+            #DEBUG = True # dbg
             if DEBUG:
                 try:
                     self.complete(text, line_buffer, cursor_pos)

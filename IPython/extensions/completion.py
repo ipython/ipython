@@ -1,3 +1,62 @@
+"""IPython extension annotate functions for tab completion
+
+The ``tab_complete`` decorator enables argument specific tab completion
+for python functions as well as tab completion on the return value of functions
+(without execution) via type inference through the return value annotation.
+
+This makes for example the following workflow possible:
+
+.. sourcecode:: ipython
+
+    In [1]: from IPython.extensions.completion import (tab_complete, globs_to,
+                                                       literal)
+
+    In [2]: @tab_complete
+       ...: def foo(x : globs_to('*.txt')):
+       ...:     pass
+       ...:
+
+    In [3]: foo(<TAB>
+    'COPYING.txt'        'dist/'              'setupext/'
+    'IPython/'           'docs/'              'tools/'
+    '__pycache__/'       'ipython.egg-info/'
+    'build/'             'scripts/'
+
+    In [3]: @tab_complete
+       ...: def bar(x : str):
+       ...:     pass
+       ...:
+
+    In [4]: string1 = string2 = 'some string'
+
+    In [5]: bar(<TAB>
+    string1  string2
+
+    In [6]: @tab_complete
+      ...: def baz(x) -> str:
+      ...:     pass
+      ...:
+
+    In [7]: baz(notevaluated).<TAB>
+    .capitalize  .find        .isspace     .partition   .rstrip      .translate
+    .center      .format      .istitle     .replace     .split       .upper
+    .count       .index       .isupper     .rfind       .splitlines  .zfill
+    .decode      .isalnum     .join        .rindex      .startswith
+    .encode      .isalpha     .ljust       .rjust       .strip
+    .endswith    .isdigit     .lower       .rpartition  .swapcase
+    .expandtabs  .islower     .lstrip      .rsplit      .title
+"""
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2012  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import inspect
 import functools
 import warnings
@@ -7,14 +66,20 @@ import abc
 import re
 
 from IPython.core.completer import has_open_quotes
+
+#-----------------------------------------------------------------------------
+# code
+#-----------------------------------------------------------------------------
+
 __all__ = ['tab_complete', 'globs_to', 'literal', 'instance_of']
 
 def _init_completers(annotations):
+    "Build the tab completion dict from the annotations dict"
     tab_completers = {}
     for key, value in annotations.iteritems():
         error = ValueError("I could not understand the "
             "annotation %s on argument %s" % (value, key))
-        
+
         # the return value annotation must be just a straight class
         if key == 'return':
             if inspect.isclass(value):
@@ -32,6 +97,9 @@ def _init_completers(annotations):
 
 
 def tab_complete(*args, **kwargs):
+    """Decorator to enable annotation-based tab completion
+    """
+
     if (len(args) == 1 and len(kwargs.keys()) == 0 and
         hasattr(args[0], '__call__')):
         # this decorator was called with no arguments and is
@@ -39,8 +107,8 @@ def tab_complete(*args, **kwargs):
         # with py3k syntax
         f = args[0] # rename
         if not hasattr(f, '__annotations__'):
-            raise ValueError('f is not annotated')
-            
+            raise ValueError('%s is not annotated' % f.__name__)
+
         f._tab_completions = _init_completers(f.__annotations__)
         return f
 
@@ -61,7 +129,7 @@ def tab_complete(*args, **kwargs):
                 if key in f.__annotations__:
                     warnings.warn('Overwriting tab completion on %s' % key,
                         RuntimeWarning)
-        
+
         try:
             f._tab_completions.update(_init_completers(kwargs))
         except AttributeError:
@@ -113,7 +181,7 @@ class AnnotationCompleterBase(object):
         """
         pass
 
-class literal(AnnotationCompleterBase):
+class LiteralCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends completions from a
     set of enumerated literals. This is useful if you have an argumnet for a
     function that is designed to be called only with a small handful of possible
@@ -121,13 +189,6 @@ class literal(AnnotationCompleterBase):
 
     def __init__(self, *completions):
         """Set up a tab completion callback.
-
-        Example (python 3)
-        ------------------
-        In[3]: def f(x : tab_literal(100, 200, 300)):
-        ...        pass
-        In[4]: f(1<HIT_THE_TAB_KEY>
-        will fill in the 100
         """
         self.completions = completions
 
@@ -153,21 +214,15 @@ class literal(AnnotationCompleterBase):
 
         return matches
 
-class globs_to(AnnotationCompleterBase):
+literal = LiteralCompleter
+
+class GlobsToCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends completions which are
     filenames matching a glob pattern.
     """
 
     def __init__(self, glob_pattern):
         """Set up a tab completion callback with glob matching
-
-        Example (python 3)
-        ------------------
-        In[5]: def f(x : tab_glob("*.txt")):
-        ...        pass
-
-        In[6]: f(<HIT_THE_TAB_KEY>
-        will show you files ending in .txt
         """
         self.glob_pattern = glob_pattern
 
@@ -186,11 +241,12 @@ class globs_to(AnnotationCompleterBase):
 
         file_matches = [fmt % m for m in glob.glob(event.text + self.glob_pattern)]
         dir_matches = [fmt % m for m in glob.glob(event.text + '*/')]
-        
+
         return file_matches + dir_matches
 
+globs_to = GlobsToCompleter
 
-class instance_of(AnnotationCompleterBase):
+class InstanceOfCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends python variables in
     your namespace that an instance of supplied types"""
 
@@ -199,27 +255,13 @@ class instance_of(AnnotationCompleterBase):
 
         Parameters
         ----------
-        klasses : the classes you'd like to match on
-
-        Example (python 3)
-        ------------------
-        In[7]: x, y = 1, 2
-        In[8]: def f(x : tab_instance(int)):
-        ...        pass
-
-        In[9]: f(<TAB>
-        will show you files ending in .txt
-
-        Limitations
-        -----------
-        Because of python's dynamic typing, this can't check the type of the
-        return value of functions, so this won't be able to recommend something
-        like max(1,2) in the previous example.
+        klasses : list
+            the classes you'd like to match on
         """
         self.klasses = set(klasses)
         self._omit__names_1 = re.compile(r'__.*?__')
         self._omit__names_2 = re.compile(r'_.*?')
-        
+
     def tab_matches(self, event):
         """Callback for the IPython annoation tab-completion system
         """
@@ -241,3 +283,5 @@ class instance_of(AnnotationCompleterBase):
 
             matches = filter(no__name, matches)
         return matches
+
+instance_of = InstanceOfCompleter
