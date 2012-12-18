@@ -460,7 +460,7 @@ def test_kernel_info_request():
 
     shell = KM.shell_channel
 
-    msg_id = shell.version()
+    msg_id = shell.kernel_info()
     reply = shell.get_msg(timeout=2)
     for tst in validate_message(reply, 'kernel_info_reply', msg_id):
         yield tst
