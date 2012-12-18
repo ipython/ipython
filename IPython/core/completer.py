@@ -735,7 +735,6 @@ class IPCompleter(Completer):
         if self.greedy:
             return super(IPCompleter, self).attr_matches(text)
 
-        # rmcgibbo
         function_chain = last_function_chain(self.tokens)
 
         # resolve the final type of the function chain using gettattr and
@@ -754,7 +753,8 @@ class IPCompleter(Completer):
                             pass
                         # and now resolve the return type of the function using
                         # its tab completion annotation
-                        obj = obj._tab_completions['return']
+                        if not inspect.isclass(obj):
+                            obj = obj._tab_completions['return']
                     elif token == '.':
                         # attribute access on a dot -- do a getattr
                         # call on the next token w.r.t. base
