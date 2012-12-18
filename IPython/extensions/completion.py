@@ -1,4 +1,5 @@
-"""IPython extension annotate functions for tab completion
+# encoding: utf-8
+"" + """"IPython extension annotate functions for tab completion
 
 The ``tab_complete`` decorator enables argument specific tab completion
 for python functions as well as tab completion on the return value of functions
