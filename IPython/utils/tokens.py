@@ -112,7 +112,6 @@ def last_open_identifier(tokens):
 
     openPar = 0 # number of open parentheses
     for token in iterTokens:
-        print openPar, token
         tokens_after_identifier.insert(0, token)
         if token == ')':
             openPar -= 1
@@ -122,7 +121,7 @@ def last_open_identifier(tokens):
                 # found the last unclosed parenthesis
                 break
     else:
-        return None
+        raise ValueError()
 
     # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
     identifiers = []

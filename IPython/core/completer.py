@@ -740,10 +740,12 @@ class IPCompleter(Completer):
         function_chain = last_function_chain(self.tokens)
 
         # resolve the final type of the function chain using gettattr and
-        # return annoations
+        # return annoations.
         try:
             obj = None
-            iter_function_chain = iter(function_chain)
+            # skip the final element in the function chain, since that
+            # is only a partial match
+            iter_function_chain = iter(function_chain[:-1])
             while 1:
                 try:
                     token = iter_function_chain.next()
@@ -833,7 +835,6 @@ class IPCompleter(Completer):
             functions that annotate specific function arguments with possible
             tab completions.
         """
-
         try:
             ids, post_tokens = last_open_identifier(self.tokens)
         except ValueError:
@@ -883,7 +884,7 @@ class IPCompleter(Completer):
             # create the namedtuple type, and stash it in self
             self.__func_argcomplete_Event = collections.namedtuple('Event',
                 ['text', 'tokens', 'line', 'ipcompleter'])
-        event = self.__func_argcomplete_Event(text=self.tokens[-1],
+        event = self.__func_argcomplete_Event(text=text,
             tokens=self.tokens, line=self.text_until_cursor,
             ipcompleter=self)
 
@@ -990,7 +991,6 @@ class IPCompleter(Completer):
         # if text is either None or an empty string, rely on the line buffer
         if not text:
             text = self.splitter.split_line(line_buffer, cursor_pos)
-
         # If no line buffer is given, assume the input text is all there was
         if line_buffer is None:
             line_buffer = text
