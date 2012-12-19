@@ -48,7 +48,10 @@ TIMEOUT_STORAGE = 2
 TIMEOUT_GIVEUP = 20
 
 # Regular expression for the python import statement
-import_re = re.compile(r'.*(\.so|\.py[cod]?)$')
+import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
+                       r'(?P<package>[/\\]__init__)?'
+                       r'(?P<suffix>%s)$' %
+                       r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
 
 # RE for the ipython %run command (python + ipython scripts)
 magic_run_re = re.compile(r'.*(\.ipy|\.py[w]?)$')
@@ -66,36 +69,35 @@ def module_list(path):
     if path == '':
         path = '.'
 
-    if os.path.isdir(path):
-        folder_list = os.listdir(path)
-    elif path.endswith('.egg'):
-        try:
-            folder_list = [f for f in zipimporter(path)._files]
-        except:
-            folder_list = []
-    else:
-        folder_list = []
-
-    if not folder_list:
-        return []
-
     # A few local constants to be used in loops below
-    isfile = os.path.isfile
     pjoin = os.path.join
-    basename = os.path.basename
 
-    def is_importable_file(path):
-        """Returns True if the provided path is a valid importable module"""
-        name, extension = os.path.splitext( path )
-        return import_re.match(path) and py3compat.isidentifier(name)
+    if os.path.isdir(path):
+        # Build a list of all files in the directory and all files
+        # in its subdirectories. For performance reasons, do not
+        # recurse more than one level into subdirectories.
+        files = []
+        for root, dirs, nondirs in os.walk(path):
+            subdir = root[len(path)+1:]
+            if subdir:
+                files.extend(pjoin(subdir, f) for f in nondirs)
+                dirs[:] = [] # Do not recurse into additional subdirectories.
+            else:
+                files.extend(nondirs)
 
-    # Now find actual path matches for packages or modules
-    folder_list = [p for p in folder_list
-                   if any(isfile(pjoin(path, p, '__init__' + suffix[0])) for
-                       suffix in imp.get_suffixes())
-                   or is_importable_file(p) ]
+    else:
+        try:
+            files = list(zipimporter(path)._files.keys())
+        except:
+            files = []
 
-    return [basename(p).split('.')[0] for p in folder_list]
+    # Build a list of modules which match the import_re regex.
+    modules = []
+    for f in files:
+        m = import_re.match(f)
+        if m:
+            modules.append(m.group('name'))
+    return list(set(modules))
 
 def get_root_modules():
     """
