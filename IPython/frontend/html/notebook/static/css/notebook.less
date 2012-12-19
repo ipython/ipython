@@ -8,6 +8,7 @@
 
 body {
     overflow: hidden;
+    background-color:@notebook_background;
 }
 
 blockquote {
@@ -80,6 +81,7 @@ span#notebook_name {
 
 .toolbar {
     padding: 3px 15px;
+    border-bottom: @borderwidth @border_color solid;
 }
 
 #maintoolbar > select, #maintoolbar label {
@@ -126,7 +128,6 @@ div#notebook {
     /* This spaces the cell away from the edge of the notebook area */
     padding: 5px 5px 15px 5px;
     margin: 0px;
-    background-color: @notebook_background;
 }
 
 div#pager_splitter {
