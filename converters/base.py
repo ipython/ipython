@@ -148,7 +148,7 @@ class Converter(Configurable):
     raw_as_verbatim = False
 
 
-    def __init__(self, infile=None, config=None, exclude=[] **kw):
+    def __init__(self, infile=None, config=None, exclude=[], **kw):
         super(Converter,self).__init__(config=config)
 
         #DocStringInheritor.__init__(self=config)
