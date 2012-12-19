@@ -133,11 +133,44 @@ def tab_complete(*args, **kwargs):
                     warnings.warn('Overwriting tab completion on %s' % key,
                         RuntimeWarning)
 
+        completers = _init_completers(kwargs)
         try:
-            f._tab_completions.update(_init_completers(kwargs))
+            f._tab_completions.update(completers)
         except AttributeError:
-            f._tab_completions = _init_completers(kwargs)
+            f._tab_completions = completers
+        return f
 
+    return wrapper
+
+
+def tab_complete_return(return_type):
+    """Convenience decorator to annotate the return value of a function for tab
+    completion.
+
+    The following two syntax are equivalent
+
+    In[1]: @tab_complete_return(str)
+      ...: def f():
+      ...:    return 'hello world'
+      ...:
+
+    In[2]: @tab_complete(**{'return': str})
+      ...: def f():
+      ...:    return 'hello world'
+      ...:
+    """
+    def wrapper(f):
+        annotations = {'return': return_type}
+        if hasattr(f, '_tab_completions'):
+            if 'return' in f._tab_completions:
+                warnings.warn('Overwriting tab completion on %s' % key,
+                    RuntimeWarning)
+
+        completers = _init_completers(annotations)
+        try:
+            f._tab_completions.update(completers)
+        except AttributeError:
+            f._tab_completions = completers
         return f
 
     return wrapper
@@ -184,6 +217,7 @@ class AnnotationCompleterBase(object):
         """
         pass
 
+
 class LiteralCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends completions from a
     set of enumerated literals. This is useful if you have an argumnet for a
@@ -219,6 +253,7 @@ class LiteralCompleter(AnnotationCompleterBase):
 
 literal = LiteralCompleter
 
+
 class GlobsToCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends completions which are
     filenames matching a glob pattern.
@@ -248,6 +283,7 @@ class GlobsToCompleter(AnnotationCompleterBase):
         return file_matches + dir_matches
 
 globs_to = GlobsToCompleter
+
 
 class InstanceOfCompleter(AnnotationCompleterBase):
     """Annotation for function arguments that recommends python variables in
