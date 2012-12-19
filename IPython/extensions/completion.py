@@ -1,5 +1,5 @@
 # encoding: utf-8
-"" + """"IPython extension annotate functions for tab completion
+"""IPython extension annotate functions for tab completion
 
 The ``tab_complete`` decorator enables argument specific tab completion
 for python functions as well as tab completion on the return value of functions
@@ -47,6 +47,8 @@ This makes for example the following workflow possible:
     .endswith    .isdigit     .lower       .rpartition  .swapcase
     .expandtabs  .islower     .lstrip      .rsplit      .title
 """
+skip_doctest = True  # skip the doctest on the module level docstring
+
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012  The IPython Development Team
 #
