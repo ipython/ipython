@@ -76,8 +76,8 @@ from IPython.core.completer import has_open_quotes
 
 __all__ = ['tab_complete', 'globs_to', 'literal', 'instance_of']
 
-def _init_completers(annotations):
-    "Build the tab completion dict from the annotations dict"
+def _init_completers(f, annotations):
+    "Build and apply the tab completion dict from the annotations dict"
     tab_completers = {}
     for key, value in annotations.iteritems():
         error = ValueError("I could not understand the "
@@ -85,7 +85,7 @@ def _init_completers(annotations):
 
         # the return value annotation must be just a straight class
         if key == 'return':
-            if inspect.isclass(value):
+            if inspect.isbuiltin(value) or inspect.isclass(value):
                 tab_completers[key] = value
             else:
                 raise error
@@ -96,7 +96,11 @@ def _init_completers(annotations):
             tab_completers[key] = instance_of(value)
         else:
             raise error
-    return tab_completers
+
+    if hasattr(f, '_tab_completions'):
+        f._tab_completions.update(tab_completers)
+    else:
+        f._tab_completions = tab_completers
 
 
 def tab_complete(*args, **kwargs):
@@ -129,15 +133,11 @@ def tab_complete(*args, **kwargs):
                 # check that the annotations being provided don't already exist
                 # if they do, we warn and overwrite. this decorator does not
                 # implement any scheme for composing annotations.
-                if key in f.__annotations__:
+                if key in f._tab_completions:
                     warnings.warn('Overwriting tab completion on %s' % key,
                         RuntimeWarning)
 
-        completers = _init_completers(kwargs)
-        try:
-            f._tab_completions.update(completers)
-        except AttributeError:
-            f._tab_completions = completers
+        _init_completers(f, kwargs)
         return f
 
     return wrapper
@@ -166,12 +166,7 @@ def tab_complete_return(return_type):
                 warnings.warn('Overwriting tab completion on %s' % key,
                     RuntimeWarning)
 
-        completers = _init_completers(annotations)
-        try:
-            f._tab_completions.update(completers)
-        except AttributeError:
-            f._tab_completions = completers
-        return f
+        _init_completers(f, annotations)
 
     return wrapper
 
