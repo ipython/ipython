@@ -1,14 +1,14 @@
-{% extends page.html %}
+{% extends "page.html" %}
 
 {% block stylesheet %}
 
 <link rel="stylesheet" href="{{static_url("css/logout.css") }}" type="text/css"/>
 
-{% end %}
+{% endblock %}
 
 
 {% block login_widget %}
-{% end %}
+{% endblock %}
 
 {% block site %}
 
@@ -19,22 +19,22 @@
         <div class="message {{key}}">
            {{message[key]}}
         </div>
-      {% end %}
-    {% end %}
+      {% endfor %}
+    {% endif %}
 
     {% if read_only or not login_available %}
     Proceed to the <a href="{{base_project_url}}">dashboard</a>.
     {% else %}
     Proceed to the <a href="{{base_project_url}}login">login page</a>.
-    {% end %}
+    {% endif %}
 
 
 <div/>
 
-{% end %}
+{% endblock %}
 
 {% block script %}
 
 <script src="{{static_url("js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
-{% end %}
+{% endblock %}
