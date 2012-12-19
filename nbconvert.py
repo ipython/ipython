@@ -64,13 +64,9 @@ class NbconvertApp(Application):
                     config=True,
                     help = 'list of cells to exclude while converting')
 
-
-    converter = ConverterClass(infile, highlight_source=highlight_source, exclude=exclude)
-    converter.render()
-
-
     aliases = {
             'format':'NbconvertApp.fmt',
+            'exclude':'NbconvertApp.exclude',
             'highlight':'Converter.highlight_source',
             'preamble':'Converter.preamble',
             }
