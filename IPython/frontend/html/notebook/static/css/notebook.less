@@ -6,7 +6,6 @@
 
 @import "variables.less";
 
-
 body {
     overflow: hidden;
 }
@@ -153,7 +152,7 @@ div.ui-widget-content {
     border: 1px solid transparent;
 
     &.selected {
-        border-radius: @corner_radius;
+        .corner-all;
         background-color:@cell_selected_background;
         border : thin @border_color solid;
     }
@@ -194,7 +193,7 @@ div.input {
 div.input_area {
     color: black;
     border: 1px solid @border_color;
-    border-radius: @corner_radius;
+    .corner-all;
     background: @cell_background;
 }
 
@@ -221,7 +220,7 @@ div.output_scroll {
   width: 100%;
   
   overflow: auto;
-  border-radius: @corner_radius;
+  .corner-all;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, .8);
 }
 
@@ -234,7 +233,7 @@ div.out_prompt_overlay {
   height: 100%;
   padding: 0px;
   position: absolute;
-  border-radius: @corner_radius;
+  .corner-all;
 }
 
 div.out_prompt_overlay:hover {
@@ -320,7 +319,7 @@ div.text_cell {
 div.text_cell_input {
     color: black;
     border: 1px solid @border_color;
-    border-radius: @corner_radius;
+    .corner-all;
     background: @cell_background;
 }
 
@@ -411,7 +410,7 @@ option.introspection {
 pre.dialog {
     background-color: @cell_background;
     border: 1px solid #ddd;
-    border-radius: @corner_radius;
+    .corner-all;
     padding: 0.4em;
     padding-left: 2em;
 }
@@ -442,3 +441,7 @@ pre, code, kbd, samp { white-space: pre-wrap; }
 .js-error {
     color: darkred;
 }
+
+
+
+
