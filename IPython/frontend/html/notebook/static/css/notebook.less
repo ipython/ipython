@@ -4,6 +4,8 @@
  * Author: IPython Development Team
  */
 
+@import "variables.less";
+
 
 body {
     overflow: hidden;
@@ -125,7 +127,7 @@ div#notebook {
     /* This spaces the cell away from the edge of the notebook area */
     padding: 5px 5px 15px 5px;
     margin: 0px;
-    background-color: white;
+    background-color: @notebook_background;
 }
 
 div#pager_splitter {
@@ -143,12 +145,18 @@ div#pager {
 }
 
 div.ui-widget-content {
-    border: 1px solid #aaa;
+    border: 1px solid @border_color;
     outline: none;
 }
 
 .cell {
     border: 1px solid transparent;
+
+    &.selected {
+        border-radius: @corner_radius;
+        background-color:@cell_selected_background;
+        border : thin @border_color solid;
+    }
 }
 
 div.cell {
@@ -160,7 +168,6 @@ div.cell {
 }
 
 div.code_cell {
-    background-color: white;
 }
 
 /* any special styling for code cells that are currently running goes here */
@@ -186,9 +193,9 @@ div.input {
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
     color: black;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background: #f7f7f7;
+    border: 1px solid @border_color;
+    border-radius: @corner_radius;
+    background: @cell_background;
 }
 
 div.input_prompt {
@@ -214,7 +221,7 @@ div.output_scroll {
   width: 100%;
   
   overflow: auto;
-  border-radius: 3px;
+  border-radius: @corner_radius;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, .8);
 }
 
@@ -227,7 +234,7 @@ div.out_prompt_overlay {
   height: 100%;
   padding: 0px;
   position: absolute;
-  border-radius: 3px;
+  border-radius: @corner_radius;
 }
 
 div.out_prompt_overlay:hover {
@@ -307,15 +314,14 @@ div.output_jpeg {
 }
 
 div.text_cell {
-    background-color: white;
     padding: 5px 5px 5px 5px;
 }
 
 div.text_cell_input {
     color: black;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background: #f7f7f7;
+    border: 1px solid @border_color;
+    border-radius: @corner_radius;
+    background: @cell_background;
 }
 
 div.text_cell_render {
@@ -368,7 +374,7 @@ div.text_cell_render {
     position: absolute;
     z-index: 10;
     overflow: hidden;
-    border: 1px solid grey;
+    border: 1px solid @border_color;
 }
 
 .completions select {
@@ -403,9 +409,9 @@ option.introspection {
 }
 
 pre.dialog {
-    background-color: #f7f7f7;
+    background-color: @cell_background;
     border: 1px solid #ddd;
-    border-radius: 3px;
+    border-radius: @corner_radius;
     padding: 0.4em;
     padding-left: 2em;
 }
