@@ -14,11 +14,8 @@ import itertools
 
 class ConverterReveal(ConverterHTML):
     #"""
-    #Convert a notebook to a html slideshow.
-
-    #It generates a static html slideshow based reveal.js.
-    #The delimiters for each "Header slide", "Slide"", and "Fragment"
-    #are retrieved from the 'slideshow' metadata.
+    #Convert a ipython notebook to a html slideshow
+    #based in reveal.js library.
     #"""
 
     @text_cell
@@ -30,13 +27,10 @@ class ConverterReveal(ConverterHTML):
     def render_code(self, cell):
         if not cell.input:
             return []
-
         lines = []
         meta_code = self.meta2str(cell.metadata)
         lines.extend([meta_code])
-
         lines.extend(['<div class="cell border-box-sizing code_cell vbox">'])
-
         lines.append('<div class="input hbox">')
         n = self._get_prompt_number(cell)
         lines.append(
@@ -46,20 +40,15 @@ class ConverterReveal(ConverterHTML):
         lines.append(highlight(cell.input))
         lines.append('</div>')  # input_area
         lines.append('</div>')  # input
-
         if cell.outputs:
             lines.append('<div class="vbox output_wrapper">')
             lines.append('<div class="output vbox">')
-
             for output in coalesce_streams(cell.outputs):
                 conv_fn = self.dispatch(output.output_type)
                 lines.extend(conv_fn(output))
-
             lines.append('</div>')  # output
             lines.append('</div>')  # output_wrapper
-
         lines.append('</div>')  # cell
-
         return lines
 
     @text_cell
@@ -184,14 +173,11 @@ class ConverterReveal(ConverterHTML):
         return os.path.abspath(outfile)
 
     def header_body(self):
-        """Return the body of the header as a list of strings."""
-
+        "return the body of the header as a list of strings"
         from pygments.formatters import HtmlFormatter
-
         header = []
         static = os.path.join(path.get_ipython_package_dir(),
-        'frontend', 'html', 'notebook', 'static',
-        )
+        'frontend', 'html', 'notebook', 'static',)
         here = os.path.split(os.path.realpath(__file__))[0]
         css = os.path.join(static, 'css')
         for sheet in [
@@ -207,13 +193,11 @@ class ConverterReveal(ConverterHTML):
             os.path.join(here, '..', 'css', 'reveal_html.css'),
         ]:
             header.extend(self._stylesheet(sheet))
-
         # pygments css
         pygments_css = HtmlFormatter().get_style_defs('.highlight')
         header.extend(['<meta charset="UTF-8">'])
         header.extend(self.in_tag('style', pygments_css,
                                   dict(type='"text/css"')))
-
         return header
 
     def template_read(self):
@@ -235,7 +219,6 @@ class ConverterReveal(ConverterHTML):
 
     def optional_header(self):
         optional_header_body = self.template_split()
-        #return optional_header_body[0]
         return ['<!DOCTYPE html>', '<html>', '<head>'] + \
                 optional_header_body[0] + self.header_body() + \
                ['</head>', '<body>']
