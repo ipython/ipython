@@ -508,6 +508,11 @@ class IPCompleter(Completer):
                          self.python_func_kw_matches,
                         ]
 
+        # this registry is used by IPCompleter.annotations_argmatches and 
+        # IPCompleter.attr_matches to store function specific tab completion
+        # info for builtin functions
+        self.TAB_COMPLETION_REGISTRY = dict()
+
     def all_completions(self, text):
         """
         Wrapper around the complete method for the benefit of emacs
@@ -759,7 +764,11 @@ class IPCompleter(Completer):
                         # and now resolve the return type of the function using
                         # its tab completion annotation
                         if not inspect.isclass(obj):
-                            obj = obj._tab_completions['return']
+                            try:
+                                obj = obj._tab_completions['return']
+                            except AttributeError:
+                                obj = self.TAB_COMPLETION_REGISTRY[obj]['return']
+
                     elif token == '.':
                         # attribute access on a dot -- do a getattr
                         # call on the next token w.r.t. base
@@ -773,7 +782,7 @@ class IPCompleter(Completer):
                         raise RuntimeError(token)
                 except StopIteration:
                     break
-        except AttributeError as e:
+        except (AttributeError, KeyError) as e:
             return []
 
         # `text` only gives the part of the line after the last close parens
@@ -861,7 +870,11 @@ class IPCompleter(Completer):
                 if inspect.isclass(obj):
                     obj = obj.__init__
 
-                annotations = obj._tab_completions
+                try:
+                    annotations = obj._tab_completions
+                except AttributeError:
+                    annotations = self.TAB_COMPLETION_REGISTRY[obj]
+
                 argname = cursor_argument(post_tokens, obj)
             except (AttributeError, TypeError, IndexError) as e:
                 # the attribute error comes from obj not having an

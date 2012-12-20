@@ -69,6 +69,8 @@ import abc
 import re
 
 from IPython.core.completer import has_open_quotes
+import IPython.core.interactiveshell
+ipython = IPython.core.interactiveshell.InteractiveShell.instance()
 
 #-----------------------------------------------------------------------------
 # code
@@ -100,7 +102,12 @@ def _init_completers(f, annotations):
     if hasattr(f, '_tab_completions'):
         f._tab_completions.update(tab_completers)
     else:
-        f._tab_completions = tab_completers
+        try:
+            f._tab_completions = tab_completers
+        except (AttributeError, TypeError):
+            # this is a fallback location to store the tab completion
+            # info for builtin (c-defined and cython) functions
+            ipython.Completer.TAB_COMPLETION_REGISTRY[f] = tab_completers
 
 
 def tab_complete(*args, **kwargs):
@@ -122,8 +129,15 @@ def tab_complete(*args, **kwargs):
     # otherwise, this decorator is being called with arguments, indicating
     # python2 syntax
     def wrapper(f):
-        argspec = inspect.getargspec(f)
-        for key in kwargs.keys():
+        try:
+            argspec = inspect.getargspec(f)
+            keys = kwargs.keys()
+        except TypeError:
+            # if a function isn't argspec-able (builtins), then just skip these
+            # checks
+            keys = []
+
+        for key in keys:
             if (key not in argspec.args) and (key != argspec.varargs) \
                     and (key != argspec.keywords) and key != 'return':
                 raise ValueError('%s is not an argument taken by %s' \
