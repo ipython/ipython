@@ -528,6 +528,13 @@ class RMagics(Magics):
 
         self.r('dev.off()')
 
+        # try saving any ggplots, but run the ggsave command inside of a try
+        # catch block that passes on any exceptions, this keeping ggplot
+        # purely optional
+        ggplot_save_cmd = 'tryCatch({ggsave("%s/Rplots_gg%%03d.png", %s)}, error=function(e) {})'\
+            % (tmpd.replace('\\', '/'), png_args)
+        self.r(ggplot_save_cmd)
+
         # read out all the saved .png files
 
         images = [open(imgfile, 'rb').read() for imgfile in glob("%s/Rplots*png" % tmpd)]
