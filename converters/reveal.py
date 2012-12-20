@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from converters.html import ConverterHTML
 from converters.utils import text_cell
 from converters.utils import highlight, coalesce_streams
+
+from IPython.utils import path
 from markdown import markdown
 
 import os
@@ -181,6 +183,39 @@ class ConverterReveal(ConverterHTML):
             f.write(self.output)
         return os.path.abspath(outfile)
 
+    def header_body(self):
+        """Return the body of the header as a list of strings."""
+
+        from pygments.formatters import HtmlFormatter
+
+        header = []
+        static = os.path.join(path.get_ipython_package_dir(),
+        'frontend', 'html', 'notebook', 'static',
+        )
+        here = os.path.split(os.path.realpath(__file__))[0]
+        css = os.path.join(static, 'css')
+        for sheet in [
+            # do we need jquery and prettify?
+            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
+            # 'jquery-ui.min.css'),
+            # os.path.join(static, 'prettify', 'prettify.css'),
+            os.path.join(css, 'boilerplate.css'),
+            os.path.join(css, 'fbm.css'),
+            os.path.join(css, 'notebook.css'),
+            os.path.join(css, 'renderedhtml.css'),
+            # our overrides:
+            os.path.join(here, '..', 'css', 'reveal_html.css'),
+        ]:
+            header.extend(self._stylesheet(sheet))
+
+        # pygments css
+        pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        header.extend(['<meta charset="UTF-8">'])
+        header.extend(self.in_tag('style', pygments_css,
+                                  dict(type='"text/css"')))
+
+        return header
+
     def template_read(self):
         "read the reveal_template.html"
         here = os.path.split(os.path.realpath(__file__))[0]
@@ -200,8 +235,11 @@ class ConverterReveal(ConverterHTML):
 
     def optional_header(self):
         optional_header_body = self.template_split()
-        return optional_header_body[0]
+        #return optional_header_body[0]
+        return ['<!DOCTYPE html>', '<html>', '<head>'] + \
+                optional_header_body[0] + self.header_body() + \
+               ['</head>', '<body>']
 
     def optional_footer(self):
         optional_footer_body = self.template_split()
-        return optional_footer_body[1]
+        return optional_footer_body[1] + ['</body>', '</html>']

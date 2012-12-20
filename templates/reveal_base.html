@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
+
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
@@ -9,8 +7,6 @@
 
     <link rel="stylesheet" href="reveal/css/reveal.css">
     <link rel="stylesheet" href="reveal/css/theme/default.css" id="theme">
-
-    <link rel="stylesheet" href="css/ipython.css">
 
     <!-- For syntax highlighting -->
     <link rel="stylesheet" href="reveal/lib/css/zenburn.css">
@@ -23,8 +19,6 @@
     <!--[if lt IE 9]>
     <script src="reveal/lib/js/html5shiv.js"></script>
     <![endif]-->
-
-</head>
 
 %slides%
 
@@ -46,8 +40,6 @@
             // Optional libraries used to extend on reveal.js
             dependencies: [
                 { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-                { src: 'reveal/plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-                { src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
                 { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
                 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
                 { src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
@@ -63,5 +55,4 @@
         });
     </script>
 
-</body>
-</html>
+
