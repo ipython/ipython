@@ -754,13 +754,21 @@ class IPCompleter(Completer):
             # skip the final element in the function chain, since that
             # is only a partial match
             iter_function_chain = iter(function_chain[:-1])
+            n_open_parens = 0
             while 1:
                 try:
                     token = next(iter_function_chain)
                     if token == '(':
+                        n_open_parens = 1
                         # skip ahead to matching close parentheses
-                        while next(iter_function_chain) != ')':
-                            pass
+                        while 1:
+                            next_token = next(iter_function_chain)
+                            if next_token == '(':
+                                n_open_parens += 1
+                            elif next_token == ')':
+                                n_open_parens -= 1
+                                if n_open_parens == 0:
+                                    break
                         # and now resolve the return type of the function using
                         # its tab completion annotation
                         if not inspect.isclass(obj):
