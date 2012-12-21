@@ -227,7 +227,7 @@ IPython object:
         def lmagic(self, line):
             "my line magic"
             print "Full access to the main IPython object:", self.shell
-            print "Variables in the user namespace:", self.user_ns.keys()
+            print "Variables in the user namespace:", self.shell.user_ns.keys()
             return line
 
         @cell_magic
