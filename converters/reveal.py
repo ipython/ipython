@@ -104,7 +104,7 @@ class ConverterReveal(ConverterHTML):
                       u'slide_type = header_slide',
                       u'slide_type = slide',
                       u'slide_type = fragment',
-                      u'slide_type = skip']
+                      u'slide_type = skip']  # keep this one the last
         text_cell_render = \
             u'<div class="text_cell_render border-box-sizing rendered_html">'
         for i, j in enumerate(text):
