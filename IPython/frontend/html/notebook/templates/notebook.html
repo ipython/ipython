@@ -17,11 +17,17 @@ window.mathjax_url = "{{mathjax_url}}";
 <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
-<link rel="stylesheet/less" href="{{ static_url("css/notebook.less") }}" type="text/css" />
-<link rel="stylesheet/less" href="{{ static_url("css/tooltip.less") }}" type="text/css" />
-<link rel="stylesheet/less" href="{{ static_url("css/renderedhtml.less") }}" type="text/css" />
 
-<link rel="stylesheet/less" href="{{ static_url("css/printnotebook.less") }}" type="text/css" media="print"/>
+{% if use_less %}
+	<link rel="stylesheet/less" href="{{ static_url("less/notebook.less") }}" type="text/css" />
+	<link rel="stylesheet/less" href="{{ static_url("less/tooltip.less") }}" type="text/css" />
+	<link rel="stylesheet/less" href="{{ static_url("less/renderedhtml.less") }}" type="text/css" />
+
+	<link rel="stylesheet/less" href="{{ static_url("less/printnotebook.less") }}" type="text/css"/>
+{% else %}
+	<link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
+{% endif %}
+
 {% endblock %}
 
 {% block params %}
@@ -182,7 +188,10 @@ data-notebook-id={{notebook_id}}
 
 {% block script %}
 
+{% if use_less %}
 <script src="{{ static_url("js/less/less-1.3.1.min.js") }}" charset="utf-8"></script>
+{% endif %}
+
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/lib/util/multiplex.js") }}" charset="utf-8"></script>
