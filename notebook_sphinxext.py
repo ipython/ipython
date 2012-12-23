@@ -3,7 +3,10 @@ import os.path
 import re
 import time
 from docutils import io, nodes, statemachine, utils
-from docutils.error_reporting import ErrorString
+try:
+    from docutils.utils.error_reporting import ErrorString  # the new way 
+except ImportError:
+    from docutils.error_reporting import ErrorString        # the old way
 from docutils.parsers.rst import Directive, convert_directive_function
 from docutils.parsers.rst import directives, roles, states
 from docutils.parsers.rst.roles import set_classes
