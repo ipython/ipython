@@ -345,6 +345,14 @@ class NotebookApp(BaseIPythonApplication):
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
     )
+
+    use_less = Bool(False, config=True, 
+                       help="""Wether to use Browser Side less-css parsing
+                       instead of compiled css version in templates that allows 
+                       it. This is mainly convenient when working on the less 
+                       file to avoid a build step, or if user want to overwrite
+                       some of the less variables without having to recompile
+                       everything.""")
     
     webapp_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "

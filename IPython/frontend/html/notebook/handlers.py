@@ -184,6 +184,10 @@ class AuthenticatedHandler(RequestHandler):
         """
         return self.application.read_only
 
+    def use_less(self):
+	"""Use less instead of css in templates"""
+	return self.application.use_less
+
     @property
     def ws_url(self):
         """websocket url matching the current request
@@ -296,7 +300,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
             read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,))
+            mathjax_url=self.application.ipython_app.mathjax_url,
+	    use_less=self.use_less,))
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
