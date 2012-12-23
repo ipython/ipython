@@ -104,6 +104,7 @@ class ConverterReveal(ConverterHTML):
                       u'slide_type = header_slide',
                       u'slide_type = slide',
                       u'slide_type = fragment',
+                      u'slide_type = notes',
                       u'slide_type = skip']  # keep this one the last
         text_cell_render = \
             u'<div class="text_cell_render border-box-sizing rendered_html">'
@@ -119,8 +120,10 @@ class ConverterReveal(ConverterHTML):
                     text[i - 1] = self.delim[3]
                 elif j == self.delim[4]:
                     text[i - 1] = self.delim[4]
-                else:
+                elif j == self.delim[5]:
                     text[i - 1] = self.delim[5]
+                else:
+                    text[i - 1] = self.delim[6]
                 text[i] = text_cell_render
         text[0] = u'slide_type = header_slide'  # defensive code
         text.append(u'slide_type = untouched')  # to end search of skipped
@@ -131,7 +134,9 @@ class ConverterReveal(ConverterHTML):
         text = self.clean_text()
         left = '<section>'
         right = '</section>'
-        set_delim = self.delim[:5]
+        notes_start = '<aside class="notes">'
+        notes_end = '</aside>'
+        set_delim = self.delim[:6]
         #elimination of skipped cells
         for i, j in enumerate(text):
             if j == u'slide_type = skip':
@@ -152,7 +157,13 @@ class ConverterReveal(ConverterHTML):
             for i, j in enumerate(slide):
                 if j == u'slide_type = fragment':
                     slide.pop(i)
-                    slide[i] = slide[i][:4] + ' class="fragment"' + slide[i][4:]
+                    slide[i] = slide[i][:4] + \
+                        ' class="fragment"' + slide[i][4:]
+            # encapsulation of each speaker note
+            for i, j in enumerate(slide):
+                if j == u'slide_type = notes':
+                    slide[i] = notes_start
+                    slide.append(notes_end)  # the notes at the slide end
             # encapsulation of each nested slide
             if u'slide_type = slide' in slide:
                 slide.insert(0, '<section>')
