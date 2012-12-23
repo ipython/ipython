@@ -19,13 +19,9 @@ window.mathjax_url = "{{mathjax_url}}";
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
 
 {% if use_less %}
-	<link rel="stylesheet/less" href="{{ static_url("less/notebook.less") }}" type="text/css" />
-	<link rel="stylesheet/less" href="{{ static_url("less/tooltip.less") }}" type="text/css" />
-	<link rel="stylesheet/less" href="{{ static_url("less/renderedhtml.less") }}" type="text/css" />
-
-	<link rel="stylesheet/less" href="{{ static_url("less/printnotebook.less") }}" type="text/css"/>
+    <link rel="stylesheet/less" href="{{ static_url("less/style.less") }}" type="text/css" />
 {% else %}
-	<link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
+    <link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
 {% endif %}
 
 {% endblock %}
