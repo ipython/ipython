@@ -121,3 +121,22 @@ def test_ipdb_magics():
     Constructor Docstring:Docstring for ExampleClass.__init__
     ipdb> continue
     '''
+
+def test_ipdb_magics():
+    '''Test ipdb with a very short function.
+
+    >>> def bar():
+    ...     pass
+
+    Run ipdb.
+
+    >>> with PdbTestInput([
+    ...    'continue',
+    ... ]):
+    ...     debugger.Pdb().runcall(bar)
+    > <doctest ...>(2)bar()
+          1 def bar():
+    ----> 2    pass
+    <BLANKLINE>
+    ipdb> continue
+    '''
