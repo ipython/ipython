@@ -184,6 +184,7 @@ class AuthenticatedHandler(RequestHandler):
         """
         return self.application.read_only
 
+    @property
     def use_less(self):
 	"""Use less instead of css in templates"""
 	return self.application.use_less

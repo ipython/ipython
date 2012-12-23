@@ -188,6 +188,7 @@ class NotebookWebApplication(web.Application):
         self.ipython_app = ipython_app
         self.read_only = self.ipython_app.read_only
         self.config = self.ipython_app.config
+        self.use_less = self.ipython_app.use_less
         self.log = log
         self.jinja2_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 
