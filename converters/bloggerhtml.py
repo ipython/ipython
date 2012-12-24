@@ -20,7 +20,7 @@ platform. See the class docstring for more information.
 import io
 
 # Our own imports
-from converters.html import ConverterHTML
+from .html import ConverterHTML
 
 
 #-----------------------------------------------------------------------------

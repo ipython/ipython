@@ -29,9 +29,9 @@ from markdown import markdown
 from IPython.utils import path
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import text_cell, output_container
-from converters.utils import highlight, coalesce_streams, ansi2html
+from .base import Converter
+from .utils import text_cell, output_container
+from .utils import highlight, coalesce_streams, ansi2html
 
 
 #-----------------------------------------------------------------------------

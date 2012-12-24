@@ -30,7 +30,7 @@ from types import FunctionType
 from IPython.nbformat import current as nbformat
 
 # Our own imports
-from converters.utils import remove_fake_files_url
+from .utils import remove_fake_files_url
 
 
 #-----------------------------------------------------------------------------

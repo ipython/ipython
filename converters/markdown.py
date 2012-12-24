@@ -16,8 +16,8 @@ as a Markdown document.
 #-----------------------------------------------------------------------------
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import highlight, remove_ansi
+from .base import Converter
+from .utils import highlight, remove_ansi
 from IPython.utils.text import indent
 
 

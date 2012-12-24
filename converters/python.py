@@ -20,8 +20,8 @@ converters that may wish to implement cell-type-specific behaviors.
 from IPython.utils.text import indent
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import remove_ansi
+from .base import Converter
+from .utils import remove_ansi
 
 
 #-----------------------------------------------------------------------------

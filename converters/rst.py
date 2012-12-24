@@ -19,8 +19,8 @@ reStructuredText, suitable for inclusion in e.g. Sphinx documentation.
 from IPython.utils.text import indent
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import markdown2rst, rst_directive, remove_ansi
+from .base import Converter
+from .utils import markdown2rst, rst_directive, remove_ansi
 
 
 #-----------------------------------------------------------------------------
