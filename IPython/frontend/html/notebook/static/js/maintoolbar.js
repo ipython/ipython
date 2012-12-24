@@ -133,8 +133,6 @@ var IPython = (function (IPython) {
                     .append($('<option/>').attr('value','heading4').text('Heading 4'))
                     .append($('<option/>').attr('value','heading5').text('Heading 5'))
                     .append($('<option/>').attr('value','heading6').text('Heading 6'))
-                    .append($('<option/>').attr('value','heading7').text('Heading 7'))
-                    .append($('<option/>').attr('value','heading8').text('Heading 8'))
                 );
     };
 
