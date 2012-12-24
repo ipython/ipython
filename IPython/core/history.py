@@ -20,7 +20,10 @@ import re
 try:
     import sqlite3
 except ImportError:
-    sqlite3 = None
+    try:
+        from pysqlite2 import dbapi2 as sqlite3
+    except ImportError:
+        sqlite3 = None
 import threading
 
 # Our own packages
