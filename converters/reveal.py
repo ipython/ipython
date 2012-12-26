@@ -14,8 +14,8 @@ import itertools
 
 class ConverterReveal(ConverterHTML):
     #"""
-    #Convert a ipython notebook to a html slideshow
-    #based in reveal.js library.
+    # Convert a ipython notebook to a html slideshow
+    # based in reveal.js library.
     #"""
 
     @text_cell
@@ -136,13 +136,25 @@ class ConverterReveal(ConverterHTML):
         right = '</section>'
         notes_start = '<aside class="notes">'
         notes_end = '</aside>'
-        set_delim = self.delim[:6]
+        set_delim_skip = self.delim[:6]  # to skip adjacent skkiped cells
+        set_delim_notes = self.delim[:5]  # to show adjacent speaker notes
         #elimination of skipped cells
         for i, j in enumerate(text):
             if j == u'slide_type = skip':
                 text.pop(i)
-                while not text[i] in set_delim:
+                while not text[i] in set_delim_skip:
                     text.pop(i)
+        #encapsulation of notes cells
+        for i, j in enumerate(text):
+            if j == u'slide_type = notes':
+                text.pop(i)
+                temp_list = []
+                while not text[i] in set_delim_notes:
+                    temp_list.append(text.pop(i))
+                else:
+                    temp_list.insert(0, notes_start)
+                    temp_list.append(notes_end)
+                    text[i:i] = temp_list
         # elimination of none names
         for i, j in enumerate(text):
             if j in [u'slide_type = untouched', u'slide_type = -']:
@@ -159,11 +171,6 @@ class ConverterReveal(ConverterHTML):
                     slide.pop(i)
                     slide[i] = slide[i][:4] + \
                         ' class="fragment"' + slide[i][4:]
-            # encapsulation of each speaker note
-            for i, j in enumerate(slide):
-                if j == u'slide_type = notes':
-                    slide[i] = notes_start
-                    slide.append(notes_end)  # the notes at the slide end
             # encapsulation of each nested slide
             if u'slide_type = slide' in slide:
                 slide.insert(0, '<section>')
