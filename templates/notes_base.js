@@ -5,7 +5,9 @@
 var RevealNotes = (function() {
 
 	function openNotes() {
-		var notesPopup = window.open( 'templates/notes.html', 'reveal.js - Notes', 'width=1120,height=850' );
+		var notesPopup = window.open( 
+                                            %source% 
+                                            , 'reveal.js - Notes', 'width=1120,height=850' );
 
 		// Fires when slide is changed
 		Reveal.addEventListener( 'slidechanged', function( event ) {
