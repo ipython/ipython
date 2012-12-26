@@ -164,8 +164,9 @@ class NotebookWebApplication(web.Application):
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
+            static_url_prefix = url_path_join(base_project_url,'/static/'),
             cookie_secret=os.urandom(1024),
-            login_url="%s/login"%(base_project_url.rstrip('/')),
+            login_url=url_path_join(base_project_url,'/login'),
             cookie_name='username-%s' % uuid.uuid4(),
         )
 
@@ -363,13 +364,33 @@ class NotebookApp(BaseIPythonApplication):
             self.mathjax_url = u''
 
     base_project_url = Unicode('/', config=True,
-                               help='''The base URL for the notebook server''')
+                               help='''The base URL for the notebook server.
+
+                               Leading and trailing slashes can be omitted,
+                               and will automatically be added.
+                               ''')
+    def _base_project_url_changed(self, name, old, new):
+        if not new.startswith('/'):
+            self.base_project_url = '/'+new
+        elif not new.endswith('/'):
+            self.base_project_url = new+'/'
+
     base_kernel_url = Unicode('/', config=True,
-                               help='''The base URL for the kernel server''')
+                               help='''The base URL for the kernel server
+
+                               Leading and trailing slashes can be omitted,
+                               and will automatically be added.
+                               ''')
+    def _base_kernel_url_changed(self, name, old, new):
+        if not new.startswith('/'):
+            self.base_kernel_url = '/'+new
+        elif not new.endswith('/'):
+            self.base_kernel_url = new+'/'
+
     websocket_host = Unicode("", config=True,
         help="""The hostname for the websocket server."""
     )
-    
+
     extra_static_paths = List(Unicode, config=True,
         help="""Extra paths to search for serving static files.
         
