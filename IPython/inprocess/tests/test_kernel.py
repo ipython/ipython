@@ -21,6 +21,7 @@ from IPython.inprocess.blockingkernelmanager import \
 from IPython.inprocess.ipkernel import InProcessKernel
 from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Test case
@@ -48,7 +49,10 @@ class InProcessKernelTestCase(unittest.TestCase):
         sys_stdin = sys.stdin
         sys.stdin = io
         try:
-            km.shell_channel.execute('x = raw_input()')
+            if py3compat.PY3:
+                km.shell_channel.execute('x = input()')
+            else:
+                km.shell_channel.execute('x = raw_input()')
         finally:
             sys.stdin = sys_stdin
         self.assertEqual(km.kernel.shell.user_ns.get('x'), 'foobar')
