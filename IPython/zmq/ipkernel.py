@@ -84,7 +84,6 @@ class Kernel(Configurable):
     control_stream = Instance(ZMQStream)
     iopub_socket = Instance(zmq.Socket)
     stdin_socket = Instance(zmq.Socket)
-    sys_raw_input = Any()
     log = Instance(logging.Logger)
     
     user_module = Any()
@@ -132,7 +131,11 @@ class Kernel(Configurable):
     # This is a dict of port number that the kernel is listening on. It is set
     # by record_ports and used by connect_request.
     _recorded_ports = Dict()
-    
+
+    # A reference to the Python builtin 'raw_input' function.
+    # (i.e., __builtin__.raw_input for Python 2.7, builtins.input for Python 3)
+    _sys_raw_input = Any()
+
     # set of aborted msg_ids
     aborted = Set()
 
@@ -353,10 +356,10 @@ class Kernel(Configurable):
             raw_input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
-            self.sys_raw_input = __builtin__.input
+            self._sys_raw_input = __builtin__.input
             __builtin__.input = raw_input
         else:
-            self.sys_raw_input = __builtin__.raw_input
+            self._sys_raw_input = __builtin__.raw_input
             __builtin__.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
@@ -391,9 +394,9 @@ class Kernel(Configurable):
         finally:
             # Restore raw_input.
              if py3compat.PY3:
-                 __builtin__.input = self.sys_raw_input
+                 __builtin__.input = self._sys_raw_input
              else:
-                 __builtin__.raw_input = self.sys_raw_input
+                 __builtin__.raw_input = self._sys_raw_input
 
         reply_content[u'status'] = status
 
