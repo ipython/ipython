@@ -74,10 +74,10 @@ class BlockingStdInInProcessChannel(BlockingChannelMixin, StdInInProcessChannel)
         """
         msg_type = msg['header']['msg_type']
         if msg_type == 'input_request':
-            raw_input = self.manager.kernel.sys_raw_input
+            _raw_input = self.manager.kernel._sys_raw_input
             prompt = msg['content']['prompt']
             raw_print(prompt, end='')
-            self.input(raw_input())
+            self.input(_raw_input())
 
 class BlockingInProcessKernelManager(InProcessKernelManager):
 
