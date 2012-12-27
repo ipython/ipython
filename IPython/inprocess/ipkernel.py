@@ -95,7 +95,7 @@ class InProcessKernel(Kernel):
                 frontend.stdin_channel.call_handlers(msg)
                 break
         else:
-            log.error('No frontend found for raw_input request')
+            logging.error('No frontend found for raw_input request')
             return str()
 
         # Await a response.
