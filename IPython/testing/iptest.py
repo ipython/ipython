@@ -441,7 +441,7 @@ def make_runners(inc_slow=False):
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
-                     'testing', 'utils', 'nbformat' ]
+                      'testing', 'utils', 'nbformat', 'inprocess' ]
 
     if have['zmq']:
         nose_pkg_names.append('zmq')
@@ -504,8 +504,17 @@ def run_iptest():
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
     plugins = [IPythonDoctest(make_exclude()), KnownFailure()]
-    # We need a global ipython running in this process
-    globalipapp.start_ipython()
+    
+    # We need a global ipython running in this process, but the special
+    # in-process group spawns its own IPython kernels, so for *that* group we
+    # must avoid also opening the global one (otherwise there's a conflict of
+    # singletons).  Ultimately the solution to this problem is to refactor our
+    # assumptions about what needs to be a singleton and what doesn't (app
+    # objects should, individual shells shouldn't).  But for now, this
+    # workaround allows the test suite for the inprocess module to complete.
+    if not 'IPython.inprocess' in sys.argv:
+        globalipapp.start_ipython()
+
     # Now nose can run
     TestProgram(argv=argv, addplugins=plugins)
 
