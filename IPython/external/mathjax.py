@@ -71,8 +71,20 @@ default_dest = os.path.join(static, 'mathjax')
 
 def check_perms(dest, replace=False):
     parent = os.path.abspath(os.path.join(dest, os.path.pardir))
-    if not os.access(parent, os.W_OK):
+    components = dest.split(os.path.sep)
+    subpaths = [ os.path.sep+os.path.sep.join(components[1:i]) for i in range(1,len(components))]
+
+    existing_path = filter(os.path.exists, subpaths)
+    last_writable = existing_path[-1]
+    if not os.access(last_writable, os.W_OK):
         raise IOError("Need have write access to %s" % parent)
+    not_existing = [ path for path in subpaths if path not in existing_path]
+    # subfolder we will create, will obviously be writable
+    # should we still considere checking separately that
+    # ipython profiles have been created ?
+    for folder in not_existing:
+        os.mkdir(folder)
+
     if os.path.exists(dest):
         if replace:
             if not os.access(dest, os.W_OK):
