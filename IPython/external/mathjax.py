@@ -1,10 +1,38 @@
+#!/usr/bin/python
 """Utility function for installing MathJax javascript library into
 the notebook's 'static' directory, for offline use.
 
-Authors:
+ Authors:
 
-* Min RK
+ * Min RK
+ * Mark Sienkiewicz
+ * Matthias Bussonnier
+
+To download and install MathJax:
+
+From Python:
+
+    >>> from IPython.external.mathjax import install_mathjax
+    >>> install_mathjax()
+
+From the command line:
+
+    $ python -m IPython.external.mathjax
+
+To install MathJax from a file you have already downloaded:
+
+    $ python -m IPython.external.mathjax mathjax-xxx.tar.gz
+    $ python -m IPython.external.mathjax mathjax-xxx.zip
+
+It will not install MathJax if it is already there.  Use -r to
+replace the existing copy of MathJax.
+
+To find the directory where IPython would like MathJax installed:
+
+    $ python -m IPython.external.mathjax -d
+
 """
+
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -13,81 +41,276 @@ Authors:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
 
 import os
 import shutil
-import urllib2
-import tempfile
+import sys
 import tarfile
+import urllib2
+import zipfile
+
 
 from IPython.utils.path import locate_profile
-
+from IPython.external import argparse
 #-----------------------------------------------------------------------------
-# Imports
+#
 #-----------------------------------------------------------------------------
 
-def install_mathjax(tag='v2.0', replace=False, dest=None):
-    """Download and install MathJax for offline use.
-    
-    You can use this to install mathjax to a location on your static file
-    path. This includes the `static` directory within your IPython profile,
-    which is the default location for this install.
-    
-    MathJax is a ~15MB download, and ~150MB installed.
-    
-    Parameters
-    ----------
-    
-    replace : bool [False]
-        Whether to remove and replace an existing install.
-    tag : str ['v2.0']
-        Which tag to download. Default is 'v2.0', the current stable release,
-        but alternatives include 'v1.1' and 'master'.
-    dest : path
-        The path to the directory in which mathjax will be installed.
-        The default is `IPYTHONDIR/profile_default/static`.
-        dest must be on your notebook static_path when you run the notebook server.
-        The default location works for this.
-    """
-    
-    mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s" % tag
-    
-    if dest is None:
-        dest = os.path.join(locate_profile('default'), 'static')
-    
-    if not os.path.exists(dest):
-        os.mkdir(dest)
-    
-    static = dest
-    dest = os.path.join(static, 'mathjax')
-    
-    # check for existence and permissions
-    if not os.access(static, os.W_OK):
-        raise IOError("Need have write access to %s" % static)
+# Where mathjax will be installed.
+
+static = os.path.join(locate_profile('default'), 'static')
+default_dest = os.path.join(static, 'mathjax')
+
+##
+
+# Test for access to install mathjax.
+
+def check_perms(dest, replace=False):
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    components = dest.split(os.path.sep)
+    subpaths = [ os.path.sep+os.path.sep.join(components[1:i]) for i in range(1,len(components))]
+
+    existing_path = filter(os.path.exists, subpaths)
+    last_writable = existing_path[-1]
+    if not os.access(last_writable, os.W_OK):
+        raise IOError("Need have write access to %s" % parent)
+    not_existing = [ path for path in subpaths if path not in existing_path]
+    # subfolder we will create, will obviously be writable
+    # should we still considere checking separately that
+    # ipython profiles have been created ?
+    for folder in not_existing:
+        os.mkdir(folder)
+
     if os.path.exists(dest):
         if replace:
             if not os.access(dest, os.W_OK):
                 raise IOError("Need have write access to %s" % dest)
             print "removing previous MathJax install"
             shutil.rmtree(dest)
+            return True
         else:
             print "offline MathJax apparently already installed"
-            return
-    
-    # download mathjax
-    print "Downloading mathjax source from %s ..." % mathjax_url
-    response = urllib2.urlopen(mathjax_url)
-    print "done"
+            return False
+    else :
+        return True
+
+##
+
+def extract_tar( fd, dest ) :
     # use 'r|gz' stream mode, because socket file-like objects can't seek:
-    tar = tarfile.open(fileobj=response.fp, mode='r|gz')
+    tar = tarfile.open(fileobj=fd, mode='r|gz')
+
+    # we just happen to know that the first entry in the mathjax
+    # archive is the directory that the remaining members are in.
     topdir = tar.firstmember.path
-    print "Extracting to %s" % dest
-    tar.extractall(static)
+
+    # extract the archive (contains a single directory) to the static/ directory
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    tar.extractall(parent)
+
     # it will be mathjax-MathJax-<sha>, rename to just mathjax
-    os.rename(os.path.join(static, topdir), dest)
+    os.rename(os.path.join(parent, topdir), dest)
+
+##
+
+def extract_zip( fd, dest ) :
+    z = zipfile.ZipFile( fd, 'r' )
+
+    # we just happen to know that the first entry in the mathjax
+    # archive is the directory that the remaining members are in.
+    topdir = z.namelist()[0]
+
+    # extract the archive (contains a single directory) to the static/ directory
+    parent = os.path.abspath(os.path.join(dest, os.path.pardir))
+    z.extractall( parent )
+
+    # it will be mathjax-MathJax-<sha>, rename to just mathjax
+    d = os.path.join(parent, topdir)
+    print d
+    os.rename(os.path.join(parent, topdir), dest)
+
+##
+
+def install_mathjax(tag='v2.0', dest=default_dest, replace=False, file=None, extractor=extract_tar ):
+    """Download and/or install MathJax for offline use.
+
+    This will install mathjax to the 'static' dir in the IPython notebook
+    package, so it will fail if the caller does not have write access
+    to that location.
+
+    MathJax is a ~15MB download, and ~150MB installed.
+
+    Parameters
+    ----------
+
+    replace : bool [False]
+        Whether to remove and replace an existing install.
+    dest : str [path to default profile]
+        Where to locally install mathjax
+    tag : str ['v2.0']
+        Which tag to download. Default is 'v2.0', the current stable release,
+        but alternatives include 'v1.1a' and 'master'.
+    file : file like object [ defualt to content of https://github.com/mathjax/MathJax/tarball/#{tag}]
+        File handle from which to untar/unzip/... mathjax
+    extractor : function
+        Method tu use to untar/unzip/... `file`
+    """
+    if not check_perms(dest, replace) :
+        return
+
+    if file is None :
+        # download mathjax
+        mathjax_url = "https://github.com/mathjax/MathJax/tarball/%s" % tag
+        print "Downloading mathjax source from %s" % mathjax_url
+        response = urllib2.urlopen(mathjax_url)
+        file = response.fp
+
+    print "Extracting to %s" % dest
+    extractor( file, dest )
+
+##
+
+def test_func( remove, dest) :
+    """See if mathjax appears to be installed correctly"""
+    status = 0
+    if not os.path.isdir( dest ) :
+        print "%s directory not found" % dest
+        status = 1
+    if not os.path.exists( dest + "/MathJax.js" ) :
+        print "MathJax.js not present in %s" % dest
+        status = 1
+    print "ok"
+    if remove and os.path.exists(dest):
+        shutil.rmtree( dest )
+    return status
+
+##
+
+def main() :
+    # This main is just simple enough that it is not worth the
+    # complexity of argparse
+
+    # What directory is mathjax in?
+    parser = argparse.ArgumentParser(
+            description="""Install mathjax from internet or local archive""",
+            )
+
+    parser.add_argument(
+            '-i',
+            '--install-dir',
+            default=default_dest,
+            help='installation directory (by default : %s)' % (default_dest))
+    parser.add_argument(
+            '-d',
+            '--dest',
+            action='store_true',
+            help='print where is current mathjax would be installed and exit')
+    parser.add_argument(
+            '-r',
+            '--replace',
+            action='store_true',
+            help='Wether to replace current mathjax if already exist')
+    parser.add_argument(
+            '-t',
+            '--test',
+            action='store_true')
+    parser.add_argument('tarball',
+            type=int,
+            help="the local tar/zip-ball containing mathjax",
+            nargs='?',
+            metavar='tarball')
+
+    pargs = parser.parse_args()
+
+    dest = pargs.install_dir
+    if pargs.dest :
+        print dest
+        return
+
+    # remove/replace existing mathjax?
+    if pargs.replace :
+        replace = True
+    else :
+        replace = False
+
+    # undocumented test interface
+    if pargs.test :
+        return test_func( replace, dest)
+
+    # do it
+    if pargs.tarball :
+        fname = pargs.tarball
+
+        # automatically detect zip/tar - could do something based
+        # on file content, but really not cost-effective here.
+        if fname.endswith('.zip') :
+            extractor = extract_zip
+        else :
+            extractor = extract_tar
+        # do it
+        install_mathjax(file=open(fname, "r"), replace=replace, extractor=extractor, dest=dest )
+    else:
+        install_mathjax(replace=replace, dest=dest)
 
 
-__all__ = ['install_mathjax']
+if __name__ == '__main__' :
+    sys.exit(main())
+
+__all__ = ['install_mathjax', 'main', 'dest']
+
+"""
+Test notes:
+
+IPython uses IPython.testing.iptest as a custom test controller
+(though it is based on nose).  It might be possible to fit automatic
+tests of installation into that framework, but it looks awkward to me.
+So, here is a manual procedure for testing this automatic installer.
+
+    Mark Sienkiewicz, 2012-08-06
+    first 8 letters of my last name @ stsci.edu
+
+# remove mathjax from the installed ipython instance
+# IOError ok if mathjax was never installed yet.
+
+python -m IPython.external.mathjax --test -r
+
+# download and install mathjax from command line:
+
+python -m IPython.external.mathjax
+python -m IPython.external.mathjax --test -r
+
+# download and install from within python
+
+python -c "from IPython.external.mathjax import install_mathjax; install_mathjax()"
+python -m IPython.external.mathjax --test -r
+
+# view http://www.mathjax.org/download/ in your browser
+# save-as the link for MathJax-2.0 near the bottom of the page.
+# The file it offers is mathjax-MathJax-v2.0-20-g07669ac.zip
+
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.zip
+python -m IPython.external.mathjax --test -r
+
+# download https://github.com/mathjax/MathJax/tarball/v2.0 in your browser
+# (this is the url used internally by install_mathjax)
+# The file it offers is mathjax-MathJax-v2.0-20-g07669ac.tar.gz
+
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
+
+python -m IPython.external.mathjax --test
+        # note no -r
+
+# install it again while it is already there
+
+python -m IPython.external.mathjax mathjax-MathJax-v2.0-20-g07669ac.tar.gz
+    # says "offline MathJax apparently already installed"
+
+python -m IPython.external.mathjax  ~/mathjax-MathJax-v2.0-20-g07669ac.tar.gz
+python -m IPython.external.mathjax --test
+
+
+"""

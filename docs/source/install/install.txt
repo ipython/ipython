@@ -340,15 +340,26 @@ The IPython notebook uses the MathJax_ Javascript library for rendering LaTeX
 in web browsers. Because MathJax is large, we don't include it with
 IPython. Normally IPython will load MathJax from a CDN, but if you have a slow
 network connection, or want to use LaTeX without an internet connection at all,
-we do include a utility to aid in downloading MathJax and installing it into
-the proper location::
+you can install MathJax locally.
+
+A quick and easy method is to install it from a python session::
 
     from IPython.external.mathjax import install_mathjax
     install_mathjax()
 
-This function does require write access to the IPython install directory, so if
-you have a system-wide Python install, it may need to be done from a ``sudo
-python`` session.
+If you need tighter configuration control, you can download your own copy
+of MathJax from http://www.mathjax.org/download/ - use the MathJax-2.0 link.
+When you have the file stored locally, install it with::
+
+	python -m IPython.external.mathjax /path/to/source/mathjax-MathJax-v2.0-20-g07669ac.zip
+
+For unusual needs, IPython can tell you what directory it wants to find MathJax in::
+
+	python -m IPython.external.mathjax -d
+
+By default Mathjax will be installed in your ipython profile directory, but you
+can make system wide install, please refere to the documentation and helper function 
+of IPython.external.mathjax
 
 Browser Compatibility
 ---------------------
