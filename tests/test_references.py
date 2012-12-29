@@ -5,6 +5,10 @@ from converters import (
     ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML
 )
 
+@nottest
+def cleanfile(stn):
+    return filter(None, map(unicode.strip, stn.split('\n')))
+
 
 def test_evens():
     ######
@@ -33,8 +37,8 @@ def test_evens():
 
 @nottest
 def compfiles(stra, strb):
-    nt.assert_equal(map(unicode.strip, stra.split('\n')),
-                    map(unicode.strip, strb.split('\n')))
+    nt.assert_equal(cleanfile(stra),
+                    cleanfile(strb))
 
 
 @nottest
