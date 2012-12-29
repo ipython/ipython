@@ -228,6 +228,10 @@ var IPython = (function (IPython) {
             ch: 0
         }, cursor).trim();
 
+        if(editor.somethingSelected()){
+            text = editor.getSelection();
+        }
+
         // need a permanent handel to code_mirror for future auto recall
         this.code_mirror = editor;
 
@@ -288,7 +292,15 @@ var IPython = (function (IPython) {
         var w = $(this.code_mirror.getScrollerElement()).width();
         // ofset of the editor
         var o = $(this.code_mirror.getScrollerElement()).offset();
-        var pos = this.code_mirror.cursorCoords();
+
+        // whatever anchor/head order but arrow at mid x selection
+        var anchor = this.code_mirror.cursorCoords(false);
+        var head  = this.code_mirror.cursorCoords(true);
+        var pos = {};
+        pos.y = head.y
+        pos.yBot = head.yBot
+        pos.x = (head.x+anchor.x)/2;
+
         var xinit = pos.x;
         var xinter = o.left + (xinit - o.left) / w * (w - 450);
         var posarrowleft = xinit - xinter;
