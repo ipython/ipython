@@ -45,7 +45,7 @@ known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
 
-def main(infile, format='rst', preamble=None, exclude=None,
+def main(infile, format='rst', preamble=None, exclude=[],
          highlight_source=True):
     """Convert a notebook to html in one step"""
     try:

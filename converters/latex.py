@@ -77,7 +77,6 @@ class ConverterLaTeX(Converter):
                    5: r'\subparagraph',
                    6: r'\subparagraph'}
     user_preamble = None
-    exclude_cells = []
     display_data_priority = ['latex', 'pdf', 'svg', 'png', 'jpg', 'text']
 
     def in_env(self, environment, lines):

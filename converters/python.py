@@ -45,12 +45,12 @@ class ConverterPy(Converter):
     extension = 'py'
 
     def __init__(self, infile, highlight_source=False, show_prompts=True,
-                 show_output=True):
+                 show_output=True, **kw):
         # Note that highlight_source is meaningless here, so even if it
         # is passed as True we ignore it and propagate False to the
         # superclass.
         super(ConverterPy, self).__init__(infile,
-                                          highlight_source=False)
+                                          highlight_source=False, **kw)
         self.show_prompts = show_prompts
         self.show_output = show_output
 

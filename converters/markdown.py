@@ -41,8 +41,8 @@ class ConverterMarkdown(Converter):
     inline_prompt = False
 
     def __init__(self, infile, highlight_source=True, show_prompts=False,
-                 inline_prompt=False):
-        super(ConverterMarkdown, self).__init__(infile)
+                 inline_prompt=False, **kw):
+        super(ConverterMarkdown, self).__init__(infile, **kw)
         self.highlight_source = highlight_source
         self.show_prompts = show_prompts
         self.inline_prompt = inline_prompt
