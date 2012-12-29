@@ -21,8 +21,8 @@ import subprocess
 import sys
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import markdown2latex, remove_ansi
+from .base import Converter
+from .utils import markdown2latex, remove_ansi
 
 
 #-----------------------------------------------------------------------------

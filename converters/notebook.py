@@ -22,8 +22,8 @@ import os
 from shutil import rmtree
 
 # Our own imports
-from converters.base import Converter
-from converters.utils import cell_to_lines
+from .base import Converter
+from .utils import cell_to_lines
 
 
 #-----------------------------------------------------------------------------
