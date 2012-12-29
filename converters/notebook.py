@@ -44,8 +44,8 @@ class ConverterNotebook(Converter):
     """
     extension = 'ipynb'
 
-    def __init__(self, infile, outbase):
-        Converter.__init__(self, infile)
+    def __init__(self, infile, outbase, **kw):
+        Converter.__init__(self, infile, **kw)
         self.outbase = outbase
         rmtree(self.files_dir)
 
