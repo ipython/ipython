@@ -329,12 +329,29 @@ var IPython = (function (IPython) {
         var text = this.get_text();
         if (text === "") { text = this.placeholder; }
         text = IPython.mathjaxutils.remove_math(text);
-        var literateRegex = /::([a-z_0-9]+)::/ig,
+        //
+        // {{                           delimiter
+        //  (?:\s*)                     non captured optionnal whitespace
+        //  (\w+)                       variable name
+        //  (?:\s*)                     non captured optionnal whitespace
+        //  (?:                         non captured group
+        //      \|                      first a pipe
+        //      \W*                     maybe whitespaces
+        //      ((?:\w|,| )*)           comma separated list of options
+        //  )
+        // }}
+        // /ig
+        //
+        //
+        //
+        var literateRegex = /{{(?:\s*)(\w+)(?:\s*)(?:\|\W*((?:\w|,| )*))?}}/ig,
                 matches,
                 variables = [];
 
         while (matches = literateRegex.exec(text)) {
             variables.push(matches[1]);
+            // matches[2] would be the list of options,
+            // not implemented yet
         }
         var that = this
         if(this.meta_var_updated_requested == false) {
@@ -364,7 +381,8 @@ var IPython = (function (IPython) {
             // replace ::xxx:: variable if possible:
             if(data != undefined){
                 for (i in data){
-                    text = text.replace(new RegExp('::'+i+'::','g'), data[i]);
+                    var reg = new RegExp('{{\\s*'+i+'\\s*(\\|(\\w|,| )*)?}}','g')
+                    text = text.replace(reg, data[i]);
                 }
             }
 
