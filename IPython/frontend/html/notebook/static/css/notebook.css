@@ -9,6 +9,12 @@ body {
     overflow: hidden;
 }
 
+blockquote {
+    border-left: 4px solid #DDD;
+    padding: 0 15px;
+    color: #777;
+}
+
 span#save_widget {
     padding: 5px;
     margin: 0px 0px 0px 300px;
