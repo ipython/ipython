@@ -27,6 +27,7 @@ http://www.python.org/2.2.3/license.html"""
 from __future__ import print_function
 
 import bdb
+import functools
 import linecache
 import sys
 
@@ -59,10 +60,18 @@ else:
 # Allow the set_trace code to operate outside of an ipython instance, even if
 # it does so with some limitations.  The rest of this support is implemented in
 # the Tracer constructor.
-def BdbQuit_excepthook(et,ev,tb):
+def BdbQuit_excepthook(et, ev, tb, excepthook=None):
+    """Exception hook which handles `BdbQuit` exceptions.
+
+    All other exceptions are processed using the `excepthook`
+    parameter.
+    """
     if et==bdb.BdbQuit:
         print('Exiting Debugger.')
+    elif excepthook is not None:
+        excepthook(et, ev, tb)
     else:
+        # Backwards compatibility. Raise deprecation warning?
         BdbQuit_excepthook.excepthook_ori(et,ev,tb)
 
 def BdbQuit_IPython_excepthook(self,et,ev,tb,tb_offset=None):
@@ -108,8 +117,8 @@ class Tracer(object):
             ip = get_ipython()
         except NameError:
             # Outside of ipython, we set our own exception hook manually
-            BdbQuit_excepthook.excepthook_ori = sys.excepthook
-            sys.excepthook = BdbQuit_excepthook
+            sys.excepthook = functools.partial(BdbQuit_excepthook,
+                                               excepthook=sys.excepthook)
             def_colors = 'NoColor'
             try:
                 # Limited tab completion support
@@ -136,7 +145,7 @@ class Tracer(object):
         except:
             # This is only a user-facing convenience, so any error we encounter
             # here can be warned about but can be otherwise ignored.  These
-            # printouts will tell us about problems if this API changes 
+            # printouts will tell us about problems if this API changes
             import traceback
             traceback.print_exc()
 
@@ -423,7 +432,7 @@ class Pdb(OldPdb):
             src = []
             if filename == "<string>" and hasattr(self, "_exec_filename"):
                 filename = self._exec_filename
-            
+
             for lineno in range(first, last+1):
                 line = ulinecache.getline(filename, lineno)
                 if not line:
