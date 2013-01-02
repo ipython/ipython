@@ -528,7 +528,7 @@ class RMagics(Magics):
             local_ns = {}
 
         if args.input:
-            for input in ','.join(args.input).split(','):
+            for input in _split_line(''.join(args.input)):
                 try:
                     val = local_ns[input]
                 except KeyError:
