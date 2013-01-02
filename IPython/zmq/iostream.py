@@ -32,6 +32,7 @@ class OutStream(object):
         self.parent_header = {}
         self.master_pid = self.getpid() if pid is None else pid
         self._manager = Manager()
+        self._flush_lock = self._manager.Lock()
         self._buffer = self._manager.Queue()
         self._start = -1
 
@@ -47,8 +48,9 @@ class OutStream(object):
             raise ValueError(u'I/O operation on closed file')
         elif self.getpid() == self.master_pid:#only flush on master process
             data = ''
-            while not self._buffer.empty():
-                data += self._buffer.get()
+            with self._flush_lock:
+                while not self._buffer.empty():
+                    data += self._buffer.get()
             if data:
                 content = {u'name':self.name, u'data':data}
                 msg = self.session.send(self.pub_socket, u'stream', content=content,
@@ -89,8 +91,9 @@ class OutStream(object):
             # Make sure that we're handling unicode
             if not isinstance(string, unicode):
                 string = string.decode(self.encoding, 'replace')
-
-            self._buffer.put(string)
+            
+            with self._flush_lock:
+                self._buffer.put(string)
             current_time = time.time()
             if self._start <= 0:
                 self._start = current_time
@@ -101,5 +104,6 @@ class OutStream(object):
         if self.pub_socket is None:
             raise ValueError('I/O operation on closed file')
         else:
-            for string in sequence:
-                self._buffer.put(string)
+            with self._flush_lock:
+                for string in sequence:
+                    self._buffer.put(string)
