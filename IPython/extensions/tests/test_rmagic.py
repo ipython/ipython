@@ -14,6 +14,20 @@ def test_push():
     np.testing.assert_almost_equal(np.asarray(rm.r('X')), ip.user_ns['X'])
     np.testing.assert_almost_equal(np.asarray(rm.r('Y')), ip.user_ns['Y'])
 
+def test_push_localscope():
+    """Test that Rpush looks for variables in the local scope first."""
+    ip.run_cell('''
+def rmagic_addone(u):
+    %Rpush u
+    %R result = u+1
+    %Rpull result
+    return result[0]
+u = 0
+result = rmagic_addone(12344)
+    ''')
+    result = ip.user_ns['result']
+    np.testing.assert_equal(result, 12345)
+
 def test_pull():
     rm = rmagic.RMagics(ip)
     rm.r('Z=c(11:20)')
