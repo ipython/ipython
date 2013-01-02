@@ -35,6 +35,7 @@ Usage
 #-----------------------------------------------------------------------------
 
 import sys
+import re
 import tempfile
 from glob import glob
 from shutil import rmtree
@@ -59,6 +60,26 @@ from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
+
+def _split_line(line):
+    """Split the line into fields separated by commas or spaces
+
+    Examples
+    ----------
+    >>> _split_line('a,b')
+    ['a', 'b']
+    >>> _split_line('a b')
+    ['a', 'b']
+    >>> _split_line('a, b')
+    ['a', 'b']
+    >>> _split_line('a ,b')
+    ['a', 'b']
+    >>> _split_line('a , b')
+    ['a', 'b']
+    """
+    inputs = re.split('\s*[,\s]\s*', line)
+
+    return inputs
 
 class RInterpreterError(ri.RRuntimeError):
     """An error when running R code in a %%R magic cell."""
@@ -203,7 +224,7 @@ class RMagics(Magics):
         if local_ns is None:
             local_ns = {}
 
-        inputs = line.split(' ')
+        inputs = _split_line(line)
         for input in inputs:
             try:
                 val = local_ns[input]
@@ -259,7 +280,7 @@ class RMagics(Magics):
 
         '''
         args = parse_argstring(self.Rpull, line)
-        outputs = args.outputs
+        outputs = _split_line(''.join(args.outputs))
         for output in outputs:
             self.shell.push({output:self.Rconverter(self.r(output),dataframe=args.as_dataframe)})
 
@@ -507,7 +528,7 @@ class RMagics(Magics):
             local_ns = {}
 
         if args.input:
-            for input in ','.join(args.input).split(','):
+            for input in _split_line(''.join(args.input)):
                 try:
                     val = local_ns[input]
                 except KeyError:
