@@ -41,7 +41,7 @@ div.ui-widget-content{border:1px solid #e0e0e0;outline:none;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 0px;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;}
 div.input{page-break-inside:avoid;}
-div.input_area{color:black;border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
+div.input_area{border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
 div.input_prompt{color:navy;border-top:1px solid transparent;}
 div.output_wrapper{margin-top:5px;margin-left:5px;width:100%;position:relative;}
 div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:3px;box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
@@ -51,16 +51,16 @@ div.out_prompt_overlay:hover{box-shadow:inset 0 0 1px #000;background:rgba(240, 
 div.output_prompt{color:darkred;margin:0 5px 0 -5px;}
 div.output_area{padding:0px;page-break-inside:avoid;}
 div.output_subarea{padding:0.44em 0.4em 0.4em 1px;}
-div.output_text{text-align:left;color:black;font-family:monospace;}
+div.output_text{text-align:left;color:#000000;font-family:monospace;}
 div.output_stream{padding-top:0.0em;padding-bottom:0.0em;}
 div.output_stderr{background:#fdd;}
-div.output_latex{text-align:left;color:black;}
+div.output_latex{text-align:left;}
 div.text_cell{padding:5px 5px 5px 5px;}
-div.text_cell_input{color:black;border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
-div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:black;}
+div.text_cell_input{color:#000000;border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
+div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 .CodeMirror{line-height:1.231;}
 .CodeMirror-scroll{height:auto;overflow-y:hidden;overflow-x:auto;}
-.ansiblack{color:black;}
+.ansiblack{color:#000000;}
 .ansired{color:darkred;}
 .ansigreen{color:darkgreen;}
 .ansiyellow{color:brown;}

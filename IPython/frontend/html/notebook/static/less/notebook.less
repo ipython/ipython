@@ -199,7 +199,7 @@ div.input {
 
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
-    color: black;
+    /*color: @fontBaseColor;*/
     border: 1px solid @border_color;
     .corner-all;
     background: @cell_background;
@@ -289,7 +289,7 @@ div.output_subarea {
 /* all text output has this class: */
 div.output_text {
     text-align: left;
-    color: black;
+    color: @fontBaseColor;
     font-family: monospace;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: 1.231;
@@ -308,7 +308,6 @@ div.output_stderr {
 
 div.output_latex {
     text-align: left;
-    color: black;
 }
 
 div.output_html {
@@ -325,7 +324,7 @@ div.text_cell {
 }
 
 div.text_cell_input {
-    color: black;
+    color: @fontBaseColor;
     border: 1px solid @border_color;
     .corner-all;
     background: @cell_background;
@@ -338,7 +337,7 @@ div.text_cell_render {
     width:  inherit;
     border-style: none;
     padding: 5px;
-    color: black;
+    color: @fontBaseColor;
 }
 
 /* The following gets added to the <head> if it is detected that the user has a
@@ -367,7 +366,7 @@ div.text_cell_render {
 /* CSS font colors for translated ANSI colors. */
 
 
-.ansiblack {color: black;}
+.ansiblack {color: @fontBaseColor;}
 .ansired {color: darkred;}
 .ansigreen {color: darkgreen;}
 .ansiyellow {color: brown;}
