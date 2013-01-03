@@ -90,7 +90,7 @@ def test_rmagic_localscope():
     nt.assert_equal(result, 2)
 
     nt.assert_raises(
-        KeyError,
+        NameError,
         ip.run_line_magic,
         "R",
         "-i var_not_defined 1+1")
