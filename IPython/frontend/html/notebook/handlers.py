@@ -874,25 +874,6 @@ class FileFindHandler(web.StaticFileHandler):
         return None
 
 
-    # make_static_url and parse_url_path totally unchanged from tornado 2.2.0
-    # but needed for tornado < 2.2.0 compat
-    @classmethod
-    def make_static_url(cls, settings, path):
-        """Constructs a versioned url for the given path.
-
-        This method may be overridden in subclasses (but note that it is
-        a class method rather than an instance method).
-
-        ``settings`` is the `Application.settings` dictionary.  ``path``
-        is the static path being requested.  The url returned should be
-        relative to the current host.
-        """
-        static_url_prefix = settings.get('static_url_prefix', '/static/')
-        version_hash = cls.get_version(settings, path)
-        if version_hash:
-            return static_url_prefix + path + "?v=" + version_hash
-        return static_url_prefix + path
-
     def parse_url_path(self, url_path):
         """Converts a static URL path into a filesystem path.
 
