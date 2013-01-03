@@ -29,6 +29,7 @@ from __future__ import print_function
 
 import os
 import re
+import subprocess
 import sys
 import tempfile
 
@@ -41,6 +42,7 @@ from IPython.utils.data import chop
 from IPython.utils import io
 from IPython.utils.process import system
 from IPython.utils.terminal import get_terminal_size
+from IPython.utils import py3compat
 
 
 #-----------------------------------------------------------------------------
@@ -73,7 +75,7 @@ def page_dumb(strng, start=0, screen_lines=25):
 
 def _detect_screen_size(use_curses, screen_lines_def):
     """Attempt to work out the number of lines on the screen.
-    
+
     This is called by page(). It can raise an error (e.g. when run in the
     test suite), so it's separated out so it can easily be called in a try block.
     """
@@ -106,7 +108,7 @@ def _detect_screen_size(use_curses, screen_lines_def):
         # http://bugs.python.org/issue10144
         NCURSES_NO_SETBUF = os.environ.get('NCURSES_NO_SETBUF', None)
         os.environ['NCURSES_NO_SETBUF'] = ''
-        
+
         # Proceed with curses initialization
         scr = curses.initscr()
         screen_lines_real,screen_cols = scr.getmaxyx()
@@ -117,7 +119,7 @@ def _detect_screen_size(use_curses, screen_lines_def):
             del os.environ['NCURSES_NO_SETBUF']
         else:
             os.environ['NCURSES_NO_SETBUF'] = NCURSES_NO_SETBUF
-            
+
         # Restore terminal state in case endwin() didn't.
         termios.tcsetattr(sys.stdout,termios.TCSANOW,term_flags)
         # Now we have what we needed: the screen size in rows/columns
@@ -218,12 +220,15 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 retval = None
                 # if I use popen4, things hang. No idea why.
                 #pager,shell_out = os.popen4(pager_cmd)
-                pager = os.popen(pager_cmd,'w')
-                pager.write(strng.encode(sys.stdout.encoding))
-                pager.close()
-                retval = pager.close()  # success returns None
+                pager = os.popen(pager_cmd, 'w')
+                try:
+                    pager_encoding = pager.encoding or sys.stdout.encoding
+                    pager.write(py3compat.cast_bytes_py2(
+                        strng, encoding=pager_encoding))
+                finally:
+                    retval = pager.close()
             except IOError as msg:  # broken pipe when user quits
-                if msg.args == (32,'Broken pipe'):
+                if msg.args == (32, 'Broken pipe'):
                     retval = None
                 else:
                     retval = 1
@@ -338,4 +343,3 @@ def snip_print(str,width = 75,print_full = 0,header = ''):
         if raw_input(header+' Snipped. View (y/n)? [N]').lower() == 'y':
             page(str)
     return snip
-
