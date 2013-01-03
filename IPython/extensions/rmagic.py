@@ -208,7 +208,14 @@ class RMagics(Magics):
             try:
                 val = local_ns[input]
             except KeyError:
-                val = self.shell.user_ns[input]
+                try:
+                    val = self.shell.user_ns[input]
+                except KeyError:
+                    # reraise the KeyError as a NameError so that it looks like
+                    # the standard python behavior when you use an unnamed
+                    # variable
+                    raise NameError("name '%s' is not defined" % input)
+
             self.r.assign(input, self.pyconverter(val))
 
     @skip_doctest
@@ -511,7 +518,10 @@ class RMagics(Magics):
                 try:
                     val = local_ns[input]
                 except KeyError:
-                    val = self.shell.user_ns[input]
+                    try:
+                        val = self.shell.user_ns[input]
+                    except KeyError:
+                        raise NameError("name '%s' is not defined" % input)
                 self.r.assign(input, self.pyconverter(val))
 
         png_argdict = dict([(n, getattr(args, n)) for n in ['units', 'height', 'width', 'bg', 'pointsize']])
