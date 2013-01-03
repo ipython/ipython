@@ -219,7 +219,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
                 # if I use popen4, things hang. No idea why.
                 #pager,shell_out = os.popen4(pager_cmd)
                 pager = os.popen(pager_cmd,'w')
-                pager.write(strng)
+                pager.write(strng.encode(sys.stdout.encoding))
                 pager.close()
                 retval = pager.close()  # success returns None
             except IOError as msg:  # broken pipe when user quits
