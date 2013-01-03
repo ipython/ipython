@@ -46,7 +46,13 @@ data-read-only={{read_only}}
         {% endif %}
 
         <div id="notebook_list">
-            <div id="project_name"><h2>{{project}}</h2></div>
+            <div id="project_name">
+                <ul class="breadcrumb">
+                    {% for component in project_component %}
+                        <li>{{component}} <span>/</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div id="tab2">

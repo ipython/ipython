@@ -218,7 +218,9 @@ class ProjectDashboardHandler(AuthenticatedHandler):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir        
         template = self.application.jinja2_env.get_template('projectdashboard.html')
-        self.write( template.render(project=project,
+        self.write( template.render(
+            project=project,
+            project_component=project.split('/'),
             base_project_url=self.application.ipython_app.base_project_url,
             base_kernel_url=self.application.ipython_app.base_kernel_url,
             read_only=self.read_only,

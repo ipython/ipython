@@ -82,3 +82,8 @@
 .ui-tabs .ui-tabs-nav li a {
     padding: .3em .5em;
 }
+
+#project_name > .breadcrumb {
+ padding : 0;
+ background-color: transparent;
+}
