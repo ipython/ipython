@@ -57,7 +57,7 @@ div.output_stderr{background:#fdd;}
 div.output_latex{text-align:left;color:black;}
 div.text_cell{padding:5px 5px 5px 5px;}
 div.text_cell_input{color:black;border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
-div.text_cell_render{font-family:"Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:black;}
+div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:black;}
 .CodeMirror{line-height:1.231;}
 .CodeMirror-scroll{height:auto;overflow-y:hidden;overflow-x:auto;}
 .ansiblack{color:black;}
@@ -108,6 +108,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 .rendered_html td{border:1px solid black;text-align:left;vertical-align:middle;padding:4px;}
 .rendered_html th{border:1px solid black;text-align:left;vertical-align:middle;padding:4px;font-weight:bold;}
 .rendered_html tr{border:1px solid black;}
+.rendered_html p{text-align:justify;}
 .rendered_html p+p{margin-top:1em;}
 .corner-all{border-radius:3px;}
 @-moz-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-webkit-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-moz-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}@-webkit-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}.bigtooltip{overflow:auto;height:200px;-webkit-transition-property:height;-webkit-transition-duration:1s;-moz-transition-property:height;-moz-transition-duration:1s;transition-property:height;transition-duration:1s;}
