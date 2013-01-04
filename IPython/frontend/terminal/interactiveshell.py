@@ -150,6 +150,8 @@ class TerminalMagics(Magics):
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
         """
+        self.shell.using_magics = True
+
         b = self.cleanup_input(block)
         if name:
             # If storing it for further editing
@@ -347,6 +349,8 @@ class TerminalInteractiveShell(InteractiveShell):
     term_title = CBool(False, config=True,
         help="Enable auto setting the terminal title."
     )
+
+    using_magics = CBool(False)
 
     # In the terminal, GUI control is done via PyOS_InputHook
     from IPython.lib.inputhook import enable_gui
@@ -721,8 +725,9 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
-        print("If you want to paste code into IPython, try the "
-              "%paste and %cpaste magic functions.")
+        if not self.using_magics:
+            print("If you want to paste code into IPython, try the "
+                "%paste and %cpaste magic functions.")
 
 
 InteractiveShellABC.register(TerminalInteractiveShell)
