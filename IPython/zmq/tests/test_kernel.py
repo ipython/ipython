@@ -112,31 +112,30 @@ def _check_mp_mode(km, expected=False, stream="stdout"):
     nt.assert_equal(eval(stdout.strip()), expected)
 
 
-@dec.parametric
 def test_simple_print():
     """simple print statement in kernel"""
     with new_kernel() as km:
         iopub = km.sub_channel
         msg_id, content = execute(km=km, code="print ('hi')")
         stdout, stderr = assemble_output(iopub)
-        yield nt.assert_equal(stdout, 'hi\n')
-        yield nt.assert_equal(stderr, '')
-        yield _check_mp_mode(km, expected=False)
+        nt.assert_equal(stdout, 'hi\n')
+        nt.assert_equal(stderr, '')
+        _check_mp_mode(km, expected=False)
+    print ('hello')
 
 
-@dec.parametric
 def test_subprocess_print():
     """printing from forked mp.Process"""
     with new_kernel() as km:
         iopub = km.sub_channel
         
-        yield _check_mp_mode(km, expected=False)
+        _check_mp_mode(km, expected=False)
         flush_channels(km)
         np = 5
         code = '\n'.join([
             "import multiprocessing as mp",
             "def f(x):",
-            "    print 'hello',x",
+            "    print('hello',x)",
             "pool = [mp.Process(target=f,args=(i,)) for i in range(%i)]" % np,
             "for p in pool: p.start()",
             "for p in pool: p.join()"
@@ -148,15 +147,14 @@ def test_subprocess_print():
         
         msg_id, content = execute(km=km, code=code)
         stdout, stderr = assemble_output(iopub)
-        yield nt.assert_equal(stdout.count("hello"), np, stdout)
+        nt.assert_equal(stdout.count("hello"), np, stdout)
         for n in range(np):
-            yield nt.assert_equal(stdout.count(str(n)), 1, stdout)
-        yield nt.assert_equal(stderr, '')
-        yield _check_mp_mode(km, expected=True)
-        yield _check_mp_mode(km, expected=False, stream="stderr")
+            nt.assert_equal(stdout.count(str(n)), 1, stdout)
+        nt.assert_equal(stderr, '')
+        _check_mp_mode(km, expected=True)
+        _check_mp_mode(km, expected=False, stream="stderr")
 
 
-@dec.parametric
 def test_subprocess_noprint():
     """mp.Process without print doesn't trigger iostream mp_mode"""
     with new_kernel() as km:
@@ -174,13 +172,13 @@ def test_subprocess_noprint():
         
         msg_id, content = execute(km=km, code=code)
         stdout, stderr = assemble_output(iopub)
-        yield nt.assert_equal(stdout, '')
-        yield nt.assert_equal(stderr, '')
+        nt.assert_equal(stdout, '')
+        nt.assert_equal(stderr, '')
 
-        yield _check_mp_mode(km, expected=False)
-        yield _check_mp_mode(km, expected=False, stream="stderr")
+        _check_mp_mode(km, expected=False)
+        _check_mp_mode(km, expected=False, stream="stderr")
 
-@dec.parametric
+
 def test_subprocess_error():
     """error in mp.Process doesn't crash"""
     with new_kernel() as km:
@@ -197,9 +195,9 @@ def test_subprocess_error():
         
         msg_id, content = execute(km=km, code=code)
         stdout, stderr = assemble_output(iopub)
-        yield nt.assert_equal(stdout, '')
+        nt.assert_equal(stdout, '')
         nt.assert_true("ZeroDivisionError" in stderr, stderr)
 
-        yield _check_mp_mode(km, expected=False)
-        yield _check_mp_mode(km, expected=True, stream="stderr")
+        _check_mp_mode(km, expected=False)
+        _check_mp_mode(km, expected=True, stream="stderr")
 
