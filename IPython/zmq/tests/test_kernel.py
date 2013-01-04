@@ -107,7 +107,7 @@ def assemble_output(iopub):
 def _check_mp_mode(km, expected=False, stream="stdout"):
     execute(km=km, code="import sys")
     flush_channels(km)
-    msg_id, content = execute(km=km, code="print (sys.stdout._check_mp_mode())")
+    msg_id, content = execute(km=km, code="print (sys.%s._check_mp_mode())" % stream)
     stdout, stderr = assemble_output(km.sub_channel)
     nt.assert_equal(eval(stdout.strip()), expected)
 
@@ -117,7 +117,6 @@ def test_simple_print():
     """simple print statement in kernel"""
     with new_kernel() as km:
         iopub = km.sub_channel
-        
         msg_id, content = execute(km=km, code="print ('hi')")
         stdout, stderr = assemble_output(iopub)
         yield nt.assert_equal(stdout, 'hi\n')
@@ -154,7 +153,7 @@ def test_subprocess_print():
             yield nt.assert_equal(stdout.count(str(n)), 1, stdout)
         yield nt.assert_equal(stderr, '')
         yield _check_mp_mode(km, expected=True)
-        yield _check_mp_mode(km, expected=True, stream="stderr")
+        yield _check_mp_mode(km, expected=False, stream="stderr")
 
 
 @dec.parametric
@@ -180,4 +179,27 @@ def test_subprocess_noprint():
 
         yield _check_mp_mode(km, expected=False)
         yield _check_mp_mode(km, expected=False, stream="stderr")
+
+@dec.parametric
+def test_subprocess_error():
+    """error in mp.Process doesn't crash"""
+    with new_kernel() as km:
+        iopub = km.sub_channel
+        
+        code = '\n'.join([
+            "import multiprocessing as mp",
+            "def f():",
+            "    return 1/0",
+            "p = mp.Process(target=f)",
+            "p.start()",
+            "p.join()",
+        ])
+        
+        msg_id, content = execute(km=km, code=code)
+        stdout, stderr = assemble_output(iopub)
+        yield nt.assert_equal(stdout, '')
+        nt.assert_true("ZeroDivisionError" in stderr, stderr)
+
+        yield _check_mp_mode(km, expected=False)
+        yield _check_mp_mode(km, expected=True, stream="stderr")
 
