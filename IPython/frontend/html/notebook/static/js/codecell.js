@@ -37,7 +37,6 @@ var IPython = (function (IPython) {
         this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
-        this.tooltip_on_tab = true;
         this.collapsed = false;
         this.default_mode = 'python';
         IPython.Cell.apply(this, arguments);
@@ -47,7 +46,6 @@ var IPython = (function (IPython) {
             function() { that.auto_highlight(); }
         );
     };
-
 
     CodeCell.prototype = new IPython.Cell();
 
@@ -142,6 +140,17 @@ var IPython = (function (IPython) {
             } else {
                 return true;
             };
+        } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
+                if (editor.somethingSelected()){
+                    var anchor = editor.getCursor("anchor");
+                    var head = editor.getCursor("head");
+                    if( anchor.line != head.line){
+                        return false;
+                    }
+                }
+                IPython.tooltip.request(that);
+                event.stop();
+                return true;
         } else if (event.keyCode === key.TAB && event.type == 'keydown') {
             // Tab completion.
             //Do not trim here because of tooltip
@@ -151,7 +160,7 @@ var IPython = (function (IPython) {
                 // Don't autocomplete if the part of the line before the cursor
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
-            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && that.tooltip_on_tab ) {
+            } else if ((pre_cursor.substr(-1) === "("|| pre_cursor.substr(-1) === " ") && IPython.config.tooltip_on_tab ) {
                 IPython.tooltip.request(that);
                 // Prevent the event from bubbling up.
                 event.stop();
