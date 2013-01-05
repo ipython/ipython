@@ -179,6 +179,11 @@ class InteractiveShellTestCase(unittest.TestCase):
         s = ''' sum([1, 2,
 3, 4])'''
 
+        tm = ip.magics_manager.registry['TerminalMagics']
         with tt.AssertPrints("If you want to paste code into IPython, try the "
                 "%paste and %cpaste magic functions."):
             ip.run_cell(s)
+
+        with tt.AssertNotPrints("If you want to paste code into IPython, try the "
+                "%paste and %cpaste magic functions."):
+            tm.store_or_execute(s, name=None)
