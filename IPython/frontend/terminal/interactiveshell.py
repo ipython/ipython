@@ -159,8 +159,10 @@ class TerminalMagics(Magics):
         else:
             self.shell.user_ns['pasted_block'] = b
             self.shell.using_paste_magics = True
-            self.shell.run_cell(b)
-            self.shell.using_paste_magics = True
+            try:
+                self.shell.run_cell(b)
+            finally:
+                self.shell.using_paste_magics = False
 
     def rerun_pasted(self, name='pasted_block'):
         """ Rerun a previously pasted command.
