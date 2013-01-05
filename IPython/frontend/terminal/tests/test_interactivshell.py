@@ -21,6 +21,7 @@ import unittest
 
 from IPython.testing.decorators import skipif
 from IPython.utils import py3compat
+from IPython.testing import tools as tt
 
 class InteractiveShellTestCase(unittest.TestCase):
     def rl_hist_entries(self, rl, n):
@@ -169,3 +170,15 @@ class InteractiveShellTestCase(unittest.TestCase):
         enc = sys.stdin.encoding or "utf-8"
         expected = [ py3compat.unicode_to_str(e, enc) for e in expected ]
         self.assertEqual(hist, expected)
+    
+    def test_paste_magics_message(self):
+        """Test that an IndentationError while using paste magics doesn't
+        trigger a message about paste magics and also the opposite."""
+
+        ip = get_ipython()
+        s = ''' sum([1, 2,
+3, 4])'''
+
+        with tt.AssertPrints("If you want to paste code into IPython, try the "
+                "%paste and %cpaste magic functions."):
+            ip.run_cell(s)
