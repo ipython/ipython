@@ -17,6 +17,9 @@ var IPython = (function (IPython) {
         this.construct();
         this.add_drop_down_list();
         this.bind_events();
+        $(this.selector)
+        .append($('<label/>').text('MetaUI'))
+        .append(IPython.MetaUI.dropdown_preset_selector)
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 
@@ -115,18 +118,6 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'run_int');
-
-        this.add_buttons_group([
-                {
-                    id : 'show_meta',
-                    label : 'Show Per Cell Toolbar',
-                    icon : 'ui-icon-image',
-                    callback : function () {
-                    $('body').toggleClass('editmetaon');
-                        }
-                }
-            ],'meta_on');
-
     };
 
     MainToolBar.prototype.add_drop_down_list = function () {

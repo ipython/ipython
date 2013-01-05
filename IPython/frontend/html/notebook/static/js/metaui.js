@@ -35,6 +35,22 @@ var IPython = (function (IPython) {
         return this;
     };
 
+    MetaUI.dropdown_preset_selector = $('<select/>')
+        .attr('id','metaui_selector')
+        .append($('<option/>').attr('value','').text('-'))
+
+    MetaUI.dropdown_preset_selector.change(function(){
+        var val = MetaUI.dropdown_preset_selector.val()
+        if(val ==''){
+            $('body').removeClass('editmetaon')
+        } else {
+            $('body').addClass('editmetaon')
+            MetaUI.set_preset(val)
+        }
+    })
+
+
+
     /**
      * Class variable that should contain a dict of all availlable callback
      * we need to think of wether or not we allow nested namespace
@@ -139,6 +155,9 @@ var IPython = (function (IPython) {
      */
     MetaUI.register_preset = function(name, preset_list){
         MetaUI._presets[name] = preset_list
+        MetaUI.dropdown_preset_selector.append(
+           $('<option/>').attr('value',name).text(name)
+        )
     }
     /**
      * set an UI preset from `register_preset`
@@ -159,6 +178,7 @@ var IPython = (function (IPython) {
             MetaUI.rebuild_all();
         }
     }
+
 
     // this is by design not a prototype.
     /**
