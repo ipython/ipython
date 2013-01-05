@@ -1,5 +1,6 @@
 import io
 import nose.tools as nt
+import os
 from nose.tools import nottest
 from converters import (
     ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML
@@ -8,6 +9,20 @@ from converters import (
 @nottest
 def cleanfile(stn):
     return filter(None, map(unicode.strip, stn.split('\n')))
+
+@nottest
+def skipiftravis(func):
+    if os.getenv('TRAVIS') == True:
+        func.__test__ = False
+    return func
+
+@nottest
+def is_travis():
+    return os.getenv('TRAVIS') == 'true'
+
+@nottest
+def is_not_travis():
+    return not is_travis()
 
 
 def test_evens():
@@ -25,8 +40,10 @@ def test_evens():
                   (ConverterMarkdown, 'md'),
                   (ConverterLaTeX, 'tex'),
                   (ConverterPy, 'py'),
-                  (ConverterHTML, 'html')
                 ]
+    if is_not_travis() :
+        converters.append((ConverterHTML, 'html'))
+
     reflist = [
             'tests/ipynbref/IntroNumPy.orig'
             ]
