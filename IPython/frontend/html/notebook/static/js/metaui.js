@@ -256,6 +256,7 @@ var IPython = (function (IPython) {
         editor.refresh();
     }
 
+
     var add_raw_edit_button = function(div, cell) {
         var button_container = $(div)
         var button = $('<div/>').button({label:'Raw Edit'})
@@ -267,6 +268,38 @@ var IPython = (function (IPython) {
     var example_preset = []
     example_preset.push('example.rawedit');
 
+    var simple_dialog = function(title,text){
+        var dlg = $('<div/>').attr('title',title)
+            .append($('<p/>').text(text))
+        $(dlg).dialog({
+                autoOpen: true,
+                height: 300,
+                width: 650,
+                modal: true,
+                close: function() {
+                    //cleanup on close
+                    $(this).remove();
+                }
+        });
+    }
+
+    var add_simple_dialog_button = function(div, cell) {
+        var help_text = ["This is the Metadata editting UI.",
+                         "It heavily rely on plugin to work ",
+                         "and is still under developpement. You shouldn't wait too long before",
+                         " seeing some customisable buttons in those toolbar."
+                        ].join('\n')
+        var button_container = $(div)
+        var button = $('<div/>').button({label:'?'})
+                .click(function(){simple_dialog('help',help_text); return false;})
+        button_container.append(button);
+    }
+
+    MetaUI.register_callback('default.help',add_simple_dialog_button)
+    var default_preset = []
+    default_preset.push('default.help')
+    MetaUI.register_preset('default',default_preset)
+    MetaUI.set_preset('default')
 
     var simple_button = function(div, cell) {
         var button_container = $(div);
