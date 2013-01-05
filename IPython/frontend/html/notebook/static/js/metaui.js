@@ -27,20 +27,20 @@ var IPython = (function (IPython) {
      */
     var MetaUI = function (cell) {
         MetaUI._instances.push(this);
-        this.metainner = $('<div/>');
+        this.$metainner = $('<div/>');
         this.cell = cell;
-        this.element = $('<div/>').addClass('metaedit')
-                .append(this.metainner)
+        this.$element = $('<div/>').addClass('metaedit')
+                .append(this.$metainner)
         this.rebuild();
         return this;
     };
 
-    MetaUI.dropdown_preset_selector = $('<select/>')
+    MetaUI.$dropdown_preset_selector = $('<select/>')
         .attr('id','metaui_selector')
         .append($('<option/>').attr('value','').text('-'))
 
-    MetaUI.dropdown_preset_selector.change(function(){
-        var val = MetaUI.dropdown_preset_selector.val()
+    MetaUI.$dropdown_preset_selector.change(function(){
+        var val = MetaUI.$dropdown_preset_selector.val()
         if(val ==''){
             $('body').removeClass('editmetaon')
         } else {
@@ -155,7 +155,7 @@ var IPython = (function (IPython) {
      */
     MetaUI.register_preset = function(name, preset_list){
         MetaUI._presets[name] = preset_list
-        MetaUI.dropdown_preset_selector.append(
+        MetaUI.$dropdown_preset_selector.append(
            $('<option/>').attr('value',name).text(name)
         )
     }
@@ -201,8 +201,8 @@ var IPython = (function (IPython) {
     MetaUI.prototype.rebuild = function(){
         // strip evrything from the div
         // which is probabli metainner.
-        // or this.element.
-        this.metainner.empty();
+        // or this.$element.
+        this.$metainner.empty();
         //this.add_raw_edit_button()
 
 
@@ -213,7 +213,7 @@ var IPython = (function (IPython) {
             var local_div = $('<div/>').addClass('button_container');
             // Note,
             // do this the other way, wrap in try/catch and don't append if any errors.
-            this.metainner.append(local_div)
+            this.$metainner.append(local_div)
             cdict[preset[index]](local_div,this.cell)
         }
 

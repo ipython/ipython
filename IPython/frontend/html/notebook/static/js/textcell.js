@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.create_element = function () {
         var cell = $("<div>").addClass('cell text_cell border-box-sizing vbox');
         this.metaui = new IPython.MetaUI(this);
-        cell.append(this.metaui.element);
+        cell.append(this.metaui.$element);
         cell.attr('tabindex','2');
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), {
