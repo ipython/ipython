@@ -150,7 +150,6 @@ class TerminalMagics(Magics):
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
         """
-        self.shell.using_magics = True
 
         b = self.cleanup_input(block)
         if name:
@@ -159,7 +158,9 @@ class TerminalMagics(Magics):
             print("Block assigned to '%s'" % name)
         else:
             self.shell.user_ns['pasted_block'] = b
+            self.shell.using_paste_magics = True
             self.shell.run_cell(b)
+            self.shell.using_paste_magics = True
 
     def rerun_pasted(self, name='pasted_block'):
         """ Rerun a previously pasted command.
@@ -349,8 +350,10 @@ class TerminalInteractiveShell(InteractiveShell):
     term_title = CBool(False, config=True,
         help="Enable auto setting the terminal title."
     )
-
-    using_magics = CBool(False)
+    
+    # This `using_paste_magics` is used to detect whether the code is being
+    # executed via paste magics functions
+    using_paste_magics = CBool(False)
 
     # In the terminal, GUI control is done via PyOS_InputHook
     from IPython.lib.inputhook import enable_gui
