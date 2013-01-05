@@ -728,7 +728,7 @@ class TerminalInteractiveShell(InteractiveShell):
 
     def showindentationerror(self):
         super(TerminalInteractiveShell, self).showindentationerror()
-        if not self.using_magics:
+        if not self.using_paste_magics:
             print("If you want to paste code into IPython, try the "
                 "%paste and %cpaste magic functions.")
 
