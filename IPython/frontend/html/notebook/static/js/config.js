@@ -22,7 +22,7 @@ var IPython = (function (IPython) {
          * @static
          *
          **/
-    var config = {
+    var default_config = {
         /**
          * Dictionary of object to autodetect highlight mode for code cell.
          * Item of the dictionnary should take the form :
@@ -63,10 +63,14 @@ var IPython = (function (IPython) {
          */
         raw_cell_highlight : {
              'diff'         :{'reg':[/^diff/]}
-            }
+            },
+
+        tooltip_on_tab : true,
         };
 
-    IPython.config = config;
+    // use the same method to merge user configuration
+    IPython.config = {};
+    $.extend(IPython.config, default_config);
 
     return IPython;
 
