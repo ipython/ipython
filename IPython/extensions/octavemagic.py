@@ -258,7 +258,7 @@ class OctaveMagics(Magics):
                 self._oct.put(input, val)
 
         # generate plots in a temporary directory
-        plot_dir = tempfile.mkdtemp()
+        plot_dir = tempfile.mkdtemp().replace('\\', '/')
         if args.size is not None:
             size = args.size
         else:
