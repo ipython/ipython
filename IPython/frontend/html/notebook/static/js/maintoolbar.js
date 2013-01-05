@@ -19,7 +19,7 @@ var IPython = (function (IPython) {
         this.bind_events();
         $(this.selector)
         .append($('<label/>').text('MetaUI'))
-        .append(IPython.MetaUI.dropdown_preset_selector)
+        .append(IPython.MetaUI.$dropdown_preset_selector)
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 
