@@ -6,17 +6,17 @@
 {% if cell.outputs %}
 # Out[{{cell.prompt_number}}]:
 {%- for output in cell.outputs -%}
-    {% if output.output_type in ['pyout','stream']%}
+    {%- if output.output_type in ['pyout','stream']%}
 {{ output.text| indent | pycomment}}
-    {% elif output.output_type in ['display_data'] %}
-{{"# fucking display_data"}}
-    {% elif output.output_type in ['pyerr'] %}
-{% for line in output.traceback %}
+    {%- elif output.output_type in ['display_data'] %}
+{{"# image file: fucking display_data"}}
+    {%- elif output.output_type in ['pyerr'] %}
+        {%- for line in output.traceback %}
 {{ line |indent| rm_ansi}}
+        {%- endfor %}
+    {%- endif %}
 {%- endfor -%}
-    {%- endif -%}
-{%- endfor -%}
-{%endif%}
+{% endif %}
 
 {% endblock codecell %}
 
