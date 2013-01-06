@@ -294,16 +294,26 @@ class ParallelMagics(Magics):
         if args.targets:
             save_targets = self.view.targets
             self.view.targets = self._eval_target_str(args.targets)
-        if args.local:
-            self.shell.run_cell(cell)
+        # if running local, don't block until after local has run
+        block = False if args.local else args.block
         try:
-            return self.parallel_execute(cell, block=args.block,
+            ar = self.parallel_execute(cell, block=block,
                                 groupby=args.groupby,
                                 save_name=args.save_name,
             )
         finally:
             if args.targets:
                 self.view.targets = save_targets
+        
+        # run locally after submitting remote
+        if args.local:
+            self.shell.run_cell(cell)
+            # now apply blocking behavor to remote execution
+            block = self.view.block if args.block is None else args.block
+            if block:
+                ar.get()
+                ar.display_outputs(groupby)
+        return ar
     
     @skip_doctest
     def autopx(self, line=''):
