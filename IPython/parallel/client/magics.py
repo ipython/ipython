@@ -70,6 +70,10 @@ def exec_args(f):
         magic_arguments.argument('-t', '--targets', type=str,
             help="specify the targets on which to execute",
         ),
+        magic_arguments.argument('--local', action="store_const",
+            const=True, dest="local",
+            help="also execute the cell in the local namespace",
+        ),
         magic_arguments.argument('--verbose', action="store_const",
             const=True, dest="set_verbose",
             help="print a message at each execution",
@@ -290,6 +294,8 @@ class ParallelMagics(Magics):
         if args.targets:
             save_targets = self.view.targets
             self.view.targets = self._eval_target_str(args.targets)
+        if args.local:
+            self.shell.run_cell(cell)
         try:
             return self.parallel_execute(cell, block=args.block,
                                 groupby=args.groupby,
