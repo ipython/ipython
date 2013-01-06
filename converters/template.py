@@ -39,6 +39,8 @@ from IPython.utils.traitlets import (List, Unicode, Type, Bool, Dict, CaselessSt
 # Our own imports
 from IPython.utils.text import indent
 from .utils import remove_ansi
+from markdown import markdown
+from .utils import highlight
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
@@ -56,6 +58,8 @@ env.filters['pycomment'] = python_comment
 env.filters['indent'] = indent
 env.filters['rm_fake'] = rm_fake
 env.filters['rm_ansi'] = remove_ansi
+env.filters['markdown'] = markdown
+env.filters['highlight'] = highlight
 
 class ConverterTemplate(Configurable):
 
@@ -69,8 +73,8 @@ class ConverterTemplate(Configurable):
    
     infile_dir = Unicode()
 
-    def __init__(self, config=None, **kw):
-        self.template = env.get_template('python.tpl')
+    def __init__(self, tplfile='fullhtml', config=None, **kw):
+        self.template = env.get_template(tplfile+'.tpl')
         super(ConverterTemplate,self).__init__(config=config)
 
     def _get_prompt_number(self, cell):
