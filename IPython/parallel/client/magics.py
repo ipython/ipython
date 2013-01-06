@@ -306,14 +306,15 @@ class ParallelMagics(Magics):
                 self.view.targets = save_targets
         
         # run locally after submitting remote
+        block = self.view.block if args.block is None else args.block
         if args.local:
             self.shell.run_cell(cell)
             # now apply blocking behavor to remote execution
-            block = self.view.block if args.block is None else args.block
             if block:
                 ar.get()
-                ar.display_outputs(groupby)
-        return ar
+                ar.display_outputs(args.groupby)
+        if not block:
+            return ar
     
     @skip_doctest
     def autopx(self, line=''):
