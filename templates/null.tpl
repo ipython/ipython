@@ -1,5 +1,25 @@
 {%- extends 'basic.tpl' -%}
 
+{#
+
+Null template, Does nothing except defining a basic structure
+To layout the diferents blocks of a notebook.
+
+Subtemplates can Override Blocks to define their custom reresentation.
+
+If one of the block you do overrite is nt a leave block, consider
+calling super.
+
+{% block nonLeaveBlock %}
+    #add stuff at beginning
+    {{ super() }}
+    #add stuff at end
+{% endblock nonLeaveBlock %}
+
+consider calling super even if block is leave block, we might insert more block later.
+
+#}
+
 {% block codecell scoped  %}
 {% block in_prompt %}{% endblock in_prompt %}
 {% block input %}{% endblock input %}
