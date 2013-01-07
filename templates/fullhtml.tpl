@@ -5,7 +5,7 @@
 <head>
 <style type="text/css">
 /**
- * HTML5  Boilerplate
+ * HTML5 ✰ Boilerplate
  *
  * style.css contains a reset, font normalization and some base styles.
  *
