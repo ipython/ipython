@@ -18,7 +18,7 @@ __docformat__ = "restructuredtext en"
 import copy
 import logging
 import sys
-from types import FunctionType, ClassType
+from types import FunctionType
 
 try:
     import cPickle as pickle
@@ -38,6 +38,10 @@ from IPython.config import Application
 
 if py3compat.PY3:
     buffer = memoryview
+    class_type = type
+else:
+    from types import ClassType
+    class_type = (type, ClassType)
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -129,7 +133,7 @@ class CannedClass(CannedObject):
         self.buffers = []
 
     def _check_type(self, obj):
-        assert isinstance(obj, (type, ClassType)), "Not a class type"
+        assert isinstance(obj, class_type), "Not a class type"
 
     def get_object(self, g=None):
         parents = tuple(uncan(p, g) for p in self.parents)
@@ -225,7 +229,7 @@ def can(obj):
     return obj
 
 def can_class(obj):
-    if isinstance(obj, (type, ClassType)) and obj.__module__ == '__main__':
+    if isinstance(obj, class_type) and obj.__module__ == '__main__':
         return CannedClass(obj)
     else:
         return obj
@@ -296,8 +300,7 @@ can_map = {
     FunctionType : CannedFunction,
     bytes : CannedBytes,
     buffer : CannedBuffer,
-    type : can_class,
-    ClassType : can_class,
+    class_type : can_class,
 }
 
 uncan_map = {
