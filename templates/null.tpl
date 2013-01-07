@@ -9,14 +9,13 @@
     {%- if output.output_type in ['pyout']%}
         {% block pyout scoped %}{% endblock pyout %}
     {%- elif output.output_type in ['stream'] %}
-        {% block stream scoped %}{% endblock stream %}
+       {% block stream scoped %}{% endblock stream %}
     {%- elif output.output_type in ['display_data'] %}
         {% block display_data scoped %}{% endblock display_data %}
     {%- elif output.output_type in ['pyerr'] %}
         {% block pyerr scoped %}
         {%- for line in output.traceback %}
-            {% block traceback_line scoped %}
-            {% endblock traceback_line %}
+            {% block traceback_line scoped %}{% endblock traceback_line %}
         {%- endfor %}
         {% endblock pyerr %}
     {%- endif %}
