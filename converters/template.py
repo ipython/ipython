@@ -97,6 +97,6 @@ class ConverterTemplate(Configurable):
 
     def read(self, filename):
         "read and parse notebook into NotebookNode called self.nb"
-        with open(filename) as f:
+        with io.open(filename) as f:
             self.nb = nbformat.read(f, 'json')
 
