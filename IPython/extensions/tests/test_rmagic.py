@@ -57,7 +57,7 @@ def test_cell_magic():
     r = resid(a)
     xc = coef(a)
     '''
-    ip.run_cell_magic('R', '-i x,y -o r,xc a=lm(y~x)', snippet)
+    ip.run_cell_magic('R', '-i x,y -o r,xc -w 150 -u mm a=lm(y~x)', snippet)
     np.testing.assert_almost_equal(ip.user_ns['xc'], [3.2, 0.9])
     np.testing.assert_almost_equal(ip.user_ns['r'], np.array([-0.2,  0.9, -1. ,  0.1,  0.2]))
 
