@@ -1,10 +1,9 @@
 {%- extends 'python.tpl' -%}
 
-{% block codecell %}
+{% block any_cell %}
 ==============================
-=======start codecell=========
+=======start {{cell.type}}=========
 {{ super() }}
-======= end codecell =========
-==============================
-{% endblock codecell %}
+======= end {{cell.type}} =========
+=============================={% endblock any_cell %}
 
