@@ -23,23 +23,9 @@
 {% block display_data scoped %}
 # image file:{% endblock display_data %}
 
-{#
-{%  block codecell scoped  %}
-# In[{{cell.prompt_number if cell.prompt_number else ' '}}]:
-{% if cell.outputs %}
-{%- for output in cell.outputs -%}
-    {%- if output.output_type in ['pyout','stream']%}
-
-    {%- elif output.output_type in ['display_data'] %}
-{{"# image file: fucking display_data"}}
-{%- endfor -%}
-{% endif %}
-
-{% endblock codecell %}
-#}
-
 {% block markdowncell scoped %}
-{{ cell.source | pycomment | rm_fake}}{% endblock markdowncell %}
+{{ cell.source | pycomment }}
+{% endblock markdowncell %}
 
 {% block headingcell scoped %}
 {{ '#' * cell.level }}{{ cell.source | pycomment}}
