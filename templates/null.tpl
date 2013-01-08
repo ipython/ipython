@@ -40,12 +40,10 @@ consider calling super even if block is leave block, we might insert more block 
         {% endblock pyerr %}
     {%- endif %}
 {%- endfor -%}
-{% endif %}
+{% endif -%}
+{%- endblock codecell %}
 
-{% endblock codecell %}
-
-{% block markdowncell scoped %}
-{% endblock markdowncell %}
+{% block markdowncell scoped %}{% endblock markdowncell %}
 
 {% block headingcell scoped %}
 {% endblock headingcell %}

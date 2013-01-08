@@ -70,7 +70,7 @@ class ConverterTemplate(Configurable):
     #-------------------------------------------------------------------------
     infile = Any()
 
-   
+
     infile_dir = Unicode()
 
     def __init__(self, tplfile='fullhtml', config=None, **kw):
@@ -87,17 +87,12 @@ class ConverterTemplate(Configurable):
         for worksheet in self.nb.worksheets:
             for cell in worksheet.cells:
                 cell.type = cell.cell_type
-                converted_cells.append(cell)
-                continue
-                if cell.cell_type in ('code'):
-                    converted_cells.append({'type':'code','source':cell.input})
-                else :
-                    converted_cells.append({'type':cell.cell_type,'source': python_comment(cell.source)})
+            converted_cells.append(worksheet)
 
         return converted_cells
 
     def convert(self, cell_separator='\n'):
-        return self.template.render(cells=self.process()) 
+        return self.template.render(worksheets=self.process())
 
 
     def read(self, filename):
