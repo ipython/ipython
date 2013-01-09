@@ -4,9 +4,8 @@
 
 {% block codecell %}
 <div class="cell border-box-sizing code_cell vbox">
-{{ super() }}
-</div>
-{% endblock codecell %}
+{{ super() }}</div>
+{%- endblock codecell %}
 
 {% block input_group -%}
 <div class="input hbox">
@@ -30,16 +29,22 @@
 {%- endblock in_prompt %}
 
 {% block output_prompt -%}
-<div class="prompt output_prompt"></div>
+<div class="prompt output_prompt">
+{%- if cell.prompt_number is not none -%}
+{#- check the case of Out[#]-#}
+Out[{{cell.prompt_number}}]:
+{%- endif -%}
+</div>
 {% endblock output_prompt %}
 
 {% block input %}
 <div class="input_area box-flex1">
-{{cell.input | highlight }}</div>
+{{cell.input | highlight }}
+</div>
 {%- endblock input %}
 
 
-{% block markdowncell scoped -%}
+{% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
 {{ cell.source | markdown| rm_fake}}
 </div>
@@ -63,7 +68,7 @@ unknown type  {{cell.type}}
 
 
 {% block pyout -%}
-<div class="output_subarea output_stream output_stdout">
+<div class="output_subarea output_pyout">
 <pre>{{output.text}}</pre>
 </div>
 {%- endblock pyout %}
