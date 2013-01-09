@@ -358,6 +358,7 @@ class InteractiveShell(SingletonConfigurable):
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
     readline_remove_delims = Unicode('-/~', config=True)
+    readline_delims = Unicode() # set by init_readline()
     # don't use \M- bindings by default, because they
     # conflict with 8-bit encodings. See gh-58,gh-88
     readline_parse_and_bind = List([
@@ -1866,6 +1867,9 @@ class InteractiveShell(SingletonConfigurable):
                 delims = delims.replace(d, "")
             delims = delims.replace(ESC_MAGIC, '')
             readline.set_completer_delims(delims)
+            # Store these so we can restore them if something like rpy2 modifies
+            # them.
+            self.readline_delims = delims
             # otherwise we end up with a monster history after a while:
             readline.set_history_length(self.history_length)
 
