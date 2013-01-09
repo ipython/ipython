@@ -29,26 +29,32 @@ consider calling super even if block is leave block, we might insert more block 
         {%- block any_cell scoped -%}
             {%- if cell.type in ['code'] -%}
                 {%- block codecell scoped -%}
-                {%- block in_prompt -%}{%- endblock in_prompt -%}
-                {%- block input -%}{%- endblock input -%}
-                {%- if cell.outputs -%}
-                    {%- block output_prompt -%}{%- endblock output_prompt -%}
-                    {%- for output in cell.outputs -%}
-                        {%- if output.output_type in ['pyout'] -%}
-                            {%- block pyout scoped -%}{%- endblock pyout -%}
-                        {%- elif output.output_type in ['stream'] -%}
-                        {%- block stream scoped -%}{%- endblock stream -%}
-                        {%- elif output.output_type in ['display_data'] -%}
-                            {%- block display_data scoped -%}{%- endblock display_data -%}
-                        {%- elif output.output_type in ['pyerr'] -%}
-                            {%- block pyerr scoped -%}
-                            {%- for line in output.traceback -%}
-                                {%- block traceback_line scoped -%}{%- endblock traceback_line -%}
-                            {%- endfor -%}
-                            {%- endblock pyerr -%}
+                    {%- block input_group -%}
+                        {%- block in_prompt -%}{%- endblock in_prompt -%}
+                        {%- block input -%}{%- endblock input -%}
+                    {%- endblock input_group -%}
+                    {%- block output_group -%}
+                        {%- if cell.outputs -%}
+                            {%- block output_prompt -%}{%- endblock output_prompt -%}
+                            {%- block outputs -%}
+                                {%- for output in cell.outputs -%}
+                                    {%- if output.output_type in ['pyout'] -%}
+                                        {%- block pyout scoped -%}{%- endblock pyout -%}
+                                    {%- elif output.output_type in ['stream'] -%}
+                                    {%- block stream scoped -%}{%- endblock stream -%}
+                                    {%- elif output.output_type in ['display_data'] -%}
+                                        {%- block display_data scoped -%}{%- endblock display_data -%}
+                                    {%- elif output.output_type in ['pyerr'] -%}
+                                        {%- block pyerr scoped -%}
+                                        {%- for line in output.traceback -%}
+                                            {%- block traceback_line scoped -%}{%- endblock traceback_line -%}
+                                        {%- endfor -%}
+                                        {%- endblock pyerr -%}
+                                    {%- endif -%}
+                                {%- endfor -%}
+                            {%- endblock outputs -%}
                         {%- endif -%}
-                    {%- endfor -%}
-                {%- endif -%}
+                    {%- endblock output_group -%}
                 {%- endblock codecell -%}
             {%- elif cell.type in ['markdown'] -%}
                 {%- block markdowncell scoped-%}
