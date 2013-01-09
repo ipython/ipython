@@ -33,8 +33,8 @@ consider calling super even if block is leave block, we might insert more block 
                         {%- block in_prompt -%}{%- endblock in_prompt -%}
                         {%- block input -%}{%- endblock input -%}
                     {%- endblock input_group -%}
-                    {%- block output_group -%}
                         {%- if cell.outputs -%}
+                    {%- block output_group -%}
                             {%- block output_prompt -%}{%- endblock output_prompt -%}
                             {%- block outputs -%}
                                 {%- for output in cell.outputs -%}
@@ -53,8 +53,8 @@ consider calling super even if block is leave block, we might insert more block 
                                     {%- endif -%}
                                 {%- endfor -%}
                             {%- endblock outputs -%}
-                        {%- endif -%}
                     {%- endblock output_group -%}
+                        {%- endif -%}
                 {%- endblock codecell -%}
             {%- elif cell.type in ['markdown'] -%}
                 {%- block markdowncell scoped-%}
