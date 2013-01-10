@@ -136,14 +136,22 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
 
         old_name = self.mapping[notebook_id]
-        path = self.get_path_by_name(new_name)
+        if new_name == old_name:
+             return self.save_existing_notebook(nb, notebook_id)
+        else:
+            if new_name not in self.rev_mapping:
+                return self.rename_notebook(nb, notebook_id, new_name)
+
+    def save_existing_notebook(self, nb, notebook_id):
+        name = self.mapping[notebook_id]
+        path = self.get_path_by_name(name)
         try:
-            with open(path,'w') as f:
+            with open(path, 'w') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
-        # save .py script as well
+        #save.py script as well
         if self.save_script:
             pypath = os.path.splitext(path)[0] + '.py'
             try:
@@ -151,21 +159,55 @@ class FileNotebookManager(NotebookManager):
                     current.write(nb, f, u'py')
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
-        
-        # remove old files if the name changed
-        if old_name != new_name:
-            old_path = self.get_path_by_name(old_name)
-            if os.path.isfile(old_path):
-                os.unlink(old_path)
-            if self.save_script:
-                old_pypath = os.path.splitext(old_path)[0] + '.py'
-                if os.path.isfile(old_pypath):
-                    os.unlink(old_pypath)
-            self.mapping[notebook_id] = new_name
-            self.rev_mapping[new_name] = notebook_id
-            del self.rev_mapping[old_name]
-        
+
         return notebook_id
+            
+    def rename_notebook(self, nb, notebook_id, new_name):
+        """Rename notebook by notebook_id to new_name"""
+        #save changes and then rename
+        self.save_existing_notebook(nb, notebook_id)
+        if notebook_id not in self.mapping:
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        old_name = self.mapping[notebook_id]
+        old_path = self.get_path_by_name(old_name)
+        new_path = self.get_path_by_name(new_name)
+        if old_name != new_name:
+            try :
+                os.rename(old_path, new_path)
+                self.mapping[notebook_id] = new_name
+                self.rev_mapping[new_name] = notebook_id
+
+                #rename py script as well
+                if self.save_script:
+                    old_pypath = os.path.splitext(old_path)[0] + '.py'
+                    new_pypath = os.path.splitext(new_path)[0] + '.py'
+                    os.rename(old_pypath, new_pypath)
+                del self.rev_mapping[old_name]
+            except Exception as e:
+                return None
+        return notebook_id
+
+    def replace_notebook_object(self, nb, notebook_id=None):
+        try:
+            name = nb.metadata.name
+        except AttributeError:
+            raise web.HTTPError(400, u'Missing notebook name')
+
+        if notebook_id is None:
+            notebook_id = self.new_notebook_id(name)
+
+        if notebook_id not in self.mapping:
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+
+        if name in self.rev_mapping:
+            old_notebook_id = self.rev_mapping[name]
+            if notebook_id != old_notebook_id:
+                del self.mapping[old_notebook_id]
+                self.rev_mapping[name] = notebook_id
+                return self.rename_notebook(nb, notebook_id, name)
+        return notebook_id
+
+
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
