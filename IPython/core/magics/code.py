@@ -17,6 +17,7 @@ import inspect
 import io
 import json
 import os
+import re
 import sys
 from urllib2 import urlopen
 
@@ -38,6 +39,13 @@ from IPython.utils.warn import warn
 
 # Used for exception handling in magic_edit
 class MacroToEdit(ValueError): pass
+
+ipython_input_pat = re.compile(r"<ipython\-input\-(\d+)-[a-z\d]+>$")
+
+class InteractivelyDefined(Exception):
+    """Exception for interactively defined variable in magic_edit"""
+    def __init__(self, index):
+        self.index = index
 
 
 @magics_class
@@ -274,7 +282,7 @@ class CodeMagics(Magics):
                     if filename is None:
                         warn("Argument given (%s) can't be found as a variable "
                              "or as a filename." % args)
-                        return
+                        return (None, None, None)
                     use_temp = False
 
                 except DataIsObject:
@@ -301,12 +309,18 @@ class CodeMagics(Magics):
                                     # target instead
                                     data = attr
                                     break
-
+                        
+                        m = ipython_input_pat.match(os.path.basename(filename))
+                        if m:
+                            raise InteractivelyDefined(int(m.groups()[0]))
+                        
                         datafile = 1
                     if filename is None:
                         filename = make_filename(args)
                         datafile = 1
-                        warn('Could not find file where `%s` is defined.\n'
+                        if filename is not None:
+                            # only warn about this if we get a real name
+                            warn('Could not find file where `%s` is defined.\n'
                              'Opening a file named `%s`' % (args, filename))
                     # Now, make sure we can actually read the source (if it was
                     # in a temp file it's gone by now).
@@ -316,9 +330,9 @@ class CodeMagics(Magics):
                         if lineno is None:
                             filename = make_filename(args)
                             if filename is None:
-                                warn('The file `%s` where `%s` was defined '
-                                     'cannot be read.' % (filename, data))
-                                return
+                                warn('The file where `%s` was defined '
+                                     'cannot be read or found.' % data)
+                                return (None, None, None)
                     use_temp = False
 
         if use_temp:
@@ -490,6 +504,15 @@ class CodeMagics(Magics):
                                                        args, opts, last_call)
         except MacroToEdit as e:
             self._edit_macro(args, e.args[0])
+            return
+        except InteractivelyDefined as e:
+            print "Editing In[%i]" % e.index
+            args = str(e.index)
+            filename, lineno, is_temp = self._find_edit_target(self.shell, 
+                                                       args, opts, last_call)
+        if filename is None:
+            # nothing was found, warnings have already been issued,
+            # just give up.
             return
 
         # do actual editing here
