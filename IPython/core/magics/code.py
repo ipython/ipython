@@ -282,7 +282,7 @@ class CodeMagics(Magics):
                     if filename is None:
                         warn("Argument given (%s) can't be found as a variable "
                              "or as a filename." % args)
-                        return
+                        return (None, None, None)
                     use_temp = False
 
                 except DataIsObject:
@@ -318,7 +318,9 @@ class CodeMagics(Magics):
                     if filename is None:
                         filename = make_filename(args)
                         datafile = 1
-                        warn('Could not find file where `%s` is defined.\n'
+                        if filename is not None:
+                            # only warn about this if we get a real name
+                            warn('Could not find file where `%s` is defined.\n'
                              'Opening a file named `%s`' % (args, filename))
                     # Now, make sure we can actually read the source (if it was
                     # in a temp file it's gone by now).
@@ -328,9 +330,9 @@ class CodeMagics(Magics):
                         if lineno is None:
                             filename = make_filename(args)
                             if filename is None:
-                                warn('The file `%s` where `%s` was defined '
-                                     'cannot be read.' % (filename, data))
-                                return
+                                warn('The file where `%s` was defined '
+                                     'cannot be read or found.' % data)
+                                return (None, None, None)
                     use_temp = False
 
         if use_temp:
@@ -508,6 +510,10 @@ class CodeMagics(Magics):
             args = str(e.index)
             filename, lineno, is_temp = self._find_edit_target(self.shell, 
                                                        args, opts, last_call)
+        if filename is None:
+            # nothing was found, warnings have already been issued,
+            # just give up.
+            return
 
         # do actual editing here
         print 'Editing...',
