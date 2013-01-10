@@ -1558,7 +1558,7 @@ class Client(HasTraits):
                     elif header['msg_type'] == 'execute_reply':
                         res = ExecuteReply(msg_id, rcontent, md)
                     else:
-                        raise KeyError("unhandled msg type: %r" % header[msg_type])
+                        raise KeyError("unhandled msg type: %r" % header['msg_type'])
                 else:
                     res = self._unwrap_exception(rcontent)
                     failures.append(res)
