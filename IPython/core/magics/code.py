@@ -33,6 +33,7 @@ from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import file_read
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.warn import warn
+from IPython.utils import astdiff
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -178,6 +179,9 @@ class CodeMagics(Magics):
         --------
           -y : Don't ask confirmation for loading source above 200 000 characters.
 
+          -u: Load file starting at the first change since the last load
+           of file. This is only compatible with a filename argmument.
+
         This magic command can either take a local filename, a URL, an history
         range (see %history) or a macro as argument, it will prompt for
         confirmation before loading source with more than 200 000 characters, unless
@@ -187,11 +191,27 @@ class CodeMagics(Magics):
         %load 7-27
         %load myMacro
         %load http://www.example.com/myscript.py
+
         """
-        opts,args = self.parse_options(arg_s,'y')
+        opts,args = self.parse_options(arg_s,'yu')
         if not args:
             raise UsageError('Missing filename, URL, input history range, '
                              'or macro.')
+        if "u" in opts:
+            # file that tracks history of what has been loaded
+            tracking_file = ".ipython-track-%s" % args
+            if not tracking_file in self.shell.tempfiles:
+                self.shell.tempfiles.append(tracking_file)
+            # file to write updated content to load
+            change_file = self.shell.mktempfile(prefix="ipython-track-content-")
+            # get name of appropriate file to pass to load
+            newargs = astdiff.get_change_file(args, tracking_file,
+                                              change_file)
+            if newargs is None:
+                print('No changes found in %s' % args)
+                return
+            else:
+                args = newargs
 
         contents = self.shell.find_user_code(args)
         l = len(contents)
