@@ -1151,14 +1151,17 @@ class Client(HasTraits):
             NOT IMPLEMENTED
             whether to restart engines after shutting them down.
         """
-        
+        from IPython.parallel.error import NoEnginesRegistered
         if restart:
             raise NotImplementedError("Engine restart is not yet implemented")
         
         block = self.block if block is None else block
         if hub:
             targets = 'all'
-        targets = self._build_targets(targets)[0]
+        try:
+            targets = self._build_targets(targets)[0]
+        except NoEnginesRegistered:
+            targets = []
         for t in targets:
             self.session.send(self._control_socket, 'shutdown_request',
                         content={'restart':restart},ident=t)
