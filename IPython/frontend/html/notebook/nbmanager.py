@@ -176,6 +176,29 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
+    def replace_notebook(self, notebook_id, data, name=None, format=u'json'):
+        if format not in self.allowed_formats:
+            raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
+
+        try:
+            nb = current.reads(data.decode('utf-8'), format)
+        except:
+            raise web.HTTPError(400, u'Invalid JSON data')
+
+        if name is not None:
+            nb.metadata.name = name
+        self.replace_notebook_object(nb, notebook_id)
+
+    def replace_notebook_object(self, nb, notebook_id=None):
+        """Repalcing a previous notebook with same name, if the user wishes
+        to overwrite the existing, method should only be called when overwrite 
+        option is chosen"""
+        raise NotImplementedError('must be implemented in a subclass')
+
+    def rename_notebook(self, notebook_id, new_name):
+        """Renaming an existing notebook and return its notebook_id"""
+        raise NotImplementedError('must be implemented in a subclass')
+
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
