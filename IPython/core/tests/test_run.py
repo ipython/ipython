@@ -298,3 +298,35 @@ tclass.py: deleting object: C-third
         na = os.path.join(mydir, 'nonascii.py')
         _ip.magic('run "%s"' % na)
         nt.assert_equal(_ip.user_ns['u'], u'Ўт№Ф')
+
+    def test_run_py_file_attribute(self):
+        """Test handling of `__file__` attribute in `%run <file>.py`."""
+        src = "t = __file__\n"
+        self.mktmp(src)
+        _missing = object()
+        file1 = _ip.user_ns.get('__file__', _missing)
+        _ip.magic('run %s' % self.fname)
+        file2 = _ip.user_ns.get('__file__', _missing)
+
+        # Check that __file__ was equal to the filename in the script's
+        # namespace.
+        nt.assert_equal(_ip.user_ns['t'], self.fname)
+
+        # Check that __file__ was not leaked back into user_ns.
+        nt.assert_equal(file1, file2)
+
+    def test_run_ipy_file_attribute(self):
+        """Test handling of `__file__` attribute in `%run <file.ipy>`."""
+        src = "t = __file__\n"
+        self.mktmp(src, ext='.ipy')
+        _missing = object()
+        file1 = _ip.user_ns.get('__file__', _missing)
+        _ip.magic('run %s' % self.fname)
+        file2 = _ip.user_ns.get('__file__', _missing)
+
+        # Check that __file__ was equal to the filename in the script's
+        # namespace.
+        nt.assert_equal(_ip.user_ns['t'], self.fname)
+
+        # Check that __file__ was not leaked back into user_ns.
+        nt.assert_equal(file1, file2)

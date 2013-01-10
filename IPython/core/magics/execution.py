@@ -42,6 +42,7 @@ from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic,
                                 line_cell_magic, on_off, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import capture_output
 from IPython.utils.ipstruct import Struct
 from IPython.utils.module_paths import find_mod
@@ -478,7 +479,9 @@ python-profiler package from non-free.""")
             return
 
         if filename.lower().endswith('.ipy'):
-            self.shell.safe_execfile_ipy(filename)
+            with preserve_keys(self.shell.user_ns, '__file__'):
+                self.shell.user_ns['__file__'] = filename
+                self.shell.safe_execfile_ipy(filename)
             return
 
         # Control the response to exit() calls made by the script being run
@@ -644,7 +647,8 @@ python-profiler package from non-free.""")
                     # worry about a possible KeyError.
                     prog_ns.pop('__name__', None)
 
-                    self.shell.user_ns.update(prog_ns)
+                    with preserve_keys(self.shell.user_ns, '__file__'):
+                        self.shell.user_ns.update(prog_ns)
         finally:
             # It's a bit of a mystery why, but __builtins__ can change from
             # being a module to becoming a dict missing some key data after
