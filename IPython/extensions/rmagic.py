@@ -617,3 +617,7 @@ __doc__ = __doc__.format(
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
     ip.register_magics(RMagics)
+    # Initialising rpy2 interferes with readline. Since, at this point, we've
+    # probably just loaded rpy2, we reset the delimiters. See issue gh-2759.
+    if ip.has_readline:
+        ip.readline.set_completer_delims(ip.readline_delims)
