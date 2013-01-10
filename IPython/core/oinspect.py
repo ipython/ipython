@@ -296,7 +296,7 @@ def find_file(obj):
                 pass
     except:
         pass
-    return fname
+    return cast_unicode(fname)
 
 
 def find_source_lines(obj):
@@ -326,6 +326,8 @@ def find_source_lines(obj):
             # For instances, try the class object like getsource() does
             if hasattr(obj, '__class__'):
                 lineno = inspect.getsourcelines(obj.__class__)[1]
+            else:
+                lineno = None
     except:
         return None
 
