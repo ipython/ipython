@@ -28,6 +28,7 @@ from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import openpy
 from IPython.utils import py3compat
+from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import file_read
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.warn import warn
@@ -513,12 +514,15 @@ class CodeMagics(Magics):
             print
         else:
             print 'done. Executing edited code...'
-            if 'r' in opts:    # Untranslated IPython code
-                self.shell.run_cell(file_read(filename),
-                                                    store_history=False)
-            else:
-                self.shell.safe_execfile(filename, self.shell.user_ns,
-                                         self.shell.user_ns)
+            with preserve_keys(self.shell.user_ns, '__file__'):
+                if not is_temp:
+                    self.shell.user_ns['__file__'] = filename
+                if 'r' in opts:    # Untranslated IPython code
+                    self.shell.run_cell(file_read(filename),
+                                        store_history=False)
+                else:
+                    self.shell.safe_execfile(filename, self.shell.user_ns,
+                                             self.shell.user_ns)
 
         if is_temp:
             try:
