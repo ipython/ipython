@@ -784,12 +784,6 @@ class DirectView(View):
         targets = targets if targets is not None else self.targets
         return self.client.clear(targets=targets, block=block)
 
-    def kill(self, targets=None, block=True):
-        """Kill my engines."""
-        block = block if block is not None else self.block
-        targets = targets if targets is not None else self.targets
-        return self.client.kill(targets=targets, block=block)
-
     #----------------------------------------
     # activate for %px, %autopx, etc. magics
     #----------------------------------------
