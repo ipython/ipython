@@ -182,8 +182,6 @@ class ConverterReveal(ConverterHTML):
 
     def render(self):
         "read, convert, and save self.infile"
-        self.notes = self.template_notes()
-        self.notesjs = self.template_notesjs()
         if not hasattr(self, 'nb'):
             self.read()
         self.output = self.convert()
@@ -245,30 +243,6 @@ class ConverterReveal(ConverterHTML):
             lambda x: x == u'%slides%') if not x[0]]
         return splitted_temp
 
-    def template_notesjs(self):
-        #"split the reveal_template.html in header and footer lists"
-        temp = self.template_read('notes_base.js')
-        for i, j in enumerate(temp):
-            if j == u'%source%':
-                temp[i] = '\'' + self.outbase + '_notes.html\''
-        here = os.path.split(os.path.realpath(__file__))[0]
-        path_js = os.path.join(here, '..', 'js', self.outbase + '_notes.js')
-        with io.open(path_js, 'w',
-                     encoding=self.default_encoding) as f:
-            f.write('\n'.join(temp))
-        return []
-
-    def template_notes(self):
-        #"split the reveal_template.html in header and footer lists"
-        temp = self.template_read('notes_base.html')
-        for i, j in enumerate(temp):
-            if j == u'%source%':
-                temp[i] = 'src=\"' + self.outbase + '_slides.html\"'
-        with io.open(self.outbase + '_notes.html', 'w',
-                     encoding=self.default_encoding) as f:
-            f.write('\n'.join(temp))
-        return []
-
     def optional_header(self):
         optional_header_body = self.template_split()
         return ['<!DOCTYPE html>', '<html>', '<head>'] + \
@@ -277,8 +251,4 @@ class ConverterReveal(ConverterHTML):
 
     def optional_footer(self):
         optional_footer_body = self.template_split()
-        for i, j in enumerate(optional_footer_body[1]):
-            if j == u'%source%':
-                optional_footer_body[1][i] = \
-                    'src: \'js/' + self.outbase + '_notes.js\''
         return optional_footer_body[1] + ['</body>', '</html>']

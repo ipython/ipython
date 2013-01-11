@@ -89,22 +89,21 @@
 	<body>
 
 		<div id="wrap-current-slide" class="slides">
-			<iframe 
-                        %source%
-                        width="1280" height="1024" id="current-slide">
-                        </iframe>
+                <script>
+                document.write('<iframe src="'+window.location.search.slice(8)+'" width="1280" height="1024" id="current-slide"></iframe>');   
+                </script>
 		</div>
 
 		<div id="wrap-next-slide" class="slides">
-			<iframe 
-                        %source% 
-                        width="640" height="512" id="next-slide">
-                        </iframe>
-			<span>UPCOMING:</span>
+                <script>
+                document.write('<iframe src="'+window.location.search.slice(8)+'" width="640" height="512" id="next-slide"></iframe>');
+                </script>
+		<span>UPCOMING:</span>
 		</div>
+
 		<div id="notes"></div>
 
-		<script src="../reveal/plugin/markdown/showdown.js"></script>
+		<script src="../../plugin/markdown/showdown.js"></script>
 		<script>
 			window.addEventListener( 'load', function() {
 
