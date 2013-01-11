@@ -38,6 +38,10 @@ from IPython.config import Application
 
 if py3compat.PY3:
     buffer = memoryview
+    class_type = type
+else:
+    from types import ClassType
+    class_type = (type, ClassType)
 
 #-------------------------------------------------------------------------------
 # Classes
@@ -110,6 +114,30 @@ class CannedFunction(CannedObject):
         newFunc = FunctionType(self.code, g, self.__name__, defaults)
         return newFunc
 
+class CannedClass(CannedObject):
+
+    def __init__(self, cls):
+        self._check_type(cls)
+        self.name = cls.__name__
+        self.old_style = not isinstance(cls, type)
+        self._canned_dict = {}
+        for k,v in cls.__dict__.items():
+            if k not in ('__weakref__', '__dict__'):
+                self._canned_dict[k] = can(v)
+        if self.old_style:
+            mro = []
+        else:
+            mro = cls.mro()
+        
+        self.parents = [ can(c) for c in mro[1:] ]
+        self.buffers = []
+
+    def _check_type(self, obj):
+        assert isinstance(obj, class_type), "Not a class type"
+
+    def get_object(self, g=None):
+        parents = tuple(uncan(p, g) for p in self.parents)
+        return type(self.name, parents, uncan_dict(self._canned_dict, g=g))
 
 class CannedArray(CannedObject):
     def __init__(self, obj):
@@ -200,6 +228,12 @@ def can(obj):
     
     return obj
 
+def can_class(obj):
+    if isinstance(obj, class_type) and obj.__module__ == '__main__':
+        return CannedClass(obj)
+    else:
+        return obj
+
 def can_dict(obj):
     """can the *values* of a dict"""
     if isinstance(obj, dict):
@@ -266,6 +300,7 @@ can_map = {
     FunctionType : CannedFunction,
     bytes : CannedBytes,
     buffer : CannedBuffer,
+    class_type : can_class,
 }
 
 uncan_map = {
