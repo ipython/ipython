@@ -137,6 +137,16 @@ class MultiKernelManager(LoggingConfigurable):
         """
         return self.get_kernel(kernel_id).signal_kernel(signum)
 
+    def restart_kernel(self, kernel_id):
+        """Restart a kernel by its uuid, keeping the same ports.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel to interrupt.
+        """
+        return self.get_kernel(kernel_id).restart_kernel()
+
     def get_kernel(self, kernel_id):
         """Get the single KernelManager object for a kernel by its uuid.
 
@@ -302,24 +312,9 @@ class MappingKernelManager(MultiKernelManager):
     def restart_kernel(self, kernel_id):
         """Restart a kernel while keeping clients connected."""
         self._check_kernel_id(kernel_id)
-        km = self.get_kernel(kernel_id)
-        km.restart_kernel()
+        super(MappingKernelManager, self).restart_kernel(kernel_id)
         self.log.info("Kernel restarted: %s" % kernel_id)
         return kernel_id
-        
-        # the following remains, in case the KM restart machinery is
-        # somehow unacceptable
-        # Get the notebook_id to preserve the kernel/notebook association.
-        notebook_id = self.notebook_for_kernel(kernel_id)
-        # Create the new kernel first so we can move the clients over.
-        new_kernel_id = self.start_kernel()
-        # Now kill the old kernel.
-        self.kill_kernel(kernel_id)
-        # Now save the new kernel/notebook association. We have to save it
-        # after the old kernel is killed as that will delete the mapping.
-        self.set_kernel_for_notebook(notebook_id, new_kernel_id)
-        self.log.info("Kernel restarted: %s" % new_kernel_id)
-        return new_kernel_id
 
     def create_iopub_stream(self, kernel_id):
         """Create a new iopub stream."""
