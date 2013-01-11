@@ -79,8 +79,14 @@ class MultiKernelManager(LoggingConfigurable):
             return False
 
     def start_kernel(self, **kwargs):
-        """Start a new kernel."""
-        kernel_id = unicode(uuid.uuid4())
+        """Start a new kernel.
+
+        The caller can pick a kernel_id by passing one in as a keyword arg,
+        otherwise one will be picked using a uuid.
+        """
+        kernel_id = kwargs.pop('kernel_id', unicode(uuid.uuid4()))
+        if kernel_id in self:
+            raise DuplicateKernelError('Kernel already exists: %s' % kernel_id)
         # use base KernelManager for each Kernel
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
