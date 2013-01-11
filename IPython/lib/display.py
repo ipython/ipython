@@ -5,7 +5,7 @@ Authors : MinRK, gregcaporaso, dannystaple
 import urllib
 
 from os.path import exists, isfile, splitext, abspath, join, isdir
-from os import walk
+from os import walk, sep
 
 
 class YouTubeVideo(object):
@@ -73,7 +73,7 @@ class FileLink(object):
     
     def __init__(self,
                  path,
-                 url_prefix='files/',
+                 url_prefix='files'+sep,
                  result_html_prefix='',
                  result_html_suffix='<br>'):
         """
@@ -133,7 +133,7 @@ class FileLinks(FileLink):
     """
     def __init__(self,
                  path,
-                 url_prefix='files/',
+                 url_prefix='files'+sep,
                  included_suffixes=None,
                  result_html_prefix='',
                  result_html_suffix='<br>',
@@ -177,7 +177,7 @@ class FileLinks(FileLink):
               "Use FileLink to display '%s'." % path)
         self.included_suffixes = included_suffixes
         # remove trailing slashs for more consistent output formatting
-        path = path.rstrip('/')
+        path = path.rstrip(sep)
         
         self.path = path
         self.url_prefix = url_prefix
@@ -247,10 +247,10 @@ class FileLinks(FileLink):
         """ generate function to use for notebook formatting
         """
         dirname_output_format = \
-         self.result_html_prefix + "%s/" + self.result_html_suffix
+         self.result_html_prefix + "%s" + sep + self.result_html_suffix
         fname_output_format = \
          self.result_html_prefix + spacer + self.html_link_str + self.result_html_suffix
-        fp_format = self.url_prefix + '%s/%s'
+        fp_format = self.url_prefix + '%s' + sep + '%s'
         
         return self._get_display_formatter(dirname_output_format,
                                            fname_output_format,
@@ -260,9 +260,9 @@ class FileLinks(FileLink):
                                         spacer="  "):
         """ generate function to use for terminal formatting
         """
-        dirname_output_format = "%s/"
+        dirname_output_format = "%s" + sep
         fname_output_format = spacer + "%s"
-        fp_format = '%s/%s'
+        fp_format = '%s'  + sep + '%s'
         
         return self._get_display_formatter(dirname_output_format,
                                            fname_output_format,
