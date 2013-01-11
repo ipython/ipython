@@ -18,7 +18,8 @@ import nose.tools as nt
 # from unittest import TestCaes
 from IPython.zmq.serialize import serialize_object, unserialize_object
 from IPython.testing import decorators as dec
-from IPython.utils.pickleutil import CannedArray
+from IPython.utils.pickleutil import CannedArray, CannedClass
+from IPython.parallel import interactive
 
 #-------------------------------------------------------------------------------
 # Globals and Utilities
@@ -164,5 +165,46 @@ def test_numpy_in_dict():
             yield nt.assert_equals(A.shape, B.shape)
             yield nt.assert_equals(A.dtype, B.dtype)
             yield assert_array_equal(A,B)
-    
 
+@dec.parametric
+def test_class():
+    @interactive
+    class C(object):
+        a=5
+    bufs = serialize_object(dict(C=C))
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(canned['C'], CannedClass)
+    d, r = unserialize_object(bufs)
+    C2 = d['C']
+    yield nt.assert_equal(C2.a, C.a)
+
+@dec.parametric
+def test_class_oldstyle():
+    @interactive
+    class C:
+        a=5
+    
+    bufs = serialize_object(dict(C=C))
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(canned['C'], CannedClass)
+    d, r = unserialize_object(bufs)
+    C2 = d['C']
+    yield nt.assert_equal(C2.a, C.a)
+
+@dec.parametric
+def test_class_inheritance():
+    @interactive
+    class C(object):
+        a=5
+
+    @interactive
+    class D(C):
+        b=10
+    
+    bufs = serialize_object(dict(D=D))
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(canned['D'], CannedClass)
+    d, r = unserialize_object(bufs)
+    D2 = d['D']
+    yield nt.assert_equal(D2.a, D.a)
+    yield nt.assert_equal(D2.b, D.b)
