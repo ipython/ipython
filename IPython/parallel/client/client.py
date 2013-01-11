@@ -797,7 +797,7 @@ class Client(HasTraits):
             msg_type = msg['header']['msg_type']
             handler = self._notification_handlers.get(msg_type, None)
             if handler is None:
-                raise Exception("Unhandled message type: %s"%msg.msg_type)
+                raise Exception("Unhandled message type: %s" % msg_type)
             else:
                 handler(msg)
             idents,msg = self.session.recv(self._notification_socket, mode=zmq.NOBLOCK)
@@ -811,7 +811,7 @@ class Client(HasTraits):
             msg_type = msg['header']['msg_type']
             handler = self._queue_handlers.get(msg_type, None)
             if handler is None:
-                raise Exception("Unhandled message type: %s"%msg.msg_type)
+                raise Exception("Unhandled message type: %s" % msg_type)
             else:
                 handler(msg)
             idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
