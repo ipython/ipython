@@ -37,8 +37,8 @@ var IPython = (function (IPython) {
 
     CellToolbar.dropdown_preset_element = $('<select/>')
         .addClass('ui-widget ui-widget-content')
-        .attr('id','celltoolbar_selector')
-        .append($('<option/>').attr('value','').text('-'))
+        .attr('id', 'celltoolbar_selector')
+        .append($('<option/>').attr('value', '').text('-'))
 
     CellToolbar.dropdown_preset_element.change(function(){
         var val = CellToolbar.dropdown_preset_element.val()
@@ -117,7 +117,7 @@ var IPython = (function (IPython) {
      *          button.click(function(){
      *                      var v = cell.metadata.foo;
      *                      cell.metadata.foo = !v;
-     *                      button.button("option","label",String(!v));
+     *                      button.button("option", "label", String(!v));
      *                  })
      *
      *          // add the button to the DOM div.
@@ -126,7 +126,7 @@ var IPython = (function (IPython) {
      *
      *      // now we register the callback under the name `foo` to give the
      *      // user the ability to use it later
-     *      CellToolbar.register_callback('foo',toggle);
+     *      CellToolbar.register_callback('foo', toggle);
      */
     CellToolbar.register_callback = function(name, callback){
         // what do we do if name already exist ?
@@ -145,19 +145,19 @@ var IPython = (function (IPython) {
      * @private
      * @example
      *
-     *      CellToolbar.register_callback('foo.c1',function(div,cell){...});
-     *      CellToolbar.register_callback('foo.c2',function(div,cell){...});
-     *      CellToolbar.register_callback('foo.c3',function(div,cell){...});
-     *      CellToolbar.register_callback('foo.c4',function(div,cell){...});
-     *      CellToolbar.register_callback('foo.c5',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c1', function(div, cell){...});
+     *      CellToolbar.register_callback('foo.c2', function(div, cell){...});
+     *      CellToolbar.register_callback('foo.c3', function(div, cell){...});
+     *      CellToolbar.register_callback('foo.c4', function(div, cell){...});
+     *      CellToolbar.register_callback('foo.c5', function(div, cell){...});
      *
-     *      CellToolbar.register_preset('foo.foo_preset1',['foo.c1','foo.c2','foo.c5'])
-     *      CellToolbar.register_preset('foo.foo_preset2',['foo.c4','foo.c5'])
+     *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
+     *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
     CellToolbar.register_preset = function(name, preset_list){
         CellToolbar._presets[name] = preset_list
         CellToolbar.dropdown_preset_element.append(
-           $('<option/>').attr('value',name).text(name)
+           $('<option/>').attr('value', name).text(name)
         )
     }
     /**
@@ -213,13 +213,10 @@ var IPython = (function (IPython) {
             // Note,
             // do this the other way, wrap in try/catch and don't append if any errors.
             this.inner_element.append(local_div)
-            cdict[preset[index]](local_div,this.cell)
+            cdict[preset[index]](local_div, this.cell)
         }
 
     }
-
-    
-
 
 
     /**
@@ -227,15 +224,15 @@ var IPython = (function (IPython) {
     CellToolbar.utils = {};
 
     /**
-     * A utility function to generate bindings between a checkbox and metadata
+     * A utility function to generate bindings between a checkbox and cell/metadata
      * @method utils.checkbox_ui_generator
      * @static
      *
      * @param name {string} Label in front of the checkbox
-     * @param setter {function( metadata_dict, newValue )}
-     *        A setter method to set the newValue of the metadata dictionnary
-     * @param getter {function( metadata )}
-     *        A getter methods which return the current value of the metadata.
+     * @param setter {function( cell, newValue )}
+     *        A setter method to set the newValue
+     * @param getter {function( cell )}
+     *        A getter methods which return the current value.
      *
      * @return callback {function( div, cell )} Callback to be passed to `register_callback`
      *
@@ -245,14 +242,14 @@ var IPython = (function (IPython) {
      *
      *     var newSlide = CellToolbar.utils.checkbox_ui_generator('New Slide',
      *          // setter
-     *          function(metadata,value){
+     *          function(cell, value){
      *              // we check that the slideshow namespace exist and create it if needed
-     *              if (metadata.slideshow == undefined){metadata.slideshow = {}}
+     *              if (cell.metadata.slideshow == undefined){cell.metadata.slideshow = {}}
      *              // set the value
-     *              metadata.slideshow.isSectionStart = value
+     *              cell.metadata.slideshow.isSectionStart = value
      *              },
      *          //geter
-     *          function(metadata){ var ns = metadata.slideshow;
+     *          function(cell){ var ns = cell.metadata.slideshow;
      *              // if the slideshow namespace does not exist return `undefined`
      *              // (will be interpreted as `false` by checkbox) otherwise
      *              // return the value
@@ -263,19 +260,19 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_callback('newSlide', newSlide);
      *
      */
-    CellToolbar.utils.checkbox_ui_generator = function(name,setter,getter){
+    CellToolbar.utils.checkbox_ui_generator = function(name, setter, getter){
          return function(div, cell) {
             var button_container = $(div)
 
-            var chkb = $('<input/>').attr('type','checkbox');
-            var lbl = $('<label/>').append($('<span/>').text(name).css('font-size','77%'));
+            var chkb = $('<input/>').attr('type', 'checkbox');
+            var lbl = $('<label/>').append($('<span/>').text(name).css('font-size', '77%'));
             lbl.append(chkb);
-            chkb.attr("checked",getter(cell.metadata));
+            chkb.attr("checked", getter(cell));
 
             chkb.click(function(){
-                        var v = getter(cell.metadata);
-                        setter(cell.metadata,!v);
-                        chkb.attr("checked",!v);
+                        var v = getter(cell);
+                        setter(cell, !v);
+                        chkb.attr("checked", !v);
                     })
            button_container.append($('<div/>').append(lbl));
 
@@ -283,16 +280,16 @@ var IPython = (function (IPython) {
     }
 
     /**
-     * A utility function to generate bindings between a dropdown list and metadata
+     * A utility function to generate bindings between a dropdown list cell
      * @method utils.select_ui_generator
      * @static
      *
      * @param list_list {list of sublist} List of sublist of metadata value and name in the dropdown list.
      *        subslit shoud contain 2 element each, first a string that woul be displayed in the dropdown list,
-     *        and second the corresponding value for the metadata to be passed to setter/return by getter.
-     * @param setter {function( metadata_dict, newValue )}
-     *        A setter method to set the newValue of the metadata dictionnary
-     * @param getter {function( metadata )}
+     *        and second the corresponding value to  be passed to setter/return by getter.
+     * @param setter {function( cell, newValue )}
+     *        A setter method to set the newValue
+     * @param getter {function( cell )}
      *        A getter methods which return the current value of the metadata.
      * @param [label=""] {String} optionnal label for the dropdown menu
      *
@@ -301,45 +298,44 @@ var IPython = (function (IPython) {
      * @example
      *
      *      var select_type = CellToolbar.utils.select_ui_generator([
-     *              ["-"            ,undefined      ],
-     *              ["Header Slide" ,"header_slide" ],
-     *              ["Slide"        ,"slide"        ],
-     *              ["Fragment"     ,"fragment"     ],
-     *              ["Skip"         ,"skip"         ],
+     *              ["-"            , undefined      ],
+     *              ["Header Slide" , "header_slide" ],
+     *              ["Slide"        , "slide"        ],
+     *              ["Fragment"     , "fragment"     ],
+     *              ["Skip"         , "skip"         ],
      *              ],
      *              // setter
-     *              function(metadata,value){
+     *              function(cell, value){
      *                  // we check that the slideshow namespace exist and create it if needed
-     *                  if (metadata.slideshow == undefined){metadata.slideshow = {}}
+     *                  if (cell.metadata.slideshow == undefined){cell.metadata.slideshow = {}}
      *                  // set the value
-     *                  metadata.slideshow.slide_type = value
+     *                  cell.metadata.slideshow.slide_type = value
      *                  },
      *              //geter
-     *              function(metadata){ var ns = metadata.slideshow;
+     *              function(cell){ var ns = cell.metadata.slideshow;
      *                  // if the slideshow namespace does not exist return `undefined`
      *                  // (will be interpreted as `false` by checkbox) otherwise
      *                  // return the value
      *                  return (ns == undefined)? undefined: ns.slide_type
      *                  }
-     *      CellToolbar.register_callback('slideshow.select',select_type);
+     *      CellToolbar.register_callback('slideshow.select', select_type);
      *
      */
-    CellToolbar.utils.select_ui_generator = function(list_list,setter, getter, label){
+    CellToolbar.utils.select_ui_generator = function(list_list, setter, getter, label){
         label= label? label: "";
         return function(div, cell) {
             var button_container = $(div)
-            var lbl = $("<label/>").append($('<span/>').text(label).css('font-size','77%'));
+            var lbl = $("<label/>").append($('<span/>').text(label).css('font-size', '77%'));
             var select = $('<select/>');
             for(var itemn in list_list){
                 var opt = $('<option/>');
-                        opt.attr('value',list_list[itemn][1])
+                        opt.attr('value', list_list[itemn][1])
                         opt.text(list_list[itemn][0])
                 select.append(opt);
             }
-            select.val(getter(cell.metadata));
-
+            select.val(getter(cell));
             select.change(function(){
-                        setter(cell.metadata,select.val());
+                        setter(cell, select.val());
                     });
             button_container.append($('<div/>').append(lbl).append(select));
 

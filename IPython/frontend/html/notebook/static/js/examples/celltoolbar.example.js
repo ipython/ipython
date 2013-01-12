@@ -142,41 +142,48 @@
     CellToolbar.register_callback('example.toggle',toggle_test);
     example_preset.push('example.toggle');
 
-    var checkbox_test =  function(div, cell) {
-        var button_container = $(div)
+    var checkbox_test = CellToolbar.utils.checkbox_ui_generator('Yes/No',
+         // setter
+         function(cell, value){
+             // we check that the slideshow namespace exist and create it if needed
+             if (cell.metadata.yn_test == undefined){cell.metadata.yn_test = {}}
+             // set the value
+             cell.metadata.yn_test.value = value
+             },
+         //geter
+         function(cell){ var ns = cell.metadata.yn_test;
+             // if the slideshow namespace does not exist return `undefined`
+             // (will be interpreted as `false` by checkbox) otherwise
+             // return the value
+             return (ns == undefined)? undefined: ns.value
+             }
+    );
 
-        var chkb = $('<input/>').attr('type','checkbox');
-        var lbl = $('<label/>').append($('<span/>').text('bar :').css('font-size','77%'));
-        lbl.append(chkb);
-        chkb.attr("checked",cell.metadata.bar);
-        chkb.click(function(){
-                    var v = cell.metadata.bar;
-                    cell.metadata.bar = !v;
-                    chkb.attr("checked",!v);
-                })
-       button_container.append($('<div/>').append(lbl));
-
-    }
 
     CellToolbar.register_callback('example.checkbox',checkbox_test);
     example_preset.push('example.checkbox');
 
-    var select_test =  function(div, cell) {
-        var button_container = $(div)
-
-        var select = $('<select/>');
-
-        select.append($('<option/>').attr('value','foo').text('foo'));
-        select.append($('<option/>').attr('value','bar').text('bar'));
-        select.append($('<option/>').attr('value','qux').text('qux'));
-        select.append($('<option/>').attr('value','zip').text('zip'));
-        select.val(cell.metadata.option);
-        select.change(function(){
-                cell.metadata.option = select.val();
+    var select_test = CellToolbar.utils.select_ui_generator([
+            ["-"            ,undefined      ],
+            ["Header Slide" ,"header_slide" ],
+            ["Slide"        ,"slide"        ],
+            ["Fragment"     ,"fragment"     ],
+            ["Skip"         ,"skip"         ],
+            ],
+            // setter
+            function(cell,value){
+                // we check that the slideshow namespace exist and create it if needed
+                if (cell.metadata.test == undefined){cell.metadata.test = {}}
+                // set the value
+                cell.metadata.test.slide_type = value
+                },
+            //geter
+            function(cell){ var ns = cell.metadata.test;
+                // if the slideshow namespace does not exist return `undefined`
+                // (will be interpreted as `false` by checkbox) otherwise
+                // return the value
+                return (ns == undefined)? undefined: ns.slide_type
                 });
-       button_container.append($('<div/>').append(select));
-
-    }
 
     CellToolbar.register_callback('example.select',select_test);
     example_preset.push('example.select');
