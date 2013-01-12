@@ -38,7 +38,7 @@ var IPython = (function (IPython) {
     CellToolbar.dropdown_preset_element = $('<select/>')
         .addClass('ui-widget ui-widget-content')
         .attr('id', 'celltoolbar_selector')
-        .append($('<option/>').attr('value', '').text('-'))
+        .append($('<option/>').attr('value', '').text('None'))
 
     CellToolbar.dropdown_preset_element.change(function(){
         var val = CellToolbar.dropdown_preset_element.val()
@@ -298,7 +298,7 @@ var IPython = (function (IPython) {
      * @example
      *
      *      var select_type = CellToolbar.utils.select_ui_generator([
-     *              ["-"            , undefined      ],
+     *              ["<None>"            , undefined      ],
      *              ["Header Slide" , "header_slide" ],
      *              ["Slide"        , "slide"        ],
      *              ["Fragment"     , "fragment"     ],
