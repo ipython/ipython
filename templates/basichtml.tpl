@@ -30,8 +30,7 @@
 
 {% block output_prompt -%}
 <div class="prompt output_prompt">
-{%- if cell.prompt_number is not none -%}
-{#- check the case of Out[#]-#}
+{%- if cell.haspyout -%}
 Out[{{cell.prompt_number}}]:
 {%- endif -%}
 </div>
@@ -59,7 +58,7 @@ Out[{{cell.prompt_number}}]:
 {% endblock headingcell %}
 
 {% block rawcell scoped %}
-{{ cell.source | pycomment }}
+{{ cell.source }}
 {% endblock rawcell %}
 
 {% block unknowncell scoped %}
@@ -69,12 +68,29 @@ unknown type  {{cell.type}}
 
 {% block pyout -%}
 <div class="output_subarea output_pyout">
-<pre>{{output.text}}</pre>
+<pre>{{output.text | ansi2html}}</pre>
 </div>
 {%- endblock pyout %}
 
 {% block stream -%}
 <div class="output_subarea output_stream output_stdout">
-<pre>{{output.text}}</pre>
+<pre>{{output.text |ansi2html}}</pre>
 </div>
 {%- endblock stream %}
+
+{% block display_data -%}
+<div class="output_subarea output_display_data">
+{{output.svg}}
+</div>
+{%- endblock display_data %}
+
+
+{% block pyerr -%}
+<div class="output_subarea output_pyerr">
+<pre>{{super()}}</pre>
+</div>
+{%- endblock pyerr %}
+
+{%- block traceback_line %}
+{{line| ansi2html}}
+{%- endblock traceback_line %}

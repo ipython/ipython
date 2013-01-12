@@ -40,7 +40,7 @@ from IPython.utils.traitlets import (List, Unicode, Type, Bool, Dict, CaselessSt
 from IPython.utils.text import indent
 from .utils import remove_ansi
 from markdown import markdown
-from .utils import highlight
+from .utils import highlight,ansi2html
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
@@ -60,6 +60,7 @@ env.filters['rm_fake'] = rm_fake
 env.filters['rm_ansi'] = remove_ansi
 env.filters['markdown'] = markdown
 env.filters['highlight'] = highlight
+env.filters['ansi2html'] = ansi2html
 
 class ConverterTemplate(Configurable):
 
@@ -87,6 +88,11 @@ class ConverterTemplate(Configurable):
         for worksheet in self.nb.worksheets:
             for cell in worksheet.cells:
                 cell.type = cell.cell_type
+                cell.haspyout = False
+                for out in cell.get('outputs',[]):
+                    if out.output_type == 'pyout':
+                        cell.haspyout = True
+                        break
             converted_cells.append(worksheet)
 
         return converted_cells
