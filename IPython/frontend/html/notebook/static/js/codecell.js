@@ -58,7 +58,7 @@ var IPython = (function (IPython) {
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
-        this.celltoolbar = new IPython.CellToolbar(this);
+        IPython.Cell.prototype.create_element.apply(this, arguments);
 
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
         cell.append(this.celltoolbar.element);

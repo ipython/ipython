@@ -42,8 +42,8 @@ var IPython = (function (IPython) {
      * @private
      */
     TextCell.prototype.create_element = function () {
+        IPython.Cell.prototype.create_element.apply(this, arguments);
         var cell = $("<div>").addClass('cell text_cell border-box-sizing vbox');
-        this.celltoolbar = new IPython.CellToolbar(this);
         cell.append(this.celltoolbar.element);
         cell.attr('tabindex','2');
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
