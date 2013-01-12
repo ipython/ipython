@@ -771,9 +771,9 @@ init_mathjax();
 
 
 {% block body %}
-<body>{{ super() }}<body/>
-
-{% endblock body %}
+<body>{{ super() }}
+</body>
+{%- endblock body %}
 
 
 
@@ -783,5 +783,4 @@ init_mathjax();
 
 
 {% block footer %}
-</html>
-{% endblock footer %}
+</html>{% endblock footer %}
