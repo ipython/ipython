@@ -62,10 +62,10 @@ var IPython = (function (IPython) {
     /**
      * Class variable that should contain the reverse order list of the button
      * to add to the toolbar of each cell
-     * @property _button_list
+     * @property _ui_controls_list
      * @private
      */
-    CellToolbar._button_list = [];
+    CellToolbar._ui_controls_list = [];
 
     /**
      * keep a list of all instances to
@@ -174,7 +174,7 @@ var IPython = (function (IPython) {
         var preset = CellToolbar._presets[preset_name];
 
         if(preset != undefined){
-            CellToolbar._button_list = preset;
+            CellToolbar._ui_controls_list = preset;
             CellToolbar.rebuild_all();
         }
     }
@@ -207,9 +207,9 @@ var IPython = (function (IPython) {
 
 
         var cdict = CellToolbar._callback_dict;
-        var preset = CellToolbar._button_list;
+        var preset = CellToolbar._ui_controls_list;
         // Yes we iterate on the class varaible, not the instance one.
-        for ( var index in CellToolbar._button_list){
+        for ( var index in CellToolbar._ui_controls_list){
             var local_div = $('<div/>').addClass('button_container');
             // Note,
             // do this the other way, wrap in try/catch and don't append if any errors.
