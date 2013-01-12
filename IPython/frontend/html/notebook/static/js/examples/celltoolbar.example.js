@@ -28,6 +28,7 @@
     var raw_edit = function(cell){
 
         var md = cell.metadata
+        var error_div = $('<div/>').css('color','red')
 
         var textarea = $('<textarea/>')
             .attr('rows','13')
@@ -42,6 +43,7 @@
                         .attr('for','metadata')
                         .text("Metadata (I know what I'm dooing and I won't complain if it breaks my notebook)")
                         )
+                        .append(error_div)
                         .append($('<br/>'))
                         .append(
                             textarea
@@ -67,7 +69,7 @@
                         }
                         catch(e)
                         {
-                           alert('invalid json');
+                           error_div.text('Warning, invalid json, not saved');
                         }
                     },
                     Cancel: function() {
