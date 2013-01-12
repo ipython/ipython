@@ -85,7 +85,7 @@
     }
 
     var add_raw_edit_button = function(div, cell) {
-        var button_container = $(div)
+        var button_container = div
         var button = $('<div/>').button({label:'Raw Edit'})
                 .click(function(){raw_edit(cell); return false;})
         button_container.append(button);
