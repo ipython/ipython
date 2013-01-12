@@ -58,10 +58,10 @@ var IPython = (function (IPython) {
 
     /** @method create_element */
     CodeCell.prototype.create_element = function () {
-        this.metaui = new IPython.MetaUI(this);
+        this.celltoolbar = new IPython.CellToolbar(this);
 
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
-        cell.append(this.metaui.$element);
+        cell.append(this.celltoolbar.element);
         cell.attr('tabindex','2');
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));

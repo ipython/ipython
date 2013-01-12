@@ -6,23 +6,23 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// MetaUI Example
+// CellToolbar Example
 //============================================================================
 
 /**
- * Example Use for the MetaUI library
+ * Example Use for the CellToolbar library
  * add the following to your custom.js to load
- * metadata UI for slideshow
+ * Celltoolbar UI for slideshow
  *
  * ```
- * $.getScript('/static/js/examples/metaui.example.js');
+ * $.getScript('/static/js/examples/celltoolbar.example.js');
  * ```
  */
  // IIFE without asignement, we don't modifiy the IPython namespace
 (function (IPython) {
     "use strict";
 
-    var MetaUI = IPython.MetaUI;
+    var CellToolbar = IPython.CellToolbar;
 
 
     var raw_edit = function(cell){
@@ -89,7 +89,7 @@
         button_container.append(button);
     }
 
-    MetaUI.register_callback('example.rawedit',add_raw_edit_button);
+    CellToolbar.register_callback('example.rawedit',add_raw_edit_button);
     var example_preset = []
     example_preset.push('example.rawedit');
 
@@ -121,7 +121,7 @@
         button_container.append(button);
     }
 
-    MetaUI.register_callback('example.lock',simple_button);
+    CellToolbar.register_callback('example.lock',simple_button);
     example_preset.push('example.lock');
 
     var toggle_test =  function(div, cell) {
@@ -135,7 +135,7 @@
        button_container.append(button);
     }
 
-    MetaUI.register_callback('example.toggle',toggle_test);
+    CellToolbar.register_callback('example.toggle',toggle_test);
     example_preset.push('example.toggle');
 
     var checkbox_test =  function(div, cell) {
@@ -154,7 +154,7 @@
 
     }
 
-    MetaUI.register_callback('example.checkbox',checkbox_test);
+    CellToolbar.register_callback('example.checkbox',checkbox_test);
     example_preset.push('example.checkbox');
 
     var select_test =  function(div, cell) {
@@ -174,11 +174,11 @@
 
     }
 
-    MetaUI.register_callback('example.select',select_test);
+    CellToolbar.register_callback('example.select',select_test);
     example_preset.push('example.select');
 
-    MetaUI.register_preset('example',example_preset);
-    MetaUI.set_preset('example');
+    CellToolbar.register_preset('example',example_preset);
+    CellToolbar.set_preset('example');
     console.log('Example extension for metadata editting loaded.');
 
 }(IPython));

@@ -18,8 +18,8 @@ var IPython = (function (IPython) {
         this.add_drop_down_list();
         this.bind_events();
         $(this.selector)
-        .append($('<label/>').text('MetaUI'))
-        .append(IPython.MetaUI.$dropdown_preset_selector)
+        .append($('<label/>').text('CellToolbar'))
+        .append(IPython.CellToolbar.dropdown_preset_element)
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 

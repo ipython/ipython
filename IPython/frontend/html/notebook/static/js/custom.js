@@ -34,10 +34,10 @@
  *  to load custom script into the notebook.
  *
  *    // to load the metadata ui extension example.
- *    $.getScript('/static/js/examples/metaui.example.js');
+ *    $.getScript('/static/js/examples/celltoolbar.example.js');
  *    // or
  *    // to load the metadata ui extension to control slideshow mode / reveal js for nbconvert
- *    $.getScript('/static/js/examples/metaui.slideshow.js');
+ *    $.getScript('/static/js/examples/celltoolbar.slideshow.js');
  *
  *
  * @module IPython
