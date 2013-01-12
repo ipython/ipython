@@ -81,7 +81,7 @@ span#notebook_name {
     padding: 3px 15px;
 }
 
-#cell_type {
+#maintoolbar > select, #maintoolbar label {
     font-size: 85%;
 }
 

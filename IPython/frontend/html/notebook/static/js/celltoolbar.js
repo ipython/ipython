@@ -36,6 +36,7 @@ var IPython = (function (IPython) {
     };
 
     CellToolbar.dropdown_preset_element = $('<select/>')
+        .addClass('ui-widget ui-widget-content')
         .attr('id','celltoolbar_selector')
         .append($('<option/>').attr('value','').text('-'))
 

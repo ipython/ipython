@@ -128,7 +128,9 @@
 
     var toggle_test =  function(div, cell) {
         var button_container = $(div)
-        var button = $('<div/>').button({label:String(cell.metadata.foo)});
+        var button = $('<div/>')
+            .button({label:String(cell.metadata.foo)}).
+            css('width','65px');
         button.click(function(){
                     var v = cell.metadata.foo;
                     cell.metadata.foo = !v;
