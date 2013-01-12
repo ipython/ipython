@@ -23,6 +23,7 @@ import codecs
 import io
 import logging
 import os
+from IPython.utils import path
 import pprint
 import re
 from types import FunctionType
@@ -53,6 +54,39 @@ class ConversionException(Exception):
 
 def python_comment(string):
     return '# '+'\n# '.join(string.split('\n'))
+
+
+
+def header_body():
+        """Return the body of the header as a list of strings."""
+
+        from pygments.formatters import HtmlFormatter
+
+        header = []
+        static = os.path.join(path.get_ipython_package_dir(),
+        'frontend', 'html', 'notebook', 'static',
+        )
+        here = os.path.split(os.path.realpath(__file__))[0]
+        css = os.path.join(static, 'css')
+        for sheet in [
+            # do we need jquery and prettify?
+            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
+            # 'jquery-ui.min.css'),
+            # os.path.join(static, 'prettify', 'prettify.css'),
+            os.path.join(css, 'boilerplate.css'),
+            os.path.join(css, 'fbm.css'),
+            os.path.join(css, 'notebook.css'),
+            os.path.join(css, 'renderedhtml.css'),
+            # our overrides:
+            #os.path.join(here, '..', 'css', 'static_html.css'),
+        ]:
+
+            with io.open(sheet, encoding='utf-8') as f:
+                s = f.read()
+                header.extend(s.split('\n'))
+        return header
+
+ecss = header_body()
 
 env.filters['pycomment'] = python_comment
 env.filters['indent'] = indent
@@ -98,7 +132,7 @@ class ConverterTemplate(Configurable):
         return converted_cells
 
     def convert(self, cell_separator='\n'):
-        return self.template.render(worksheets=self.process())
+        return self.template.render(worksheets=self.process(), ecss=ecss)
 
 
     def read(self, filename):
