@@ -203,8 +203,6 @@ var IPython = (function (IPython) {
         // which is probabli metainner.
         // or this.element.
         this.inner_element.empty();
-        //this.add_raw_edit_button()
-
 
         var cdict = CellToolbar._callback_dict;
         var preset = CellToolbar._ui_controls_list;
@@ -219,151 +217,9 @@ var IPython = (function (IPython) {
 
     }
 
-    var raw_edit = function(cell){
-
-        var md = cell.metadata
-
-        var textarea = $('<textarea/>')
-            .attr('rows','13')
-            .attr('cols','75')
-            .attr('name','metadata')
-            .text(JSON.stringify(md, null,4)||'');
-        var dialogform = $('<div/>').attr('title','Edit the metadata')
-            .append(
-                $('<form/>').append(
-                    $('<fieldset/>').append(
-                        $('<label/>')
-                        .attr('for','metadata')
-                        .text("Metadata (I know what I'm dooing and I won't complain if it breaks my notebook)")
-                        )
-                        .append($('<br/>'))
-                        .append(
-                            textarea
-                        )
-                    )
-            );
-        var editor = CodeMirror.fromTextArea(textarea[0], {
-            lineNumbers: true,
-            matchBrackets: true,
-        });
-        $(dialogform).dialog({
-                autoOpen: true,
-                height: 300,
-                width: 650,
-                modal: true,
-                buttons: {
-                    "Ok": function() {
-                        //validate json and set it
-                        try {
-                           var json = JSON.parse(editor.getValue());
-                           cell.metadata = json;
-                           $( this ).dialog( "close" );
-                        }
-                        catch(e)
-                        {
-                           alert('invalid json');
-                        }
-                    },
-                    Cancel: function() {
-                        $( this ).dialog( "close" );
-                    }
-                },
-                close: function() {
-                    //cleanup on close
-                    $(this).remove();
-                }
-        });
-        editor.refresh();
-    }
+    
 
 
-    var add_raw_edit_button = function(div, cell) {
-        var button_container = $(div)
-        var button = $('<div/>').button({label:'Raw Edit'})
-                .click(function(){raw_edit(cell); return false;})
-        button_container.append(button);
-    }
-
-    CellToolbar.register_callback('example.rawedit',add_raw_edit_button);
-    var example_preset = []
-    example_preset.push('example.rawedit');
-
-    var simple_dialog = function(title,text){
-        var dlg = $('<div/>').attr('title',title)
-            .append($('<p/>').text(text))
-        $(dlg).dialog({
-                autoOpen: true,
-                height: 300,
-                width: 650,
-                modal: true,
-                close: function() {
-                    //cleanup on close
-                    $(this).remove();
-                }
-        });
-    }
-
-    var add_simple_dialog_button = function(div, cell) {
-        var help_text = ["This is the Metadata editting UI.",
-                         "It heavily rely on plugin to work ",
-                         "and is still under developpement. You shouldn't wait too long before",
-                         " seeing some customisable buttons in those toolbar."
-                        ].join('\n')
-        var button_container = $(div)
-        var button = $('<div/>').button({label:'?'})
-                .click(function(){simple_dialog('help',help_text); return false;})
-        button_container.append(button);
-    }
-
-    CellToolbar.register_callback('default.help',add_simple_dialog_button)
-    var default_preset = []
-    default_preset.push('default.help')
-    CellToolbar.register_preset('default',default_preset)
-    CellToolbar.set_preset('default')
-
-    var simple_button = function(div, cell) {
-        var button_container = $(div);
-        var button = $('<div/>').button({icons:{primary:'ui-icon-locked'}});
-        var fun = function(value){
-                try{
-                    if(value){
-                        cell.code_mirror.setOption('readOnly','nocursor')
-                        button.button('option','icons',{primary:'ui-icon-locked'})
-                    } else {
-                        cell.code_mirror.setOption('readOnly','false')
-                        button.button('option','icons',{primary:'ui-icon-unlocked'})
-                    }
-                } catch(e){}
-
-        }
-            fun(cell.metadata.ro)
-            button.click(function(){
-                    var v = cell.metadata.ro;
-                    var locked = !v;
-                    cell.metadata.ro = locked;
-                    fun(locked)
-                    })
-                .css('height','16px')
-                .css('width','35px');
-        button_container.append(button);
-    }
-
-    CellToolbar.register_callback('example.lock',simple_button);
-    example_preset.push('example.lock');
-
-    var toggle_test =  function(div, cell) {
-        var button_container = $(div)
-        var button = $('<div/>').button({label:String(cell.metadata.foo)});
-        button.click(function(){
-                    var v = cell.metadata.foo;
-                    cell.metadata.foo = !v;
-                    button.button("option","label",String(!v));
-                })
-       button_container.append(button);
-    }
-
-    CellToolbar.register_callback('example.toggle',toggle_test);
-    example_preset.push('example.toggle');
 
     /**
      */
