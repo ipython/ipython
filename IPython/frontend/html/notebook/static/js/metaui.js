@@ -6,7 +6,7 @@
 //----------------------------------------------------------------------------
 
 //============================================================================
-// MetaUI
+// CellToolbar
 //============================================================================
 
 
@@ -14,7 +14,7 @@
  * A Module to control the per-cell toolbar.
  * @module IPython
  * @namespace IPython
- * @submodule MetaUI
+ * @submodule CellToolbar
  */
 var IPython = (function (IPython) {
     "use strict";
@@ -22,30 +22,30 @@ var IPython = (function (IPython) {
 
     /**
      * @constructor
-     * @class MetaUI
+     * @class CellToolbar
      * @param {The cell to attach the metadata UI to} cell
      */
-    var MetaUI = function (cell) {
-        MetaUI._instances.push(this);
-        this.$metainner = $('<div/>');
+    var CellToolbar = function (cell) {
+        CellToolbar._instances.push(this);
+        this.inner_element = $('<div/>');
         this.cell = cell;
-        this.$element = $('<div/>').addClass('metaedit')
-                .append(this.$metainner)
+        this.element = $('<div/>').addClass('celltoolbar')
+                .append(this.inner_element)
         this.rebuild();
         return this;
     };
 
-    MetaUI.$dropdown_preset_selector = $('<select/>')
-        .attr('id','metaui_selector')
+    CellToolbar.dropdown_preset_element = $('<select/>')
+        .attr('id','celltoolbar_selector')
         .append($('<option/>').attr('value','').text('-'))
 
-    MetaUI.$dropdown_preset_selector.change(function(){
-        var val = MetaUI.$dropdown_preset_selector.val()
+    CellToolbar.dropdown_preset_element.change(function(){
+        var val = CellToolbar.dropdown_preset_element.val()
         if(val ==''){
-            $('body').removeClass('editmetaon')
+            $('body').removeClass('celltoolbar-on')
         } else {
-            $('body').addClass('editmetaon')
-            MetaUI.set_preset(val)
+            $('body').addClass('celltoolbar-on')
+            CellToolbar.set_preset(val)
         }
     })
 
@@ -57,7 +57,7 @@ var IPython = (function (IPython) {
      * @property _callback_dict
      * @private
      */
-    MetaUI._callback_dict = {};
+    CellToolbar._callback_dict = {};
 
     /**
      * Class variable that should contain the reverse order list of the button
@@ -65,25 +65,25 @@ var IPython = (function (IPython) {
      * @property _button_list
      * @private
      */
-    MetaUI._button_list = [];
+    CellToolbar._button_list = [];
 
     /**
      * keep a list of all instances to
      * be able to llop over them...
      * but how to 'destroy' them ?
      * have to think about it...
-     * or loop over the cells, and find their MetaUI instances.
+     * or loop over the cells, and find their CellToolbar instances.
      * @private
      * @property _instances
      */
-    MetaUI._instances =[]
+    CellToolbar._instances =[]
 
     /**
      * keep a list of all the availlabel presets for the toolbar
      * @private
      * @property _presets
      */
-    MetaUI._presets ={}
+    CellToolbar._presets ={}
 
     // this is by design not a prototype.
     /**
@@ -125,11 +125,11 @@ var IPython = (function (IPython) {
      *
      *      // now we register the callback under the name `foo` to give the
      *      // user the ability to use it later
-     *      MetaUI.register_callback('foo',toggle);
+     *      CellToolbar.register_callback('foo',toggle);
      */
-    MetaUI.register_callback = function(name, callback){
+    CellToolbar.register_callback = function(name, callback){
         // what do we do if name already exist ?
-        MetaUI._callback_dict[name] = callback;
+        CellToolbar._callback_dict[name] = callback;
     };
 
     /**
@@ -144,18 +144,18 @@ var IPython = (function (IPython) {
      * @private
      * @example
      *
-     *      MetaUI.register_callback('foo.c1',function(div,cell){...});
-     *      MetaUI.register_callback('foo.c2',function(div,cell){...});
-     *      MetaUI.register_callback('foo.c3',function(div,cell){...});
-     *      MetaUI.register_callback('foo.c4',function(div,cell){...});
-     *      MetaUI.register_callback('foo.c5',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c1',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c2',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c3',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c4',function(div,cell){...});
+     *      CellToolbar.register_callback('foo.c5',function(div,cell){...});
      *
-     *      MetaUI.register_preset('foo.foo_preset1',['foo.c1','foo.c2','foo.c5'])
-     *      MetaUI.register_preset('foo.foo_preset2',['foo.c4','foo.c5'])
+     *      CellToolbar.register_preset('foo.foo_preset1',['foo.c1','foo.c2','foo.c5'])
+     *      CellToolbar.register_preset('foo.foo_preset2',['foo.c4','foo.c5'])
      */
-    MetaUI.register_preset = function(name, preset_list){
-        MetaUI._presets[name] = preset_list
-        MetaUI.$dropdown_preset_selector.append(
+    CellToolbar.register_preset = function(name, preset_list){
+        CellToolbar._presets[name] = preset_list
+        CellToolbar.dropdown_preset_element.append(
            $('<option/>').attr('value',name).text(name)
         )
     }
@@ -168,14 +168,14 @@ var IPython = (function (IPython) {
      * @private
      * @example
      *
-     *      MetaUI.set_preset('foo.foo_preset1');
+     *      CellToolbar.set_preset('foo.foo_preset1');
      */
-    MetaUI.set_preset= function(preset_name){
-        var preset = MetaUI._presets[preset_name];
+    CellToolbar.set_preset= function(preset_name){
+        var preset = CellToolbar._presets[preset_name];
 
         if(preset != undefined){
-            MetaUI._button_list = preset;
-            MetaUI.rebuild_all();
+            CellToolbar._button_list = preset;
+            CellToolbar.rebuild_all();
         }
     }
 
@@ -188,9 +188,9 @@ var IPython = (function (IPython) {
      * @static
      *
      */
-    MetaUI.rebuild_all = function(){
-        for(var i in MetaUI._instances){
-            MetaUI._instances[i].rebuild();
+    CellToolbar.rebuild_all = function(){
+        for(var i in CellToolbar._instances){
+            CellToolbar._instances[i].rebuild();
         }
     }
 
@@ -198,22 +198,22 @@ var IPython = (function (IPython) {
      * Rebuild all the button on the toolbar to update it's state.
      * @method rebuild
      */
-    MetaUI.prototype.rebuild = function(){
+    CellToolbar.prototype.rebuild = function(){
         // strip evrything from the div
         // which is probabli metainner.
-        // or this.$element.
-        this.$metainner.empty();
+        // or this.element.
+        this.inner_element.empty();
         //this.add_raw_edit_button()
 
 
-        var cdict = MetaUI._callback_dict;
-        var preset = MetaUI._button_list;
+        var cdict = CellToolbar._callback_dict;
+        var preset = CellToolbar._button_list;
         // Yes we iterate on the class varaible, not the instance one.
-        for ( var index in MetaUI._button_list){
+        for ( var index in CellToolbar._button_list){
             var local_div = $('<div/>').addClass('button_container');
             // Note,
             // do this the other way, wrap in try/catch and don't append if any errors.
-            this.$metainner.append(local_div)
+            this.inner_element.append(local_div)
             cdict[preset[index]](local_div,this.cell)
         }
 
@@ -284,7 +284,7 @@ var IPython = (function (IPython) {
         button_container.append(button);
     }
 
-    MetaUI.register_callback('example.rawedit',add_raw_edit_button);
+    CellToolbar.register_callback('example.rawedit',add_raw_edit_button);
     var example_preset = []
     example_preset.push('example.rawedit');
 
@@ -315,11 +315,11 @@ var IPython = (function (IPython) {
         button_container.append(button);
     }
 
-    MetaUI.register_callback('default.help',add_simple_dialog_button)
+    CellToolbar.register_callback('default.help',add_simple_dialog_button)
     var default_preset = []
     default_preset.push('default.help')
-    MetaUI.register_preset('default',default_preset)
-    MetaUI.set_preset('default')
+    CellToolbar.register_preset('default',default_preset)
+    CellToolbar.set_preset('default')
 
     var simple_button = function(div, cell) {
         var button_container = $(div);
@@ -348,7 +348,7 @@ var IPython = (function (IPython) {
         button_container.append(button);
     }
 
-    MetaUI.register_callback('example.lock',simple_button);
+    CellToolbar.register_callback('example.lock',simple_button);
     example_preset.push('example.lock');
 
     var toggle_test =  function(div, cell) {
@@ -362,12 +362,12 @@ var IPython = (function (IPython) {
        button_container.append(button);
     }
 
-    MetaUI.register_callback('example.toggle',toggle_test);
+    CellToolbar.register_callback('example.toggle',toggle_test);
     example_preset.push('example.toggle');
 
     /**
      */
-    MetaUI.utils = {};
+    CellToolbar.utils = {};
 
     /**
      * A utility function to generate bindings between a checkbox and metadata
@@ -386,7 +386,7 @@ var IPython = (function (IPython) {
      *
      * An exmple that bind the subkey `slideshow.isSectionStart` to a checkbox with a `New Slide` label
      *
-     *     var newSlide = MetaUI.utils.checkbox_ui_generator('New Slide',
+     *     var newSlide = CellToolbar.utils.checkbox_ui_generator('New Slide',
      *          // setter
      *          function(metadata,value){
      *              // we check that the slideshow namespace exist and create it if needed
@@ -403,10 +403,10 @@ var IPython = (function (IPython) {
      *              }
      *      );
      *
-     *      MetaUI.register_callback('newSlide', newSlide);
+     *      CellToolbar.register_callback('newSlide', newSlide);
      *
      */
-    MetaUI.utils.checkbox_ui_generator = function(name,setter,getter){
+    CellToolbar.utils.checkbox_ui_generator = function(name,setter,getter){
          return function(div, cell) {
             var button_container = $(div)
 
@@ -443,7 +443,7 @@ var IPython = (function (IPython) {
      *
      * @example
      *
-     *      var select_type = MetaUI.utils.select_ui_generator([
+     *      var select_type = CellToolbar.utils.select_ui_generator([
      *              ["-"            ,undefined      ],
      *              ["Header Slide" ,"header_slide" ],
      *              ["Slide"        ,"slide"        ],
@@ -464,10 +464,10 @@ var IPython = (function (IPython) {
      *                  // return the value
      *                  return (ns == undefined)? undefined: ns.slide_type
      *                  }
-     *      MetaUI.register_callback('slideshow.select',select_type);
+     *      CellToolbar.register_callback('slideshow.select',select_type);
      *
      */
-    MetaUI.utils.select_ui_generator = function(list_list,setter, getter, label){
+    CellToolbar.utils.select_ui_generator = function(list_list,setter, getter, label){
         label= label? label: "";
         return function(div, cell) {
             var button_container = $(div)
@@ -490,7 +490,7 @@ var IPython = (function (IPython) {
     };
 
 
-    IPython.MetaUI = MetaUI;
+    IPython.CellToolbar = CellToolbar;
 
     return IPython;
 }(IPython));

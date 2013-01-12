@@ -1,6 +1,6 @@
 /*Css for the metadata edit area*/
 
-.metaedit{
+.celltoolbar{
     border:thin solid #DDD;
     margin-left:81px;
     border-bottom:none;
@@ -10,24 +10,24 @@
     display:none;
 }
 
-.code_cell .metaedit{
+.code_cell .celltoolbar{
     margin-left:81px;
 }
 
-.text_cell .metaedit{
+.text_cell .celltoolbar{
     margin-left:0px;
 }
 
-.editmetaon div.input_area , .editmetaon div.text_cell_input{
+.celltoolbar-on div.input_area , .celltoolbar-on div.text_cell_input{
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;
 }
 
-.editmetaon .metaedit {
+.celltoolbar-on .celltoolbar {
     display:block;
 }
 
-.metaedit ui-button {
+.celltoolbar ui-button {
     border :none;
 }
 
@@ -41,13 +41,13 @@
     border : none;
 }
 
-.metaedit select {
+.celltoolbar select {
     margin:10px;
     margin-top:0px;
     margin-bottom:0px;
 }
 
-.metaedit input[type=checkbox] {
+.celltoolbar input[type=checkbox] {
     margin-bottom:1px;
 
 }
