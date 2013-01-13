@@ -45,7 +45,11 @@ def test_evens():
         converters.append((ConverterHTML, 'html'))
 
     reflist = [
-            'tests/ipynbref/IntroNumPy.orig'
+            'tests/ipynbref/data_geeks_team_calendar.orig',
+            'tests/ipynbref/00_notebook_tour.orig',
+            'tests/ipynbref/IntroNumPy.orig',
+            'tests/ipynbref/XKCD_plots.orig',
+            'tests/ipynbref/Gun_Data.orig',
             ]
     for root in reflist:
         for conv, ext in converters:
