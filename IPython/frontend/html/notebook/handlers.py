@@ -330,7 +330,7 @@ class MainKernelHandler(AuthenticatedHandler):
     @web.authenticated
     def get(self):
         km = self.application.kernel_manager
-        self.finish(jsonapi.dumps(km.kernel_ids))
+        self.finish(jsonapi.dumps(km.list_kernel_ids()))
 
     @web.authenticated
     def post(self):
