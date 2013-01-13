@@ -29,7 +29,10 @@ import re
 from types import FunctionType
 
 from jinja2 import Environment, PackageLoader, FileSystemLoader
-env = Environment(loader=FileSystemLoader('./templates/'))
+env = Environment(
+        loader=FileSystemLoader('./templates/'), 
+        extensions=['jinja2.ext.loopcontrols']
+        )
 
 # IPython imports
 from IPython.nbformat import current as nbformat
@@ -92,6 +95,14 @@ def header_body():
 inlining= {}
 inlining['css'] = header_body()
 
+
+def filter_data_type(output):
+    for fmt in ['html', 'pdf', 'svg', 'latex','png', 'jpg','jpeg' , 'text']:
+        if fmt in output:
+            return [fmt]
+
+
+env.filters['filter_data_type'] = filter_data_type
 env.filters['pycomment'] = python_comment
 env.filters['indent'] = indent
 env.filters['rm_fake'] = rm_fake

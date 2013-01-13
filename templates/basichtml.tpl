@@ -1,4 +1,4 @@
-{%- extends 'null.tpl' -%}
+{%- extends 'display_priority.tpl' -%}
 
 
 
@@ -68,7 +68,7 @@ unknown type  {{cell.type}}
 
 {% block pyout -%}
 <div class="output_subarea output_pyout">
-<pre>{{output.text | ansi2html}}</pre>
+{% block data_priority scoped %}{{ super()}}{% endblock %}
 </div>
 {%- endblock pyout %}
 
@@ -78,12 +78,32 @@ unknown type  {{cell.type}}
 </div>
 {%- endblock stream %}
 
-{% block display_data -%}
-<div class="output_subarea output_display_data">
+{% block data_svg -%}
 {{output.svg}}
 </div>
-{%- endblock display_data %}
+{%- endblock data_svg %}
 
+
+{% block data_html %}
+{{output.html}}
+</div>
+{%- endblock data_html %}
+
+{% block data_png %}
+<img src="data:image/png;base64,{{output.png}}"></img>
+</div>
+{%- endblock data_png %}
+
+
+{% block data_jpg %}
+<img src="data:image/jpeg;base64,{{output.jpeg}}"></img>
+</div>
+{%- endblock data_jpg %}
+
+
+{% block data_latex %}
+{{output.latex}}
+{%- endblock data_latex %}
 
 {% block pyerr -%}
 <div class="output_subarea output_pyerr">
@@ -94,3 +114,8 @@ unknown type  {{cell.type}}
 {%- block traceback_line %}
 {{line| ansi2html}}
 {%- endblock traceback_line %}
+
+
+{%- block data_text %}
+<pre>{{output.text | ansi2html}}</pre>
+{%- endblock -%}
