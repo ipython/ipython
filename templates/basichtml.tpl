@@ -72,32 +72,36 @@ unknown type  {{cell.type}}
 </div>
 {%- endblock pyout %}
 
-{% block stream -%}
+{% block stream_stdout -%}
 <div class="output_subarea output_stream output_stdout">
 <pre>{{output.text |ansi2html}}</pre>
 </div>
-{%- endblock stream %}
+{%- endblock stream_stdout %}
+
+{% block stream_stderr -%}
+<div class="output_subarea output_stream output_stderr">
+<pre>{{output.text |ansi2html}}</pre>
+</div>
+{%- endblock stream_stderr %}
 
 {% block data_svg -%}
 {{output.svg}}
-</div>
 {%- endblock data_svg %}
 
 
-{% block data_html %}
+{% block data_html -%}
+<div class="output_html rendered_html">
 {{output.html}}
 </div>
 {%- endblock data_html %}
 
 {% block data_png %}
 <img src="data:image/png;base64,{{output.png}}"></img>
-</div>
 {%- endblock data_png %}
 
 
 {% block data_jpg %}
 <img src="data:image/jpeg;base64,{{output.jpeg}}"></img>
-</div>
 {%- endblock data_jpg %}
 
 
@@ -119,3 +123,10 @@ unknown type  {{cell.type}}
 {%- block data_text %}
 <pre>{{output.text | ansi2html}}</pre>
 {%- endblock -%}
+
+
+{%- block display_data scoped -%}
+<div class="output_subarea output_display_data">
+{{super()}}
+</div>
+{%- endblock display_data -%}
