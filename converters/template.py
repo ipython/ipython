@@ -78,12 +78,15 @@ def header_body():
             os.path.join(css, 'notebook.css'),
             os.path.join(css, 'renderedhtml.css'),
             # our overrides:
-            #os.path.join(here, '..', 'css', 'static_html.css'),
+            os.path.join(here, '..', 'css', 'static_html.css'),
         ]:
 
             with io.open(sheet, encoding='utf-8') as f:
                 s = f.read()
                 header.extend(s.split('\n'))
+
+        pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        header.extend(pygments_css.split('\n'))
         return header
 
 ecss = header_body()
