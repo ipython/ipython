@@ -83,13 +83,14 @@ def header_body():
 
             with io.open(sheet, encoding='utf-8') as f:
                 s = f.read()
-                header.extend(s.split('\n'))
+                header.append(s)
 
         pygments_css = HtmlFormatter().get_style_defs('.highlight')
-        header.extend(pygments_css.split('\n'))
+        header.append(pygments_css)
         return header
 
-ecss = header_body()
+inlining= {}
+inlining['css'] = header_body()
 
 env.filters['pycomment'] = python_comment
 env.filters['indent'] = indent
@@ -135,7 +136,7 @@ class ConverterTemplate(Configurable):
         return converted_cells
 
     def convert(self, cell_separator='\n'):
-        return self.template.render(worksheets=self.process(), ecss=ecss)
+        return self.template.render(worksheets=self.process(), inlining=inlining)
 
 
     def read(self, filename):
