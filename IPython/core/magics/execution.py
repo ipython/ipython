@@ -414,6 +414,10 @@ python-profiler package from non-free.""")
         the first breakpoint must be set on a line which actually does
         something (not a comment or docstring) for it to stop execution.
 
+        Or you can specify a breakpoint in a different file::
+
+          %run -d -b myotherfile.py:20 myscript
+
         When the pdb debugger starts, you will see a (Pdb) prompt.  You must
         first enter 'c' (without quotes) to start execution up to the first
         breakpoint.
@@ -551,11 +555,11 @@ python-profiler package from non-free.""")
                         bdb.Breakpoint.bpbynumber = [None]
                         # Set an initial breakpoint to stop execution
                         maxtries = 10
-                        bp = int(opts.get('b', [1])[0])
-                        checkline = deb.checkline(filename, bp)
+                        bp_file, bp_line = parse_breakpoint(opts.get('b', [1])[0], filename)
+                        checkline = deb.checkline(bp_file, bp_line)
                         if not checkline:
-                            for bp in range(bp + 1, bp + maxtries + 1):
-                                if deb.checkline(filename, bp):
+                            for bp in range(bp_line + 1, bp_line + maxtries + 1):
+                                if deb.checkline(bp_file, bp):
                                     break
                             else:
                                 msg = ("\nI failed to find a valid line to set "
@@ -566,7 +570,7 @@ python-profiler package from non-free.""")
                                 error(msg)
                                 return
                         # if we find a good linenumber, set the breakpoint
-                        deb.do_break('%s:%s' % (filename, bp))
+                        deb.do_break('%s:%s' % (bp_file, bp_line))
 
                         # Mimic Pdb._runscript(...)
                         deb._wait_for_mainpyfile = True
@@ -578,7 +582,7 @@ python-profiler package from non-free.""")
                         ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
                         try:
                             #save filename so it can be used by methods on the deb object
-                            deb._exec_filename = filename
+                            deb._exec_filename = bp_file
                             deb.run('execfile("%s", prog_ns)' % filename, ns)
 
                         except:
@@ -1079,3 +1083,11 @@ python-profiler package from non-free.""")
             self.shell.run_cell(cell)
         if args.output:
             self.shell.user_ns[args.output] = io
+
+def parse_breakpoint(text, current_file):
+    '''Returns (file, line) for file:line and (current_file, line) for line'''
+    colon = text.find(':')
+    if colon == -1:
+        return current_file, int(text)
+    else:
+        return text[:colon], int(text[colon+1:])
