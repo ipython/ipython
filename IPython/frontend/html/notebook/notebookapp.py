@@ -591,16 +591,13 @@ class NotebookApp(BaseIPythonApplication):
         self.init_signal()
 
     def cleanup_kernels(self):
-        """shutdown all kernels
+        """Shutdown all kernels.
         
         The kernels will shutdown themselves when this process no longer exists,
         but explicit shutdown allows the KernelManagers to cleanup the connection files.
         """
         self.log.info('Shutting down kernels')
-        km = self.kernel_manager
-        # copy list, since shutdown_kernel deletes keys
-        for kid in list(km.kernel_ids):
-            km.shutdown_kernel(kid)
+        self.kernel_manager.shutdown_all()
 
     def start(self):
         ip = self.ip if self.ip else '[all ip addresses on your system]'

@@ -63,20 +63,18 @@ class MultiKernelManager(LoggingConfigurable):
 
     _kernels = Dict()
 
-    @property
-    def kernel_ids(self):
+    def list_kernel_ids(self):
         """Return a list of the kernel ids of the active kernels."""
-        return self._kernels.keys()
+        # Create a copy so we can iterate over kernels in operations
+        # that delete keys.
+        return list(self._kernels.keys())
 
     def __len__(self):
         """Return the number of running kernels."""
-        return len(self.kernel_ids)
+        return len(self.list_kernel_ids())
 
     def __contains__(self, kernel_id):
-        if kernel_id in self.kernel_ids:
-            return True
-        else:
-            return False
+        return kernel_id in self._kernels
 
     def start_kernel(self, **kwargs):
         """Start a new kernel.
@@ -109,6 +107,11 @@ class MultiKernelManager(LoggingConfigurable):
         self.get_kernel(kernel_id).shutdown_kernel()
         del self._kernels[kernel_id]
 
+    def shutdown_all(self):
+        """Shutdown all kernels."""
+        for kid in self.list_kernel_ids():
+            self.shutdown_kernel(kid)
+
     def kill_kernel(self, kernel_id):
         """Kill a kernel by its kernel uuid.
 
@@ -119,6 +122,11 @@ class MultiKernelManager(LoggingConfigurable):
         """
         self.get_kernel(kernel_id).kill_kernel()
         del self._kernels[kernel_id]
+
+    def kill_all(self):
+        """Kill all kernels."""
+        for kid in self.list_kernel_ids():
+            self.kill_kernel(kid)
 
     def interrupt_kernel(self, kernel_id):
         """Interrupt (SIGINT) the kernel by its uuid.
@@ -167,8 +175,8 @@ class MultiKernelManager(LoggingConfigurable):
         else:
             raise KeyError("Kernel with id not found: %s" % kernel_id)
 
-    def get_kernel_ports(self, kernel_id):
-        """Return a dictionary of ports for a kernel.
+    def get_connection_data(self, kernel_id):
+        """Return a dictionary of connection data for a kernel.
 
         Parameters
         ==========
@@ -177,33 +185,19 @@ class MultiKernelManager(LoggingConfigurable):
 
         Returns
         =======
-        port_dict : dict
-            A dict of key, value pairs where the keys are the names
-            (stdin_port,iopub_port,shell_port) and the values are the
-            integer port numbers for those channels.
+        connection_dict : dict
+            A dict of the information needed to connect to a kernel.
+            This includes the ip address and the integer port
+            numbers of the different channels (stdin_port, iopub_port,
+            shell_port, hb_port).
         """
-        # this will raise a KeyError if not found:
         km = self.get_kernel(kernel_id)
-        return dict(shell_port=km.shell_port,
+        return dict(ip=km.ip,
+                    shell_port=km.shell_port,
                     iopub_port=km.iopub_port,
                     stdin_port=km.stdin_port,
                     hb_port=km.hb_port,
-        )
-
-    def get_kernel_ip(self, kernel_id):
-        """Return ip address for a kernel.
-
-        Parameters
-        ==========
-        kernel_id : uuid
-            The id of the kernel.
-
-        Returns
-        =======
-        ip : str
-            The ip address of the kernel.
-        """
-        return self.get_kernel(kernel_id).ip
+        )  
 
     def create_connected_stream(self, ip, port, socket_type):
         sock = self.context.socket(socket_type)
@@ -213,22 +207,58 @@ class MultiKernelManager(LoggingConfigurable):
         return ZMQStream(sock)
 
     def create_iopub_stream(self, kernel_id):
-        ip = self.get_kernel_ip(kernel_id)
-        ports = self.get_kernel_ports(kernel_id)
-        iopub_stream = self.create_connected_stream(ip, ports['iopub_port'], zmq.SUB)
+        """Return a ZMQStream object connected to the iopub channel.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+
+        Returns
+        =======
+        stream : ZMQStream
+        """
+        kdata = self.get_connection_data(kernel_id)
+        iopub_stream = self.create_connected_stream(
+            kdata['ip'], kdata['iopub_port'], zmq.SUB
+        )
         iopub_stream.socket.setsockopt(zmq.SUBSCRIBE, b'')
         return iopub_stream
 
     def create_shell_stream(self, kernel_id):
-        ip = self.get_kernel_ip(kernel_id)
-        ports = self.get_kernel_ports(kernel_id)
-        shell_stream = self.create_connected_stream(ip, ports['shell_port'], zmq.DEALER)
+        """Return a ZMQStream object connected to the shell channel.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+
+        Returns
+        =======
+        stream : ZMQStream
+        """
+        kdata = self.get_connection_data(kernel_id)
+        shell_stream = self.create_connected_stream(
+            kdata['ip'], kdata['shell_port'], zmq.DEALER
+        )
         return shell_stream
 
     def create_hb_stream(self, kernel_id):
-        ip = self.get_kernel_ip(kernel_id)
-        ports = self.get_kernel_ports(kernel_id)
-        hb_stream = self.create_connected_stream(ip, ports['hb_port'], zmq.REQ)
+        """Return a ZMQStream object connected to the hb channel.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+
+        Returns
+        =======
+        stream : ZMQStream
+        """
+        kdata = self.get_connection_data(kernel_id)
+        hb_stream = self.create_connected_stream(
+            kdata['ip'], kdata['hb_port'], zmq.REQ
+        )
         return hb_stream
 
 
