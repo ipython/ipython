@@ -582,7 +582,7 @@ python-profiler package from non-free.""")
                         ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
                         try:
                             #save filename so it can be used by methods on the deb object
-                            deb._exec_filename = bp_file
+                            deb._exec_filename = filename
                             deb.run('execfile("%s", prog_ns)' % filename, ns)
 
                         except:
