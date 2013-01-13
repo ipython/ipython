@@ -39,11 +39,5 @@ init_mathjax();
 {%- endblock body %}
 
 
-
-
-
-
-
-
 {% block footer %}
 </html>{% endblock footer %}
