@@ -3,10 +3,12 @@
 {%- block header -%}
 <html>
 <head>
+<meta charset="UTF-8">
+{% for css in inlining.css -%}
 <style type="text/css">
-{% for css in ecss %}{{css}}
-{% endfor %}
+{{css}}
 </style>
+{% endfor %}
 <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript">
 
 </script>
