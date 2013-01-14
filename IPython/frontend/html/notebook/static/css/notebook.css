@@ -29,6 +29,7 @@ span#notebook_name {
     font-size: 146.5%;
 }
 
+
 .ui-menubar-item .ui-button .ui-button-text {
     padding: 0.4em 1.0em;
     font-size: 100%;
@@ -80,8 +81,11 @@ span#notebook_name {
     padding: 3px 15px;
 }
 
-#cell_type {
+#maintoolbar > select, #maintoolbar label {
     font-size: 85%;
+    margin-left:0.3em;
+    margin-right:0.3em;
+
 }
 
 

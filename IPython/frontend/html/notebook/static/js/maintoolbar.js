@@ -17,6 +17,9 @@ var IPython = (function (IPython) {
         this.construct();
         this.add_drop_down_list();
         this.bind_events();
+        $(this.selector)
+        .append($('<label/>').text('Cell Toolbar:'))
+        .append(IPython.CellToolbar.dropdown_preset_element)
     };
 
     MainToolBar.prototype = new IPython.ToolBar(); 
@@ -115,8 +118,6 @@ var IPython = (function (IPython) {
                         }
                 }
             ],'run_int');
-
-
     };
 
     MainToolBar.prototype.add_drop_down_list = function () {
