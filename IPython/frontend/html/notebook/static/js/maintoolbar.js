@@ -18,7 +18,7 @@ var IPython = (function (IPython) {
         this.add_drop_down_list();
         this.bind_events();
         $(this.selector)
-        .append($('<label/>').text('CellToolbar'))
+        .append($('<label/>').text('Cell Toolbar:'))
         .append(IPython.CellToolbar.dropdown_preset_element)
     };
 
