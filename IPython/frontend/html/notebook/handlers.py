@@ -416,7 +416,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
     def open(self, kernel_id):
         self.kernel_id = kernel_id.decode('ascii')
         try:
-            cfg = self.application.ipython_app.config
+            cfg = self.application.config
         except AttributeError:
             # protect from the case where this is run from something other than
             # the notebook app:
