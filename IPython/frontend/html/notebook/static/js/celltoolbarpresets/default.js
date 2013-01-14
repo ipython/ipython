@@ -88,7 +88,7 @@
     var example_preset = []
     example_preset.push('default.rawedit');
 
-    CellToolbar.register_preset('default',example_preset);
+    CellToolbar.register_preset('Default',example_preset);
     console.log('Default extension for metadata editting loaded.');
 
 }(IPython));
