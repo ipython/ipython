@@ -34,7 +34,7 @@
                     $('<fieldset/>').append(
                         $('<label/>')
                         .attr('for','metadata')
-                        .text("Metadata (I know what I'm dooing and I won't complain if it breaks my notebook)")
+                        .text("Manually edit the JSON below to manipulate the metadata for this cell. This assumes you know what you are doing and won't complain if it breaks your notebook. We also recommend putting your metadata attributes in an appropriately named sub-structure, so they don't conflict with those of others.")
                         )
                         .append(error_div)
                         .append($('<br/>'))
