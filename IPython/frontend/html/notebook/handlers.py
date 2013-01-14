@@ -540,9 +540,13 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             if not self.hb_stream.closed():
                 self.hb_stream.on_recv(None)
 
-    def kernel_died(self):
+    def _delete_kernel_data(self):
+        """Remove the kernel data and notebook mapping."""
         self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
-        self.application.log.error("Kernel %s failed to respond to heartbeat", self.kernel_id)
+
+    def kernel_died(self):
+        self._delete_kernel_data()
+        self.application.log.error("Kernel died: %s" % self.kernel_id)
         self.write_message(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
