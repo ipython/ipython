@@ -1,0 +1,53 @@
+/*Css for the metadata edit area*/
+
+.celltoolbar{
+    border:thin solid #DDD;
+    margin-left:81px;
+    border-bottom:none;
+    background : #EEE;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    display:none;
+}
+
+.code_cell .celltoolbar{
+    margin-left:81px;
+}
+
+.text_cell .celltoolbar{
+    margin-left:0px;
+}
+
+.celltoolbar-on div.input_area , .celltoolbar-on div.text_cell_input{
+    border-top-right-radius: 0px;
+    border-top-left-radius: 0px;
+}
+
+.celltoolbar-on .celltoolbar {
+    display:block;
+}
+
+.celltoolbar ui-button {
+    border :none;
+}
+
+.button_container {
+ float:right;
+}
+
+.button_container .ui-state-default, .button_container .ui-state-hover, .button_container .ui-state-hover span{
+    border-radius : 0 0 0 0;
+    border : none;
+}
+
+.celltoolbar select {
+    margin:10px;
+    margin-top:0px;
+    margin-bottom:0px;
+}
+
+.celltoolbar input[type=checkbox] {
+    margin-bottom:1px;
+
+}
+

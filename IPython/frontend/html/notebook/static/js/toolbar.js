@@ -36,7 +36,7 @@ var IPython = (function (IPython) {
      *
      *  @example
      *
-     *      IPython.toolbar.add_button_group([
+     *      IPython.toolbar.add_buttons_group([
      *          {
      *            label:'my button',
      *            icon:'ui-icon-disk',

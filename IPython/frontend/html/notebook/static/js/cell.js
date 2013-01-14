@@ -50,7 +50,9 @@ var IPython = (function (IPython) {
      * and will be called by Base Class constructor.
      * @method create_element
      */
-    Cell.prototype.create_element = function () {};
+    Cell.prototype.create_element = function () {
+        this.celltoolbar = new IPython.CellToolbar(this);
+    };
 
 
     /**
@@ -163,6 +165,7 @@ var IPython = (function (IPython) {
         if (data.metadata !== undefined) {
             this.metadata = data.metadata;
         }
+        this.celltoolbar.rebuild();
     };
 
 
