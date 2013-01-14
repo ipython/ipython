@@ -46,7 +46,7 @@ var IPython = (function (IPython) {
             $('body').removeClass('celltoolbar-on')
         } else {
             $('body').addClass('celltoolbar-on')
-            CellToolbar.set_preset(val)
+            CellToolbar.activate_preset(val)
         }
     })
 
@@ -57,6 +57,8 @@ var IPython = (function (IPython) {
      * we need to think of wether or not we allow nested namespace
      * @property _callback_dict
      * @private
+     * @static
+     * @type Dict
      */
     CellToolbar._callback_dict = {};
 
@@ -65,17 +67,19 @@ var IPython = (function (IPython) {
      * to add to the toolbar of each cell
      * @property _ui_controls_list
      * @private
+     * @static
+     * @type List
      */
     CellToolbar._ui_controls_list = [];
 
     /**
-     * keep a list of all instances to
-     * be able to llop over them...
-     * but how to 'destroy' them ?
-     * have to think about it...
-     * or loop over the cells, and find their CellToolbar instances.
+     * Class variable that should contains the CellToolbar instances for each
+     * cell of the notebook
+     *
      * @private
      * @property _instances
+     * @static
+     * @type List
      */
     CellToolbar._instances =[]
 
@@ -83,6 +87,8 @@ var IPython = (function (IPython) {
      * keep a list of all the availlabel presets for the toolbar
      * @private
      * @property _presets
+     * @static
+     * @type Dict
      */
     CellToolbar._presets ={}
 
@@ -98,7 +104,7 @@ var IPython = (function (IPython) {
      * The callback will receive the following element :
      *
      *    * a div in which to add element.
-     *    * the cell it is responsable from
+     *    * the cell it is responsible from
      *
      * @example
      *
@@ -129,7 +135,7 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_callback('foo', toggle);
      */
     CellToolbar.register_callback = function(name, callback){
-        // what do we do if name already exist ?
+        // Overwrite if it already exists.
         CellToolbar._callback_dict[name] = callback;
     };
 
@@ -161,17 +167,20 @@ var IPython = (function (IPython) {
         )
     }
     /**
-     * set an UI preset from `register_preset`
-     * @method set_preset
+     * Activate an UI preset from `register_preset`
+     *
+     * This does not update the selection UI.
+     *
+     * @method activate_preset
      * @param preset_name {String} string corresponding to the preset name
      *
      * @static
      * @private
      * @example
      *
-     *      CellToolbar.set_preset('foo.foo_preset1');
+     *      CellToolbar.activate_preset('foo.foo_preset1');
      */
-    CellToolbar.set_preset= function(preset_name){
+    CellToolbar.activate_preset= function(preset_name){
         var preset = CellToolbar._presets[preset_name];
 
         if(preset != undefined){
