@@ -15,7 +15,7 @@
  * Celltoolbar UI for slideshow
  *
  * ```
- * $.getScript('/static/js/examples/celltoolbar.example.js');
+ * $.getScript('/static/js/celltoolbarpresets/example.js');
  * ```
  */
  // IIFE without asignement, we don't modifiy the IPython namespace
@@ -23,6 +23,8 @@
     "use strict";
 
     var CellToolbar = IPython.CellToolbar;
+
+    var example_preset = [];
 
     var simple_button = function(div, cell) {
         var button_container = $(div);
