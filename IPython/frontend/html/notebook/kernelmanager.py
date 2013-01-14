@@ -350,7 +350,6 @@ class MappingKernelManager(MultiKernelManager):
         self._check_kernel_id(kernel_id)
         super(MappingKernelManager, self).restart_kernel(kernel_id)
         self.log.info("Kernel restarted: %s" % kernel_id)
-        return kernel_id
 
     def create_iopub_stream(self, kernel_id):
         """Create a new iopub stream."""

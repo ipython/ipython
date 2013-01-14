@@ -364,9 +364,9 @@ class KernelActionHandler(AuthenticatedHandler):
             km.interrupt_kernel(kernel_id)
             self.set_status(204)
         if action == 'restart':
-            new_kernel_id = km.restart_kernel(kernel_id)
-            data = {'ws_url':self.ws_url,'kernel_id':new_kernel_id}
-            self.set_header('Location', '/'+new_kernel_id)
+            km.restart_kernel(kernel_id)
+            data = {'ws_url':self.ws_url, 'kernel_id':kernel_id}
+            self.set_header('Location', '/'+kernel_id)
             self.write(jsonapi.dumps(data))
         self.finish()
 
