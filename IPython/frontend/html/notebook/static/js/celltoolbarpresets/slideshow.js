@@ -10,12 +10,7 @@
 //============================================================================
 
 /**
- * Example Use for the CellToolbar library
- * add the following to your custom.js to load
- * metadata UI for slideshow
- *
- * ```
- * $.getScript('/static/js/examples/metaui.slideshow.js');
+ * $.getScript('/static/js/celltoolbarpresets/slideshow.js');
  * ```
  * or more generally  
  * ```
@@ -57,7 +52,7 @@
 
     slideshow_preset.push('slideshow.select');
 
-    CellToolbar.register_preset('slideshow',slideshow_preset);
-    console.log('Slideshow extension for metadata editting loaded.');
+    CellToolbar.register_preset('Slideshow',slideshow_preset);
+    console.log('Slideshow extension for metadata editing loaded.');
 
 }(IPython));
