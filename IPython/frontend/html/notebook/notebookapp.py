@@ -187,6 +187,7 @@ class NotebookWebApplication(web.Application):
         self.cluster_manager = cluster_manager
         self.ipython_app = ipython_app
         self.read_only = self.ipython_app.read_only
+        self.config = self.ipython_app.config
         self.log = log
         self.jinja2_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 
