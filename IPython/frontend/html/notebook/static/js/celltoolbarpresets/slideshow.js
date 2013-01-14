@@ -31,11 +31,11 @@
 
     var select_type = CellToolbar.utils.select_ui_generator([
             ["-"            ,undefined      ],
-            ["Header Slide" ,"header_slide" ],
             ["Slide"        ,"slide"        ],
+            ["Sub-Slide"    ,"subslide"     ],
             ["Fragment"     ,"fragment"     ],
             ["Skip"         ,"skip"         ],
-            ["Speaker Notes","notes"        ],
+            ["Notes"        ,"notes"        ],
             ],
             // setter
             function(cell, value){
