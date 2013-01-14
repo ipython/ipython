@@ -99,7 +99,7 @@ compute the two digit counts for the digits in a single file. Then in a final
 step the counts from each engine will be added up. To perform this
 calculation, we will need two top-level functions from :file:`pidigits.py`:
 
-.. literalinclude:: ../../examples/parallel/pi/pidigits.py
+.. literalinclude:: ../../../examples/parallel/pi/pidigits.py
    :language: python
    :lines: 47-62
 
@@ -185,78 +185,6 @@ show that the relative size of the statistical fluctuations have decreased
 compared to the 10,000 digit calculation.
 
 .. image:: figs/two_digit_counts.*
-
-
-Parallel options pricing
-========================
-
-An option is a financial contract that gives the buyer of the contract the
-right to buy (a "call") or sell (a "put") a secondary asset (a stock for
-example) at a particular date in the future (the expiration date) for a
-pre-agreed upon price (the strike price). For this right, the buyer pays the
-seller a premium (the option price). There are a wide variety of flavors of
-options (American, European, Asian, etc.) that are useful for different
-purposes: hedging against risk, speculation, etc.
-
-Much of modern finance is driven by the need to price these contracts
-accurately based on what is known about the properties (such as volatility) of
-the underlying asset. One method of pricing options is to use a Monte Carlo
-simulation of the underlying asset price. In this example we use this approach
-to price both European and Asian (path dependent) options for various strike
-prices and volatilities.
-
-The code for this example can be found in the :file:`docs/examples/parallel/options`
-directory of the IPython source. The function :func:`price_options` in
-:file:`mckernel.py` implements the basic Monte Carlo pricing algorithm using
-the NumPy package and is shown here:
-
-.. literalinclude:: ../../examples/parallel/options/mckernel.py
-   :language: python
-
-To run this code in parallel, we will use IPython's :class:`LoadBalancedView` class,
-which distributes work to the engines using dynamic load balancing. This
-view is a wrapper of the :class:`Client` class shown in
-the previous example. The parallel calculation using :class:`LoadBalancedView` can
-be found in the file :file:`mcpricer.py`. The code in this file creates a
-:class:`LoadBalancedView` instance and then submits a set of tasks using
-:meth:`LoadBalancedView.apply` that calculate the option prices for different
-volatilities and strike prices. The results are then plotted as a 2D contour
-plot using Matplotlib.
-
-.. literalinclude:: ../../examples/parallel/options/mcpricer.py
-   :language: python
-
-To use this code, start an IPython cluster using :command:`ipcluster`, open
-IPython in the pylab mode with the file :file:`mckernel.py` in your current
-working directory and then type:
-
-.. sourcecode:: ipython
-
-    In [7]: run mcpricer.py
-    
-    Submitted tasks:  30
-
-Once all the tasks have finished, the results can be plotted using the
-:func:`plot_options` function. Here we make contour plots of the Asian
-call and Asian put options as function of the volatility and strike price:
-
-.. sourcecode:: ipython
-
-    In [8]: plot_options(sigma_vals, strike_vals, prices['acall'])
-
-    In [9]: plt.figure()
-    Out[9]: <matplotlib.figure.Figure object at 0x18c178d0>
-
-    In [10]: plot_options(sigma_vals, strike_vals, prices['aput'])
-
-These results are shown in the two figures below. On our 15 engines, the
-entire calculation (15 strike prices, 15 volatilities, 100,000 paths for each)
-took 37 seconds in parallel, giving a speedup of 14.1x, which is comparable
-to the speedup observed in our previous example.
-
-.. image:: figs/asian_call.*
-
-.. image:: figs/asian_put.*
 
 Conclusion
 ==========

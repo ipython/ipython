@@ -81,7 +81,7 @@ The code to generate the simple DAG:
 For demonstration purposes, we have a function that generates a random DAG with a given
 number of nodes and edges.
 
-.. literalinclude:: ../../examples/parallel/dagdeps.py
+.. literalinclude:: ../../../examples/parallel/dagdeps.py
     :language: python
     :lines: 20-36
 
@@ -140,7 +140,7 @@ These objects store a variety of metadata about each task, including various tim
 We can validate that the dependencies were respected by checking that each task was
 started after all of its predecessors were completed:
 
-.. literalinclude:: ../../examples/parallel/dagdeps.py
+.. literalinclude:: ../../../examples/parallel/dagdeps.py
     :language: python
     :lines: 64-70
 
