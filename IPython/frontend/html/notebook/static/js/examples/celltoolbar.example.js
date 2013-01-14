@@ -105,7 +105,7 @@
                         cell.code_mirror.setOption('readOnly','nocursor')
                         button.button('option','icons',{primary:'ui-icon-locked'})
                     } else {
-                        cell.code_mirror.setOption('readOnly','false')
+                        cell.code_mirror.setOption('readOnly',false)
                         button.button('option','icons',{primary:'ui-icon-unlocked'})
                     }
                 } catch(e){}
