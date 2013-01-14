@@ -146,7 +146,7 @@
     CellToolbar.register_callback('example.help',add_simple_dialog_button)
     example_preset.push('example.help')
 
-    CellToolbar.register_preset('example',example_preset);
+    CellToolbar.register_preset('Example',example_preset);
     console.log('Example extension for metadata editting loaded.');
 
 }(IPython));
