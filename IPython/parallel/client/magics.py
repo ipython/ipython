@@ -70,6 +70,10 @@ def exec_args(f):
         magic_arguments.argument('-t', '--targets', type=str,
             help="specify the targets on which to execute",
         ),
+        magic_arguments.argument('--local', action="store_const",
+            const=True, dest="local",
+            help="also execute the cell in the local namespace",
+        ),
         magic_arguments.argument('--verbose', action="store_const",
             const=True, dest="set_verbose",
             help="print a message at each execution",
@@ -290,14 +294,27 @@ class ParallelMagics(Magics):
         if args.targets:
             save_targets = self.view.targets
             self.view.targets = self._eval_target_str(args.targets)
+        # if running local, don't block until after local has run
+        block = False if args.local else args.block
         try:
-            return self.parallel_execute(cell, block=args.block,
+            ar = self.parallel_execute(cell, block=block,
                                 groupby=args.groupby,
                                 save_name=args.save_name,
             )
         finally:
             if args.targets:
                 self.view.targets = save_targets
+        
+        # run locally after submitting remote
+        block = self.view.block if args.block is None else args.block
+        if args.local:
+            self.shell.run_cell(cell)
+            # now apply blocking behavor to remote execution
+            if block:
+                ar.get()
+                ar.display_outputs(args.groupby)
+        if not block:
+            return ar
     
     @skip_doctest
     def autopx(self, line=''):
