@@ -33,7 +33,6 @@
 
 .button_container {
  float:right;
- /*width:60px;*/
 }
 
 .button_container .ui-state-default, .button_container .ui-state-hover, .button_container .ui-state-hover span{
