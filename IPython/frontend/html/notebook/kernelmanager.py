@@ -85,7 +85,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id = kwargs.pop('kernel_id', unicode(uuid.uuid4()))
         if kernel_id in self:
             raise DuplicateKernelError('Kernel already exists: %s' % kernel_id)
-        # use base KernelManager for each Kernel
+        # kernel_manager_factory is the constructor for the KernelManager
+        # subclass we are using. It can be configured as any Configurable,
+        # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
                     config=self.config,
@@ -175,7 +177,7 @@ class MultiKernelManager(LoggingConfigurable):
         else:
             raise KeyError("Kernel with id not found: %s" % kernel_id)
 
-    def get_connection_data(self, kernel_id):
+    def get_connection_info(self, kernel_id):
         """Return a dictionary of connection data for a kernel.
 
         Parameters
@@ -192,18 +194,28 @@ class MultiKernelManager(LoggingConfigurable):
             shell_port, hb_port).
         """
         km = self.get_kernel(kernel_id)
-        return dict(ip=km.ip,
+        return dict(transport=km.transport,
+                    ip=km.ip,
                     shell_port=km.shell_port,
                     iopub_port=km.iopub_port,
                     stdin_port=km.stdin_port,
                     hb_port=km.hb_port,
         )  
 
-    def create_connected_stream(self, ip, port, socket_type):
+    def _make_url(self, transport, ip, port):
+        """Make a ZeroMQ URL for a given transport, ip and port."""
+        if transport == 'tcp':
+            return "tcp://%s:%i" % (ip, port)
+        else:
+            return "%s://%s-%s" % (transport, ip, port)
+
+    def _create_connected_stream(self, kernel_id, socket_type):
+        """Create a connected ZMQStream for a kernel."""
+        cinfo = self.get_connection_info(kernel_id)
+        url = self._make_url(cinfo['transport'], cinfo['ip'], cinfo['port'])
         sock = self.context.socket(socket_type)
-        addr = "tcp://%s:%i" % (ip, port)
-        self.log.info("Connecting to: %s" % addr)
-        sock.connect(addr)
+        self.log.info("Connecting to: %s" % url)
+        sock.connect(url)
         return ZMQStream(sock)
 
     def create_iopub_stream(self, kernel_id):
@@ -218,10 +230,7 @@ class MultiKernelManager(LoggingConfigurable):
         =======
         stream : ZMQStream
         """
-        kdata = self.get_connection_data(kernel_id)
-        iopub_stream = self.create_connected_stream(
-            kdata['ip'], kdata['iopub_port'], zmq.SUB
-        )
+        iopub_stream = self._create_connected_stream(kernel_id, zmq.SUB)
         iopub_stream.socket.setsockopt(zmq.SUBSCRIBE, b'')
         return iopub_stream
 
@@ -237,10 +246,7 @@ class MultiKernelManager(LoggingConfigurable):
         =======
         stream : ZMQStream
         """
-        kdata = self.get_connection_data(kernel_id)
-        shell_stream = self.create_connected_stream(
-            kdata['ip'], kdata['shell_port'], zmq.DEALER
-        )
+        shell_stream = self._create_connected_stream(kernel_id, zmq.DEALER)
         return shell_stream
 
     def create_hb_stream(self, kernel_id):
@@ -255,10 +261,7 @@ class MultiKernelManager(LoggingConfigurable):
         =======
         stream : ZMQStream
         """
-        kdata = self.get_connection_data(kernel_id)
-        hb_stream = self.create_connected_stream(
-            kdata['ip'], kdata['hb_port'], zmq.REQ
-        )
+        hb_stream = self._create_connected_stream(kernel_id, zmq.REQ)
         return hb_stream
 
 
