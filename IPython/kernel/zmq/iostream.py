@@ -1,3 +1,13 @@
+"""wrappers for stdout/stderr forwarding over zmq
+"""
+
+#-----------------------------------------------------------------------------
+#  Copyright (C) 2013  The IPython Development Team
+#
+#  Distributed under the terms of the BSD License.  The full license is in
+#  the file COPYING, distributed as part of this software.
+#-----------------------------------------------------------------------------
+
 import sys
 import time
 import os
@@ -7,21 +17,16 @@ from io import StringIO
 
 import zmq
 
-from session import extract_header, Message
+from session import extract_header
 
-from IPython.utils import io, text
 from IPython.utils import py3compat
 
-import multiprocessing as mp
-# import multiprocessing.sharedctypes as mpshc
-from ctypes import c_bool
 #-----------------------------------------------------------------------------
 # Globals
 #-----------------------------------------------------------------------------
 
-MASTER_NO_CHILDREN = 0
-MASTER_WITH_CHILDREN = 1
-CHILD = 2
+MASTER = 0
+CHILD = 1
 
 #-----------------------------------------------------------------------------
 # Stream classes
@@ -41,7 +46,6 @@ class OutStream(object):
         self.name = name
         self.parent_header = {}
         self._new_buffer()
-        self._found_newprocess = 0
         self._buffer_lock = threading.Lock()
         self._master_pid = os.getpid()
         self._master_thread = threading.current_thread().ident
@@ -81,10 +85,7 @@ class OutStream(object):
     def _check_mp_mode(self):
         """check for forks, and switch to zmq pipeline if necessary"""
         if self._is_master_process():
-            if self._found_newprocess:
-                return MASTER_WITH_CHILDREN
-            else:
-                return MASTER_NO_CHILDREN
+                return MASTER
         else:
             if not self._have_pipe_out():
                 # setup a new out pipe
