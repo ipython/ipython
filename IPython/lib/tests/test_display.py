@@ -15,6 +15,7 @@
 from __future__ import print_function
 from tempfile import NamedTemporaryFile, mkdtemp
 from os.path import split
+from os import sep
 
 # Third-party imports
 import nose.tools as nt
@@ -89,9 +90,13 @@ def test_existing_path_FileLinks():
     actual = fl._repr_html_()
     actual = actual.split('\n')
     actual.sort()
+    # the links should always have forward slashes, even on windows, so replace
+    # backslashes with forward slashes here
     expected = ["%s/<br>" % td,
-                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" % (tf2.name,split(tf2.name)[1]),
-                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" % (tf1.name,split(tf1.name)[1])]
+                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" %\
+                 (tf2.name.replace("\\","/"),split(tf2.name)[1]),
+                "&nbsp;&nbsp;<a href='files/%s' target='_blank'>%s</a><br>" %\
+                 (tf1.name.replace("\\","/"),split(tf1.name)[1])]
     expected.sort()
     # We compare the sorted list of links here as that's more reliable
     nt.assert_equal(actual,expected)
