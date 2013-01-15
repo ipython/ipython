@@ -151,7 +151,7 @@ def test_subprocess_print():
         for n in range(np):
             nt.assert_equal(stdout.count(str(n)), 1, stdout)
         nt.assert_equal(stderr, '')
-        _check_mp_mode(km, expected=True)
+        _check_mp_mode(km, expected=False)
         _check_mp_mode(km, expected=False, stream="stderr")
 
 
@@ -199,5 +199,5 @@ def test_subprocess_error():
         nt.assert_true("ZeroDivisionError" in stderr, stderr)
 
         _check_mp_mode(km, expected=False)
-        _check_mp_mode(km, expected=True, stream="stderr")
+        _check_mp_mode(km, expected=False, stream="stderr")
 
