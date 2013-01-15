@@ -61,8 +61,11 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.create_element.apply(this, arguments);
 
         var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
-        cell.append(this.celltoolbar.element);
         cell.attr('tabindex','2');
+
+        this.celltoolbar = new IPython.CellToolbar(this);
+        cell.append(this.celltoolbar.element);
+
         var input = $('<div></div>').addClass('input hbox');
         input.append($('<div/>').addClass('prompt input_prompt'));
         var input_area = $('<div/>').addClass('input_area box-flex1');

@@ -1,38 +1,30 @@
-/*Css for the metadata edit area*/
+/* Css for the metadata edit area */
 
-.celltoolbar{
-    border:thin solid #DDD;
-    margin-left:81px;
-    border-bottom:none;
+
+.celltoolbar {
+    border: thin solid #DDD;
+    margin-left: 0px;
+    border-bottom: none;
     background : #EEE;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
-    display:none;
 }
 
-.code_cell .celltoolbar{
-    margin-left:81px;
-}
-
-.text_cell .celltoolbar{
-    margin-left:0px;
-}
-
-.celltoolbar-on div.input_area , .celltoolbar-on div.text_cell_input{
+.no_input_radius {
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;
 }
 
-.celltoolbar-on .celltoolbar {
-    display:block;
+.text_cell .ctb_prompt {
+    display: none;
 }
 
-.celltoolbar ui-button {
-    border :none;
+.code_cell .ctb_prompt {
+    display: block;
 }
 
 .button_container {
- float:right;
+    float: right;
 }
 
 .button_container .ui-state-default, .button_container .ui-state-hover, .button_container .ui-state-hover span{
@@ -40,14 +32,22 @@
     border : none;
 }
 
-.celltoolbar select {
-    margin:10px;
-    margin-top:0px;
-    margin-bottom:0px;
+.celltoolbar .button_container select {
+    margin: 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 77%;
+}
+
+.celltoolbar label span {
+    font-size: 77%;
 }
 
 .celltoolbar input[type=checkbox] {
-    margin-bottom:1px;
+    margin-bottom: 1px;
+}
 
+.celltoolbar ui-button {
+    border: none;
 }
 

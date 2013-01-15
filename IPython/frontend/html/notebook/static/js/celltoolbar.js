@@ -19,7 +19,6 @@
 var IPython = (function (IPython) {
     "use strict";
 
-
     /**
      * @constructor
      * @class CellToolbar
@@ -27,29 +26,53 @@ var IPython = (function (IPython) {
      */
     var CellToolbar = function (cell) {
         CellToolbar._instances.push(this);
-        this.inner_element = $('<div/>');
         this.cell = cell;
-        this.element = $('<div/>').addClass('celltoolbar')
-                .append(this.inner_element)
+        this.create_element();
         this.rebuild();
         return this;
     };
+
+
+    CellToolbar.prototype.create_element = function () {
+        this.inner_element = $('<div/>');
+        var ctb_element = $('<div/>').addClass('celltoolbar')
+            .append(this.inner_element);
+        this.element = $('<div/>').addClass('ctb_wrapper hbox');
+        ctb_element.addClass('box-flex1');
+        var ctb_prompt = $('<div/>').addClass('ctb_prompt prompt');
+        this.element.append(ctb_prompt).append(ctb_element);
+    };
+
 
     CellToolbar.dropdown_preset_element = $('<select/>')
         .addClass('ui-widget ui-widget-content')
         .attr('id', 'celltoolbar_selector')
         .append($('<option/>').attr('value', '').text('None'))
 
-    CellToolbar.dropdown_preset_element.change(function(){
+
+    CellToolbar.dropdown_preset_element.change(function() {
         var val = CellToolbar.dropdown_preset_element.val()
         if(val ==''){
-            $('body').removeClass('celltoolbar-on')
+            CellToolbar.hide();
         } else {
-            $('body').addClass('celltoolbar-on')
-            CellToolbar.activate_preset(val)
+            CellToolbar.show();
+            CellToolbar.activate_preset(val);
         }
     })
 
+
+    CellToolbar.hide = function () {
+        $('.ctb_wrapper').hide();
+        $('.input_area').addClass('no_input_radius');
+        $('.text_cell_input').addClass('no_input_radius');
+    }
+
+
+    CellToolbar.show = function () {
+        $('.ctb_wrapper').show();
+        $('.input_area').removeClass('no_input_radius');
+        $('.text_cell_input').removeClass('no_input_radius');
+    }
 
 
     /**
@@ -274,7 +297,7 @@ var IPython = (function (IPython) {
             var button_container = $(div)
 
             var chkb = $('<input/>').attr('type', 'checkbox');
-            var lbl = $('<label/>').append($('<span/>').text(name).css('font-size', '77%'));
+            var lbl = $('<label/>').append($('<span/>').text(name));
             lbl.append(chkb);
             chkb.attr("checked", getter(cell));
 
@@ -334,8 +357,8 @@ var IPython = (function (IPython) {
         label= label? label: "";
         return function(div, cell) {
             var button_container = $(div)
-            var lbl = $("<label/>").append($('<span/>').text(label).css('font-size', '77%'));
-            var select = $('<select/>');
+            var lbl = $("<label/>").append($('<span/>').text(label));
+            var select = $('<select/>').addClass('ui-widget ui-widget-content');
             for(var itemn in list_list){
                 var opt = $('<option/>');
                         opt.attr('value', list_list[itemn][1])
