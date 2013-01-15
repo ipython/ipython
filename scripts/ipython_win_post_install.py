@@ -96,30 +96,37 @@ def install():
     # cmd = '"%s" profile=pysh --init' % ipybase
     # mkshortcut(python, 'IPython (command prompt mode)', link, cmd, workdir)
     
-    link = pjoin(ip_start_menu, 'pylab.lnk')
+    link = pjoin(ip_start_menu, 'IPython (pylab mode).lnk')
     cmd = '"%s" --pylab' % ipybase
     mkshortcut(python, 'IPython (pylab mode)', link, cmd, workdir)
         
-    link = pjoin(ip_start_menu, 'ipcontroller.lnk')
+    link = pjoin(ip_start_menu, 'IPython Controller.lnk')
     cmdbase = suffix(pjoin(scripts, 'ipcontroller'))
     if have_setuptools:
         cmdbase += '-script.py'
     cmd = '"%s"' % cmdbase
-    mkshortcut(python, 'IPython controller', link, cmd, workdir)
+    mkshortcut(python, 'IPython Controller', link, cmd, workdir)
     
-    link = pjoin(ip_start_menu, 'ipengine.lnk')
+    link = pjoin(ip_start_menu, 'IPython Engine.lnk')
     cmdbase = suffix(pjoin(scripts, 'ipengine'))
     if have_setuptools:
         cmdbase += '-script.py'
     cmd = '"%s"' % cmdbase
-    mkshortcut(python, 'IPython engine', link, cmd, workdir)
+    mkshortcut(python, 'IPython Engine', link, cmd, workdir)
 
-    link = pjoin(ip_start_menu, 'ipythonqt.lnk')
+    link = pjoin(ip_start_menu, 'IPython Qt Console.lnk')
     cmdbase = suffix(pjoin(scripts, 'ipython'))
     if have_setuptools:
         cmdbase += '-script.py'
     cmd = '"%s" qtconsole' % cmdbase
     mkshortcut(pythonw, 'IPython Qt Console', link, cmd, workdir)
+
+    link = pjoin(ip_start_menu, 'IPython Notebook.lnk')
+    cmdbase = suffix(pjoin(scripts, 'ipython'))
+    if have_setuptools:
+        cmdbase += '-script.py'
+    cmd = '"%s" notebook --pylab inline' % cmdbase
+    mkshortcut(pythonw, 'IPython Notebook', link, cmd, workdir)
 
     # FIXME: These below are commented out because we don't ship the html built
     # docs anymore.  We should make the shortcut to continue existing, but as a
