@@ -12,6 +12,17 @@ especially intenting/deindenting blocks that is now bound to Ctrl+] and ctr+[
   ``_render_traceback_()`` method which returns a list of strings, each
   containing one line of the traceback.
 
+In-process kernels
+------------------
+
+The Python-language frontends, particularly the Qt console, may now communicate
+with in-process kernels, in addition to the traditional out-of-process
+kernels. An in-process kernel permits direct access to the kernel namespace,
+which is necessary in some applications. It should be understood, however, that
+the in-process kernel is not robust to bad user input and will block the main
+(GUI) thread while executing. Developers must decide on a case-by-case basis
+whether this tradeoff is appropriate for their application.
+
 Backwards incompatible changes
 ------------------------------
 

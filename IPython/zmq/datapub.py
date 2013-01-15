@@ -13,10 +13,9 @@
 #-----------------------------------------------------------------------------
 
 from IPython.config import Configurable
-
+from IPython.inprocess.socket import SocketABC
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Instance, Dict, CBytes
-
 from IPython.zmq.serialize import serialize_object
 from IPython.zmq.session import Session, extract_header
 
@@ -29,7 +28,7 @@ class ZMQDataPublisher(Configurable):
 
     topic = topic = CBytes(b'datapub')
     session = Instance(Session)
-    pub_socket = Instance('zmq.Socket')
+    pub_socket = Instance(SocketABC)
     parent_header = Dict({})
 
     def set_parent(self, parent):

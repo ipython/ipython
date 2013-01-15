@@ -557,11 +557,9 @@ class Session(Configurable):
         msg : dict
             The constructed message.
         """
-
-        if not isinstance(stream, (zmq.Socket, ZMQStream)):
-            raise TypeError("stream must be Socket or ZMQStream, not %r"%type(stream))
-        elif track and isinstance(stream, ZMQStream):
-            raise TypeError("ZMQStream cannot track messages")
+        if not isinstance(stream, zmq.Socket):
+            # ZMQStreams and dummy sockets do not support tracking.
+            track = False
 
         if isinstance(msg_or_type, (Message, dict)):
             # We got a Message or message dict, not a msg_type so don't
