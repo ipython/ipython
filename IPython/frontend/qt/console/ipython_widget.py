@@ -458,7 +458,7 @@ class IPythonWidget(FrontendWidget):
     # 'IPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _edit(self, filename, line=None, editor_template=None):
+    def _edit(self, filename, line=None):
         """ Opens a Python script for editing.
 
         Parameters:
@@ -477,20 +477,16 @@ class IPythonWidget(FrontendWidget):
 
         if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
-        elif (not self.editor and not self.editor_line):
+        elif not self.editor:
             self._append_plain_text('No default editor available.\n'
             'Specify a GUI text editor in the `IPythonWidget.editor` '
-            'configurable, or by calling one of the `IPython.lib.editorhooks` '
-            'to enable the %edit magic')
+            'configurable to enable the %edit magic')
         else:
             try:
                 filename = '"%s"' % filename
                 if line and self.editor_line:
                     command = self.editor_line.format(filename=filename,
                                                       line=line)
-                elif not line and self.editor_line:
-                    command = self.editor_line.format(filename=filename,
-                                                      line=0)
                 else:
                     try:
                         command = self.editor.format()
@@ -539,7 +535,7 @@ class IPythonWidget(FrontendWidget):
     # arguments.
 
     def _handle_payload_edit(self, item):
-        self._edit(item['filename'], item['line_number'], item['editor_template'])
+        self._edit(item['filename'], item['line_number'])
 
     def _handle_payload_exit(self, item):
         self._keep_kernel_on_exit = item['keepkernel']
