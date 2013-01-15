@@ -173,8 +173,8 @@ class ConverterReveal(ConverterHTML):
                         ' class="fragment"' + slide[i][4:]
             # encapsulation of each nested slide
             if u'slide_type = slide' in slide:
-                slide.insert(0, '<section>')
-                slide.append('</section>')
+                slide.insert(0, left)
+                slide.append(right)
             for i, j in enumerate(slide):
                 if j == u'slide_type = slide':
                     slide[i] = right + left
