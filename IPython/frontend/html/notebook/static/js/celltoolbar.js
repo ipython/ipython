@@ -53,25 +53,30 @@ var IPython = (function (IPython) {
     CellToolbar.dropdown_preset_element.change(function() {
         var val = CellToolbar.dropdown_preset_element.val()
         if(val ==''){
-            CellToolbar.hide();
+            CellToolbar.global_hide();
         } else {
-            CellToolbar.show();
+            CellToolbar.global_show();
             CellToolbar.activate_preset(val);
         }
     })
 
 
-    CellToolbar.hide = function () {
-        $('.ctb_wrapper').hide();
-        $('.input_area').addClass('no_input_radius');
-        $('.text_cell_input').addClass('no_input_radius');
+    CellToolbar.global_hide = function () {
+        $('body').removeClass('toolbaron');
     }
 
 
-    CellToolbar.show = function () {
-        $('.ctb_wrapper').show();
-        $('.input_area').removeClass('no_input_radius');
-        $('.text_cell_input').removeClass('no_input_radius');
+    CellToolbar.global_show = function () {
+       $('body').addClass('toolbaron');
+    }
+    
+    CellToolbar.prototype.hide = function () {
+        this.element.removeClass('toolbaron');
+    }
+
+
+    CellToolbar.prototype.show = function () {
+        this.element.addClass('toolbaron');
     }
 
 

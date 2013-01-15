@@ -23,6 +23,27 @@
     display: block;
 }
 
+.ctb_wrapper{
+    display: none;
+}
+
+.toolbaron .ctb_wrapper{
+    display: block;
+    display: -webkit-box;
+}
+
+.toolbaron .ctb_wrapper + div > div.input_area,  
+.toolbaron .ctb_wrapper + div.text_cell_input{
+    border-top-right-radius: 0px;
+    border-top-left-radius: 0px;
+}
+
+.toolbaron > .celltoolbar {
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+
 .button_container {
     float: right;
 }
