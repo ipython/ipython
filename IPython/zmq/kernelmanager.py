@@ -35,6 +35,7 @@ from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
 from IPython.config.loader import Config
+from IPython.config.configurable import Configurable
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
     HasTraits, Any, Instance, Type, Unicode, Integer, Bool, CaselessStrEnum
@@ -638,7 +639,7 @@ class HBSocketChannel(ZMQSocketChannel):
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
-class KernelManager(HasTraits):
+class KernelManager(Configurable):
     """ Manages a kernel for a frontend.
 
     The SUB channel is for the frontend to receive messages published by the
@@ -649,9 +650,6 @@ class KernelManager(HasTraits):
     The REP channel is for the kernel to request stdin (raw_input) from the
     frontend.
     """
-    # config object for passing to child configurables
-    config = Instance(Config)
-
     # The PyZMQ Context to use for communication with the kernel.
     context = Instance(zmq.Context)
     def _context_default(self):
@@ -668,10 +666,9 @@ class KernelManager(HasTraits):
     # The addresses for the communication channels.
     connection_file = Unicode('')
     
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp')
-    
-    
-    ip = Unicode(LOCALHOST)
+    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
+
+    ip = Unicode(LOCALHOST, config=True)
     def _ip_changed(self, name, old, new):
         if new == '*':
             self.ip = '0.0.0.0'
@@ -768,12 +765,12 @@ class KernelManager(HasTraits):
                 os.remove(ipcfile)
             except (IOError, OSError):
                 pass
-    
+
     def load_connection_file(self):
         """load connection info from JSON dict in self.connection_file"""
         with open(self.connection_file) as f:
             cfg = json.loads(f.read())
-        
+
         from pprint import pprint
         pprint(cfg)
         self.transport = cfg.get('transport', 'tcp')
