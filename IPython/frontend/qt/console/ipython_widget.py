@@ -469,12 +469,6 @@ class IPythonWidget(FrontendWidget):
         line : int, optional
             A line of interest in the file.
         """
-
-        # this is a template sent by the kernel, which overrides
-        # what we might have configured here
-        if editor_template:
-            self.editor_line = editor_template
-
         if self.custom_edit:
             self.custom_edit_requested.emit(filename, line)
         elif not self.editor:
