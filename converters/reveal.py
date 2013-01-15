@@ -125,7 +125,6 @@ class ConverterReveal(ConverterHTML):
                 else:
                     text[i - 1] = self.delim[6]
                 text[i] = text_cell_render
-        text[0] = u'slide_type = header_slide'  # defensive code
         text.append(u'slide_type = untouched')  # to end search of skipped
         return text
 
