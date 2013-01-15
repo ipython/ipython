@@ -21,7 +21,7 @@ from ..blockingkernelmanager import BlockingKernelManager
 from IPython.testing import decorators as dec
 from IPython.utils import io
 from IPython.utils.traitlets import (
-    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum,
+    HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )
 
 #-----------------------------------------------------------------------------
@@ -83,7 +83,17 @@ def execute(code='', **kwargs):
 
 
 class Reference(HasTraits):
-    
+
+    """
+    Base class for message spec specification testing.
+
+    This class is the core of the message specification test.  The
+    idea is that child classes implement trait attributes for each
+    message keys, so that message keys can be tested against these
+    traits using :meth:`check` method.
+
+    """
+
     def check(self, d):
         """validate a dict against our traits"""
         for key in self.trait_names():
@@ -185,6 +195,25 @@ class CompleteReply(Reference):
     matches = List(Unicode)
 
 
+def Version(num, trait=Integer):
+    return List(trait, default_value=[0] * num, minlen=num, maxlen=num)
+
+
+class KernelInfoReply(Reference):
+
+    protocol_version = Version(2)
+    ipython_version = Version(4, Any)
+    language_version = Version(3)
+    language = Unicode()
+
+    def _ipython_version_changed(self, name, old, new):
+        for v in new:
+            nt.assert_true(
+                isinstance(v, int) or isinstance(v, basestring),
+                'expected int or string as version component, got {0!r}'
+                .format(v))
+
+
 # IOPub messages
 
 class PyIn(Reference):
@@ -226,12 +255,16 @@ references = {
     'object_info_reply' : OInfoReply(),
     'status' : Status(),
     'complete_reply' : CompleteReply(),
+    'kernel_info_reply': KernelInfoReply(),
     'pyin' : PyIn(),
     'pyout' : PyOut(),
     'pyerr' : PyErr(),
     'stream' : Stream(),
     'display_data' : DisplayData(),
 }
+"""
+Specifications of `content` part of the reply messages.
+"""
 
 
 def validate_message(msg, msg_type=None, parent=None):
@@ -419,6 +452,18 @@ def test_complete():
     matches = reply['content']['matches']
     for name in ('alpha', 'albert'):
         yield nt.assert_true(name in matches, "Missing match: %r" % name)
+
+
+@dec.parametric
+def test_kernel_info_request():
+    flush_channels()
+
+    shell = KM.shell_channel
+
+    msg_id = shell.kernel_info()
+    reply = shell.get_msg(timeout=2)
+    for tst in validate_message(reply, 'kernel_info_reply', msg_id):
+        yield tst
 
 
 # IOPub channel

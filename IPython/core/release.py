@@ -38,6 +38,9 @@ __version__ = '.'.join(map(str, _ver))
 version = __version__  # backwards compatibility name
 version_info = (_version_major, _version_minor, _version_micro, _version_extra)
 
+# Change this when incrementing the kernel protocol version
+kernel_protocol_version_info = (4, 0)
+
 description = "IPython: Productive Interactive Computing"
 
 long_description = \
