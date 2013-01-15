@@ -35,11 +35,11 @@ from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
-import IPython
 from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
+from IPython.core import release
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
@@ -54,7 +54,7 @@ from IPython.utils.traitlets import (
 from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from serialize import serialize_object, unpack_apply_message
-from session import Session, Message, protocol_version
+from session import Session, Message
 from zmqshell import ZMQInteractiveShell
 
 
@@ -62,7 +62,8 @@ from zmqshell import ZMQInteractiveShell
 # Main kernel class
 #-----------------------------------------------------------------------------
 
-ipython_version = list(IPython.version_info)
+protocol_version = list(release.kernel_protocol_version_info)
+ipython_version = list(release.version_info)
 language_version = list(sys.version_info[:3])
 
 

@@ -74,9 +74,6 @@ def squash_unicode(obj):
 # globals and defaults
 #-----------------------------------------------------------------------------
 
-# Change this when incrementing the kernel protocol version
-protocol_version = [4, 0]
-
 # ISO8601-ify datetime objects
 json_packer = lambda obj: jsonapi.dumps(obj, default=date_default)
 json_unpacker = lambda s: extract_dates(jsonapi.loads(s))
