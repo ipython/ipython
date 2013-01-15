@@ -363,6 +363,12 @@ class ShellSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
         return msg['header']['msg_id']
 
+    def kernel_info(self):
+        """Request kernel info."""
+        msg = self.session.msg('kernel_info_request')
+        self._queue_send(msg)
+        return msg['header']['msg_id']
+
     def shutdown(self, restart=False):
         """Request an immediate kernel shutdown.
 

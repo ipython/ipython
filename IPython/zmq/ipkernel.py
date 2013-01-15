@@ -39,6 +39,7 @@ from IPython.config.configurable import Configurable
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
+from IPython.core import release
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
@@ -60,6 +61,11 @@ from zmqshell import ZMQInteractiveShell
 #-----------------------------------------------------------------------------
 # Main kernel class
 #-----------------------------------------------------------------------------
+
+protocol_version = list(release.kernel_protocol_version_info)
+ipython_version = list(release.version_info)
+language_version = list(sys.version_info[:3])
+
 
 class Kernel(Configurable):
 
@@ -156,6 +162,7 @@ class Kernel(Configurable):
         # Build dict of handlers for message types
         msg_types = [ 'execute_request', 'complete_request',
                       'object_info_request', 'history_request',
+                      'kernel_info_request',
                       'connect_request', 'shutdown_request',
                       'apply_request',
                     ]
@@ -507,6 +514,17 @@ class Kernel(Configurable):
             content = {}
         msg = self.session.send(stream, 'connect_reply',
                                 content, parent, ident)
+        self.log.debug("%s", msg)
+
+    def kernel_info_request(self, stream, ident, parent):
+        vinfo = {
+            'protocol_version': protocol_version,
+            'ipython_version': ipython_version,
+            'language_version': language_version,
+            'language': 'python',
+        }
+        msg = self.session.send(stream, 'kernel_info_reply',
+                                vinfo, parent, ident)
         self.log.debug("%s", msg)
 
     def shutdown_request(self, stream, ident, parent):
