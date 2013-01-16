@@ -27,7 +27,6 @@ import stat
 import threading
 import time
 import uuid
-import os
 
 from tornado.escape import url_escape
 from tornado import web
@@ -41,6 +40,7 @@ from IPython.zmq.session import Session
 from IPython.lib.security import passwd_check
 from IPython.utils.jsonutil import date_default
 from IPython.utils.path import filefind
+from IPython.utils.py3compat import PY3
 
 try:
     from docutils.core import publish_string
@@ -434,8 +434,9 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
         for authentication."""
-        if isinstance(msg, unicode):
-            # Cookie can't constructor doesn't accept unicode strings for some reason
+        if not PY3 and isinstance(msg, unicode):
+            # Cookie constructor doesn't accept unicode strings
+            # under Python 2.x for some reason
             msg = msg.encode('utf8', 'replace')
         try:
             self.request._cookies = Cookie.SimpleCookie(msg)
