@@ -12,9 +12,9 @@
 #-----------------------------------------------------------------------------
 
 # Local imports.
-from IPython.config.loader import Config
+from IPython.config.configurable import Configurable
 from IPython.inprocess.socket import DummySocket
-from IPython.utils.traitlets import HasTraits, Any, Instance, Type
+from IPython.utils.traitlets import Any, Instance, Type
 from IPython.zmq.kernelmanagerabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
@@ -295,15 +295,13 @@ class InProcessHBChannel(InProcessChannel):
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
-class InProcessKernelManager(HasTraits):
+class InProcessKernelManager(Configurable):
     """ A manager for an in-process kernel.
 
     This class implements most of the interface of
     ``IPython.zmq.kernelmanager.KernelManager`` and allows (asynchronous)
     frontends to be used seamlessly with an in-process kernel.
     """
-    # Config object for passing to child configurables
-    config = Instance(Config)
 
     # The Session to use for building messages.
     session = Instance('IPython.zmq.session.Session')
