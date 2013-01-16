@@ -56,7 +56,7 @@ class SuperQObject(QtCore.QObject):
     they don't inherit QObject.)
 
     This class is primarily useful for attaching signals to existing non-Qt
-    classes. See QtKernelManager for an example.
+    classes. See QtKernelManagerMixin for an example.
     """
 
     def __new__(cls, *args, **kw):

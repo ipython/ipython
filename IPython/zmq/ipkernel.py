@@ -48,7 +48,8 @@ from IPython.utils import py3compat
 from IPython.utils.frame import extract_module_locals
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
-    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode
+    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode,
+    Type
 )
 
 from entry_point import base_launch_kernel
@@ -81,6 +82,8 @@ class Kernel(Configurable):
         loop.add_timeout(time.time()+0.1, self.enter_eventloop)
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    shell_class = Type(ZMQInteractiveShell)
+
     session = Instance(Session)
     profile_dir = Instance('IPython.core.profiledir.ProfileDir')
     shell_streams = List()
@@ -134,7 +137,11 @@ class Kernel(Configurable):
     # This is a dict of port number that the kernel is listening on. It is set
     # by record_ports and used by connect_request.
     _recorded_ports = Dict()
-    
+
+    # A reference to the Python builtin 'raw_input' function.
+    # (i.e., __builtin__.raw_input for Python 2.7, builtins.input for Python 3)
+    _sys_raw_input = Any()
+
     # set of aborted msg_ids
     aborted = Set()
 
@@ -143,7 +150,7 @@ class Kernel(Configurable):
         super(Kernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
-        self.shell = ZMQInteractiveShell.instance(config=self.config,
+        self.shell = self.shell_class.instance(config=self.config,
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,
@@ -356,8 +363,10 @@ class Kernel(Configurable):
             raw_input = lambda prompt='' : self._no_raw_input()
 
         if py3compat.PY3:
+            self._sys_raw_input = __builtin__.input
             __builtin__.input = raw_input
         else:
+            self._sys_raw_input = __builtin__.raw_input
             __builtin__.raw_input = raw_input
 
         # Set the parent message of the display hook and out streams.
@@ -389,6 +398,12 @@ class Kernel(Configurable):
             reply_content.update(shell._showtraceback(etype, evalue, tb_list))
         else:
             status = u'ok'
+        finally:
+            # Restore raw_input.
+             if py3compat.PY3:
+                 __builtin__.input = self._sys_raw_input
+             else:
+                 __builtin__.raw_input = self._sys_raw_input
 
         reply_content[u'status'] = status
 
@@ -663,7 +678,6 @@ class Kernel(Configurable):
     # Protected interface
     #---------------------------------------------------------------------------
 
-
     def _wrap_exception(self, method=None):
         # import here, because _wrap_exception is only used in parallel,
         # and parallel has higher min pyzmq version
@@ -757,36 +771,6 @@ class Kernel(Configurable):
             if cpos==0:
                 cpos = len(c['line'])
         return self.shell.complete(c['text'], c['line'], cpos)
-
-    def _object_info(self, context):
-        symbol, leftover = self._symbol_from_context(context)
-        if symbol is not None and not leftover:
-            doc = getattr(symbol, '__doc__', '')
-        else:
-            doc = ''
-        object_info = dict(docstring = doc)
-        return object_info
-
-    def _symbol_from_context(self, context):
-        if not context:
-            return None, context
-
-        base_symbol_string = context[0]
-        symbol = self.shell.user_ns.get(base_symbol_string, None)
-        if symbol is None:
-            symbol = __builtin__.__dict__.get(base_symbol_string, None)
-        if symbol is None:
-            return None, context
-
-        context = context[1:]
-        for i, name in enumerate(context):
-            new_symbol = getattr(symbol, name, None)
-            if new_symbol is None:
-                return symbol, context[i:]
-            else:
-                symbol = new_symbol
-
-        return symbol, []
 
     def _at_shutdown(self):
         """Actions taken at shutdown by the kernel, called by python's atexit.
