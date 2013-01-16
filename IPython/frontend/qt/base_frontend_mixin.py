@@ -30,7 +30,7 @@ class BaseFrontendMixin(object):
             old_manager.stopped_channels.disconnect(self._stopped_channels)
 
             # Disconnect the old kernel manager's channels.
-            old_manager.sub_channel.message_received.disconnect(self._dispatch)
+            old_manager.iopub_channel.message_received.disconnect(self._dispatch)
             old_manager.shell_channel.message_received.disconnect(self._dispatch)
             old_manager.stdin_channel.message_received.disconnect(self._dispatch)
             old_manager.hb_channel.kernel_died.disconnect(
@@ -51,7 +51,7 @@ class BaseFrontendMixin(object):
         kernel_manager.stopped_channels.connect(self._stopped_channels)
 
         # Connect the new kernel manager's channels.
-        kernel_manager.sub_channel.message_received.connect(self._dispatch)
+        kernel_manager.iopub_channel.message_received.connect(self._dispatch)
         kernel_manager.shell_channel.message_received.connect(self._dispatch)
         kernel_manager.stdin_channel.message_received.connect(self._dispatch)
         kernel_manager.hb_channel.kernel_died.connect(self._handle_kernel_died)

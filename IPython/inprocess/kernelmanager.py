@@ -71,7 +71,7 @@ class InProcessChannel(object):
         raise NotImplementedError
 
 
-class ShellInProcessChannel(InProcessChannel):
+class InProcessShellChannel(InProcessChannel):
     """The DEALER channel for issues request/replies to the kernel.
     """
 
@@ -240,7 +240,7 @@ class ShellInProcessChannel(InProcessChannel):
         self.call_handlers_later(reply_msg)
 
 
-class SubInProcessChannel(InProcessChannel):
+class InProcessIOPubChannel(InProcessChannel):
     """The SUB channel which listens for messages that the kernel publishes. 
     """
 
@@ -252,7 +252,7 @@ class SubInProcessChannel(InProcessChannel):
         pass
 
 
-class StdInInProcessChannel(InProcessChannel):
+class InProcessStdInChannel(InProcessChannel):
     """ A reply channel to handle raw_input requests that the kernel makes. """
 
     def input(self, string):
@@ -264,13 +264,13 @@ class StdInInProcessChannel(InProcessChannel):
         kernel.raw_input_str = string
 
 
-class HBInProcessChannel(InProcessChannel):
+class InProcessHBChannel(InProcessChannel):
     """ A dummy heartbeat channel. """
 
     time_to_dead = 3.0
 
     def __init__(self, *args, **kwds):
-        super(HBInProcessChannel, self).__init__(*args, **kwds)
+        super(InProcessHBChannel, self).__init__(*args, **kwds)
         self._pause = True
 
     def pause(self):
@@ -310,14 +310,14 @@ class InProcessKernelManager(HasTraits):
     kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(ShellInProcessChannel)
-    sub_channel_class = Type(SubInProcessChannel)
-    stdin_channel_class = Type(StdInInProcessChannel)
-    hb_channel_class = Type(HBInProcessChannel)
+    shell_channel_class = Type(InProcessShellChannel)
+    iopub_channel_class = Type(InProcessIOPubChannel)
+    stdin_channel_class = Type(InProcessStdInChannel)
+    hb_channel_class = Type(InProcessHBChannel)
 
     # Protected traits.
     _shell_channel = Any
-    _sub_channel = Any
+    _iopub_channel = Any
     _stdin_channel = Any
     _hb_channel = Any
 
@@ -331,7 +331,7 @@ class InProcessKernelManager(HasTraits):
         if shell:
             self.shell_channel.start()
         if sub:
-            self.sub_channel.start()
+            self.iopub_channel.start()
         if stdin:
             self.stdin_channel.start()
             self.shell_channel.allow_stdin = True
@@ -345,8 +345,8 @@ class InProcessKernelManager(HasTraits):
         """
         if self.shell_channel.is_alive():
             self.shell_channel.stop()
-        if self.sub_channel.is_alive():
-            self.sub_channel.stop()
+        if self.iopub_channel.is_alive():
+            self.iopub_channel.stop()
         if self.stdin_channel.is_alive():
             self.stdin_channel.stop()
         if self.hb_channel.is_alive():
@@ -355,7 +355,7 @@ class InProcessKernelManager(HasTraits):
     @property
     def channels_running(self):
         """ Are any of the channels created and running? """
-        return (self.shell_channel.is_alive() or self.sub_channel.is_alive() or
+        return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
     #--------------------------------------------------------------------------
@@ -421,11 +421,11 @@ class InProcessKernelManager(HasTraits):
         return self._shell_channel
 
     @property
-    def sub_channel(self):
+    def iopub_channel(self):
         """Get the SUB socket channel object."""
-        if self._sub_channel is None:
-            self._sub_channel = self.sub_channel_class(self)
-        return self._sub_channel
+        if self._iopub_channel is None:
+            self._iopub_channel = self.iopub_channel_class(self)
+        return self._iopub_channel
 
     @property
     def stdin_channel(self):

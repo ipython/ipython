@@ -180,7 +180,7 @@ class ZMQSocketChannel(Thread):
     
 
 
-class ShellSocketChannel(ZMQSocketChannel):
+class ShellChannel(ZMQSocketChannel):
     """The DEALER channel for issues request/replies to the kernel.
     """
 
@@ -189,7 +189,7 @@ class ShellSocketChannel(ZMQSocketChannel):
     allow_stdin = True
 
     def __init__(self, context, session, address):
-        super(ShellSocketChannel, self).__init__(context, session, address)
+        super(ShellChannel, self).__init__(context, session, address)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
@@ -207,7 +207,7 @@ class ShellSocketChannel(ZMQSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(ShellSocketChannel, self).stop()
+        super(ShellChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -389,12 +389,12 @@ class ShellSocketChannel(ZMQSocketChannel):
 
 
 
-class SubSocketChannel(ZMQSocketChannel):
+class IOPubChannel(ZMQSocketChannel):
     """The SUB channel which listens for messages that the kernel publishes.
     """
 
     def __init__(self, context, session, address):
-        super(SubSocketChannel, self).__init__(context, session, address)
+        super(IOPubChannel, self).__init__(context, session, address)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
@@ -413,7 +413,7 @@ class SubSocketChannel(ZMQSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(SubSocketChannel, self).stop()
+        super(IOPubChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -455,13 +455,13 @@ class SubSocketChannel(ZMQSocketChannel):
         self._flushed = True
 
 
-class StdInSocketChannel(ZMQSocketChannel):
+class StdInChannel(ZMQSocketChannel):
     """A reply channel to handle raw_input requests that the kernel makes."""
 
     msg_queue = None
 
     def __init__(self, context, session, address):
-        super(StdInSocketChannel, self).__init__(context, session, address)
+        super(StdInChannel, self).__init__(context, session, address)
         self.ioloop = ioloop.IOLoop()
 
     def run(self):
@@ -480,7 +480,7 @@ class StdInSocketChannel(ZMQSocketChannel):
 
     def stop(self):
         self.ioloop.stop()
-        super(StdInSocketChannel, self).stop()
+        super(StdInChannel, self).stop()
 
     def call_handlers(self, msg):
         """This method is called in the ioloop thread when a message arrives.
@@ -499,7 +499,7 @@ class StdInSocketChannel(ZMQSocketChannel):
         self._queue_send(msg)
 
 
-class HBSocketChannel(ZMQSocketChannel):
+class HBChannel(ZMQSocketChannel):
     """The heartbeat channel which monitors the kernel heartbeat.
 
     Note that the heartbeat channel is paused by default. As long as you start
@@ -515,7 +515,7 @@ class HBSocketChannel(ZMQSocketChannel):
     _beating = None
 
     def __init__(self, context, session, address):
-        super(HBSocketChannel, self).__init__(context, session, address)
+        super(HBChannel, self).__init__(context, session, address)
         self._running = False
         self._pause =True
         self.poller = zmq.Poller()
@@ -622,7 +622,7 @@ class HBSocketChannel(ZMQSocketChannel):
 
     def stop(self):
         self._running = False
-        super(HBSocketChannel, self).stop()
+        super(HBChannel, self).stop()
 
     def call_handlers(self, since_last_heartbeat):
         """This method is called in the ioloop thread when a message arrives.
@@ -678,15 +678,15 @@ class KernelManager(Configurable):
     hb_port = Integer(0)
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(ShellSocketChannel)
-    sub_channel_class = Type(SubSocketChannel)
-    stdin_channel_class = Type(StdInSocketChannel)
-    hb_channel_class = Type(HBSocketChannel)
+    shell_channel_class = Type(ShellChannel)
+    iopub_channel_class = Type(IOPubChannel)
+    stdin_channel_class = Type(StdInChannel)
+    hb_channel_class = Type(HBChannel)
 
     # Protected traits.
     _launch_args = Any
     _shell_channel = Any
-    _sub_channel = Any
+    _iopub_channel = Any
     _stdin_channel = Any
     _hb_channel = Any
     _connection_file_written=Bool(False)
@@ -709,7 +709,7 @@ class KernelManager(Configurable):
         if shell:
             self.shell_channel.start()
         if sub:
-            self.sub_channel.start()
+            self.iopub_channel.start()
         if stdin:
             self.stdin_channel.start()
             self.shell_channel.allow_stdin = True
@@ -723,8 +723,8 @@ class KernelManager(Configurable):
         """
         if self.shell_channel.is_alive():
             self.shell_channel.stop()
-        if self.sub_channel.is_alive():
-            self.sub_channel.stop()
+        if self.iopub_channel.is_alive():
+            self.iopub_channel.stop()
         if self.stdin_channel.is_alive():
             self.stdin_channel.stop()
         if self.hb_channel.is_alive():
@@ -733,7 +733,7 @@ class KernelManager(Configurable):
     @property
     def channels_running(self):
         """Are any of the channels created and running?"""
-        return (self.shell_channel.is_alive() or self.sub_channel.is_alive() or
+        return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
     #--------------------------------------------------------------------------
@@ -1007,14 +1007,14 @@ class KernelManager(Configurable):
         return self._shell_channel
 
     @property
-    def sub_channel(self):
+    def iopub_channel(self):
         """Get the SUB socket channel object."""
-        if self._sub_channel is None:
-            self._sub_channel = self.sub_channel_class(self.context,
+        if self._iopub_channel is None:
+            self._iopub_channel = self.iopub_channel_class(self.context,
                                                        self.session,
                                                        self._make_url(self.iopub_port),
             )
-        return self._sub_channel
+        return self._iopub_channel
 
     @property
     def stdin_channel(self):

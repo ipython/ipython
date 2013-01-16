@@ -21,51 +21,22 @@ from threading import Event
 # Local imports.
 from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Type
-from kernelmanager import InProcessKernelManager, ShellInProcessChannel, \
-    SubInProcessChannel, StdInInProcessChannel
+from kernelmanager import InProcessKernelManager, InProcessShellChannel, \
+    InProcessIOPubChannel, InProcessStdInChannel
+from IPython.zmq.blockingkernelmanager import BlockingChannelMixin
 
-#-----------------------------------------------------------------------------
-# Utility classes
-#-----------------------------------------------------------------------------
-
-class BlockingChannelMixin(object):
-    
-    def __init__(self, *args, **kwds):
-        super(BlockingChannelMixin, self).__init__(*args, **kwds)
-        self._in_queue = Queue.Queue()
-        
-    def call_handlers(self, msg):
-        self._in_queue.put(msg)
-        
-    def get_msg(self, block=True, timeout=None):
-        """ Gets a message if there is one that is ready. """
-        return self._in_queue.get(block, timeout)
-        
-    def get_msgs(self):
-        """ Get all messages that are currently ready. """
-        msgs = []
-        while True:
-            try:
-                msgs.append(self.get_msg(block=False))
-            except Queue.Empty:
-                break
-        return msgs
-    
-    def msg_ready(self):
-        """ Is there a message that has been received? """
-        return not self._in_queue.empty()
 
 #-----------------------------------------------------------------------------
 # Blocking kernel manager
 #-----------------------------------------------------------------------------
 
-class BlockingShellInProcessChannel(BlockingChannelMixin, ShellInProcessChannel):
+class BlockingInProcessShellChannel(BlockingChannelMixin, InProcessShellChannel):
     pass
 
-class BlockingSubInProcessChannel(BlockingChannelMixin, SubInProcessChannel):
+class BlockingInProcessIOPubChannel(BlockingChannelMixin, InProcessIOPubChannel):
     pass
 
-class BlockingStdInInProcessChannel(BlockingChannelMixin, StdInInProcessChannel):
+class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel):
     
     def call_handlers(self, msg):
         """ Overridden for the in-process channel.
@@ -82,6 +53,6 @@ class BlockingStdInInProcessChannel(BlockingChannelMixin, StdInInProcessChannel)
 class BlockingInProcessKernelManager(InProcessKernelManager):
 
     # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingShellInProcessChannel)
-    sub_channel_class = Type(BlockingSubInProcessChannel)
-    stdin_channel_class = Type(BlockingStdInInProcessChannel)
+    shell_channel_class = Type(BlockingInProcessShellChannel)
+    iopub_channel_class = Type(BlockingInProcessIOPubChannel)
+    stdin_channel_class = Type(BlockingInProcessStdInChannel)
