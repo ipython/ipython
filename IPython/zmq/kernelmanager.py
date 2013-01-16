@@ -34,15 +34,20 @@ from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports.
-from IPython.config.loader import Config
 from IPython.config.configurable import Configurable
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
-    HasTraits, Any, Instance, Type, Unicode, Integer, Bool, CaselessStrEnum
+    Any, Instance, Type, Unicode, Integer, Bool, CaselessStrEnum
 )
 from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import write_connection_file
 from session import Session
+from IPython.zmq.kernelmanagerabc import (
+    ShellChannelABC, IOPubChannelABC,
+    HBChannelABC, StdInChannelABC,
+    KernelManagerABC
+)
+
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -698,7 +703,7 @@ class KernelManager(Configurable):
     # Channel management methods:
     #--------------------------------------------------------------------------
 
-    def start_channels(self, shell=True, sub=True, stdin=True, hb=True):
+    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
         """Starts the channels for this kernel.
 
         This will create the channels if they do not exist and then start
@@ -708,7 +713,7 @@ class KernelManager(Configurable):
         """
         if shell:
             self.shell_channel.start()
-        if sub:
+        if iopub:
             self.iopub_channel.start()
         if stdin:
             self.stdin_channel.start()
@@ -736,8 +741,56 @@ class KernelManager(Configurable):
         return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
+    def _make_url(self, port):
+        """make a zmq url with a port"""
+        if self.transport == 'tcp':
+            return "tcp://%s:%i" % (self.ip, port)
+        else:
+            return "%s://%s-%s" % (self.transport, self.ip, port)
+
+    @property
+    def shell_channel(self):
+        """Get the REQ socket channel object to make requests of the kernel."""
+        if self._shell_channel is None:
+            self._shell_channel = self.shell_channel_class(self.context,
+                                                           self.session,
+                                                           self._make_url(self.shell_port),
+            )
+        return self._shell_channel
+
+    @property
+    def iopub_channel(self):
+        """Get the SUB socket channel object."""
+        if self._iopub_channel is None:
+            self._iopub_channel = self.iopub_channel_class(self.context,
+                                                       self.session,
+                                                       self._make_url(self.iopub_port),
+            )
+        return self._iopub_channel
+
+    @property
+    def stdin_channel(self):
+        """Get the REP socket channel object to handle stdin (raw_input)."""
+        if self._stdin_channel is None:
+            self._stdin_channel = self.stdin_channel_class(self.context,
+                                                           self.session,
+                                                           self._make_url(self.stdin_port),
+            )
+        return self._stdin_channel
+
+    @property
+    def hb_channel(self):
+        """Get the heartbeat socket channel object to check that the
+        kernel is alive."""
+        if self._hb_channel is None:
+            self._hb_channel = self.hb_channel_class(self.context,
+                                                     self.session,
+                                                     self._make_url(self.hb_port),
+            )
+        return self._hb_channel
+
     #--------------------------------------------------------------------------
-    # Kernel process management methods:
+    # Connection and ipc file management.
     #--------------------------------------------------------------------------
     
     def cleanup_connection_file(self):
@@ -796,7 +849,11 @@ class KernelManager(Configurable):
         self.hb_port = cfg['hb_port']
         
         self._connection_file_written = True
-    
+
+    #--------------------------------------------------------------------------
+    # Kernel management.
+    #--------------------------------------------------------------------------
+
     def start_kernel(self, **kw):
         """Starts a kernel process and configures the manager to use it.
 
@@ -985,54 +1042,13 @@ class KernelManager(Configurable):
             # so naively return True
             return True
 
-    #--------------------------------------------------------------------------
-    # Channels used for communication with the kernel:
-    #--------------------------------------------------------------------------
 
-    def _make_url(self, port):
-        """make a zmq url with a port"""
-        if self.transport == 'tcp':
-            return "tcp://%s:%i" % (self.ip, port)
-        else:
-            return "%s://%s-%s" % (self.transport, self.ip, port)
+#-----------------------------------------------------------------------------
+# ABC Registration
+#-----------------------------------------------------------------------------
 
-    @property
-    def shell_channel(self):
-        """Get the REQ socket channel object to make requests of the kernel."""
-        if self._shell_channel is None:
-            self._shell_channel = self.shell_channel_class(self.context,
-                                                           self.session,
-                                                           self._make_url(self.shell_port),
-            )
-        return self._shell_channel
-
-    @property
-    def iopub_channel(self):
-        """Get the SUB socket channel object."""
-        if self._iopub_channel is None:
-            self._iopub_channel = self.iopub_channel_class(self.context,
-                                                       self.session,
-                                                       self._make_url(self.iopub_port),
-            )
-        return self._iopub_channel
-
-    @property
-    def stdin_channel(self):
-        """Get the REP socket channel object to handle stdin (raw_input)."""
-        if self._stdin_channel is None:
-            self._stdin_channel = self.stdin_channel_class(self.context,
-                                                           self.session,
-                                                           self._make_url(self.stdin_port),
-            )
-        return self._stdin_channel
-
-    @property
-    def hb_channel(self):
-        """Get the heartbeat socket channel object to check that the
-        kernel is alive."""
-        if self._hb_channel is None:
-            self._hb_channel = self.hb_channel_class(self.context,
-                                                     self.session,
-                                                     self._make_url(self.hb_port),
-            )
-        return self._hb_channel
+ShellChannelABC.register(ShellChannel)
+IOPubChannelABC.register(IOPubChannel)
+HBChannelABC.register(HBChannel)
+StdInChannelABC.register(StdInChannel)
+KernelManagerABC.register(KernelManager)

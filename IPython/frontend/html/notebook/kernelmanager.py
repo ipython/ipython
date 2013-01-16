@@ -17,8 +17,6 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import os
-import signal
-import sys
 import uuid
 
 import zmq
@@ -94,7 +92,7 @@ class MultiKernelManager(LoggingConfigurable):
         )
         km.start_kernel(**kwargs)
         # start just the shell channel, needed for graceful restart
-        km.start_channels(shell=True, sub=False, stdin=False, hb=False)
+        km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
         return kernel_id
 

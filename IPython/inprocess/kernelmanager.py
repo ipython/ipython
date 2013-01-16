@@ -15,6 +15,11 @@
 from IPython.config.loader import Config
 from IPython.inprocess.socket import DummySocket
 from IPython.utils.traitlets import HasTraits, Any, Instance, Type
+from IPython.zmq.kernelmanagerabc import (
+    ShellChannelABC, IOPubChannelABC,
+    HBChannelABC, StdInChannelABC,
+    KernelManagerABC
+)
 
 #-----------------------------------------------------------------------------
 # Channel classes
@@ -322,15 +327,15 @@ class InProcessKernelManager(HasTraits):
     _hb_channel = Any
 
     #--------------------------------------------------------------------------
-    # Channel management methods:
+    # Channel management methods.
     #--------------------------------------------------------------------------
 
-    def start_channels(self, shell=True, sub=True, stdin=True, hb=True):
+    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
         """ Starts the channels for this kernel.
         """
         if shell:
             self.shell_channel.start()
-        if sub:
+        if iopub:
             self.iopub_channel.start()
         if stdin:
             self.stdin_channel.start()
@@ -357,6 +362,35 @@ class InProcessKernelManager(HasTraits):
         """ Are any of the channels created and running? """
         return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
+
+    @property
+    def shell_channel(self):
+        """Get the REQ socket channel object to make requests of the kernel."""
+        if self._shell_channel is None:
+            self._shell_channel = self.shell_channel_class(self)
+        return self._shell_channel
+
+    @property
+    def iopub_channel(self):
+        """Get the SUB socket channel object."""
+        if self._iopub_channel is None:
+            self._iopub_channel = self.iopub_channel_class(self)
+        return self._iopub_channel
+
+    @property
+    def stdin_channel(self):
+        """Get the REP socket channel object to handle stdin (raw_input)."""
+        if self._stdin_channel is None:
+            self._stdin_channel = self.stdin_channel_class(self)
+        return self._stdin_channel
+
+    @property
+    def hb_channel(self):
+        """Get the heartbeat socket channel object to check that the
+        kernel is alive."""
+        if self._hb_channel is None:
+            self._hb_channel = self.hb_channel_class(self)
+        return self._hb_channel
 
     #--------------------------------------------------------------------------
     # Kernel management methods:
@@ -409,35 +443,13 @@ class InProcessKernelManager(HasTraits):
         """ Is the kernel process still running? """
         return True
 
-    #--------------------------------------------------------------------------
-    # Channels used for communication with the kernel:
-    #--------------------------------------------------------------------------
 
-    @property
-    def shell_channel(self):
-        """Get the REQ socket channel object to make requests of the kernel."""
-        if self._shell_channel is None:
-            self._shell_channel = self.shell_channel_class(self)
-        return self._shell_channel
+#-----------------------------------------------------------------------------
+# ABC Registration
+#-----------------------------------------------------------------------------
 
-    @property
-    def iopub_channel(self):
-        """Get the SUB socket channel object."""
-        if self._iopub_channel is None:
-            self._iopub_channel = self.iopub_channel_class(self)
-        return self._iopub_channel
-
-    @property
-    def stdin_channel(self):
-        """Get the REP socket channel object to handle stdin (raw_input)."""
-        if self._stdin_channel is None:
-            self._stdin_channel = self.stdin_channel_class(self)
-        return self._stdin_channel
-
-    @property
-    def hb_channel(self):
-        """Get the heartbeat socket channel object to check that the
-        kernel is alive."""
-        if self._hb_channel is None:
-            self._hb_channel = self.hb_channel_class(self)
-        return self._hb_channel
+ShellChannelABC.register(InProcessShellChannel)
+IOPubChannelABC.register(InProcessIOPubChannel)
+HBChannelABC.register(InProcessHBChannel)
+StdInChannelABC.register(InProcessStdInChannel)
+KernelManagerABC.register(InProcessKernelManager)
