@@ -857,13 +857,8 @@ class KernelManager(Configurable):
             if self.has_kernel:
                 self.kill_kernel()
 
-        if not restart and self._connection_file_written:
-            # cleanup connection files on full shutdown of kernel we started
-            self._connection_file_written = False
-            try:
-                os.remove(self.connection_file)
-            except IOError:
-                pass
+        if not restart:
+            self.cleanup_connection_file()
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
