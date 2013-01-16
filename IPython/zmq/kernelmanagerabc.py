@@ -243,6 +243,8 @@ class HBChannelABC(ChannelABC):
 class KernelManagerABC(object):
     """ Manages a kernel for a frontend."""
 
+    __metaclass__ = abc.ABCMeta
+
     @abc.abstractproperty
     def kernel(self):
         pass
