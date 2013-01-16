@@ -210,9 +210,9 @@ class KernelApp(BaseIPythonApplication):
         except (IOError, OSError):
             pass
         
-        self._cleanup_ipc_files()
+        self.cleanup_ipc_files()
     
-    def _cleanup_ipc_files(self):
+    def cleanup_ipc_files(self):
         """cleanup ipc files if we wrote them"""
         if self.transport != 'ipc':
             return

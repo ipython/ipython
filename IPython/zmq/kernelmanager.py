@@ -753,9 +753,9 @@ class KernelManager(Configurable):
             except (IOError, OSError):
                 pass
             
-            self._cleanup_ipc_files()
+            self.cleanup_ipc_files()
     
-    def _cleanup_ipc_files(self):
+    def cleanup_ipc_files(self):
         """cleanup ipc files if we wrote them"""
         if self.transport != 'ipc':
             return
@@ -829,7 +829,7 @@ class KernelManager(Configurable):
             from ipkernel import launch_kernel
         self.kernel = launch_kernel(fname=self.connection_file, **kw)
 
-    def shutdown_kernel(self, restart=False):
+    def shutdown_kernel(self, now=False, restart=False):
         """ Attempts to the stop the kernel process cleanly. 
 
         If the kernel cannot be stopped and the kernel is local, it is killed.
@@ -843,22 +843,28 @@ class KernelManager(Configurable):
         if self._hb_channel is not None:
             self._hb_channel.pause()
 
-        # Don't send any additional kernel kill messages immediately, to give
-        # the kernel a chance to properly execute shutdown actions. Wait for at
-        # most 1s, checking every 0.1s.
-        self.shell_channel.shutdown(restart=restart)
-        for i in range(10):
-            if self.is_alive:
-                time.sleep(0.1)
-            else:
-                break
-        else:
-            # OK, we've waited long enough.
+        if now:
             if self.has_kernel:
                 self.kill_kernel()
+        else:
+            # Don't send any additional kernel kill messages immediately, to give
+            # the kernel a chance to properly execute shutdown actions. Wait for at
+            # most 1s, checking every 0.1s.
+            self.shell_channel.shutdown(restart=restart)
+            for i in range(10):
+                if self.is_alive:
+                    time.sleep(0.1)
+                else:
+                    break
+            else:
+                # OK, we've waited long enough.
+                if self.has_kernel:
+                    self.kill_kernel()
 
         if not restart:
             self.cleanup_connection_file()
+        else:
+            self.cleanup_ipc_files()
 
     def restart_kernel(self, now=False, **kw):
         """Restarts a kernel with the arguments that were used to launch it.
@@ -885,11 +891,7 @@ class KernelManager(Configurable):
                                "No previous call to 'start_kernel'.")
         else:
             # Stop currently running kernel.
-            if self.has_kernel:
-                if now:
-                    self.kill_kernel()
-                else:
-                    self.shutdown_kernel(restart=True)
+            self.shutdown_kernel(now=now, restart=True)
 
             # Start new kernel.
             self._launch_args.update(kw)
