@@ -136,7 +136,6 @@ class ConverterReveal(ConverterHTML):
         notes_start = '<aside class="notes">'
         notes_end = '</aside>'
         set_delim_skip = self.delim[:6]  # to skip adjacent skkiped cells
-        set_delim_notes = self.delim[:5]  # to show adjacent speaker notes
         #elimination of skipped cells
         for i, j in enumerate(text):
             if j == u'slide_type = skip':
@@ -148,7 +147,7 @@ class ConverterReveal(ConverterHTML):
             if j == u'slide_type = notes':
                 text.pop(i)
                 temp_list = []
-                while not text[i] in set_delim_notes:
+                while not text[i] in set_delim_skip:
                     temp_list.append(text.pop(i))
                 else:
                     temp_list.insert(0, notes_start)
