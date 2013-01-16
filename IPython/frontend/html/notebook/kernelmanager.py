@@ -106,7 +106,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to shutdown.
         """
-        self.get_kernel(kernel_id).shutdown_kernel()
+        k = self.get_kernel(kernel_id)
+        k.shutdown_kernel()
+        k.shell_channel.stop()
         del self._kernels[kernel_id]
 
     def shutdown_all(self):
@@ -122,7 +124,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to kill.
         """
-        self.get_kernel(kernel_id).kill_kernel()
+        k = self.get_kernel(kernel_id)
+        k.kill_kernel()
+        k.shell_channel.stop()
         del self._kernels[kernel_id]
 
     def kill_all(self):
