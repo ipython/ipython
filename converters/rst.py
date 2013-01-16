@@ -43,12 +43,15 @@ class ConverterRST(Converter):
         if not cell.input:
             return []
 
-        lines = ['In[%s]:' % self._get_prompt_number(cell), '']
-        lines.extend(rst_directive('.. code:: python', cell.input))
+        lines = []
+        if 'source' not in self.exclude_cells:
+            lines.extend(['In[%s]:' % self._get_prompt_number(cell), ''])
+            lines.extend(rst_directive('.. code:: python', cell.input))
 
-        for output in cell.outputs:
-            conv_fn = self.dispatch(output.output_type)
-            lines.extend(conv_fn(output))
+        if 'output' not in self.exclude_cells:
+            for output in cell.outputs:
+                conv_fn = self.dispatch(output.output_type)
+                lines.extend(conv_fn(output))
 
         return lines
 

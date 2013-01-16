@@ -127,19 +127,20 @@ class ConverterHTML(Converter):
             return []
 
         lines = ['<div class="cell border-box-sizing code_cell vbox">']
+        if 'source' not in self.exclude_cells:
 
-        lines.append('<div class="input hbox">')
-        n = self._get_prompt_number(cell)
-        lines.append(
-            '<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n
-        )
-        lines.append('<div class="input_area box-flex1">')
-        lines.append(highlight(cell.input) if self.highlight_source
-                     else cell.input)
-        lines.append('</div>')  # input_area
-        lines.append('</div>')  # input
+            lines.append('<div class="input hbox">')
+            n = self._get_prompt_number(cell)
+            lines.append(
+                '<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n
+            )
+            lines.append('<div class="input_area box-flex1">')
+            lines.append(highlight(cell.input) if self.highlight_source
+                         else cell.input)
+            lines.append('</div>')  # input_area
+            lines.append('</div>')  # input
 
-        if cell.outputs:
+        if cell.outputs and 'output' not in self.exclude_cells:
             lines.append('<div class="vbox output_wrapper">')
             lines.append('<div class="output vbox">')
 
@@ -153,6 +154,7 @@ class ConverterHTML(Converter):
         lines.append('</div>')  # cell
 
         return lines
+
 
     @text_cell
     def render_markdown(self, cell):
