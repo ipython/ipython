@@ -14,10 +14,6 @@ Useful for test suites and blocking terminal interfaces.
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Standard library imports.
-import Queue
-from threading import Event
-
 # Local imports.
 from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Type

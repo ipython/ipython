@@ -13,6 +13,8 @@ Useful for test suites and blocking terminal interfaces.
 # Imports
 #-----------------------------------------------------------------------------
 
+import Queue
+
 from IPython.utils.traitlets import Type
 from kernelmanager import KernelManager, IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
@@ -81,4 +83,4 @@ class BlockingKernelManager(KernelManager):
     iopub_channel_class = Type(BlockingIOPubChannel)
     stdin_channel_class = Type(BlockingStdInChannel)
     hb_channel_class = Type(BlockingHBChannel)
-  
+
