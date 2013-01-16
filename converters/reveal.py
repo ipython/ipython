@@ -101,8 +101,8 @@ class ConverterReveal(ConverterHTML):
         text = self.main_body(cell_separator)
         self.delim = [u'slide_type = untouched',
                       u'slide_type = -',
-                      u'slide_type = header_slide',
                       u'slide_type = slide',
+                      u'slide_type = subslide',
                       u'slide_type = fragment',
                       u'slide_type = notes',
                       u'slide_type = skip']  # keep this one the last
@@ -160,7 +160,7 @@ class ConverterReveal(ConverterHTML):
                 text.pop(i)
         #generation of slides as a list of list
         slides = [list(x[1]) for x in itertools.groupby(text,
-            lambda x: x == u'slide_type = header_slide') if not x[0]]
+            lambda x: x == u'slide_type = slide') if not x[0]]
         for slide in slides:
             slide.insert(0, left)
             slide.append(right)
@@ -171,11 +171,11 @@ class ConverterReveal(ConverterHTML):
                     slide[i] = slide[i][:4] + \
                         ' class="fragment"' + slide[i][4:]
             # encapsulation of each nested slide
-            if u'slide_type = slide' in slide:
+            if u'slide_type = subslide' in slide:
                 slide.insert(0, left)
                 slide.append(right)
             for i, j in enumerate(slide):
-                if j == u'slide_type = slide':
+                if j == u'slide_type = subslide':
                     slide[i] = right + left
         return list(itertools.chain(*slides))
 
