@@ -31,37 +31,30 @@ class TestKernelManager(TestCase):
         km.shutdown_kernel(kid)
         self.assertTrue(not kid in km)
 
+    def _run_cinfo(self, km, transport, ip):
+        kid = km.start_kernel()
+        k = km.get_kernel(kid)
+        cinfo = km.get_connection_info(kid)
+        self.assertEqual(transport, cinfo['transport'])
+        self.assertEqual(ip, cinfo['ip'])
+        self.assertTrue('stdin_port' in cinfo)
+        self.assertTrue('iopub_port' in cinfo)
+        self.assertTrue('shell_port' in cinfo)
+        self.assertTrue('hb_port' in cinfo)
+        km.shutdown_kernel(kid)
+
     def test_km_tcp(self):
         km = self._get_tcp_km()
         self._run_lifecycle(km)
+    
+    def test_tcp_cinfo(self):
+        km = self._get_tcp_km()
+        self._run_cinfo(km, 'tcp', '127.0.0.1')
 
     def test_km_ipc(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
-
-    def test_tcp_cinfo(self):
-        km = self._get_tcp_km()
-        kid = km.start_kernel()
-        k = km.get_kernel(kid)
-        cinfo = km.get_connection_info(kid)
-        self.assertEqual('tcp', cinfo['transport'])
-        self.assertEqual('127.0.0.1', cinfo['ip'])
-        self.assertTrue('stdin_port' in cinfo)
-        self.assertTrue('iopub_port' in cinfo)
-        self.assertTrue('shell_port' in cinfo)
-        self.assertTrue('hb_port' in cinfo)
-        km.shutdown_kernel(kid)
-
+    
     def test_ipc_cinfo(self):
         km = self._get_ipc_km()
-        kid = km.start_kernel()
-        k = km.get_kernel(kid)
-        cinfo = km.get_connection_info(kid)
-        self.assertEqual('ipc', cinfo['transport'])
-        self.assertEqual('test', cinfo['ip'])
-        self.assertTrue('stdin_port' in cinfo)
-        self.assertTrue('iopub_port' in cinfo)
-        self.assertTrue('shell_port' in cinfo)
-        self.assertTrue('hb_port' in cinfo)
-        km.shutdown_kernel(kid)
-
+        self._run_cinfo(km, 'ipc', 'test')
