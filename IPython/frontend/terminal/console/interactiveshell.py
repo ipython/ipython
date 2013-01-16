@@ -211,8 +211,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
            sub_msg:  message receive from kernel in the sub socket channel
                      capture by kernel manager.
         """
-        while self.km.sub_channel.msg_ready():
-            sub_msg = self.km.sub_channel.get_msg()
+        while self.km.iopub_channel.msg_ready():
+            sub_msg = self.km.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
             parent = sub_msg["parent_header"]
             if (not parent) or self.session_id == parent['session']:
