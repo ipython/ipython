@@ -90,7 +90,7 @@ class CachingCompiler(codeop.Compile):
         # Now, we must monkeypatch the linecache directly so that parts of the
         # stdlib that call it outside our control go through our codepath
         # (otherwise we'd lose our tracebacks).
-        linecache.checkcache = self.check_cache
+        linecache.checkcache = check_linecache_ipython
         
     def ast_parse(self, source, filename='<unknown>', symbol='exec'):
         """Parse code to an AST with the current compiler flags active.
@@ -134,11 +134,11 @@ class CachingCompiler(codeop.Compile):
         linecache._ipython_cache[name] = entry
         return name
 
-    def check_cache(self, *args):
-        """Call linecache.checkcache() safely protecting our cached values.
-        """
-        # First call the orignal checkcache as intended
-        linecache._checkcache_ori(*args)
-        # Then, update back the cache with our data, so that tracebacks related
-        # to our compiled codes can be produced.
-        linecache.cache.update(linecache._ipython_cache)
+def check_linecache_ipython(*args):
+    """Call linecache.checkcache() safely protecting our cached values.
+    """
+    # First call the orignal checkcache as intended
+    linecache._checkcache_ori(*args)
+    # Then, update back the cache with our data, so that tracebacks related
+    # to our compiled codes can be produced.
+    linecache.cache.update(linecache._ipython_cache)
