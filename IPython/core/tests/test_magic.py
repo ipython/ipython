@@ -827,7 +827,7 @@ def test_edit_interactive():
     except code.InteractivelyDefined as e:
         nt.assert_equal(e.index, n)
     else:
-        nt.fail("Should have raised InteractivelyDefined")
+        raise AssertionError("Should have raised InteractivelyDefined")
 
 
 def test_edit_cell():
