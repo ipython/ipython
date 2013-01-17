@@ -62,6 +62,11 @@ var IPython = (function (IPython) {
         }
     })
 
+    // The default css style for the outer celltoolbar div
+    // (ctb_hideshow) is display: none. We add the ctb_show
+    // class to either 1) the body to show all cell's toolbars
+    // or 2) to the individual celltoolbar divs to show just one
+    // cell's toolbar.
 
     CellToolbar.global_hide = function () {
         $('body').removeClass('ctb_show');
@@ -71,7 +76,8 @@ var IPython = (function (IPython) {
     CellToolbar.global_show = function () {
        $('body').addClass('ctb_show');
     }
-    
+
+
     CellToolbar.prototype.hide = function () {
         this.element.removeClass('ctb_show');
     }

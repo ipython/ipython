@@ -27,7 +27,10 @@
     display: none;
 }
 
-.ctb_show.ctb_hideshow {
+/*ctb_show is added to either body or the ctb_hideshow div to show
+all or one cell's toolbars.
+*/
+.ctb_show.ctb_hideshow, .ctb_show .ctb_hideshow {
     display: block;
 }
 
