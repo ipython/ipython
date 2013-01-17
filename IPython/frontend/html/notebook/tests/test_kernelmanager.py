@@ -1,5 +1,6 @@
 """Tests for the notebook kernel and session manager."""
 
+import time
 from unittest import TestCase
 
 from IPython.config.loader import Config
@@ -25,6 +26,13 @@ class TestKernelManager(TestCase):
         self.assertEqual(len(km),1)
         km.restart_kernel(kid)
         self.assertTrue(kid in km.list_kernel_ids())
+        # We need a delay here to give the restarting kernel a chance to
+        # restart. Otherwise, the interrupt will kill it, causing the test
+        # suite to hang. The reason it *hangs* is that the shutdown
+        # message for the restart sometimes hasn't been sent to the kernel.
+        # Because linger is oo on the shell channel, the context can't
+        # close until the message is sent to the kernel, which is not dead.
+        time.sleep(1.0)
         km.interrupt_kernel(kid)
         k = km.get_kernel(kid)
         self.assertTrue(isinstance(k, KernelManager))
@@ -43,7 +51,7 @@ class TestKernelManager(TestCase):
         self.assertTrue('hb_port' in cinfo)
         km.shutdown_kernel(kid)
 
-    def test_km_tcp(self):
+    def test_tcp_lifecycle(self):
         km = self._get_tcp_km()
         self._run_lifecycle(km)
     
@@ -51,10 +59,11 @@ class TestKernelManager(TestCase):
         km = self._get_tcp_km()
         self._run_cinfo(km, 'tcp', '127.0.0.1')
 
-    def test_km_ipc(self):
+    def test_ipc_lifecycle(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
     
     def test_ipc_cinfo(self):
         km = self._get_ipc_km()
         self._run_cinfo(km, 'ipc', 'test')
+
