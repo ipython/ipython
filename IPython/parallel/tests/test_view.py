@@ -308,6 +308,21 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertEqual(R2.dtype, R.dtype)
         self.assertEqual(R2.shape, R.shape)
         assert_array_equal(R2, R)
+
+    @skip_without('pandas')
+    def test_push_pull_timeseries(self):
+        """push/pull pandas.TimeSeries"""
+        import pandas
+        
+        ts = pandas.TimeSeries(range(10))
+        
+        view = self.client[-1]
+        
+        view.push(dict(ts=ts), block=True)
+        rts = view['ts']
+        
+        self.assertEqual(type(rts), type(ts))
+        self.assertTrue((ts == rts).all())
     
     def test_map(self):
         view = self.client[:]
