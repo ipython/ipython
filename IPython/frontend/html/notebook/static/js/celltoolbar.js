@@ -37,10 +37,12 @@ var IPython = (function (IPython) {
         this.inner_element = $('<div/>');
         var ctb_element = $('<div/>').addClass('celltoolbar')
             .append(this.inner_element);
-        this.element = $('<div/>').addClass('ctb_wrapper hbox');
         ctb_element.addClass('box-flex1');
+        var ctb_area = $('<div/>').addClass('ctb_area hbox');
         var ctb_prompt = $('<div/>').addClass('ctb_prompt prompt');
-        this.element.append(ctb_prompt).append(ctb_element);
+        ctb_area.append(ctb_prompt).append(ctb_element);
+        this.element = $('<div/>').addClass('ctb_hideshow')
+            .append(ctb_area);
     };
 
 
@@ -62,21 +64,21 @@ var IPython = (function (IPython) {
 
 
     CellToolbar.global_hide = function () {
-        $('body').removeClass('toolbaron');
+        $('body').removeClass('ctb_show');
     }
 
 
     CellToolbar.global_show = function () {
-       $('body').addClass('toolbaron');
+       $('body').addClass('ctb_show');
     }
     
     CellToolbar.prototype.hide = function () {
-        this.element.removeClass('toolbaron');
+        this.element.removeClass('ctb_show');
     }
 
 
     CellToolbar.prototype.show = function () {
-        this.element.addClass('toolbaron');
+        this.element.addClass('ctb_show');
     }
 
 

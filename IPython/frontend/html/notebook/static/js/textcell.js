@@ -45,8 +45,10 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.create_element.apply(this, arguments);
         var cell = $("<div>").addClass('cell text_cell border-box-sizing vbox');
         cell.attr('tabindex','2');
+
         this.celltoolbar = new IPython.CellToolbar(this);
         cell.append(this.celltoolbar.element);
+
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
