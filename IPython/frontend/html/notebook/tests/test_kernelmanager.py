@@ -1,5 +1,6 @@
 """Tests for the notebook kernel and session manager."""
 
+from subprocess import PIPE
 import time
 from unittest import TestCase
 
@@ -20,7 +21,7 @@ class TestKernelManager(TestCase):
         return km
 
     def _run_lifecycle(self, km):
-        kid = km.start_kernel()
+        kid = km.start_kernel(stdout=PIPE, stderr=PIPE)
         self.assertTrue(kid in km)
         self.assertTrue(kid in km.list_kernel_ids())
         self.assertEqual(len(km),1)
@@ -40,7 +41,7 @@ class TestKernelManager(TestCase):
         self.assertTrue(not kid in km)
 
     def _run_cinfo(self, km, transport, ip):
-        kid = km.start_kernel()
+        kid = km.start_kernel(stdout=PIPE, stderr=PIPE)
         k = km.get_kernel(kid)
         cinfo = km.get_connection_info(kid)
         self.assertEqual(transport, cinfo['transport'])
