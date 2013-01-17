@@ -213,10 +213,6 @@ class KernelManagerABC(object):
         pass
 
     @abc.abstractmethod
-    def kill_kernel(self):
-        pass
-
-    @abc.abstractmethod
     def interrupt_kernel(self):
         pass
 

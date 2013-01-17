@@ -923,7 +923,7 @@ class KernelManager(Configurable):
         """
         # FIXME: Shutdown does not work on Windows due to ZMQ errors!
         if sys.platform == 'win32':
-            self.kill_kernel()
+            self._kill_kernel()
             return
 
         # Pause the heart beat channel if it exists.
@@ -932,7 +932,7 @@ class KernelManager(Configurable):
 
         if now:
             if self.has_kernel:
-                self.kill_kernel()
+                self._kill_kernel()
         else:
             # Don't send any additional kernel kill messages immediately, to give
             # the kernel a chance to properly execute shutdown actions. Wait for at
@@ -946,7 +946,7 @@ class KernelManager(Configurable):
             else:
                 # OK, we've waited long enough.
                 if self.has_kernel:
-                    self.kill_kernel()
+                    self._kill_kernel()
 
         if not restart:
             self.cleanup_connection_file()
@@ -994,7 +994,7 @@ class KernelManager(Configurable):
         """Has a kernel been started that we are managing."""
         return self.kernel is not None
 
-    def kill_kernel(self):
+    def _kill_kernel(self):
         """Kill the running kernel.
 
         This is a private method, callers should use shutdown_kernel(now=True).

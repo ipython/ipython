@@ -277,7 +277,7 @@ class InProcessKernelManager(Configurable):
         self.kernel.frontends.append(self)
 
     def shutdown_kernel(self):
-        self.kill_kernel()
+        self._kill_kernel()
 
     def restart_kernel(self, now=False, **kwds):
         self.shutdown_kernel()
@@ -287,7 +287,7 @@ class InProcessKernelManager(Configurable):
     def has_kernel(self):
         return self.kernel is not None
 
-    def kill_kernel(self):
+    def _kill_kernel(self):
         self.kernel.frontends.remove(self)
         self.kernel = None
 

@@ -96,41 +96,25 @@ class MultiKernelManager(LoggingConfigurable):
         self._kernels[kernel_id] = km
         return kernel_id
 
-    def shutdown_kernel(self, kernel_id):
+    def shutdown_kernel(self, kernel_id, now=False):
         """Shutdown a kernel by its kernel uuid.
 
         Parameters
         ==========
         kernel_id : uuid
             The id of the kernel to shutdown.
+        now : bool
+            Should the kernel be shutdown forcibly using a signal.
         """
         k = self.get_kernel(kernel_id)
-        k.shutdown_kernel()
+        k.shutdown_kernel(now=now)
         k.shell_channel.stop()
         del self._kernels[kernel_id]
 
-    def shutdown_all(self):
+    def shutdown_all(self, now=False):
         """Shutdown all kernels."""
         for kid in self.list_kernel_ids():
-            self.shutdown_kernel(kid)
-
-    def kill_kernel(self, kernel_id):
-        """Kill a kernel by its kernel uuid.
-
-        Parameters
-        ==========
-        kernel_id : uuid
-            The id of the kernel to kill.
-        """
-        k = self.get_kernel(kernel_id)
-        k.kill_kernel()
-        k.shell_channel.stop()
-        del self._kernels[kernel_id]
-
-    def kill_all(self):
-        """Kill all kernels."""
-        for kid in self.list_kernel_ids():
-            self.kill_kernel(kid)
+            self.shutdown_kernel(kid, now=now)
 
     def interrupt_kernel(self, kernel_id):
         """Interrupt (SIGINT) the kernel by its uuid.
@@ -143,7 +127,7 @@ class MultiKernelManager(LoggingConfigurable):
         return self.get_kernel(kernel_id).interrupt_kernel()
 
     def signal_kernel(self, kernel_id, signum):
-        """ Sends a signal to the kernel by its uuid.
+        """Sends a signal to the kernel by its uuid.
 
         Note that since only SIGTERM is supported on Windows, this function
         is only useful on Unix systems.
@@ -330,19 +314,14 @@ class MappingKernelManager(MultiKernelManager):
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
 
-    def shutdown_kernel(self, kernel_id):
+    def shutdown_kernel(self, kernel_id, now=False):
         """Shutdown a kernel and remove its notebook association."""
         self._check_kernel_id(kernel_id)
-        super(MappingKernelManager, self).shutdown_kernel(kernel_id)
+        super(MappingKernelManager, self).shutdown_kernel(
+            kernel_id, now=now
+        )
         self.delete_mapping_for_kernel(kernel_id)
         self.log.info("Kernel shutdown: %s" % kernel_id)
-
-    def kill_kernel(self, kernel_id):
-        """Kill a kernel and remove its notebook association."""
-        self._check_kernel_id(kernel_id)
-        super(MappingKernelManager, self).kill_kernel(kernel_id)
-        self.delete_mapping_for_kernel(kernel_id)
-        self.log.info("Kernel killed: %s" % kernel_id)
 
     def interrupt_kernel(self, kernel_id):
         """Interrupt a kernel."""
