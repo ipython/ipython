@@ -217,7 +217,7 @@ def can(obj):
         if isinstance(cls, basestring):
             import_needed = True
             break
-        elif isinstance(obj, cls):
+        elif type(obj) is cls:
             return canner(obj)
     
     if import_needed:
