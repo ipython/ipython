@@ -39,7 +39,7 @@ class OutStream(object):
     flush_interval = 0.05
     topic=None
 
-    def __init__(self, session, pub_socket, name):
+    def __init__(self, session, pub_socket, name, pipe=True):
         self.encoding = 'UTF-8'
         self.session = session
         self.pub_socket = pub_socket
@@ -50,7 +50,9 @@ class OutStream(object):
         self._master_pid = os.getpid()
         self._master_thread = threading.current_thread().ident
         self._pipe_pid = os.getpid()
-        self._setup_pipe_in()
+        self._pipe_flag = pipe
+        if pipe:
+            self._setup_pipe_in()
     
     def _setup_pipe_in(self):
         """setup listening pipe for subprocesses"""
@@ -84,7 +86,7 @@ class OutStream(object):
 
     def _check_mp_mode(self):
         """check for forks, and switch to zmq pipeline if necessary"""
-        if self._is_master_process():
+        if not self._pipe_flag or self._is_master_process():
                 return MASTER
         else:
             if not self._have_pipe_out():
@@ -100,7 +102,7 @@ class OutStream(object):
 
     def _flush_from_subprocesses(self):
         """flush possible pub data from subprocesses into my buffer"""
-        if not self._is_master_process():
+        if not self._pipe_flag or not self._is_master_process():
             return
         for i in range(100):
             if self._pipe_poller.poll(0):
@@ -201,4 +203,3 @@ class OutStream(object):
     def _new_buffer(self):
         self._buffer = StringIO()
         self._start = -1
-        
