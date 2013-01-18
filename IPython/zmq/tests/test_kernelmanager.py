@@ -1,4 +1,4 @@
-"""Tests for the notebook kernel and session manager."""
+"""Tests for the notebook kernel and session manager"""
 
 from subprocess import PIPE
 import time

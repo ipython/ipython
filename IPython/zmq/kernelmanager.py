@@ -709,6 +709,7 @@ class KernelManager(Configurable):
     
     def __del__(self):
         self.cleanup_connection_file()
+        self.cleanup_ipc_files()
     
     #--------------------------------------------------------------------------
     # Channel management methods:
@@ -805,7 +806,7 @@ class KernelManager(Configurable):
         return self._hb_channel
 
     #--------------------------------------------------------------------------
-    # Connection and ipc file management.
+    # Connection and ipc file management
     #--------------------------------------------------------------------------
     
     def cleanup_connection_file(self):
@@ -820,8 +821,6 @@ class KernelManager(Configurable):
                 os.remove(self.connection_file)
             except (IOError, OSError):
                 pass
-            
-            self.cleanup_ipc_files()
     
     def cleanup_ipc_files(self):
         """Cleanup ipc files if we wrote them."""
@@ -866,7 +865,7 @@ class KernelManager(Configurable):
         self._connection_file_written = True
 
     #--------------------------------------------------------------------------
-    # Kernel management.
+    # Kernel management
     #--------------------------------------------------------------------------
 
     def start_kernel(self, **kw):
@@ -949,6 +948,7 @@ class KernelManager(Configurable):
 
         if not restart:
             self.cleanup_connection_file()
+            self.cleanup_ipc_files()
         else:
             self.cleanup_ipc_files()
 
