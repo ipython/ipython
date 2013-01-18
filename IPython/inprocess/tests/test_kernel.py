@@ -80,7 +80,7 @@ def get_stream_message(kernel_manager, timeout=5):
     """ Gets a single stream message synchronously from the sub channel.
     """
     while True:
-        msg = kernel_manager.sub_channel.get_msg(timeout=timeout)
+        msg = kernel_manager.iopub_channel.get_msg(timeout=timeout)
         if msg['header']['msg_type'] == 'stream':
             return msg
 

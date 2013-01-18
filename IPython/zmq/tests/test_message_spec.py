@@ -48,7 +48,7 @@ def teardown():
 
 def flush_channels():
     """flush any messages waiting on the queue"""
-    for channel in (KM.shell_channel, KM.sub_channel):
+    for channel in (KM.shell_channel, KM.iopub_channel):
         while True:
             try:
                 msg = channel.get_msg(block=True, timeout=0.1)
@@ -61,7 +61,7 @@ def flush_channels():
 def execute(code='', **kwargs):
     """wrapper for doing common steps for validating an execution request"""
     shell = KM.shell_channel
-    sub = KM.sub_channel
+    sub = KM.iopub_channel
     
     msg_id = shell.execute(code=code, **kwargs)
     reply = shell.get_msg(timeout=2)
@@ -310,23 +310,23 @@ def test_execute_silent():
     msg_id, reply = execute(code='x=1', silent=True)
     
     # flush status=idle
-    status = KM.sub_channel.get_msg(timeout=2)
+    status = KM.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
     nt.assert_equal(status['content']['execution_state'], 'idle')
 
-    yield nt.assert_raises(Empty, KM.sub_channel.get_msg, timeout=0.1)
+    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
     count = reply['execution_count']
     
     msg_id, reply = execute(code='x=2', silent=True)
     
     # flush status=idle
-    status = KM.sub_channel.get_msg(timeout=2)
+    status = KM.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
     yield nt.assert_equal(status['content']['execution_state'], 'idle')
     
-    yield nt.assert_raises(Empty, KM.sub_channel.get_msg, timeout=0.1)
+    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
     count_2 = reply['execution_count']
     yield nt.assert_equal(count_2, count)
 
@@ -339,7 +339,7 @@ def test_execute_error():
     yield nt.assert_equal(reply['status'], 'error')
     yield nt.assert_equal(reply['ename'], 'ZeroDivisionError')
     
-    pyerr = KM.sub_channel.get_msg(timeout=2)
+    pyerr = KM.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(pyerr, 'pyerr', msg_id):
         yield tst
 
@@ -475,7 +475,7 @@ def test_stream():
 
     msg_id, reply = execute("print('hi')")
 
-    stdout = KM.sub_channel.get_msg(timeout=2)
+    stdout = KM.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(stdout, 'stream', msg_id):
         yield tst
     content = stdout['content']
@@ -489,7 +489,7 @@ def test_display_data():
 
     msg_id, reply = execute("from IPython.core.display import display; display(1)")
     
-    display = KM.sub_channel.get_msg(timeout=2)
+    display = KM.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(display, 'display_data', parent=msg_id):
         yield tst
     data = display['content']['data']
