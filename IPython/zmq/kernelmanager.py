@@ -706,11 +706,7 @@ class KernelManager(Configurable):
     _stdin_channel = Any
     _hb_channel = Any
     _connection_file_written=Bool(False)
-    
-    def __del__(self):
-        self.cleanup_connection_file()
-        self.cleanup_ipc_files()
-    
+
     #--------------------------------------------------------------------------
     # Channel management methods:
     #--------------------------------------------------------------------------
