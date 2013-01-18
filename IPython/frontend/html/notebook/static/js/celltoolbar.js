@@ -46,22 +46,6 @@ var IPython = (function (IPython) {
     };
 
 
-    CellToolbar.dropdown_preset_element = $('<select/>')
-        .addClass('ui-widget ui-widget-content')
-        .attr('id', 'celltoolbar_selector')
-        .append($('<option/>').attr('value', '').text('None'))
-
-
-    CellToolbar.dropdown_preset_element.change(function() {
-        var val = CellToolbar.dropdown_preset_element.val()
-        if(val ==''){
-            CellToolbar.global_hide();
-        } else {
-            CellToolbar.global_show();
-            CellToolbar.activate_preset(val);
-        }
-    })
-
     // The default css style for the outer celltoolbar div
     // (ctb_hideshow) is display: none. We add the ctb_show
     // class to either 1) the body to show all cell's toolbars
@@ -98,6 +82,7 @@ var IPython = (function (IPython) {
      */
     CellToolbar._callback_dict = {};
 
+
     /**
      * Class variable that should contain the reverse order list of the button
      * to add to the toolbar of each cell
@@ -107,6 +92,7 @@ var IPython = (function (IPython) {
      * @type List
      */
     CellToolbar._ui_controls_list = [];
+
 
     /**
      * Class variable that should contains the CellToolbar instances for each
@@ -119,6 +105,7 @@ var IPython = (function (IPython) {
      */
     CellToolbar._instances =[]
 
+
     /**
      * keep a list of all the availlabel presets for the toolbar
      * @private
@@ -127,6 +114,7 @@ var IPython = (function (IPython) {
      * @type Dict
      */
     CellToolbar._presets ={}
+
 
     // this is by design not a prototype.
     /**
@@ -175,6 +163,7 @@ var IPython = (function (IPython) {
         CellToolbar._callback_dict[name] = callback;
     };
 
+
     /**
      * Register a preset of UI element in a cell toolbar.
      * Not supported Yet.
@@ -196,12 +185,28 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
-    CellToolbar.register_preset = function(name, preset_list){
+    CellToolbar.register_preset = function(name, preset_list) {
         CellToolbar._presets[name] = preset_list
-        CellToolbar.dropdown_preset_element.append(
-           $('<option/>').attr('value', name).text(name)
-        )
-    }
+        $([IPython.events]).trigger('preset_added.CellToolbar', {name: name});
+    };
+
+
+    /**
+     * List the names of the presets that are currently registered.
+     *
+     * @method list_presets
+     * @static
+     */
+    CellToolbar.list_presets = function() {
+        var keys = [];
+        for (var k in CellToolbar._presets) {
+            keys.push(k);
+        }
+        console.log(keys);
+        return keys;
+    };
+
+
     /**
      * Activate an UI preset from `register_preset`
      *
@@ -226,7 +231,6 @@ var IPython = (function (IPython) {
     }
 
 
-    // this is by design not a prototype.
     /**
      * This should be called on the class and not on a instance as it will trigger
      * rebuild of all the instances.
@@ -260,13 +264,13 @@ var IPython = (function (IPython) {
             this.inner_element.append(local_div)
             cdict[preset[index]](local_div, this.cell)
         }
-
     }
 
 
     /**
      */
     CellToolbar.utils = {};
+
 
     /**
      * A utility function to generate bindings between a checkbox and cell/metadata
@@ -323,6 +327,7 @@ var IPython = (function (IPython) {
 
         }
     }
+
 
     /**
      * A utility function to generate bindings between a dropdown list cell
