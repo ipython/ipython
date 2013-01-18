@@ -48,8 +48,14 @@ class TestKernelManager(TestCase):
         self.assertEqual(ip, cinfo['ip'])
         self.assertTrue('stdin_port' in cinfo)
         self.assertTrue('iopub_port' in cinfo)
+        stream = km.create_iopub_stream(kid)
+        stream.close()
         self.assertTrue('shell_port' in cinfo)
+        stream = km.create_shell_stream(kid)
+        stream.close()
         self.assertTrue('hb_port' in cinfo)
+        stream = km.create_hb_stream(kid)
+        stream.close()
         km.shutdown_kernel(kid)
 
     def test_tcp_lifecycle(self):
