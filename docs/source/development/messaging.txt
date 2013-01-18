@@ -640,6 +640,9 @@ Message type: ``history_request``::
       
     }
 
+.. versionadded:: 4.0
+   The key ``unique`` for ``history_request``.
+
 Message type: ``history_reply``::
 
     content = {
