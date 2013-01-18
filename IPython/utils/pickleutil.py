@@ -208,6 +208,19 @@ def _import_mapping(mapping, original=None):
             else:
                 mapping[cls] = mapping.pop(key)
 
+def istype(obj, check):
+    """like isinstance(obj, check), but strict
+    
+    This won't catch subclasses.
+    """
+    if isinstance(check, tuple):
+        for cls in check:
+            if type(obj) is cls:
+                return True
+        return False
+    else:
+        return type(obj) is check
+
 def can(obj):
     """prepare an object for pickling"""
     
@@ -217,7 +230,7 @@ def can(obj):
         if isinstance(cls, basestring):
             import_needed = True
             break
-        elif isinstance(obj, cls):
+        elif istype(obj, cls):
             return canner(obj)
     
     if import_needed:
