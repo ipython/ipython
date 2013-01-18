@@ -2246,6 +2246,10 @@ class InteractiveShell(SingletonConfigurable):
         else:
             cmd = py3compat.unicode_to_str(cmd)
             ec = os.system(cmd)
+            # The high byte is the exit code, the low byte is a signal number
+            # that we discard for now. See the docs for os.wait()
+            if ec > 255:
+                ec >>= 8
         
         # We explicitly do NOT return the subprocess status code, because
         # a non-None value would trigger :func:`sys.displayhook` calls.
