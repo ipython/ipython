@@ -384,6 +384,22 @@ class InteractiveShellTestCase(unittest.TestCase):
         finally:
             # Reset the custom exception hook
             ip.set_custom_exc((), None)
+    
+    @skipif(sys.version_info[0] >= 3, "no differences with __future__ in py3")
+    def test_future_environment(self):
+        "Can we run code with & without the shell's __future__ imports?"
+        ip.run_cell("from __future__ import division")
+        ip.run_cell("a = 1/2", shell_futures=True)
+        self.assertEqual(ip.user_ns['a'], 0.5)
+        ip.run_cell("b = 1/2", shell_futures=False)
+        self.assertEqual(ip.user_ns['b'], 0)
+        
+        ip.compile.reset_compiler_flags()
+        # This shouldn't leak to the shell's compiler
+        ip.run_cell("from __future__ import division \nc=1/2", shell_futures=False)
+        self.assertEqual(ip.user_ns['c'], 0.5)
+        ip.run_cell("d = 1/2", shell_futures=True)
+        self.assertEqual(ip.user_ns['d'], 0)
 
 
 class TestSafeExecfileNonAsciiPath(unittest.TestCase):
