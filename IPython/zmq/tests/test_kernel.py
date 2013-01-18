@@ -13,6 +13,7 @@
 
 import os
 import shutil
+import sys
 import tempfile
 
 from Queue import Empty
@@ -124,6 +125,7 @@ def test_simple_print():
     print ('hello')
 
 
+@dec.knownfailureif(sys.platform == 'win32', "subprocess prints fail on Windows")
 def test_subprocess_print():
     """printing from forked mp.Process"""
     with new_kernel() as km:
@@ -162,7 +164,7 @@ def test_subprocess_noprint():
         np = 5
         code = '\n'.join([
             "import multiprocessing as mp",
-            "pool = [mp.Process(target=range,args=(i,)) for i in range(%i)]" % np,
+            "pool = [mp.Process(target=range, args=(i,)) for i in range(%i)]" % np,
             "for p in pool: p.start()",
             "for p in pool: p.join()"
         ])
@@ -176,6 +178,7 @@ def test_subprocess_noprint():
         _check_mp_mode(km, expected=False, stream="stderr")
 
 
+@dec.knownfailureif(sys.platform == 'win32', "subprocess prints fail on Windows")
 def test_subprocess_error():
     """error in mp.Process doesn't crash"""
     with new_kernel() as km:
