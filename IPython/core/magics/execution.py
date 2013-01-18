@@ -93,7 +93,7 @@ python-profiler package from non-free.""")
         empty) statement in the first line.  Cell mode allows you to easily
         profile multiline blocks without having to put them in a separate
         function.
-        
+
         The given statement (which doesn't require quote marks) is run via the
         python profiler in a manner similar to the profile.run() function.
         Namespaces are internally managed to work correctly; profile.run
@@ -555,7 +555,7 @@ python-profiler package from non-free.""")
                         bdb.Breakpoint.bpbynumber = [None]
                         # Set an initial breakpoint to stop execution
                         maxtries = 10
-                        bp_file, bp_line = parse_breakpoint(opts.get('b', [1])[0], filename)
+                        bp_file, bp_line = parse_breakpoint(opts.get('b', ['1'])[0], filename)
                         checkline = deb.checkline(bp_file, bp_line)
                         if not checkline:
                             for bp in range(bp_line + 1, bp_line + maxtries + 1):
@@ -790,7 +790,7 @@ python-profiler package from non-free.""")
         # but is there a better way to achieve that the code stmt has access
         # to the shell namespace?
         transform  = self.shell.input_splitter.transform_cell
-        
+
         if cell is None:
             # called as line magic
             ast_setup = ast.parse("pass")
@@ -798,10 +798,10 @@ python-profiler package from non-free.""")
         else:
             ast_setup = ast.parse(transform(stmt))
             ast_stmt = ast.parse(transform(cell))
-        
+
         ast_setup = self.shell.transform_ast(ast_setup)
         ast_stmt = self.shell.transform_ast(ast_stmt)
-        
+
         # This codestring is taken from timeit.template - we fill it in as an
         # AST, so that we can apply our AST transformations to the user code
         # without affecting the timing code.
@@ -812,7 +812,7 @@ python-profiler package from non-free.""")
                                         '        stmt\n'
                                         '    _t1 = _timer()\n'
                                         '    return _t1 - _t0\n')
-        
+
         class TimeitTemplateFiller(ast.NodeTransformer):
             "This is quite tightly tied to the template definition above."
             def visit_FunctionDef(self, node):
@@ -820,15 +820,15 @@ python-profiler package from non-free.""")
                 self.generic_visit(node)
                 if node.name == "inner":
                     node.body[:1] = ast_setup.body
-                
+
                 return node
-            
+
             def visit_For(self, node):
                 "Fill in the statement to be timed"
                 if getattr(getattr(node.body[0], 'value', None), 'id', None) == 'stmt':
                     node.body = ast_stmt.body
                 return node
-        
+
         timeit_ast = TimeitTemplateFiller().visit(timeit_ast_template)
         timeit_ast = ast.fix_missing_locations(timeit_ast)
 
@@ -921,14 +921,14 @@ python-profiler package from non-free.""")
         # fail immediately if the given expression can't be compiled
 
         expr = self.shell.prefilter(parameter_s,False)
-        
+
         # Minimum time above which parse time will be reported
         tp_min = 0.1
-        
+
         t0 = clock()
         expr_ast = ast.parse(expr)
         tp = clock()-t0
-        
+
         # Apply AST transformations
         expr_ast = self.shell.transform_ast(expr_ast)
 
@@ -945,7 +945,7 @@ python-profiler package from non-free.""")
         t0 = clock()
         code = compile(expr_ast, source, mode)
         tc = clock()-t0
-        
+
         # skew measurement as little as possible
         glob = self.shell.user_ns
         wtime = time.time
@@ -1053,17 +1053,17 @@ python-profiler package from non-free.""")
         print 'Macro `%s` created. To execute, type its name (without quotes).' % name
         print '=== Macro contents: ==='
         print macro,
-    
+
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',
         help="""The name of the variable in which to store output.
         This is a utils.io.CapturedIO object with stdout/err attributes
         for the text of the captured output.
-        
+
         CapturedOutput also has a show() method for displaying the output,
         and __call__ as well, so you can use that to quickly display the
         output.
-        
+
         If unspecified, captured output is discarded.
         """
     )
