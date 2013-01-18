@@ -504,7 +504,7 @@ class Kernel(Configurable):
 
         elif hist_access_type == 'search':
             n = parent['content'].get('n')
-            unique = parent['content'].get('unique')
+            unique = parent['content'].get('unique', False)
             pattern = parent['content']['pattern']
             hist = self.shell.history_manager.search(
                 pattern, raw=raw, output=output, n=n, unique=unique)
