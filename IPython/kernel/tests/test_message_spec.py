@@ -50,7 +50,7 @@ def flush_channels(km=None):
     if km is None:
         km = KM
     """flush any messages waiting on the queue"""
-    for channel in (KM.shell_channel, KM.iopub_channel):
+    for channel in (km.shell_channel, km.iopub_channel):
         while True:
             try:
                 msg = channel.get_msg(block=True, timeout=0.1)

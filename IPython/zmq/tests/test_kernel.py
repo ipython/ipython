@@ -108,14 +108,14 @@ def _check_mp_mode(km, expected=False, stream="stdout"):
     execute(km=km, code="import sys")
     flush_channels(km)
     msg_id, content = execute(km=km, code="print (sys.%s._check_mp_mode())" % stream)
-    stdout, stderr = assemble_output(km.sub_channel)
+    stdout, stderr = assemble_output(km.iopub_channel)
     nt.assert_equal(eval(stdout.strip()), expected)
 
 
 def test_simple_print():
     """simple print statement in kernel"""
     with new_kernel() as km:
-        iopub = km.sub_channel
+        iopub = km.iopub_channel
         msg_id, content = execute(km=km, code="print ('hi')")
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, 'hi\n')
@@ -127,7 +127,7 @@ def test_simple_print():
 def test_subprocess_print():
     """printing from forked mp.Process"""
     with new_kernel() as km:
-        iopub = km.sub_channel
+        iopub = km.iopub_channel
         
         _check_mp_mode(km, expected=False)
         flush_channels(km)
@@ -158,7 +158,7 @@ def test_subprocess_print():
 def test_subprocess_noprint():
     """mp.Process without print doesn't trigger iostream mp_mode"""
     with new_kernel() as km:
-        iopub = km.sub_channel
+        iopub = km.iopub_channel
         
         np = 5
         code = '\n'.join([
@@ -182,7 +182,7 @@ def test_subprocess_noprint():
 def test_subprocess_error():
     """error in mp.Process doesn't crash"""
     with new_kernel() as km:
-        iopub = km.sub_channel
+        iopub = km.iopub_channel
         
         code = '\n'.join([
             "import multiprocessing as mp",
