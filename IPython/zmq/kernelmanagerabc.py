@@ -161,7 +161,7 @@ class KernelManagerABC(object):
         pass
 
     #--------------------------------------------------------------------------
-    # Channel management methods:
+    # Channel management methods
     #--------------------------------------------------------------------------
 
     @abc.abstractmethod
@@ -193,7 +193,7 @@ class KernelManagerABC(object):
         pass
 
     #--------------------------------------------------------------------------
-    # Kernel management.
+    # Kernel management
     #--------------------------------------------------------------------------
 
     @abc.abstractmethod
