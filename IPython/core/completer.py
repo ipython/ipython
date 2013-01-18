@@ -76,7 +76,6 @@ import os
 import re
 import shlex
 import sys
-import StringIO
 
 from IPython.config.configurable import Configurable
 from IPython.core.error import TryNext
@@ -672,7 +671,7 @@ class IPCompleter(Completer):
         return matches
 
     def _default_arguments_from_docstring(self, doc):
-        """Parse first line of docstring for call signature.
+        """Parse the first line of docstring for call signature.
 
         Docstring should be of the form 'min(iterable[, key=func])\n'.
         It can also parse cython docstring of the form
@@ -680,10 +679,10 @@ class IPCompleter(Completer):
         """
         if doc is None:
             return []
-        sio = StringIO.StringIO(doc.lstrip())
+
         #care only the firstline
-        #docstring can be long
-        line = sio.readline()
+        line = doc.lstrip().splitlines()[0]
+
         #p = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
         #'min(iterable[, key=func])\n' -> 'iterable[, key=func]'
         sig = self.docstring_sig_re.search(line)
