@@ -414,6 +414,11 @@ class TestSystemRaw(unittest.TestCase):
         """
         cmd = ur'''python -c "'åäö'"   '''
         ip.system_raw(cmd)
+    
+    def test_exit_code(self):
+        """Test that the exit code is parsed correctly."""
+        ip.system_raw('exit 1')
+        self.assertEqual(ip.user_ns['_exit_code'], 1)
 
 class TestModules(unittest.TestCase, tt.TempFileMixin):
     def test_extraneous_loads(self):
