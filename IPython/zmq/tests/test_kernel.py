@@ -133,10 +133,9 @@ def test_subprocess_print():
         flush_channels(km)
         np = 5
         code = '\n'.join([
+            "from __future__ import print_function",
             "import multiprocessing as mp",
-            "def f(x):",
-            "    print('hello',x)",
-            "pool = [mp.Process(target=f,args=(i,)) for i in range(%i)]" % np,
+            "pool = [mp.Process(target=print, args=('hello', i,)) for i in range(%i)]" % np,
             "for p in pool: p.start()",
             "for p in pool: p.join()"
         ])
@@ -163,9 +162,7 @@ def test_subprocess_noprint():
         np = 5
         code = '\n'.join([
             "import multiprocessing as mp",
-            "def f(x):",
-            "    return x",
-            "pool = [mp.Process(target=f,args=(i,)) for i in range(%i)]" % np,
+            "pool = [mp.Process(target=range,args=(i,)) for i in range(%i)]" % np,
             "for p in pool: p.start()",
             "for p in pool: p.join()"
         ])
@@ -186,9 +183,7 @@ def test_subprocess_error():
         
         code = '\n'.join([
             "import multiprocessing as mp",
-            "def f():",
-            "    return 1/0",
-            "p = mp.Process(target=f)",
+            "p = mp.Process(target=int, args=('hi',))",
             "p.start()",
             "p.join()",
         ])
@@ -196,7 +191,7 @@ def test_subprocess_error():
         msg_id, content = execute(km=km, code=code)
         stdout, stderr = assemble_output(iopub)
         nt.assert_equal(stdout, '')
-        nt.assert_true("ZeroDivisionError" in stderr, stderr)
+        nt.assert_true("ValueError" in stderr, stderr)
 
         _check_mp_mode(km, expected=False)
         _check_mp_mode(km, expected=False, stream="stderr")
