@@ -396,7 +396,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info and info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_manager.sub_channel.flush()
+            self.kernel_manager.iopub_channel.flush()
 
             # Reset the ANSI style information to prevent bad text in stdout
             # from messing up our colors. We're not a true terminal so we're
@@ -431,7 +431,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
-        self.kernel_manager.sub_channel.flush()
+        self.kernel_manager.iopub_channel.flush()
 
         def callback(line):
             self.kernel_manager.stdin_channel.input(line)

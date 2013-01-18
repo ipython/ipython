@@ -3,22 +3,22 @@
 
 # Local imports.
 from IPython.utils.traitlets import Type
-from IPython.zmq.kernelmanager import ShellSocketChannel, SubSocketChannel, \
-    StdInSocketChannel, HBSocketChannel, KernelManager
-from base_kernelmanager import QtShellChannelMixin, QtSubChannelMixin, \
+from IPython.zmq.kernelmanager import ShellChannel, IOPubChannel, \
+    StdInChannel, HBChannel, KernelManager
+from base_kernelmanager import QtShellChannelMixin, QtIOPubChannelMixin, \
     QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin
 
 
-class QtShellSocketChannel(QtShellChannelMixin, ShellSocketChannel):
+class QtShellChannel(QtShellChannelMixin, ShellChannel):
     pass
 
-class QtSubSocketChannel(QtSubChannelMixin, SubSocketChannel):
+class QtIOPubChannel(QtIOPubChannelMixin, IOPubChannel):
     pass
 
-class QtStdInSocketChannel(QtStdInChannelMixin, StdInSocketChannel):
+class QtStdInChannel(QtStdInChannelMixin, StdInChannel):
     pass
 
-class QtHBSocketChannel(QtHBChannelMixin, HBSocketChannel):
+class QtHBChannel(QtHBChannelMixin, HBChannel):
     pass
 
 
@@ -26,7 +26,7 @@ class QtKernelManager(QtKernelManagerMixin, KernelManager):
     """ A KernelManager that provides signals and slots.
     """
 
-    sub_channel_class = Type(QtSubSocketChannel)
-    shell_channel_class = Type(QtShellSocketChannel)
-    stdin_channel_class = Type(QtStdInSocketChannel)
-    hb_channel_class = Type(QtHBSocketChannel)
+    iopub_channel_class = Type(QtIOPubChannel)
+    shell_channel_class = Type(QtShellChannel)
+    stdin_channel_class = Type(QtStdInChannel)
+    hb_channel_class = Type(QtHBChannel)

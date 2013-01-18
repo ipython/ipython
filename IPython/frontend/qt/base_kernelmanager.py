@@ -69,7 +69,7 @@ class QtShellChannelMixin(ChannelQObject):
     _handlers_called = False
 
     #---------------------------------------------------------------------------
-    # 'ShellSocketChannel' interface
+    # 'ShellChannel' interface
     #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
@@ -98,7 +98,7 @@ class QtShellChannelMixin(ChannelQObject):
         self._handlers_called = False
 
 
-class QtSubChannelMixin(ChannelQObject):
+class QtIOPubChannelMixin(ChannelQObject):
 
     # Emitted when any message is received.
     message_received = QtCore.Signal(object)
@@ -126,7 +126,7 @@ class QtSubChannelMixin(ChannelQObject):
     shutdown_reply_received = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
-    # 'SubSocketChannel' interface
+    # 'IOPubChannel' interface
     #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
@@ -145,7 +145,7 @@ class QtSubChannelMixin(ChannelQObject):
     def flush(self):
         """ Reimplemented to ensure that signals are dispatched immediately.
         """
-        super(QtSubChannelMixin, self).flush()
+        super(QtIOPubChannelMixin, self).flush()
         QtCore.QCoreApplication.instance().processEvents()
 
 
@@ -158,7 +158,7 @@ class QtStdInChannelMixin(ChannelQObject):
     input_requested = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
-    # 'StdInSocketChannel' interface
+    # 'StdInChannel' interface
     #---------------------------------------------------------------------------
 
     def call_handlers(self, msg):
@@ -179,7 +179,7 @@ class QtHBChannelMixin(ChannelQObject):
     kernel_died = QtCore.Signal(object)
 
     #---------------------------------------------------------------------------
-    # 'HBSocketChannel' interface
+    # 'HBChannel' interface
     #---------------------------------------------------------------------------
 
     def call_handlers(self, since_last_heartbeat):
@@ -205,7 +205,7 @@ class QtKernelManagerMixin(HasTraits, SuperQObject):
     stopped_channels = QtCore.Signal()
 
     # Use Qt-specific channel classes that emit signals.
-    sub_channel_class = Type(QtSubChannelMixin)
+    iopub_channel_class = Type(QtIOPubChannelMixin)
     shell_channel_class = Type(QtShellChannelMixin)
     stdin_channel_class = Type(QtStdInChannelMixin)
     hb_channel_class = Type(QtHBChannelMixin)

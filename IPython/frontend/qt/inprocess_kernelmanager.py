@@ -3,23 +3,23 @@
 
 # Local imports.
 from IPython.inprocess.kernelmanager import \
-    ShellInProcessChannel, SubInProcessChannel, StdInInProcessChannel, \
-    HBInProcessChannel, InProcessKernelManager
+    InProcessShellChannel, InProcessIOPubChannel, InProcessStdInChannel, \
+    InProcessHBChannel, InProcessKernelManager
 from IPython.utils.traitlets import Type
-from base_kernelmanager import QtShellChannelMixin, QtSubChannelMixin, \
+from base_kernelmanager import QtShellChannelMixin, QtIOPubChannelMixin, \
     QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin
 
 
-class QtShellInProcessChannel(QtShellChannelMixin, ShellInProcessChannel):
+class QtInProcessShellChannel(QtShellChannelMixin, InProcessShellChannel):
     pass
 
-class QtSubInProcessChannel(QtSubChannelMixin, SubInProcessChannel):
+class QtInProcessIOPubChannel(QtIOPubChannelMixin, InProcessIOPubChannel):
     pass
 
-class QtStdInInProcessChannel(QtStdInChannelMixin, StdInInProcessChannel):
+class QtInProcessStdInChannel(QtStdInChannelMixin, InProcessStdInChannel):
     pass
 
-class QtHBInProcessChannel(QtHBChannelMixin, HBInProcessChannel):
+class QtInProcessHBChannel(QtHBChannelMixin, InProcessHBChannel):
     pass
 
 
@@ -27,7 +27,7 @@ class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
     """ An in-process KernelManager with signals and slots.
     """
 
-    sub_channel_class = Type(QtSubInProcessChannel)
-    shell_channel_class = Type(QtShellInProcessChannel)
-    stdin_channel_class = Type(QtStdInInProcessChannel)
-    hb_channel_class = Type(QtHBInProcessChannel)
+    iopub_channel_class = Type(QtInProcessIOPubChannel)
+    shell_channel_class = Type(QtInProcessShellChannel)
+    stdin_channel_class = Type(QtInProcessStdInChannel)
+    hb_channel_class = Type(QtInProcessHBChannel)

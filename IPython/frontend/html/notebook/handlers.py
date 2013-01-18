@@ -330,7 +330,7 @@ class MainKernelHandler(AuthenticatedHandler):
     @web.authenticated
     def get(self):
         km = self.application.kernel_manager
-        self.finish(jsonapi.dumps(km.kernel_ids))
+        self.finish(jsonapi.dumps(km.list_kernel_ids()))
 
     @web.authenticated
     def post(self):
@@ -364,9 +364,9 @@ class KernelActionHandler(AuthenticatedHandler):
             km.interrupt_kernel(kernel_id)
             self.set_status(204)
         if action == 'restart':
-            new_kernel_id = km.restart_kernel(kernel_id)
-            data = {'ws_url':self.ws_url,'kernel_id':new_kernel_id}
-            self.set_header('Location', '/'+new_kernel_id)
+            km.restart_kernel(kernel_id)
+            data = {'ws_url':self.ws_url, 'kernel_id':kernel_id}
+            self.set_header('Location', '/'+kernel_id)
             self.write(jsonapi.dumps(data))
         self.finish()
 
@@ -416,7 +416,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
     def open(self, kernel_id):
         self.kernel_id = kernel_id.decode('ascii')
         try:
-            cfg = self.application.ipython_app.config
+            cfg = self.application.config
         except AttributeError:
             # protect from the case where this is run from something other than
             # the notebook app:
@@ -541,9 +541,13 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             if not self.hb_stream.closed():
                 self.hb_stream.on_recv(None)
 
-    def kernel_died(self):
+    def _delete_kernel_data(self):
+        """Remove the kernel data and notebook mapping."""
         self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
-        self.application.log.error("Kernel %s failed to respond to heartbeat", self.kernel_id)
+
+    def kernel_died(self):
+        self._delete_kernel_data()
+        self.application.log.error("Kernel died: %s" % self.kernel_id)
         self.write_message(
             {'header': {'msg_type': 'status'},
              'parent_header': {},

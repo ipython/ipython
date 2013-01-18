@@ -13,26 +13,58 @@ Useful for test suites and blocking terminal interfaces.
 # Imports
 #-----------------------------------------------------------------------------
 
-# Local imports.
-from IPython.inprocess.blockingkernelmanager import BlockingChannelMixin
+import Queue
+
 from IPython.utils.traitlets import Type
-from kernelmanager import KernelManager, SubSocketChannel, HBSocketChannel, \
-    ShellSocketChannel, StdInSocketChannel
+from kernelmanager import KernelManager, IOPubChannel, HBChannel, \
+    ShellChannel, StdInChannel
 
 #-----------------------------------------------------------------------------
 # Blocking kernel manager
 #-----------------------------------------------------------------------------
 
-class BlockingSubSocketChannel(BlockingChannelMixin, SubSocketChannel):
+
+class BlockingChannelMixin(object):
+    
+    def __init__(self, *args, **kwds):
+        super(BlockingChannelMixin, self).__init__(*args, **kwds)
+        self._in_queue = Queue.Queue()
+        
+    def call_handlers(self, msg):
+        self._in_queue.put(msg)
+        
+    def get_msg(self, block=True, timeout=None):
+        """ Gets a message if there is one that is ready. """
+        return self._in_queue.get(block, timeout)
+        
+    def get_msgs(self):
+        """ Get all messages that are currently ready. """
+        msgs = []
+        while True:
+            try:
+                msgs.append(self.get_msg(block=False))
+            except Queue.Empty:
+                break
+        return msgs
+    
+    def msg_ready(self):
+        """ Is there a message that has been received? """
+        return not self._in_queue.empty()
+
+
+class BlockingIOPubChannel(BlockingChannelMixin, IOPubChannel):
     pass
 
-class BlockingShellSocketChannel(BlockingChannelMixin, ShellSocketChannel):
+
+class BlockingShellChannel(BlockingChannelMixin, ShellChannel):
     pass
 
-class BlockingStdInSocketChannel(BlockingChannelMixin, StdInSocketChannel):
+
+class BlockingStdInChannel(BlockingChannelMixin, StdInChannel):
     pass
 
-class BlockingHBSocketChannel(HBSocketChannel):
+
+class BlockingHBChannel(HBChannel):
     
     # This kernel needs quicker monitoring, shorten to 1 sec.
     # less than 0.5s is unreliable, and will get occasional
@@ -43,11 +75,12 @@ class BlockingHBSocketChannel(HBSocketChannel):
         """ Pause beating on missed heartbeat. """
         pass
 
+
 class BlockingKernelManager(KernelManager):
     
     # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingShellSocketChannel)
-    sub_channel_class = Type(BlockingSubSocketChannel)
-    stdin_channel_class = Type(BlockingStdInSocketChannel)
-    hb_channel_class = Type(BlockingHBSocketChannel)
-  
+    shell_channel_class = Type(BlockingShellChannel)
+    iopub_channel_class = Type(BlockingIOPubChannel)
+    stdin_channel_class = Type(BlockingStdInChannel)
+    hb_channel_class = Type(BlockingHBChannel)
+

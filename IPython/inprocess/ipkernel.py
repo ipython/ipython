@@ -123,7 +123,7 @@ class InProcessKernel(Kernel):
         """
         ident, msg = self.session.recv(self.iopub_socket, copy=False)
         for frontend in self.frontends:
-            frontend.sub_channel.call_handlers(msg)
+            frontend.iopub_channel.call_handlers(msg)
         
     #------ Trait initializers -----------------------------------------------
 
