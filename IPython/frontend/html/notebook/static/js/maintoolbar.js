@@ -121,7 +121,7 @@ var IPython = (function (IPython) {
         this.element
             .append($('<select/>')
                 .attr('id','cell_type')
-                .addClass('ui-widget ui-widget-content')
+                .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw Text'))
@@ -138,7 +138,7 @@ var IPython = (function (IPython) {
     MainToolBar.prototype.add_celltoolbar_list = function () {
         var label = $('<label/>').text('Cell Toolbar:');
         var select = $('<select/>')
-            .addClass('ui-widget ui-widget-content')
+            .addClass('ui-widget-content')
             .attr('id', 'ctb_select')
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);
