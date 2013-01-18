@@ -456,10 +456,12 @@ syntax = \
         ]],
 
        classic_prompt =
-       [('>>> x=1', 'x=1'),
+       [('>>> x=1', 'x=1'), # classic prompt
+        ('>>>x=1', 'x=1'), # classic prompt, no space
         ('x=1', 'x=1'), # normal input is unmodified
         ('    ', '    '),  # blank lines are kept intact
         ('... ', ''), # continuation prompts
+        ('...x=1', 'x=1'), # continuation prompts, no space
         ],
 
        ipy_prompt =

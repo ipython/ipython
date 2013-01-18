@@ -567,7 +567,7 @@ def transform_assign_magic(line):
     return line
 
 
-_classic_prompt_re = re.compile(r'^([ \t]*>>> |^[ \t]*\.\.\. )')
+_classic_prompt_re = re.compile(r'^([ \t]*>>> ?|^[ \t]*\.\.\. ?)')
 
 def transform_classic_prompt(line):
     """Handle inputs that start with '>>> ' syntax."""
