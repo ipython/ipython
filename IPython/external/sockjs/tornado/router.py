@@ -6,7 +6,8 @@
     SockJS protocol router implementation.
 """
 
-from tornado import ioloop, version_info
+from tornado import version_info
+from zmq.eventloop import ioloop
 
 from IPython.external.sockjs.tornado import transports, session, sessioncontainer, static, stats, proto
 

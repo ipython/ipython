@@ -1,6 +1,6 @@
 from collections import deque
 
-from tornado import ioloop
+from zmq.eventloop import ioloop
 
 
 class MovingAverage(object):
