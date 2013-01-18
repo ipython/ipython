@@ -4,6 +4,8 @@ from subprocess import PIPE
 import time
 from unittest import TestCase
 
+from IPython.testing import decorators as dec
+
 from IPython.config.loader import Config
 from IPython.zmq.kernelmanager import KernelManager
 
@@ -39,6 +41,7 @@ class TestKernelManager(TestCase):
         km = self._get_tcp_km()
         self._run_lifecycle(km)
 
+    @dec.skip_win32
     def testipc_lifecycle(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
