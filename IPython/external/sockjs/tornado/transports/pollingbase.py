@@ -16,6 +16,7 @@ class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin
         super(PollingTransportBase, self).initialize(server)
 
         self.session = None
+        self.active = True
 
     def _get_session(self, session_id):
         return self.server.get_session(session_id)
@@ -46,13 +47,14 @@ class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin
     def check_xsrf_cookie(self):
         pass
 
-    def send_message(self, message):
+    def send_message(self, message, binary=False):
         """Called by the session when some data is available"""
         raise NotImplementedError()
 
     def session_closed(self):
         """Called by the session when it was closed"""
         self._detach()
+        self.safe_finish()
 
     def on_connection_close(self):
         # If connection was dropped by the client, close session.
@@ -61,3 +63,7 @@ class PollingTransportBase(basehandler.PreflightHandler, base.BaseTransportMixin
             self.session.close(1002, 'Connection interrupted')
 
         super(PollingTransportBase, self).on_connection_close()
+
+    def send_complete(self):
+        self._detach()
+        self.safe_finish()

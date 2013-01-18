@@ -22,6 +22,7 @@ class XhrPollingTransport(pollingbase.PollingTransportBase):
         # Start response
         self.preflight()
         self.handle_session_cookie()
+        self.disable_cache()
 
         # Get or create session without starting heartbeat
         if not self._attach_session(session_id, False):
@@ -36,25 +37,28 @@ class XhrPollingTransport(pollingbase.PollingTransportBase):
         else:
             self.session.flush()
 
-    def send_pack(self, message):
+    def send_pack(self, message, binary=False):
+        if binary:
+            raise Exception('binary not supported for XhrPollingTransport')
+
+        self.active = False
+
         try:
             self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
             self.set_header('Content-Length', len(message) + 1)
             self.write(message + '\n')
+            self.flush(callback=self.send_complete)
         except IOError:
             # If connection dropped, make sure we close offending session instead
             # of propagating error all way up.
             self.session.delayed_close()
-
-        self._detach()
-
-        self.safe_finish()
 
 
 class XhrSendHandler(pollingbase.PollingTransportBase):
     def post(self, session_id):
         self.preflight()
         self.handle_session_cookie()
+        self.disable_cache()
 
         session = self._get_session(session_id)
 

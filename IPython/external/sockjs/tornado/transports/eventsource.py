@@ -32,19 +32,21 @@ class EventSourceTransport(streamingbase.StreamingTransportBase):
         if self.session:
             self.session.flush()
 
-    def send_pack(self, message):
+    def send_pack(self, message, binary=False):
+        if binary:
+            raise Exception('binary not supported for EventSourceTransport')
+
         msg = 'data: %s\r\n\r\n' % message
 
+        self.active = False
+
         try:
+            self.notify_sent(len(msg))
+
             self.write(msg)
-            self.flush()
+            self.flush(callback=self.send_complete)
         except IOError:
             # If connection dropped, make sure we close offending session instead
             # of propagating error all way up.
             self.session.delayed_close()
             self._detach()
-
-        # Close connection based on amount of data transferred
-        if self.should_finish(len(msg)):
-            self._detach()
-            self.safe_finish()

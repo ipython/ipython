@@ -39,14 +39,14 @@ class SockJSConnection(object):
         """Default on_close handler."""
         pass
 
-    def send(self, message):
+    def send(self, message, binary=False):
         """Send message to the client.
 
         `message`
             Message to send.
         """
         if not self.is_closed:
-            self.session.send_message(message)
+            self.session.send_message(message, binary=binary)
 
     def broadcast(self, clients, message):
         """Broadcast message to the one or more clients.

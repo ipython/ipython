@@ -19,6 +19,7 @@ class WebSocketTransport(websocket.WebSocketHandler, base.BaseTransportMixin):
     def initialize(self, server):
         self.server = server
         self.session = None
+        self.active = True
 
     def open(self, session_id):
         # Stats
@@ -46,7 +47,7 @@ class WebSocketTransport(websocket.WebSocketHandler, base.BaseTransportMixin):
             self.session = None
 
     def on_message(self, message):
-        # Ignore empty messages
+        # SockJS requires that empty messages should be ignored
         if not message or not self.session:
             return
 
@@ -77,10 +78,10 @@ class WebSocketTransport(websocket.WebSocketHandler, base.BaseTransportMixin):
             self._detach()
             session.close()
 
-    def send_pack(self, message):
+    def send_pack(self, message, binary=False):
         # Send message
         try:
-            self.write_message(message)
+            self.write_message(message, binary)
         except IOError:
             self.server.io_loop.add_callback(self.on_close)
 

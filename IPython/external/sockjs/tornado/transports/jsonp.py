@@ -44,7 +44,12 @@ class JSONPTransport(pollingbase.PollingTransportBase):
         else:
             self.session.flush()
 
-    def send_pack(self, message):
+    def send_pack(self, message, binary=False):
+        if binary:
+            raise Exception('binary not supported for JSONPTransport')
+
+        self.active = False
+
         try:
             # TODO: Just escape
             msg = '%s(%s);\r\n' % (self.callback, proto.json_encode(message))
@@ -56,20 +61,18 @@ class JSONPTransport(pollingbase.PollingTransportBase):
             self.set_header('Etag', 'dummy')
 
             self.write(msg)
+            self.flush(callback=self.send_complete)
         except IOError:
             # If connection dropped, make sure we close offending session instead
             # of propagating error all way up.
             self.session.delayed_close()
-
-        self._detach()
-
-        self.safe_finish()
 
 
 class JSONPSendHandler(pollingbase.PollingTransportBase):
     def post(self, session_id):
         self.preflight()
         self.handle_session_cookie()
+        self.disable_cache()
 
         session = self._get_session(session_id)
 

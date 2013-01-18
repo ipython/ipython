@@ -19,6 +19,7 @@ class XhrStreamingTransport(streamingbase.StreamingTransportBase):
         # Handle cookie
         self.preflight()
         self.handle_session_cookie()
+        self.disable_cache()
         self.set_header('Content-Type', 'application/javascript; charset=UTF-8')
 
         # Send prelude and flush any pending messages
@@ -32,17 +33,19 @@ class XhrStreamingTransport(streamingbase.StreamingTransportBase):
         if self.session:
             self.session.flush()
 
-    def send_pack(self, message):
+    def send_pack(self, message, binary=False):
+        if binary:
+            raise Exception('binary not supported for XhrStreamingTransport')
+
+        self.active = False
+
         try:
+            self.notify_sent(len(message))
+
             self.write(message + '\n')
-            self.flush()
+            self.flush(callback=self.send_complete)
         except IOError:
             # If connection dropped, make sure we close offending session instead
             # of propagating error all way up.
             self.session.delayed_close()
             self._detach()
-
-        # Close connection based on amount of data transferred
-        if self.should_finish(len(message) + 1):
-            self._detach()
-            self.safe_finish()

@@ -11,20 +11,34 @@ class StreamingTransportBase(pollingbase.PollingTransportBase):
         if hasattr(self.request, 'connection') and not self.request.supports_http_1_1():
             self.request.connection.no_keep_alive = True
 
-    def should_finish(self, data_len):
-        """Check if transport should close long running connection after
-        sending X bytes to the client.
-
-        `data_len`
-            Amount of data that was sent
+    def notify_sent(self, data_len):
+        """
+            Update amount of data sent
         """
         self.amount_limit -= data_len
 
+    def should_finish(self):
+        """
+            Check if transport should close long running connection after
+            sending X bytes to the client.
+
+            `data_len`
+                Amount of data that was sent
+        """
         if self.amount_limit <= 0:
             return True
 
-    def session_closed(self):
-        """Called by the session when it was closed"""
-        self._detach()
+        return False
 
-        self.safe_finish()
+    def send_complete(self):
+        """
+            Verify if connection should be closed based on amount of data that was sent.
+        """
+        self.active = True
+
+        if self.should_finish():
+            self._detach()
+            self.safe_finish()
+        else:
+            if self.session:
+                self.session.flush()
