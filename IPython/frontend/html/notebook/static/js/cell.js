@@ -51,7 +51,6 @@ var IPython = (function (IPython) {
      * @method create_element
      */
     Cell.prototype.create_element = function () {
-        this.celltoolbar = new IPython.CellToolbar(this);
     };
 
 

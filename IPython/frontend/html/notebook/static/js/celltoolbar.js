@@ -19,7 +19,6 @@
 var IPython = (function (IPython) {
     "use strict";
 
-
     /**
      * @constructor
      * @class CellToolbar
@@ -27,29 +26,50 @@ var IPython = (function (IPython) {
      */
     var CellToolbar = function (cell) {
         CellToolbar._instances.push(this);
-        this.inner_element = $('<div/>');
         this.cell = cell;
-        this.element = $('<div/>').addClass('celltoolbar')
-                .append(this.inner_element)
+        this.create_element();
         this.rebuild();
         return this;
     };
 
-    CellToolbar.dropdown_preset_element = $('<select/>')
-        .addClass('ui-widget ui-widget-content')
-        .attr('id', 'celltoolbar_selector')
-        .append($('<option/>').attr('value', '').text('None'))
 
-    CellToolbar.dropdown_preset_element.change(function(){
-        var val = CellToolbar.dropdown_preset_element.val()
-        if(val ==''){
-            $('body').removeClass('celltoolbar-on')
-        } else {
-            $('body').addClass('celltoolbar-on')
-            CellToolbar.activate_preset(val)
-        }
-    })
+    CellToolbar.prototype.create_element = function () {
+        this.inner_element = $('<div/>');
+        var ctb_element = $('<div/>').addClass('celltoolbar')
+            .append(this.inner_element);
+        ctb_element.addClass('box-flex1');
+        var ctb_area = $('<div/>').addClass('ctb_area hbox');
+        var ctb_prompt = $('<div/>').addClass('ctb_prompt prompt');
+        ctb_area.append(ctb_prompt).append(ctb_element);
+        this.element = $('<div/>').addClass('ctb_hideshow')
+            .append(ctb_area);
+    };
 
+
+    // The default css style for the outer celltoolbar div
+    // (ctb_hideshow) is display: none. We add the ctb_show
+    // class to either 1) the body to show all cell's toolbars
+    // or 2) to the individual celltoolbar divs to show just one
+    // cell's toolbar.
+
+    CellToolbar.global_hide = function () {
+        $('body').removeClass('ctb_show');
+    }
+
+
+    CellToolbar.global_show = function () {
+       $('body').addClass('ctb_show');
+    }
+
+
+    CellToolbar.prototype.hide = function () {
+        this.element.removeClass('ctb_show');
+    }
+
+
+    CellToolbar.prototype.show = function () {
+        this.element.addClass('ctb_show');
+    }
 
 
     /**
@@ -62,6 +82,7 @@ var IPython = (function (IPython) {
      */
     CellToolbar._callback_dict = {};
 
+
     /**
      * Class variable that should contain the reverse order list of the button
      * to add to the toolbar of each cell
@@ -71,6 +92,7 @@ var IPython = (function (IPython) {
      * @type List
      */
     CellToolbar._ui_controls_list = [];
+
 
     /**
      * Class variable that should contains the CellToolbar instances for each
@@ -83,6 +105,7 @@ var IPython = (function (IPython) {
      */
     CellToolbar._instances =[]
 
+
     /**
      * keep a list of all the availlabel presets for the toolbar
      * @private
@@ -91,6 +114,7 @@ var IPython = (function (IPython) {
      * @type Dict
      */
     CellToolbar._presets ={}
+
 
     // this is by design not a prototype.
     /**
@@ -139,6 +163,7 @@ var IPython = (function (IPython) {
         CellToolbar._callback_dict[name] = callback;
     };
 
+
     /**
      * Register a preset of UI element in a cell toolbar.
      * Not supported Yet.
@@ -160,12 +185,28 @@ var IPython = (function (IPython) {
      *      CellToolbar.register_preset('foo.foo_preset1', ['foo.c1', 'foo.c2', 'foo.c5'])
      *      CellToolbar.register_preset('foo.foo_preset2', ['foo.c4', 'foo.c5'])
      */
-    CellToolbar.register_preset = function(name, preset_list){
+    CellToolbar.register_preset = function(name, preset_list) {
         CellToolbar._presets[name] = preset_list
-        CellToolbar.dropdown_preset_element.append(
-           $('<option/>').attr('value', name).text(name)
-        )
-    }
+        $([IPython.events]).trigger('preset_added.CellToolbar', {name: name});
+    };
+
+
+    /**
+     * List the names of the presets that are currently registered.
+     *
+     * @method list_presets
+     * @static
+     */
+    CellToolbar.list_presets = function() {
+        var keys = [];
+        for (var k in CellToolbar._presets) {
+            keys.push(k);
+        }
+        console.log(keys);
+        return keys;
+    };
+
+
     /**
      * Activate an UI preset from `register_preset`
      *
@@ -190,7 +231,6 @@ var IPython = (function (IPython) {
     }
 
 
-    // this is by design not a prototype.
     /**
      * This should be called on the class and not on a instance as it will trigger
      * rebuild of all the instances.
@@ -224,13 +264,13 @@ var IPython = (function (IPython) {
             this.inner_element.append(local_div)
             cdict[preset[index]](local_div, this.cell)
         }
-
     }
 
 
     /**
      */
     CellToolbar.utils = {};
+
 
     /**
      * A utility function to generate bindings between a checkbox and cell/metadata
@@ -274,7 +314,7 @@ var IPython = (function (IPython) {
             var button_container = $(div)
 
             var chkb = $('<input/>').attr('type', 'checkbox');
-            var lbl = $('<label/>').append($('<span/>').text(name).css('font-size', '77%'));
+            var lbl = $('<label/>').append($('<span/>').text(name));
             lbl.append(chkb);
             chkb.attr("checked", getter(cell));
 
@@ -287,6 +327,7 @@ var IPython = (function (IPython) {
 
         }
     }
+
 
     /**
      * A utility function to generate bindings between a dropdown list cell
@@ -334,8 +375,8 @@ var IPython = (function (IPython) {
         label= label? label: "";
         return function(div, cell) {
             var button_container = $(div)
-            var lbl = $("<label/>").append($('<span/>').text(label).css('font-size', '77%'));
-            var select = $('<select/>');
+            var lbl = $("<label/>").append($('<span/>').text(label));
+            var select = $('<select/>').addClass('ui-widget ui-widget-content');
             for(var itemn in list_list){
                 var opt = $('<option/>');
                         opt.attr('value', list_list[itemn][1])
