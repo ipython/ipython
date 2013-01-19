@@ -24,7 +24,7 @@ from IPython.utils import path
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(
-        loader=FileSystemLoader('./templates/'), 
+        loader=FileSystemLoader('./templates/'),
         extensions=['jinja2.ext.loopcontrols']
         )
 
@@ -116,14 +116,27 @@ class ConverterTemplate(Configurable):
 
     infile_dir = Unicode()
 
-    def __init__(self, tplfile='fullhtml', config=None, **kw):
+    def __init__(self, tplfile='fullhtml', preprocessors=[], config=None, **kw):
+        """
+        preprocessors: list of function to run on ipynb json data before conversion
+        to extract/inline file,
+
+
+
+        """
         self.template = env.get_template(tplfile+'.tpl')
         self.nb = None
+        self.preprocessors = preprocessors
         super(ConverterTemplate, self).__init__(config=config, **kw)
 
     def process(self):
-        converted_cells = []
-        for worksheet in self.nb.worksheets:
+        nb = self.nb
+
+        for preprocessor in self.preprocessors:
+            nb = preprocessor(nb,{})
+
+        worksheets = []
+        for worksheet in nb.worksheets:
             for cell in worksheet.cells:
                 cell.type = cell.cell_type
                 cell.haspyout = False
@@ -131,9 +144,10 @@ class ConverterTemplate(Configurable):
                     if out.output_type == 'pyout':
                         cell.haspyout = True
                         break
-            converted_cells.append(worksheet)
+            worksheets.append(worksheet)
 
-        return converted_cells
+
+        return worksheets
 
     def convert(self):
         """ convert the ipynb file
