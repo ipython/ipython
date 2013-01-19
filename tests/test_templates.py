@@ -13,6 +13,6 @@ def test_evens():
     # null template should return empty
     C = ConverterTemplate(tplfile='null')
     C.read('tests/ipynbref/IntroNumPy.orig.ipynb')
-    result =  C.convert()
+    result,_ =  C.convert()
     nt.assert_equal(result,'')
 
