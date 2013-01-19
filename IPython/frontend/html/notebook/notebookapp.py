@@ -242,6 +242,7 @@ aliases.update({
     'ip': 'NotebookApp.ip',
     'port': 'NotebookApp.port',
     'port-retries': 'NotebookApp.port_retries',
+    'transport': 'KernelManager.transport',
     'keyfile': 'NotebookApp.keyfile',
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',

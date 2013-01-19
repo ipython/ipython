@@ -193,9 +193,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     def new_frontend_master(self):
         """ Create and return new frontend attached to new kernel, launched on localhost.
         """
-        ip = self.ip if self.ip in LOCAL_IPS else LOCALHOST
         kernel_manager = self.kernel_manager_class(
-                                ip=ip,
                                 connection_file=self._new_connection_file(),
                                 config=self.config,
         )
@@ -245,7 +243,11 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.app.icon = QtGui.QIcon(icon_path)
         QtGui.QApplication.setWindowIcon(self.app.icon)
 
-        local_kernel = (not self.existing) or self.ip in LOCAL_IPS
+        try:
+            ip = self.config.KernelManager.ip
+        except AttributeError:
+            ip = LOCALHOST
+        local_kernel = (not self.existing) or ip in LOCAL_IPS
         self.widget = self.widget_factory(config=self.config,
                                         local_kernel=local_kernel)
         self.init_colors(self.widget)
