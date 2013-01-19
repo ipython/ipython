@@ -52,9 +52,7 @@ from .utils.sysinfo import sys_info
 from .utils.frame import extract_module_locals
 
 # Release data
-__author__ = ''
-for author, email in release.authors.itervalues():
-    __author__ += author + ' <' + email + '>\n'
+__author__ = '%s <%s>' % (release.author, release.author_email)
 __license__  = release.license
 __version__  = release.version
 version_info = release.version_info
