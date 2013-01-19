@@ -92,7 +92,7 @@ class IPAppCrashHandler(CrashHandler):
     """sys.excepthook for IPython itself, leaves a detailed report on disk."""
 
     def __init__(self, app):
-        contact_name = release.authors['Fernando'][0]
+        contact_name = release.author
         contact_email = release.author_email
         bug_tracker = 'https://github.com/ipython/ipython/issues'
         super(IPAppCrashHandler,self).__init__(
