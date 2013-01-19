@@ -24,7 +24,7 @@ consider calling super even if block is leave block, we might insert more block 
 {%- block header -%}
 {%- endblock header -%}
 {%- block body -%}
-{%- for worksheet in worksheets -%}
+{%- for worksheet in nb.worksheets -%}
     {%- for cell in worksheet.cells -%}
         {%- block any_cell scoped -%}
             {%- if cell.type in ['code'] -%}
