@@ -104,6 +104,20 @@ env.filters['markdown'] = markdown
 env.filters['highlight'] = highlight
 env.filters['ansi2html'] = ansi2html
 
+
+def haspyout_transformer(nb,_):
+    print('calling...')
+    for worksheet in nb.worksheets:
+        print('worksheet')
+        for cell in worksheet.cells:
+            cell.type = cell.cell_type
+            cell.haspyout = False
+            for out in cell.get('outputs', []):
+                if out.output_type == 'pyout':
+                    cell.haspyout = True
+                    break
+    return nb
+
 class ConverterTemplate(Configurable):
 
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
@@ -127,7 +141,9 @@ class ConverterTemplate(Configurable):
         self.template = env.get_template(tplfile+'.tpl')
         self.nb = None
         self.preprocessors = preprocessors
+        self.preprocessors.append(haspyout_transformer)
         super(ConverterTemplate, self).__init__(config=config, **kw)
+
 
     def process(self):
         nb = self.nb
@@ -135,19 +151,7 @@ class ConverterTemplate(Configurable):
         for preprocessor in self.preprocessors:
             nb = preprocessor(nb,{})
 
-        worksheets = []
-        for worksheet in nb.worksheets:
-            for cell in worksheet.cells:
-                cell.type = cell.cell_type
-                cell.haspyout = False
-                for out in cell.get('outputs', []):
-                    if out.output_type == 'pyout':
-                        cell.haspyout = True
-                        break
-            worksheets.append(worksheet)
-
-
-        return worksheets
+        return nb
 
     def convert(self):
         """ convert the ipynb file
@@ -155,7 +159,7 @@ class ConverterTemplate(Configurable):
         return both the converted ipynb file and a dict containing potential
         other resources
         """
-        return self.template.render(worksheets=self.process(), inlining=inlining), {}
+        return self.template.render(nb=self.process(), inlining=inlining), {}
 
 
     def read(self, filename):
