@@ -684,7 +684,20 @@ class KernelManager(Configurable):
     
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
 
-    ip = Unicode(LOCALHOST, config=True)
+    ip = Unicode(LOCALHOST, config=True,
+        help="""Set the kernel\'s IP address [default localhost].
+        If the IP address is something other than localhost, then
+        Consoles on other machines will be able to connect
+        to the Kernel, so be careful!"""
+    )
+    def _ip_default(self):
+        if self.transport == 'ipc':
+            if self.connection_file:
+                return os.path.splitext(self.connection_file)[0] + '-ipc'
+            else:
+                return 'kernel-ipc'
+        else:
+            return LOCALHOST
     def _ip_changed(self, name, old, new):
         if new == '*':
             self.ip = '0.0.0.0'
