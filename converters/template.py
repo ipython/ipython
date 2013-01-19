@@ -18,17 +18,11 @@ a conversion of IPython notebooks to some other format should inherit.
 from __future__ import print_function, absolute_import
 
 # Stdlib imports
-import jinja2
-import codecs
 import io
-import logging
 import os
 from IPython.utils import path
-import pprint
-import re
-from types import FunctionType
 
-from jinja2 import Environment, PackageLoader, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader
 env = Environment(
         loader=FileSystemLoader('./templates/'), 
         extensions=['jinja2.ext.loopcontrols']
@@ -36,15 +30,14 @@ env = Environment(
 
 # IPython imports
 from IPython.nbformat import current as nbformat
-from IPython.config.configurable import Configurable, SingletonConfigurable
-from IPython.utils.traitlets import (List, Unicode, Type, Bool, Dict, CaselessStrEnum,
-                                    Any)
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import ( Unicode, Any)
 
 # Our own imports
 from IPython.utils.text import indent
 from .utils import remove_ansi
 from markdown import markdown
-from .utils import highlight,ansi2html
+from .utils import highlight, ansi2html
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
@@ -61,43 +54,43 @@ def python_comment(string):
 
 
 def header_body():
-        """Return the body of the header as a list of strings."""
+    """Return the body of the header as a list of strings."""
 
-        from pygments.formatters import HtmlFormatter
+    from pygments.formatters import HtmlFormatter
 
-        header = []
-        static = os.path.join(path.get_ipython_package_dir(),
-        'frontend', 'html', 'notebook', 'static',
-        )
-        here = os.path.split(os.path.realpath(__file__))[0]
-        css = os.path.join(static, 'css')
-        for sheet in [
-            # do we need jquery and prettify?
-            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
-            # 'jquery-ui.min.css'),
-            # os.path.join(static, 'prettify', 'prettify.css'),
-            os.path.join(css, 'boilerplate.css'),
-            os.path.join(css, 'fbm.css'),
-            os.path.join(css, 'notebook.css'),
-            os.path.join(css, 'renderedhtml.css'),
-            # our overrides:
-            os.path.join(here, '..', 'css', 'static_html.css'),
-        ]:
+    header = []
+    static = os.path.join(path.get_ipython_package_dir(),
+    'frontend', 'html', 'notebook', 'static',
+    )
+    here = os.path.split(os.path.realpath(__file__))[0]
+    css = os.path.join(static, 'css')
+    for sheet in [
+        # do we need jquery and prettify?
+        # os.path.join(static, 'jquery', 'css', 'themes', 'base',
+        # 'jquery-ui.min.css'),
+        # os.path.join(static, 'prettify', 'prettify.css'),
+        os.path.join(css, 'boilerplate.css'),
+        os.path.join(css, 'fbm.css'),
+        os.path.join(css, 'notebook.css'),
+        os.path.join(css, 'renderedhtml.css'),
+        # our overrides:
+        os.path.join(here, '..', 'css', 'static_html.css'),
+    ]:
 
-            with io.open(sheet, encoding='utf-8') as f:
-                s = f.read()
-                header.append(s)
+        with io.open(sheet, encoding='utf-8') as f:
+            s = f.read()
+            header.append(s)
 
-        pygments_css = HtmlFormatter().get_style_defs('.highlight')
-        header.append(pygments_css)
-        return header
+    pygments_css = HtmlFormatter().get_style_defs('.highlight')
+    header.append(pygments_css)
+    return header
 
-inlining= {}
+inlining = {}
 inlining['css'] = header_body()
 
 
 def filter_data_type(output):
-    for fmt in ['html', 'pdf', 'svg', 'latex','png', 'jpg','jpeg' , 'text']:
+    for fmt in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']:
         if fmt in output:
             return [fmt]
 
@@ -125,12 +118,8 @@ class ConverterTemplate(Configurable):
 
     def __init__(self, tplfile='fullhtml', config=None, **kw):
         self.template = env.get_template(tplfile+'.tpl')
-        super(ConverterTemplate,self).__init__(config=config)
-
-    def _get_prompt_number(self, cell):
-        return cell.prompt_number if hasattr(cell, 'prompt_number') \
-            else self.blank_symbol
-
+        self.nb = None
+        super(ConverterTemplate, self).__init__(config=config, **kw)
 
     def process(self):
         converted_cells = []
@@ -138,7 +127,7 @@ class ConverterTemplate(Configurable):
             for cell in worksheet.cells:
                 cell.type = cell.cell_type
                 cell.haspyout = False
-                for out in cell.get('outputs',[]):
+                for out in cell.get('outputs', []):
                     if out.output_type == 'pyout':
                         cell.haspyout = True
                         break
@@ -146,13 +135,13 @@ class ConverterTemplate(Configurable):
 
         return converted_cells
 
-    def convert(self, cell_separator='\n'):
+    def convert(self):
         """ convert the ipynb file
 
         return both the converted ipynb file and a dict containing potential
         other resources
         """
-        return self.template.render(worksheets=self.process(), inlining=inlining),{}
+        return self.template.render(worksheets=self.process(), inlining=inlining), {}
 
 
     def read(self, filename):
