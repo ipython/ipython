@@ -245,15 +245,6 @@ class CodeMagics(Magics):
             if args not in shell.user_ns:
                 args = last_call[1]
 
-        # use last_call to remember the state of the previous call, but don't
-        # let it be clobbered by successive '-p' calls.
-        try:
-            last_call[0] = shell.displayhook.prompt_count
-            if not opts_prev:
-                last_call[1] = args
-        except:
-            pass
-
         # by default this is done with temp files, except when the given
         # arg is a filename
         use_temp = True
@@ -339,6 +330,16 @@ class CodeMagics(Magics):
         if use_temp:
             filename = shell.mktempfile(data)
             print 'IPython will make a temporary file named:',filename
+
+        # use last_call to remember the state of the previous call, but don't
+        # let it be clobbered by successive '-p' calls.
+        try:
+            last_call[0] = shell.displayhook.prompt_count
+            if not opts_prev:
+                last_call[1] = args
+        except:
+            pass
+
 
         return filename, lineno, use_temp
 
