@@ -132,7 +132,7 @@ class CythonMagics(Magics):
              "Extension flag (can be specified  multiple times)."
     )
     @magic_arguments.argument(
-        '-la', '--link-args', action='append', default=[],
+        '--link-args', action='append', default=[],
         help="Extra flags to pass to linker via the `extra_link_args` "
              "Extension flag (can be specified  multiple times)."
     )
