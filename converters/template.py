@@ -147,7 +147,12 @@ class ConverterTemplate(Configurable):
         return converted_cells
 
     def convert(self, cell_separator='\n'):
-        return self.template.render(worksheets=self.process(), inlining=inlining)
+        """ convert the ipynb file
+
+        return both the converted ipynb file and a dict containing potential
+        other resources
+        """
+        return self.template.render(worksheets=self.process(), inlining=inlining),{}
 
 
     def read(self, filename):
