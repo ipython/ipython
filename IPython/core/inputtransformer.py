@@ -30,7 +30,6 @@ ESC_SEQUENCES = [ESC_SHELL, ESC_SH_CAP, ESC_HELP ,\
                  ESC_QUOTE, ESC_QUOTE2, ESC_PAREN ]
 
 
-
 class InputTransformer(object):
     __metaclass__ = abc.ABCMeta
     
@@ -193,6 +192,7 @@ def has_comment(src):
         pass
     return(tokenize.COMMENT in toktypes)
 
+
 @stateless_input_transformer
 def help_end(line):
     """Translate lines with ?/?? at the end"""
@@ -207,8 +207,8 @@ def help_end(line):
     next_input = line.rstrip('?') if line.strip() != m.group(0) else None
 
     return _make_help_call(target, esc, lspace, next_input)
-    
-                
+
+
 @coroutine_input_transformer
 def cellmagic():
     tpl = 'get_ipython().run_cell_magic(%r, %r, %r)'
@@ -234,6 +234,7 @@ def cellmagic():
         magic_name, _, first = first.partition(' ')
         magic_name = magic_name.lstrip(ESC_MAGIC2)
         line = tpl % (magic_name, first, u'\n'.join(body))
+
 
 def _strip_prompts(prompt1_re, prompt2_re):
     """Remove matching input prompts from a block of input."""
@@ -272,6 +273,7 @@ def ipy_prompt():
 
 ipy_prompt.look_in_string = True
 
+
 @coroutine_input_transformer
 def leading_indent():
     space_re = re.compile(r'^[ \t]+')
@@ -295,6 +297,7 @@ def leading_indent():
                 line = (yield line)
 
 leading_indent.look_in_string = True
+
 
 def _special_assignment(assignment_re, template):
     line = ''
