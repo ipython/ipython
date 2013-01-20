@@ -43,6 +43,8 @@ ioloop.install()
 from tornado import httpserver
 from tornado import web
 
+from IPython.external.sockjs.tornado import SockJSRouter
+
 # Our own libraries
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
@@ -51,7 +53,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
-    FileFindHandler,
+    FileFindHandler, IOPubAndShellHandler,
 )
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -81,9 +83,10 @@ from IPython.utils.path import filefind
 # Module globals
 #-----------------------------------------------------------------------------
 
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
+_uuid_regex = r"\w+-\w+-\w+-\w+-\w+"
+_kernel_id_regex = r"(?P<kernel_id>%s)" % _uuid_regex
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
-_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
+_notebook_id_regex = r"(?P<notebook_id>%s)" % _uuid_regex
 _profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
 
@@ -139,8 +142,6 @@ class NotebookWebApplication(web.Application):
             (r"/kernels", MainKernelHandler),
             (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
-            (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
-            (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
             (r"/rstservice/render", RSTHandler),
@@ -149,6 +150,14 @@ class NotebookWebApplication(web.Application):
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
             (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
         ]
+        
+        iopub_router = SockJSRouter(IOPubHandler, r"/kernels/%s/iopub" % _uuid_regex)
+        shell_router = SockJSRouter(ShellHandler, r"/kernels/%s/shell" % _uuid_regex)
+        sock_router = SockJSRouter(IOPubAndShellHandler, r"/kernels/%s/sock" % _uuid_regex)
+        
+        handlers += shell_router.urls
+        handlers += iopub_router.urls
+        handlers += sock_router.urls
 
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn

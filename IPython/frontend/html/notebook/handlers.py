@@ -20,9 +20,11 @@ import Cookie
 import datetime
 import email.utils
 import hashlib
+import json
 import logging
 import mimetypes
 import os
+import re
 import stat
 import threading
 import time
@@ -36,6 +38,7 @@ from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
 from IPython.external.decorator import decorator
+from IPython.external.sockjs.tornado import SockJSConnection
 from IPython.zmq.session import Session
 from IPython.lib.security import passwd_check
 from IPython.utils.jsonutil import date_default
@@ -191,7 +194,7 @@ class AuthenticatedHandler(RequestHandler):
         turns http[s]://host[:port] into
                 ws[s]://host[:port]
         """
-        proto = self.request.protocol.replace('http', 'ws')
+        proto = self.request.protocol
         host = self.application.ipython_app.websocket_host # default to config value
         if host == '':
             host = self.request.host # get from request
@@ -370,10 +373,17 @@ class KernelActionHandler(AuthenticatedHandler):
             self.write(jsonapi.dumps(data))
         self.finish()
 
+class ZMQStreamHandler(SockJSConnection):
+    
+    @property
+    def application(self):
+        return self.session.handler.application
+    
+    @property
+    def request(self):
+        return self.session.handler.request
 
-class ZMQStreamHandler(websocket.WebSocketHandler):
-
-    def _reserialize_reply(self, msg_list):
+    def _reserialize_reply(self, msg_list, channel=None):
         """Reserialize a reply message using JSON.
 
         This takes the msg list from the ZMQ socket, unserializes it using
@@ -381,26 +391,19 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         should be used by self._on_zmq_reply to build messages that can
         be sent back to the browser.
         """
-        idents, msg_list = self.session.feed_identities(msg_list)
-        msg = self.session.unserialize(msg_list)
-        try:
-            msg['header'].pop('date')
-        except KeyError:
-            pass
-        try:
-            msg['parent_header'].pop('date')
-        except KeyError:
-            pass
-        msg.pop('buffers')
+        idents, msg_list = self.ip_session.feed_identities(msg_list)
+        msg = self.ip_session.unserialize(msg_list)
+        msg.pop('buffers', None)
+        msg['channel'] = channel
         return jsonapi.dumps(msg, default=date_default)
 
-    def _on_zmq_reply(self, msg_list):
+    def _on_zmq_reply(self, msg_list, channel=None):
         try:
-            msg = self._reserialize_reply(msg_list)
+            msg = self._reserialize_reply(msg_list, channel)
         except Exception:
             self.application.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
-            self.write_message(msg)
+            self.send(msg)
 
     def allow_draft76(self):
         """Allow draft 76, until browsers such as Safari update to RFC 6455.
@@ -413,20 +416,32 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
 
-    def open(self, kernel_id):
-        self.kernel_id = kernel_id.decode('ascii')
+    def on_open(self, info):
+        self.info = info
+        
+        from .notebookapp import _kernel_id_regex
+        url = self.session.handler.request.uri
+        self.kernel_id = re.search(_kernel_id_regex, url).groupdict()['kernel_id']
+        
         try:
             cfg = self.application.config
         except AttributeError:
             # protect from the case where this is run from something other than
             # the notebook app:
             cfg = None
-        self.session = Session(config=cfg)
+        self.ip_session = Session(config=cfg)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
+        
+        self.initialize()
+    
+    def initialize(self):
+        """override in subclasses"""
+        pass
 
     def get_current_user(self):
-        user_id = self.get_secure_cookie(self.settings['cookie_name'])
+        handler = self.session.handler
+        user_id = handler.get_secure_cookie(handler.settings['cookie_name'])
         if user_id == '' or (user_id is None and not self.application.password):
             user_id = 'anonymous'
         return user_id
@@ -443,43 +458,42 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
         except:
             logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
-    def on_first_message(self, msg):
-        self._inject_cookie_message(msg)
+    def on_first_message(self, cookie):
+        self._inject_cookie_message(cookie)
         if self.get_current_user() is None:
             logging.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
         self.on_message = self.save_on_message
+        self.create_streams()
+    
+    def create_streams(self):
+        """override in subclass"""
+        pass
 
 
 class IOPubHandler(AuthenticatedZMQStreamHandler):
 
-    def initialize(self, *args, **kwargs):
-        self._kernel_alive = True
-        self._beating = False
-        self.iopub_stream = None
-        self.hb_stream = None
-
-    def on_first_message(self, msg):
-        try:
-            super(IOPubHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    _kernel_alive = True
+    _beating = False
+    iopub_stream = None
+    hb_stream = None
+    
+    def initialize(self):
         km = self.application.kernel_manager
         self.time_to_dead = km.time_to_dead
         self.first_beat = km.first_beat
+    
+    def create_streams(self):
+        km = self.application.kernel_manager
         kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
             self.hb_stream = km.create_hb_stream(kernel_id)
-        except web.HTTPError:
-            # WebSockets don't response to traditional error codes so we
-            # close the connection.
-            if not self.stream.closed():
-                self.stream.close()
+        except Exception:
+            logging.error("Couldn't create streams", exc_info=True)
             self.close()
         else:
-            self.iopub_stream.on_recv(self._on_zmq_reply)
+            self.iopub_stream.on_recv(lambda msg: self._on_zmq_reply(msg, 'iopub'))
             self.start_hb(self.kernel_died)
 
     def on_message(self, msg):
@@ -548,49 +562,59 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
     def kernel_died(self):
         self._delete_kernel_data()
         self.application.log.error("Kernel died: %s" % self.kernel_id)
-        self.write_message(
+        self.send(json.dumps(
             {'header': {'msg_type': 'status'},
              'parent_header': {},
-             'content': {'execution_state':'dead'}
+             'content': {'execution_state':'dead'},
+             'channel': 'iopub',
             }
-        )
+        ))
         self.on_close()
 
 
 class ShellHandler(AuthenticatedZMQStreamHandler):
 
-    def initialize(self, *args, **kwargs):
-        self.shell_stream = None
-
-    def on_first_message(self, msg):
-        try:
-            super(ShellHandler, self).on_first_message(msg)
-        except web.HTTPError:
-            self.close()
-            return
+    shell_stream = None
+    max_msg_size = 65535
+    
+    def initialize(self):
         km = self.application.kernel_manager
         self.max_msg_size = km.max_msg_size
+    
+    def create_streams(self):
+        km = self.application.kernel_manager
         kernel_id = self.kernel_id
         try:
             self.shell_stream = km.create_shell_stream(kernel_id)
-        except web.HTTPError:
-            # WebSockets don't response to traditional error codes so we
-            # close the connection.
-            if not self.stream.closed():
-                self.stream.close()
+        except Exception:
+            logging.error("Couldn't create shell stream", exc_info=True)
             self.close()
         else:
-            self.shell_stream.on_recv(self._on_zmq_reply)
+            self.shell_stream.on_recv(lambda msg: self._on_zmq_reply(msg, 'shell'))
 
     def on_message(self, msg):
         if len(msg) < self.max_msg_size:
             msg = jsonapi.loads(msg)
-            self.session.send(self.shell_stream, msg)
+            self.ip_session.send(self.shell_stream, msg)
 
     def on_close(self):
         # Make sure the stream exists and is not already closed.
         if self.shell_stream is not None and not self.shell_stream.closed():
             self.shell_stream.close()
+
+class IOPubAndShellHandler(ShellHandler, IOPubHandler):
+    """single SockJS handler for IOPub + Shell zmq channels"""
+    def on_close(self):
+        ShellHandler.on_close(self)
+        IOPubHandler.on_close(self)
+    
+    def initialize(self):
+        ShellHandler.initialize(self)
+        IOPubHandler.initialize(self)
+    
+    def create_streams(self):
+        ShellHandler.create_streams(self)
+        IOPubHandler.create_streams(self)
 
 
 #-----------------------------------------------------------------------------

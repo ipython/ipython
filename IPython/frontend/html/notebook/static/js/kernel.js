@@ -27,20 +27,11 @@ var IPython = (function (IPython) {
     var Kernel = function (base_url) {
         this.kernel_id = null;
         this.shell_channel = null;
-        this.iopub_channel = null;
         this.base_url = base_url;
         this.running = false;
         this.username = "username";
         this.session_id = utils.uuid();
         this._msg_callbacks = {};
-
-        if (typeof(WebSocket) !== 'undefined') {
-            this.WebSocket = WebSocket;
-        } else if (typeof(MozWebSocket) !== 'undefined') {
-            this.WebSocket = MozWebSocket;
-        } else {
-            alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox ≥ 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
-        };
     };
 
 
@@ -99,13 +90,22 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._kernel_started = function (json) {
         console.log("Kernel started: ", json.kernel_id);
+        var that = this
         this.running = true;
         this.kernel_id = json.kernel_id;
         this.ws_url = json.ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
-        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
-        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
+        this.shell_channel.onmessage = function(e) {
+            var msg = $.parseJSON(e.data);
+            if (msg['channel'] == 'shell'){
+                that._handle_shell_reply(e);
+            } else if (msg['channel'] == 'iopub') {
+                that._handle_iopub_reply(e);
+            } else {
+                console.log("Bad message", e);
+            }
+        };
         $([IPython.events]).trigger('status_started.Kernel', {kernel: this});
     };
 
@@ -152,11 +152,10 @@ var IPython = (function (IPython) {
         var that = this;
         this.stop_channels();
         var ws_url = this.ws_url + this.kernel_url;
-        console.log("Starting WS:", ws_url);
-        this.shell_channel = new this.WebSocket(ws_url + "/shell");
-        this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
+        console.log("Starting SockJS:", ws_url);
+        this.shell_channel = new SockJS(ws_url + "/sock");
         send_cookie = function(){
-            this.send(document.cookie);
+            this.send(document.cookie || ' ');
         };
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
@@ -179,12 +178,9 @@ var IPython = (function (IPython) {
         };
         this.shell_channel.onopen = send_cookie;
         this.shell_channel.onclose = ws_closed_early;
-        this.iopub_channel.onopen = send_cookie;
-        this.iopub_channel.onclose = ws_closed_early;
         // switch from early-close to late-close message after 1s
         setTimeout(function(){
             that.shell_channel.onclose = ws_closed_late;
-            that.iopub_channel.onclose = ws_closed_late;
         }, 1000);
     };
 
@@ -197,11 +193,6 @@ var IPython = (function (IPython) {
             this.shell_channel.onclose = function (evt) {};
             this.shell_channel.close();
             this.shell_channel = null;
-        };
-        if (this.iopub_channel !== null) {
-            this.iopub_channel.onclose = function (evt) {};
-            this.iopub_channel.close();
-            this.iopub_channel = null;
         };
     };
 
