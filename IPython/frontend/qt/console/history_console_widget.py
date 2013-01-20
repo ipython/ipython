@@ -191,7 +191,7 @@ class HistoryConsoleWidget(ConsoleWidget):
         """
         index = self._history_index
         replace = False
-        while self._history_index < len(self._history):
+        while index < len(self._history):
             index += 1
             history = self._get_edited_history(index)
             if (as_prefix and history.startswith(substring)) \
