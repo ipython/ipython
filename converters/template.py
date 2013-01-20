@@ -119,6 +119,7 @@ def haspyout_transformer(nb,_):
     return nb
 
 class ConverterTemplate(Configurable):
+    """ A Jinja2 base converter templates"""
 
     display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
     #-------------------------------------------------------------------------
@@ -132,10 +133,12 @@ class ConverterTemplate(Configurable):
 
     def __init__(self, tplfile='fullhtml', preprocessors=[], config=None, **kw):
         """
+        tplfile : jinja template file to process.
+
+        config: the Configurable confg object to pass around
+
         preprocessors: list of function to run on ipynb json data before conversion
         to extract/inline file,
-
-
 
         """
         self.template = env.get_template(tplfile+'.tpl')
@@ -146,6 +149,10 @@ class ConverterTemplate(Configurable):
 
 
     def process(self):
+        """
+        preprocess the notebook json for easier use with the templates. 
+        will call all the `preprocessor`s in order before returning it. 
+        """
         nb = self.nb
 
         for preprocessor in self.preprocessors:
