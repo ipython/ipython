@@ -76,9 +76,21 @@ class HistoryConsoleWidget(ConsoleWidget):
             # Set a search prefix based on the cursor position.
             col = self._get_input_buffer_cursor_column()
             input_buffer = self.input_buffer
-            if self._history_index == len(self._history) or \
-                    (self._history_prefix and col != len(self._history_prefix)):
+            # use the *shortest* of the cursor column and the history prefix
+            # to determine if the prefix has changed
+            n = min(col, len(self._history_prefix))
+            
+            # prefix changed, restart search from the beginning
+            if (self._history_prefix[:n] != input_buffer[:n]):
                 self._history_index = len(self._history)
+            
+            # the only time we shouldn't set the history prefix
+            # to the line up to the cursor is if we are already
+            # in a simple scroll (no prefix),
+            # and the cursor is at the end of the first line
+            first_line = input_buffer.split('\n', 1)[0]
+            if self._history_index == len(self._history) or \
+                not (self._history_prefix == '' and col == len(first_line)):
                 self._history_prefix = input_buffer[:col]
 
             # Perform the search.
