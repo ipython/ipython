@@ -6,6 +6,7 @@ import sys
 import io
 from converters.template import *
 
+
 template_file = sys.argv[1]
 
 if template_file.startswith('latex'):

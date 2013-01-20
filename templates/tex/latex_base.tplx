@@ -1,15 +1,10 @@
-((*- extends 'null.tplx' -*))
+((*- extends 'display_priority.tplx' -*))
 
-((* block in_prompt *))
-# In[(((cell.prompt_number if cell.prompt_number else ' ')))]:
-((* endblock in_prompt *))
+((* block in_prompt *))((* endblock in_prompt *))
 
-((* block output_prompt *))
-# Out[(((cell.prompt_number)))]:((* endblock output_prompt *))
+((* block output_prompt *))((* endblock output_prompt *))
 
-((* block codecell *))
-\begin{codecell}
-((( super() )))
+((* block codecell *))\begin{codecell}((( super() )))
 \end{codecell}
 ((* endblock *))
 
@@ -35,23 +30,32 @@ it introduces a new line
 ((= .... =))
 
 
+((*- block output_group -*))
+\begin{codeoutput}
+((( super() )))
+\end{codeoutput}((* endblock *))
+
+
 ((* block pyout *))
-((( output.text| indent | pycomment)))
+((( output.text)))
 ((* endblock pyout *))
 
+((* block data_text *))
+\begin{verbatim}
+((( output.text )))
+\end{verbatim}
+((* endblock *))
+
 ((* block stream *))
-((( output.text| indent | pycomment)))
+\begin{verbatim}
+((( output.text)))
+\end{verbatim}
 ((* endblock stream *))
 
 
 
 
-((* block display_data scoped *))
-# image file:
-((* endblock display_data *))
-
-((* block markdowncell scoped *))
-((( cell.source | markdown2latex )))
+((* block markdowncell scoped *))((( cell.source | markdown2latex )))
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped *))
@@ -68,8 +72,7 @@ unknown type  (((cell.type)))
 
 
 
-((* block body *))
-\begin{document}
+((* block body *))\begin{document}
 ((( super() )))
 \end{document}
 ((* endblock*))

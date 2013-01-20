@@ -37,7 +37,7 @@ texenv = Environment(
 # IPython imports
 from IPython.nbformat import current as nbformat
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import ( Unicode, Any)
+from IPython.utils.traitlets import ( Unicode, Any, List)
 
 # Our own imports
 from IPython.utils.text import indent
@@ -96,13 +96,10 @@ inlining = {}
 inlining['css'] = header_body()
 
 
-def filter_data_type(output):
-    for fmt in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']:
-        if fmt in output:
-            return [fmt]
 
 
-env.filters['filter_data_type'] = filter_data_type
+
+
 env.filters['pycomment'] = python_comment
 env.filters['indent'] = indent
 env.filters['rm_fake'] = rm_fake
@@ -136,7 +133,6 @@ texenv.comment_start_string = '((='
 texenv.comment_end_string = '=))'
 texenv.filters['escape_tex'] = escape_tex
 
-texenv.filters['filter_data_type'] = filter_data_type
 texenv.filters['pycomment'] = python_comment
 texenv.filters['indent'] = indent
 texenv.filters['rm_fake'] = rm_fake
@@ -164,7 +160,13 @@ def haspyout_transformer(nb,_):
 class ConverterTemplate(Configurable):
     """ A Jinja2 base converter templates"""
 
-    display_data_priority = ['pdf', 'svg', 'png', 'jpg', 'text']
+    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+            config=True,
+              help= """
+                    A list of ast.NodeTransformer subclass instances, which will be applied
+                    to user input before code is run.
+                    """
+            )
     #-------------------------------------------------------------------------
     # Instance-level attributes that are set in the constructor for this
     # class.
@@ -173,6 +175,13 @@ class ConverterTemplate(Configurable):
 
 
     infile_dir = Unicode()
+    def display_data_priority_changed(self, name, old, new):
+        print('== changed', name,old,new)
+
+    def filter_data_type(self,output):
+        for fmt in self.display_data_priority:
+            if fmt in output:
+                return [fmt]
 
     def __init__(self, tplfile='fullhtml', preprocessors=[], config=None,tex_environement=False, **kw):
         """
@@ -186,11 +195,13 @@ class ConverterTemplate(Configurable):
         """
         self.env = texenv if tex_environement else env
         self.ext = '.tplx' if tex_environement else '.tpl' 
-        self.template = self.env.get_template(tplfile+self.ext)
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
         super(ConverterTemplate, self).__init__(config=config, **kw)
+        self.env.filters['filter_data_type'] = self.filter_data_type
+        self.template = self.env.get_template(tplfile+self.ext)
+
 
 
     def process(self):
