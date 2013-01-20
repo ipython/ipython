@@ -28,6 +28,8 @@ from .displaypub import (
     publish_javascript, publish_jpeg
 )
 
+from IPython.utils.py3compat import string_types
+
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
@@ -254,7 +256,7 @@ class DisplayObject(object):
         filename : unicode
             Path to a local file to load the data from.
         """
-        if data is not None and data.startswith('http'):
+        if data is not None and isinstance(data, string_types) and data.startswith('http'):
             self.url = data
             self.filename = None
             self.data = None
@@ -475,7 +477,7 @@ class Image(DisplayObject):
             ext = self._find_ext(url)
         elif data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
-        elif data.startswith('http'):
+        elif isinstance(data, string_types) and data.startswith('http'):
             ext = self._find_ext(data)
         else:
             ext = None
