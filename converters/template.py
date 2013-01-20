@@ -44,6 +44,7 @@ from IPython.utils.text import indent
 from .utils import remove_ansi
 from markdown import markdown
 from .utils import highlight, ansi2html
+from .utils import markdown2latex
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
@@ -143,6 +144,8 @@ texenv.filters['rm_ansi'] = remove_ansi
 texenv.filters['markdown'] = markdown
 texenv.filters['highlight'] = highlight
 texenv.filters['ansi2html'] = ansi2html
+texenv.filters['markdown2latex'] = markdown2latex
+markdown2latex
 
 
 def haspyout_transformer(nb,_):
