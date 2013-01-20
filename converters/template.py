@@ -20,11 +20,17 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
+import re
 from IPython.utils import path
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(
         loader=FileSystemLoader('./templates/'),
+        extensions=['jinja2.ext.loopcontrols']
+        )
+
+texenv = Environment(
+        loader=FileSystemLoader('./templates/tex/'),
         extensions=['jinja2.ext.loopcontrols']
         )
 
@@ -105,6 +111,40 @@ env.filters['highlight'] = highlight
 env.filters['ansi2html'] = ansi2html
 
 
+
+LATEX_SUBS = (
+    (re.compile(r'\\'), r'\\textbackslash'),
+    (re.compile(r'([{}_#%&$])'), r'\\\1'),
+    (re.compile(r'~'), r'\~{}'),
+    (re.compile(r'\^'), r'\^{}'),
+    (re.compile(r'"'), r"''"),
+    (re.compile(r'\.\.\.+'), r'\\ldots'),
+)
+
+def escape_tex(value):
+    newval = value
+    for pattern, replacement in LATEX_SUBS:
+        newval = pattern.sub(replacement, newval)
+    return newval
+
+texenv.block_start_string = '((*'
+texenv.block_end_string = '*))'
+texenv.variable_start_string = '((('
+texenv.variable_end_string = ')))'
+texenv.comment_start_string = '((='
+texenv.comment_end_string = '=))'
+texenv.filters['escape_tex'] = escape_tex
+
+texenv.filters['filter_data_type'] = filter_data_type
+texenv.filters['pycomment'] = python_comment
+texenv.filters['indent'] = indent
+texenv.filters['rm_fake'] = rm_fake
+texenv.filters['rm_ansi'] = remove_ansi
+texenv.filters['markdown'] = markdown
+texenv.filters['highlight'] = highlight
+texenv.filters['ansi2html'] = ansi2html
+
+
 def haspyout_transformer(nb,_):
     print('calling...')
     for worksheet in nb.worksheets:
@@ -131,7 +171,7 @@ class ConverterTemplate(Configurable):
 
     infile_dir = Unicode()
 
-    def __init__(self, tplfile='fullhtml', preprocessors=[], config=None, **kw):
+    def __init__(self, tplfile='fullhtml', preprocessors=[], config=None,tex_environement=False, **kw):
         """
         tplfile : jinja template file to process.
 
@@ -141,7 +181,9 @@ class ConverterTemplate(Configurable):
         to extract/inline file,
 
         """
-        self.template = env.get_template(tplfile+'.tpl')
+        self.env = texenv if tex_environement else env
+        self.ext = '.tplx' if tex_environement else '.tpl' 
+        self.template = self.env.get_template(tplfile+self.ext)
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
