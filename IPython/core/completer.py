@@ -182,7 +182,7 @@ class Bunch(object): pass
 
 
 DELIMS = ' \t\n`!@#$^&*()=+[{]}\\|;:\'",<>?'
-GREEDY_DELIMS = ' \r\n'
+GREEDY_DELIMS = ' =\r\n'
 
 
 class CompletionSplitter(object):
