@@ -92,6 +92,23 @@ def header_body():
     header.append(pygments_css)
     return header
 
+
+def _new_figure(data, fmt, count):
+    """Create a new figure file in the given format.
+
+    Returns a path relative to the input file.
+    """
+    figname = '_fig_%02i.%s' % (count, fmt)
+
+    # Binary files are base64-encoded, SVG is already XML
+    if fmt in ('png', 'jpg', 'pdf'):
+        data = data.decode('base64')
+
+    return figname,data
+
+
+
+
 inlining = {}
 inlining['css'] = header_body()
 
@@ -145,9 +162,7 @@ markdown2latex
 
 
 def haspyout_transformer(nb,_):
-    print('calling...')
     for worksheet in nb.worksheets:
-        print('worksheet')
         for cell in worksheet.cells:
             cell.type = cell.cell_type
             cell.haspyout = False
@@ -155,7 +170,35 @@ def haspyout_transformer(nb,_):
                 if out.output_type == 'pyout':
                     cell.haspyout = True
                     break
-    return nb
+    return nb,_
+
+
+def outline_figure_transformer(nb,other):
+    count=0
+    for worksheet in nb.worksheets:
+        for cell in worksheet.cells:
+            cell.type = cell.cell_type
+            for i,out in enumerate(cell.get('outputs', [])):
+                print('loop outputs',out.output_type) 
+                for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
+                    if out.hasattr(type):
+                        figname,data = _new_figure(out[type], type,count)
+                        cell.outputs[i][type] = figname
+                        out[type] = figname
+                        print('set',type, 'to' ,figname)
+                        other[figname] = data
+                        count = count+1
+    return nb,other
+
+
+def print_transformer(nb,other):
+    count=0
+    for worksheet in nb.worksheets:
+        for cell in worksheet.cells:
+            cell.type = cell.cell_type
+            for i,out in enumerate(cell.get('outputs', [])):
+                print(cell.outputs) 
+    return nb,other
 
 class ConverterTemplate(Configurable):
     """ A Jinja2 base converter templates"""
@@ -198,6 +241,8 @@ class ConverterTemplate(Configurable):
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
+        self.preprocessors.append(outline_figure_transformer)
+        self.preprocessors.append(print_transformer)
         super(ConverterTemplate, self).__init__(config=config, **kw)
         self.env.filters['filter_data_type'] = self.filter_data_type
         self.template = self.env.get_template(tplfile+self.ext)
@@ -212,7 +257,7 @@ class ConverterTemplate(Configurable):
         nb = self.nb
 
         for preprocessor in self.preprocessors:
-            nb = preprocessor(nb,{})
+            nb,others = preprocessor(nb,{})
 
         return nb
 
