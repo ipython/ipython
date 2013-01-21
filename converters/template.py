@@ -92,7 +92,7 @@ def header_body():
     header.append(pygments_css)
     return header
 
-
+# todo, make the key part configurable.
 def _new_figure(data, fmt, count):
     """Create a new figure file in the given format.
 
@@ -158,47 +158,54 @@ texenv.filters['markdown'] = markdown
 texenv.filters['highlight'] = highlight
 texenv.filters['ansi2html'] = ansi2html
 texenv.filters['markdown2latex'] = markdown2latex
-markdown2latex
+
+def cell_preprocessor(function):
+    """ wrap a function to be executed on all cells of a notebook
+
+    wrapped function  parameters :
+    cell  : the cell
+    other : external resources
+    index : index of the cell
+    """
+    def wrappedfunc(nb,other):
+        for worksheet in nb.worksheets :
+            for index, cell in enumerate(worksheet.cells):
+                worksheet.cells[index],other= function(cell,other,index)
+        return nb,other
+    return wrappedfunc
 
 
-def haspyout_transformer(nb,_):
-    for worksheet in nb.worksheets:
-        for cell in worksheet.cells:
-            cell.type = cell.cell_type
-            cell.haspyout = False
-            for out in cell.get('outputs', []):
-                if out.output_type == 'pyout':
-                    cell.haspyout = True
-                    break
-    return nb,_
+
+@cell_preprocessor
+def haspyout_transformer(cell, other, count):
+    """
+    Add a haspyout flag to cell that have it
+    
+    Easier for templating, where you can't know in advance
+    wether to write the out prompt
+
+    """
+    cell.type = cell.cell_type
+    cell.haspyout = False
+    for out in cell.get('outputs', []):
+        if out.output_type == 'pyout':
+            cell.haspyout = True
+            break
+    return cell,other
 
 
-def outline_figure_transformer(nb,other):
-    count=0
-    for worksheet in nb.worksheets:
-        for cell in worksheet.cells:
-            cell.type = cell.cell_type
-            for i,out in enumerate(cell.get('outputs', [])):
-                print('loop outputs',out.output_type) 
-                for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
-                    if out.hasattr(type):
-                        figname,data = _new_figure(out[type], type,count)
-                        cell.outputs[i][type] = figname
-                        out[type] = figname
-                        print('set',type, 'to' ,figname)
-                        other[figname] = data
-                        count = count+1
+@cell_preprocessor
+def outline_figure_transformer(cell,other,count):
+    for i,out in enumerate(cell.get('outputs', [])):
+        for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
+            if out.hasattr(type):
+                figname,data = _new_figure(out[type], type,count)
+                cell.outputs[i][type] = figname
+                out['key_'+type] = figname
+                other[figname] = data
+                count = count+1
     return nb,other
 
-
-def print_transformer(nb,other):
-    count=0
-    for worksheet in nb.worksheets:
-        for cell in worksheet.cells:
-            cell.type = cell.cell_type
-            for i,out in enumerate(cell.get('outputs', [])):
-                print(cell.outputs) 
-    return nb,other
 
 class ConverterTemplate(Configurable):
     """ A Jinja2 base converter templates"""
@@ -210,6 +217,14 @@ class ConverterTemplate(Configurable):
                     to user input before code is run.
                     """
             )
+
+    extract_figures = Bool(False,
+            config=True,
+              help= """
+                    wether to remove figure data from ipynb and store them in auxiliary
+                    dictionnary
+                    """
+            )
     #-------------------------------------------------------------------------
     # Instance-level attributes that are set in the constructor for this
     # class.
@@ -218,8 +233,6 @@ class ConverterTemplate(Configurable):
 
 
     infile_dir = Unicode()
-    def display_data_priority_changed(self, name, old, new):
-        print('== changed', name,old,new)
 
     def filter_data_type(self,output):
         for fmt in self.display_data_priority:
@@ -237,12 +250,11 @@ class ConverterTemplate(Configurable):
 
         """
         self.env = texenv if tex_environement else env
-        self.ext = '.tplx' if tex_environement else '.tpl' 
+        self.ext = '.tplx' if tex_environement else '.tpl'
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
         self.preprocessors.append(outline_figure_transformer)
-        self.preprocessors.append(print_transformer)
         super(ConverterTemplate, self).__init__(config=config, **kw)
         self.env.filters['filter_data_type'] = self.filter_data_type
         self.template = self.env.get_template(tplfile+self.ext)
@@ -251,8 +263,8 @@ class ConverterTemplate(Configurable):
 
     def process(self):
         """
-        preprocess the notebook json for easier use with the templates. 
-        will call all the `preprocessor`s in order before returning it. 
+        preprocess the notebook json for easier use with the templates.
+        will call all the `preprocessor`s in order before returning it.
         """
         nb = self.nb
 

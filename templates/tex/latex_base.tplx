@@ -36,7 +36,6 @@ it introduces a new line
 \end{codeoutput}((* endblock *))
 
 ((*- block data_png -*))
-++(((output.png)))++
 \begin{center}
 \includegraphics[width=0.7\textwidth]{(((output.png)))}
 \par
