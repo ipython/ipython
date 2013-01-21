@@ -35,6 +35,13 @@ it introduces a new line
 ((( super() )))
 \end{codeoutput}((* endblock *))
 
+((*- block data_png -*))
+++(((output.png)))++
+\begin{center}
+\includegraphics[width=0.7\textwidth]{(((output.png)))}
+\par
+\end{center}
+((*- endblock -*))
 
 ((* block pyout *))
 ((( output.text)))

@@ -17,7 +17,7 @@
             ((*- endblock -*))
         ((*- endif -*))
         ((*- if type in ['png']*))
-            ((*- block data_png -*))
+            ((*- block data_png scoped-*))
                 ->> png
             ((*- endblock -*))
         ((*- endif -*))
