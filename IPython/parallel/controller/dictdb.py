@@ -265,7 +265,11 @@ class DictDB(BaseDB):
 
     def get_history(self):
         """get all msg_ids, ordered by time submitted."""
-        msg_ids = self._records.keys()
+        msg_ids = self._records.keys():
+        # Remove any that do not have a submitted timestamp.
+        # This is extremely unlikely to happen,
+        # but it seems to come up in some tests on VMs.
+        msg_ids = [ m for m in msg_ids if self._records[m]['submitted'] is not None ]
         return sorted(msg_ids, key=lambda m: self._records[m]['submitted'])
 
 
