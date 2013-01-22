@@ -125,7 +125,6 @@ class ConverterReveal(ConverterHTML):
                 else:
                     text[i - 1] = self.delim[6]
                 text[i] = text_cell_render
-        text.append(u'slide_type = untouched')  # to end search of skipped
         return text
 
     def build_slides(self):
@@ -135,19 +134,18 @@ class ConverterReveal(ConverterHTML):
         right = '</section>'
         notes_start = '<aside class="notes">'
         notes_end = '</aside>'
-        set_delim_skip = self.delim[:6]  # to skip adjacent skkiped cells
-        #elimination of skipped cells
+        #encapsulation of skipped cells
         for i, j in enumerate(text):
             if j == u'slide_type = skip':
                 text.pop(i)
-                while not text[i] in set_delim_skip:
-                    text.pop(i)
+                text[i] = text[i][:4] + \
+                    ' style=display:none' + text[i][4:]
         #encapsulation of notes cells
         for i, j in enumerate(text):
             if j == u'slide_type = notes':
                 text.pop(i)
                 temp_list = []
-                while not text[i] in set_delim_skip:
+                while not text[i] in self.delim[:6]:
                     temp_list.append(text.pop(i))
                 else:
                     temp_list.insert(0, notes_start)
