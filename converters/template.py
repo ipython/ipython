@@ -37,7 +37,7 @@ texenv = Environment(
 # IPython imports
 from IPython.nbformat import current as nbformat
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import ( Unicode, Any, List)
+from IPython.utils.traitlets import ( Unicode, Any, List, Bool)
 
 # Our own imports
 from IPython.utils.text import indent
@@ -112,21 +112,6 @@ def _new_figure(data, fmt, count):
 inlining = {}
 inlining['css'] = header_body()
 
-
-
-
-
-
-env.filters['pycomment'] = python_comment
-env.filters['indent'] = indent
-env.filters['rm_fake'] = rm_fake
-env.filters['rm_ansi'] = remove_ansi
-env.filters['markdown'] = markdown
-env.filters['highlight'] = highlight
-env.filters['ansi2html'] = ansi2html
-
-
-
 LATEX_SUBS = (
     (re.compile(r'\\'), r'\\textbackslash'),
     (re.compile(r'([{}_#%&$])'), r'\\\1'),
@@ -149,15 +134,6 @@ texenv.variable_end_string = ')))'
 texenv.comment_start_string = '((='
 texenv.comment_end_string = '=))'
 texenv.filters['escape_tex'] = escape_tex
-
-texenv.filters['pycomment'] = python_comment
-texenv.filters['indent'] = indent
-texenv.filters['rm_fake'] = rm_fake
-texenv.filters['rm_ansi'] = remove_ansi
-texenv.filters['markdown'] = markdown
-texenv.filters['highlight'] = highlight
-texenv.filters['ansi2html'] = ansi2html
-texenv.filters['markdown2latex'] = markdown2latex
 
 def cell_preprocessor(function):
     """ wrap a function to be executed on all cells of a notebook
@@ -195,7 +171,7 @@ def haspyout_transformer(cell, other, count):
 
 
 @cell_preprocessor
-def outline_figure_transformer(cell,other,count):
+def extract_figure_transformer(cell,other,count):
     for i,out in enumerate(cell.get('outputs', [])):
         for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
             if out.hasattr(type):
@@ -204,7 +180,7 @@ def outline_figure_transformer(cell,other,count):
                 out['key_'+type] = figname
                 other[figname] = data
                 count = count+1
-    return nb,other
+    return cell,other
 
 
 class ConverterTemplate(Configurable):
@@ -249,14 +225,25 @@ class ConverterTemplate(Configurable):
         to extract/inline file,
 
         """
+        super(ConverterTemplate, self).__init__(config=config, **kw)
         self.env = texenv if tex_environement else env
         self.ext = '.tplx' if tex_environement else '.tpl'
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
-        self.preprocessors.append(outline_figure_transformer)
-        super(ConverterTemplate, self).__init__(config=config, **kw)
+        if self.extract_figures:
+            self.preprocessors.append(extract_figure_transformer)
+
         self.env.filters['filter_data_type'] = self.filter_data_type
+        self.env.filters['pycomment'] = python_comment
+        self.env.filters['indent'] = indent
+        self.env.filters['rm_fake'] = rm_fake
+        self.env.filters['rm_ansi'] = remove_ansi
+        self.env.filters['markdown'] = markdown
+        self.env.filters['highlight'] = highlight
+        self.env.filters['ansi2html'] = ansi2html
+        self.env.filters['markdown2latex'] = markdown2latex
+
         self.template = self.env.get_template(tplfile+self.ext)
 
 
@@ -268,10 +255,14 @@ class ConverterTemplate(Configurable):
         """
         nb = self.nb
 
-        for preprocessor in self.preprocessors:
-            nb,others = preprocessor(nb,{})
+        # dict of 'resources' that could be made by the preprocessors
+        # like key/value data to extract files from ipynb like in latex conversion
+        resources = {}
 
-        return nb
+        for preprocessor in self.preprocessors:
+            nb,resources = preprocessor(nb,resources)
+
+        return nb, resources
 
     def convert(self):
         """ convert the ipynb file
@@ -279,7 +270,8 @@ class ConverterTemplate(Configurable):
         return both the converted ipynb file and a dict containing potential
         other resources
         """
-        return self.template.render(nb=self.process(), inlining=inlining), {}
+        nb,resources = self.process()
+        return self.template.render(nb=nb, inlining=inlining), resources
 
 
     def read(self, filename):
