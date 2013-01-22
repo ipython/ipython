@@ -202,7 +202,6 @@ var IPython = (function (IPython) {
         for (var k in CellToolbar._presets) {
             keys.push(k);
         }
-        console.log(keys);
         return keys;
     };
 
