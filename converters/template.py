@@ -25,12 +25,18 @@ from IPython.utils import path
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(
-        loader=FileSystemLoader('./templates/'),
+        loader=FileSystemLoader([
+            './templates/',
+            './templates/skeleton/',
+            ]),
         extensions=['jinja2.ext.loopcontrols']
         )
 
 texenv = Environment(
-        loader=FileSystemLoader('./templates/tex/'),
+        loader=FileSystemLoader([
+            './templates/tex/',
+            './templates/skeleton/tex/',
+            ]),
         extensions=['jinja2.ext.loopcontrols']
         )
 
