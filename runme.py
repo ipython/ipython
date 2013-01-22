@@ -44,12 +44,27 @@ class NbconvertApp(Application):
         else:
             tex_environement=False
 
-        C = ConverterTemplate(tplfile=sys.argv[1], tex_environement=tex_environement, config=self.config)
+        C = ConverterTemplate(tplfile=sys.argv[1],
+                tex_environement=tex_environement,
+                config=self.config)
         C.read(ipynb_file)
 
-        output,rest = C.convert()
+        output,resources = C.convert()
 
         print(output.encode('utf-8'))
+
+        keys = resources.keys()
+        if keys :
+            print('''
+====================== Keys in Resources ==================================
+''')
+            print(resources.keys())
+            print("""
+===========================================================================
+you are responsible from writing those data do a file in the right place if
+they need to be.
+===========================================================================
+                  """)
 
 def main():
     """Convert a notebook to html in one step"""
