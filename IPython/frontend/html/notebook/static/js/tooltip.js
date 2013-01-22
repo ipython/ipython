@@ -111,7 +111,6 @@ var IPython = (function (IPython) {
             }, function (cell) {
                 that.cancel_stick();
                 that.showInPager(cell);
-                that._cmfocus();
             }];
             // call after all the tabs function above have bee call to clean their effects
             // if necessary
@@ -136,7 +135,6 @@ var IPython = (function (IPython) {
             'silent': false
         });
         this.remove_and_cancel_tooltip();
-        this._cmfocus();
     }
 
     // grow the tooltip verticaly
@@ -144,7 +142,6 @@ var IPython = (function (IPython) {
         this.text.removeClass('smalltooltip');
         this.text.addClass('bigtooltip');
         $('#expanbutton').hide('slow');
-        this._cmfocus();
     }
 
     // deal with all the logic of hiding the tooltip
@@ -170,7 +167,6 @@ var IPython = (function (IPython) {
         }
         this.cancel_pending();
         this.reset_tabs_function();
-        this._cmfocus();
     }
 
     // cancel autocall done after '(' for example.
@@ -357,17 +353,6 @@ var IPython = (function (IPython) {
         this.text.scrollTop(0);
     }
 
-    // convenient funciton to have the correct code_mirror back into focus
-    Tooltip.prototype._cmfocus = function () {
-        var cm = this.code_mirror;
-        if (IPython.notebook !== undefined) {
-            if (cm == IPython.notebook.get_selected_cell()) {
-                setTimeout(function () {
-                    cm.focus();
-                }, 50);
-            }
-        }
-    }
 
     IPython.Tooltip = Tooltip;
 

@@ -122,7 +122,6 @@ var IPython = (function (IPython) {
             var ws_url = data.ws_url;
             var early = data.early;
             var msg;
-            console.log(early);
             if (!early) {
                     knw.set_message('Reconnecting WebSockets', 1000);
                     setTimeout(function () {
