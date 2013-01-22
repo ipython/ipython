@@ -126,7 +126,7 @@ var IPython = (function (IPython) {
         // reexecute last call in pager by appending ? to show back in pager
         var that = this;
         var empty = function () {};
-        IPython.notebook.kernel.execute(
+        cell.kernel.execute(
         that.name + '?', {
             'execute_reply': empty,
             'output': empty,
@@ -212,7 +212,7 @@ var IPython = (function (IPython) {
         var callbacks = {
             'object_info_reply': $.proxy(this._show, this)
         }
-        var msg_id = IPython.notebook.kernel.object_info_request(re.exec(func), callbacks);
+        var msg_id = cell.kernel.object_info_request(re.exec(func), callbacks);
     }
 
     // make an imediate completion request
@@ -360,11 +360,12 @@ var IPython = (function (IPython) {
     // convenient funciton to have the correct code_mirror back into focus
     Tooltip.prototype._cmfocus = function () {
         var cm = this.code_mirror;
-        if (cm == IPython.notebook.get_selected_cell())
-        {
-            setTimeout(function () {
-                cm.focus();
-            }, 50);
+        if (IPython.notebook !== undefined) {
+            if (cm == IPython.notebook.get_selected_cell()) {
+                setTimeout(function () {
+                    cm.focus();
+                }, 50);
+            }
         }
     }
 
