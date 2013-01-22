@@ -207,6 +207,14 @@ class ConverterTemplate(Configurable):
                     dictionnary
                     """
             )
+
+    tex_environement = Bool(False,
+            config=True,
+            help=""" is this a tex environment or not """)
+
+    template_file = Unicode('',
+            config=True,
+            help=""" whetever """ )
     #-------------------------------------------------------------------------
     # Instance-level attributes that are set in the constructor for this
     # class.
@@ -221,7 +229,7 @@ class ConverterTemplate(Configurable):
             if fmt in output:
                 return [fmt]
 
-    def __init__(self, tplfile='fullhtml', preprocessors=[], config=None,tex_environement=False, **kw):
+    def __init__(self, preprocessors=[], config=None, **kw):
         """
         tplfile : jinja template file to process.
 
@@ -232,8 +240,8 @@ class ConverterTemplate(Configurable):
 
         """
         super(ConverterTemplate, self).__init__(config=config, **kw)
-        self.env = texenv if tex_environement else env
-        self.ext = '.tplx' if tex_environement else '.tpl'
+        self.env = texenv  if self.tex_environement else env
+        self.ext = '.tplx' if self.tex_environement else '.tpl'
         self.nb = None
         self.preprocessors = preprocessors
         self.preprocessors.append(haspyout_transformer)
@@ -250,7 +258,7 @@ class ConverterTemplate(Configurable):
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
 
-        self.template = self.env.get_template(tplfile+self.ext)
+        self.template = self.env.get_template(self.template_file+self.ext)
 
 
 
