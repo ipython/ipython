@@ -5,6 +5,7 @@
 from __future__ import print_function
 import sys
 import io
+import os
 
 from converters.template import *
 from converters.template import ConverterTemplate
@@ -13,6 +14,7 @@ from converters.html import ConverterHTML
 
 # All the stuff needed for the configurable things
 from IPython.config.application import Application
+from IPython.config.loader import ConfigFileNotFound
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
 
 
@@ -24,10 +26,23 @@ class NbconvertApp(Application):
         self.classes.insert(0,ConverterTemplate)
         # ensure those are registerd
 
+    def load_config_file(self, profile_name):
+        try:
+            Application.load_config_file(
+                self,
+                profile_name+'.nbcv',
+                path=[os.path.join(os.getcwdu(),'profile')]
+            )
+        except ConfigFileNotFound:
+            self.log.warn("Config file for profile '%s' not found, giving up ",profile_name)
+            exit(1)
+
 
     def initialize(self, argv=None):
         self.parse_command_line(argv)
         cl_config = self.config
+        profile_file = sys.argv[1]
+        self.load_config_file(profile_file)
         self.update_config(cl_config)
 
 
@@ -45,7 +60,6 @@ class NbconvertApp(Application):
             tex_environement=False
 
         C = ConverterTemplate(tplfile=sys.argv[1],
-                tex_environement=tex_environement,
                 config=self.config)
         C.read(ipynb_file)
 
