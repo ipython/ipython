@@ -79,7 +79,7 @@ var IPython = (function (IPython) {
 
         this.element.resize(function () {
             // FIXME: Firefox on Linux misbehaves, so automatic scrolling is disabled
-            if ( $.browser.mozilla ) {
+            if ( IPython.utils.browser[0] === "Firefox" ) {
                 return;
             }
             // maybe scroll output,
