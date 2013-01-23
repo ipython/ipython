@@ -180,10 +180,11 @@ class KernelApp(BaseIPythonApplication):
                 s.bind("tcp://%s:%i" % (self.ip, port))
         elif self.transport == 'ipc':
             if port <= 0:
-                for port in range(1,1024):
+                port = 1
+                path = "%s-%i" % (self.ip, port)
+                while os.path.exists(path):
+                    port = port + 1
                     path = "%s-%i" % (self.ip, port)
-                    if not os.path.exists(path):
-                        break
             else:
                 path = "%s-%i" % (self.ip, port)
             s.bind("ipc://%s" % path)
