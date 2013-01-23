@@ -156,6 +156,7 @@ div.cell {
     padding: 5px 5px 5px 0px;
     /* This acts as a spacer between cells, that is outside the border */
     margin: 2px 0px 2px 0px;
+    outline: none;
 }
 
 div.code_cell {
@@ -173,7 +174,9 @@ div.prompt {
     padding: 0.4em;
     margin: 0px;
     font-family: monospace;
-    text-align:right;
+    text-align: right;
+    /* This has to match that of the the CodeMirror class line-height below */	
+    line-height: 1.231;
 }
 
 div.input {
@@ -245,6 +248,21 @@ div.output_area {
     page-break-inside: avoid;
 }
 
+	
+/* This is needed to protect the pre formating from global settings such
+   as that of bootstrap */
+div.output_area pre {	
+    font-family: monospace;	
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    color: black;
+    background-color: white;
+}
+
 /* This class is for the output subarea inside the output_area and after
    the prompt div. */
 div.output_subarea {
@@ -259,6 +277,8 @@ div.output_text {
     text-align: left;
     color: black;
     font-family: monospace;
+    /* This has to match that of the the CodeMirror class line-height below */	
+    line-height: 1.231;
 }
 
 /* stdout/stderr are 'text' as well as 'stream', but pyout/pyerr are *not* streams */

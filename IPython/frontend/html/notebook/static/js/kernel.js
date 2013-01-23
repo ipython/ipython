@@ -110,36 +110,11 @@ var IPython = (function (IPython) {
     };
 
 
-    Kernel.prototype._websocket_closed = function(ws_url, early){
-        var msg;
-        var parent_item = $('body');
-        if (early) {
-            msg = "Websocket connection to " + ws_url + " could not be established." +
-            " You will NOT be able to run code." +
-            " Your browser may not be compatible with the websocket version in the server," +
-            " or if the url does not look right, there could be an error in the" +
-            " server's configuration.";
-        } else {
-            IPython.notification_area.widget('kernel').set_message('Reconnecting Websockets', 1000);
-            this.start_channels();
-            return;
-        }
-        var dialog = $('<div/>');
-        dialog.html(msg);
-        parent_item.append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Websocket closed",
-            closeText: "",
-            close: function(event, ui) {$(this).dialog('destroy').remove();},
-            buttons : {
-                "OK": function () {
-                    $(this).dialog('close');
-                }
-            }
-        });
-
+    Kernel.prototype._websocket_closed = function(ws_url, early) {
+        this.stop_channels();
+        $([IPython.events]).trigger('websocket_closed.Kernel', 
+            {ws_url: ws_url, kernel: this, early: early}
+        );
     };
 
     /**
@@ -152,7 +127,7 @@ var IPython = (function (IPython) {
         var that = this;
         this.stop_channels();
         var ws_url = this.ws_url + this.kernel_url;
-        console.log("Starting WS:", ws_url);
+        console.log("Starting WebSockets:", ws_url);
         this.shell_channel = new this.WebSocket(ws_url + "/shell");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
@@ -182,9 +157,13 @@ var IPython = (function (IPython) {
         this.iopub_channel.onopen = send_cookie;
         this.iopub_channel.onclose = ws_closed_early;
         // switch from early-close to late-close message after 1s
-        setTimeout(function(){
-            that.shell_channel.onclose = ws_closed_late;
-            that.iopub_channel.onclose = ws_closed_late;
+        setTimeout(function() {
+            if (that.shell_channel !== null) {
+                that.shell_channel.onclose = ws_closed_late;
+            }
+            if (that.iopub_channel !== null) {
+                that.iopub_channel.onclose = ws_closed_late;
+            }
         }, 1000);
     };
 
