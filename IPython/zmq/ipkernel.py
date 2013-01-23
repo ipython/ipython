@@ -418,6 +418,10 @@ class Kernel(Configurable):
             reply_content['engine_info'] = e_info
             # reset after use
             shell._reply_content = None
+        
+        if 'traceback' in reply_content:
+            self.log.info("Exception in execute request:\n%s", '\n'.join(reply_content['traceback']))
+        
 
         # At this point, we can tell whether the main code execution succeeded
         # or not.  If it did, we proceed to evaluate user_variables/expressions
@@ -629,6 +633,7 @@ class Kernel(Configurable):
             
             self.session.send(self.iopub_socket, u'pyerr', reply_content, parent=parent,
                                 ident=self._topic('pyerr'))
+            self.log.info("Exception in apply request:\n%s", '\n'.join(reply_content['traceback']))
             result_buf = []
 
             if reply_content['ename'] == 'UnmetDependency':
