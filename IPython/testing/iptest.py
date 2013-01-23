@@ -180,6 +180,7 @@ def version_tuple(mod):
     return tup
 
 have['zmq'] = test_for('zmq', min_zmq, version_tuple)
+have['jinja2'] = test_for('jinja2', (2, 6), version_tuple)
 
 #-----------------------------------------------------------------------------
 # Functions and classes
@@ -247,7 +248,7 @@ def make_exclude():
         exclusions.append(ipjoin('core', 'history'))
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
-    
+
     # FIXME: temporarily disable autoreload tests, as they can produce
     # spurious failures in subsequent tests (cythonmagic).
     exclusions.append(ipjoin('extensions', 'autoreload'))
@@ -314,7 +315,7 @@ def make_exclude():
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         exclusions = [s.replace('\\','\\\\') for s in exclusions]
-    
+
     # check for any exclusions that don't seem to exist:
     parent, _ = os.path.split(get_ipython_package_dir())
     for exclusion in exclusions:
@@ -358,22 +359,22 @@ class IPTester(object):
 
         # Assemble call
         self.call_args = self.runner+self.params
-        
+
         # Find the section we're testing (IPython.foo)
         for sect in self.params:
             if sect.startswith('IPython'): break
         else:
             raise ValueError("Section not found", self.params)
-        
+
         if '--with-xunit' in self.call_args:
-            
+
             self.call_args.append('--xunit-file')
             # FIXME: when Windows uses subprocess.call, these extra quotes are unnecessary:
             xunit_file = path.abspath(sect+'.xunit.xml')
             if sys.platform == 'win32':
                 xunit_file = '"%s"' % xunit_file
             self.call_args.append(xunit_file)
-        
+
         if '--with-xml-coverage' in self.call_args:
             self.coverage_xml = path.abspath(sect+".coverage.xml")
             self.call_args.remove('--with-xml-coverage')
@@ -406,7 +407,7 @@ class IPTester(object):
             import traceback
             traceback.print_exc()
             return 1  # signal failure
-        
+
         if self.coverage_xml:
             subprocess.call(["coverage", "xml", "-o", self.coverage_xml])
         return retcode
@@ -504,7 +505,7 @@ def run_iptest():
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
     plugins = [IPythonDoctest(make_exclude()), KnownFailure()]
-    
+
     # We need a global ipython running in this process, but the special
     # in-process group spawns its own IPython kernels, so for *that* group we
     # must avoid also opening the global one (otherwise there's a conflict of
@@ -526,10 +527,10 @@ def run_iptestall(inc_slow=False):
     modules and package and then runs each of them.  This causes the modules
     and packages of IPython to be tested each in their own subprocess using
     nose.
-    
+
     Parameters
     ----------
-    
+
     inc_slow : bool, optional
       Include slow tests, like IPython.parallel. By default, these tests aren't
       run.
