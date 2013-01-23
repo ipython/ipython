@@ -195,8 +195,14 @@ class ConverterTemplate(Configurable):
     display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
             config=True,
               help= """
-                    A list of ast.NodeTransformer subclass instances, which will be applied
-                    to user input before code is run.
+                    An ordered list of prefered output type, the firs encounterd will usually be 
+                    used when converting discarding the others.
+                    """
+            )
+    
+    pre_transformer_order = List([],
+            config=True,
+              help= """ An ordered list of pretransformer to apply to the ipynb file befor running through templates
                     """
             )
 
