@@ -1,4 +1,5 @@
 import abc
+import functools
 import re
 from StringIO import StringIO
 import tokenize
@@ -54,46 +55,60 @@ class InputTransformer(object):
     
     # Set this to True to allow the transformer to act on lines inside strings.
     look_in_string = False
-
-def stateless_input_transformer(func):
-    class StatelessInputTransformer(InputTransformer):
-        """Decorator for a stateless input transformer implemented as a function."""
-        def __init__(self):
-            self.func = func
-        
-        def push(self, line):
-            """Send a line of input to the transformer, returning the
-            transformed input."""
-            return self.func(line)
-        
-        def reset(self):
-            """No-op - exists for compatibility."""
-            pass
     
-    return StatelessInputTransformer
+    @classmethod
+    def wrap(cls, func):
+        """Can be used by subclasses as a decorator, to return a factory that
+        will allow instantiation with the decorated object.
+        """
+        @functools.wraps(func)
+        def transformer_factory():
+            transformer = cls(func)
+            if getattr(transformer_factory, 'look_in_string', False):
+                transformer.look_in_string = True
+            return transformer
+        
+        return transformer_factory
 
-def coroutine_input_transformer(coro):
-    class CoroutineInputTransformer(InputTransformer):
-        """Wrapper for input transformers based on coroutines."""
-        def __init__(self):
-            # Prime it
-            self.coro = coro()
-            next(self.coro)
-        
-        def push(self, line):
-            """Send a line of input to the transformer, returning the
-            transformed input or None if the transformer is waiting for more
-            input.
-            """
-            return self.coro.send(line)
-        
-        def reset(self):
-            """Return, transformed any lines that the transformer has
-            accumulated, and reset its internal state.
-            """
-            return self.coro.send(None)
+class StatelessInputTransformer(InputTransformer):
+    """Wrapper for a stateless input transformer implemented as a function."""
+    def __init__(self, func):
+        self.func = func
     
-    return CoroutineInputTransformer
+    def __repr__(self):
+        return "StatelessInputTransformer(func={!r})".format(self.func)
+    
+    def push(self, line):
+        """Send a line of input to the transformer, returning the
+        transformed input."""
+        return self.func(line)
+    
+    def reset(self):
+        """No-op - exists for compatibility."""
+        pass
+
+class CoroutineInputTransformer(InputTransformer):
+    """Wrapper for an input transformer implemented as a coroutine."""
+    def __init__(self, coro):
+        # Prime it
+        self.coro = coro()
+        next(self.coro)
+    
+    def __repr__(self):
+        return "CoroutineInputTransformer(coro={!r})".format(self.coro)
+    
+    def push(self, line):
+        """Send a line of input to the transformer, returning the
+        transformed input or None if the transformer is waiting for more
+        input.
+        """
+        return self.coro.send(line)
+    
+    def reset(self):
+        """Return, transformed any lines that the transformer has
+        accumulated, and reset its internal state.
+        """
+        return self.coro.send(None)
 
 
 # Utilities
@@ -110,7 +125,7 @@ def _make_help_call(target, esc, lspace, next_input=None):
         return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
            (lspace, next_input, arg)
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def escaped_transformer():
     """Translate lines beginning with one of IPython's escape characters.
     
@@ -220,7 +235,7 @@ def has_comment(src):
     return(tokenize.COMMENT in toktypes)
 
 
-@stateless_input_transformer
+@StatelessInputTransformer.wrap
 def help_end(line):
     """Translate lines with ?/?? at the end"""
     m = _help_end_re.search(line)
@@ -236,7 +251,7 @@ def help_end(line):
     return _make_help_call(target, esc, lspace, next_input)
 
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def cellmagic():
     """Captures & transforms cell magics.
     
@@ -289,7 +304,7 @@ def _strip_prompts(prompt1_re, prompt2_re):
             while line is not None:
                 line = (yield line)
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
     prompt1_re = re.compile(r'^(>>> )')
@@ -298,7 +313,7 @@ def classic_prompt():
 
 classic_prompt.look_in_string = True
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
     prompt1_re = re.compile(r'^In \[\d+\]: ')
@@ -308,7 +323,7 @@ def ipy_prompt():
 ipy_prompt.look_in_string = True
 
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def leading_indent():
     """Remove leading indentation.
     
@@ -365,7 +380,7 @@ def _special_assignment(assignment_re, template):
         whole = assignment_re.match(' '.join(parts))
         line = template % (whole.group('lhs'), whole.group('cmd'))
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def assign_from_system():
     """Transform assignment from system commands (e.g. files = !ls)"""
     assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
@@ -373,7 +388,7 @@ def assign_from_system():
     template = '%s = get_ipython().getoutput(%r)'
     return _special_assignment(assignment_re, template)
 
-@coroutine_input_transformer
+@CoroutineInputTransformer.wrap
 def assign_from_magic():
     """Transform assignment from magic commands (e.g. a = %who_ls)"""
     assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
