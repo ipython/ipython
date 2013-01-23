@@ -41,7 +41,8 @@ class Heartbeat(Thread):
                 self.port = s.getsockname()[1]
                 s.close()
             elif addr[0] == 'ipc':
-                while os.path.exists(self.ip + '-' + self.port):
+                self.port = 1
+                while os.path.exists("%s-%s" % (self.ip, self.port)):
                     self.port = self.port + 1
             else:
                 raise ValueError("Unrecognized zmq transport: %s" % addr[0])

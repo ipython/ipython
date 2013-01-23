@@ -62,6 +62,7 @@ kernel_aliases.update({
     'stdin' : 'KernelApp.stdin_port',
     'f' : 'KernelApp.connection_file',
     'parent': 'KernelApp.parent',
+    'transport': 'KernelApp.transport',
 })
 if sys.platform.startswith('win'):
     kernel_aliases['interrupt'] = 'KernelApp.interrupt'
@@ -98,7 +99,6 @@ class KernelApp(BaseIPythonApplication):
     heartbeat = Instance(Heartbeat)
     session = Instance('IPython.zmq.session.Session')
     ports = Dict()
-    _full_connection_file = Unicode()
     
     # inherit config file name from parent:
     parent_appname = Unicode(config=True)
@@ -112,8 +112,16 @@ class KernelApp(BaseIPythonApplication):
         
     # connection info:
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-    ip = Unicode(LOCALHOST, config=True,
+    ip = Unicode(config=True,
         help="Set the IP or interface on which the kernel will listen.")
+    def _ip_default(self):
+        if self.transport == 'ipc':
+            if self.connection_file:
+                return os.path.splitext(self.abs_connection_file)[0] + '-ipc'
+            else:
+                return 'kernel-ipc'
+        else:
+            return LOCALHOST
     hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
     shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
     iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
@@ -122,9 +130,16 @@ class KernelApp(BaseIPythonApplication):
     help="""JSON file in which to store connection info [default: kernel-<pid>.json]
     
     This file will contain the IP, ports, and authentication key needed to connect
-    clients to this kernel. By default, this file will be created in the security-dir
+    clients to this kernel. By default, this file will be created in the security dir
     of the current profile, but can be specified by absolute path.
     """)
+    @property
+    def abs_connection_file(self):
+        if os.path.basename(self.connection_file) == self.connection_file:
+            return os.path.join(self.profile_dir.security_dir, self.connection_file)
+        else:
+            return self.connection_file
+        
 
     # streams, etc.
     no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
@@ -141,7 +156,7 @@ class KernelApp(BaseIPythonApplication):
         """)
     interrupt = Integer(0, config=True,
         help="""ONLY USED ON WINDOWS
-        Interrupt this process when the parent is signalled.
+        Interrupt this process when the parent is signaled.
         """)
 
     def init_crash_handler(self):
@@ -158,11 +173,21 @@ class KernelApp(BaseIPythonApplication):
 
     def _bind_socket(self, s, port):
         iface = '%s://%s' % (self.transport, self.ip)
-        if port <= 0 and self.transport == 'tcp':
-            port = s.bind_to_random_port(iface)
-        else:
-            c = ':' if self.transport == 'tcp' else '-'
-            s.bind(iface + c + str(port))
+        if self.transport == 'tcp':
+            if port <= 0:
+                port = s.bind_to_random_port(iface)
+            else:
+                s.bind("tcp://%s:%i" % (self.ip, port))
+        elif self.transport == 'ipc':
+            if port <= 0:
+                port = 1
+                path = "%s-%i" % (self.ip, port)
+                while os.path.exists(path):
+                    port = port + 1
+                    path = "%s-%i" % (self.ip, port)
+            else:
+                path = "%s-%i" % (self.ip, port)
+            s.bind("ipc://%s" % path)
         return port
 
     def load_connection_file(self):
@@ -179,7 +204,7 @@ class KernelApp(BaseIPythonApplication):
             s = f.read()
         cfg = json.loads(s)
         self.transport = cfg.get('transport', self.transport)
-        if self.ip == LOCALHOST and 'ip' in cfg:
+        if self.ip == self._ip_default() and 'ip' in cfg:
             # not overridden by config or cl_args
             self.ip = cfg['ip']
         for channel in ('hb', 'shell', 'iopub', 'stdin'):
@@ -192,19 +217,15 @@ class KernelApp(BaseIPythonApplication):
     
     def write_connection_file(self):
         """write connection info to JSON file"""
-        if os.path.basename(self.connection_file) == self.connection_file:
-            cf = os.path.join(self.profile_dir.security_dir, self.connection_file)
-        else:
-            cf = self.connection_file
+        cf = self.abs_connection_file
+        self.log.debug("Writing connection file: %s", cf)
         write_connection_file(cf, ip=self.ip, key=self.session.key, transport=self.transport,
         shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
         iopub_port=self.iopub_port)
-        
-        self._full_connection_file = cf
     
     def cleanup_connection_file(self):
-        cf = self._full_connection_file
-        self.log.debug("cleaning up connection file: %r", cf)
+        cf = self.abs_connection_file
+        self.log.debug("Cleaning up connection file: %s", cf)
         try:
             os.remove(cf)
         except (IOError, OSError):

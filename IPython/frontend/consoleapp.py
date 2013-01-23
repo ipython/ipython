@@ -88,11 +88,12 @@ aliases = dict(ipkernel_aliases)
 
 # also scrub aliases from the frontend
 app_aliases = dict(
+    ip = 'KernelManager.ip',
+    transport = 'KernelManager.transport',
     hb = 'IPythonConsoleApp.hb_port',
     shell = 'IPythonConsoleApp.shell_port',
     iopub = 'IPythonConsoleApp.iopub_port',
     stdin = 'IPythonConsoleApp.stdin_port',
-    ip = 'IPythonConsoleApp.ip',
     existing = 'IPythonConsoleApp.existing',
     f = 'IPythonConsoleApp.connection_file',
 
@@ -152,27 +153,6 @@ class IPythonConsoleApp(Configurable):
     # create requested profiles by default, if they don't exist:
     auto_create = CBool(True)
     # connection info:
-    
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-    
-    ip = Unicode(config=True,
-        help="""Set the kernel\'s IP address [default localhost].
-        If the IP address is something other than localhost, then
-        Consoles on other machines will be able to connect
-        to the Kernel, so be careful!"""
-    )
-    def _ip_default(self):
-        if self.transport == 'tcp':
-            return LOCALHOST
-        else:
-            # this can fire early if ip is given,
-            # in which case our return value is meaningless
-            if not hasattr(self, 'profile_dir'):
-                return ''
-            ipcdir = os.path.join(self.profile_dir.security_dir, 'kernel-%s' % os.getpid())
-            os.makedirs(ipcdir)
-            atexit.register(lambda : shutil.rmtree(ipcdir))
-            return os.path.join(ipcdir, 'ipc')
     
     sshserver = Unicode('', config=True,
         help="""The SSH server to use to connect to the kernel.""")
@@ -274,9 +254,9 @@ class IPythonConsoleApp(Configurable):
         with open(fname) as f:
             cfg = json.load(f)
         
-        self.transport = cfg.get('transport', 'tcp')
-        if 'ip' in cfg:
-            self.ip = cfg['ip']
+        self.config.KernelManager.transport = cfg.get('transport', 'tcp')
+        self.config.KernelManager.ip = cfg.get('ip', LOCALHOST)
+        
         for channel in ('hb', 'shell', 'iopub', 'stdin'):
             name = channel + '_port'
             if getattr(self, name) == 0 and name in cfg:
@@ -284,34 +264,38 @@ class IPythonConsoleApp(Configurable):
                 setattr(self, name, cfg[name])
         if 'key' in cfg:
             self.config.Session.key = str_to_bytes(cfg['key'])
-        
     
     def init_ssh(self):
         """set up ssh tunnels, if needed."""
-        if not self.sshserver and not self.sshkey:
+        if not self.existing or (not self.sshserver and not self.sshkey):
             return
         
-        if self.transport != 'tcp':
-            self.log.error("Can only use ssh tunnels with TCP sockets, not %s", self.transport)
-            return
+        self.load_connection_file()
+        
+        transport = self.config.KernelManager.transport
+        ip = self.config.KernelManager.ip
+        
+        if transport != 'tcp':
+            self.log.error("Can only use ssh tunnels with TCP sockets, not %s", transport)
+            sys.exit(-1)
         
         if self.sshkey and not self.sshserver:
             # specifying just the key implies that we are connecting directly
-            self.sshserver = self.ip
-            self.ip = LOCALHOST
+            self.sshserver = ip
+            ip = LOCALHOST
         
         # build connection dict for tunnels:
-        info = dict(ip=self.ip,
+        info = dict(ip=ip,
                     shell_port=self.shell_port,
                     iopub_port=self.iopub_port,
                     stdin_port=self.stdin_port,
                     hb_port=self.hb_port
         )
         
-        self.log.info("Forwarding connections to %s via %s"%(self.ip, self.sshserver))
+        self.log.info("Forwarding connections to %s via %s"%(ip, self.sshserver))
         
         # tunnels return a new set of ports, which will be on localhost:
-        self.ip = LOCALHOST
+        self.config.KernelManager.ip = LOCALHOST
         try:
             newports = tunnel_to_kernel(info, self.sshserver, self.sshkey)
         except:
@@ -347,8 +331,6 @@ class IPythonConsoleApp(Configurable):
 
         # Create a KernelManager and start a kernel.
         self.kernel_manager = self.kernel_manager_class(
-                                transport=self.transport,
-                                ip=self.ip,
                                 shell_port=self.shell_port,
                                 iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
@@ -359,6 +341,7 @@ class IPythonConsoleApp(Configurable):
         # start the kernel
         if not self.existing:
             self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
+            atexit.register(self.kernel_manager.cleanup_ipc_files)
         elif self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()
