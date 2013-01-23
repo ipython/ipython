@@ -332,6 +332,10 @@ The IPython notebook uses the Tornado_ project for its HTTP server.  Tornado 2.1
 is required, in order to support current versions of browsers, due to an update
 to the websocket protocol.
 
+Jinja2
+------
+
+The IPython notebook now uses Jinja2_ for templating.
 
 MathJax
 -------
@@ -379,6 +383,7 @@ Internet Explorer 9 does not support WebSockets or the flexible box model, but
 these features should appear in Internet Explorer 10.
 
 
+.. _Jinja2: http://jinja.pocoo.org/docs/
 .. _ZeroMQ: http://www.zeromq.org
 .. _PyZMQ: https://github.com/zeromq/pyzmq
 .. _paramiko: https://github.com/robey/paramiko
