@@ -272,6 +272,15 @@ IPython.utils = (function (IPython) {
         return Math.floor(points*pixel_per_point);
     };
 
+    // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
+    browser = (function() {
+        var N= navigator.appName, ua= navigator.userAgent, tem;
+        var M= ua.match(/(opera|chrome|safari|firefox|msie)\/?\s*(\.?\d+(\.\d+)*)/i);
+        if (M && (tem= ua.match(/version\/([\.\d]+)/i))!= null) M[2]= tem[1];
+        M= M? [M[1], M[2]]: [N, navigator.appVersion,'-?'];
+        return M;
+    })();
+
 
     return {
         regex_split : regex_split,
@@ -282,7 +291,9 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         wrapUrls : wrapUrls,
         autoLinkUrls : autoLinkUrls,
-        points_to_pixels : points_to_pixels
+        points_to_pixels : points_to_pixels,
+        browser : browser    
     };
 
 }(IPython));
+

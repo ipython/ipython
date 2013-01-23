@@ -149,6 +149,6 @@
     example_preset.push('example.help')
 
     CellToolbar.register_preset('Example',example_preset);
-    console.log('Example extension for metadata editting loaded.');
+    console.log('Example extension for metadata editing loaded.');
 
 }(IPython));
