@@ -177,7 +177,7 @@ from distutils.command.sdist import sdist
 from distutils.command.upload import upload
 
 class UploadWindowsInstallers(upload):
-    
+
     description = "Upload Windows installers to PyPI (only used from tools/release_windows.py)"
     user_options = upload.user_options + [
         ('files=', 'f', 'exe file (or glob) to upload')
@@ -190,7 +190,7 @@ class UploadWindowsInstallers(upload):
             version=meta.get_version()
         )
         self.files = os.path.join('dist', '%s.*.exe' % base)
-    
+
     def run(self):
         for dist_file in glob(self.files):
             self.upload_file('bdist_wininst', 'any', dist_file)
@@ -234,7 +234,8 @@ if 'setuptools' in sys.modules:
         zmq = 'pyzmq>=2.1.4',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
-        notebook = 'tornado>=2.0'
+        notebook = 'tornado>=2.0',
+        jinja2 = 'jinja2>=2.6'
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
@@ -263,7 +264,7 @@ if 'setuptools' in sys.modules:
         setup_args['options'] = {"bdist_wininst":
                                  {"install_script":
                                   "ipython_win_post_install.py"}}
-    
+
     if PY3:
         setuptools_extra_args['use_2to3'] = True
         # we try to make a 2.6, 2.7, and 3.1 to 3.3 python compatible code
