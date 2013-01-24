@@ -770,8 +770,8 @@ def _get_or_default(mylist, i, default=None):
 def compute_item_matrix(items, empty=None, *args, **kwargs) :
     """Returns a nested list, and info to columnize items
 
-    Parameters :
-    ------------
+    Parameters
+    ----------
 
     items :
         list of strings to columize
@@ -782,8 +782,8 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
     displaywidth : int (default=80)
         The width of the area onto wich the columns should enter
 
-    Returns :
-    ---------
+    Returns
+    -------
 
     Returns a tuple of (strings_matrix, dict_info)
 
@@ -802,8 +802,8 @@ def compute_item_matrix(items, empty=None, *args, **kwargs) :
         columns_width   : list of with of each columns
         optimal_separator_width : best separator width between columns
 
-    Exemple :
-    ---------
+    Examples
+    --------
 
     In [1]: l = ['aaa','b','cc','d','eeeee','f','g','h','i','j','k','l']
        ...: compute_item_matrix(l,displaywidth=12)

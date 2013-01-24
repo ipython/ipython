@@ -59,14 +59,14 @@ class FileLink(object):
 
     e.g. to embed a link that was generated in the IPython notebook as my/data.txt
 
-    you would do:
+    you would do::
 
-    local_file = FileLink("my/data.txt")
-    display(local_file)
+        local_file = FileLink("my/data.txt")
+        display(local_file)
     
-    or in the HTML notebook, just
+    or in the HTML notebook, just::
     
-    FileLink("my/data.txt")
+        FileLink("my/data.txt")
     """
     
     html_link_str = "<a href='%s' target='_blank'>%s</a>"
@@ -77,13 +77,17 @@ class FileLink(object):
                  result_html_prefix='',
                  result_html_suffix='<br>'):
         """
-            path : path to the file or directory that should be formatted
-            directory_prefix : prefix to be prepended to all files to form a
-             working link [default: 'files']
-            result_html_prefix : text to append to beginning to link
-             [default: none]
-            result_html_suffix : text to append at the end of link
-             [default: '<br>']
+        Parameters
+        ----------
+        path : str
+            path to the file or directory that should be formatted
+        directory_prefix : str
+            prefix to be prepended to all files to form a working link [default:
+            'files']
+        result_html_prefix : str
+            text to append to beginning to link [default: none]
+        result_html_suffix : str 
+            text to append at the end of link [default: '<br>']
         """
         if isdir(path):
             raise ValueError,\

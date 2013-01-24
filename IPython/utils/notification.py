@@ -119,7 +119,7 @@ class NotificationCenter(object):
         ----------
         callback : callable
             The callable that will be called by :meth:`post_notification`
-            as ``callback(ntype, sender, *args, **kwargs)
+            as ``callback(ntype, sender, *args, **kwargs)``
         ntype : hashable
             The notification type. If None, all notifications from sender
             will be posted.

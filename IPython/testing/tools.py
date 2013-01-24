@@ -97,6 +97,7 @@ def parse_test_output(txt):
     txt : str
       Text output of a test run, assumed to contain a line of one of the
       following forms::
+      
         'FAILED (errors=1)'
         'FAILED (failures=1)'
         'FAILED (errors=1, failures=1)'
