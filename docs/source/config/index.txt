@@ -12,4 +12,5 @@ Configuration and customization
    ipython.txt
    integrating.txt
    editors.txt
+   inputtransforms.txt
    old.txt

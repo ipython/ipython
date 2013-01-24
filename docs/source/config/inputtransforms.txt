@@ -1,0 +1,103 @@
+
+===========================
+Custom input transformation
+===========================
+
+IPython extends Python syntax to allow things like magic commands, and help with
+the ``?`` syntax. There are several ways to customise how the user's input is
+processed into Python code to be executed.
+
+These hooks are mainly for other projects using IPython as the core of their
+interactive interface. Using them carelessly can easily break IPython!
+
+String based transformations
+============================
+
+When the user enters a line of code, it is first processed as a string. By the
+end of this stage, it must be valid Python syntax.
+
+These transformers all subclass :class:`IPython.core.inputtransformer.InputTransformer`,
+and are used by :class:`IPython.core.inputsplitter.IPythonInputSplitter`,
+the ``transform`` attribute of which is a list of instances.
+
+By default, these transformers are skipped when :class:`~IPython.core.inputsplitter.IPythonInputSplitter`
+detects that the line starts inside a multi-line string. Some transformers, such
+as those that remove the prompt markers from pasted examples, need to look
+inside multiline strings as well - these set the attribute ``look_in_string`` to
+``True``.
+
+Stateless transformations
+-------------------------
+
+The simplest kind of transformations work one line at a time. Write a function
+which takes a line and returns a line, and decorate it with
+:meth:`~IPython.core.inputtransformer.StatelessInputTransformer.wrap`::
+
+    @StatelessInputTransformer.wrap
+    def my_special_commands(line):
+        if line.startswith("¬"):
+            return "specialcommand(" + repr(line) + ")"
+        return line
+
+The decorator returns a factory function which will produce instances of
+:class:`~IPython.core.inputtransformer.StatelessInputTransformer` using your
+function.
+
+Coroutine transformers
+----------------------
+
+More advanced transformers can be written as coroutines. The coroutine will be
+sent each line in turn, followed by ``None`` to reset it. It can yield lines, or
+``None`` if it is accumulating text to yield at a later point. When reset, it
+should give up any code it has accumulated.
+
+This code in IPython strips a constant amount of leading indentation from each
+line in a cell::
+
+    @CoroutineInputTransformer.wrap
+    def leading_indent():
+        """Remove leading indentation.
+        
+        If the first line starts with a spaces or tabs, the same whitespace will be
+        removed from each following line until it is reset.
+        """
+        space_re = re.compile(r'^[ \t]+')
+        line = ''
+        while True:
+            line = (yield line)
+            
+            if line is None:
+                continue
+            
+            m = space_re.match(line)
+            if m:
+                space = m.group(0)
+                while line is not None:
+                    if line.startswith(space):
+                        line = line[len(space):]
+                    line = (yield line)
+            else:
+                # No leading spaces - wait for reset
+                while line is not None:
+                    line = (yield line)
+
+    leading_indent.look_in_string = True
+
+AST transformations
+===================
+
+After the code has been parsed as Python syntax, you can use Python's powerful
+*Abstract Syntax Tree* tools to modify it. Subclass :class:`ast.NodeTransformer`,
+and add an instance to ``shell.ast_transformers``.
+
+This example wraps integer literals in an ``Integer`` class, which is useful for
+mathematical frameworks that want to handle e.g. ``1/3`` as a precise fraction::
+
+
+    class IntegerWrapper(ast.NodeTransformer):
+        """Wraps all integers in a call to Integer()"""
+        def visit_Num(self, node):
+            if isinstance(node.n, int):
+                return ast.Call(func=ast.Name(id='Integer', ctx=ast.Load()),
+                                args=[node], keywords=[])
+            return node
