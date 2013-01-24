@@ -1,3 +1,4 @@
+import tokenize
 import unittest
 import nose.tools as nt
 
@@ -324,3 +325,44 @@ def test_has_comment():
              ('a #comment not "string"', True),
              ]
     tt.check_pairs(ipt.has_comment, tests)
+
+@ipt.TokenInputTransformer.wrap
+def decistmt(tokens):
+    """Substitute Decimals for floats in a string of statements.
+
+    Based on an example from the tokenize module docs.
+    """
+    result = []
+    for toknum, tokval, _, _, _  in tokens:
+        if toknum == tokenize.NUMBER and '.' in tokval:  # replace NUMBER tokens
+            for newtok in [
+                (tokenize.NAME, 'Decimal'),
+                (tokenize.OP, '('),
+                (tokenize.STRING, repr(tokval)),
+                (tokenize.OP, ')')
+            ]:
+                yield newtok
+        else:
+            yield (toknum, tokval)
+
+
+
+def test_token_input_transformer():
+    tests = [(u'1.2', u_fmt(u"Decimal ({u}'1.2')")),
+             (u'"1.2"', u'"1.2"'),
+             ]
+    tt.check_pairs(transform_and_reset(decistmt), tests)
+    ml_tests = \
+    [ [(u"a = 1.2; b = '''x", None),
+       (u"y'''", u_fmt(u"a =Decimal ({u}'1.2');b ='''x\ny'''")),
+      ],
+      [(u"a = [1.2,", u_fmt(u"a =[Decimal ({u}'1.2'),")),
+       (u"3]", u"3 ]"),
+      ],
+      [(u"a = '''foo", None),  # Test resetting when within a multi-line string
+       (u"bar", None),
+       (None, u"a = '''foo\nbar"),
+      ],
+    ]
+    for example in ml_tests:
+        transform_checker(example, decistmt)

@@ -110,6 +110,50 @@ class CoroutineInputTransformer(InputTransformer):
         """
         return self.coro.send(None)
 
+class TokenInputTransformer(InputTransformer):
+    """Wrapper for a token-based input transformer.
+    
+    func should accept a list of tokens (5-tuples, see tokenize docs), and
+    return an iterable which can be passed to tokenize.untokenize().
+    """
+    def __init__(self, func):
+        self.func = func
+        self.current_line = ""
+        self.tokenizer = tokenize.generate_tokens(self.get_line)
+        self.line_used= False
+    
+    def get_line(self):
+        if self.line_used:
+            raise tokenize.TokenError
+        self.line_used = True
+        return self.current_line
+    
+    def push(self, line):
+        self.current_line += line + "\n"
+        self.line_used = False
+        tokens = []
+        try:
+            for intok in self.tokenizer:
+                tokens.append(intok)
+                if intok[0] in (tokenize.NEWLINE, tokenize.NL):
+                    # Stop before we try to pull a line we don't have yet
+                    break
+        except tokenize.TokenError:
+            # Multi-line statement - stop and try again with the next line
+            self.tokenizer = tokenize.generate_tokens(self.get_line)
+            return None
+        
+        self.current_line = ""
+        # Python bug 8478 - untokenize doesn't work quite correctly with a
+        # generator. We call list() to avoid this.
+        return tokenize.untokenize(list(self.func(tokens))).rstrip('\n')
+    
+    def reset(self):
+        l = self.current_line
+        self.current_line = ""
+        if l:
+            return l.rstrip('\n')
+
 
 # Utilities
 def _make_help_call(target, esc, lspace, next_input=None):
