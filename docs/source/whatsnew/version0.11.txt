@@ -113,7 +113,7 @@ A quick summary of the major changes (see below for details):
 
 * **Pasting of code with prompts**. IPython now intelligently strips out input
   prompts , be they plain Python ones (``>>>`` and ``...``) or IPython ones
-  (``In [N]:`` and `` ...:``).  More details :ref:`here <pasting_with_prompts>`.
+  (``In [N]:`` and ``...:``).  More details :ref:`here <pasting_with_prompts>`.
   
 
 Authors and support
@@ -681,7 +681,7 @@ available.
   exec_lines in the config file.
 
 
-.. _credits_011::
+.. _credits_011:
 
 Credits
 -------

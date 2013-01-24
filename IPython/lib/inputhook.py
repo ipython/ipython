@@ -500,7 +500,7 @@ def enable_gui(gui=None, app=None):
       For toolkits that have the concept of a global app, you can supply an
       existing one.  If not given, the toolkit will be probed for one, and if
       none is found, a new one will be created.  Note that GTK does not have
-      this concept, and passing an app if `gui`=="GTK" will raise an error.
+      this concept, and passing an app if ``gui=="GTK"`` will raise an error.
 
     Returns
     -------

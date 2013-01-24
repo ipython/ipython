@@ -17,7 +17,7 @@ def nested(*managers):
 
    The one advantage of this function over the multiple manager form of the
    with statement is that argument unpacking allows it to be
-   used with a variable number of context managers as follows:
+   used with a variable number of context managers as follows::
 
       with nested(*managers):
           do_something()

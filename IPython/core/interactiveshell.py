@@ -1902,10 +1902,10 @@ class InteractiveShell(SingletonConfigurable):
 
         Requires readline.
 
-        Example:
+        Example::
 
-        [D:\ipython]|1> _ip.set_next_input("Hello Word")
-        [D:\ipython]|2> Hello Word_  # cursor is here
+            In [1]: _ip.set_next_input("Hello Word")
+            In [2]: Hello Word_  # cursor is here
         """
         self.rl_next_input = py3compat.cast_bytes_py2(s)
 
@@ -2828,12 +2828,11 @@ class InteractiveShell(SingletonConfigurable):
         This turns on support for matplotlib, preloads into the interactive
         namespace all of numpy and pylab, and configures IPython to correctly
         interact with the GUI event loop.  The GUI backend to be used can be
-        optionally selected with the optional :param:`gui` argument.
+        optionally selected with the optional ``gui`` argument.
 
         Parameters
         ----------
         gui : optional, string
-
           If given, dictates the choice of matplotlib GUI backend to use
           (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
           'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
