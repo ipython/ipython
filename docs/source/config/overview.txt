@@ -394,6 +394,8 @@ convenience function :func:`IPython.utils.path.get_security_file`, which will re
 the absolute path to a security file from its filename and [optionally] profile
 name.
 
+.. _startup_files:
+
 Startup Files
 -------------
 
@@ -440,7 +442,7 @@ to your config file. Key/Value arguments *always* take a value, separated by '='
 and no spaces.
 
 Common Arguments
-****************
+----------------
 
 Since the strictness and verbosity of the KVLoader above are not ideal for everyday
 use, common arguments can be specified as flags_ or aliases_.
@@ -454,7 +456,7 @@ that are single characters, in which case they can be specified with a single ``
     $> ipython -i -c "import numpy; x=numpy.linspace(0,1)" --profile testing --colors=lightbg
 
 Aliases
--------
+*******
 
 For convenience, applications have a mapping of commonly used traits, so you don't have
 to specify the whole class name:
@@ -468,7 +470,7 @@ to specify the whole class name:
     $> ipython --BaseIPythonApplication.profile='myprofile'
 
 Flags
------
+*****
 
 Applications can also be passed **flags**. Flags are options that take no
 arguments. They are simply wrappers for
@@ -491,7 +493,7 @@ For instance:
     $> ipython --TerminalIPythonApp.display_banner=False
 
 Subcommands
-***********
+-----------
 
 
 Some IPython applications have **subcommands**. Subcommands are modeled after

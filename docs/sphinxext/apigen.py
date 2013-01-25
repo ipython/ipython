@@ -378,18 +378,15 @@ class ApiDocWriter(object):
         modules = self.discover_modules()
         self.write_modules_api(modules,outdir)
 
-    def write_index(self, outdir, froot='gen', relative_to=None):
+    def write_index(self, outdir, path='gen.rst', relative_to=None):
         """Make a reST API index file from written files
 
         Parameters
         ----------
-        path : string
-            Filename to write index to
         outdir : string
             Directory to which to write generated index file
-        froot : string, optional
-            root (filename without extension) of filename to write to
-            Defaults to 'gen'.  We add ``self.rst_extension``.
+        path : string
+            Filename to write index to
         relative_to : string
             path to which written filenames are relative.  This
             component of the written file path will be removed from
@@ -399,7 +396,7 @@ class ApiDocWriter(object):
         if self.written_modules is None:
             raise ValueError('No modules written')
         # Get full filename path
-        path = os.path.join(outdir, froot+self.rst_extension)
+        path = os.path.join(outdir, path)
         # Path written into index is relative to rootpath
         if relative_to is not None:
             relpath = outdir.replace(relative_to + os.path.sep, '')
