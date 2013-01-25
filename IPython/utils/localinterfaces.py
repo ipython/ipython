@@ -5,6 +5,9 @@ LOCALHOST : The loopback interface, or the first interface that points to this
             machine.  It will *almost* always be '127.0.0.1'
 
 LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.
+
+PUBLIC_IPS : A list of public IP addresses that point to this machine.
+             Use these to tell remote clients where to find you.
 """
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2010-2011  The IPython Development Team
@@ -31,10 +34,14 @@ try:
 except socket.gaierror:
     pass
 
+PUBLIC_IPS = []
 try:
-    LOCAL_IPS.extend(socket.gethostbyname_ex(socket.gethostname())[2])
+    PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname())[2]
 except socket.gaierror:
     pass
+else:
+    PUBLIC_IPS = uniq_stable(PUBLIC_IPS)
+    LOCAL_IPS.extend(PUBLIC_IPS)
 
 # include all-interface aliases: 0.0.0.0 and ''
 LOCAL_IPS.extend(['0.0.0.0', ''])
