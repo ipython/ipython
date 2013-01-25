@@ -26,7 +26,8 @@ span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 .toolbar{padding:3px 15px;border-bottom:1px #e0e0e0 solid;}
-#maintoolbar>select,#maintoolbar label{height:23px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:85%;margin-left:0.3em;margin-right:0.3em;}
+#maintoolbar select,#maintoolbar label{height:23px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:85%;margin-left:0.3em;margin-right:0.3em;}
+#maintoolbar select{width:auto;}
 #ipython-main-app{width:100%;position:relative;}
 span#quick_help_area{position:static;padding:5px 0px;margin:0px 0px 0px 0px;}
 .help_string{float:right;width:170px;padding:0px 5px;text-align:left;font-size:85%;}
