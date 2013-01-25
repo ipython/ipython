@@ -19,6 +19,8 @@ LOCAL_IPS : A list of IP addresses, loopback first, that point to this machine.
 
 import socket
 
+from .data import uniq_stable
+
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
@@ -36,5 +38,7 @@ except socket.gaierror:
 
 # include all-interface aliases: 0.0.0.0 and ''
 LOCAL_IPS.extend(['0.0.0.0', ''])
+
+LOCAL_IPS = uniq_stable(LOCAL_IPS)
 
 LOCALHOST = LOCAL_IPS[0]
