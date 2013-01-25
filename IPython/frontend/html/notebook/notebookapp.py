@@ -353,7 +353,11 @@ class NotebookApp(BaseIPythonApplication):
                        it. This is mainly convenient when working on the less
                        file to avoid a build step, or if user want to overwrite
                        some of the less variables without having to recompile
-                       everything.""")
+                       everything.
+                       
+                       You will need to install the less.js component in the static directory
+                       either in the source tree or in your profile folder.
+                       """)
 
     webapp_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
