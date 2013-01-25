@@ -59,6 +59,7 @@ from IPython.core.profiledir import ProfileDir
 from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
 from IPython.lib.latextools import LaTeXTool
+from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import PyColorize
 from IPython.utils import io
 from IPython.utils import py3compat
@@ -1897,6 +1898,7 @@ class InteractiveShell(SingletonConfigurable):
                                                                 stdin_encoding))
                 last_cell = cell
 
+    @skip_doctest
     def set_next_input(self, s):
         """ Sets the 'default' input string for the next command line.
 
