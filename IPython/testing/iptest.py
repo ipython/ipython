@@ -167,19 +167,9 @@ have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
 
-if os.name == 'nt':
-    min_zmq = (2,1,7)
-else:
-    min_zmq = (2,1,4)
+min_zmq = (2,1,11)
 
-def version_tuple(mod):
-    "turn '2.1.9' into (2,1,9), and '2.1dev' into (2,1,999)"
-    # turn 'dev' into 999, because Python3 rejects str-int comparisons
-    vs = mod.__version__.replace('dev', '.999')
-    tup = tuple([int(v) for v in vs.split('.') ])
-    return tup
-
-have['zmq'] = test_for('zmq', min_zmq, version_tuple)
+have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq)
 
 #-----------------------------------------------------------------------------
 # Functions and classes

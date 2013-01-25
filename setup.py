@@ -229,12 +229,12 @@ if 'setuptools' in sys.modules:
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = find_scripts(True)
     setup_args['extras_require'] = dict(
-        parallel = 'pyzmq>=2.1.4',
-        qtconsole = ['pyzmq>=2.1.4', 'pygments'],
-        zmq = 'pyzmq>=2.1.4',
+        parallel = 'pyzmq>=2.1.11',
+        qtconsole = ['pyzmq>=2.1.11', 'pygments'],
+        zmq = 'pyzmq>=2.1.11',
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
-        notebook = ['tornado>=2.0', 'pyzmq>=2.1.4', 'jinja2'],
+        notebook = ['tornado>=2.0', 'pyzmq>=2.1.11', 'jinja2'],
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False

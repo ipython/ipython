@@ -6,11 +6,11 @@
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# Verify zmq version dependency >= 2.1.4
+# Verify zmq version dependency >= 2.1.11
 #-----------------------------------------------------------------------------
 
 import warnings
-from distutils.version import LooseVersion as V
+from IPython.utils.version import check_version
 
 
 def patch_pyzmq():
@@ -20,22 +20,6 @@ def patch_pyzmq():
     """
     
     import zmq
-    
-    # ioloop.install, introduced in pyzmq 2.1.7
-    from zmq.eventloop import ioloop
-    
-    def install():
-        import tornado.ioloop
-        tornado.ioloop.IOLoop = ioloop.IOLoop
-    
-    if not hasattr(ioloop, 'install'):
-        ioloop.install = install
-    
-    # fix missing DEALER/ROUTER aliases in pyzmq < 2.1.9
-    if not hasattr(zmq, 'DEALER'):
-        zmq.DEALER = zmq.XREQ
-    if not hasattr(zmq, 'ROUTER'):
-        zmq.ROUTER = zmq.XREP
     
     # fallback on stdlib json if jsonlib is selected, because jsonlib breaks things.
     # jsonlib support is removed from pyzmq >= 2.2.0
@@ -54,17 +38,11 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
 
     pyzmq_version = zmq.__version__
     
-    if 'dev' not in pyzmq_version and V(pyzmq_version) < V(minimum_version):
+    if not check_version(pyzmq_version, minimum_version):
         raise ImportError("%s requires pyzmq >= %s, but you have %s"%(
                         module, minimum_version, pyzmq_version))
 
-    if V(zmq.zmq_version()) >= V('4.0.0'):
-        warnings.warn("""libzmq 4 detected.
-        It is unlikely that IPython's zmq code will work properly.
-        Please install libzmq stable, which is 2.1.x or 2.2.x""",
-        RuntimeWarning)
-
-check_for_zmq('2.1.4')
+check_for_zmq('2.1.11')
 patch_pyzmq()
 
 from .blockingkernelmanager import BlockingKernelManager
