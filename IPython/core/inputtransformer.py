@@ -4,7 +4,15 @@ import re
 from StringIO import StringIO
 import tokenize
 
+try:
+    generate_tokens = tokenize.generate_tokens
+except AttributeError:
+    # Python 3. Note that we use the undocumented _tokenize because it expects
+    # strings, not bytes. See also Python issue #9969.
+    generate_tokens = tokenize._tokenize
+
 from IPython.core.splitinput import split_user_input, LineInfo
+from IPython.utils.untokenize import untokenize
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -119,8 +127,11 @@ class TokenInputTransformer(InputTransformer):
     def __init__(self, func):
         self.func = func
         self.current_line = ""
-        self.tokenizer = tokenize.generate_tokens(self.get_line)
         self.line_used= False
+        self.reset_tokenizer()
+    
+    def reset_tokenizer(self):
+        self.tokenizer = generate_tokens(self.get_line)
     
     def get_line(self):
         if self.line_used:
@@ -140,13 +151,12 @@ class TokenInputTransformer(InputTransformer):
                     break
         except tokenize.TokenError:
             # Multi-line statement - stop and try again with the next line
-            self.tokenizer = tokenize.generate_tokens(self.get_line)
+            self.reset_tokenizer()
             return None
         
         self.current_line = ""
-        # Python bug 8478 - untokenize doesn't work quite correctly with a
-        # generator. We call list() to avoid this.
-        return tokenize.untokenize(list(self.func(tokens))).rstrip('\n')
+        self.reset_tokenizer()
+        return untokenize(self.func(tokens)).rstrip('\n')
     
     def reset(self):
         l = self.current_line
@@ -154,6 +164,9 @@ class TokenInputTransformer(InputTransformer):
         if l:
             return l.rstrip('\n')
 
+@TokenInputTransformer.wrap
+def assemble_logical_lines(tokens):
+    return tokens
 
 # Utilities
 def _make_help_call(target, esc, lspace, next_input=None):

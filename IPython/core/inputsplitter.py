@@ -77,6 +77,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
                                            ipy_prompt,
                                            cellmagic,
+                                           assemble_logical_lines,
                                            help_end,
                                            escaped_transformer,
                                            assign_from_magic,
@@ -515,6 +516,7 @@ class IPythonInputSplitter(InputSplitter):
                                classic_prompt(),
                                ipy_prompt(),
                                cellmagic(),
+                               assemble_logical_lines(),
                                help_end(),
                                escaped_transformer(),
                                assign_from_magic(),
@@ -639,14 +641,11 @@ class IPythonInputSplitter(InputSplitter):
     
     def push_line(self, line):
         buf = self._buffer
-        not_in_string =  self._is_complete or not buf or \
-                                (buf and buf[-1].rstrip().endswith((':', ',')))
         for transformer in self.transforms:
-            if not_in_string or transformer.look_in_string:
-                line = transformer.push(line)
-                if line is None:
-                    self.transformer_accumulating = True
-                    return False                
+            line = transformer.push(line)
+            if line is None:
+                self.transformer_accumulating = True
+                return False                
 
         self.transformer_accumulating = False
         return super(IPythonInputSplitter, self).push(line)
