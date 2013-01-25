@@ -45,6 +45,7 @@ optional dependencies:
 
 This will get:
 
+- jinja2, needed for the notebook
 - pyzmq, needed for IPython's parallel computing features, qt console and
   notebook.
 - pygments, used by the Qt console for syntax highlighting.
@@ -332,6 +333,11 @@ The IPython notebook uses the Tornado_ project for its HTTP server.  Tornado 2.1
 is required, in order to support current versions of browsers, due to an update
 to the websocket protocol.
 
+Jinja
+-----
+
+The IPython notebook uses the Jinja_ templating tool to render HTML pages.
+
 
 MathJax
 -------
@@ -355,11 +361,11 @@ When you have the file stored locally, install it with::
 
 For unusual needs, IPython can tell you what directory it wants to find MathJax in::
 
-	python -m IPython.external.mathjax -d
+	python -m IPython.external.mathjax -d /some/other/mathjax
 
 By default Mathjax will be installed in your ipython profile directory, but you
-can make system wide install, please refere to the documentation and helper function 
-of IPython.external.mathjax
+can make system wide install, please refer to the documentation and helper function 
+of :mod:`IPython.external.mathjax`
 
 Browser Compatibility
 ---------------------
@@ -384,5 +390,6 @@ these features should appear in Internet Explorer 10.
 .. _paramiko: https://github.com/robey/paramiko
 .. _pygments: http://pygments.org
 .. _pexpect: http://www.noah.org/wiki/Pexpect
+.. _Jinja: http://jinja.pocoo.org
 .. _Tornado: http://www.tornadoweb.org
 .. _MathJax: http://www.mathjax.org
