@@ -25,7 +25,6 @@ from __future__ import with_statement
 
 import json
 import os
-import socket
 import stat
 import sys
 
@@ -45,6 +44,7 @@ from IPython.parallel.apps.baseapp import (
     catch_config_error,
 )
 from IPython.utils.importstring import import_item
+from IPython.utils.localinterfaces import LOCALHOST, PUBLIC_IPS
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
 
 from IPython.zmq.session import (
@@ -220,13 +220,13 @@ class IPControllerApp(BaseParallelApplication):
         location = cdict['location']
         
         if not location:
-            try:
-                location = socket.gethostbyname_ex(socket.gethostname())[2][-1]
-            except (socket.gaierror, IndexError):
-                self.log.warn("Could not identify this machine's IP, assuming 127.0.0.1."
+            if PUBLIC_IPS:
+                location = PUBLIC_IPS[-1]
+            else:
+                self.log.warn("Could not identify this machine's IP, assuming %s."
                 " You may need to specify '--location=<external_ip_address>' to help"
-                " IPython decide when to connect via loopback.")
-                location = '127.0.0.1'
+                " IPython decide when to connect via loopback." % LOCALHOST)
+                location = LOCALHOST
             cdict['location'] = location
         fname = os.path.join(self.profile_dir.security_dir, fname)
         self.log.info("writing connection info to %s", fname)
