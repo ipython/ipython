@@ -420,9 +420,9 @@ class TBTools(object):
 class ListTB(TBTools):
     """Print traceback information from a traceback list, with optional color.
 
-    Calling: requires 3 arguments:
-      (etype, evalue, elist)
-    as would be obtained by:
+    Calling requires 3 arguments: (etype, evalue, elist)
+    as would be obtained by::
+    
       etype, evalue, tb = sys.exc_info()
       if tb:
         elist = traceback.extract_tb(tb)
@@ -1130,13 +1130,13 @@ class AutoFormattedTB(FormattedTB):
 
     It will find out about exceptions by itself.
 
-    A brief example:
+    A brief example::
 
-    AutoTB = AutoFormattedTB(mode = 'Verbose',color_scheme='Linux')
-    try:
-      ...
-    except:
-      AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
+        AutoTB = AutoFormattedTB(mode = 'Verbose',color_scheme='Linux')
+        try:
+          ...
+        except:
+          AutoTB()  # or AutoTB(out=logfile) where logfile is an open file object
     """
 
     def __call__(self,etype=None,evalue=None,etb=None,

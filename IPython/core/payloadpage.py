@@ -57,8 +57,8 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None,
       converted to HTML with docutils.  Note that if docutils is not found,
       this option is silently ignored.
 
-    Note
-    ----
+    Notes
+    -----
 
     Only one of the ``html`` and ``auto_html`` options can be given, not
     both.

@@ -166,7 +166,7 @@ An example (with automagic on) should clarify all this:
     /home/fperez/ipython
 
 Defining your own magics
-~~~~~~~~~~~~~~~~~~~~~~~~
+++++++++++++++++++++++++
 
 There are two main ways to define your own magic functions: from standalone
 functions and by inheriting from a base class provided by IPython:
@@ -933,8 +933,8 @@ starting point for writing your own extensions.
 Pasting of code starting with Python or IPython prompts
 -------------------------------------------------------
 
-IPython is smart enough to filter  out input prompts, be they plain Python ones
-(``>>>`` and ``...``) or IPython ones (``In [N]:`` and `` ...:``).  You can
+IPython is smart enough to filter out input prompts, be they plain Python ones
+(``>>>`` and ``...``) or IPython ones (``In [N]:`` and ``...:``).  You can
 therefore copy and paste from existing interactive sessions without worry.
 
 The following is a 'screenshot' of how things work, copying an example from the

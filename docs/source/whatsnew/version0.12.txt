@@ -241,8 +241,8 @@ few major ones merit special mention:
   Windows (:ghissue:`737`).
 
 * Instances of classes defined interactively can now be pickled (:ghissue:`29`;
-:ghpull:`648`). Note that pickling saves a reference to the class definition,
-so unpickling the instances will only work where the class has been defined.
+  :ghpull:`648`). Note that pickling saves a reference to the class definition,
+  so unpickling the instances will only work where the class has been defined.
 
 
 Backwards incompatible changes
@@ -261,13 +261,13 @@ Backwards incompatible changes
   each channel.
 
 * Custom prompts are now configured using a new class,
-:class:`~IPython.core.prompts.PromptManager`, which has traits for
-:attr:`in_template`, :attr:`in2_template` (the ``...:`` continuation prompt),
-:attr:`out_template` and :attr:`rewrite_template`. This uses Python's string
-formatting system, so you can use ``{time}`` and ``{cwd}``, although we have
-preserved the abbreviations from previous versions, e.g. ``\#`` (prompt number)
-and ``\w`` (working directory). For the list of available fields, refer to the
-source of :file:`IPython/core/prompts.py`.
+  :class:`~IPython.core.prompts.PromptManager`, which has traits for
+  :attr:`in_template`, :attr:`in2_template` (the ``...:`` continuation prompt),
+  :attr:`out_template` and :attr:`rewrite_template`. This uses Python's string
+  formatting system, so you can use ``{time}`` and ``{cwd}``, although we have
+  preserved the abbreviations from previous versions, e.g. ``\#`` (prompt number)
+  and ``\w`` (working directory). For the list of available fields, refer to the
+  source of :file:`IPython/core/prompts.py`.
 
 * The class inheritance of the Launchers in
   :mod:`IPython.parallel.apps.launcher` used by ipcluster has changed, so that
@@ -309,7 +309,7 @@ Development summary and credits
 The previous version (IPython 0.11) was released on July 31 2011, so this
 release cycle was roughly 4 1/2 months long, we closed a total of 515 issues,
 257 pull requests and 258 regular issues (a :ref:`detailed list
-<issues_list_012>`_ is available).
+<issues_list_012>` is available).
 
 Many users and developers contributed code, features, bug reports and ideas to
 this release.  Please do not hesitate in contacting us if we've failed to

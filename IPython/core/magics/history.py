@@ -105,12 +105,19 @@ class HistoryMagics(Magics):
 
         By default, all input history from the current session is displayed.
         Ranges of history can be indicated using the syntax:
-        4      : Line 4, current session
-        4-6    : Lines 4-6, current session
-        243/1-5: Lines 1-5, session 243
-        ~2/7   : Line 7, session 2 before current
-        ~8/1-~6/5 : From the first line of 8 sessions ago, to the fifth line
-                    of 6 sessions ago.
+        
+        ``4``
+            Line 4, current session
+        ``4-6``
+            Lines 4-6, current session
+        ``243/1-5``
+            Lines 1-5, session 243
+        ``~2/7``
+            Line 7, session 2 before current
+        ``~8/1-~6/5``
+            From the first line of 8 sessions ago, to the fifth line of 6
+            sessions ago.
+        
         Multiple ranges can be entered, separated by spaces
 
         The same syntax is used by %macro, %save, %edit, %rerun

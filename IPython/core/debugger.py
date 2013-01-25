@@ -162,7 +162,7 @@ class Tracer(object):
 
 def decorate_fn_with_doc(new_fn, old_fn, additional_text=""):
     """Make new_fn have old_fn's doc string. This is particularly useful
-    for the do_... commands that hook into the help system.
+    for the ``do_...`` commands that hook into the help system.
     Adapted from from a comp.lang.python posting
     by Duncan Booth."""
     def wrapper(*args, **kw):
