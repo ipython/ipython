@@ -12,7 +12,8 @@
 .end{-webkit-box-pack:end;-moz-box-pack:end;box-pack:end;}
 .center{-webkit-box-pack:center;-moz-box-pack:center;box-pack:center;}
 .corner-all{border-radius:3px;}
-body{overflow:hidden;background-color:#ffffff;}
+body{background-color:#ffffff;}
+body.notebook_app{overflow:hidden;}
 blockquote{border-left:4px solid #DDD;padding:0 15px;color:#777;}
 span#save_widget{padding:5px;margin:0px 0px 0px 300px;display:inline-block;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
