@@ -7,7 +7,7 @@ Do not use this if you need PyQt with the old QString/QVariant API.
 """
 
 import os
-from distutils.version import LooseVersion as V
+from IPython.utils.version import NumericalVersion as V
 # Available APIs.
 QT_API_PYQT = 'pyqt'
 QT_API_PYSIDE = 'pyside'
