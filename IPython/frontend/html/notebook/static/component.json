@@ -3,6 +3,5 @@
   "version": "0.0.1",
   "dependencies": {
     "bootstrap": "~2.2.2",
-    "codemirror": "codemirror"
   }
 }
