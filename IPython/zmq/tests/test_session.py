@@ -28,6 +28,7 @@ class SessionTestCase(BaseZMQTestCase):
 
 
 class MockSocket(zmq.Socket):
+    data = None
 
     def __init__(self, *args, **kwargs):
         super(MockSocket,self).__init__(*args,**kwargs)
