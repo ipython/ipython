@@ -128,6 +128,10 @@ var IPython = (function (IPython) {
             } else if (event.which === key.ENTER && event.ctrlKey) {
                 that.execute_selected_cell({terminal:true});
                 return false;
+            } else if (event.which === key.ENTER && that.control_key_active) {
+                that.execute_cell_range(0, that.ncells());
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {
                 that.control_key_active = true;
                 return false;
