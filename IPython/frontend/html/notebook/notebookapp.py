@@ -70,6 +70,7 @@ from IPython.zmq.ipkernel import (
     IPKernelApp
 )
 from IPython.utils.importstring import import_item
+from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Enum, Bool,
     DottedObjectName
@@ -86,9 +87,6 @@ _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 _profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
-
-
-LOCALHOST = '127.0.0.1'
 
 _examples = """
 ipython notebook                       # start the notebook
@@ -610,7 +608,7 @@ class NotebookApp(BaseIPythonApplication):
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:
-            ip = self.ip or '127.0.0.1'
+            ip = self.ip or LOCALHOST
             try:
                 browser = webbrowser.get(self.browser or None)
             except webbrowser.Error as e:
