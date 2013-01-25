@@ -87,3 +87,11 @@
  padding : 0;
  background-color: transparent;
 }
+
+input.engine_num_input {
+    height: 20px;
+    margin-bottom:2px;
+    padding-top:0;
+    padding-bottom:0;
+    width: 90px;
+}

@@ -103,7 +103,7 @@ var IPython = (function (IPython) {
         var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
         var status_col = $('<span/>').addClass('status_col').html('stopped');
         var engines_col = $('<span/>').addClass('engines_col');
-        var input = $('<input/>').attr('type','text').
+        var input = $('<input/>').attr('type','number').
                 attr('size',3).addClass('engine_num_input');
         engines_col.append(input);
         var action_col = $('<span/>').addClass('action_col');
