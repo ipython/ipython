@@ -98,15 +98,15 @@
     padding-right:30px
 }
 
-.ipython_tooltip {
+.ipython_tooltip(@t:400ms) {
     max-width:700px;
     /*fade-in animation when inserted*/
-    -webkit-animation: fadeOut 800ms;
-    -moz-animation: fadeOut 800ms;
-    animation: fadeOut 800ms;
-    -webkit-animation: fadeIn 800ms;
-    -moz-animation: fadeIn 800ms;
-    animation: fadeIn 800ms;
+    -webkit-animation: fadeOut @t;
+    -moz-animation: fadeOut @t;
+    animation: fadeOut @t;
+    -webkit-animation: fadeIn @t;
+    -moz-animation: fadeIn @t;
+    animation: fadeIn @t;
     vertical-align: middle;
     background-color: @cell_background;
 
