@@ -909,7 +909,14 @@ class KernelManager(Configurable):
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
         return [ c.format(**ns) for c in cmd ]
-
+    
+    def _launch_kernel(self, kernel_cmd, **kw):
+        """actually launch the kernel
+        
+        override in a subclass to launch kernel subprocesses differently
+        """
+        return launch_kernel(kernel_cmd, **kw)
+    
     def start_kernel(self, **kw):
         """Starts a kernel on this host in a separate process.
 
@@ -941,9 +948,10 @@ class KernelManager(Configurable):
         self._launch_args = kw.copy()
         # build the Popen cmd
         kernel_cmd = self.format_kernel_cmd(**kw)
-        print kernel_cmd
         # launch the kernel subprocess
-        self.kernel = launch_kernel(kernel_cmd, ipython_kernel=self.ipython_kernel, **kw)
+        self.kernel = self._launch_kernel(kernel_cmd,
+                                    ipython_kernel=self.ipython_kernel,
+                                    **kw)
 
     def shutdown_kernel(self, now=False, restart=False):
         """Attempts to the stop the kernel process cleanly. 
