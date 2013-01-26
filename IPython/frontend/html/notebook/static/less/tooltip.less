@@ -30,13 +30,13 @@
 }
 
 // smoth height adaptation
-.smoothheight(@t:1s) {
+.smoothheight(@t:500ms) {
     -webkit-transition-property: height;
-    -webkit-transition-duration: 1s;
+    -webkit-transition-duration: @t;
     -moz-transition-property: height;
-    -moz-transition-duration: 1s;
+    -moz-transition-duration: @t;
     transition-property: height;
-    transition-duration: 1s;
+    transition-duration: @t;
 }
 
 @-moz-keyframes fadeOut {

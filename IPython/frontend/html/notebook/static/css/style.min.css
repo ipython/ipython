@@ -26,8 +26,8 @@ span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 .toolbar{padding:3px 15px;border-bottom:1px #e0e0e0 solid;}
-#maintoolbar select,#maintoolbar label{height:23px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:85%;margin-left:0.3em;margin-right:0.3em;}
-#maintoolbar select{width:auto;}
+.toolbar select,.toolbar label{height:23px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:85%;margin-left:0.3em;margin-right:0.3em;}
+.toolbar select{width:auto;}
 #ipython-main-app{width:100%;position:relative;}
 span#quick_help_area{position:static;padding:5px 0px;margin:0px 0px 0px 0px;}
 .help_string{float:right;width:170px;padding:0px 5px;text-align:left;font-size:85%;}
@@ -111,8 +111,8 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 .rendered_html p{text-align:justify;}
 .rendered_html p+p{margin-top:1em;}
 .corner-all{border-radius:3px;}
-@-moz-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-webkit-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-moz-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}@-webkit-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}.bigtooltip{overflow:auto;height:200px;-webkit-transition-property:height;-webkit-transition-duration:1s;-moz-transition-property:height;-moz-transition-duration:1s;transition-property:height;transition-duration:1s;}
-.smalltooltip{-webkit-transition-property:height;-webkit-transition-duration:1s;-moz-transition-property:height;-moz-transition-duration:1s;transition-property:height;transition-duration:1s;text-overflow:ellipsis;overflow:hidden;height:80px;}
+@-moz-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-webkit-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-moz-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}@-webkit-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}.bigtooltip{overflow:auto;height:200px;-webkit-transition-property:height;-webkit-transition-duration:500ms;-moz-transition-property:height;-moz-transition-duration:500ms;transition-property:height;transition-duration:500ms;}
+.smalltooltip{-webkit-transition-property:height;-webkit-transition-duration:500ms;-moz-transition-property:height;-moz-transition-duration:500ms;transition-property:height;transition-duration:500ms;text-overflow:ellipsis;overflow:hidden;height:80px;}
 .tooltipbuttons{position:absolute;padding-right:15px;top:0px;right:0px;}
 .tooltiptext{padding-right:30px;}
 .ipython_tooltip{max-width:700px;-webkit-animation:fadeOut 800ms;-moz-animation:fadeOut 800ms;animation:fadeOut 800ms;-webkit-animation:fadeIn 800ms;-moz-animation:fadeIn 800ms;animation:fadeIn 800ms;vertical-align:middle;background-color:#f7f7f7;overflow:visible;border:#e0e0e0 1px solid;outline:none;padding:3px;margin:0px;padding-left:7px;font-family:monospace;min-height:50px;position:absolute;-moz-box-shadow:0px 6px 10px -1px #adadad;-webkit-box-shadow:0px 6px 10px -1px #adadad;box-shadow:0px 6px 10px -1px #adadad;border-radius:3px;}.ipython_tooltip a{float:right;}
