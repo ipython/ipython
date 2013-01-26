@@ -22,6 +22,7 @@ from IPython.kernel.multikernelmanager import MultiKernelManager
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Float, Integer,
 )
+
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
