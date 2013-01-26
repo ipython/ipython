@@ -18,12 +18,14 @@ a conversion of IPython notebooks to some other format should inherit.
 from __future__ import print_function, absolute_import
 from .transformers import extract_figure_transformer
 import converters.transformers as trans
+from converters.jinja_filters import (python_comment, indent,
+        rm_fake, remove_ansi, markdown, highlight,
+        ansi2html, markdown2latex, escape_tex)
 
 
 # Stdlib imports
 import io
 import os
-import re
 from IPython.utils import path
 
 from jinja2 import Environment, FileSystemLoader
@@ -48,25 +50,11 @@ from IPython.nbformat import current as nbformat
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import ( Unicode, Any, List, Bool)
 
-# Our own imports
-from IPython.utils.text import indent
-from .utils import remove_ansi
-from markdown import markdown
-from .utils import highlight, ansi2html
-from .utils import markdown2latex
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
-def rm_fake(strng):
-    return strng.replace('/files/', '')
-
 class ConversionException(Exception):
     pass
-
-
-def python_comment(string):
-    return '# '+'\n# '.join(string.split('\n'))
-
 
 
 def header_body():
@@ -101,19 +89,6 @@ def header_body():
     header.append(pygments_css)
     return header
 
-# todo, make the key part configurable.
-def _new_figure(data, fmt, count):
-    """Create a new figure file in the given format.
-
-    Returns a path relative to the input file.
-    """
-    figname = '_fig_%02i.%s' % (count, fmt)
-
-    # Binary files are base64-encoded, SVG is already XML
-    if fmt in ('png', 'jpg', 'pdf'):
-        data = data.decode('base64')
-
-    return figname,data
 
 
 
@@ -121,20 +96,7 @@ def _new_figure(data, fmt, count):
 inlining = {}
 inlining['css'] = header_body()
 
-LATEX_SUBS = (
-    (re.compile(r'\\'), r'\\textbackslash'),
-    (re.compile(r'([{}_#%&$])'), r'\\\1'),
-    (re.compile(r'~'), r'\~{}'),
-    (re.compile(r'\^'), r'\^{}'),
-    (re.compile(r'"'), r"''"),
-    (re.compile(r'\.\.\.+'), r'\\ldots'),
-)
 
-def escape_tex(value):
-    newval = value
-    for pattern, replacement in LATEX_SUBS:
-        newval = pattern.sub(replacement, newval)
-    return newval
 
 texenv.block_start_string = '((*'
 texenv.block_end_string = '*))'
@@ -143,23 +105,6 @@ texenv.variable_end_string = ')))'
 texenv.comment_start_string = '((='
 texenv.comment_end_string = '=))'
 texenv.filters['escape_tex'] = escape_tex
-
-def cell_preprocessor(function):
-    """ wrap a function to be executed on all cells of a notebook
-
-    wrapped function  parameters :
-    cell  : the cell
-    other : external resources
-    index : index of the cell
-    """
-    def wrappedfunc(nb,other):
-        for worksheet in nb.worksheets :
-            for index, cell in enumerate(worksheet.cells):
-                worksheet.cells[index],other= function(cell,other,index)
-        return nb,other
-    return wrappedfunc
-
-
 
 
 class ConverterTemplate(Configurable):
@@ -203,7 +148,7 @@ class ConverterTemplate(Configurable):
 
     infile_dir = Unicode()
 
-    def filter_data_type(self,output):
+    def filter_data_type(self, output):
         for fmt in self.display_data_priority:
             if fmt in output:
                 return [fmt]
@@ -224,7 +169,7 @@ class ConverterTemplate(Configurable):
         self.nb = None
         self.preprocessors = preprocessors
         for name in self.pre_transformer_order:
-            self.preprocessors.append(getattr(trans,'haspyout_transformer'))
+            self.preprocessors.append(getattr(trans, name))
         if self.extract_figures:
             self.preprocessors.append(extract_figure_transformer)
 
@@ -253,7 +198,7 @@ class ConverterTemplate(Configurable):
         resources = {}
 
         for preprocessor in self.preprocessors:
-            nb,resources = preprocessor(nb,resources)
+            nb, resources = preprocessor(nb, resources)
 
         return nb, resources
 
@@ -263,7 +208,7 @@ class ConverterTemplate(Configurable):
         return both the converted ipynb file and a dict containing potential
         other resources
         """
-        nb,resources = self.process()
+        nb, resources = self.process()
         return self.template.render(nb=nb, inlining=inlining), resources
 
 
