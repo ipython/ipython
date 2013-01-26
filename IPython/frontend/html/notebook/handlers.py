@@ -186,8 +186,8 @@ class AuthenticatedHandler(RequestHandler):
 
     @property
     def use_less(self):
-	"""Use less instead of css in templates"""
-	return self.application.use_less
+        """Use less instead of css in templates"""
+        return self.application.use_less
 
     @property
     def ws_url(self):
@@ -304,7 +304,8 @@ class NamedNotebookHandler(AuthenticatedHandler):
             logged_in=self.logged_in,
             login_available=self.login_available,
             mathjax_url=self.application.ipython_app.mathjax_url,
-	    use_less=self.use_less,))
+            use_less=self.use_less,)
+        )
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
