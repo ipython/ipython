@@ -5,7 +5,7 @@ Authors : MinRK, gregcaporaso, dannystaple
 import urllib
 
 from os.path import exists, isfile, splitext, abspath, join, isdir
-from os import walk
+from os import walk, sep
 
 
 class YouTubeVideo(object):
@@ -196,7 +196,8 @@ class FileLinks(FileLink):
     def _get_display_formatter(self,
                                dirname_output_format,
                                fname_output_format,
-                               fp_format):
+                               fp_format,
+                               fp_cleaner=None):
         """ generate built-in formatter function
            
            this is used to define both the notebook and terminal built-in 
@@ -236,6 +237,8 @@ class FileLinks(FileLink):
                 result.append(dirname_output_line)
                 for fname in display_fnames:
                     fp = fp_format % (dirname,fname)
+                    if fp_cleaner is not None:
+                        fp = fp_cleaner(fp)
                     try:
                         # output can include both a filepath and a filename...
                         fname_output_line = fname_output_format % (fp, fname)
@@ -255,10 +258,21 @@ class FileLinks(FileLink):
         fname_output_format = \
          self.result_html_prefix + spacer + self.html_link_str + self.result_html_suffix
         fp_format = self.url_prefix + '%s/%s'
+        if sep == "\\":
+            # Working on a platform where the path separator is "\", so 
+            # must convert these to "/" for generating a URI
+            def fp_cleaner(fp):
+                # Replace all occurences of backslash ("\") with a forward
+                # slash ("/") - this is necessary on windows when a path is
+                # provided as input, but we must link to a URI
+                return fp.replace('\\','/')
+        else:
+            fp_cleaner = None
         
         return self._get_display_formatter(dirname_output_format,
                                            fname_output_format,
-                                           fp_format)
+                                           fp_format,
+                                           fp_cleaner)
 
     def _get_terminal_display_formatter(self,
                                         spacer="  "):
