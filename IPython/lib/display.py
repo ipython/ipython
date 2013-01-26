@@ -233,7 +233,7 @@ class FileLinks(FileLink):
                 result.append(dirname_output_line)
                 for fname in display_fnames:
                     fp = fp_format % (dirname,fname)
-                    if fp_cleaner != None:
+                    if fp_cleaner is not None:
                         fp = fp_cleaner(fp)
                     try:
                         # output can include both a filepath and a filename...
