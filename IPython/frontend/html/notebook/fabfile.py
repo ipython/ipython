@@ -12,10 +12,15 @@ def test_component(name):
         abort('cannot continue without component {}.'.format(name))
 
 
-def css():
+def css(minify=True):
     """generate the css from less files"""
     test_component('bootstrap')
     test_component('less.js')
+    if minify not in ['True','False',True,False]:
+        abort('need to get Boolean')
+    minify = (minify in ['True',True])
+
+    min_flag= '-x' if minify is True else ''
     with lcd(static_dir):
-        local('lessc -x less/style.less css/style.min.css')
+        local('lessc {min_flag} less/style.less css/style.min.css'.format(min_flag=min_flag))
 
