@@ -16,6 +16,9 @@ a conversion of IPython notebooks to some other format should inherit.
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
+from .transformers import extract_figure_transformer
+import converters.transformers as trans
+
 
 # Stdlib imports
 import io
@@ -158,36 +161,6 @@ def cell_preprocessor(function):
 
 
 
-@cell_preprocessor
-def haspyout_transformer(cell, other, count):
-    """
-    Add a haspyout flag to cell that have it
-    
-    Easier for templating, where you can't know in advance
-    wether to write the out prompt
-
-    """
-    cell.type = cell.cell_type
-    cell.haspyout = False
-    for out in cell.get('outputs', []):
-        if out.output_type == 'pyout':
-            cell.haspyout = True
-            break
-    return cell,other
-
-
-@cell_preprocessor
-def extract_figure_transformer(cell,other,count):
-    for i,out in enumerate(cell.get('outputs', [])):
-        for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
-            if out.hasattr(type):
-                figname,data = _new_figure(out[type], type,count)
-                cell.outputs[i][type] = figname
-                out['key_'+type] = figname
-                other[figname] = data
-                count = count+1
-    return cell,other
-
 
 class ConverterTemplate(Configurable):
     """ A Jinja2 base converter templates"""
@@ -200,7 +173,7 @@ class ConverterTemplate(Configurable):
                     """
             )
     
-    pre_transformer_order = List([],
+    pre_transformer_order = List(['haspyout_transformer'],
             config=True,
               help= """ An ordered list of pretransformer to apply to the ipynb file befor running through templates
                     """
@@ -250,7 +223,8 @@ class ConverterTemplate(Configurable):
         self.ext = '.tplx' if self.tex_environement else '.tpl'
         self.nb = None
         self.preprocessors = preprocessors
-        self.preprocessors.append(haspyout_transformer)
+        for name in self.pre_transformer_order:
+            self.preprocessors.append(getattr(trans,'haspyout_transformer'))
         if self.extract_figures:
             self.preprocessors.append(extract_figure_transformer)
 
@@ -265,7 +239,6 @@ class ConverterTemplate(Configurable):
         self.env.filters['markdown2latex'] = markdown2latex
 
         self.template = self.env.get_template(self.template_file+self.ext)
-
 
 
     def process(self):
