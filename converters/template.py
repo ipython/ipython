@@ -113,14 +113,17 @@ class ConverterTemplate(Configurable):
     display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
             config=True,
               help= """
-                    An ordered list of prefered output type, the firs encounterd will usually be 
-                    used when converting discarding the others.
+                    An ordered list of prefered output type, the first
+                    encounterd will usually be used when converting discarding
+                    the others.
                     """
             )
     
     pre_transformer_order = List(['haspyout_transformer'],
             config=True,
-              help= """ An ordered list of pretransformer to apply to the ipynb file befor running through templates
+              help= """
+                    An ordered list of pre transformer to apply to the ipynb
+                    file befor running through templates
                     """
             )
 
@@ -155,8 +158,6 @@ class ConverterTemplate(Configurable):
 
     def __init__(self, preprocessors=[], config=None, **kw):
         """
-        tplfile : jinja template file to process.
-
         config: the Configurable confg object to pass around
 
         preprocessors: list of function to run on ipynb json data before conversion
