@@ -52,7 +52,6 @@ from IPython.utils.traitlets import (
     Type
 )
 
-from entry_point import base_launch_kernel
 from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from serialize import serialize_object, unpack_apply_message
 from session import Session, Message
@@ -869,21 +868,6 @@ class IPKernelApp(KernelApp, InteractiveShellApp):
 #-----------------------------------------------------------------------------
 # Kernel main and launch functions
 #-----------------------------------------------------------------------------
-
-def launch_kernel(*args, **kwargs):
-    """Launches a localhost IPython kernel, binding to the specified ports.
-
-    This function simply calls entry_point.base_launch_kernel with the right
-    first command to start an ipkernel.  See base_launch_kernel for arguments.
-
-    Returns
-    -------
-    A tuple of form:
-        (kernel_process, shell_port, iopub_port, stdin_port, hb_port)
-    where kernel_process is a Popen object and the ports are integers.
-    """
-    return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
-                              *args, **kwargs)
 
 
 def embed_kernel(module=None, local_ns=None, **kwargs):
