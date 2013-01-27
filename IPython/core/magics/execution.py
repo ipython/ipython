@@ -675,7 +675,7 @@ python-profiler package from non-free.""")
                 del sys.modules[main_mod_name]
 
         return stats
-
+    
     @skip_doctest
     @line_cell_magic
     def timeit(self, line='', cell=None):
@@ -746,31 +746,6 @@ python-profiler package from non-free.""")
         those from %timeit."""
 
         import timeit
-        import math
-
-        # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
-        # certain terminals.  Until we figure out a robust way of
-        # auto-detecting if the terminal can deal with it, use plain 'us' for
-        # microseconds.  I am really NOT happy about disabling the proper
-        # 'micro' prefix, but crashing is worse... If anyone knows what the
-        # right solution for this is, I'm all ears...
-        #
-        # Note: using
-        #
-        # s = u'\xb5'
-        # s.encode(sys.getdefaultencoding())
-        #
-        # is not sufficient, as I've seen terminals where that fails but
-        # print s
-        #
-        # succeeds
-        #
-        # See bug: https://bugs.launchpad.net/ipython/+bug/348466
-
-        #units = [u"s", u"ms",u'\xb5',"ns"]
-        units = [u"s", u"ms",u'us',"ns"]
-
-        scaling = [1, 1e3, 1e6, 1e9]
 
         opts, stmt = self.parse_options(line,'n:r:tcp:',
                                         posix=False, strict=False)
@@ -854,16 +829,8 @@ python-profiler package from non-free.""")
 
         best = min(timer.repeat(repeat, number)) / number
 
-        if best > 0.0 and best < 1000.0:
-            order = min(-int(math.floor(math.log10(best)) // 3), 3)
-        elif best >= 1000.0:
-            order = 0
-        else:
-            order = 3
-        print u"%d loops, best of %d: %.*g %s per loop" % (number, repeat,
-                                                          precision,
-                                                          best * scaling[order],
-                                                          units[order])
+        print u"%d loops, best of %d: %s per loop" % (number, repeat,
+                                                          _format_time(best, precision))
         if tc > tc_min:
             print "Compiler time: %.2f s" % tc
 
@@ -966,13 +933,13 @@ python-profiler package from non-free.""")
         cpu_user = end[0]-st[0]
         cpu_sys = end[1]-st[1]
         cpu_tot = cpu_user+cpu_sys
-        print "CPU times: user %.2f s, sys: %.2f s, total: %.2f s" % \
-              (cpu_user,cpu_sys,cpu_tot)
-        print "Wall time: %.2f s" % wall_time
+        print "CPU times: user %s, sys: %s, total: %s" % \
+              (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot))
+        print "Wall time: %s" % _format_time(wall_time)
         if tc > tc_min:
-            print "Compiler : %.2f s" % tc
+            print "Compiler : %s" % _format_time(tc)
         if tp > tp_min:
-            print "Parser   : %.2f s" % tp
+            print "Parser   : %s" % _format_time(tp)
         return out
 
     @skip_doctest
@@ -1091,3 +1058,43 @@ def parse_breakpoint(text, current_file):
         return current_file, int(text)
     else:
         return text[:colon], int(text[colon+1:])
+    
+def _format_time(timespan, precision=3):
+    """Formats the timespan in a human readable form"""
+    import math
+    # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
+    # certain terminals.  Until we figure out a robust way of
+    # auto-detecting if the terminal can deal with it, use plain 'us' for
+    # microseconds.  I am really NOT happy about disabling the proper
+    # 'micro' prefix, but crashing is worse... If anyone knows what the
+    # right solution for this is, I'm all ears...
+    #
+    # Note: using
+    #
+    # s = u'\xb5'
+    # s.encode(sys.getdefaultencoding())
+    #
+    # is not sufficient, as I've seen terminals where that fails but
+    # print s
+    #
+    # succeeds
+    #
+    # See bug: https://bugs.launchpad.net/ipython/+bug/348466
+
+    #units = [u'h', u'min', u"s", u"ms",u'\xb5',"ns"]
+    units = [u'h', u'min', u"s", u"ms",u'us',"ns"]
+    scaling = [1./3600, 1./60, 1, 1e3, 1e6, 1e9]
+    
+    if timespan > 0.0 and timespan < 60.0:
+        order = min(-int(math.floor(math.log10(timespan)) // 3), 3)+2
+    elif timespan >= 3660.0:
+        # hours
+        order = 0
+    elif timespan >= 60.0:
+        # minutes
+        order = 1
+    else:
+        order = 5
+    
+    ret =  u"%.*g %s" % (precision, timespan * scaling[order], units[order])
+    return ret
