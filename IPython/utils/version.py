@@ -53,4 +53,17 @@ def version_tuple(vs):
     regular integer element.
     """
     return tuple(NumericalVersion(vs).version)
+
+#
+def check_version(v, check):
+    """check version string v >= check
+
+    If dev/prerelease tags result in TypeError for string-number comparison,
+    it is assumed that the dependency is satisfied.
+    Users on dev branches are responsible for keeping their own packages up to date.
+    """
+    try:
+        return LooseVersion(v) >= LooseVersion(check)
+    except TypeError:
+        return True
     
