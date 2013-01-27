@@ -16,17 +16,18 @@ a conversion of IPython notebooks to some other format should inherit.
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
-from .transformers import extract_figure_transformer
 import converters.transformers as trans
 from converters.jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight,
         ansi2html, markdown2latex, escape_tex)
 
 
+
 # Stdlib imports
 import io
 import os
 from IPython.utils import path
+from IPython.utils.traitlets import MetaHasTraits
 
 from jinja2 import Environment, FileSystemLoader
 env = Environment(
@@ -118,8 +119,8 @@ class ConverterTemplate(Configurable):
                     the others.
                     """
             )
-    
-    pre_transformer_order = List(['haspyout_transformer'],
+
+    pre_transformer_order = List(['haspyout_transformer', 'Foobar'],
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
@@ -169,10 +170,14 @@ class ConverterTemplate(Configurable):
         self.ext = '.tplx' if self.tex_environement else '.tpl'
         self.nb = None
         self.preprocessors = preprocessors
+
         for name in self.pre_transformer_order:
-            self.preprocessors.append(getattr(trans, name))
+            tr = getattr(trans, name)
+            if isinstance(tr, MetaHasTraits):
+                tr = tr(config=config)
+            self.preprocessors.append(tr)
         if self.extract_figures:
-            self.preprocessors.append(extract_figure_transformer)
+            self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
 
         self.env.filters['filter_data_type'] = self.filter_data_type
         self.env.filters['pycomment'] = python_comment
@@ -217,4 +222,6 @@ class ConverterTemplate(Configurable):
         "read and parse notebook into NotebookNode called self.nb"
         with io.open(filename) as f:
             self.nb = nbformat.read(f, 'json')
+
+
 
