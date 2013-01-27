@@ -79,7 +79,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            cellmagic,
                                            assemble_logical_lines,
                                            help_end,
-                                           escaped_transformer,
+                                           escaped_commands,
                                            assign_from_magic,
                                            assign_from_system,
                                            assemble_python_lines,
@@ -526,7 +526,7 @@ class IPythonInputSplitter(InputSplitter):
         self.logical_line_transforms = logical_line_transforms or \
                 [cellmagic(),
                  help_end(),
-                 escaped_transformer(),
+                 escaped_commands(),
                  assign_from_magic(),
                  assign_from_system(),
                 ]

@@ -254,14 +254,9 @@ syntax_ml = \
 
 def test_assign_system():
     tt.check_pairs(transform_and_reset(ipt.assign_from_system), syntax['assign_system'])
-    for example in syntax_ml['assign_system']:
-        transform_checker(example, ipt.assign_from_system)
 
 def test_assign_magic():
     tt.check_pairs(transform_and_reset(ipt.assign_from_magic), syntax['assign_magic'])
-    for example in syntax_ml['assign_magic']:
-        transform_checker(example, ipt.assign_from_magic)
-
 
 def test_classic_prompt():
     tt.check_pairs(transform_and_reset(ipt.classic_prompt), syntax['classic_prompt'])
@@ -276,39 +271,70 @@ def test_ipy_prompt():
     for example in syntax_ml['ipy_prompt']:
         transform_checker(example, ipt.ipy_prompt)
 
+def test_assemble_logical_lines():
+    tests = \
+    [ [(u"a = \\", None),
+       (u"123", u"a =  123"),
+      ],
+      [(u"a = \\", None),  # Test resetting when within a multi-line string
+       (u"12 *\\", None),
+       (None, u"a =  12 *"),
+      ],
+    ]
+    for example in tests:
+        transform_checker(example, ipt.assemble_logical_lines)
+
+def test_assemble_python_lines():
+    tests = \
+    [ [(u"a = '''", None),
+       (u"abc'''", u"a = '''\nabc'''"),
+      ],
+      [(u"a = '''", None),  # Test resetting when within a multi-line string
+       (u"def", None),
+       (None, u"a = '''\ndef"),
+      ],
+      [(u"a = [1,", None),
+       (u"2]", u"a = [1,\n2]"),
+      ],
+      [(u"a = [1,", None),  # Test resetting when within a multi-line string
+       (u"2,", None),
+       (None, u"a = [1,\n2,"),
+      ],
+    ]
+    for example in tests:
+        transform_checker(example, ipt.assemble_python_lines)
+
+
 def test_help_end():
     tt.check_pairs(transform_and_reset(ipt.help_end), syntax['end_help'])
 
 def test_escaped_noesc():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_noesc'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_noesc'])
 
 
 def test_escaped_shell():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_shell'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_shell'])
 
 
 def test_escaped_help():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_help'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_help'])
 
 
 def test_escaped_magic():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_magic'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_magic'])
 
 
 def test_escaped_quote():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_quote'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_quote'])
 
 
 def test_escaped_quote2():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_quote2'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_quote2'])
 
 
 def test_escaped_paren():
-    tt.check_pairs(transform_and_reset(ipt.escaped_transformer), syntax['escaped_paren'])
+    tt.check_pairs(transform_and_reset(ipt.escaped_commands), syntax['escaped_paren'])
 
-def test_escaped_multiline():
-    for example in syntax_ml['escaped']:
-        transform_checker(example, ipt.escaped_transformer)
 
 def test_cellmagic():
     for example in syntax_ml['cellmagic']:

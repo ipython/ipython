@@ -61,9 +61,6 @@ class InputTransformer(object):
         """
         pass
     
-    # Set this to True to allow the transformer to act on lines inside strings.
-    look_in_string = False
-    
     @classmethod
     def wrap(cls, func):
         """Can be used by subclasses as a decorator, to return a factory that
@@ -71,10 +68,7 @@ class InputTransformer(object):
         """
         @functools.wraps(func)
         def transformer_factory():
-            transformer = cls(func)
-            if getattr(transformer_factory, 'look_in_string', False):
-                transformer.look_in_string = True
-            return transformer
+            return cls(func)
         
         return transformer_factory
 
@@ -214,83 +208,67 @@ def _make_help_call(target, esc, lspace, next_input=None):
     else:
         return '%sget_ipython().set_next_input(%r);get_ipython().magic(%r)' % \
            (lspace, next_input, arg)
-
-@CoroutineInputTransformer.wrap
-def escaped_transformer():
-    """Translate lines beginning with one of IPython's escape characters.
     
-    This is stateful to allow magic commands etc. to be continued over several
-    lines using explicit line continuations (\ at the end of a line).
+# These define the transformations for the different escape characters.
+def _tr_system(line_info):
+    "Translate lines escaped with: !"
+    cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
+    return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
+
+def _tr_system2(line_info):
+    "Translate lines escaped with: !!"
+    cmd = line_info.line.lstrip()[2:]
+    return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
+
+def _tr_help(line_info):
+    "Translate lines escaped with: ?/??"
+    # A naked help line should just fire the intro help screen
+    if not line_info.line[1:]:
+        return 'get_ipython().show_usage()'
+
+    return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
+
+def _tr_magic(line_info):
+    "Translate lines escaped with: %"
+    tpl = '%sget_ipython().magic(%r)'
+    cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
+    return tpl % (line_info.pre, cmd)
+
+def _tr_quote(line_info):
+    "Translate lines escaped with: ,"
+    return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+                         '", "'.join(line_info.the_rest.split()) )
+
+def _tr_quote2(line_info):
+    "Translate lines escaped with: ;"
+    return '%s%s("%s")' % (line_info.pre, line_info.ifun,
+                           line_info.the_rest)
+
+def _tr_paren(line_info):
+    "Translate lines escaped with: /"
+    return '%s%s(%s)' % (line_info.pre, line_info.ifun,
+                         ", ".join(line_info.the_rest.split()))
+
+tr = { ESC_SHELL  : _tr_system,
+       ESC_SH_CAP : _tr_system2,
+       ESC_HELP   : _tr_help,
+       ESC_HELP2  : _tr_help,
+       ESC_MAGIC  : _tr_magic,
+       ESC_QUOTE  : _tr_quote,
+       ESC_QUOTE2 : _tr_quote2,
+       ESC_PAREN  : _tr_paren }
+
+@StatelessInputTransformer.wrap
+def escaped_commands(line):
+    """Transform escaped commands - %magic, !system, ?help + various autocalls.
     """
+    if not line or line.isspace():
+        return line
+    lineinf = LineInfo(line)
+    if lineinf.esc not in tr:
+        return line
     
-    # These define the transformations for the different escape characters.
-    def _tr_system(line_info):
-        "Translate lines escaped with: !"
-        cmd = line_info.line.lstrip().lstrip(ESC_SHELL)
-        return '%sget_ipython().system(%r)' % (line_info.pre, cmd)
-
-    def _tr_system2(line_info):
-        "Translate lines escaped with: !!"
-        cmd = line_info.line.lstrip()[2:]
-        return '%sget_ipython().getoutput(%r)' % (line_info.pre, cmd)
-
-    def _tr_help(line_info):
-        "Translate lines escaped with: ?/??"
-        # A naked help line should just fire the intro help screen
-        if not line_info.line[1:]:
-            return 'get_ipython().show_usage()'
-
-        return _make_help_call(line_info.ifun, line_info.esc, line_info.pre)
-
-    def _tr_magic(line_info):
-        "Translate lines escaped with: %"
-        tpl = '%sget_ipython().magic(%r)'
-        cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
-        return tpl % (line_info.pre, cmd)
-
-    def _tr_quote(line_info):
-        "Translate lines escaped with: ,"
-        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
-                             '", "'.join(line_info.the_rest.split()) )
-
-    def _tr_quote2(line_info):
-        "Translate lines escaped with: ;"
-        return '%s%s("%s")' % (line_info.pre, line_info.ifun,
-                               line_info.the_rest)
-
-    def _tr_paren(line_info):
-        "Translate lines escaped with: /"
-        return '%s%s(%s)' % (line_info.pre, line_info.ifun,
-                             ", ".join(line_info.the_rest.split()))
-    
-    tr = { ESC_SHELL  : _tr_system,
-           ESC_SH_CAP : _tr_system2,
-           ESC_HELP   : _tr_help,
-           ESC_HELP2  : _tr_help,
-           ESC_MAGIC  : _tr_magic,
-           ESC_QUOTE  : _tr_quote,
-           ESC_QUOTE2 : _tr_quote2,
-           ESC_PAREN  : _tr_paren }
-    
-    line = ''
-    while True:
-        line = (yield line)
-        if not line or line.isspace():
-            continue
-        lineinf = LineInfo(line)
-        if lineinf.esc not in tr:
-            continue
-        
-        parts = []
-        while line is not None:
-            parts.append(line.rstrip('\\'))
-            if not line.endswith('\\'):
-                break
-            line = (yield None)
-        
-        # Output
-        lineinf = LineInfo(' '.join(parts))
-        line = tr[lineinf.esc](lineinf)
+    return tr[lineinf.esc](lineinf)
 
 _initial_space_re = re.compile(r'\s*')
 
@@ -401,16 +379,12 @@ def classic_prompt():
     prompt2_re = re.compile(r'^(>>> |^\.\.\. )')
     return _strip_prompts(prompt1_re, prompt2_re)
 
-classic_prompt.look_in_string = True
-
 @CoroutineInputTransformer.wrap
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
     prompt1_re = re.compile(r'^In \[\d+\]: ')
     prompt2_re = re.compile(r'^(In \[\d+\]: |^\ \ \ \.\.\.+: )')
     return _strip_prompts(prompt1_re, prompt2_re)
-
-ipy_prompt.look_in_string = True
 
 
 @CoroutineInputTransformer.wrap
@@ -440,48 +414,27 @@ def leading_indent():
             while line is not None:
                 line = (yield line)
 
-leading_indent.look_in_string = True
 
-
-def _special_assignment(assignment_re, template):
-    """Transform assignment from system & magic commands.
-    
-    This is stateful so that it can handle magic commands continued on several
-    lines.
-    """
-    line = ''
-    while True:
-        line = (yield line)
-        if not line or line.isspace():
-            continue
-        
-        m = assignment_re.match(line)
-        if not m:
-            continue
-        
-        parts = []
-        while line is not None:
-            parts.append(line.rstrip('\\'))
-            if not line.endswith('\\'):
-                break
-            line = (yield None)
-        
-        # Output
-        whole = assignment_re.match(' '.join(parts))
-        line = template % (whole.group('lhs'), whole.group('cmd'))
-
-@CoroutineInputTransformer.wrap
-def assign_from_system():
+assign_system_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                              r'\s*=\s*!\s*(?P<cmd>.*)')
+assign_system_template = '%s = get_ipython().getoutput(%r)'
+@StatelessInputTransformer.wrap
+def assign_from_system(line):
     """Transform assignment from system commands (e.g. files = !ls)"""
-    assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*!\s*(?P<cmd>.*)')
-    template = '%s = get_ipython().getoutput(%r)'
-    return _special_assignment(assignment_re, template)
+    m = assign_system_re.match(line)
+    if m is None:
+        return line
+    
+    return assign_system_template % m.group('lhs', 'cmd')
 
-@CoroutineInputTransformer.wrap
-def assign_from_magic():
+assign_magic_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
+                             r'\s*=\s*%\s*(?P<cmd>.*)')
+assign_magic_template = '%s = get_ipython().magic(%r)'
+@StatelessInputTransformer.wrap
+def assign_from_magic(line):
     """Transform assignment from magic commands (e.g. a = %who_ls)"""
-    assignment_re = re.compile(r'(?P<lhs>(\s*)([\w\.]+)((\s*,\s*[\w\.]+)*))'
-                               r'\s*=\s*%\s*(?P<cmd>.*)')
-    template = '%s = get_ipython().magic(%r)'
-    return _special_assignment(assignment_re, template)
+    m = assign_magic_re.match(line)
+    if m is None:
+        return line
+    
+    return assign_magic_template % m.group('lhs', 'cmd')
