@@ -32,9 +32,10 @@ import os
 import sys
 
 from IPython.utils.warn import warn
+from IPython.utils.version import check_version
 
 matplotlib = sys.modules.get('matplotlib')
-if matplotlib and matplotlib.__version__ <= '1.0.1':
+if matplotlib and not check_version(matplotlib.__version__, '1.0.2'):
     # 1.0.1 doesn't support pyside or v2, so stick with PyQt @v1,
     # and ignore everything else
     from PyQt4 import QtCore, QtGui
