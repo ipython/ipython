@@ -291,7 +291,8 @@ def has_comment(src):
 
     Returns
     -------
-    Boolean: True if source has a comment.
+    comment : bool
+        True if source has a comment.
     """
     readline = StringIO(src).readline
     toktypes = set()
