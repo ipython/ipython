@@ -836,35 +836,42 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @needs_local_scope
-    @line_magic
-    def time(self,parameter_s, local_ns=None):
+    @line_cell_magic
+    def time(self,line='', cell=None, local_ns=None):
         """Time execution of a Python statement or expression.
 
         The CPU and wall clock times are printed, and the value of the
         expression (if any) is returned.  Note that under Win32, system time
         is always reported as 0, since it can not be measured.
+        
+        This function can be used both as a line and cell magic:
 
-        This function provides very basic timing functionality.  In Python
-        2.3, the timeit module offers more control and sophistication, so this
-        could be rewritten to use it (patches welcome).
+        - In line mode you can time a single-line statement (though multiple
+          ones can be chained with using semicolons).
+
+        - In cell mode, you can time the cell body (a directly 
+          following statement raises an error).
+
+        This function provides very basic timing functionality.  Use the timeit 
+        magic for more controll over the measurement.
 
         Examples
         --------
         ::
 
-          In [1]: time 2**128
+          In [1]: %time 2**128
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
           Out[1]: 340282366920938463463374607431768211456L
 
           In [2]: n = 1000000
 
-          In [3]: time sum(range(n))
+          In [3]: %time sum(range(n))
           CPU times: user 1.20 s, sys: 0.05 s, total: 1.25 s
           Wall time: 1.37
           Out[3]: 499999500000L
 
-          In [4]: time print 'hello world'
+          In [4]: %time print 'hello world'
           hello world
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00
@@ -875,19 +882,25 @@ python-profiler package from non-free.""")
           the expression can take a noticeable amount of time to compute, that
           time is purely due to the compilation:
 
-          In [5]: time 3**9999;
+          In [5]: %time 3**9999;
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00 s
 
-          In [6]: time 3**999999;
+          In [6]: %time 3**999999;
           CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
           Wall time: 0.00 s
           Compiler : 0.78 s
           """
 
         # fail immediately if the given expression can't be compiled
-
-        expr = self.shell.prefilter(parameter_s,False)
+        
+        if line and cell:
+            raise UsageError("Can't use statement directly after '%%time'!")
+        
+        if cell:
+            expr = self.shell.prefilter(cell,False)
+        else:
+            expr = self.shell.prefilter(line,False)
 
         # Minimum time above which parse time will be reported
         tp_min = 0.1
