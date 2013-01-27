@@ -270,6 +270,7 @@ class InputSplitterTestCase(unittest.TestCase):
         isp = self.isp
         self.assertFalse(isp.push('if 1:'))
         for line in ['  x=1', '# a comment', '  y=2']:
+            print(line)
             self.assertTrue(isp.push(line))
 
     def test_push3(self):

@@ -127,7 +127,7 @@ class TokenInputTransformer(InputTransformer):
     def __init__(self, func):
         self.func = func
         self.current_line = ""
-        self.line_used= False
+        self.line_used = False
         self.reset_tokenizer()
     
     def reset_tokenizer(self):
@@ -141,19 +141,29 @@ class TokenInputTransformer(InputTransformer):
     
     def push(self, line):
         self.current_line += line + "\n"
+        if self.current_line.isspace():
+            return self.reset()
+        
         self.line_used = False
         tokens = []
+        stop_at_NL = False
         try:
             for intok in self.tokenizer:
                 tokens.append(intok)
-                if intok[0] in (tokenize.NEWLINE, tokenize.NL):
+                t = intok[0]
+                if t == tokenize.NEWLINE or (stop_at_NL and t == tokenize.NL):
                     # Stop before we try to pull a line we don't have yet
                     break
+                elif t in (tokenize.COMMENT, tokenize.ERRORTOKEN):
+                    stop_at_NL = True
         except tokenize.TokenError:
             # Multi-line statement - stop and try again with the next line
             self.reset_tokenizer()
             return None
         
+        return self.output(tokens)
+    
+    def output(self, tokens):
         self.current_line = ""
         self.reset_tokenizer()
         return untokenize(self.func(tokens)).rstrip('\n')
@@ -161,12 +171,35 @@ class TokenInputTransformer(InputTransformer):
     def reset(self):
         l = self.current_line
         self.current_line = ""
+        self.reset_tokenizer()
         if l:
             return l.rstrip('\n')
 
-@TokenInputTransformer.wrap
-def assemble_logical_lines(tokens):
-    return tokens
+class assemble_python_lines(TokenInputTransformer):
+    def __init__(self):
+        super(assemble_python_lines, self).__init__(None)
+    
+    def output(self, tokens):
+        return self.reset()
+
+@CoroutineInputTransformer.wrap
+def assemble_logical_lines():
+    """Join lines following explicit line continuations (\)"""
+    line = ''
+    while True:
+        line = (yield line)
+        if not line or line.isspace():
+            continue
+        
+        parts = []
+        while line is not None:
+            parts.append(line.rstrip('\\'))
+            if not line.endswith('\\'):
+                break
+            line = (yield None)
+        
+        # Output
+        line = ' '.join(parts)
 
 # Utilities
 def _make_help_call(target, esc, lspace, next_input=None):

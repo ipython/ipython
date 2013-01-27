@@ -82,6 +82,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            escaped_transformer,
                                            assign_from_magic,
                                            assign_from_system,
+                                           assemble_python_lines,
                                            )
 
 # Temporary!
@@ -499,29 +500,55 @@ class IPythonInputSplitter(InputSplitter):
     # Flag to track when a transformer has stored input that it hasn't given
     # back yet.
     transformer_accumulating = False
+    
+    # Flag to track when assemble_python_lines has stored input that it hasn't
+    # given back yet.
+    within_python_line = False
 
     # Private attributes
 
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
-    def __init__(self, input_mode=None, transforms=None):
+    def __init__(self, input_mode=None, physical_line_transforms=None,
+                    logical_line_transforms=None, python_line_transforms=None):
         super(IPythonInputSplitter, self).__init__(input_mode)
         self._buffer_raw = []
         self._validate = True
-        if transforms is not None:
-            self.transforms = transforms
-        else:
-            self.transforms = [leading_indent(),
-                               classic_prompt(),
-                               ipy_prompt(),
-                               cellmagic(),
-                               assemble_logical_lines(),
-                               help_end(),
-                               escaped_transformer(),
-                               assign_from_magic(),
-                               assign_from_system(),
-                              ]
+        
+        self.physical_line_transforms = physical_line_transforms or \
+                [leading_indent(),
+                 classic_prompt(),
+                 ipy_prompt(),
+                ]
+        
+        self.assemble_logical_lines = assemble_logical_lines()
+        self.logical_line_transforms = logical_line_transforms or \
+                [cellmagic(),
+                 help_end(),
+                 escaped_transformer(),
+                 assign_from_magic(),
+                 assign_from_system(),
+                ]
+        
+        self.assemble_python_lines = assemble_python_lines()
+        self.python_line_transforms = python_line_transforms or []
+    
+    @property
+    def transforms(self):
+        "Quick access to all transformers."
+        return self.physical_line_transforms + \
+            [self.assemble_logical_lines] + self.logical_line_transforms + \
+            [self.assemble_python_lines]  + self.python_line_transforms
+    
+    @property
+    def transforms_in_use(self):
+        """Transformers, excluding logical line transformers if we're in a
+        Python line."""
+        t = self.physical_line_transforms + [self.assemble_logical_lines]
+        if not self.within_python_line:
+            t += self.logical_line_transforms
+        return t + [self.assemble_python_lines] + self.python_line_transforms
 
     def reset(self):
         """Reset the input buffer and associated state."""
@@ -533,12 +560,18 @@ class IPythonInputSplitter(InputSplitter):
             t.reset()
     
     def flush_transformers(self):
+        def _flush(transform, out):
+            if out is not None:
+                tmp = transform.push(out)
+                return tmp or transform.reset() or None
+            else:
+                return transform.reset() or None
+        
         out = None
-        for t in self.transforms:
-            tmp = t.reset()
-            if tmp:
-                out = tmp
-        if out:
+        for t in self.transforms_in_use:
+            out = _flush(t, out)
+        
+        if out is not None:
             self._store(out)
 
     def source_raw_reset(self):
@@ -641,11 +674,39 @@ class IPythonInputSplitter(InputSplitter):
     
     def push_line(self, line):
         buf = self._buffer
-        for transformer in self.transforms:
+        
+        def _accumulating(dbg):
+            #print(dbg)
+            self.transformer_accumulating = True
+            return False
+        
+        for transformer in self.physical_line_transforms:
             line = transformer.push(line)
             if line is None:
-                self.transformer_accumulating = True
-                return False                
+                return _accumulating(transformer)
+        
+        line = self.assemble_logical_lines.push(line)
+        if line is None:
+            return _accumulating('acc logical line')
+        
+        if not self.within_python_line:
+            for transformer in self.logical_line_transforms:
+                line = transformer.push(line)
+                if line is None:
+                    return _accumulating(transformer)
+        
+        line = self.assemble_python_lines.push(line)
+        if line is None:
+            self.within_python_line = True
+            return _accumulating('acc python line')
+        else:
+            self.within_python_line = False
+        
+        for transformer in self.python_line_transforms:
+            line = transformer.push(line)
+            if line is None:
+                return _accumulating(transformer)
 
+        #print("transformers clear") #debug
         self.transformer_accumulating = False
         return super(IPythonInputSplitter, self).push(line)

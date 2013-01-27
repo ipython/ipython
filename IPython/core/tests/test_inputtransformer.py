@@ -356,8 +356,8 @@ def test_token_input_transformer():
     [ [(u"a = 1.2; b = '''x", None),
        (u"y'''", u_fmt(u"a =Decimal ({u}'1.2');b ='''x\ny'''")),
       ],
-      [(u"a = [1.2,", u_fmt(u"a =[Decimal ({u}'1.2'),")),
-       (u"3]", u"3 ]"),
+      [(u"a = [1.2,", None),
+       (u"3]", u_fmt(u"a =[Decimal ({u}'1.2'),\n3 ]")),
       ],
       [(u"a = '''foo", None),  # Test resetting when within a multi-line string
        (u"bar", None),
