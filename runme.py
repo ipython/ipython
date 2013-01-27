@@ -87,8 +87,7 @@ class NbconvertApp(Application):
 
         template_file = sys.argv[1]
 
-        C = ConverterTemplate(tplfile=sys.argv[1],
-                config=self.config)
+        C = ConverterTemplate(config=self.config)
         C.read(ipynb_file)
 
         output,resources = C.convert()
@@ -99,12 +98,12 @@ class NbconvertApp(Application):
 
         keys = resources.keys()
         if keys :
-            if self.write :
+            if self.write and not os.path.exists(out_root):
                 os.mkdir(out_root)
             for key in keys:
                 if self.write:
-                    with io.open(os.path.join(out_root+key),'w') as f:
-                        print(' writing to ',os.path.join(out_root+key))
+                    with io.open(os.path.join(out_root,key),'wb') as f:
+                        print(' writing to ',os.path.join(out_root,key))
                         f.write(resources[key])
             if self.stdout:
                 print('''

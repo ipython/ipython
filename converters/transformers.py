@@ -5,7 +5,7 @@
 from __future__ import print_function
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Unicode, Bool, Dict
+from IPython.utils.traitlets import Unicode, Bool, Dict, List
 
 class ConfigurableTransformers(Configurable):
     """ A configurable transformer """
@@ -85,6 +85,14 @@ class ExtractFigureTransformer(ConfigurableTransformers):
             Usefull for latex where svg will be converted to pdf before inclusion
             """
             )
+    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+            config=True,
+              help= """
+                    An ordered list of prefered output type, the first
+                    encounterd will usually be used when converting discarding
+                    the others.
+                    """
+            )
 
 
     #to do change this to .format {} syntax
@@ -114,7 +122,7 @@ class ExtractFigureTransformer(ConfigurableTransformers):
         if not self.enabled:
             return cell, other
         for i, out in enumerate(cell.get('outputs', [])):
-            for type in ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg']:
+            for type in self.display_data_priority:
                 if out.hasattr(type):
                     figname, key, data = self._new_figure(out[type], type, count)
                     cell.outputs[i][type] = figname
