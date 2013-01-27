@@ -13,25 +13,34 @@ interactive interface. Using them carelessly can easily break IPython!
 String based transformations
 ============================
 
+.. currentmodule:: IPython.core.inputtransforms
+
 When the user enters a line of code, it is first processed as a string. By the
 end of this stage, it must be valid Python syntax.
 
 These transformers all subclass :class:`IPython.core.inputtransformer.InputTransformer`,
-and are used by :class:`IPython.core.inputsplitter.IPythonInputSplitter`,
-the ``transform`` attribute of which is a list of instances.
+and are used by :class:`IPython.core.inputsplitter.IPythonInputSplitter`.
 
-By default, these transformers are skipped when :class:`~IPython.core.inputsplitter.IPythonInputSplitter`
-detects that the line starts inside a multi-line string. Some transformers, such
-as those that remove the prompt markers from pasted examples, need to look
-inside multiline strings as well - these set the attribute ``look_in_string`` to
-``True``.
+These transformers act in three groups, stored separately as lists of instances
+in attributes of :class:`~IPython.core.inputsplitter.IPythonInputSplitter`:
+
+* ``physical_line_transforms`` act on the lines as the user enters them. For
+  example, these strip Python prompts from examples pasted in.
+* ``logical_line_transforms`` act on lines as connected by explicit line
+  continuations, i.e. ``\`` at the end of physical lines. They are skipped
+  inside multiline Python statements. This is the point where IPython recognises
+  ``%magic`` commands, for instance.
+* ``python_line_transforms`` act on blocks containing complete Python statements.
+  Multi-line strings, lists and function calls are reassembled before being
+  passed to these, but note that function and class *definitions* are still a
+  series of separate statements. IPython does not use any of these by default.
 
 Stateless transformations
 -------------------------
 
 The simplest kind of transformations work one line at a time. Write a function
 which takes a line and returns a line, and decorate it with
-:meth:`~IPython.core.inputtransformer.StatelessInputTransformer.wrap`::
+:meth:`StatelessInputTransformer.wrap`::
 
     @StatelessInputTransformer.wrap
     def my_special_commands(line):
@@ -82,6 +91,15 @@ line in a cell::
                     line = (yield line)
 
     leading_indent.look_in_string = True
+
+Token-based transformers
+------------------------
+
+There is an experimental framework that takes care of tokenizing and
+untokenizing lines of code. Define a function that accepts a list of tokens, and
+returns an iterable of output tokens, and decorate it with
+:meth:`TokenInputTransformer.wrap`. These should only be used in
+``python_line_transforms``.
 
 AST transformations
 ===================
