@@ -102,7 +102,7 @@ class NbconvertApp(Application):
                 os.mkdir(out_root)
             for key in keys:
                 if self.write:
-                    with io.open(os.path.join(out_root,key),'wb') as f:
+                    with io.open(os.path.join(out_root+'_files',key),'wb') as f:
                         print(' writing to ',os.path.join(out_root,key))
                         f.write(resources[key])
             if self.stdout:
