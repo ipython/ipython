@@ -17,6 +17,8 @@ from IPython.config.application import Application
 from IPython.config.loader import ConfigFileNotFound
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
 
+from converters.transformers import (ConfigurableTransformers,Foobar,ExtractFigureTransformer)
+
 
 class NbconvertApp(Application):
 
@@ -24,6 +26,9 @@ class NbconvertApp(Application):
     def __init__(self, **kwargs):
         super(NbconvertApp, self).__init__(**kwargs)
         self.classes.insert(0,ConverterTemplate)
+        # register class here to have help with help all
+        self.classes.insert(0,ExtractFigureTransformer)
+        self.classes.insert(0,Foobar)
         # ensure those are registerd
 
     def load_config_file(self, profile_name):
@@ -53,11 +58,6 @@ class NbconvertApp(Application):
         ipynb_file = (self.extra_args or [None])[1]
 
         template_file = sys.argv[1]
-
-        if template_file.startswith('latex'):
-            tex_environement=True
-        else:
-            tex_environement=False
 
         C = ConverterTemplate(tplfile=sys.argv[1],
                 config=self.config)
