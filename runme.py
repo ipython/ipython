@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""
+================================================================================
+
+|,---.     |    |                 ,   .|                                   |
+||---',   .|--- |---.,---.,---.   |\  ||---.,---.,---.,---..    ,,---.,---.|---
+||    |   ||    |   ||   ||   |   | \ ||   ||    |   ||   | \  / |---'|    |
+``    `---|`---'`   '`---'`   '   `  `'`---'`---'`---'`   '  `'  `---'`    `---'
+      `---'
+================================================================================
+
+Highly experimental for now
+
+"""
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -22,6 +35,21 @@ from converters.transformers import (ConfigurableTransformers,Foobar,ExtractFigu
 
 class NbconvertApp(Application):
 
+    stdout = Bool(True, config=True)
+    write = Bool(False, config=True)
+
+    aliases = {
+            'stdout':'NbconvertApp.stdout',
+            'write':'NbconvertApp.write',
+            }
+
+    flags= {}
+    flags['no-stdout'] = (
+        {'NbconvertApp' : {'stdout' : False}},
+    """the doc for this flag
+
+    """
+    )
 
     def __init__(self, **kwargs):
         super(NbconvertApp, self).__init__(**kwargs)
@@ -64,16 +92,26 @@ class NbconvertApp(Application):
         C.read(ipynb_file)
 
         output,resources = C.convert()
+        if self.stdout :
+            print(output.encode('utf-8'))
 
-        print(output.encode('utf-8'))
+        out_root = ipynb_file[:-6].replace('.','_')
 
         keys = resources.keys()
         if keys :
-            print('''
+            if self.write :
+                os.mkdir(out_root)
+            for key in keys:
+                if self.write:
+                    with io.open(os.path.join(out_root+key),'w') as f:
+                        print(' writing to ',os.path.join(out_root+key))
+                        f.write(resources[key])
+            if self.stdout:
+                print('''
 ====================== Keys in Resources ==================================
 ''')
-            print(resources.keys())
-            print("""
+                print(resources.keys())
+                print("""
 ===========================================================================
 you are responsible from writing those data do a file in the right place if
 they need to be.
@@ -83,6 +121,7 @@ they need to be.
 def main():
     """Convert a notebook to html in one step"""
     app = NbconvertApp.instance()
+    app.description = __doc__
     app.initialize()
     app.start()
     app.run()
