@@ -10,6 +10,7 @@ Patches:
 - Newlines in comments and blank lines should be either NL or NEWLINE, depending
   on whether they are in a multi-line statement. Filed as Python issue #17061.
 - Export generate_tokens & TokenError
+- u and rb literals are allowed under Python 3.3 and above.
 
 ------------------------------------------------------------------------------
 Tokenization help for Python programs.
@@ -92,6 +93,11 @@ Floatnumber = group(Pointfloat, Expfloat)
 Imagnumber = group(r'[0-9]+[jJ]', Floatnumber + r'[jJ]')
 Number = group(Imagnumber, Floatnumber, Intnumber)
 
+if sys.version_info.minor >= 3:
+    StringPrefix = r'(?:[bB][rR]?|[rR][bB]?|[uU])?'
+else:
+    StringPrefix = r'(?:[bB]?[rR]?)?'
+
 # Tail end of ' string.
 Single = r"[^'\\]*(?:\\.[^'\\]*)*'"
 # Tail end of " string.
@@ -100,10 +106,10 @@ Double = r'[^"\\]*(?:\\.[^"\\]*)*"'
 Single3 = r"[^'\\]*(?:(?:\\.|'(?!''))[^'\\]*)*'''"
 # Tail end of """ string.
 Double3 = r'[^"\\]*(?:(?:\\.|"(?!""))[^"\\]*)*"""'
-Triple = group("[bB]?[rR]?'''", '[bB]?[rR]?"""')
+Triple = group(StringPrefix + "'''", StringPrefix + '"""')
 # Single-line ' or " string.
-String = group(r"[bB]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
-               r'[bB]?[rR]?"[^\n"\\]*(?:\\.[^\n"\\]*)*"')
+String = group(StringPrefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*'",
+               StringPrefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*"')
 
 # Because of leftmost-then-longest match semantics, be sure to put the
 # longest operators first (e.g., if = came before ==, == would get
@@ -121,9 +127,9 @@ PlainToken = group(Number, Funny, String, Name)
 Token = Ignore + PlainToken
 
 # First (or only) line of ' or " string.
-ContStr = group(r"[bB]?[rR]?'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
+ContStr = group(StringPrefix + r"'[^\n'\\]*(?:\\.[^\n'\\]*)*" +
                 group("'", r'\\\r?\n'),
-                r'[bB]?[rR]?"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
+                StringPrefix + r'"[^\n"\\]*(?:\\.[^\n"\\]*)*' +
                 group('"', r'\\\r?\n'))
 PseudoExtras = group(r'\\\r?\n', Comment, Triple)
 PseudoToken = Whitespace + group(PseudoExtras, Number, Funny, ContStr, Name)
@@ -137,9 +143,9 @@ endprogs = {"'": _compile(Single), '"': _compile(Double),
             "'''": single3prog, '"""': double3prog,
             "r'''": single3prog, 'r"""': double3prog,
             "b'''": single3prog, 'b"""': double3prog,
-            "br'''": single3prog, 'br"""': double3prog,
             "R'''": single3prog, 'R"""': double3prog,
             "B'''": single3prog, 'B"""': double3prog,
+            "br'''": single3prog, 'br"""': double3prog,
             "bR'''": single3prog, 'bR"""': double3prog,
             "Br'''": single3prog, 'Br"""': double3prog,
             "BR'''": single3prog, 'BR"""': double3prog,
@@ -159,6 +165,21 @@ for t in ("'", '"',
           "br'", 'br"', "Br'", 'Br"',
           "bR'", 'bR"', "BR'", 'BR"' ):
     single_quoted[t] = t
+
+if sys.version_info.minor >= 3:
+    # Python 3.3
+    for _prefix in ['rb', 'rB', 'Rb', 'RB', 'u', 'U']:
+        _t2 = prefix+'"""'
+        endprogs[_t2] = double3prog
+        triple_quoted[_t2] = _t2
+        _t1 = prefix + "'''"
+        endprogs[_t1] = single3prog
+        triple_quoted[_t1] = _t1
+        single_quoted[_prefix+'"'] = _prefix+'"'
+        single_quoted[_prefix+"'"] + _prefix+"'"
+    del _prefix, _t2, _t1
+    endprogs['u'] = None
+    endprogs['U'] = None
 
 del _compile
 
