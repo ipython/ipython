@@ -24,7 +24,6 @@ def check_null_profile(profile):
     loader = PyFileConfigLoader(profile, path=[os.path.join(os.getcwdu(),'profile/test')])
     config = loader.load_config()
     C = ConverterTemplate(config=config)
-    C.read('tests/ipynbref/IntroNumPy.orig.ipynb')
-    result,_ =  C.convert()
+    result,_ = C.from_filename('tests/ipynbref/IntroNumPy.orig.ipynb')
     nt.assert_equal(result,'')
 

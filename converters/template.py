@@ -57,7 +57,7 @@ from IPython.utils.traitlets import ( Unicode, Any, List, Bool)
 class ConversionException(Exception):
     pass
 
-
+#todo move this out
 def header_body():
     """Return the body of the header as a list of strings."""
 
@@ -109,7 +109,13 @@ texenv.filters['escape_tex'] = escape_tex
 
 
 class ConverterTemplate(Configurable):
-    """ A Jinja2 base converter templates"""
+    """ A Jinja2 base converter templates
+
+    Preprocess the ipynb files, feed it throug jinja templates,
+    and spit an converted files and a data object with other data
+
+    shoudl be mostly configurable
+    """
 
     display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
             config=True,
@@ -120,7 +126,7 @@ class ConverterTemplate(Configurable):
                     """
             )
 
-    pre_transformer_order = List(['haspyout_transformer', 'Foobar'],
+    pre_transformer_order = List(['haspyout_transformer'],
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
@@ -142,7 +148,7 @@ class ConverterTemplate(Configurable):
 
     template_file = Unicode('',
             config=True,
-            help=""" whetever """ )
+            help=""" Name of the template file to use """ )
     #-------------------------------------------------------------------------
     # Instance-level attributes that are set in the constructor for this
     # class.
@@ -152,33 +158,38 @@ class ConverterTemplate(Configurable):
 
     infile_dir = Unicode()
 
+    #todo: move to filter
     def filter_data_type(self, output):
+        """ return the first availlable format in priority """
         for fmt in self.display_data_priority:
             if fmt in output:
                 return [fmt]
 
-    def __init__(self, preprocessors=[], config=None, **kw):
+    preprocessors = []
+
+    def __init__(self, preprocessors={}, jinja_filters={}, config=None, **kw):
         """
         config: the Configurable confg object to pass around
 
-        preprocessors: list of function to run on ipynb json data before conversion
+        preprocessors: dict of **availlable** key/value function to run on ipynb json data before conversion
         to extract/inline file,
 
         """
         super(ConverterTemplate, self).__init__(config=config, **kw)
         self.env = texenv  if self.tex_environement else env
         self.ext = '.tplx' if self.tex_environement else '.tpl'
-        self.nb = None
-        self.preprocessors = preprocessors
 
         for name in self.pre_transformer_order:
-            tr = getattr(trans, name)
-            if isinstance(tr, MetaHasTraits):
-                tr = tr(config=config)
-            self.preprocessors.append(tr)
+            transformer = getattr(preprocessors, name, getattr(trans, name, None))
+            if isinstance(transformer, MetaHasTraits):
+                transformer = transformer(config=config)
+            self.preprocessors.append(transformer)
+
+        ## for compat, remove later
         if self.extract_figures:
             self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
 
+        ##
         self.env.filters['filter_data_type'] = self.filter_data_type
         self.env.filters['pycomment'] = python_comment
         self.env.filters['indent'] = indent
@@ -188,16 +199,17 @@ class ConverterTemplate(Configurable):
         self.env.filters['highlight'] = highlight
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
+        for k, v in jinja_filters.iteritems():
+            self.env.filters[k] = v
 
         self.template = self.env.get_template(self.template_file+self.ext)
 
 
-    def process(self):
+    def process(self, nb):
         """
         preprocess the notebook json for easier use with the templates.
         will call all the `preprocessor`s in order before returning it.
         """
-        nb = self.nb
 
         # dict of 'resources' that could be made by the preprocessors
         # like key/value data to extract files from ipynb like in latex conversion
@@ -208,20 +220,18 @@ class ConverterTemplate(Configurable):
 
         return nb, resources
 
-    def convert(self):
+    def convert(self, nb):
         """ convert the ipynb file
 
         return both the converted ipynb file and a dict containing potential
         other resources
         """
-        nb, resources = self.process()
+        nb, resources = self.process(nb)
         return self.template.render(nb=nb, inlining=inlining), resources
 
 
-    def read(self, filename):
+    def from_filename(self, filename):
         "read and parse notebook into NotebookNode called self.nb"
         with io.open(filename) as f:
-            self.nb = nbformat.read(f, 'json')
-
-
+            return self.convert(nbformat.read(f, 'json'))
 

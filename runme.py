@@ -90,9 +90,8 @@ class NbconvertApp(Application):
         template_file = sys.argv[1]
 
         C = ConverterTemplate(config=self.config)
-        C.read(ipynb_file)
 
-        output,resources = C.convert()
+        output,resources = C.from_filename(ipynb_file)
         if self.stdout :
             print(output.encode('utf-8'))
 
