@@ -30,6 +30,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # internal:
 from IPython.utils.importstring import import_item
+from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (
         HasTraits, Instance, Integer, Unicode, Dict, Set, Tuple, CBytes, DottedObjectName
@@ -176,17 +177,17 @@ class HubFactory(RegistrationFactory):
     def _notifier_port_default(self):
         return util.select_random_ports(1)[0]
 
-    engine_ip = Unicode('127.0.0.1', config=True,
+    engine_ip = Unicode(LOCALHOST, config=True,
         help="IP on which to listen for engine connections. [default: loopback]")
     engine_transport = Unicode('tcp', config=True,
         help="0MQ transport for engine connections. [default: tcp]")
 
-    client_ip = Unicode('127.0.0.1', config=True,
+    client_ip = Unicode(LOCALHOST, config=True,
         help="IP on which to listen for client connections. [default: loopback]")
     client_transport = Unicode('tcp', config=True,
         help="0MQ transport for client connections. [default : tcp]")
 
-    monitor_ip = Unicode('127.0.0.1', config=True,
+    monitor_ip = Unicode(LOCALHOST, config=True,
         help="IP on which to listen for monitor messages. [default: loopback]")
     monitor_transport = Unicode('tcp', config=True,
         help="0MQ transport for monitor messages. [default : tcp]")
