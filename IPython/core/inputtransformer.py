@@ -2,17 +2,10 @@ import abc
 import functools
 import re
 from StringIO import StringIO
-import tokenize
-
-try:
-    generate_tokens = tokenize.generate_tokens
-except AttributeError:
-    # Python 3. Note that we use the undocumented _tokenize because it expects
-    # strings, not bytes. See also Python issue #9969.
-    generate_tokens = tokenize._tokenize
 
 from IPython.core.splitinput import split_user_input, LineInfo
-from IPython.utils.untokenize import untokenize
+from IPython.utils import tokenize2
+from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 
 #-----------------------------------------------------------------------------
 # Globals
@@ -129,7 +122,7 @@ class TokenInputTransformer(InputTransformer):
     
     def get_line(self):
         if self.line_used:
-            raise tokenize.TokenError
+            raise TokenError
         self.line_used = True
         return self.current_line
     
@@ -145,12 +138,12 @@ class TokenInputTransformer(InputTransformer):
             for intok in self.tokenizer:
                 tokens.append(intok)
                 t = intok[0]
-                if t == tokenize.NEWLINE or (stop_at_NL and t == tokenize.NL):
+                if t == tokenize2.NEWLINE or (stop_at_NL and t == tokenize2.NL):
                     # Stop before we try to pull a line we don't have yet
                     break
-                elif t in (tokenize.COMMENT, tokenize.ERRORTOKEN):
+                elif t == tokenize2.ERRORTOKEN:
                     stop_at_NL = True
-        except tokenize.TokenError:
+        except TokenError:
             # Multi-line statement - stop and try again with the next line
             self.reset_tokenizer()
             return None
@@ -297,11 +290,11 @@ def has_comment(src):
     readline = StringIO(src).readline
     toktypes = set()
     try:
-        for t in tokenize.generate_tokens(readline):
+        for t in generate_tokens(readline):
             toktypes.add(t[0])
-    except tokenize.TokenError:
+    except TokenError:
         pass
-    return(tokenize.COMMENT in toktypes)
+    return(tokenize2.COMMENT in toktypes)
 
 
 @StatelessInputTransformer.wrap
