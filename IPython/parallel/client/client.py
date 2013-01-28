@@ -36,7 +36,7 @@ from IPython.core.profiledir import ProfileDir, ProfileDirError
 
 from IPython.utils.coloransi import TermColors
 from IPython.utils.jsonutil import rekey
-from IPython.utils.localinterfaces import LOCAL_IPS
+from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.path import get_ipython_dir
 from IPython.utils.py3compat import cast_bytes
 from IPython.utils.traitlets import (HasTraits, Integer, Instance, Unicode,
@@ -427,7 +427,7 @@ class Client(HasTraits):
         
         url = cfg['registration']
         
-        if location is not None and addr == '127.0.0.1':
+        if location is not None and addr == LOCALHOST:
             # location specified, and connection is expected to be local
             if location not in LOCAL_IPS and not sshserver:
                 # load ssh from JSON *only* if the controller is not on

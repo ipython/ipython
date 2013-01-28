@@ -8,6 +8,7 @@ from IPython.testing import decorators as dec
 
 from IPython.config.loader import Config
 from IPython.frontend.html.notebook.kernelmanager import MultiKernelManager
+from IPython.utils.localinterfaces import LOCALHOST
 from IPython.zmq.kernelmanager import KernelManager
 
 class TestKernelManager(TestCase):
@@ -67,7 +68,7 @@ class TestKernelManager(TestCase):
     @dec.skip_win32
     def test_tcp_cinfo(self):
         km = self._get_tcp_km()
-        self._run_cinfo(km, 'tcp', '127.0.0.1')
+        self._run_cinfo(km, 'tcp', LOCALHOST)
 
     def test_ipc_lifecycle(self):
         km = self._get_ipc_km()
