@@ -24,7 +24,7 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.testing import decorators as dec
-from IPython.lib import kernel
+from IPython.utils import kernel
 
 #-----------------------------------------------------------------------------
 # Classes and functions

@@ -59,13 +59,13 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.utils.kernel import tunnel_to_kernel, find_connection_file
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (

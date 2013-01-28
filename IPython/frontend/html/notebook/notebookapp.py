@@ -61,7 +61,6 @@ from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.frontend.consoleapp import IPythonConsoleApp
-from IPython.lib.kernel import swallow_argv
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.zmq.ipkernel import (
@@ -71,6 +70,7 @@ from IPython.zmq.ipkernel import (
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils.kernel import swallow_argv
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Enum, Bool,
     DottedObjectName
