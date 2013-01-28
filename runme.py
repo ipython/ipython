@@ -94,12 +94,15 @@ class NbconvertApp(Application):
         if self.stdout :
             print(output.encode('utf-8'))
 
-        out_root = ipynb_file[:-6].replace('.','_')
+        out_root = ipynb_file[:-6].replace('.','_').replace(' ','_')
 
         keys = resources.keys()
+        if self.write :
+            with io.open(os.path.join(out_root+'.'+'ext'),'w') as f:
+                        f.write(output)
         if keys :
-            if self.write and not os.path.exists(out_root):
-                os.mkdir(out_root)
+            if self.write and not os.path.exists(out_root+'_files'):
+                os.mkdir(out_root+'_files')
             for key in keys:
                 if self.write:
                     with io.open(os.path.join(out_root+'_files',key),'wb') as f:
