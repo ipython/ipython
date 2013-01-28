@@ -38,6 +38,8 @@ class NbconvertApp(Application):
     stdout = Bool(True, config=True)
     write = Bool(False, config=True)
 
+    fileext = Unicode('txt', config=True)
+
     aliases = {
             'stdout':'NbconvertApp.stdout',
             'write':'NbconvertApp.write',
@@ -98,7 +100,7 @@ class NbconvertApp(Application):
 
         keys = resources.keys()
         if self.write :
-            with io.open(os.path.join(out_root+'.'+'ext'),'w') as f:
+            with io.open(os.path.join(out_root+'.'+self.fileext),'w') as f:
                         f.write(output)
         if keys :
             if self.write and not os.path.exists(out_root+'_files'):
