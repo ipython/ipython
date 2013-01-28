@@ -21,6 +21,8 @@ from converters.jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight,
         ansi2html, markdown2latex, escape_tex)
 
+from converters.utils import  markdown2rst
+
 
 
 # Stdlib imports
@@ -199,6 +201,7 @@ class ConverterTemplate(Configurable):
         self.env.filters['highlight'] = highlight
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
+        self.env.filters['markdown2rst'] = markdown2rst
         for k, v in jinja_filters.iteritems():
             self.env.filters[k] = v
 
