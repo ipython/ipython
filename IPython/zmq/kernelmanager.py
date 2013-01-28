@@ -40,7 +40,7 @@ from IPython.utils.traitlets import (
     Any, Instance, Type, Unicode, List, Integer, Bool, CaselessStrEnum
 )
 from IPython.utils.py3compat import str_to_bytes
-from IPython.zmq.entry_point import (
+from IPython.utils.kernel import (
     write_connection_file,
     make_ipkernel_cmd,
     launch_kernel,
@@ -925,14 +925,9 @@ class KernelManager(Configurable):
 
         Parameters:
         -----------
-        launcher : callable, optional (default None)
-             A custom function for launching the kernel process (generally a
-             wrapper around ``entry_point.base_launch_kernel``). In most cases,
-             it should not be necessary to use this parameter.
-
         **kw : optional
-             keyword arguments that are passed down into the launcher
-             callable.
+             keyword arguments that are passed down to build the kernel_cmd
+             and launching the kernel (e.g. Popen kwargs).
         """
         if self.transport == 'tcp' and self.ip not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "

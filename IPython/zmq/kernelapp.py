@@ -40,8 +40,8 @@ from IPython.utils.traitlets import (
     DottedObjectName,
 )
 from IPython.utils.importstring import import_item
+from IPython.utils.kernel import write_connection_file
 # local imports
-from IPython.zmq.entry_point import write_connection_file
 from IPython.zmq.heartbeat import Heartbeat
 from IPython.zmq.parentpoller import ParentPollerUnix, ParentPollerWindows
 from IPython.zmq.session import (
