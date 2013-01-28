@@ -121,13 +121,15 @@ class ExtractFigureTransformer(ConfigurableTransformers):
     def cell_transform(self, cell, other, count):
         if not self.enabled:
             return cell, other
+        if other.get('figures',None) is None :
+            other['figures']={}
         for i, out in enumerate(cell.get('outputs', [])):
             for type in self.display_data_priority:
                 if out.hasattr(type):
                     figname, key, data = self._new_figure(out[type], type, count)
                     cell.outputs[i][type] = figname
                     out['key_'+type] = figname
-                    other[key] = data
+                    other['figures'][key] = data
                     count = count+1
         return cell, other
 
