@@ -21,6 +21,9 @@ from docutils.math.latex2mathml import parse_latex_math
 from docutils.math.math2html import math2html
 from IPython.nbformat import current as nbformat
 
+# the ipython prompt regular expression
+IPYPROMPT = re.compile(r"(?P<prompt>In \[[0-9]*\]:)(?P<code>.*)")
+
 
 class Writer(writers.Writer):
 
@@ -71,15 +74,28 @@ class IPYNBTranslator(nodes.GenericNodeVisitor):
     def add_cell(self, cell):
         self.nb.worksheets[0].cells.append(cell)
 
+    def add_code_cell(self, lines):
+        c = nbformat.new_code_cell(input='\n'.join(lines))
+        self.add_cell(c)
+
     def visit_literal_block(self, node):
         raw_text = node.astext()
-        #only include lines that begin with >>>
-        #we want the example code and not the example output
-        processed_text = '\n'.join([line.split('>>>')[1][1:]
-                                    for line in raw_text.split('\n')
-                                    if line.startswith('>>>')])
-        c = nbformat.new_code_cell(input=processed_text)
-        self.add_cell(c)
+        current_cell = []
+        for line in raw_text.split('\n'):
+            ipyprompt = IPYPROMPT.match(line)
+            # try matching the >>> prompt
+            if line.startswith('>>>'):
+                current_cell.append(line.split('>>>')[1][1:])
+            # try matching ipypromt
+            elif ipyprompt is not None:
+                current_cell.append(ipyprompt.groupdict()['code'].strip())
+            # some kind of output
+            elif current_cell:
+                self.add_code_cell(current_cell)
+                current_cell = []
+        # if the last line was not output
+        if current_cell:
+            self.add_code_cell(current_cell)
 
     def visit_paragraph(self, node):
         text = node.astext()
