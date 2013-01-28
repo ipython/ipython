@@ -169,7 +169,7 @@ have['azure'] = test_for('azure')
 
 min_zmq = (2,1,11)
 
-have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq)
+have['zmq'] = test_for('zmq.pyzmq_version_info', min_zmq, callback=lambda x: x())
 
 #-----------------------------------------------------------------------------
 # Functions and classes
