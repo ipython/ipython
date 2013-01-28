@@ -1,8 +1,3 @@
 c = get_config()
 
-
-c.ConverterTemplate.extract_figures=False
-c.ConverterTemplate.template_file='basichtml'
-c.ConverterTemplate.tex_environement=False
-
-c.ExtractFigureTransformer.enabled = False
+load_subconfig('base_html.nbcv')
