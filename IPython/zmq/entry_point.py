@@ -97,8 +97,8 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     return fname, cfg
     
 
-def make_kernel_cmd(code, executable=None, extra_arguments=[], **kw):
-    """ Launches a localhost kernel, binding to the specified ports.
+def make_ipkernel_cmd(code, executable=None, extra_arguments=[], **kw):
+    """Build Popen command list for launching an IPython kernel.
 
     Parameters
     ----------

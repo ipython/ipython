@@ -42,7 +42,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.py3compat import str_to_bytes
 from IPython.zmq.entry_point import (
     write_connection_file,
-    make_kernel_cmd,
+    make_ipkernel_cmd,
     launch_kernel,
 )
 from session import Session
@@ -902,7 +902,7 @@ class KernelManager(Configurable):
         if self.kernel_cmd:
             cmd = self.kernel_cmd
         else:
-            cmd = make_kernel_cmd(
+            cmd = make_ipkernel_cmd(
                 'from IPython.zmq.ipkernel import main; main()',
                 **kw
             )
