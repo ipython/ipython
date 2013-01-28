@@ -180,13 +180,15 @@ def assemble_logical_lines():
         
         parts = []
         while line is not None:
-            parts.append(line.rstrip('\\'))
-            if not line.endswith('\\'):
+            if line.endswith('\\') and (not has_comment(line)):
+                parts.append(line[:-1])
+                line = (yield None) # Get another line
+            else:
+                parts.append(line)
                 break
-            line = (yield None)
         
         # Output
-        line = ' '.join(parts)
+        line = ''.join(parts)
 
 # Utilities
 def _make_help_call(target, esc, lspace, next_input=None):

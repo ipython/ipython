@@ -190,9 +190,16 @@ syntax_ml = \
           ],
          ],
 
-       multiline_datastructure =
+       multiline_datastructure_prompt =
        [ [('>>> a = [1,','a = [1,'),
           ('... 2]','2]'),
+         ],
+       ],
+        
+       multiline_datastructure =
+       [ [('b = ("%s"', None),
+          ('# comment', None),
+          ('%foo )', 'b = ("%s"\n# comment\n%foo )'),
          ],
        ],
        
@@ -222,31 +229,31 @@ syntax_ml = \
        
        escaped =
        [ [('%abc def \\', None),
-          ('ghi', u_fmt("get_ipython().magic({u}'abc def  ghi')")),
+          ('ghi', u_fmt("get_ipython().magic({u}'abc def ghi')")),
           ],
          [('%abc def \\', None),
           ('ghi\\', None),
-          (None, u_fmt("get_ipython().magic({u}'abc def  ghi')")),
+          (None, u_fmt("get_ipython().magic({u}'abc def ghi')")),
           ],
        ],
        
        assign_magic =
        [ [(u'a = %bc de \\', None),
-          (u'fg', u_fmt("a = get_ipython().magic({u}'bc de  fg')")),
+          (u'fg', u_fmt("a = get_ipython().magic({u}'bc de fg')")),
           ],
          [(u'a = %bc de \\', None),
           (u'fg\\', None),
-          (None, u_fmt("a = get_ipython().magic({u}'bc de  fg')")),
+          (None, u_fmt("a = get_ipython().magic({u}'bc de fg')")),
           ],
        ],
        
        assign_system =
        [ [(u'a = !bc de \\', None),
-          (u'fg', u_fmt("a = get_ipython().getoutput({u}'bc de  fg')")),
+          (u'fg', u_fmt("a = get_ipython().getoutput({u}'bc de fg')")),
           ],
          [(u'a = !bc de \\', None),
           (u'fg\\', None),
-          (None, u_fmt("a = get_ipython().getoutput({u}'bc de  fg')")),
+          (None, u_fmt("a = get_ipython().getoutput({u}'bc de fg')")),
           ],
        ],
        )
@@ -262,7 +269,7 @@ def test_classic_prompt():
     tt.check_pairs(transform_and_reset(ipt.classic_prompt), syntax['classic_prompt'])
     for example in syntax_ml['classic_prompt']:
         transform_checker(example, ipt.classic_prompt)
-    for example in syntax_ml['multiline_datastructure']:
+    for example in syntax_ml['multiline_datastructure_prompt']:
         transform_checker(example, ipt.classic_prompt)
 
 
@@ -274,11 +281,13 @@ def test_ipy_prompt():
 def test_assemble_logical_lines():
     tests = \
     [ [(u"a = \\", None),
-       (u"123", u"a =  123"),
+       (u"123", u"a = 123"),
       ],
       [(u"a = \\", None),  # Test resetting when within a multi-line string
        (u"12 *\\", None),
-       (None, u"a =  12 *"),
+       (None, u"a = 12 *"),
+      ],
+      [(u"# foo\\", u"# foo\\"), # Comments can't be continued like this
       ],
     ]
     for example in tests:
@@ -300,7 +309,7 @@ def test_assemble_python_lines():
        (u"2,", None),
        (None, u"a = [1,\n2,"),
       ],
-    ]
+    ] + syntax_ml['multiline_datastructure']
     for example in tests:
         transform_checker(example, ipt.assemble_python_lines)
 

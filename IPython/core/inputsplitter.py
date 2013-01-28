@@ -545,9 +545,9 @@ class IPythonInputSplitter(InputSplitter):
     def transforms_in_use(self):
         """Transformers, excluding logical line transformers if we're in a
         Python line."""
-        t = self.physical_line_transforms + [self.assemble_logical_lines]
+        t = self.physical_line_transforms[:]
         if not self.within_python_line:
-            t += self.logical_line_transforms
+            t += [self.assemble_logical_lines] + self.logical_line_transforms
         return t + [self.assemble_python_lines] + self.python_line_transforms
 
     def reset(self):
@@ -556,6 +556,7 @@ class IPythonInputSplitter(InputSplitter):
         self._buffer_raw[:] = []
         self.source_raw = ''
         self.transformer_accumulating = False
+        self.within_python_line = False
         for t in self.transforms:
             t.reset()
     
@@ -685,11 +686,11 @@ class IPythonInputSplitter(InputSplitter):
             if line is None:
                 return _accumulating(transformer)
         
-        line = self.assemble_logical_lines.push(line)
-        if line is None:
-            return _accumulating('acc logical line')
-        
         if not self.within_python_line:
+            line = self.assemble_logical_lines.push(line)
+            if line is None:
+                return _accumulating('acc logical line')        
+        
             for transformer in self.logical_line_transforms:
                 line = transformer.push(line)
                 if line is None:
