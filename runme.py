@@ -98,7 +98,7 @@ class NbconvertApp(Application):
 
         out_root = ipynb_file[:-6].replace('.','_').replace(' ','_')
 
-        keys = resources.keys()
+        keys = resources.get('figures',{}).keys()
         if self.write :
             with io.open(os.path.join(out_root+'.'+self.fileext),'w') as f:
                         f.write(output)
@@ -109,12 +109,12 @@ class NbconvertApp(Application):
                 if self.write:
                     with io.open(os.path.join(out_root+'_files',key),'wb') as f:
                         print(' writing to ',os.path.join(out_root,key))
-                        f.write(resources[key])
+                        f.write(resources['figures'][key])
             if self.stdout:
                 print('''
 ====================== Keys in Resources ==================================
 ''')
-                print(resources.keys())
+                print(resources['figures'].keys())
                 print("""
 ===========================================================================
 you are responsible from writing those data do a file in the right place if
