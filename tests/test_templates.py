@@ -16,12 +16,15 @@ def test_evens():
     test_profiles = [prof for prof in os.listdir('profile/test/') if prof.endswith('.py')]
 
     ### null template should return empty
-    for profile in test_profiles:
-        loader = PyFileConfigLoader(profile, path=[os.path.join(os.getcwdu(),'profile/test')])
-        config = loader.load_config()
-        C = ConverterTemplate(config=config)
-        C.read('tests/ipynbref/IntroNumPy.orig.ipynb')
-        result,_ =  C.convert()
-        nt.assert_equal(result,'')
+    for prof in test_profiles :
+        yield check_null_profile,prof
     ### end null test
+
+def check_null_profile(profile):
+    loader = PyFileConfigLoader(profile, path=[os.path.join(os.getcwdu(),'profile/test')])
+    config = loader.load_config()
+    C = ConverterTemplate(config=config)
+    C.read('tests/ipynbref/IntroNumPy.orig.ipynb')
+    result,_ =  C.convert()
+    nt.assert_equal(result,'')
 
