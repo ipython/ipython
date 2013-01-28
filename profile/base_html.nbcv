@@ -5,4 +5,6 @@ c.ConverterTemplate.extract_figures=False
 c.ConverterTemplate.template_file='basichtml'
 c.ConverterTemplate.tex_environement=False
 
+c.NbconvertApp.fileext='html'
+
 c.ExtractFigureTransformer.enabled = False
