@@ -20,9 +20,10 @@ from docutils.math import unichar2tex, pick_math_environment
 from docutils.math.latex2mathml import parse_latex_math
 from docutils.math.math2html import math2html
 from IPython.nbformat import current as nbformat
+import pypandoc
 
 # the ipython prompt regular expression
-IPYPROMPT = re.compile(r"(?P<prompt>In \[[0-9]*\]:)(?P<code>.*)")
+IPYPROMPT = re.compile(r"(?P<prompt>In \[[0-9]+\]:)(?P<code>.*)")
 
 
 class Writer(writers.Writer):
