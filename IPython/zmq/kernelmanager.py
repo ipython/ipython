@@ -46,7 +46,7 @@ from IPython.kernel import (
     launch_kernel,
 )
 from session import Session
-from IPython.zmq.kernelmanagerabc import (
+from IPython.kernel import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC

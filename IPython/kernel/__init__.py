@@ -1,3 +1,4 @@
-"""IPython kernel bases"""
+"""IPython kernel bases and utilities"""
 
+from .kernelmanagerabc import *
 from .util import *

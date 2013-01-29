@@ -15,7 +15,7 @@
 from IPython.config.configurable import Configurable
 from IPython.inprocess.socket import DummySocket
 from IPython.utils.traitlets import Any, Instance, Type
-from IPython.zmq.kernelmanagerabc import (
+from IPython.kernel import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC
@@ -184,7 +184,7 @@ class InProcessKernelManager(Configurable):
     """A manager for an in-process kernel.
 
     This class implements the interface of
-    `IPython.zmq.kernelmanagerabc.KernelManagerABC` and allows
+    `IPython.kernel.kernelmanagerabc.KernelManagerABC` and allows
     (asynchronous) frontends to be used seamlessly with an in-process kernel.
     
     See `IPython.zmq.kernelmanager.KernelManager` for docstrings.
