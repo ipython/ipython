@@ -7,9 +7,9 @@ from unittest import TestCase
 from IPython.testing import decorators as dec
 
 from IPython.config.loader import Config
-from IPython.frontend.html.notebook.kernelmanager import MultiKernelManager
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.kernel.kernelmanager import KernelManager
+from IPython.kernel.multikernelmanager import MultiKernelManager
 
 class TestKernelManager(TestCase):
 

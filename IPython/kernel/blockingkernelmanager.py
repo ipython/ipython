@@ -16,7 +16,7 @@ Useful for test suites and blocking terminal interfaces.
 import Queue
 
 from IPython.utils.traitlets import Type
-from kernelmanager import KernelManager, IOPubChannel, HBChannel, \
+from .kernelmanager import KernelManager, IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
 
 #-----------------------------------------------------------------------------
