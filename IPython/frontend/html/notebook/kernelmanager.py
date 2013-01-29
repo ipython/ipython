@@ -41,7 +41,7 @@ class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
     
     kernel_manager_class = DottedObjectName(
-        "IPython.zmq.blockingkernelmanager.BlockingKernelManager", config=True,
+        "IPython.kernel.blockingkernelmanager.BlockingKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """

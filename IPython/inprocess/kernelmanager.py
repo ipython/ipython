@@ -76,7 +76,7 @@ class InProcessChannel(object):
 
 
 class InProcessShellChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.ShellChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.ShellChannel` for docstrings."""
 
     # flag for whether execute requests should be allowed to call raw_input
     allow_stdin = True
@@ -141,14 +141,14 @@ class InProcessShellChannel(InProcessChannel):
 
 
 class InProcessIOPubChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.IOPubChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.IOPubChannel` for docstrings."""
 
     def flush(self, timeout=1.0):
         pass
 
 
 class InProcessStdInChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.StdInChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.StdInChannel` for docstrings."""
 
     def input(self, string):
         kernel = self.manager.kernel
@@ -158,7 +158,7 @@ class InProcessStdInChannel(InProcessChannel):
 
 
 class InProcessHBChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.HBChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.HBChannel` for docstrings."""
 
     time_to_dead = 3.0
 
@@ -187,7 +187,7 @@ class InProcessKernelManager(Configurable):
     `IPython.kernel.kernelmanagerabc.KernelManagerABC` and allows
     (asynchronous) frontends to be used seamlessly with an in-process kernel.
     
-    See `IPython.zmq.kernelmanager.KernelManager` for docstrings.
+    See `IPython.kernel.kernelmanager.KernelManager` for docstrings.
     """
 
     # The Session to use for building messages.

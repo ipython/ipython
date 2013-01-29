@@ -9,7 +9,7 @@ from IPython.testing import decorators as dec
 from IPython.config.loader import Config
 from IPython.frontend.html.notebook.kernelmanager import MultiKernelManager
 from IPython.utils.localinterfaces import LOCALHOST
-from IPython.zmq.kernelmanager import KernelManager
+from IPython.kernel.kernelmanager import KernelManager
 
 class TestKernelManager(TestCase):
 

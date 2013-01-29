@@ -15,7 +15,7 @@ TODO
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
+# Standard library imports
 import atexit
 import errno
 import json
@@ -26,14 +26,14 @@ import sys
 from threading import Thread
 import time
 
-# System library imports.
+# System library imports
 import zmq
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit:
 from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
-# Local imports.
+# Local imports
 from IPython.config.configurable import Configurable
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
@@ -45,7 +45,7 @@ from IPython.kernel import (
     make_ipkernel_cmd,
     launch_kernel,
 )
-from session import Session
+from IPython.zmq.session import Session
 from IPython.kernel import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,

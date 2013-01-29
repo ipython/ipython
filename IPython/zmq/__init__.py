@@ -45,7 +45,7 @@ def check_for_zmq(minimum_version, module='IPython.zmq'):
 check_for_zmq('2.1.11')
 patch_pyzmq()
 
-from .blockingkernelmanager import BlockingKernelManager
-from .kernelmanager import *
+from IPython.kernel.blockingkernelmanager import BlockingKernelManager
+from IPython.kernel.kernelmanager import *
 from .session import Session
 
