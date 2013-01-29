@@ -65,7 +65,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.kernelmanager import QtKernelManager
-from IPython.utils.kernel import tunnel_to_kernel, find_connection_file
+from IPython.kernel import tunnel_to_kernel, find_connection_file
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (

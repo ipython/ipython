@@ -70,7 +70,7 @@ from IPython.zmq.ipkernel import (
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
-from IPython.utils.kernel import swallow_argv
+from IPython.kernel import swallow_argv
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Enum, Bool,
     DottedObjectName

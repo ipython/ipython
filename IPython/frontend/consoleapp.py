@@ -36,7 +36,7 @@ from IPython.config.configurable import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.zmq.blockingkernelmanager import BlockingKernelManager
 from IPython.zmq.kernelmanager import KernelManager
-from IPython.utils.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
+from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (

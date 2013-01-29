@@ -35,7 +35,7 @@ from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
 from IPython.inprocess.socket import SocketABC
-from IPython.utils.kernel import (
+from IPython.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
 )
 from IPython.testing.skipdoctest import skip_doctest

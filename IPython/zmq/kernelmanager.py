@@ -40,7 +40,7 @@ from IPython.utils.traitlets import (
     Any, Instance, Type, Unicode, List, Integer, Bool, CaselessStrEnum
 )
 from IPython.utils.py3compat import str_to_bytes
-from IPython.utils.kernel import (
+from IPython.kernel import (
     write_connection_file,
     make_ipkernel_cmd,
     launch_kernel,
