@@ -13,16 +13,15 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 
 {% endblock input %}
 
-{% block pyerr %}{{ super() }}
+{% block pyerr %}::
+{{ super() }}
 {% endblock pyerr %}
 
 {% block traceback_line %}
 {{ line |indent| rm_ansi }}{% endblock traceback_line %}
 
 {% block pyout %}
-.. parsed-literal::
-
-{{ output.text| indent }}
+{% block data_priority scoped %}{{ super()}}{% endblock %}
 {% endblock pyout %}
 
 {% block stream %}
@@ -41,6 +40,18 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 {% block data_png %}.. image:: {{output.key_png}}
 
 {% endblock data_png %}
+
+{% block data_jpg %}..jpg image:: {{output.key_jpg}}
+
+{% endblock data_jpg %}
+
+
+
+{% block data_latex %}.. math::
+
+{{output.latex| indent}}
+
+{% endblock data_latex %}
 
 {% block data_text scoped %}.. parsed-literal::
 
