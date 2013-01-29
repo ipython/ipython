@@ -430,7 +430,7 @@ def make_runners(inc_slow=False):
     """
 
     # Packages to be tested via nose, that only depend on the stdlib
-    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
+    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'kernel', 'lib',
                       'testing', 'utils', 'nbformat', 'inprocess' ]
 
     if have['zmq']:
