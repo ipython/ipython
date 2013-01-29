@@ -25,8 +25,8 @@ span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:
 #menubar_container{position:relative;}
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
-.toolbar{padding:3px 15px;border-bottom:1px #e0e0e0 solid;}
-.toolbar select,.toolbar label{height:23px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:85%;margin-left:0.3em;margin-right:0.3em;}
+.toolbar{padding:3px 15px;border-bottom:1px #ababab solid;}
+.toolbar select,.toolbar label{height:19px;vertical-align:top;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;}
 .toolbar select{width:auto;}
 #ipython-main-app{width:100%;position:relative;}
 span#quick_help_area{position:static;padding:5px 0px;margin:0px 0px 0px 0px;}
@@ -37,12 +37,12 @@ div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5
 div#pager_splitter{height:8px;}
 #pager_container{position:relative;}
 div#pager{padding:15px;overflow:auto;display:none;}
-div.ui-widget-content{border:1px solid #e0e0e0;outline:none;}
-.cell{border:1px solid transparent;}.cell.selected{border-radius:3px;background-color:#fafafa;border:thin #e0e0e0 solid;}
+div.ui-widget-content{border:1px solid #ababab;outline:none;}
+.cell{border:1px solid transparent;}.cell.selected{border-radius:3px;background-color:#fafafa;border:thin #ababab solid;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 0px;outline:none;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231;}
 div.input{page-break-inside:avoid;}
-div.input_area{border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
+div.input_area{border:1px solid #ababab;border-radius:3px;background:#f7f7f7;}
 div.input_prompt{color:navy;border-top:1px solid transparent;}
 div.output_wrapper{margin-top:5px;margin-left:5px;width:100%;position:relative;}
 div.output_scroll{height:24em;width:100%;overflow:auto;border-radius:3px;box-shadow:inset 0 2px 8px rgba(0, 0, 0, 0.8);}
@@ -58,7 +58,7 @@ div.output_stream{padding-top:0.0em;padding-bottom:0.0em;}
 div.output_stderr{background:#fdd;}
 div.output_latex{text-align:left;}
 div.text_cell{padding:5px 5px 5px 5px;}
-div.text_cell_input{color:#000000;border:1px solid #e0e0e0;border-radius:3px;background:#f7f7f7;}
+div.text_cell_input{color:#000000;border:1px solid #ababab;border-radius:3px;background:#f7f7f7;}
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 .CodeMirror{line-height:1.231;}
 .CodeMirror-scroll{height:auto;overflow-y:hidden;overflow-x:auto;}
@@ -71,7 +71,7 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 .ansicyan{color:steelblue;}
 .ansigrey{color:grey;}
 .ansibold{font-weight:bold;}
-.completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #e0e0e0;}
+.completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;}
 .completions select{background:white;outline:none;border:none;padding:0px;margin:0px;overflow:auto;font-family:monospace;}
 option.context{background-color:#DEF7FF;}
 option.introspection{background-color:#EBF4EB;}
@@ -116,7 +116,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 .tooltipbuttons{position:absolute;padding-right:15px;top:0px;right:0px;}
 .tooltiptext{padding-right:30px;}
 .pretooltiparrow{left:0px;margin:0px;top:-16px;width:40px;height:16px;overflow:hidden;position:absolute;}
-.pretooltiparrow:before{background-color:#f7f7f7;border:1px #e0e0e0 solid;z-index:11;content:"";position:absolute;left:15px;top:10px;width:25px;height:25px;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);}
+.pretooltiparrow:before{background-color:#f7f7f7;border:1px #ababab solid;z-index:11;content:"";position:absolute;left:15px;top:10px;width:25px;height:25px;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);}
 .corner-all{border-radius:3px;}
 article,aside,details,figcaption,figure,footer,header,hgroup,nav,section{display:block;}
 audio,canvas,video{display:inline-block;*display:inline;*zoom:1;}
