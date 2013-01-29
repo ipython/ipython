@@ -17,7 +17,7 @@ New features
 ------------
 
 * All furl files and security certificates are now put in a read-only
-  directory named ~./ipython/security.
+  directory named ~/.ipython/security.
 
 * A single function :func:`get_ipython_dir`, in :mod:`IPython.genutils` that
   determines the user's IPython directory in a robust manner.
