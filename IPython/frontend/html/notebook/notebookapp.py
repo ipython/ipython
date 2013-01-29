@@ -63,9 +63,9 @@ from IPython.core.profiledir import ProfileDir
 from IPython.frontend.consoleapp import IPythonConsoleApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
-from IPython.zmq.ipkernel import (
-    flags as ipkernel_flags,
-    aliases as ipkernel_aliases,
+from IPython.zmq.kernelapp import (
+    kernel_flags,
+    kernel_aliases,
     IPKernelApp
 )
 from IPython.utils.importstring import import_item
@@ -195,7 +195,7 @@ class NotebookWebApplication(web.Application):
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(ipkernel_flags)
+flags = dict(kernel_flags)
 flags['no-browser']=(
     {'NotebookApp' : {'open_browser' : False}},
     "Don't open the notebook in a browser after startup."
@@ -234,7 +234,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
 # or it will raise an error on unrecognized flags
 notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
 
-aliases = dict(ipkernel_aliases)
+aliases = dict(kernel_aliases)
 
 aliases.update({
     'ip': 'NotebookApp.ip',

@@ -903,7 +903,7 @@ class KernelManager(Configurable):
             cmd = self.kernel_cmd
         else:
             cmd = make_ipkernel_cmd(
-                'from IPython.zmq.ipkernel import main; main()',
+                'from IPython.zmq.kernelapp import main; main()',
                 **kw
             )
         ns = dict(connection_file=self.connection_file)

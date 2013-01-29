@@ -24,7 +24,7 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.warn import warn,error
 
-from IPython.zmq.ipkernel import IPKernelApp
+from IPython.zmq.kernelapp import IPKernelApp
 from IPython.zmq.session import Session, default_secure
 from IPython.zmq.zmqshell import ZMQInteractiveShell
 from IPython.frontend.consoleapp import (

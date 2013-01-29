@@ -15,6 +15,8 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import print_function
+
 # Standard library imports
 import atexit
 import json
@@ -25,11 +27,16 @@ import signal
 # System library imports
 import zmq
 from zmq.eventloop import ioloop
+from zmq.eventloop.zmqstream import ZMQStream
 
 # IPython imports
 from IPython.core.ultratb import FormattedTB
 from IPython.core.application import (
     BaseIPythonApplication, base_flags, base_aliases, catch_config_error
+)
+from IPython.core.profiledir import ProfileDir
+from IPython.core.shellapp import (
+    InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.utils import io
 from IPython.utils.localinterfaces import LOCALHOST
@@ -41,13 +48,15 @@ from IPython.utils.traitlets import (
 )
 from IPython.utils.importstring import import_item
 from IPython.kernel import write_connection_file
+
 # local imports
-from IPython.zmq.heartbeat import Heartbeat
-from IPython.zmq.parentpoller import ParentPollerUnix, ParentPollerWindows
-from IPython.zmq.session import (
+from heartbeat import Heartbeat
+from ipkernel import Kernel
+from parentpoller import ParentPollerUnix, ParentPollerWindows
+from session import (
     Session, session_flags, session_aliases, default_secure,
 )
-
+from zmqshell import ZMQInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Flags and Aliases
@@ -55,14 +64,14 @@ from IPython.zmq.session import (
 
 kernel_aliases = dict(base_aliases)
 kernel_aliases.update({
-    'ip' : 'KernelApp.ip',
-    'hb' : 'KernelApp.hb_port',
-    'shell' : 'KernelApp.shell_port',
-    'iopub' : 'KernelApp.iopub_port',
-    'stdin' : 'KernelApp.stdin_port',
-    'f' : 'KernelApp.connection_file',
-    'parent': 'KernelApp.parent',
-    'transport': 'KernelApp.transport',
+    'ip' : 'IPKernelApp.ip',
+    'hb' : 'IPKernelApp.hb_port',
+    'shell' : 'IPKernelApp.shell_port',
+    'iopub' : 'IPKernelApp.iopub_port',
+    'stdin' : 'IPKernelApp.stdin_port',
+    'f' : 'IPKernelApp.connection_file',
+    'parent': 'IPKernelApp.parent',
+    'transport': 'IPKernelApp.transport',
 })
 if sys.platform.startswith('win'):
     kernel_aliases['interrupt'] = 'KernelApp.interrupt'
@@ -70,28 +79,34 @@ if sys.platform.startswith('win'):
 kernel_flags = dict(base_flags)
 kernel_flags.update({
     'no-stdout' : (
-            {'KernelApp' : {'no_stdout' : True}},
+            {'IPKernelApp' : {'no_stdout' : True}},
             "redirect stdout to the null device"),
     'no-stderr' : (
-            {'KernelApp' : {'no_stderr' : True}},
+            {'IPKernelApp' : {'no_stderr' : True}},
             "redirect stderr to the null device"),
+    'pylab' : (
+        {'IPKernelApp' : {'pylab' : 'auto'}},
+        """Pre-load matplotlib and numpy for interactive use with
+        the default matplotlib backend."""),
 })
+
+# inherit flags&aliases for any IPython shell apps
+kernel_aliases.update(shell_aliases)
+kernel_flags.update(shell_flags)
 
 # inherit flags&aliases for Sessions
 kernel_aliases.update(session_aliases)
 kernel_flags.update(session_flags)
 
-
-
 #-----------------------------------------------------------------------------
-# Application class for starting a Kernel
+# Application class for starting an IPython Kernel
 #-----------------------------------------------------------------------------
 
-class KernelApp(BaseIPythonApplication):
+class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     name='ipkernel'
     aliases = Dict(kernel_aliases)
     flags = Dict(kernel_flags)
-    classes = [Session]
+    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
     kernel_class = DottedObjectName('IPython.zmq.ipkernel.Kernel')
     kernel = Any()
@@ -332,18 +347,47 @@ class KernelApp(BaseIPythonApplication):
 
     def init_kernel(self):
         """Create the Kernel object itself"""
-        kernel_factory = import_item(str(self.kernel_class))
-        self.kernel = kernel_factory(config=self.config, session=self.session,
-                                shell_socket=self.shell_socket,
+        shell_stream = ZMQStream(self.shell_socket)
+
+        kernel = Kernel(config=self.config, session=self.session,
+                                shell_streams=[shell_stream],
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
-                                log=self.log
+                                log=self.log,
+                                profile_dir=self.profile_dir,
         )
-        self.kernel.record_ports(self.ports)
+        kernel.record_ports(self.ports)
+        self.kernel = kernel
+
+    def init_gui_pylab(self):
+        """Enable GUI event loop integration, taking pylab into account."""
+
+        # Provide a wrapper for :meth:`InteractiveShellApp.init_gui_pylab`
+        # to ensure that any exception is printed straight to stderr.
+        # Normally _showtraceback associates the reply with an execution,
+        # which means frontends will never draw it, as this exception
+        # is not associated with any execute request.
+
+        shell = self.shell
+        _showtraceback = shell._showtraceback
+        try:
+            # replace pyerr-sending traceback with stderr
+            def print_tb(etype, evalue, stb):
+                print ("GUI event loop or pylab initialization failed",
+                       file=io.stderr)
+                print (shell.InteractiveTB.stb2text(stb), file=io.stderr)
+            shell._showtraceback = print_tb
+            InteractiveShellApp.init_gui_pylab(self)
+        finally:
+            shell._showtraceback = _showtraceback
+
+    def init_shell(self):
+        self.shell = self.kernel.shell
+        self.shell.configurables.append(self)
 
     @catch_config_error
     def initialize(self, argv=None):
-        super(KernelApp, self).initialize(argv)
+        super(IPKernelApp, self).initialize(argv)
         self.init_blackhole()
         self.init_connection_file()
         self.init_session()
@@ -356,6 +400,12 @@ class KernelApp(BaseIPythonApplication):
         self.init_io()
         self.init_signal()
         self.init_kernel()
+        # shell init steps
+        self.init_path()
+        self.init_shell()
+        self.init_gui_pylab()
+        self.init_extensions()
+        self.init_code()
         # flush stdout/stderr, so that anything written to these streams during
         # initialization do not get associated with the first execution request
         sys.stdout.flush()
@@ -370,3 +420,13 @@ class KernelApp(BaseIPythonApplication):
         except KeyboardInterrupt:
             pass
 
+
+def main():
+    """Run an IPKernel as an application"""
+    app = IPKernelApp.instance()
+    app.initialize()
+    app.start()
+
+
+if __name__ == '__main__':
+    main()

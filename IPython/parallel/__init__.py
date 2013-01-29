@@ -50,7 +50,7 @@ def bind_kernel(**kwargs):
     
     This function returns immediately.
     """
-    from IPython.zmq.ipkernel import IPKernelApp
+    from IPython.zmq.kernelapp import IPKernelApp
     from IPython.parallel.apps.ipengineapp import IPEngineApp
     
     # first check for IPKernelApp, in which case this should be a no-op

@@ -35,7 +35,8 @@ from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url
 
 from IPython.zmq.session import Message
-from IPython.zmq.ipkernel import Kernel, IPKernelApp
+from IPython.zmq.ipkernel import Kernel
+from IPython.zmq.kernelapp import IPKernelApp
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""

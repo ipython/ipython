@@ -127,7 +127,7 @@ def get_connection_file(app=None):
         If unspecified, the currently running app will be used
     """
     if app is None:
-        from IPython.zmq.ipkernel import IPKernelApp
+        from IPython.zmq.kernelapp import IPKernelApp
         if not IPKernelApp.initialized():
             raise RuntimeError("app not specified, and not in a running Kernel")
 

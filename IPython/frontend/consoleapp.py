@@ -42,9 +42,9 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, Int, CBool, Any, CaselessStrEnum
 )
-from IPython.zmq.ipkernel import (
-    flags as ipkernel_flags,
-    aliases as ipkernel_aliases,
+from IPython.zmq.kernelapp import (
+    kernel_flags,
+    kernel_aliases,
     IPKernelApp
 )
 from IPython.zmq.session import Session, default_secure
@@ -65,7 +65,7 @@ from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
-flags = dict(ipkernel_flags)
+flags = dict(kernel_flags)
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
@@ -85,7 +85,7 @@ app_flags.update(boolean_flag(
 ))
 flags.update(app_flags)
 
-aliases = dict(ipkernel_aliases)
+aliases = dict(kernel_aliases)
 
 # also scrub aliases from the frontend
 app_aliases = dict(

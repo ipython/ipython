@@ -233,7 +233,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         profile = ("IPython.core.profileapp.ProfileApp",
             "Create and manage IPython profiles."
         ),
-        kernel = ("IPython.zmq.ipkernel.IPKernelApp",
+        kernel = ("IPython.zmq.kernelapp.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
         console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
