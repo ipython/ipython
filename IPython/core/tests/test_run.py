@@ -330,3 +330,10 @@ tclass.py: deleting object: C-third
 
         # Check that __file__ was not leaked back into user_ns.
         nt.assert_equal(file1, file2)
+
+    def test_run_formatting(self):
+        """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
+        src = "pass"
+        self.mktmp(src)
+        _ip.magic('run -t -N 1 %s' % self.fname)
+        _ip.magic('run -t -N 10 %s' % self.fname)
