@@ -71,9 +71,9 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
-from IPython.zmq.kernelapp import IPKernelApp
-from IPython.zmq.session import Session, default_secure
-from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.kernelapp import IPKernelApp
+from IPython.kernel.zmq.session import Session, default_secure
+from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.frontend.consoleapp import (
         IPythonConsoleApp, app_aliases, app_flags, flags, aliases

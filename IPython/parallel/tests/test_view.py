@@ -650,7 +650,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_data_pub_single(self):
         view = self.client[-1]
         ar = view.execute('\n'.join([
-            'from IPython.zmq.datapub import publish_data',
+            'from IPython.kernel.zmq.datapub import publish_data',
             'for i in range(5):',
             '  publish_data(dict(i=i))'
         ]), block=False)
@@ -661,7 +661,7 @@ class TestView(ClusterTestCase, ParametricTestCase):
     def test_data_pub(self):
         view = self.client[:]
         ar = view.execute('\n'.join([
-            'from IPython.zmq.datapub import publish_data',
+            'from IPython.kernel.zmq.datapub import publish_data',
             'for i in range(5):',
             '  publish_data(dict(i=i))'
         ]), block=False)

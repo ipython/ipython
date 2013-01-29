@@ -30,7 +30,7 @@ def patch_pyzmq():
         jsonapi.jsonmod = json
 
 
-def check_for_zmq(minimum_version, module='IPython.zmq'):
+def check_for_zmq(minimum_version, module='IPython.kernel.zmq'):
     try:
         import zmq
     except ImportError:

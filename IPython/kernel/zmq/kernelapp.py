@@ -108,11 +108,11 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     flags = Dict(kernel_flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.zmq.ipkernel.Kernel')
+    kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel')
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
-    session = Instance('IPython.zmq.session.Session')
+    session = Instance('IPython.kernel.zmq.session.Session')
     ports = Dict()
     
     # inherit config file name from parent:
@@ -159,9 +159,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     # streams, etc.
     no_stdout = Bool(False, config=True, help="redirect stdout to the null device")
     no_stderr = Bool(False, config=True, help="redirect stderr to the null device")
-    outstream_class = DottedObjectName('IPython.zmq.iostream.OutStream',
+    outstream_class = DottedObjectName('IPython.kernel.zmq.iostream.OutStream',
         config=True, help="The importstring for the OutStream factory")
-    displayhook_class = DottedObjectName('IPython.zmq.displayhook.ZMQDisplayHook',
+    displayhook_class = DottedObjectName('IPython.kernel.zmq.displayhook.ZMQDisplayHook',
         config=True, help="The importstring for the DisplayHook factory")
 
     # polling

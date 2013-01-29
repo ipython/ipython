@@ -32,7 +32,7 @@ backends = {'tk': 'TkAgg',
             'qt': 'Qt4Agg', # qt3 not supported
             'qt4': 'Qt4Agg',
             'osx': 'MacOSX',
-            'inline' : 'module://IPython.zmq.pylab.backend_inline'}
+            'inline' : 'module://IPython.kernel.zmq.pylab.backend_inline'}
 
 # We also need a reverse backends2guis mapping that will properly choose which
 # GUI support to activate based on the desired matplotlib backend.  For the
@@ -152,7 +152,7 @@ def select_figure_format(shell, fmt):
     Using this method ensures only one figure format is active at a time.
     """
     from matplotlib.figure import Figure
-    from IPython.zmq.pylab import backend_inline
+    from IPython.kernel.zmq.pylab import backend_inline
 
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
@@ -188,7 +188,7 @@ def find_gui_and_backend(gui=None, gui_select=None):
     Returns
     -------
     A tuple of (gui, backend) where backend is one of ('TkAgg','GTKAgg',
-    'WXAgg','Qt4Agg','module://IPython.zmq.pylab.backend_inline').
+    'WXAgg','Qt4Agg','module://IPython.kernel.zmq.pylab.backend_inline').
     """
 
     import matplotlib
@@ -276,7 +276,7 @@ def configure_inline_support(shell, backend, user_ns=None):
     # continuing (such as in terminal-only shells in environments without
     # zeromq available).
     try:
-        from IPython.zmq.pylab.backend_inline import InlineBackend
+        from IPython.kernel.zmq.pylab.backend_inline import InlineBackend
     except ImportError:
         return
     from matplotlib import pyplot
@@ -289,7 +289,7 @@ def configure_inline_support(shell, backend, user_ns=None):
         shell.configurables.append(cfg)
 
     if backend == backends['inline']:
-        from IPython.zmq.pylab.backend_inline import flush_figures
+        from IPython.kernel.zmq.pylab.backend_inline import flush_figures
         shell.register_post_execute(flush_figures)
 
         # Save rcParams that will be overwrittern
@@ -301,7 +301,7 @@ def configure_inline_support(shell, backend, user_ns=None):
         # Add 'figsize' to pyplot and to the user's namespace
         user_ns['figsize'] = pyplot.figsize = figsize
     else:
-        from IPython.zmq.pylab.backend_inline import flush_figures
+        from IPython.kernel.zmq.pylab.backend_inline import flush_figures
         if flush_figures in shell._post_execute:
             shell._post_execute.pop(flush_figures)
         if hasattr(shell, '_saved_rcParams'):

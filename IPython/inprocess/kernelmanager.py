@@ -191,9 +191,9 @@ class InProcessKernelManager(Configurable):
     """
 
     # The Session to use for building messages.
-    session = Instance('IPython.zmq.session.Session')
+    session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        from IPython.zmq.session import Session
+        from IPython.kernel.zmq.session import Session
         return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.

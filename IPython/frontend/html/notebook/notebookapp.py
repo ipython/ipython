@@ -61,9 +61,9 @@ from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
 from IPython.frontend.consoleapp import IPythonConsoleApp
-from IPython.zmq.session import Session, default_secure
-from IPython.zmq.zmqshell import ZMQInteractiveShell
-from IPython.zmq.kernelapp import (
+from IPython.kernel.zmq.session import Session, default_secure
+from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
     IPKernelApp

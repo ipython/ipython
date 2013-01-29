@@ -185,7 +185,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
 
     # Spawn a kernel.
     if sys.platform == 'win32':
-        from IPython.zmq.parentpoller import ParentPollerWindows
+        from IPython.kernel.zmq.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
         if ipython_kernel:

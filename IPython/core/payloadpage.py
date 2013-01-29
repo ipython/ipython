@@ -82,7 +82,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None,
             pass
         
     payload = dict(
-        source='IPython.zmq.page.page',
+        source='IPython.kernel.zmq.page.page',
         text=strng,
         html=html,
         start_line_number=start

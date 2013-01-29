@@ -42,13 +42,13 @@ from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CUnicode, Int, CBool, Any, CaselessStrEnum
 )
-from IPython.zmq.kernelapp import (
+from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
     IPKernelApp
 )
-from IPython.zmq.session import Session, default_secure
-from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.session import Session, default_secure
+from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 #-----------------------------------------------------------------------------
 # Network Constants
@@ -114,7 +114,7 @@ aliases.update(app_aliases)
 classes = [IPKernelApp, ZMQInteractiveShell, KernelManager, ProfileDir, Session]
 
 try:
-    from IPython.zmq.pylab.backend_inline import InlineBackend
+    from IPython.kernel.zmq.pylab.backend_inline import InlineBackend
 except ImportError:
     pass
 else:

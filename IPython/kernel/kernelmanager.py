@@ -15,6 +15,8 @@ TODO
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import absolute_import
+
 # Standard library imports
 import atexit
 import errno
@@ -45,7 +47,7 @@ from IPython.kernel import (
     make_ipkernel_cmd,
     launch_kernel,
 )
-from IPython.zmq.session import Session
+from IPython.kernel.zmq.session import Session
 from IPython.kernel import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
@@ -903,7 +905,7 @@ class KernelManager(Configurable):
             cmd = self.kernel_cmd
         else:
             cmd = make_ipkernel_cmd(
-                'from IPython.zmq.kernelapp import main; main()',
+                'from IPython.kernel.zmq.kernelapp import main; main()',
                 **kw
             )
         ns = dict(connection_file=self.connection_file)

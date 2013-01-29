@@ -48,8 +48,8 @@ from IPython.parallel import Reference
 from IPython.parallel import error
 from IPython.parallel import util
 
-from IPython.zmq.session import Session, Message
-from IPython.zmq import serialize
+from IPython.kernel.zmq.session import Session, Message
+from IPython.kernel.zmq import serialize
 
 from .asyncresult import AsyncResult, AsyncHubResult
 from .view import DirectView, LoadBalancedView
