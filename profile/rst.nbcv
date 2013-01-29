@@ -1,7 +1,13 @@
 c = get_config()
 
-c.ConverterTemplate.extract_figures=False
+c.ConverterTemplate.extract_figures=True
 c.ConverterTemplate.template_file='rst'
 c.ConverterTemplate.tex_environement=False
 
 c.NbconvertApp.fileext='rst'
+c.ExtractFigureTransformer.enabled=True
+
+c.ExtractFigureTransformer.display_data_priority=['svg', 'png', 'latex',  'jpg', 'jpeg','text']
+c.ConverterTemplate.display_data_priority=['svg', 'png', 'latex',  'jpg', 'jpeg','text']
+
+

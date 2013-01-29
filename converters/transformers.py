@@ -127,7 +127,6 @@ class ExtractFigureTransformer(ConfigurableTransformers):
             for type in self.display_data_priority:
                 if out.hasattr(type):
                     figname, key, data = self._new_figure(out[type], type, count)
-                    cell.outputs[i][type] = figname
                     out['key_'+type] = figname
                     other['figures'][key] = data
                     count = count+1

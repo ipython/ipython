@@ -1,5 +1,4 @@
-{%- extends 'null.tpl' -%}
-
+{%- extends 'display_priority.tpl' -%}
 {% block in_prompt -%}
 In[{{cell.prompt_number if cell.prompt_number else ' '}}]:
 
@@ -7,25 +6,18 @@ In[{{cell.prompt_number if cell.prompt_number else ' '}}]:
 
 {% endblock in_prompt %}
 
-{% block output_prompt %}
-Out[{{cell.prompt_number}}]:{% endblock output_prompt %}
+{% block output_prompt %}{% if cell.haspyout -%}
+Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 
 {% block input %}{{ cell.input | indent}}
+
 {% endblock input %}
 
-
-{# Those Two are for error displaying
-even if the first one seem to do nothing, 
-it introduces a new line
-
-#}
 {% block pyerr %}{{ super() }}
 {% endblock pyerr %}
 
 {% block traceback_line %}
 {{ line |indent| rm_ansi }}{% endblock traceback_line %}
-{# .... #}
-
 
 {% block pyout %}
 .. parsed-literal::
@@ -42,12 +34,21 @@ it introduces a new line
 
 
 
-{% block display_data scoped %}
-# image file:
-{% endblock display_data %}
+{% block data_svg %}.. image:: {{output.key_svg}}
 
-{% block markdowncell scoped %}
-{{ cell.source | markdown2rst }}
+{% endblock data_svg %}
+
+{% block data_png %}.. image:: {{output.key_png}}
+
+{% endblock data_png %}
+
+{% block data_text scoped %}.. parsed-literal::
+
+{{output.text | indent}}
+
+{% endblock data_text %}
+
+{% block markdowncell scoped %}{{ cell.source | markdown2rst }}
 {% endblock markdowncell %}
 
 {% block headingcell scoped %}
@@ -58,10 +59,10 @@ it introduces a new line
 {%- elif cell.level == 2 %}
 {{- '-' * len }}
 {% endif %}
+
 {% endblock headingcell %}
 
-{% block rawcell scoped %}
-{{ cell.source  }}
+{% block rawcell scoped %}{{ cell.source  }}
 {% endblock rawcell %}
 
 {% block unknowncell scoped %}
