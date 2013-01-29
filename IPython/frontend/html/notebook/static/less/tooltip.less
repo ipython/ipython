@@ -98,15 +98,15 @@
     padding-right:30px
 }
 
-.ipython_tooltip(@t:400ms) {
+.ipython_tooltip {
     max-width:700px;
     /*fade-in animation when inserted*/
-    -webkit-animation: fadeOut @t;
-    -moz-animation: fadeOut @t;
-    animation: fadeOut @t;
-    -webkit-animation: fadeIn @t;
-    -moz-animation: fadeIn @t;
-    animation: fadeIn @t;
+    -webkit-animation: fadeOut 400ms;
+    -moz-animation: fadeOut 400ms;
+    animation: fadeOut 400ms;
+    -webkit-animation: fadeIn 400ms;
+    -moz-animation: fadeIn 400ms;
+    animation: fadeIn 400ms;
     vertical-align: middle;
     background-color: @cell_background;
 
@@ -118,14 +118,14 @@
     padding-left:7px;
     font-family: monospace;
     min-height:50px;
-    position: absolute;
 
     .dropshadow;
     .corner-all;
 
     a {
         float:right;
-    }
+    };
+    position: absolute;
 
 }
 
