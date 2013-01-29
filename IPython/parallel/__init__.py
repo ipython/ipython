@@ -23,10 +23,7 @@ import zmq
 from IPython.config.configurable import MultipleInstanceError
 from IPython.zmq import check_for_zmq
 
-if os.name == 'nt':
-    min_pyzmq = '2.1.7'
-else:
-    min_pyzmq = '2.1.4'
+min_pyzmq = '2.1.11'
 
 check_for_zmq(min_pyzmq, 'IPython.parallel')
 
