@@ -9,7 +9,6 @@ from __future__ import absolute_import
 import io
 from io import TextIOWrapper, BytesIO
 import re
-import urllib
 
 cookie_re = re.compile(ur"coding[:=]\s*([-\w.]+)", re.UNICODE)
 cookie_comment_re = re.compile(ur"^\s*#.*coding[:=]\s*([-\w.]+)", re.UNICODE)
@@ -205,7 +204,8 @@ def read_py_url(url, errors='replace', skip_encoding_cookie=True):
     -------
     A unicode string containing the contents of the file.
     """
-    response = urllib.urlopen(url)
+    from urllib import urlopen  # Deferred import for faster start
+    response = urlopen(url)
     buffer = io.BytesIO(response.read())
     return source_to_unicode(buffer, errors, skip_encoding_cookie)
 

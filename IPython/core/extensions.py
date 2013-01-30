@@ -20,8 +20,6 @@ Authors:
 import os
 from shutil import copyfile
 import sys
-from urllib import urlretrieve
-from urlparse import urlparse
 
 from IPython.core.error import UsageError
 from IPython.config.configurable import Configurable
@@ -171,6 +169,8 @@ class ExtensionManager(Configurable):
             src_filename = os.path.basename(url)
             copy = copyfile
         else:
+            from urllib import urlretrieve  # Deferred imports
+            from urlparse import urlparse
             src_filename = urlparse(url).path.split('/')[-1]
             copy = urlretrieve
             

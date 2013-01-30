@@ -19,7 +19,6 @@ import json
 import os
 import re
 import sys
-from urllib2 import urlopen
 
 # Our own packages
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
@@ -151,6 +150,7 @@ class CodeMagics(Magics):
           }
         }).encode('utf-8')
 
+        from urllib2 import urlopen  # Deferred import
         response = urlopen("https://api.github.com/gists", post_data)
         response_data = json.loads(response.read().decode('utf-8'))
         return response_data['html_url']
