@@ -19,8 +19,6 @@ Authors:
 
 from __future__ import print_function
 
-from xml.dom import minidom
-
 from .displaypub import (
     publish_pretty, publish_html,
     publish_latex, publish_svg,
@@ -330,6 +328,7 @@ class SVG(DisplayObject):
             self._data = None
             return
         # parse into dom object
+        from xml.dom import minidom
         x = minidom.parseString(svg)
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
