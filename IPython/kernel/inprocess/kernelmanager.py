@@ -14,7 +14,7 @@
 # Local imports.
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Any, Instance, Type
-from IPython.kernel import (
+from IPython.kernel.kernelmanagerabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC

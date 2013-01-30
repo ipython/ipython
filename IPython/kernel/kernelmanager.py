@@ -47,8 +47,8 @@ from IPython.kernel import (
     make_ipkernel_cmd,
     launch_kernel,
 )
-from IPython.kernel.zmq.session import Session
-from IPython.kernel import (
+from .zmq.session import Session
+from .kernelmanagerabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC

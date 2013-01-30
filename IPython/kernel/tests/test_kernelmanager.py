@@ -42,7 +42,7 @@ class TestKernelManager(TestCase):
         self._run_lifecycle(km)
 
     @dec.skip_win32
-    def testipc_lifecycle(self):
+    def test_ipc_lifecycle(self):
         km = self._get_ipc_km()
         self._run_lifecycle(km)
 

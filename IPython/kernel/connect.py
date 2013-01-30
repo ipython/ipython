@@ -337,3 +337,11 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
     
     return tuple(lports)
 
+__all__ = [
+    'write_connection_file',
+    'get_connection_file',
+    'find_connection_file',
+    'get_connection_info',
+    'connect_qtconsole',
+    'tunnel_to_kernel',
+]

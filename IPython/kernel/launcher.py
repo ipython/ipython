@@ -251,3 +251,8 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
 
     return proc
 
+__all__ = [
+    'swallow_argv',
+    'make_ipkernel_cmd',
+    'launch_kernel',
+]
