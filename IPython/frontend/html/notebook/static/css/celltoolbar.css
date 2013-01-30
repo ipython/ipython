@@ -5,10 +5,19 @@
     border: thin solid #CFCFCF;
     margin-left: 0px;
     border-bottom: none;
+        margin:0;
+    padding:0;
     background : #EEE;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
 }
+
+.celltoolbar div{
+    line-height: 0;
+    margin:0;
+    padding:0;
+  }
+
 
 .no_input_radius {
     border-top-right-radius: 0px;
@@ -26,6 +35,13 @@
 .ctb_hideshow {
     display: none;
 }
+
+.ctb_area {
+    margin:0;
+    padding:0;
+
+}
+
 
 /*ctb_show is added to either body or the ctb_hideshow div to show
 all or one cell's toolbars.
@@ -67,10 +83,11 @@ all or one cell's toolbars.
 
 .celltoolbar label{
     display:inline;
+    line-height:13px;
 }
 
 .celltoolbar label span {
-    font-size: 87%;
+    font-size: 85%;
 }
 
 .celltoolbar input[type=checkbox] {
