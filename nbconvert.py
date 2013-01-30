@@ -89,7 +89,7 @@ class NbconvertApp(Application):
         self.update_config(cl_config)
 
     def run(self):
-        """Convert a notebook to html in one step"""
+        """Convert a notebook in one step"""
         ConverterClass = converters[self.fmt]
         infile = (self.extra_args or [None])[0]
         converter = ConverterClass(infile=infile,  config=self.config)
