@@ -16,9 +16,9 @@ import sys
 import unittest
 
 # Local imports
-from IPython.inprocess.blockingkernelmanager import \
+from IPython.kernel.inprocess.blockingkernelmanager import \
     BlockingInProcessKernelManager
-from IPython.inprocess.ipkernel import InProcessKernel
+from IPython.kernel.inprocess.ipkernel import InProcessKernel
 from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
 from IPython.utils import py3compat

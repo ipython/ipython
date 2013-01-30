@@ -238,6 +238,9 @@ def make_exclude():
     if not have['wx']:
         exclusions.append(ipjoin('lib', 'inputhookwx'))
     
+    if 'IPython.kernel.inprocess' not in sys.argv:
+        exclusions.append(ipjoin('kernel', 'inprocess'))
+    
     # FIXME: temporarily disable autoreload tests, as they can produce
     # spurious failures in subsequent tests (cythonmagic).
     exclusions.append(ipjoin('extensions', 'autoreload'))
@@ -246,7 +249,7 @@ def make_exclude():
     # We do this unconditionally, so that the test suite doesn't import
     # gtk, changing the default encoding and masking some unicode bugs.
     exclusions.append(ipjoin('lib', 'inputhookgtk'))
-    exclusions.append(ipjoin('zmq', 'gui', 'gtkembed'))
+    exclusions.append(ipjoin('kernel', 'zmq', 'gui', 'gtkembed'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://github.com/ipython/ipython/issues/87
@@ -261,7 +264,7 @@ def make_exclude():
                            ])
 
     if not have['zmq']:
-        exclusions.append(ipjoin('zmq'))
+        exclusions.append(ipjoin('kernel'))
         exclusions.append(ipjoin('frontend', 'qt'))
         exclusions.append(ipjoin('frontend', 'html'))
         exclusions.append(ipjoin('frontend', 'consoleapp.py'))
@@ -277,7 +280,7 @@ def make_exclude():
     if not have['matplotlib']:
         exclusions.extend([ipjoin('core', 'pylabtools'),
                            ipjoin('core', 'tests', 'test_pylabtools'),
-                           ipjoin('zmq', 'pylab'),
+                           ipjoin('kernel', 'zmq', 'pylab'),
         ])
 
     if not have['cython']:
@@ -430,11 +433,12 @@ def make_runners(inc_slow=False):
     """
 
     # Packages to be tested via nose, that only depend on the stdlib
-    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'kernel', 'lib',
-                      'testing', 'utils', 'nbformat', 'inprocess' ]
+    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
+                      'testing', 'utils', 'nbformat' ]
 
     if have['zmq']:
-        nose_pkg_names.append('zmq')
+        nose_pkg_names.append('kernel')
+        nose_pkg_names.append('kernel.inprocess')
         if inc_slow:
             nose_pkg_names.append('parallel')
 
@@ -502,7 +506,7 @@ def run_iptest():
     # assumptions about what needs to be a singleton and what doesn't (app
     # objects should, individual shells shouldn't).  But for now, this
     # workaround allows the test suite for the inprocess module to complete.
-    if not 'IPython.inprocess' in sys.argv:
+    if not 'IPython.kernel.inprocess' in sys.argv:
         globalipapp.start_ipython()
 
     # Now nose can run

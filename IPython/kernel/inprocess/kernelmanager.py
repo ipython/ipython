@@ -13,13 +13,14 @@
 
 # Local imports.
 from IPython.config.configurable import Configurable
-from IPython.inprocess.socket import DummySocket
 from IPython.utils.traitlets import Any, Instance, Type
 from IPython.kernel import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC
 )
+
+from .socket import DummySocket
 
 #-----------------------------------------------------------------------------
 # Channel classes
@@ -197,7 +198,7 @@ class InProcessKernelManager(Configurable):
         return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.
-    kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
 
     # The classes to use for the various channels.
     shell_channel_class = Type(InProcessShellChannel)
@@ -272,7 +273,7 @@ class InProcessKernelManager(Configurable):
     #--------------------------------------------------------------------------
     
     def start_kernel(self, **kwds):
-        from IPython.inprocess.ipkernel import InProcessKernel
+        from IPython.kernel.inprocess.ipkernel import InProcessKernel
         self.kernel = InProcessKernel()
         self.kernel.frontends.append(self)
 

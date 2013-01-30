@@ -1,4 +1,4 @@
-""" An in-process kernel. """
+"""An in-process kernel"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2012  The IPython Development Team
@@ -16,13 +16,14 @@ from contextlib import contextmanager
 import logging
 import sys
 
-# Local imports.
+# Local imports
 from IPython.core.interactiveshell import InteractiveShellABC
-from IPython.inprocess.socket import DummySocket
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import Any, Enum, Instance, List, Type
 from IPython.kernel.zmq.ipkernel import Kernel
 from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+
+from .socket import DummySocket
 
 #-----------------------------------------------------------------------------
 # Main kernel class
@@ -36,7 +37,7 @@ class InProcessKernel(Kernel):
 
     # The frontends connected to this kernel.
     frontends = List(
-        Instance('IPython.inprocess.kernelmanager.InProcessKernelManager'))
+        Instance('IPython.kernel.inprocess.kernelmanager.InProcessKernelManager'))
 
     # The GUI environment that the kernel is running under. This need not be
     # specified for the normal operation for the kernel, but is required for
@@ -151,7 +152,7 @@ class InProcessKernel(Kernel):
 
 class InProcessInteractiveShell(ZMQInteractiveShell):
 
-    kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
 
     #-------------------------------------------------------------------------
     # InteractiveShell interface
