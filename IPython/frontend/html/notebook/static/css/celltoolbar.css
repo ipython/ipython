@@ -2,7 +2,7 @@
 
 
 .celltoolbar {
-    border: thin solid #ABABAB;
+    border: thin solid #CFCFCF;
     margin-left: 0px;
     border-bottom: none;
     background : #EEE;
@@ -59,16 +59,18 @@ all or one cell's toolbars.
     margin: 10px;
     margin-top: 0px;
     margin-bottom: 0px;
-    font-size: 77%;
-    height:20px;
+    font-size: 87%;
+    height:18px;
     display:inline;
+    width:auto;
 }
 
 .celltoolbar label{
     display:inline;
 }
+
 .celltoolbar label span {
-    font-size: 77%;
+    font-size: 87%;
 }
 
 .celltoolbar input[type=checkbox] {
