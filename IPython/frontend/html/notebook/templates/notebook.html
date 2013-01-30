@@ -18,12 +18,6 @@ window.mathjax_url = "{{mathjax_url}}";
 
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
 
-{% if use_less %}
-    <link rel="stylesheet/less" href="{{ static_url("less/style.less") }}" type="text/css" />
-{% else %}
-    <link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
-{% endif %}
-
 {% endblock %}
 
 {% block params %}
@@ -185,9 +179,7 @@ class="notebook_app"
 
 {% block script %}
 
-{% if use_less %}
-<script src="{{ static_url("components/less.js/dist/less-1.3.3.min.js") }}" charset="utf-8"></script>
-{% endif %}
+{{super()}}
 
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>

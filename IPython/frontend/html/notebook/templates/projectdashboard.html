@@ -82,6 +82,7 @@ data-read-only={{read_only}}
 {% endblock %}
 
 {% block script %}
+    {{super()}}
     <script src="{{static_url("js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>
