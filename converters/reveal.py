@@ -13,10 +13,10 @@ import itertools
 
 
 class ConverterReveal(ConverterHTML):
-    #"""
-    # Convert a ipython notebook to a html slideshow
-    # based in reveal.js library.
-    #"""
+    """
+     Convert a ipython notebook to a html slideshow
+     based in reveal.js library.
+    """
 
     @text_cell
     def render_heading(self, cell):
