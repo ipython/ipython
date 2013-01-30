@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="{{static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/boilerplate.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/page.css") }}" type="text/css"/>
+    {% block stylesheet %}
     {% block lesscss %}
         {% if use_less %}
             <link rel="stylesheet/less" href="{{ static_url("less/style.less") }}" type="text/css" />
@@ -21,7 +22,6 @@
             <link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
         {% endif %}
     {% endblock lesscss%}
-    {% block stylesheet %}
     {% endblock %}
     <link rel="stylesheet" href="{{ static_url("css/custom.css") }}" type="text/css" />
 
