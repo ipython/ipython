@@ -8,7 +8,6 @@
 #*****************************************************************************
 
 import re
-import sys
 
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING

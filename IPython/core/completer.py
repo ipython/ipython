@@ -74,7 +74,6 @@ import itertools
 import keyword
 import os
 import re
-import shlex
 import sys
 
 from IPython.config.configurable import Configurable

@@ -28,7 +28,6 @@ else:
 
 
 from ._process_common import getoutputerror
-from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Code

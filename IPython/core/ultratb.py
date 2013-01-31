@@ -109,7 +109,6 @@ from IPython.utils import py3compat
 from IPython.utils import pyfile
 from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
-from IPython.utils.openpy import read_py_file
 from IPython.utils.warn import info, error
 
 # Globals

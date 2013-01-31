@@ -14,7 +14,7 @@
 # Our own packages
 from IPython.core.display import display, Javascript, Latex, SVG
 from IPython.core.magic import  (
-    Magics, magics_class, line_magic, cell_magic
+    Magics, magics_class, cell_magic
 )
 
 #-----------------------------------------------------------------------------

@@ -25,7 +25,6 @@ from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import file_read

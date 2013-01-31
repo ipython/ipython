@@ -30,7 +30,7 @@ import sys
 
 from IPython.config.configurable import Configurable
 from IPython.utils import io
-from IPython.utils.traitlets import Instance, List
+from IPython.utils.traitlets import Instance
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------

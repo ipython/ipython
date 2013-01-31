@@ -14,7 +14,6 @@
 # Stdlib
 import errno
 import os
-import re
 import sys
 import signal
 import time
@@ -24,12 +23,10 @@ import atexit
 # Our own packages
 from IPython.config.configurable import Configurable
 from IPython.core import magic_arguments
-from IPython.core.error import UsageError
 from IPython.core.magic import  (
     Magics, magics_class, line_magic, cell_magic
 )
 from IPython.lib.backgroundjobs import BackgroundJobManager
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.process import arg_split
 from IPython.utils.traitlets import List, Dict

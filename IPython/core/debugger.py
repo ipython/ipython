@@ -33,7 +33,7 @@ import sys
 
 from IPython.utils import PyColorize, ulinecache
 from IPython.core import ipapi
-from IPython.utils import coloransi, io, openpy, py3compat
+from IPython.utils import coloransi, io, py3compat
 from IPython.core.excolors import exception_colors
 
 # See if we can use pydb.

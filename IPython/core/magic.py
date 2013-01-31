@@ -31,7 +31,7 @@ from IPython.utils.ipstruct import Struct
 from IPython.utils.process import arg_split
 from IPython.utils.text import dedent
 from IPython.utils.traitlets import Bool, Dict, Instance, MetaHasTraits
-from IPython.utils.warn import error, warn
+from IPython.utils.warn import error
 
 #-----------------------------------------------------------------------------
 # Globals

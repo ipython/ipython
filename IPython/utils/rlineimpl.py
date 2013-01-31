@@ -9,13 +9,8 @@ In addition to normal readline stuff, this module provides have_readline
 boolean and _outputfile variable used in IPython.utils.
 """
 
-import os
-import re
 import sys
-import time
 import warnings
-
-from subprocess import Popen, PIPE
 
 if sys.platform == 'darwin':
     # dirty trick, to skip the system readline, because pip-installed readline
