@@ -358,8 +358,12 @@ class TerminalInteractiveShell(InteractiveShell):
     using_paste_magics = CBool(False)
 
     # In the terminal, GUI control is done via PyOS_InputHook
-    from IPython.lib.inputhook import enable_gui
-    enable_gui = staticmethod(enable_gui)
+    def enable_gui(gui=None, app=None):
+        """Switch amongst GUI input hooks by name.
+        """
+        # Deferred import
+        from IPython.lib.inputhook import enable_gui as real_enable_gui
+        return real_enable_gui(gui, app)
     
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_ns=None, user_module=None, custom_exceptions=((),None),
