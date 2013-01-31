@@ -48,7 +48,6 @@ from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.lib import inputhook
 from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
 from IPython.utils.traitlets import (
