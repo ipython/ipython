@@ -692,7 +692,6 @@ class KernelManager(Configurable):
         """
     )
     def _kernel_cmd_changed(self, name, old, new):
-        print 'kernel cmd changed', new
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
