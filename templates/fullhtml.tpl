@@ -1,6 +1,6 @@
 {%- extends 'basichtml.tpl' -%}
 
-{%- block header -%}
+{%- block header -%}<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
