@@ -123,7 +123,7 @@ def random_ports(port, n):
 
 class NotebookWebApplication(web.Application):
 
-    def __init__(self, ipython_app, kernel_manager, notebook_manager, 
+    def __init__(self, ipython_app, kernel_manager, notebook_manager,
                  cluster_manager, log,
                  base_project_url, settings_overrides):
         handlers = [
@@ -186,6 +186,7 @@ class NotebookWebApplication(web.Application):
         self.ipython_app = ipython_app
         self.read_only = self.ipython_app.read_only
         self.config = self.ipython_app.config
+        self.use_less = self.ipython_app.use_less
         self.log = log
         self.jinja2_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 
@@ -343,7 +344,19 @@ class NotebookApp(BaseIPythonApplication):
     read_only = Bool(False, config=True,
         help="Whether to prevent editing/execution of notebooks."
     )
-    
+
+    use_less = Bool(False, config=True,
+                       help="""Wether to use Browser Side less-css parsing
+                       instead of compiled css version in templates that allows
+                       it. This is mainly convenient when working on the less
+                       file to avoid a build step, or if user want to overwrite
+                       some of the less variables without having to recompile
+                       everything.
+                       
+                       You will need to install the less.js component in the static directory
+                       either in the source tree or in your profile folder.
+                       """)
+
     webapp_settings = Dict(config=True,
             help="Supply overrides for the tornado.web.Application that the "
                  "IPython notebook uses.")

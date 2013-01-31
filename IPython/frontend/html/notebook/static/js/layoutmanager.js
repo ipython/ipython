@@ -43,7 +43,7 @@ var IPython = (function (IPython) {
     LayoutManager.prototype.do_resize = function () {
         var app_height = this.app_height()  // content height
 
-        $('div#main_app').height(app_height);  // content+padding+border height
+        $('#ipython-main-app').height(app_height);  // content+padding+border height
 
         var pager_height = IPython.pager.percentage_height*app_height;
         var pager_splitter_height = $('div#pager_splitter').outerHeight(true);

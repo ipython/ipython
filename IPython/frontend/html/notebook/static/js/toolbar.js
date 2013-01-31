@@ -86,7 +86,7 @@ var IPython = (function (IPython) {
 
     ToolBar.prototype.style = function () {
         this.element.addClass('border-box-sizing').
-            addClass('ui-widget ui-widget-content toolbar').
+            addClass('toolbar').
             css('border-top-style','none').
             css('border-left-style','none').
             css('border-right-style','none');

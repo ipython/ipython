@@ -25,8 +25,8 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.style = function () {
         this.element.find('span#save_widget').addClass('ui-widget');
-        this.element.find('span#notebook_name').addClass('ui-widget ui-widget-content');
-        this.element.find('span#save_status').addClass('ui-widget ui-widget-content')
+        this.element.find('span#notebook_name').addClass('ui-widget');
+        this.element.find('span#save_status').addClass('ui-widget')
             .css({border: 'none', 'margin-left': '20px'});
     };
 
