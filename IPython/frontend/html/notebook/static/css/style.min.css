@@ -907,7 +907,7 @@ div.output_stream{padding-top:0.0em;padding-bottom:0.0em;}
 div.output_stderr{background:#fdd;}
 div.output_latex{text-align:left;}
 div.text_cell{padding:5px 5px 5px 5px;}
-div.text_cell_input{color:#000000;border:1px solid #ababab;border-radius:4px;background:#f7f7f7;}
+div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 .CodeMirror{line-height:1.231;}
 .CodeMirror-scroll{height:auto;overflow-y:hidden;overflow-x:auto;}
