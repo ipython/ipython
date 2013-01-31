@@ -887,7 +887,7 @@ div#pager_splitter{height:8px;}
 #pager_container{position:relative;}
 div#pager{padding:15px;overflow:auto;display:none;}
 div.ui-widget-content{border:1px solid #ababab;outline:none;}
-.cell{border:1px solid transparent;}.cell.selected{border-radius:4px;background-color:#fafafa;border:thin #ababab solid;}
+.cell{border:1px solid transparent;}.cell.selected{border-radius:4px;border:thin #ababab solid;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 0px;outline:none;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231;}
 div.input{page-break-inside:avoid;}
