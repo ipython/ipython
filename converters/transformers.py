@@ -140,25 +140,23 @@ class RevealHelpTransformer(ConfigurableTransformers):
 
     def open_subsection(self):
         self.subsection_open = True
-        #print('open    subsection')
         return True
 
     def open_section(self):
         self.section_open = True
-        #print('open  section')
         return True
 
     def open_fragment(self):
         self.fragment_open = True
-        #print('open      fragment')
         return True
 
+    # could probaly write those maybe_close/open
+    # with a function functor
     def maybe_close_section(self):
         """return True is already open, false otherwise
         and change state to close
         """
         if self.section_open :
-            #print('close section')
             self.section_open = False
             return True
         else :
@@ -170,7 +168,6 @@ class RevealHelpTransformer(ConfigurableTransformers):
         """
         if not self.section_open :
             self.section_open = True
-            #print('open  section (m)')
             return True
         else :
             return False
@@ -180,7 +177,6 @@ class RevealHelpTransformer(ConfigurableTransformers):
         and change state to close
         """
         if not self.subsection_open :
-            #print('open    subsection (m)')
             self.subsection_open = True
             return True
         else :
@@ -191,7 +187,6 @@ class RevealHelpTransformer(ConfigurableTransformers):
         and change state to close
         """
         if self.subsection_open :
-            #print('close   subsection (m)')
             self.subsection_open = False
             return True
         else :
@@ -203,7 +198,6 @@ class RevealHelpTransformer(ConfigurableTransformers):
         """
         if self.fragment_open :
             self.fragment_open = False
-            #print('close     fragment (m)')
             return True
         else :
             return False
@@ -213,11 +207,11 @@ class RevealHelpTransformer(ConfigurableTransformers):
         if ctype is None :
             cell.metadata.slideshow = {}
             cell.metadata.slideshow['slide_type'] = None
-        if ctype == 'fragment':
+        elif ctype == 'fragment':
             cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
             cell.metadata.slideshow.close_subsection = False
             cell.metadata.slideshow.close_section = False
-            
+
             cell.metadata.slideshow.open_section = self.maybe_open_section()
             cell.metadata.slideshow.open_subsection = self.maybe_open_subsection()
             cell.metadata.slideshow.open_fragment = self.open_fragment()
@@ -226,7 +220,7 @@ class RevealHelpTransformer(ConfigurableTransformers):
             cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
             cell.metadata.slideshow.close_subsection = self.maybe_close_subsection()
             cell.metadata.slideshow.close_section = False
-            
+
             cell.metadata.slideshow.open_section = self.maybe_open_section()
             cell.metadata.slideshow.open_subsection = self.open_subsection()
             cell.metadata.slideshow.open_fragment = False
@@ -234,7 +228,7 @@ class RevealHelpTransformer(ConfigurableTransformers):
             cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
             cell.metadata.slideshow.close_subsection = self.maybe_close_subsection()
             cell.metadata.slideshow.close_section = self.maybe_close_section()
-            
+
             cell.metadata.slideshow.open_section = self.open_section()
             cell.metadata.slideshow.open_subsection = self.open_subsection()
             cell.metadata.slideshow.open_fragment = False
