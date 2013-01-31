@@ -34,19 +34,20 @@ from IPython.parallel.controller.heartmonitor import Heart
 from IPython.parallel.factory import RegistrationFactory
 from IPython.parallel.util import disambiguate_url
 
-from IPython.zmq.session import Message
-from IPython.zmq.ipkernel import Kernel, IPKernelApp
+from IPython.kernel.zmq.session import Message
+from IPython.kernel.zmq.ipkernel import Kernel
+from IPython.kernel.zmq.kernelapp import IPKernelApp
 
 class EngineFactory(RegistrationFactory):
     """IPython engine"""
 
     # configurables:
-    out_stream_factory=Type('IPython.zmq.iostream.OutStream', config=True,
+    out_stream_factory=Type('IPython.kernel.zmq.iostream.OutStream', config=True,
         help="""The OutStream for handling stdout/err.
-        Typically 'IPython.zmq.iostream.OutStream'""")
-    display_hook_factory=Type('IPython.zmq.displayhook.ZMQDisplayHook', config=True,
+        Typically 'IPython.kernel.zmq.iostream.OutStream'""")
+    display_hook_factory=Type('IPython.kernel.zmq.displayhook.ZMQDisplayHook', config=True,
         help="""The class for handling displayhook.
-        Typically 'IPython.zmq.displayhook.ZMQDisplayHook'""")
+        Typically 'IPython.kernel.zmq.displayhook.ZMQDisplayHook'""")
     location=Unicode(config=True,
         help="""The location (an IP address) of the controller.  This is
         used for disambiguating URLs, to determine whether

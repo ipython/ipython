@@ -17,7 +17,6 @@ from __future__ import print_function
 
 # Standard library imports
 import __builtin__
-import atexit
 import sys
 import time
 import traceback
@@ -36,26 +35,18 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 # Local imports
 from IPython.config.configurable import Configurable
-from IPython.config.application import boolean_flag, catch_config_error
-from IPython.core.application import ProfileDir
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
-from IPython.core.shellapp import (
-    InteractiveShellApp, shell_flags, shell_aliases
-)
 from IPython.utils import io
 from IPython.utils import py3compat
-from IPython.utils.frame import extract_module_locals
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
     Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode,
     Type
 )
 
-from entry_point import base_launch_kernel
-from kernelapp import KernelApp, kernel_flags, kernel_aliases
 from serialize import serialize_object, unpack_apply_message
-from session import Session, Message
+from session import Session
 from zmqshell import ZMQInteractiveShell
 
 
@@ -786,154 +777,3 @@ class Kernel(Configurable):
             self.log.debug("%s", self._shutdown_message)
         [ s.flush(zmq.POLLOUT) for s in self.shell_streams ]
 
-#-----------------------------------------------------------------------------
-# Aliases and Flags for the IPKernelApp
-#-----------------------------------------------------------------------------
-
-flags = dict(kernel_flags)
-flags.update(shell_flags)
-
-addflag = lambda *args: flags.update(boolean_flag(*args))
-
-flags['pylab'] = (
-    {'IPKernelApp' : {'pylab' : 'auto'}},
-    """Pre-load matplotlib and numpy for interactive use with
-    the default matplotlib backend."""
-)
-
-aliases = dict(kernel_aliases)
-aliases.update(shell_aliases)
-
-#-----------------------------------------------------------------------------
-# The IPKernelApp class
-#-----------------------------------------------------------------------------
-
-class IPKernelApp(KernelApp, InteractiveShellApp):
-    name = 'ipkernel'
-
-    aliases = Dict(aliases)
-    flags = Dict(flags)
-    classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
-
-    @catch_config_error
-    def initialize(self, argv=None):
-        super(IPKernelApp, self).initialize(argv)
-        self.init_path()
-        self.init_shell()
-        self.init_gui_pylab()
-        self.init_extensions()
-        self.init_code()
-
-    def init_kernel(self):
-        
-        shell_stream = ZMQStream(self.shell_socket)
-
-        kernel = Kernel(config=self.config, session=self.session,
-                                shell_streams=[shell_stream],
-                                iopub_socket=self.iopub_socket,
-                                stdin_socket=self.stdin_socket,
-                                log=self.log,
-                                profile_dir=self.profile_dir,
-        )
-        self.kernel = kernel
-        kernel.record_ports(self.ports)
-        shell = kernel.shell
-
-    def init_gui_pylab(self):
-        """Enable GUI event loop integration, taking pylab into account."""
-
-        # Provide a wrapper for :meth:`InteractiveShellApp.init_gui_pylab`
-        # to ensure that any exception is printed straight to stderr.
-        # Normally _showtraceback associates the reply with an execution,
-        # which means frontends will never draw it, as this exception
-        # is not associated with any execute request.
-
-        shell = self.shell
-        _showtraceback = shell._showtraceback
-        try:
-            # replace pyerr-sending traceback with stderr
-            def print_tb(etype, evalue, stb):
-                print ("GUI event loop or pylab initialization failed",
-                       file=io.stderr)
-                print (shell.InteractiveTB.stb2text(stb), file=io.stderr)
-            shell._showtraceback = print_tb
-            InteractiveShellApp.init_gui_pylab(self)
-        finally:
-            shell._showtraceback = _showtraceback
-
-    def init_shell(self):
-        self.shell = self.kernel.shell
-        self.shell.configurables.append(self)
-
-
-#-----------------------------------------------------------------------------
-# Kernel main and launch functions
-#-----------------------------------------------------------------------------
-
-def launch_kernel(*args, **kwargs):
-    """Launches a localhost IPython kernel, binding to the specified ports.
-
-    This function simply calls entry_point.base_launch_kernel with the right
-    first command to start an ipkernel.  See base_launch_kernel for arguments.
-
-    Returns
-    -------
-    A tuple of form:
-        (kernel_process, shell_port, iopub_port, stdin_port, hb_port)
-    where kernel_process is a Popen object and the ports are integers.
-    """
-    return base_launch_kernel('from IPython.zmq.ipkernel import main; main()',
-                              *args, **kwargs)
-
-
-def embed_kernel(module=None, local_ns=None, **kwargs):
-    """Embed and start an IPython kernel in a given scope.
-    
-    Parameters
-    ----------
-    module : ModuleType, optional
-        The module to load into IPython globals (default: caller)
-    local_ns : dict, optional
-        The namespace to load into IPython user namespace (default: caller)
-    
-    kwargs : various, optional
-        Further keyword args are relayed to the KernelApp constructor,
-        allowing configuration of the Kernel.  Will only have an effect
-        on the first embed_kernel call for a given process.
-    
-    """
-    # get the app if it exists, or set it up if it doesn't
-    if IPKernelApp.initialized():
-        app = IPKernelApp.instance()
-    else:
-        app = IPKernelApp.instance(**kwargs)
-        app.initialize([])
-        # Undo unnecessary sys module mangling from init_sys_modules.
-        # This would not be necessary if we could prevent it
-        # in the first place by using a different InteractiveShell
-        # subclass, as in the regular embed case.
-        main = app.kernel.shell._orig_sys_modules_main_mod
-        if main is not None:
-            sys.modules[app.kernel.shell._orig_sys_modules_main_name] = main
-
-    # load the calling scope if not given
-    (caller_module, caller_locals) = extract_module_locals(1)
-    if module is None:
-        module = caller_module
-    if local_ns is None:
-        local_ns = caller_locals
-    
-    app.kernel.user_module = module
-    app.kernel.user_ns = local_ns
-    app.shell.set_completer_frame()
-    app.start()
-
-def main():
-    """Run an IPKernel as an application"""
-    app = IPKernelApp.instance()
-    app.initialize()
-    app.start()
-
-
-if __name__ == '__main__':
-    main()

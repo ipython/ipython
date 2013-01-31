@@ -10,7 +10,7 @@ import sys
 import unittest
 import base64
 
-from IPython.zmq.kernelmanager import KernelManager
+from IPython.kernel.kernelmanager import KernelManager
 from IPython.frontend.terminal.console.interactiveshell \
     import ZMQTerminalInteractiveShell
 from IPython.utils.tempdir import TemporaryDirectory

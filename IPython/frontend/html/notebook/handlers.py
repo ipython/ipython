@@ -36,7 +36,7 @@ from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
 from IPython.external.decorator import decorator
-from IPython.zmq.session import Session
+from IPython.kernel.zmq.session import Session
 from IPython.lib.security import passwd_check
 from IPython.utils.jsonutil import date_default
 from IPython.utils.path import filefind

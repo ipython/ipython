@@ -16,7 +16,7 @@ Useful for test suites and blocking terminal interfaces.
 import Queue
 
 from IPython.utils.traitlets import Type
-from kernelmanager import KernelManager, IOPubChannel, HBChannel, \
+from .kernelmanager import KernelManager, IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
 
 #-----------------------------------------------------------------------------
@@ -35,6 +35,10 @@ class BlockingChannelMixin(object):
         
     def get_msg(self, block=True, timeout=None):
         """ Gets a message if there is one that is ready. """
+        if timeout is None:
+            # Queue.get(timeout=None) has stupid uninteruptible
+            # behavior, so wait for a week instead
+            timeout = 604800
         return self._in_queue.get(block, timeout)
         
     def get_msgs(self):

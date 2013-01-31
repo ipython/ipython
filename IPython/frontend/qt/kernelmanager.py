@@ -3,7 +3,7 @@
 
 # Local imports.
 from IPython.utils.traitlets import Type
-from IPython.zmq.kernelmanager import ShellChannel, IOPubChannel, \
+from IPython.kernel.kernelmanager import ShellChannel, IOPubChannel, \
     StdInChannel, HBChannel, KernelManager
 from base_kernelmanager import QtShellChannelMixin, QtIOPubChannelMixin, \
     QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin

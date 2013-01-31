@@ -16,7 +16,7 @@ import pickle
 import nose.tools as nt
 
 # from unittest import TestCaes
-from IPython.zmq.serialize import serialize_object, unserialize_object
+from IPython.kernel.zmq.serialize import serialize_object, unserialize_object
 from IPython.testing import decorators as dec
 from IPython.utils.pickleutil import CannedArray, CannedClass
 from IPython.parallel import interactive

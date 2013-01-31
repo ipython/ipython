@@ -27,7 +27,7 @@ class RichIPythonWidget(IPythonWidget):
     """
 
     # RichIPythonWidget protected class variables.
-    _payload_source_plot = 'IPython.zmq.pylab.backend_payload.add_plot_payload'
+    _payload_source_plot = 'IPython.kernel.zmq.pylab.backend_payload.add_plot_payload'
     _jpg_supported = Bool(False)
 
     # Used to determine whether a given html export attempt has already

@@ -14,9 +14,9 @@ from __future__ import print_function
 import unittest
 
 # Local imports
-from IPython.inprocess.blockingkernelmanager import \
+from IPython.kernel.inprocess.blockingkernelmanager import \
     BlockingInProcessKernelManager
-from IPython.inprocess.ipkernel import InProcessKernel
+from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
 #-----------------------------------------------------------------------------
 # Test case

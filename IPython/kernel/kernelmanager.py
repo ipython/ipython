@@ -15,7 +15,9 @@ TODO
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports.
+from __future__ import absolute_import
+
+# Standard library imports
 import atexit
 import errno
 import json
@@ -26,23 +28,27 @@ import sys
 from threading import Thread
 import time
 
-# System library imports.
+# System library imports
 import zmq
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit:
 from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
-# Local imports.
+# Local imports
 from IPython.config.configurable import Configurable
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
-    Any, Instance, Type, Unicode, Integer, Bool, CaselessStrEnum
+    Any, Instance, Type, Unicode, List, Integer, Bool, CaselessStrEnum
 )
 from IPython.utils.py3compat import str_to_bytes
-from IPython.zmq.entry_point import write_connection_file
-from session import Session
-from IPython.zmq.kernelmanagerabc import (
+from IPython.kernel import (
+    write_connection_file,
+    make_ipkernel_cmd,
+    launch_kernel,
+)
+from .zmq.session import Session
+from .kernelmanagerabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC
@@ -677,7 +683,19 @@ class KernelManager(Configurable):
         return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.
-    kernel = Instance(Popen)
+    # generally a Popen instance
+    kernel = Any() 
+    
+    kernel_cmd = List(Unicode, config=True,
+        help="""The Popen Command to launch the kernel.
+        Override this if you have a custom 
+        """
+    )
+    def _kernel_cmd_changed(self, name, old, new):
+        self.ipython_kernel = False
+
+    ipython_kernel = Bool(True)
+    
 
     # The addresses for the communication channels.
     connection_file = Unicode('')
@@ -879,7 +897,27 @@ class KernelManager(Configurable):
     #--------------------------------------------------------------------------
     # Kernel management
     #--------------------------------------------------------------------------
-
+    
+    def format_kernel_cmd(self, **kw):
+        """format templated args (e.g. {connection_file})"""
+        if self.kernel_cmd:
+            cmd = self.kernel_cmd
+        else:
+            cmd = make_ipkernel_cmd(
+                'from IPython.kernel.zmq.kernelapp import main; main()',
+                **kw
+            )
+        ns = dict(connection_file=self.connection_file)
+        ns.update(self._launch_args)
+        return [ c.format(**ns) for c in cmd ]
+    
+    def _launch_kernel(self, kernel_cmd, **kw):
+        """actually launch the kernel
+        
+        override in a subclass to launch kernel subprocesses differently
+        """
+        return launch_kernel(kernel_cmd, **kw)
+    
     def start_kernel(self, **kw):
         """Starts a kernel on this host in a separate process.
 
@@ -888,14 +926,9 @@ class KernelManager(Configurable):
 
         Parameters:
         -----------
-        launcher : callable, optional (default None)
-             A custom function for launching the kernel process (generally a
-             wrapper around ``entry_point.base_launch_kernel``). In most cases,
-             it should not be necessary to use this parameter.
-
         **kw : optional
-             keyword arguments that are passed down into the launcher
-             callable.
+             keyword arguments that are passed down to build the kernel_cmd
+             and launching the kernel (e.g. Popen kwargs).
         """
         if self.transport == 'tcp' and self.ip not in LOCAL_IPS:
             raise RuntimeError("Can only launch a kernel on a local interface. "
@@ -907,11 +940,14 @@ class KernelManager(Configurable):
         # write connection file / get default ports
         self.write_connection_file()
 
+        # save kwargs for use in restart
         self._launch_args = kw.copy()
-        launch_kernel = kw.pop('launcher', None)
-        if launch_kernel is None:
-            from ipkernel import launch_kernel
-        self.kernel = launch_kernel(fname=self.connection_file, **kw)
+        # build the Popen cmd
+        kernel_cmd = self.format_kernel_cmd(**kw)
+        # launch the kernel subprocess
+        self.kernel = self._launch_kernel(kernel_cmd,
+                                    ipython_kernel=self.ipython_kernel,
+                                    **kw)
 
     def shutdown_kernel(self, now=False, restart=False):
         """Attempts to the stop the kernel process cleanly. 

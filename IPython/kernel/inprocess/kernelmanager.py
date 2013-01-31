@@ -13,13 +13,14 @@
 
 # Local imports.
 from IPython.config.configurable import Configurable
-from IPython.inprocess.socket import DummySocket
 from IPython.utils.traitlets import Any, Instance, Type
-from IPython.zmq.kernelmanagerabc import (
+from IPython.kernel.kernelmanagerabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
     KernelManagerABC
 )
+
+from .socket import DummySocket
 
 #-----------------------------------------------------------------------------
 # Channel classes
@@ -76,7 +77,7 @@ class InProcessChannel(object):
 
 
 class InProcessShellChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.ShellChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.ShellChannel` for docstrings."""
 
     # flag for whether execute requests should be allowed to call raw_input
     allow_stdin = True
@@ -141,14 +142,14 @@ class InProcessShellChannel(InProcessChannel):
 
 
 class InProcessIOPubChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.IOPubChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.IOPubChannel` for docstrings."""
 
     def flush(self, timeout=1.0):
         pass
 
 
 class InProcessStdInChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.StdInChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.StdInChannel` for docstrings."""
 
     def input(self, string):
         kernel = self.manager.kernel
@@ -158,7 +159,7 @@ class InProcessStdInChannel(InProcessChannel):
 
 
 class InProcessHBChannel(InProcessChannel):
-    """See `IPython.zmq.kernelmanager.HBChannel` for docstrings."""
+    """See `IPython.kernel.kernelmanager.HBChannel` for docstrings."""
 
     time_to_dead = 3.0
 
@@ -184,20 +185,20 @@ class InProcessKernelManager(Configurable):
     """A manager for an in-process kernel.
 
     This class implements the interface of
-    `IPython.zmq.kernelmanagerabc.KernelManagerABC` and allows
+    `IPython.kernel.kernelmanagerabc.KernelManagerABC` and allows
     (asynchronous) frontends to be used seamlessly with an in-process kernel.
     
-    See `IPython.zmq.kernelmanager.KernelManager` for docstrings.
+    See `IPython.kernel.kernelmanager.KernelManager` for docstrings.
     """
 
     # The Session to use for building messages.
-    session = Instance('IPython.zmq.session.Session')
+    session = Instance('IPython.kernel.zmq.session.Session')
     def _session_default(self):
-        from IPython.zmq.session import Session
+        from IPython.kernel.zmq.session import Session
         return Session(config=self.config)
 
     # The kernel process with which the KernelManager is communicating.
-    kernel = Instance('IPython.inprocess.ipkernel.InProcessKernel')
+    kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
 
     # The classes to use for the various channels.
     shell_channel_class = Type(InProcessShellChannel)
@@ -272,7 +273,7 @@ class InProcessKernelManager(Configurable):
     #--------------------------------------------------------------------------
     
     def start_kernel(self, **kwds):
-        from IPython.inprocess.ipkernel import InProcessKernel
+        from IPython.kernel.inprocess.ipkernel import InProcessKernel
         self.kernel = InProcessKernel()
         self.kernel.frontends.append(self)
 

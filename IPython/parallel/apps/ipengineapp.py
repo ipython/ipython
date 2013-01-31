@@ -36,12 +36,13 @@ from IPython.parallel.apps.baseapp import (
     base_flags,
     catch_config_error,
 )
-from IPython.zmq.log import EnginePUBHandler
-from IPython.zmq.ipkernel import Kernel, IPKernelApp
-from IPython.zmq.session import (
+from IPython.kernel.zmq.log import EnginePUBHandler
+from IPython.kernel.zmq.ipkernel import Kernel
+from IPython.kernel.zmq.kernelapp import IPKernelApp
+from IPython.kernel.zmq.session import (
     Session, session_aliases, session_flags
 )
-from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.config.configurable import Configurable
 

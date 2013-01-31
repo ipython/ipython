@@ -19,7 +19,7 @@ from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Type
 from kernelmanager import InProcessKernelManager, InProcessShellChannel, \
     InProcessIOPubChannel, InProcessStdInChannel
-from IPython.zmq.blockingkernelmanager import BlockingChannelMixin
+from IPython.kernel.blockingkernelmanager import BlockingChannelMixin
 
 
 #-----------------------------------------------------------------------------

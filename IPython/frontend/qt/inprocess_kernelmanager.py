@@ -2,7 +2,7 @@
 """
 
 # Local imports.
-from IPython.inprocess.kernelmanager import \
+from IPython.kernel.inprocess.kernelmanager import \
     InProcessShellChannel, InProcessIOPubChannel, InProcessStdInChannel, \
     InProcessHBChannel, InProcessKernelManager
 from IPython.utils.traitlets import Type

@@ -38,7 +38,7 @@ default_output_sep = ''
 default_output_sep2 = ''
 
 # Base path for most payload sources.
-zmq_shell_source = 'IPython.zmq.zmqshell.ZMQInteractiveShell'
+zmq_shell_source = 'IPython.kernel.zmq.zmqshell.ZMQInteractiveShell'
 
 if sys.platform.startswith('win'):
     default_editor = 'notepad'
@@ -105,7 +105,7 @@ class IPythonWidget(FrontendWidget):
     _payload_source_edit = zmq_shell_source + '.edit_magic'
     _payload_source_exit = zmq_shell_source + '.ask_exit'
     _payload_source_next_input = zmq_shell_source + '.set_next_input'
-    _payload_source_page = 'IPython.zmq.page.page'
+    _payload_source_page = 'IPython.kernel.zmq.page.page'
     _retrying_history_request = False
 
     #---------------------------------------------------------------------------
