@@ -273,7 +273,7 @@ var IPython = (function (IPython) {
         });
 
         var collapse_time = function(time){
-            var app_height = $('div#main_app').height(); // content height
+            var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var new_height = app_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
@@ -285,7 +285,7 @@ var IPython = (function (IPython) {
         });
 
         var expand_time = function(time) {
-            var app_height = $('div#main_app').height(); // content height
+            var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var pager_height = $('div#pager').outerHeight(true);
             var new_height = app_height - pager_height - splitter_height;

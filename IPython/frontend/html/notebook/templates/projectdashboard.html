@@ -3,8 +3,10 @@
 {% block title %}IPython Dashboard{% endblock %}
 
 {% block stylesheet %}
+    {{super()}}
+    <link rel="stylesheet" href="{{static_url("css/alternateuploadform.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("css/style.min.css") }}" type="text/css" />
     <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
-	<link rel="stylesheet" href="{{static_url("css/alternateuploadform.css") }}" type="text/css" />
 {% endblock %}
 
 
@@ -20,7 +22,7 @@ data-read-only={{read_only}}
 
 {% block site %}
 
-<div id="main_app">
+<div id="ipython-main-app">
 
 <div id="tabs">
     <ul>
@@ -45,7 +47,13 @@ data-read-only={{read_only}}
         {% endif %}
 
         <div id="notebook_list">
-            <div id="project_name"><h2>{{project}}</h2></div>
+            <div id="project_name">
+                <ul class="breadcrumb">
+                    {% for component in project_component %}
+                        <li>{{component}} <span>/</span></li>
+                    {% endfor %}
+                </ul>
+            </div>
         </div>
     </div>
     <div id="tab2">
@@ -75,6 +83,7 @@ data-read-only={{read_only}}
 {% endblock %}
 
 {% block script %}
+    {{super()}}
     <script src="{{static_url("js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>

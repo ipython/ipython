@@ -4,8 +4,14 @@
  * Author: IPython Development Team
  */
 
+@import "variables.less";
+
 
 body {
+    background-color:@notebook_background;
+}
+    
+body.notebook_app {
     overflow: hidden;
 }
 
@@ -79,19 +85,35 @@ span#notebook_name {
 
 .toolbar {
     padding: 3px 15px;
+    border-bottom: @borderwidth @border_color solid;
+
+    button {
+        margin-top:2px;
+        margin-bottom:2px;
+    }
+
+
+    select, label {
+        height : 19px;
+        vertical-align:middle;
+        margin-right:2px;
+        margin-bottom:0;
+        display: inline;
+        font-size: 92%;
+        margin-left:0.3em;
+        margin-right:0.3em;
+    }
 }
 
-#maintoolbar > select, #maintoolbar label {
-    font-size: 85%;
-    margin-left:0.3em;
-    margin-right:0.3em;
-
+.toolbar select{
+    width:auto;
 }
 
 
-div#main_app {
+#ipython-main-app {
     width: 100%;
     position: relative;
+    font-size: 110%;
 }
 
 span#quick_help_area {
@@ -125,7 +147,6 @@ div#notebook {
     /* This spaces the cell away from the edge of the notebook area */
     padding: 5px 5px 15px 5px;
     margin: 0px;
-    background-color: white;
 }
 
 div#pager_splitter {
@@ -143,12 +164,17 @@ div#pager {
 }
 
 div.ui-widget-content {
-    border: 1px solid #aaa;
+    border: 1px solid @border_color;
     outline: none;
 }
 
 .cell {
     border: 1px solid transparent;
+
+    &.selected {
+        .corner-all;
+        border : thin @border_color solid;
+    }
 }
 
 div.cell {
@@ -160,7 +186,6 @@ div.cell {
 }
 
 div.code_cell {
-    background-color: white;
 }
 
 /* any special styling for code cells that are currently running goes here */
@@ -185,10 +210,10 @@ div.input {
 
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
-    color: black;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background: #f7f7f7;
+    /*color: @fontBaseColor;*/
+    border: 1px solid @light_border_color;
+    .corner-all;
+    background: @cell_background;
 }
 
 div.input_prompt {
@@ -212,9 +237,9 @@ div.output_scroll {
   height: 24em;
   /* FF needs this *and the wrapper* to specify full width, or it will shrinkwrap */
   width: 100%;
-  
+
   overflow: auto;
-  border-radius: 3px;
+  .corner-all;
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, .8);
 }
 
@@ -227,7 +252,7 @@ div.out_prompt_overlay {
   height: 100%;
   padding: 0px;
   position: absolute;
-  border-radius: 3px;
+  .corner-all;
 }
 
 div.out_prompt_overlay:hover {
@@ -260,7 +285,6 @@ div.output_area pre {
     font: inherit;
     vertical-align: baseline;
     color: black;
-    background-color: white;
 }
 
 /* This class is for the output subarea inside the output_area and after
@@ -275,7 +299,7 @@ div.output_subarea {
 /* all text output has this class: */
 div.output_text {
     text-align: left;
-    color: black;
+    color: @fontBaseColor;
     font-family: monospace;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: 1.231;
@@ -294,7 +318,6 @@ div.output_stderr {
 
 div.output_latex {
     text-align: left;
-    color: black;
 }
 
 div.output_html {
@@ -307,31 +330,30 @@ div.output_jpeg {
 }
 
 div.text_cell {
-    background-color: white;
     padding: 5px 5px 5px 5px;
 }
 
 div.text_cell_input {
-    color: black;
-    border: 1px solid #ddd;
-    border-radius: 3px;
-    background: #f7f7f7;
+    color: @fontBaseColor;
+    border: 1px solid @light_border_color;
+    .corner-all;
+    background: @cell_background;
 }
 
 div.text_cell_render {
-    font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
+    /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
     outline: none;
     resize: none;
     width:  inherit;
     border-style: none;
     padding: 5px;
-    color: black;
+    color: @fontBaseColor;
 }
 
 /* The following gets added to the <head> if it is detected that the user has a
  * monospace font with inconsistent normal/bold/italic height.  See
  * notebookmain.js.  Such fonts will have keywords vertically offset with
- * respect to the rest of the text.  The user should select a better font. 
+ * respect to the rest of the text.  The user should select a better font.
  * See: https://github.com/ipython/ipython/issues/1503
  *
  * .CodeMirror span {
@@ -354,7 +376,7 @@ div.text_cell_render {
 /* CSS font colors for translated ANSI colors. */
 
 
-.ansiblack {color: black;}
+.ansiblack {color: @fontBaseColor;}
 .ansired {color: darkred;}
 .ansigreen {color: darkgreen;}
 .ansiyellow {color: brown;}
@@ -368,7 +390,7 @@ div.text_cell_render {
     position: absolute;
     z-index: 10;
     overflow: hidden;
-    border: 1px solid grey;
+    border: 1px solid @border_color;
 }
 
 .completions select {
@@ -403,9 +425,9 @@ option.introspection {
 }
 
 pre.dialog {
-    background-color: #f7f7f7;
+    background-color: @cell_background;
     border: 1px solid #ddd;
-    border-radius: 3px;
+    .corner-all;
     padding: 0.4em;
     padding-left: 2em;
 }
@@ -435,4 +457,14 @@ pre, code, kbd, samp { white-space: pre-wrap; }
 
 .js-error {
     color: darkred;
+}
+
+a {
+  text-decoration: underline;
+}
+
+p {
+
+margin-bottom:0;
+
 }

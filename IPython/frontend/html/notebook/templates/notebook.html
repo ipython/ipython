@@ -16,12 +16,10 @@ window.mathjax_url = "{{mathjax_url}}";
 
 <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
-<link rel="stylesheet" href="{{ static_url("css/notebook.css") }}" type="text/css" />
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
-<link rel="stylesheet" href="{{ static_url("css/tooltip.css") }}" type="text/css" />
-<link rel="stylesheet" href="{{ static_url("css/renderedhtml.css") }}" type="text/css" />
 
-<link rel="stylesheet" href="{{ static_url("css/printnotebook.css") }}" type="text/css" media="print"/>
+{{super()}}
+
 {% endblock %}
 
 {% block params %}
@@ -31,6 +29,7 @@ data-base-project-url={{base_project_url}}
 data-base-kernel-url={{base_kernel_url}}
 data-read-only={{read_only and not logged_in}}
 data-notebook-id={{notebook_id}}
+class="notebook_app"
 
 {% endblock %}
 
@@ -65,8 +64,8 @@ data-notebook-id={{notebook_id}}
                         <li id="download_py"><a href="#">Python (.py)</a></li>
                     </ul>
                 </li>
-                <hr/>
-                <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>
+                <!--<hr/>
+                <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>-->
                 <hr/>
                 <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
             </ul>
@@ -161,7 +160,7 @@ data-notebook-id={{notebook_id}}
 
 <div id="maintoolbar"></div>
 
-<div id="main_app">
+<div id="ipython-main-app">
 
     <div id="notebook_panel">
         <div id="notebook"></div>
@@ -174,13 +173,15 @@ data-notebook-id={{notebook_id}}
     </div>
 
 </div>
-<div id='tooltip' class='ipython_tooltip ui-corner-all' style='display:none'></div>
+<div id='tooltip' class='ipython_tooltip' style='display:none'></div>
 
 
 {% endblock %}
 
 
 {% block script %}
+
+{{super()}}
 
 <script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>

@@ -14,7 +14,7 @@ $(document).ready(function () {
 
     IPython.page = new IPython.Page();
     $('input#login_submit').button();
-    $('div#main_app').addClass('border-box-sizing ui-widget');
+    $('#ipython-main-app').addClass('border-box-sizing ui-widget');
     IPython.page.show();
     $('input#password_input').focus();
 

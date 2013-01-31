@@ -19,7 +19,7 @@ $(document).ready(function () {
         var new_url = $('body').data('baseProjectUrl') + '#' + ui.panel.id;
         window.history.replaceState({}, '', new_url);
     });
-    $('div#main_app').addClass('border-box-sizing ui-widget');
+    $('#ipython-main-app').addClass('border-box-sizing ui-widget');
     $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
     $('#new_notebook').button().click(function (e) {
         window.open($('body').data('baseProjectUrl')+'new');

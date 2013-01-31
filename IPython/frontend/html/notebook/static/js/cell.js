@@ -91,7 +91,7 @@ var IPython = (function (IPython) {
      * @method select
      */
     Cell.prototype.select = function () {
-        this.element.addClass('ui-widget-content ui-corner-all');
+        this.element.addClass('selected');
         this.selected = true;
     };
 
@@ -101,7 +101,7 @@ var IPython = (function (IPython) {
      * @method unselect
      */
     Cell.prototype.unselect = function () {
-        this.element.removeClass('ui-widget-content ui-corner-all');
+        this.element.removeClass('selected');
         this.selected = false;
     };
 

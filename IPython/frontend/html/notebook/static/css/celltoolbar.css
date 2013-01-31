@@ -2,13 +2,22 @@
 
 
 .celltoolbar {
-    border: thin solid #DDD;
+    border: thin solid #CFCFCF;
     margin-left: 0px;
     border-bottom: none;
+        margin:0;
+    padding:0;
     background : #EEE;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
 }
+
+.celltoolbar div{
+    line-height: 0;
+    margin:0;
+    padding:0;
+  }
+
 
 .no_input_radius {
     border-top-right-radius: 0px;
@@ -27,6 +36,13 @@
     display: none;
 }
 
+.ctb_area {
+    margin:0;
+    padding:0;
+
+}
+
+
 /*ctb_show is added to either body or the ctb_hideshow div to show
 all or one cell's toolbars.
 */
@@ -34,7 +50,7 @@ all or one cell's toolbars.
     display: block;
 }
 
-.ctb_show .ctb_hideshow + div > div.input_area,  
+.ctb_show .ctb_hideshow + div > div.input_area,
 .ctb_show .ctb_hideshow + div.text_cell_input {
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;
@@ -47,6 +63,7 @@ all or one cell's toolbars.
 
 .button_container {
     float: right;
+    padding-bottom: 1px;
 }
 
 .button_container .ui-state-default, .button_container .ui-state-hover, .button_container .ui-state-hover span{
@@ -58,16 +75,27 @@ all or one cell's toolbars.
     margin: 10px;
     margin-top: 0px;
     margin-bottom: 0px;
-    font-size: 77%;
+    font-size: 87%;
+    height:18px;
+    display:inline;
+    width:auto;
+}
+
+.celltoolbar label{
+    display:inline;
+    line-height:13px;
 }
 
 .celltoolbar label span {
-    font-size: 77%;
+    font-size: 85%;
 }
 
 .celltoolbar input[type=checkbox] {
-    margin-bottom: 1px;
+    margin: 0px;
+    margin-left: 4px;
+    margin-right: 4px;
 }
+
 
 .celltoolbar ui-button {
     border: none;

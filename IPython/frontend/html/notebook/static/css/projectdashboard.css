@@ -5,7 +5,7 @@
  * Author: IPython Development Team
  */
 
-#main_app {
+#ipython-main-app {
     width: 920px;
     margin: 30px auto 0px auto;
 }
@@ -81,4 +81,17 @@
 
 .ui-tabs .ui-tabs-nav li a {
     padding: .3em .5em;
+}
+
+#project_name > .breadcrumb {
+ padding : 0;
+ background-color: transparent;
+}
+
+input.engine_num_input {
+    height: 20px;
+    margin-bottom:2px;
+    padding-top:0;
+    padding-bottom:0;
+    width: 90px;
 }
