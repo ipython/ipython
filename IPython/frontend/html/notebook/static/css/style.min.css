@@ -875,7 +875,7 @@ span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 .toolbar{padding:3px 15px;border-bottom:1px #ababab solid;}.toolbar button{margin-top:2px;margin-bottom:2px;}
-.toolbar select,.toolbar label{height:19px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;}
+.toolbar select,.toolbar label{height:19px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;}
 .toolbar select{width:auto;}
 #ipython-main-app{width:100%;position:relative;font-size:110%;}
 span#quick_help_area{position:static;padding:5px 0px;margin:0px 0px 0px 0px;}
