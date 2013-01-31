@@ -15,7 +15,6 @@
 # Stdlib
 import inspect
 import io
-import json
 import os
 import re
 import sys
@@ -140,6 +139,8 @@ class CodeMagics(Magics):
             print e.args[0]
             return
 
+        from urllib2 import urlopen  # Deferred import
+        import json
         post_data = json.dumps({
           "description": opts.get('d', "Pasted from IPython"),
           "public": True,
@@ -150,7 +151,6 @@ class CodeMagics(Magics):
           }
         }).encode('utf-8')
 
-        from urllib2 import urlopen  # Deferred import
         response = urlopen("https://api.github.com/gists", post_data)
         response_data = json.loads(response.read().decode('utf-8'))
         return response_data['html_url']
