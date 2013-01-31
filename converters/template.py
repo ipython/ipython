@@ -191,6 +191,7 @@ class ConverterTemplate(Configurable):
         ## for compat, remove later
         if self.extract_figures:
             self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
+        self.preprocessors.append(trans.RevealHelpTransformer(config=config))
 
         ##
         self.env.filters['filter_data_type'] = self.filter_data_type
