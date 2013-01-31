@@ -9,19 +9,29 @@
 width: 100%;
 padding: 0.2em;
 margin: 0px auto;
-font-size: 0.8em;
+font-family: monospace, sans-serif;
+font-size: 60%;
 box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+}
+.reveal section img {
+border: 0px solid black;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+}
+div.input_area {
+padding: 0.2em;
+}
+div.code_cell {
+background-color: transparent;
 }
 div.prompt {
 width: 11ex;
 padding: 0.0em;
 margin: 0px;
 font-family: monospace;
-}
-div.output_subarea {
-padding: 0.0em 0.0em 0.0em 0.0em;
+font-size: 60%;
+text-align: center;
 }
 div.output_prompt {
     /* 5px right shift to account for margin in parent container */
-    margin: 0 5px 0 -5px;
+    margin: 5px 5px 0 -5px;
 }
