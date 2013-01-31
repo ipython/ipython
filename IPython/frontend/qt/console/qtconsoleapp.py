@@ -59,21 +59,21 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.lib.kernel import tunnel_to_kernel, find_connection_file
 from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.kernel import tunnel_to_kernel, find_connection_file
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
     Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
 )
-from IPython.zmq.ipkernel import IPKernelApp
-from IPython.zmq.session import Session, default_secure
-from IPython.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.kernelapp import IPKernelApp
+from IPython.kernel.zmq.session import Session, default_secure
+from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.frontend.consoleapp import (
         IPythonConsoleApp, app_aliases, app_flags, flags, aliases

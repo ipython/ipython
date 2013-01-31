@@ -47,7 +47,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST, PUBLIC_IPS
 from IPython.utils.traitlets import Instance, Unicode, Bool, List, Dict, TraitError
 
-from IPython.zmq.session import (
+from IPython.kernel.zmq.session import (
     Session, session_aliases, session_flags, default_secure
 )
 

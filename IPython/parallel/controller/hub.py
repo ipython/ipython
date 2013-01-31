@@ -39,7 +39,7 @@ from IPython.utils.traitlets import (
 from IPython.parallel import error, util
 from IPython.parallel.factory import RegistrationFactory
 
-from IPython.zmq.session import SessionFactory
+from IPython.kernel.zmq.session import SessionFactory
 
 from .heartmonitor import HeartMonitor
 

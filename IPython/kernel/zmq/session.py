@@ -50,7 +50,7 @@ from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer)
-from IPython.zmq.serialize import MAX_ITEMS, MAX_BYTES
+from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -140,7 +140,7 @@ class SessionFactory(LoggingConfigurable):
     def _context_default(self):
         return zmq.Context.instance()
 
-    session = Instance('IPython.zmq.session.Session')
+    session = Instance('IPython.kernel.zmq.session.Session')
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):

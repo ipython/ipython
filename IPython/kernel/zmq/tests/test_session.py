@@ -18,7 +18,7 @@ import zmq
 from zmq.tests import BaseZMQTestCase
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.zmq import session as ss
+from IPython.kernel.zmq import session as ss
 
 class SessionTestCase(BaseZMQTestCase):
 

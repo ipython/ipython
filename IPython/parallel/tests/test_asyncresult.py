@@ -273,7 +273,7 @@ class AsyncResultTest(ClusterTestCase):
         v = self.client[-1]
         ar = v.execute('\n'.join([
             "import time",
-            "from IPython.zmq.datapub import publish_data",
+            "from IPython.kernel.zmq.datapub import publish_data",
             "for i in range(5):",
             "    publish_data(dict(i=i))",
             "    time.sleep(0.1)",

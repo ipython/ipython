@@ -42,7 +42,7 @@ class ShellChannelABC(ChannelABC):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.zmq.kernelmanager.ShellChannel`
+    `IPython.kernel.kernelmanager.ShellChannel`
     """
 
     @abc.abstractproperty
@@ -80,7 +80,7 @@ class IOPubChannelABC(ChannelABC):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.zmq.kernelmanager.IOPubChannel`
+    `IPython.kernel.kernelmanager.IOPubChannel`
     """
 
     @abc.abstractmethod
@@ -93,7 +93,7 @@ class StdInChannelABC(ChannelABC):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.zmq.kernelmanager.StdInChannel`
+    `IPython.kernel.kernelmanager.StdInChannel`
     """
 
     @abc.abstractmethod
@@ -106,7 +106,7 @@ class HBChannelABC(ChannelABC):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.zmq.kernelmanager.HBChannel`
+    `IPython.kernel.kernelmanager.HBChannel`
     """
 
     @abc.abstractproperty
@@ -135,7 +135,7 @@ class KernelManagerABC(object):
 
     The docstrings for this class can be found in the base implementation:
 
-    `IPython.zmq.kernelmanager.KernelManager`
+    `IPython.kernel.kernelmanager.KernelManager`
     """
 
     __metaclass__ = abc.ABCMeta

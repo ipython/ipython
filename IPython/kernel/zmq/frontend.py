@@ -20,7 +20,7 @@ import zmq
 import session
 import completer
 from IPython.utils.localinterfaces import LOCALHOST
-from IPython.zmq.session import Message
+from IPython.kernel.zmq.session import Message
 
 #-----------------------------------------------------------------------------
 # Classes and functions

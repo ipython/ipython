@@ -28,7 +28,7 @@ from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.traitlets import Integer, Instance, Unicode
 
 from IPython.parallel.util import select_random_ports
-from IPython.zmq.session import Session, SessionFactory
+from IPython.kernel.zmq.session import Session, SessionFactory
 
 #-----------------------------------------------------------------------------
 # Classes

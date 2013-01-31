@@ -21,7 +21,7 @@ import warnings
 import zmq
 
 from IPython.config.configurable import MultipleInstanceError
-from IPython.zmq import check_for_zmq
+from IPython.kernel.zmq import check_for_zmq
 
 min_pyzmq = '2.1.11'
 
@@ -50,7 +50,7 @@ def bind_kernel(**kwargs):
     
     This function returns immediately.
     """
-    from IPython.zmq.ipkernel import IPKernelApp
+    from IPython.kernel.zmq.kernelapp import IPKernelApp
     from IPython.parallel.apps.ipengineapp import IPEngineApp
     
     # first check for IPKernelApp, in which case this should be a no-op

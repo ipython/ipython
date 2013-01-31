@@ -24,7 +24,7 @@ import nose.tools as nt
 
 # Our own imports
 from IPython.testing import decorators as dec
-from IPython.lib import kernel
+from IPython.kernel.launcher import swallow_argv
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -51,7 +51,7 @@ def test_swallow_argv():
         (['bar'], ['--foo=5', 'bar'], ['foo'], None),
     ]
     for expected, argv, aliases, flags in tests:
-        stripped = kernel.swallow_argv(argv, aliases=aliases, flags=flags)
+        stripped = swallow_argv(argv, aliases=aliases, flags=flags)
         message = '\n'.join(['',
             "argv: %r" % argv,
             "aliases: %r" % aliases,

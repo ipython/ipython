@@ -22,7 +22,7 @@ from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
-from IPython.zmq.blockingkernelmanager import BlockingKernelManager
+from IPython.kernel.blockingkernelmanager import BlockingKernelManager
 from IPython.utils import path, py3compat
 
 #-------------------------------------------------------------------------------

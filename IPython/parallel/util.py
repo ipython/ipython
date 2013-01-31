@@ -44,8 +44,8 @@ from IPython.external.decorator import decorator
 # IPython imports
 from IPython.config.application import Application
 from IPython.utils.localinterfaces import LOCALHOST, PUBLIC_IPS
-from IPython.zmq.log import EnginePUBHandler
-from IPython.zmq.serialize import (
+from IPython.kernel.zmq.log import EnginePUBHandler
+from IPython.kernel.zmq.serialize import (
     unserialize_object, serialize_object, pack_apply_message, unpack_apply_message
 )
 
