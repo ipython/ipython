@@ -41,22 +41,37 @@ class KernelRestarter(LoggingConfigurable):
         help="""Kernel heartbeat interval in seconds."""
     )
 
+    _pcallback = None
+
     def __init__(self, **kwargs):
         super(KernelRestarter, self).__init__(**kwargs)
 
     def start(self):
-        self.pc = ioloop.PeriodicCallback(self.poll, self.time_to_dead, self.ioloop)
-        self.pc.start()
+        """Start the polling of the kernel."""
+        if self._pcallback is None:
+            self._pcallback = ioloop.PeriodicCallback(
+                self._poll, 1000*self.time_to_dead, self.ioloop
+            )
+        self._pcallback.start()
 
-    def poll(self):
+    def stop(self):
+        """Stop the kernel polling."""
+        if self._pcallback is not None:
+            self._pcallback.stop()
+
+    def clear(self):
+        """Clear the underlying PeriodicCallback."""
+        self.stop()
+        if self._pcallback is not None:
+            self._pcallback = None
+
+    def _poll(self):
         if not self.kernel_manager.is_alive():
             self.stop()
             # This restart event should leave the connection file in place so
             # the ports are the same. Because this takes place below the
             # MappingKernelManager, the kernel_id will also remain the same.
+            self.log('KernelRestarter: restarting kernel')
             self.kernel_manager.restart_kernel(now=True);
             self.start()
 
-    def stop(self):
-        self.pc.stop()
-        self.pc = None
