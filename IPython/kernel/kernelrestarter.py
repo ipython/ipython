@@ -15,6 +15,8 @@ restarts the kernel if it dies.
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import absolute_import
+
 import zmq
 from zmq.eventloop import ioloop
 
