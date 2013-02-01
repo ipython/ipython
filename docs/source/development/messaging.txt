@@ -633,8 +633,15 @@ Message type: ``history_request``::
       # If hist_access_type is 'search', get cells matching the specified glob
       # pattern (with * and ? as wildcards).
       'pattern' : str,
+
+      # If hist_access_type is 'search' and unique is true, do not
+      # include duplicated history.  Default is false.
+      'unique' : bool,
       
     }
+
+.. versionadded:: 4.0
+   The key ``unique`` for ``history_request``.
 
 Message type: ``history_reply``::
 
