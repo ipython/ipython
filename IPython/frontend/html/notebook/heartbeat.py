@@ -1,5 +1,7 @@
 """A ZMQStream based heartbeat.
 
+This code is currently not used.
+
 Authors:
 
 * Brian Granger
