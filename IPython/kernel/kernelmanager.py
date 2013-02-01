@@ -985,7 +985,7 @@ class KernelManager(Configurable):
             # most 1s, checking every 0.1s.
             self.shell_channel.shutdown(restart=restart)
             for i in range(10):
-                if self.is_alive:
+                if self.is_alive():
                     time.sleep(0.1)
                 else:
                     break
@@ -1100,7 +1100,6 @@ class KernelManager(Configurable):
         else:
             raise RuntimeError("Cannot signal kernel. No kernel is running!")
 
-    @property
     def is_alive(self):
         """Is the kernel process still running?"""
         if self.has_kernel:
