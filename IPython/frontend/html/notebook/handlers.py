@@ -467,8 +467,6 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
 
     def initialize(self, *args, **kwargs):
         self.iopub_stream = None
-        self.hb_stream = None
-        self.heartbeat = None
 
     def on_first_message(self, msg):
         try:
@@ -480,10 +478,6 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         kernel_id = self.kernel_id
         try:
             self.iopub_stream = km.create_iopub_stream(kernel_id)
-            self.hb_stream = km.create_hb_stream(kernel_id)
-            self.heartbeat = Heartbeat(
-                stream=self.hb_stream, config=self.application.config
-            )
         except web.HTTPError:
             # WebSockets don't response to traditional error codes so we
             # close the connection.
@@ -492,7 +486,6 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self.close()
         else:
             self.iopub_stream.on_recv(self._on_zmq_reply)
-            self.heartbeat.start(self.kernel_died)
 
     def on_message(self, msg):
         pass
@@ -501,28 +494,9 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         # This method can be called twice, once by self.kernel_died and once
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
-        self.stop_hb()
         if self.iopub_stream is not None and not self.iopub_stream.closed():
             self.iopub_stream.on_recv(None)
             self.iopub_stream.close()
-        if self.hb_stream is not None and not self.hb_stream.closed():
-            self.hb_stream.close()
-        # stop the heartbeat here
-
-    def _delete_kernel_data(self):
-        """Remove the kernel data and notebook mapping."""
-        self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
-
-    def kernel_died(self):
-        self._delete_kernel_data()
-        self.application.log.error("Kernel died: %s" % self.kernel_id)
-        self.write_message(
-            {'header': {'msg_type': 'status'},
-             'parent_header': {},
-             'content': {'execution_state':'dead'}
-            }
-        )
-        self.on_close()
 
 
 class ShellHandler(AuthenticatedZMQStreamHandler):
