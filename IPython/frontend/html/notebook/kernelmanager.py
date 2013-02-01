@@ -20,7 +20,7 @@ from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Float, Integer,
+    Dict, List, Unicode, Integer,
 )
 
 #-----------------------------------------------------------------------------
@@ -32,9 +32,6 @@ class MappingKernelManager(MultiKernelManager):
     """A KernelManager that handles notebok mapping and HTTP error handling"""
 
     kernel_argv = List(Unicode)
-    
-    time_to_dead = Float(3.0, config=True, help="""Kernel heartbeat interval in seconds.""")
-    first_beat = Float(5.0, config=True, help="Delay (in seconds) before sending first heartbeat.")
     
     max_msg_size = Integer(65536, config=True, help="""
         The max raw message size accepted from the browser
