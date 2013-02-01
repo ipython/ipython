@@ -56,10 +56,19 @@ class MultiKernelManager(LoggingConfigurable):
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
-    
+
+    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
+    def _loop_default(self):
+        return ioloop.IOLoop.instance()
+
+    autorestart = Bool(True, config=True,
+        help="""Should we autorestart kernels that die."""
+    )
+
     connection_dir = Unicode('')
 
     _kernels = Dict()
+    _restarters = Dict()
 
     def list_kernel_ids(self):
         """Return a list of the kernel ids of the active kernels."""
@@ -73,6 +82,19 @@ class MultiKernelManager(LoggingConfigurable):
 
     def __contains__(self, kernel_id):
         return kernel_id in self._kernels
+
+    def start_watching(self, kernel_id):
+        km = self.get_kernel(kernel_id):
+        if self.autorestart:
+            kr = KernelRestarter(
+                kernel_manager=km, loop=self.loop,
+                config=self.config, log=self.log
+            )
+            kr.start()
+            self._restarters[kernel_id] = kr
+
+    def stop_watching(self, kernel_id):
+
 
     def start_kernel(self, **kwargs):
         """Start a new kernel.
@@ -99,6 +121,7 @@ class MultiKernelManager(LoggingConfigurable):
         # start just the shell channel, needed for graceful restart
         km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
+        self.start_watching(kernel_id)
         return kernel_id
 
     def shutdown_kernel(self, kernel_id, now=False):
@@ -112,9 +135,11 @@ class MultiKernelManager(LoggingConfigurable):
             Should the kernel be shutdown forcibly using a signal.
         """
         k = self.get_kernel(kernel_id)
+        self.stop_watching(kernel_id)
         k.shutdown_kernel(now=now)
         k.shell_channel.stop()
         del self._kernels[kernel_id]
+        self.remove_watching(kernel_id)
 
     def shutdown_all(self, now=False):
         """Shutdown all kernels."""
@@ -152,7 +177,10 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to interrupt.
         """
-        return self.get_kernel(kernel_id).restart_kernel()
+        km = self.get_kernel(kernel_id)
+        self.stop_watching()
+        km.restart_kernel()
+        self.start_watching()
 
     def is_alive(self, kernel_id):
         """Is the kernel alive.
