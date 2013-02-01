@@ -619,6 +619,33 @@ class TestView(ClusterTestCase, ParametricTestCase):
         self.assertEqual(io.stdout.count('by zero'), len(view), io.stdout)
         self.assertEqual(io.stdout.count(':execute'), len(view), io.stdout)
     
+    def test_compositeerror_truncate(self):
+        """Truncate CompositeErrors with many exceptions"""
+        view = self.client[:]
+        msg_ids = []
+        for i in range(10):
+            ar = view.execute("1/0")
+            msg_ids.extend(ar.msg_ids)
+        
+        ar = self.client.get_result(msg_ids)
+        try:
+            ar.get()
+        except error.CompositeError as e:
+            pass
+        else:
+            self.fail("Should have raised CompositeError")
+        
+        lines = e.render_traceback()
+        with capture_output() as io:
+            e.print_traceback()
+        
+        self.assertTrue("more exceptions" in lines[-1])
+        count = e.tb_limit
+        
+        self.assertEqual(io.stdout.count('ZeroDivisionError'), 2 * count, io.stdout)
+        self.assertEqual(io.stdout.count('by zero'), count, io.stdout)
+        self.assertEqual(io.stdout.count(':execute'), count, io.stdout)
+    
     @dec.skipif_not_matplotlib
     def test_magic_pylab(self):
         """%pylab works on engines"""
