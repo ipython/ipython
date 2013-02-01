@@ -384,10 +384,10 @@ var IPython = (function (IPython) {
         // Payloads are handled by triggering events because we don't want the Kernel
         // to depend on the Notebook or Pager classes.
         for (var i=0; i<l; i++) {
-            if (payload[i].source === 'IPython.zmq.page.page') {
+            if (payload[i].source === 'IPython.kernel.zmq.page.page') {
                 var data = {'text':payload[i].text}
                 $([IPython.events]).trigger('open_with_text.Pager', data);
-            } else if (payload[i].source === 'IPython.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
+            } else if (payload[i].source === 'IPython.kernel.zmq.zmqshell.ZMQInteractiveShell.set_next_input') {
                 if (callbacks.set_next_input !== undefined) {
                     callbacks.set_next_input(payload[i].text)
                 }
