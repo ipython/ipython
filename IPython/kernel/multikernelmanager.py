@@ -154,6 +154,19 @@ class MultiKernelManager(LoggingConfigurable):
         """
         return self.get_kernel(kernel_id).restart_kernel()
 
+    def is_alive(self, kernel_id):
+        """Is the kernel alive.
+
+        This calls KernelManager.is_alive() which calls Popen.poll on the
+        actual kernel subprocess.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+        """
+        return self.get_kernel(kernel_id).is_alive()
+
     def get_kernel(self, kernel_id):
         """Get the single KernelManager object for a kernel by its uuid.
 
