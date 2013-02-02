@@ -31,10 +31,10 @@ class ConfigurableTransformers(Configurable):
 
 class ActivatableTransformer(ConfigurableTransformers):
 
-    active = Bool(False, config=True)
+    enabled = Bool(False, config=True)
 
     def __call__(self, nb, other):
-        if not self.active :
+        if not self.enabled :
             return nb,other
         else :
             return super(ActivatableTransformer,self).__call__(nb, other)
@@ -77,10 +77,6 @@ def haspyout_transformer(cell, other, count):
 # todo, make the key part configurable.
 
 class ExtractFigureTransformer(ActivatableTransformer):
-    enabled = Bool(False,
-            config=True,
-            help=""" If set to false, this transformer will be no-op """
-            )
 
     extra_ext_map =  Dict({},
             config=True,
@@ -122,8 +118,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
 
     def cell_transform(self, cell, other, count):
-        if not self.enabled:
-            return cell, other
         if other.get('figures',None) is None :
             other['figures']={}
         for i, out in enumerate(cell.get('outputs', [])):
