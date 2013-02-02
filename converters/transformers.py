@@ -204,7 +204,7 @@ class RevealHelpTransformer(ConfigurableTransformers):
 
     def cell_transform(self, cell, other,count):
         ctype = cell.metadata.get('slideshow',{}).get('slide_type',None)
-        if ctype is None :
+        if ctype in [None, '-'] :
             cell.metadata.slideshow = {}
             cell.metadata.slideshow['slide_type'] = None
         elif ctype == 'fragment':
