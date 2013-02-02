@@ -30,7 +30,7 @@ from IPython.utils.traitlets import (
 # Code
 #-----------------------------------------------------------------------------
 
-class KernelRestarter(LoggingConfigurable):
+class IOLoopKernelRestarter(LoggingConfigurable):
     """Monitor and autorestart a kernel."""
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
@@ -45,14 +45,11 @@ class KernelRestarter(LoggingConfigurable):
 
     _pcallback = None
 
-    def __init__(self, **kwargs):
-        super(KernelRestarter, self).__init__(**kwargs)
-
     def start(self):
         """Start the polling of the kernel."""
         if self._pcallback is None:
             self._pcallback = ioloop.PeriodicCallback(
-                self._poll, 1000*self.time_to_dead, self.ioloop
+                self._poll, 1000*self.time_to_dead, self.loop
             )
         self._pcallback.start()
 
@@ -68,12 +65,10 @@ class KernelRestarter(LoggingConfigurable):
             self._pcallback = None
 
     def _poll(self):
+        self.log.info('Polling kernel...')
         if not self.kernel_manager.is_alive():
-            self.stop()
             # This restart event should leave the connection file in place so
             # the ports are the same. Because this takes place below the
             # MappingKernelManager, the kernel_id will also remain the same.
-            self.log('KernelRestarter: restarting kernel')
+            self.log.info('KernelRestarter: restarting kernel')
             self.kernel_manager.restart_kernel(now=True);
-            self.start()
-

@@ -81,7 +81,7 @@ class BlockingHBChannel(HBChannel):
 
 
 class BlockingKernelManager(KernelManager):
-    
+
     # The classes to use for the various channels.
     shell_channel_class = Type(BlockingShellChannel)
     iopub_channel_class = Type(BlockingIOPubChannel)

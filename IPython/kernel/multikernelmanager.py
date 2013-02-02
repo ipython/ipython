@@ -23,14 +23,12 @@ import uuid
 
 import zmq
 from zmq.eventloop.zmqstream import ZMQStream
-from zmq.eventloop import ioloop
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
     Instance, Dict, Unicode, Any, DottedObjectName, Bool
 )
-# from IPython.kernel.kernelrestarter import KernelRestarter
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -44,7 +42,7 @@ class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
     
     kernel_manager_class = DottedObjectName(
-        "IPython.kernel.blockingkernelmanager.BlockingKernelManager", config=True,
+        "IPython.kernel.ioloopkernelmanager.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """
@@ -60,18 +58,9 @@ class MultiKernelManager(LoggingConfigurable):
     def _context_default(self):
         return zmq.Context.instance()
 
-    loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
-    def _loop_default(self):
-        return ioloop.IOLoop.instance()
-
-    autorestart = Bool(False, config=True,
-        help="""Should we autorestart kernels that die."""
-    )
-
     connection_dir = Unicode('')
 
     _kernels = Dict()
-    _restarters = Dict()
 
     def list_kernel_ids(self):
         """Return a list of the kernel ids of the active kernels."""
@@ -85,30 +74,6 @@ class MultiKernelManager(LoggingConfigurable):
 
     def __contains__(self, kernel_id):
         return kernel_id in self._kernels
-
-    def start_restarter(self, kernel_id):
-        km = self.get_kernel(kernel_id)
-        if self.autorestart:
-            kr = self._restarters.get(kernel_id, None)
-            if kr is None:
-                kr = KernelRestarter(
-                    kernel_manager=km, loop=self.loop,
-                    config=self.config, log=self.log
-                )
-                self._restarters[kernel_id] = kr
-            kr.start()
-
-    def stop_restarter(self, kernel_id):
-        if self.autorestart:
-            kr = self._restarters.get(kernel_id, None)
-            if kr is not None:
-                kr.stop()
-
-    def clear_restarter(self, kernel_id):
-        if self.autorestart:
-            kr = self._restarters.pop(kernel_id, None)
-            if kr is not None:
-                kr.stop()
 
     def start_kernel(self, **kwargs):
         """Start a new kernel.
@@ -129,13 +94,12 @@ class MultiKernelManager(LoggingConfigurable):
         # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
-                    config=self.config,
+                    config=self.config, autorestart=True, log=self.log
         )
         km.start_kernel(**kwargs)
         # start just the shell channel, needed for graceful restart
         km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
-        self.start_restarter(kernel_id)
         return kernel_id
 
     def shutdown_kernel(self, kernel_id, now=False):
@@ -149,11 +113,9 @@ class MultiKernelManager(LoggingConfigurable):
             Should the kernel be shutdown forcibly using a signal.
         """
         k = self.get_kernel(kernel_id)
-        self.stop_restarter(kernel_id)
         k.shutdown_kernel(now=now)
         k.shell_channel.stop()
         del self._kernels[kernel_id]
-        self.clear_restarter(kernel_id)
 
     def shutdown_all(self, now=False):
         """Shutdown all kernels."""
@@ -192,9 +154,7 @@ class MultiKernelManager(LoggingConfigurable):
             The id of the kernel to interrupt.
         """
         km = self.get_kernel(kernel_id)
-        self.stop_restarter(kernel_id)
         km.restart_kernel()
-        self.start_restarter(kernel_id)
 
     def is_alive(self, kernel_id):
         """Is the kernel alive.

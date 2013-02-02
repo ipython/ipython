@@ -21,14 +21,12 @@ from __future__ import absolute_import
 import atexit
 import errno
 import json
-from subprocess import Popen
 import os
 import signal
 import sys
 from threading import Thread
 import time
 
-# System library imports
 import zmq
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit:
@@ -37,9 +35,11 @@ from zmq.eventloop import ioloop, zmqstream
 
 # Local imports
 from IPython.config.configurable import Configurable
+from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
 from IPython.utils.traitlets import (
-    Any, Instance, Type, Unicode, List, Integer, Bool, CaselessStrEnum
+    Any, Instance, Type, Unicode, List, Integer, Bool,
+    CaselessStrEnum, DottedObjectName
 )
 from IPython.utils.py3compat import str_to_bytes
 from IPython.kernel import (
@@ -53,7 +53,6 @@ from .kernelmanagerabc import (
     HBChannelABC, StdInChannelABC,
     KernelManagerABC
 )
-
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -691,11 +690,11 @@ class KernelManager(Configurable):
         Override this if you have a custom 
         """
     )
+
     def _kernel_cmd_changed(self, name, old, new):
         self.ipython_kernel = False
 
     ipython_kernel = Bool(True)
-    
 
     # The addresses for the communication channels.
     connection_file = Unicode('')
@@ -708,6 +707,7 @@ class KernelManager(Configurable):
         Consoles on other machines will be able to connect
         to the Kernel, so be careful!"""
     )
+
     def _ip_default(self):
         if self.transport == 'ipc':
             if self.connection_file:
@@ -716,9 +716,11 @@ class KernelManager(Configurable):
                 return 'kernel-ipc'
         else:
             return LOCALHOST
+
     def _ip_changed(self, name, old, new):
         if new == '*':
             self.ip = '0.0.0.0'
+
     shell_port = Integer(0)
     iopub_port = Integer(0)
     stdin_port = Integer(0)
@@ -737,6 +739,10 @@ class KernelManager(Configurable):
     _stdin_channel = Any
     _hb_channel = Any
     _connection_file_written=Bool(False)
+
+    autorestart = Bool(False, config=True,
+        help="""Should we autorestart the kernel if it dies."""
+    )
 
     def __del__(self):
         self.cleanup_connection_file()
@@ -895,9 +901,19 @@ class KernelManager(Configurable):
         self._connection_file_written = True
 
     #--------------------------------------------------------------------------
+    # Kernel restarter
+    #--------------------------------------------------------------------------
+
+    def start_restarter(self):
+        pass
+
+    def stop_restarter(self):
+        pass
+
+    #--------------------------------------------------------------------------
     # Kernel management
     #--------------------------------------------------------------------------
-    
+
     def format_kernel_cmd(self, **kw):
         """format templated args (e.g. {connection_file})"""
         if self.kernel_cmd:
@@ -948,6 +964,7 @@ class KernelManager(Configurable):
         self.kernel = self._launch_kernel(kernel_cmd,
                                     ipython_kernel=self.ipython_kernel,
                                     **kw)
+        self.start_restarter()
 
     def shutdown_kernel(self, now=False, restart=False):
         """Attempts to the stop the kernel process cleanly. 
@@ -967,14 +984,18 @@ class KernelManager(Configurable):
             Will this kernel be restarted after it is shutdown. When this
             is True, connection files will not be cleaned up.
         """
-        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
-        if sys.platform == 'win32':
-            self._kill_kernel()
-            return
 
         # Pause the heart beat channel if it exists.
         if self._hb_channel is not None:
             self._hb_channel.pause()
+
+        # Stop monitoring for restarting while we shutdown.
+        self.stop_restarter()
+
+        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
+        if sys.platform == 'win32':
+            self._kill_kernel()
+            return
 
         if now:
             if self.has_kernel:
@@ -1047,9 +1068,6 @@ class KernelManager(Configurable):
         This is a private method, callers should use shutdown_kernel(now=True).
         """
         if self.has_kernel:
-            # Pause the heart beat channel if it exists.
-            if self._hb_channel is not None:
-                self._hb_channel.pause()
 
             # Signal the kernel to terminate (sends SIGKILL on Unix and calls
             # TerminateProcess() on Win32).
