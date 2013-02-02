@@ -2124,6 +2124,8 @@ class InteractiveShell(SingletonConfigurable):
             extra = '' if lm is None else (' (But line magic `%%%s` exists, '
                                     'did you mean that instead?)' % magic_name )
             error(etpl % (magic_name, extra))
+        elif cell == '':
+            warn('%%%%%s line but no cell' % magic_name)
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
