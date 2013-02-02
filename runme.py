@@ -30,7 +30,7 @@ from IPython.config.application import Application
 from IPython.config.loader import ConfigFileNotFound
 from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
 
-from converters.transformers import (ConfigurableTransformers,Foobar,ExtractFigureTransformer)
+from converters.transformers import (ConfigurableTransformers,ExtractFigureTransformer)
 
 
 class NbconvertApp(Application):
@@ -58,7 +58,6 @@ class NbconvertApp(Application):
         self.classes.insert(0,ConverterTemplate)
         # register class here to have help with help all
         self.classes.insert(0,ExtractFigureTransformer)
-        self.classes.insert(0,Foobar)
         # ensure those are registerd
 
     def load_config_file(self, profile_name):

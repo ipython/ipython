@@ -29,12 +29,15 @@ class ConfigurableTransformers(Configurable):
         raise NotImplementedError('should be implemented by subclass')
 
 
-class Foobar(ConfigurableTransformers):
-    message = Unicode('-- nothing', config=True)
+class ActivatableTransformer(ConfigurableTransformers):
 
+    active = Bool(False, config=True)
 
-    def cell_transform(self, cell, other, index):
-        return cell, other
+    def __call__(self, nb, other):
+        if not self.active :
+            return nb,other
+        else :
+            return super(ActivatableTransformer,self).__call__(nb, other)
 
 
 def cell_preprocessor(function):
@@ -73,7 +76,7 @@ def haspyout_transformer(cell, other, count):
 
 # todo, make the key part configurable.
 
-class ExtractFigureTransformer(ConfigurableTransformers):
+class ExtractFigureTransformer(ActivatableTransformer):
     enabled = Bool(False,
             config=True,
             help=""" If set to false, this transformer will be no-op """
