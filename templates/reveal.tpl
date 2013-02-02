@@ -26,7 +26,7 @@
 <aside class="notes">
 {{ super() }}
 </aside>
-{% elif cell.metadata.slideshow.slide_tyle not in ['skip'] %}
+{% elif cell.metadata.slideshow.slide_type not in ['skip'] %}
 {{ super() }}
 {% endif %}
 
