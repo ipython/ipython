@@ -14,12 +14,16 @@ from IPython.kernel.multikernelmanager import MultiKernelManager
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
-        return MultiKernelManager()
+        c = Config()
+        # c.KernelManager.autorestart=False
+        km = MultiKernelManager(config=c)
+        return km
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
+        # c.KernelManager.autorestart=False
         km = MultiKernelManager(config=c)
         return km
 

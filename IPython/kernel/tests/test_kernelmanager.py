@@ -12,12 +12,16 @@ from IPython.kernel.kernelmanager import KernelManager
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
-        return KernelManager()
+        c = Config()
+        # c.KernelManager.autorestart=False
+        km = KernelManager(config=c)
+        return km
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
+        # c.KernelManager.autorestart=False
         km = KernelManager(config=c)
         return km
 

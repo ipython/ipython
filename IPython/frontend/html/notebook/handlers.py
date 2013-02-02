@@ -407,6 +407,9 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         return jsonapi.dumps(msg, default=date_default)
 
     def _on_zmq_reply(self, msg_list):
+        # Sometimes this gets triggered when the on_close method is scheduled in the
+        # eventloop but hasn't been called.
+        if self.stream.closed(): return
         try:
             msg = self._reserialize_reply(msg_list)
         except Exception:
