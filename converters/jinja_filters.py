@@ -16,9 +16,55 @@ from markdown import markdown
 from .utils import remove_ansi
 from .utils import highlight, ansi2html
 from .utils import markdown2latex
+
+from IPython.config.configurable import Configurable
+from IPython.utils.traitlets import Unicode, Bool, Dict, List
+
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------
+
+class GlobalConfigurable(Configurable):
+    """Global configurable class for shared config
+
+    Usefull for display data priority that might be use by many trasnformers
+    """
+    
+    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+            config=True,
+              help= """
+                    An ordered list of prefered output type, the first
+                    encounterd will usually be used when converting discarding
+                    the others.
+                    """
+            )
+
+    def __init__(self, config=None, **kw):
+        super(GlobalConfigurable, self).__init__( config=config, **kw)
+
+class ConfigurableFilter(GlobalConfigurable):
+    """Configurable Jinja Filter"""
+
+    def __init__(self, config=None, **kw):
+        super(ConfigurableFilter, self).__init__(config=config, **kw)
+
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError('should be implemented by subclass')
+
+
+class FilterDataType(ConfigurableFilter):
+    """ return the preferd displayed format
+    """
+
+    def __call__(self, output):
+        """ return the first availlable format in priority """
+        for fmt in self.display_data_priority:
+            if fmt in output:
+                return [fmt]
+        raise Exception("did not found any format I can extract in output, shoudl at lest have one")
+
+
+
 def rm_fake(strng):
     return strng.replace('/files/', '')
 

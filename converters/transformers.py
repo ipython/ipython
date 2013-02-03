@@ -2,12 +2,13 @@
 
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Unicode, Bool, Dict, List
+from .jinja_filters import GlobalConfigurable
 
-class ConfigurableTransformers(Configurable):
+class ConfigurableTransformers(GlobalConfigurable):
     """ A configurable transformer """
 
     def __init__(self, config=None, **kw):
@@ -84,15 +85,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Usefull for latex where svg will be converted to pdf before inclusion
             """
             )
-    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
-            config=True,
-              help= """
-                    An ordered list of prefered output type, the first
-                    encounterd will usually be used when converting discarding
-                    the others.
-                    """
-            )
-
 
     #to do change this to .format {} syntax
     key_tpl = Unicode('_fig_%02i.%s', config=True)

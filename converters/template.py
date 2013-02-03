@@ -19,7 +19,7 @@ from __future__ import print_function, absolute_import
 import converters.transformers as trans
 from converters.jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight,
-        ansi2html, markdown2latex, escape_tex)
+        ansi2html, markdown2latex, escape_tex, FilterDataType)
 
 from converters.utils import  markdown2rst
 
@@ -80,13 +80,17 @@ def header_body():
         os.path.join(css, 'fbm.css'),
         os.path.join(css, 'notebook.css'),
         os.path.join(css, 'renderedhtml.css'),
+        os.path.join(css, 'style.min.css'),
         # our overrides:
         os.path.join(here, '..', 'css', 'static_html.css'),
     ]:
-
-        with io.open(sheet, encoding='utf-8') as f:
-            s = f.read()
-            header.append(s)
+        try:
+            with io.open(sheet, encoding='utf-8') as f:
+                s = f.read()
+                header.append(s)
+        except IOError:
+            # new version of ipython with style.min.css, pass
+            pass
 
     pygments_css = HtmlFormatter().get_style_defs('.highlight')
     header.append(pygments_css)
@@ -103,10 +107,13 @@ inlining['css'] = header_body()
 
 texenv.block_start_string = '((*'
 texenv.block_end_string = '*))'
+
 texenv.variable_start_string = '((('
 texenv.variable_end_string = ')))'
+
 texenv.comment_start_string = '((='
 texenv.comment_end_string = '=))'
+
 texenv.filters['escape_tex'] = escape_tex
 
 
@@ -119,28 +126,11 @@ class ConverterTemplate(Configurable):
     shoudl be mostly configurable
     """
 
-    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
-            config=True,
-              help= """
-                    An ordered list of prefered output type, the first
-                    encounterd will usually be used when converting discarding
-                    the others.
-                    """
-            )
-
     pre_transformer_order = List(['haspyout_transformer'],
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
                     file befor running through templates
-                    """
-            )
-
-    extract_figures = Bool(False,
-            config=True,
-              help= """
-                    wether to remove figure data from ipynb and store them in auxiliary
-                    dictionnary
                     """
             )
 
@@ -155,27 +145,22 @@ class ConverterTemplate(Configurable):
     # Instance-level attributes that are set in the constructor for this
     # class.
     #-------------------------------------------------------------------------
-    infile = Any()
 
-
-    infile_dir = Unicode()
-
-    #todo: move to filter
-    def filter_data_type(self, output):
-        """ return the first availlable format in priority """
-        for fmt in self.display_data_priority:
-            if fmt in output:
-                return [fmt]
-        raise Exception("did not found any format I can extract in output, shoudl at lest have one")
 
     preprocessors = []
 
     def __init__(self, preprocessors={}, jinja_filters={}, config=None, **kw):
-        """
-        config: the Configurable confg object to pass around
+        """ Init a new converter.
 
-        preprocessors: dict of **availlable** key/value function to run on ipynb json data before conversion
-        to extract/inline file,
+
+        config: the Configurable confgg object to pass around
+
+        preprocessors: dict of **availlable** key/value function to run on
+        ipynb json data before conversion to extract/inline file,
+
+        jinja_filter : dict of supplementary jinja filter that should be made
+        availlable in template. If those are of Configurable Class type, they
+        will be instanciated with the config object as argument.
 
         """
         super(ConverterTemplate, self).__init__(config=config, **kw)
@@ -189,12 +174,11 @@ class ConverterTemplate(Configurable):
             self.preprocessors.append(transformer)
 
         ## for compat, remove later
-        if self.extract_figures:
-            self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
+        self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
 
         ##
-        self.env.filters['filter_data_type'] = self.filter_data_type
+        self.env.filters['filter_data_type'] = FilterDataType(config=config)
         self.env.filters['pycomment'] = python_comment
         self.env.filters['indent'] = indent
         self.env.filters['rm_fake'] = rm_fake
@@ -204,8 +188,11 @@ class ConverterTemplate(Configurable):
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
-        for k, v in jinja_filters.iteritems():
-            self.env.filters[k] = v
+        for key, filtr in jinja_filters.iteritems():
+            if isinstance(filtr, MetaHasTraits):
+                self.env.filters[key] = filtr(config=config)
+            else :
+                self.env.filters[key] = filtr
 
         self.template = self.env.get_template(self.template_file+self.ext)
 
@@ -239,4 +226,5 @@ class ConverterTemplate(Configurable):
         "read and parse notebook into NotebookNode called self.nb"
         with io.open(filename) as f:
             return self.convert(nbformat.read(f, 'json'))
+
 
