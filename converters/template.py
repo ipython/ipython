@@ -101,11 +101,28 @@ class ConverterTemplate(Configurable):
     shoudl be mostly configurable
     """
 
+    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+            config=True,
+              help= """
+                    An ordered list of prefered output type, the first
+                    encounterd will usually be used when converting discarding
+                    the others.
+                    """
+            )
+
     pre_transformer_order = List(['haspyout_transformer'],
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
                     file befor running through templates
+                    """
+            )
+
+    extract_figures = Bool(False,
+            config=True,
+              help= """
+                    wether to remove figure data from ipynb and store them in auxiliary
+                    dictionnary
                     """
             )
 
@@ -120,14 +137,24 @@ class ConverterTemplate(Configurable):
     # Instance-level attributes that are set in the constructor for this
     # class.
     #-------------------------------------------------------------------------
+    infile = Any()
 
+
+    infile_dir = Unicode()
+
+    #todo: move to filter
+    def filter_data_type(self, output):
+        """ return the first availlable format in priority """
+        for fmt in self.display_data_priority:
+            if fmt in output:
+                return [fmt]
+        raise Exception("did not found any format I can extract in output, shoudl at lest have one")
 
     preprocessors = []
 
     def __init__(self, preprocessors={}, jinja_filters={}, config=None, **kw):
-        """ Init a new converter.
-
-        config: the Configurable config object to pass around.
+        """
+            config: the Configurable config object to pass around.
 
         preprocessors: dict of **availlable** key/value function to run on
                        ipynb json data before conversion to extract/inline file.
