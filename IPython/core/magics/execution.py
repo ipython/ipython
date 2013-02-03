@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Implementation of execution-related magic functions.
 """
 #-----------------------------------------------------------------------------
@@ -1076,26 +1077,20 @@ def _format_time(timespan, precision=3):
     """Formats the timespan in a human readable form"""
     import math
     # XXX: Unfortunately the unicode 'micro' symbol can cause problems in
-    # certain terminals.  Until we figure out a robust way of
-    # auto-detecting if the terminal can deal with it, use plain 'us' for
-    # microseconds.  I am really NOT happy about disabling the proper
-    # 'micro' prefix, but crashing is worse... If anyone knows what the
-    # right solution for this is, I'm all ears...
-    #
-    # Note: using
-    #
-    # s = u'\xb5'
-    # s.encode(sys.getdefaultencoding())
-    #
-    # is not sufficient, as I've seen terminals where that fails but
-    # print s
-    #
-    # succeeds
-    #
+    # certain terminals.  
     # See bug: https://bugs.launchpad.net/ipython/+bug/348466
-
-    #units = [u'h', u'min', u"s", u"ms",u'\xb5',"ns"]
-    units = [u'h', u'min', u"s", u"ms",u'us',"ns"]
+    
+    # This is trying to prevent crashes, so it's more secure than it needs to
+    # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
+    
+    
+    units = [u'h', u'min', u"s", u"ms",u'us',"ns"] # the save value   
+    if sys.stdout.encoding:
+        try:
+            u'\xb5'.encode(sys.stdout.encoding)
+            units = [u'h', u'min', u"s", u"ms",u'\xb5s',"ns"]
+        except:
+            pass
     scaling = [1./3600, 1./60, 1, 1e3, 1e6, 1e9]
     
     if timespan > 0.0 and timespan < 60.0:
