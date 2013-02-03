@@ -1084,25 +1084,33 @@ def _format_time(timespan, precision=3):
     # E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.
     
     
-    units = [u'h', u'min', u"s", u"ms",u'us',"ns"] # the save value   
+    units = [u"s", u"ms",u'us',"ns"] # the save value   
     if sys.stdout.encoding:
         try:
             u'\xb5'.encode(sys.stdout.encoding)
-            units = [u'h', u'min', u"s", u"ms",u'\xb5s',"ns"]
+            units = [u"s", u"ms",u'\xb5s',"ns"]
         except:
             pass
-    scaling = [1./3600, 1./60, 1, 1e3, 1e6, 1e9]
+    scaling = [1, 1e3, 1e6, 1e9]
     
-    if timespan > 0.0 and timespan < 60.0:
-        order = min(-int(math.floor(math.log10(timespan)) // 3), 3)+2
-    elif timespan >= 3660.0:
-        # hours
-        order = 0
-    elif timespan >= 60.0:
-        # minutes
-        order = 1
+    if timespan >= 60.0:
+        # we have more than a minute, format that in a human readable form
+        # Idea from http://snipplr.com/view/5713/
+        parts = [("d", 60*60*24),("h", 60*60),("min", 60), ("s", 1)]
+        time = []
+        leftover = timespan
+        for suffix, length in parts:
+            value = int(leftover / length)
+            if value > 0:
+                leftover = leftover % length
+                time.append(u'%s%s' % (str(value), suffix))
+            if leftover < 1:
+                break
+        return " ".join(time)
+    
+    if timespan > 0.0:
+        order = min(-int(math.floor(math.log10(timespan)) // 3), 3)
     else:
-        order = 5
-    
+        order = 3
     ret =  u"%.*g %s" % (precision, timespan * scaling[order], units[order])
     return ret
