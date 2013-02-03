@@ -207,7 +207,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
         if independent:
             proc = Popen(cmd,
                          creationflags=512, # CREATE_NEW_PROCESS_GROUP
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, env=os.environ)
         else:
             if ipython_kernel:
                 try:
@@ -224,7 +224,7 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
             
             
             proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
 
         # Attach the interrupt event to the Popen objet so it can be used later.
         proc.win32_interrupt_event = interrupt_event
@@ -232,12 +232,12 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
     else:
         if independent:
             proc = Popen(cmd, preexec_fn=lambda: os.setsid(),
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
         else:
             if ipython_kernel:
                 cmd += ['--parent=1']
             proc = Popen(cmd,
-                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd)
+                         stdin=_stdin, stdout=_stdout, stderr=_stderr, cwd=cwd, env=os.environ)
 
     # Clean up pipes created to work around Popen bug.
     if redirect_in:
