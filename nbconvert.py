@@ -84,22 +84,9 @@ class NbconvertApp(Application):
         self.classes.insert(0,ConverterPy)
 
     def initialize(self, argv=None):
-        # don't hook up crash handler before parsing command-line
         self.parse_command_line(argv)
         cl_config = self.config
         self.update_config(cl_config)
-        #self.init_crash_handler()
-        #self.foo = Cnf(config=self.config)
-        #if self.subapp is not None:
-            # stop here if subapp is taking over
-            #return
-        #cl_config = self.config
-        #self.init_profile_dir()
-        #self.init_config_files()
-        #self.load_config_file()
-        # enforce cl-opts override configfile opts:
-        #self.update_config(cl_config)
-
 
     def run(self):
         """Convert a notebook to html in one step"""
