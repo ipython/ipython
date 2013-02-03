@@ -1085,7 +1085,7 @@ def _format_time(timespan, precision=3):
     
     
     units = [u"s", u"ms",u'us',"ns"] # the save value   
-    if sys.stdout.encoding:
+    if hasattr(sys.stdout, 'encoding') and sys.stdout.encoding:
         try:
             u'\xb5'.encode(sys.stdout.encoding)
             units = [u"s", u"ms",u'\xb5s',"ns"]
