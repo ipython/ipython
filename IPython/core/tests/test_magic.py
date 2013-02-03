@@ -262,9 +262,6 @@ def test_reset_in_length():
     _ip.run_cell("reset -f in")
     nt.assert_true(len(_ip.user_ns['In']) == _ip.displayhook.prompt_count+1)
 
-def test_time():
-    _ip.magic('time None')
-
 def test_tb_syntaxerror():
     """test %tb after a SyntaxError"""
     ip = get_ipython()
@@ -286,13 +283,13 @@ def test_tb_syntaxerror():
 def test_time():
     ip = get_ipython()
     
-    with tt.AssertPrints("CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s"):
+    with tt.AssertPrints("CPU times: user 0 ns, sys: 0 ns, total: 0 ns"):
         ip.run_cell("%time None")
     
     ip.run_cell("def f(kmjy):\n"
                 "    %time print (2*kmjy)")
     
-    with tt.AssertPrints("CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s"):
+    with tt.AssertPrints("CPU times: user 0 ns, sys: 0 ns, total: 0 ns"):
         with tt.AssertPrints("hihi", suppress=False):
             ip.run_cell("f('hi')")
 
