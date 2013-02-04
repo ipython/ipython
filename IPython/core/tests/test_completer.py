@@ -288,11 +288,30 @@ def test_func_kw_completions():
     s, matches = c.complete(None, 'myfunc(1,b')
     nt.assert_in('b=', matches)
     # Simulate completing with cursor right after b (pos==10):
-    s, matches = c.complete(None,'myfunc(1,b)', 10)
+    s, matches = c.complete(None, 'myfunc(1,b)', 10)
     nt.assert_in('b=', matches)
-    s, matches = c.complete(None,'myfunc(a="escaped\\")string",b')
+    s, matches = c.complete(None, 'myfunc(a="escaped\\")string",b')
     nt.assert_in('b=', matches)
+    #builtin function
+    s, matches = c.complete(None, 'min(k, k')
+    nt.assert_in('key=', matches)
 
+
+def test_default_arguments_from_docstring():
+    doc = min.__doc__
+    ip = get_ipython()
+    c = ip.Completer
+    kwd = c._default_arguments_from_docstring(
+        'min(iterable[, key=func]) -> value')
+    nt.assert_equal(kwd, ['key'])
+    #with cython type etc
+    kwd = c._default_arguments_from_docstring(
+        'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
+    nt.assert_equal(kwd, ['ncall', 'resume', 'nsplit'])
+    #white spaces
+    kwd = c._default_arguments_from_docstring(
+        '\n Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)\n')
+    nt.assert_equal(kwd, ['ncall', 'resume', 'nsplit'])
 
 def test_line_magics():
     ip = get_ipython()

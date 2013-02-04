@@ -496,6 +496,12 @@ class IPCompleter(Completer):
         else:
             self.clean_glob = self._clean_glob
 
+        #regexp to parse docstring for function signature
+        self.docstring_sig_re = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
+        self.docstring_kwd_re = re.compile(r'[\s|\[]*(\w+)(?:\s*=\s*.*)')
+        #use this if positional argument name is also needed
+        #= re.compile(r'[\s|\[]*(\w+)(?:\s*=?\s*.*)')
+
         # All active matcher routines for completion
         self.matchers = [self.python_matches,
                          self.file_matches,
@@ -664,29 +670,67 @@ class IPCompleter(Completer):
 
         return matches
 
+    def _default_arguments_from_docstring(self, doc):
+        """Parse the first line of docstring for call signature.
+
+        Docstring should be of the form 'min(iterable[, key=func])\n'.
+        It can also parse cython docstring of the form
+        'Minuit.migrad(self, int ncall=10000, resume=True, int nsplit=1)'.
+        """
+        if doc is None:
+            return []
+
+        #care only the firstline
+        line = doc.lstrip().splitlines()[0]
+
+        #p = re.compile(r'^[\w|\s.]+\(([^)]*)\).*')
+        #'min(iterable[, key=func])\n' -> 'iterable[, key=func]'
+        sig = self.docstring_sig_re.search(line)
+        if sig is None:
+            return []
+        # iterable[, key=func]' -> ['iterable[' ,' key=func]']
+        sig = sig.groups()[0].split(',')
+        ret = []
+        for s in sig:
+            #re.compile(r'[\s|\[]*(\w+)(?:\s*=\s*.*)')
+            ret += self.docstring_kwd_re.findall(s)
+        return ret
+
     def _default_arguments(self, obj):
         """Return the list of default arguments of obj if it is callable,
         or empty list otherwise."""
-
-        if not (inspect.isfunction(obj) or inspect.ismethod(obj)):
-            # for classes, check for __init__,__new__
+        call_obj = obj
+        ret = []
+        if inspect.isbuiltin(obj):
+            pass
+        elif not (inspect.isfunction(obj) or inspect.ismethod(obj)):
             if inspect.isclass(obj):
-                obj = (getattr(obj,'__init__',None) or
-                       getattr(obj,'__new__',None))
+                #for cython embededsignature=True the constructor docstring
+                #belongs to the object itself not __init__
+                ret += self._default_arguments_from_docstring(
+                            getattr(obj, '__doc__', ''))
+                # for classes, check for __init__,__new__
+                call_obj = (getattr(obj, '__init__', None) or
+                       getattr(obj, '__new__', None))
             # for all others, check if they are __call__able
             elif hasattr(obj, '__call__'):
-                obj = obj.__call__
-            # XXX: is there a way to handle the builtins ?
+                call_obj = obj.__call__
+
+        ret += self._default_arguments_from_docstring(
+                 getattr(call_obj, '__doc__', ''))
+
         try:
-            args,_,_1,defaults = inspect.getargspec(obj)
+            args,_,_1,defaults = inspect.getargspec(call_obj)
             if defaults:
-                return args[-len(defaults):]
-        except TypeError: pass
-        return []
+                ret+=args[-len(defaults):]
+        except TypeError:
+            pass
+
+        return list(set(ret))
 
     def python_func_kw_matches(self,text):
         """Match named parameters (kwargs) of the last open function"""
-
+        
         if "." in text: # a parameter cannot be dotted
             return []
         try: regexp = self.__funcParamsRegex
@@ -703,6 +747,7 @@ class IPCompleter(Completer):
         tokens = regexp.findall(self.text_until_cursor)
         tokens.reverse()
         iterTokens = iter(tokens); openPar = 0
+
         for token in iterTokens:
             if token == ')':
                 openPar -= 1
@@ -716,6 +761,7 @@ class IPCompleter(Completer):
         # 2. Concatenate dotted names ("foo.bar" for "foo.bar(x, pa" )
         ids = []
         isId = re.compile(r'\w+$').match
+
         while True:
             try:
                 ids.append(next(iterTokens))
@@ -735,9 +781,10 @@ class IPCompleter(Completer):
         for callableMatch in callableMatches:
             try:
                 namedArgs = self._default_arguments(eval(callableMatch,
-                                                         self.namespace))
+                                                        self.namespace))
             except:
                 continue
+
             for namedArg in namedArgs:
                 if namedArg.startswith(text):
                     argMatches.append("%s=" %namedArg)
