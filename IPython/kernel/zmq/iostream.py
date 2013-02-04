@@ -90,6 +90,7 @@ class OutStream(object):
                 return MASTER
         else:
             if not self._have_pipe_out():
+                self._flush_buffer()
                 # setup a new out pipe
                 self._setup_pipe_out()
             return CHILD
@@ -174,8 +175,15 @@ class OutStream(object):
             # Make sure that we're handling unicode
             if not isinstance(string, unicode):
                 string = string.decode(self.encoding, 'replace')
+            
+            is_child = (self._check_mp_mode() == CHILD)
             self._buffer.write(string)
-            self._check_mp_mode()
+            if is_child:
+                # newlines imply flush in subprocesses
+                # mp.Pool cannot be trusted to flush promptly (or ever),
+                # and this helps.
+                if '\n' in string:
+                    self.flush()
             # do we want to check subprocess flushes on write?
             # self._flush_from_subprocesses()
             current_time = time.time()
