@@ -260,7 +260,7 @@ code string, must be able to send arbitrary (pickleable) Python objects. And ide
 as little data as we can. The `buffers` property of a Message was introduced for this
 purpose.
 
-Utility method :func:`build_apply_message` in :mod:`IPython.zmq.serialize` wraps a
+Utility method :func:`build_apply_message` in :mod:`IPython.kernel.zmq.serialize` wraps a
 function signature and builds a sendable buffer format for minimal data copying (exactly
 zero copies of numpy array data or buffers or large strings).
 

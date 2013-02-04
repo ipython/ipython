@@ -19,7 +19,7 @@ import sys
 import json
 import zmq
 
-from IPython.zmq.session import Session
+from IPython.kernel.zmq.session import Session
 from IPython.parallel.util import disambiguate_url
 from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.path import get_security_file

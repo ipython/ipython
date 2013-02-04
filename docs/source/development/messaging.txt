@@ -827,7 +827,7 @@ data_pub messages are constructed via the :func:`IPython.lib.datapub.publish_dat
 
 .. sourcecode:: python
 
-    from IPython.zmq.datapub import publish_data
+    from IPython.kernel.zmq.datapub import publish_data
     ns = dict(x=my_array)
     publish_data(ns)
 
