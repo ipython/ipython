@@ -90,7 +90,8 @@ class HistoryConsoleWidget(ConsoleWidget):
             # and the cursor is at the end of the first line
             first_line = input_buffer.split('\n', 1)[0]
             if self._history_index == len(self._history) or \
-                not (self._history_prefix == '' and col == len(first_line)):
+                not (self._history_prefix == '' and col == len(first_line)) or \
+                not (self._get_edited_history(self._history_index)[:col] == input_buffer[:col]):
                 self._history_prefix = input_buffer[:col]
 
             # Perform the search.
