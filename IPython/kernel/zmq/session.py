@@ -45,6 +45,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
+from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
