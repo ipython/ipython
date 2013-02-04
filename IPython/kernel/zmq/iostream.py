@@ -36,6 +36,7 @@ class OutStream(object):
     """A file like object that publishes the stream to a 0MQ PUB socket."""
 
     # The time interval between automatic flushes, in seconds.
+    _subprocess_flush_limit = 256
     flush_interval = 0.05
     topic=None
 
@@ -105,7 +106,7 @@ class OutStream(object):
         """flush possible pub data from subprocesses into my buffer"""
         if not self._pipe_flag or not self._is_master_process():
             return
-        for i in range(100):
+        for i in range(self._subprocess_flush_limit):
             if self._pipe_poller.poll(0):
                 msg = self._pipe_in.recv_multipart()
                 if msg[0] != self._pipe_uuid:
