@@ -274,7 +274,7 @@ Security in IPython.parallel is provided by SSH tunnels.  By default, Linux
 and OSX clients will use the shell ssh command, but on Windows, we also
 support tunneling with paramiko_.
 
-Dependencies for IPython.zmq
+Dependencies for IPython.kernel.zmq
 ============================
 
 pyzmq
@@ -286,7 +286,7 @@ are found in the PyZMQ_ project, which is easy_install-able once you have
 ZeroMQ installed.  If you are on Python 2.6 or 2.7 on OSX, or 2.7 on Windows,
 pyzmq has eggs that include ZeroMQ itself.
 
-IPython.zmq depends on pyzmq >= 2.1.4.
+IPython.kernel.zmq depends on pyzmq >= 2.1.4.
 
 Dependencies for the IPython QT console
 =======================================
@@ -300,7 +300,7 @@ PyZMQ.
 Qt
 --
 
-Also with 0.11, a new GUI was added using the work in :mod:`IPython.zmq`, which
+Also with 0.11, a new GUI was added using the work in :mod:`IPython.kernel.zmq`, which
 can be launched with ``ipython qtconsole``. The GUI is built on Qt, and works
 with either PyQt, which can be installed from the `PyQt website
 <http://www.riverbankcomputing.co.uk/>`_, or `PySide

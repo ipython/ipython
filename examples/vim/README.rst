@@ -66,7 +66,7 @@ same as passing just the ``--existing`` flag to ``ipython qtconsole`` and
     kernel - just watch for the connection string that gets printed when you
     open the notebook, or use the ``%connect_info`` magic to get the
     connection string.  If you are still using 0.11, you can launch a regular
-    kernel using ``python -c "from IPython.zmq.ipkernel import main; main()"``
+    kernel using ``python -c "from IPython.kernel.zmq.ipkernel import main; main()"``
 
 ------------------------
 Sending lines to IPython
@@ -176,7 +176,7 @@ Current issues:
     stty stop undef # to unmap ctrl-s
 
 - In vim, if you're getting ``ImportError: No module named
-  IPython.zmq.blockingkernelmanager`` but are able to import it in regular
+  IPython.kernel.zmq.blockingkernelmanager`` but are able to import it in regular
   python, **either**
 
   1. your ``sys.path`` in vim differs from the ``sys.path`` in regular python.
