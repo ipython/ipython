@@ -6,10 +6,10 @@ Security details of IPython
 
 .. note::
 
-    This section is not thorough, and IPython.zmq needs a thorough security
+    This section is not thorough, and IPython.kernel.zmq needs a thorough security
     audit.
 
-IPython's :mod:`IPython.zmq` package exposes the full power of the
+IPython's :mod:`IPython.kernel.zmq` package exposes the full power of the
 Python interpreter over a TCP/IP network for the purposes of parallel
 computing. This feature brings up the important question of IPython's security
 model. This document gives details about this model and how it is implemented

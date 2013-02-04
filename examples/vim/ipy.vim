@@ -83,9 +83,9 @@ def km_from_string(s=''):
     or just 'kernel-12345.json' for IPython 0.12
     """
     from os.path import join as pjoin
-    from IPython.zmq.blockingkernelmanager import BlockingKernelManager, Empty
+    from IPython.kernel.zmq.blockingkernelmanager import BlockingKernelManager, Empty
     from IPython.config.loader import KeyValueConfigLoader
-    from IPython.zmq.kernelapp import kernel_aliases
+    from IPython.kernel.zmq.kernelapp import kernel_aliases
     global km,send,Empty
 
     s = s.replace('--existing', '')

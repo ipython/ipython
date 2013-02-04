@@ -39,7 +39,7 @@ Subpackage descriptions
   Usually, these are short, single file modules.
 
 * :mod:`IPython.frontend`. This package contains the various IPython
-  frontends which communicate with the :mod:`IPython.zmq` kernels (see
+  frontends which communicate with the :mod:`IPython.kernel.zmq` kernels (see
   :ref:`Messaging in IPython <messaging>`). This includes the
   :ref:`ipython notebook <htmlnotebook>`, :ref:`ipython qtconsole
   <qtconsole>`, and :ref:`ipython console <two_process_console>` entry points.
@@ -79,7 +79,7 @@ Subpackage descriptions
   functions and classes that serve a single purpose and that don't
   depend on things in the rest of IPython.
 
-* :mod:`IPython.zmq`. This sub-package contains code related to starting and
-  managing IPython kernels, which :mod:`IPython.frontend` instances can then
+* :mod:`IPython.kernel.zmq`. This sub-package contains code related to starting
+  and managing IPython kernels, which :mod:`IPython.frontend` instances can then
   communicate with (see :ref:`Messaging in IPython <messaging>`).
 
