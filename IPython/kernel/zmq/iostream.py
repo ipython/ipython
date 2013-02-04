@@ -152,7 +152,10 @@ class OutStream(object):
                     self._pipe_uuid,
                     string.encode(self.encoding, 'replace'),
                 ], copy=False, track=True)
-                tracker.wait(1)
+                try:
+                    tracker.wait(1)
+                except:
+                    pass
 
     def isatty(self):
         return False
