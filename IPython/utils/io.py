@@ -154,48 +154,6 @@ class Tee(object):
             self.close()
 
 
-def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
-    """Take multiple lines of input.
-
-    A list with each line of input as a separate element is returned when a
-    termination string is entered (defaults to a single '.'). Input can also
-    terminate via EOF (^D in Unix, ^Z-RET in Windows).
-
-    Lines of input which end in \\ are joined into single entries (and a
-    secondary continuation prompt is issued as long as the user terminates
-    lines with \\). This allows entering very long strings which are still
-    meant to be treated as single entities.
-    """
-
-    try:
-        if header:
-            header += '\n'
-        lines = [raw_input(header + ps1)]
-    except EOFError:
-        return []
-    terminate = [terminate_str]
-    try:
-        while lines[-1:] != terminate:
-            new_line = raw_input(ps1)
-            while new_line.endswith('\\'):
-                new_line = new_line[:-1] + raw_input(ps2)
-            lines.append(new_line)
-
-        return lines[:-1]  # don't return the termination command
-    except EOFError:
-        print()
-        return lines
-
-
-def raw_input_ext(prompt='',  ps2='... '):
-    """Similar to raw_input(), but accepts extended lines if input ends with \\."""
-
-    line = raw_input(prompt)
-    while line.endswith('\\'):
-        line = line[:-1] + raw_input(ps2)
-    return line
-
-
 def ask_yes_no(prompt,default=None):
     """Asks a question and returns a boolean (y/n) answer.
 
