@@ -8,3 +8,4 @@ c.ConverterTemplate.tex_environement=False
 c.NbconvertApp.fileext='html'
 
 c.ExtractFigureTransformer.enabled = False
+c.CSSHtmlHeaderTransformer.enabled=True
