@@ -67,12 +67,10 @@ all or one cell's toolbars.
     margin-bottom:0;
 }
 
-.button_container .ui-state-default, .button_container .ui-state-hover, .button_container .ui-state-hover span{
-    border-radius : 0 0 0 0;
-    border : none;
-    margin:0;
-}
 
+.ui-button {
+    min-width:30px;
+}
 .celltoolbar .button_container select {
     margin: 10px;
     margin-top: 1px;
