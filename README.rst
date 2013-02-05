@@ -21,8 +21,9 @@ Requirements
 
 Sphinx-Latex:
 
-    $ #see http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
     $ sudo apt-get install texlive-full
+
+see http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
         
 Running Tests
 =============
