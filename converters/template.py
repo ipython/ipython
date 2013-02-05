@@ -129,6 +129,7 @@ class ConverterTemplate(Configurable):
             self.preprocessors.append(transformer)
 
         ## for compat, remove later
+        self.preprocessors.append(trans.coalesce_streams)
         self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
         self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))

@@ -74,6 +74,33 @@ def haspyout_transformer(cell, other, count):
             break
     return cell, other
 
+@cell_preprocessor
+def coalesce_streams(cell, other, count):
+    """merge consecutive sequences of stream output into single stream
+
+    to prevent extra newlines inserted at flush calls
+
+    TODO: handle \r deletion
+    """
+
+    outputs = cell.get('outputs', None)
+    if not outputs:
+        return cell, other
+    new_outputs = []
+    last = outputs[0]
+    new_outputs = [last]
+    for output in outputs[1:]:
+        if (output.output_type == 'stream' and
+            last.output_type == 'stream' and
+            last.stream == output.stream
+        ):
+            last.text += output.text
+        else:
+            new_outputs.append(output)
+
+    cell.outputs = new_outputs
+    return cell, other
+
 
 # todo, make the key part configurable.
 
@@ -234,12 +261,12 @@ class RevealHelpTransformer(ConfigurableTransformers):
 
 
 class CSSHtmlHeaderTransformer(ActivatableTransformer):
-    
+
     def __call__(self, nb, resources):
         """Fetch and add css to the resource dict
 
-        Fetch css from IPython adn Pygment to add at the beginning 
-        of the html files. 
+        Fetch css from IPython adn Pygment to add at the beginning
+        of the html files.
 
         Add this css in resources in the "inlining.css" key
         """
