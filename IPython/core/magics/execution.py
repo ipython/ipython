@@ -776,6 +776,7 @@ python-profiler package from non-free.""")
                                         posix=False, strict=False)
         if stmt == "" and cell is None:
             return
+        
         timefunc = timeit.default_timer
         number = int(getattr(opts, "n", 0))
         repeat = int(getattr(opts, "r", timeit.default_repeat))

@@ -36,6 +36,7 @@ from IPython.utils.openpy import source_to_unicode
 from IPython.utils.path import unquote_filename
 from IPython.utils.process import abbrev_cwd
 from IPython.utils.terminal import set_term_title
+
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
