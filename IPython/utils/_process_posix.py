@@ -56,6 +56,7 @@ class ProcessHandler(object):
     # Shell to call for subprocesses to execute
     _sh = None
 
+    @property
     def sh(self):
         if self._sh is None:        
             self._sh = pexpect.which('sh')
