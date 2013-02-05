@@ -18,7 +18,7 @@ from .utils import highlight, ansi2html
 from .utils import markdown2latex
 
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import Unicode, Bool, Dict, List
+from IPython.utils.traitlets import List
 
 #-----------------------------------------------------------------------------
 # Class declarations
