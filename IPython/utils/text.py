@@ -321,48 +321,6 @@ def qw_lol(indata):
         return qw(indata)
 
 
-def grep(pat,list,case=1):
-    """Simple minded grep-like function.
-    grep(pat,list) returns occurrences of pat in list, None on failure.
-
-    It only does simple string matching, with no support for regexps. Use the
-    option case=0 for case-insensitive matching."""
-
-    # This is pretty crude. At least it should implement copying only references
-    # to the original data in case it's big. Now it copies the data for output.
-    out=[]
-    if case:
-        for term in list:
-            if term.find(pat)>-1: out.append(term)
-    else:
-        lpat=pat.lower()
-        for term in list:
-            if term.lower().find(lpat)>-1: out.append(term)
-
-    if len(out): return out
-    else: return None
-
-
-def dgrep(pat,*opts):
-    """Return grep() on dir()+dir(__builtins__).
-
-    A very common use of grep() when working interactively."""
-
-    return grep(pat,dir(__main__)+dir(__main__.__builtins__),*opts)
-
-
-def idgrep(pat):
-    """Case-insensitive dgrep()"""
-
-    return dgrep(pat,0)
-
-
-def igrep(pat,list):
-    """Synonym for case-insensitive grep."""
-
-    return grep(pat,list,case=0)
-
-
 def indent(instr,nspaces=4, ntabs=0, flatten=False):
     """Indent a string a given number of spaces or tabstops.
 
