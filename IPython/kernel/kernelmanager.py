@@ -1082,7 +1082,7 @@ class KernelManager(Configurable):
         """
         if self.has_kernel:
             if sys.platform == 'win32':
-                from parentpoller import ParentPollerWindows as Poller
+                from .zmq.parentpoller import ParentPollerWindows as Poller
                 Poller.send_interrupt(self.kernel.win32_interrupt_event)
             else:
                 self.kernel.send_signal(signal.SIGINT)
