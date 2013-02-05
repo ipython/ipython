@@ -23,7 +23,6 @@ import __main__
 
 import os
 import re
-import shutil
 import sys
 import textwrap
 from string import Formatter
@@ -402,31 +401,6 @@ def indent(instr,nspaces=4, ntabs=0, flatten=False):
         return outstr[:-len(ind)]
     else:
         return outstr
-
-def native_line_ends(filename,backup=1):
-    """Convert (in-place) a file to line-ends native to the current OS.
-
-    If the optional backup argument is given as false, no backup of the
-    original file is left.  """
-
-    backup_suffixes = {'posix':'~','dos':'.bak','nt':'.bak','mac':'.bak'}
-
-    bak_filename = filename + backup_suffixes[os.name]
-
-    original = open(filename).read()
-    shutil.copy2(filename,bak_filename)
-    try:
-        new = open(filename,'wb')
-        new.write(os.linesep.join(original.splitlines()))
-        new.write(os.linesep) # ALWAYS put an eol at the end of the file
-        new.close()
-    except:
-        os.rename(bak_filename,filename)
-    if not backup:
-        try:
-            os.remove(bak_filename)
-        except:
-            pass
 
 
 def list_strings(arg):

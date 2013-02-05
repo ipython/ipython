@@ -20,8 +20,6 @@ import pprint
 import sys
 import subprocess
 
-from ConfigParser import ConfigParser
-
 from IPython.core import release
 from IPython.utils import py3compat, _sysinfo, encoding
 

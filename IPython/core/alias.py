@@ -30,7 +30,6 @@ from IPython.config.configurable import Configurable
 from IPython.core.splitinput import split_user_input
 
 from IPython.utils.traitlets import List, Instance
-from IPython.utils.autoattr import auto_attr
 from IPython.utils.warn import warn, error
 
 #-----------------------------------------------------------------------------

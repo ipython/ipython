@@ -2,7 +2,6 @@
 """
 
 import subprocess
-import sys
 
 from IPython.core.error import TryNext
 import IPython.utils.py3compat as py3compat

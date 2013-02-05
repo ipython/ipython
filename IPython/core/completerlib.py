@@ -30,7 +30,6 @@ from zipimport import zipimporter
 # Our own imports
 from IPython.core.completer import expand_user, compress_user
 from IPython.core.error import TryNext
-from IPython.utils import py3compat
 from IPython.utils._process_common import arg_split
 
 # FIXME: this should be pulled in with the right call via the component system

@@ -32,3 +32,7 @@ Backwards incompatible changes
   was duplicated in :mod:`IPython.core.inputsplitter`, and the latter version
   was already what IPython relied on. A new API to transform input will be ready
   before release.
+* Functions from :mod:`IPython.lib.inputhook` to control integration with GUI
+  event loops are no longer exposed in the top level of :mod:`IPython.lib`.
+  Code calling these should make sure to import them from
+  :mod:`IPython.lib.inputhook`.
