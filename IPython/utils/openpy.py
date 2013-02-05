@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import io
 from io import TextIOWrapper, BytesIO
+import os.path
 import re
 
 cookie_re = re.compile(ur"coding[:=]\s*([-\w.]+)", re.UNICODE)
@@ -217,3 +218,22 @@ def _list_readline(x):
     def readline():
         return next(x)
     return readline
+
+# Code for going between .py files and cached .pyc files ----------------------
+
+try:    # Python 3.2, see PEP 3147
+    from imp import source_from_cache, cache_from_source
+except ImportError:
+    # Python <= 3.1: .pyc files go next to .py
+    def source_from_cache(path):
+        basename, ext = os.path.splitext(path)
+        if ext not in ('.pyc', '.pyo'):
+            raise ValueError('Not a cached Python file extension', ext)
+        # Should we look for .pyw files?
+        return basename + '.py'
+    
+    def cache_from_source(path, debug_override=None):
+        if debug_override is None:
+            debug_override = __debug__
+        basename, ext = os.path.splitext(path)
+        return basename + '.pyc' if debug_override else '.pyo'

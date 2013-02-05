@@ -154,64 +154,6 @@ class Tee(object):
             self.close()
 
 
-def file_read(filename):
-    """Read a file and close it.  Returns the file source."""
-    fobj = open(filename,'r');
-    source = fobj.read();
-    fobj.close()
-    return source
-
-
-def file_readlines(filename):
-    """Read a file and close it.  Returns the file source using readlines()."""
-    fobj = open(filename,'r');
-    lines = fobj.readlines();
-    fobj.close()
-    return lines
-
-
-def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
-    """Take multiple lines of input.
-
-    A list with each line of input as a separate element is returned when a
-    termination string is entered (defaults to a single '.'). Input can also
-    terminate via EOF (^D in Unix, ^Z-RET in Windows).
-
-    Lines of input which end in \\ are joined into single entries (and a
-    secondary continuation prompt is issued as long as the user terminates
-    lines with \\). This allows entering very long strings which are still
-    meant to be treated as single entities.
-    """
-
-    try:
-        if header:
-            header += '\n'
-        lines = [raw_input(header + ps1)]
-    except EOFError:
-        return []
-    terminate = [terminate_str]
-    try:
-        while lines[-1:] != terminate:
-            new_line = raw_input(ps1)
-            while new_line.endswith('\\'):
-                new_line = new_line[:-1] + raw_input(ps2)
-            lines.append(new_line)
-
-        return lines[:-1]  # don't return the termination command
-    except EOFError:
-        print()
-        return lines
-
-
-def raw_input_ext(prompt='',  ps2='... '):
-    """Similar to raw_input(), but accepts extended lines if input ends with \\."""
-
-    line = raw_input(prompt)
-    while line.endswith('\\'):
-        line = line[:-1] + raw_input(ps2)
-    return line
-
-
 def ask_yes_no(prompt,default=None):
     """Asks a question and returns a boolean (y/n) answer.
 
@@ -240,44 +182,6 @@ def ask_yes_no(prompt,default=None):
                 raise
 
     return answers[ans]
-
-
-class NLprinter:
-    """Print an arbitrarily nested list, indicating index numbers.
-
-    An instance of this class called nlprint is available and callable as a
-    function.
-
-    nlprint(list,indent=' ',sep=': ') -> prints indenting each level by 'indent'
-    and using 'sep' to separate the index from the value. """
-
-    def __init__(self):
-        self.depth = 0
-
-    def __call__(self,lst,pos='',**kw):
-        """Prints the nested list numbering levels."""
-        kw.setdefault('indent',' ')
-        kw.setdefault('sep',': ')
-        kw.setdefault('start',0)
-        kw.setdefault('stop',len(lst))
-        # we need to remove start and stop from kw so they don't propagate
-        # into a recursive call for a nested list.
-        start = kw['start']; del kw['start']
-        stop = kw['stop']; del kw['stop']
-        if self.depth == 0 and 'header' in kw.keys():
-            print(kw['header'])
-
-        for idx in range(start,stop):
-            elem = lst[idx]
-            newpos = pos + str(idx)
-            if type(elem)==type([]):
-                self.depth += 1
-                self.__call__(elem, newpos+",", **kw)
-                self.depth -= 1
-            else:
-                print(kw['indent']*self.depth + newpos + kw["sep"] + repr(elem))
-
-nlprint = NLprinter()
 
 
 def temp_pyfile(src, ext='.py'):

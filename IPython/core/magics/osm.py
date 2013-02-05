@@ -31,7 +31,6 @@ from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils.io import nlprint
 from IPython.utils.openpy import source_to_unicode
 from IPython.utils.path import unquote_filename
 from IPython.utils.process import abbrev_cwd
@@ -403,7 +402,7 @@ class OSMagics(Magics):
 
         %dhist       -> print full history\\
         %dhist n     -> print last n entries only\\
-        %dhist n1 n2 -> print entries between n1 and n2 (n1 not included)\\
+        %dhist n1 n2 -> print entries between n1 and n2 (n2 not included)\\
 
         This history is automatically maintained by the %cd command, and
         always available as the global list variable _dh. You can use %cd -<n>
@@ -425,14 +424,15 @@ class OSMagics(Magics):
                 ini,fin = max(len(dh)-(args[0]),0),len(dh)
             elif len(args) == 2:
                 ini,fin = args
+                fin = min(fin, len(dh))
             else:
                 self.arg_err(self.dhist)
                 return
         else:
             ini,fin = 0,len(dh)
-        nlprint(dh,
-                header = 'Directory history (kept in _dh)',
-                start=ini,stop=fin)
+        print 'Directory history (kept in _dh)'
+        for i in range(ini, fin):
+            print "%d: %s" % (i, dh[i])
 
     @skip_doctest
     @line_magic

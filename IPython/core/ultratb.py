@@ -104,9 +104,9 @@ from IPython.core.display_trap import DisplayTrap
 from IPython.core.excolors import exception_colors
 from IPython.utils import PyColorize
 from IPython.utils import io
+from IPython.utils import openpy
 from IPython.utils import path as util_path
 from IPython.utils import py3compat
-from IPython.utils import pyfile
 from IPython.utils import ulinecache
 from IPython.utils.data import uniq_stable
 from IPython.utils.warn import info, error
@@ -837,7 +837,7 @@ class VerboseTB(TBTools):
                 continue
             elif file.endswith(('.pyc','.pyo')):
                 # Look up the corresponding source file.
-                file = pyfile.source_from_cache(file)
+                file = openpy.source_from_cache(file)
 
             def linereader(file=file, lnum=[lnum], getline=ulinecache.getline):
                 line = getline(file, lnum[0])
