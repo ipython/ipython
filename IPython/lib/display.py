@@ -2,8 +2,6 @@
 
 Authors : MinRK, gregcaporaso, dannystaple
 """
-import urllib
-
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
 
@@ -41,7 +39,8 @@ class YouTubeVideo(object):
     def _repr_html_(self):
         """return YouTube embed iframe for this video id"""
         if self.params:
-            params = "?" + urllib.urlencode(self.params)
+            from urllib import urlencode  # Deferred import
+            params = "?" + urlencode(self.params)
         else:
             params = ""
         return """

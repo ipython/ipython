@@ -17,9 +17,7 @@ Authors:  Robin Dunn, Brian Granger, Ondrej Certik
 # Imports
 #-----------------------------------------------------------------------------
 
-import os
 import signal
-import sys
 import time
 from timeit import default_timer as clock
 import wx

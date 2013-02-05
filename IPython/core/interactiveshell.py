@@ -28,7 +28,6 @@ import runpy
 import sys
 import tempfile
 import types
-import urllib
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
@@ -2989,7 +2988,8 @@ class InteractiveShell(SingletonConfigurable):
                 return openpy.read_py_url(utarget, skip_encoding_cookie=skip_encoding_cookie)
         except UnicodeDecodeError:
             if not py_only :
-                response = urllib.urlopen(target)
+                from urllib import urlopen  # Deferred import
+                response = urlopen(target)
                 return response.read().decode('latin1')
             raise ValueError(("'%s' seem to be unreadable.") % utarget)
 

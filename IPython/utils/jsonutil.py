@@ -13,7 +13,6 @@
 # stdlib
 import math
 import re
-import sys
 import types
 from datetime import datetime
 
@@ -26,7 +25,6 @@ except ImportError:
 
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
-from IPython.utils import text
 next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
 #-----------------------------------------------------------------------------

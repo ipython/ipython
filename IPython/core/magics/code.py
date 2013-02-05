@@ -15,11 +15,9 @@
 # Stdlib
 import inspect
 import io
-import json
 import os
 import re
 import sys
-from urllib2 import urlopen
 
 # Our own packages
 from IPython.core.error import TryNext, StdinNotImplementedError, UsageError
@@ -27,7 +25,6 @@ from IPython.core.macro import Macro
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
-from IPython.utils import openpy
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
 from IPython.utils.io import file_read
@@ -141,6 +138,8 @@ class CodeMagics(Magics):
             print e.args[0]
             return
 
+        from urllib2 import urlopen  # Deferred import
+        import json
         post_data = json.dumps({
           "description": opts.get('d', "Pasted from IPython"),
           "public": True,

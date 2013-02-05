@@ -16,7 +16,6 @@ from __future__ import print_function
 # Stdlib
 import os
 from io import open as io_open
-from IPython.external.argparse import Action
 
 # Our own packages
 from IPython.core.error import StdinNotImplementedError

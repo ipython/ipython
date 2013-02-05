@@ -183,9 +183,8 @@ import re
 import shlex
 import sys
 
-from IPython.utils.PyColorize import Parser
 from IPython.utils import io
-from IPython.utils.io import file_read, file_readlines
+from IPython.utils.io import file_read
 from IPython.utils.text import marquee
 from IPython.utils import openpy
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']

@@ -24,7 +24,6 @@ from IPython.external import pexpect
 # Our own
 from .autoattr import auto_attr
 from ._process_common import getoutput, arg_split
-from IPython.utils import text
 from IPython.utils import py3compat
 from IPython.utils.encoding import DEFAULT_ENCODING
 

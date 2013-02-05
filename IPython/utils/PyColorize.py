@@ -41,7 +41,6 @@ _scheme_default = 'Linux'
 import StringIO
 import keyword
 import os
-import optparse
 import sys
 import token
 import tokenize
@@ -263,6 +262,7 @@ def main(argv=None):
 Colorize a python file or stdin using ANSI color escapes and print to stdout.
 If no filename is given, or if filename is -, read standard input."""
 
+    import optparse
     parser = optparse.OptionParser(usage=usage_msg)
     newopt = parser.add_option
     newopt('-s','--scheme',metavar='NAME',dest='scheme_name',action='store',

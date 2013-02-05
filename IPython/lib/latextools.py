@@ -26,7 +26,7 @@ import subprocess
 
 from IPython.utils.process import find_cmd, FindCmdError
 from IPython.config.configurable import SingletonConfigurable
-from IPython.utils.traitlets import Instance, List, CBool, CUnicode
+from IPython.utils.traitlets import List, CBool, CUnicode
 from IPython.utils.py3compat import bytes_to_str
 
 #-----------------------------------------------------------------------------
