@@ -30,7 +30,6 @@ from string import Formatter
 from IPython.external.path import path
 from IPython.testing.skipdoctest import skip_doctest_py3, skip_doctest
 from IPython.utils import py3compat
-from IPython.utils.io import nlprint
 from IPython.utils.data import flatten
 
 #-----------------------------------------------------------------------------
@@ -265,7 +264,7 @@ class SList(list):
 #         arg.hideonce = False
 #         return
 #
-#     nlprint(arg)
+#     nlprint(arg)   # This was a nested list printer, now removed.
 #
 # print_slist = result_display.when_type(SList)(print_slist)
 

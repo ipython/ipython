@@ -242,44 +242,6 @@ def ask_yes_no(prompt,default=None):
     return answers[ans]
 
 
-class NLprinter:
-    """Print an arbitrarily nested list, indicating index numbers.
-
-    An instance of this class called nlprint is available and callable as a
-    function.
-
-    nlprint(list,indent=' ',sep=': ') -> prints indenting each level by 'indent'
-    and using 'sep' to separate the index from the value. """
-
-    def __init__(self):
-        self.depth = 0
-
-    def __call__(self,lst,pos='',**kw):
-        """Prints the nested list numbering levels."""
-        kw.setdefault('indent',' ')
-        kw.setdefault('sep',': ')
-        kw.setdefault('start',0)
-        kw.setdefault('stop',len(lst))
-        # we need to remove start and stop from kw so they don't propagate
-        # into a recursive call for a nested list.
-        start = kw['start']; del kw['start']
-        stop = kw['stop']; del kw['stop']
-        if self.depth == 0 and 'header' in kw.keys():
-            print(kw['header'])
-
-        for idx in range(start,stop):
-            elem = lst[idx]
-            newpos = pos + str(idx)
-            if type(elem)==type([]):
-                self.depth += 1
-                self.__call__(elem, newpos+",", **kw)
-                self.depth -= 1
-            else:
-                print(kw['indent']*self.depth + newpos + kw["sep"] + repr(elem))
-
-nlprint = NLprinter()
-
-
 def temp_pyfile(src, ext='.py'):
     """Make a temporary python file, return filename and filehandle.
 
