@@ -119,7 +119,7 @@ try:
 except NameError:
     from imp import reload
 
-from IPython.utils import pyfile
+from IPython.utils import openpy
 from IPython.utils.py3compat import PY3
 
 #------------------------------------------------------------------------------
@@ -207,12 +207,12 @@ class ModuleReloader(object):
             path, ext = os.path.splitext(filename)
 
             if ext.lower() == '.py':
-                pyc_filename = pyfile.cache_from_source(filename)
+                pyc_filename = openpy.cache_from_source(filename)
                 py_filename = filename
             else:
                 pyc_filename = filename
                 try:
-                    py_filename = pyfile.source_from_cache(filename)
+                    py_filename = openpy.source_from_cache(filename)
                 except ValueError:
                     continue
 
