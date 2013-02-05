@@ -2695,7 +2695,9 @@ class InteractiveShell(SingletonConfigurable):
                 warn("AST transformer %r threw an error. It will be unregistered." % transformer)
                 self.ast_transformers.remove(transformer)
         
-        return ast.fix_missing_locations(node)
+        if self.ast_transformers:
+            ast.fix_missing_locations(node)
+        return node
                 
 
     def run_ast_nodes(self, nodelist, cell_name, interactivity='last_expr',
