@@ -121,9 +121,13 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     """
             )
 
+    key_format_map =  Dict({},
+            config=True,
+            )
+
 
     #to do change this to .format {} syntax
-    key_tpl = Unicode('_fig_%02i.%s', config=True)
+    default_key_tpl = Unicode('_fig_%02i.%s', config=True)
 
     def _get_ext(self, ext):
         if ext in self.extra_ext_map :
@@ -135,8 +139,9 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
         Returns a path relative to the input file.
         """
-        figname = self.key_tpl % (count, self._get_ext(fmt))
-        key     = self.key_tpl % (count, fmt)
+        tpl = self.key_format_map.get(fmt,self.default_key_tpl) 
+        figname = tpl % (count, self._get_ext(fmt))
+        key     = tpl % (count, fmt)
 
         # Binary files are base64-encoded, SVG is already XML
         if fmt in ('png', 'jpg', 'pdf'):
