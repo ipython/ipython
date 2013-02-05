@@ -2125,7 +2125,8 @@ class InteractiveShell(SingletonConfigurable):
                                     'did you mean that instead?)' % magic_name )
             error(etpl % (magic_name, extra))
         elif cell == '':
-            raise UsageError('%%%%%s has line but no cell' % magic_name)
+            raise UsageError('%%{0} (with double %) expects code beneath it. '
+                        'Did you mean %{0} (single %)?'.format(magic_name))
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
