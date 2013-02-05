@@ -104,7 +104,7 @@ document.write( '<link rel="stylesheet" href="reveal/css/print/' + ( window.loca
 <script src="reveal/lib/js/html5shiv.js"></script>
 <![endif]-->
 
-{% for css in inlining.css -%}
+{% for css in resources.inlining.css -%}
 <style type="text/css">
 {{css}}
 </style>

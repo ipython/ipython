@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <title>[{{nb.metadata.name}}]</title>
-{% for css in inlining.css -%}
+{% for css in resources.inlining.css -%}
 <style type="text/css">
 {{css}}
 </style>

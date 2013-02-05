@@ -27,8 +27,7 @@ from converters.utils import  markdown2rst
 
 # Stdlib imports
 import io
-import os
-from IPython.utils import path
+
 from IPython.utils.traitlets import MetaHasTraits
 
 from jinja2 import Environment, FileSystemLoader
@@ -58,50 +57,6 @@ from IPython.utils.traitlets import ( Unicode, Any, List, Bool)
 #-----------------------------------------------------------------------------
 class ConversionException(Exception):
     pass
-
-#todo move this out
-def header_body():
-    """Return the body of the header as a list of strings."""
-
-    from pygments.formatters import HtmlFormatter
-
-    header = []
-    static = os.path.join(path.get_ipython_package_dir(),
-    'frontend', 'html', 'notebook', 'static',
-    )
-    here = os.path.split(os.path.realpath(__file__))[0]
-    css = os.path.join(static, 'css')
-    for sheet in [
-        # do we need jquery and prettify?
-        # os.path.join(static, 'jquery', 'css', 'themes', 'base',
-        # 'jquery-ui.min.css'),
-        # os.path.join(static, 'prettify', 'prettify.css'),
-        os.path.join(css, 'boilerplate.css'),
-        os.path.join(css, 'fbm.css'),
-        os.path.join(css, 'notebook.css'),
-        os.path.join(css, 'renderedhtml.css'),
-        os.path.join(css, 'style.min.css'),
-        # our overrides:
-        os.path.join(here, '..', 'css', 'static_html.css'),
-    ]:
-        try:
-            with io.open(sheet, encoding='utf-8') as f:
-                s = f.read()
-                header.append(s)
-        except IOError:
-            # new version of ipython with style.min.css, pass
-            pass
-
-    pygments_css = HtmlFormatter().get_style_defs('.highlight')
-    header.append(pygments_css)
-    return header
-
-
-
-
-
-inlining = {}
-inlining['css'] = header_body()
 
 
 
@@ -176,6 +131,7 @@ class ConverterTemplate(Configurable):
         ## for compat, remove later
         self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
+        self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
 
         ##
         self.env.filters['filter_data_type'] = FilterDataType(config=config)
@@ -219,12 +175,13 @@ class ConverterTemplate(Configurable):
         other resources
         """
         nb, resources = self.process(nb)
-        return self.template.render(nb=nb, inlining=inlining), resources
+        return self.template.render(nb=nb, resources=resources), resources
 
 
     def from_filename(self, filename):
         "read and parse notebook into NotebookNode called self.nb"
         with io.open(filename) as f:
             return self.convert(nbformat.read(f, 'json'))
+
 
 

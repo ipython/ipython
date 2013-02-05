@@ -2,13 +2,13 @@
 
 """
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function
+
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Unicode, Bool, Dict, List
-from .jinja_filters import GlobalConfigurable
 
-class ConfigurableTransformers(GlobalConfigurable):
+class ConfigurableTransformers(Configurable):
     """ A configurable transformer """
 
     def __init__(self, config=None, **kw):
@@ -85,6 +85,15 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Usefull for latex where svg will be converted to pdf before inclusion
             """
             )
+    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+            config=True,
+              help= """
+                    An ordered list of prefered output type, the first
+                    encounterd will usually be used when converting discarding
+                    the others.
+                    """
+            )
+
 
     #to do change this to .format {} syntax
     key_tpl = Unicode('_fig_%02i.%s', config=True)
@@ -222,4 +231,63 @@ class RevealHelpTransformer(ConfigurableTransformers):
             cell.metadata.slideshow.open_subsection = self.open_subsection()
             cell.metadata.slideshow.open_fragment = False
         return cell,other
+
+
+class CSSHtmlHeaderTransformer(ActivatableTransformer):
+    
+    def __call__(self, nb, resources):
+        """Fetch and add css to the resource dict
+
+        Fetch css from IPython adn Pygment to add at the beginning 
+        of the html files. 
+
+        Add this css in resources in the "inlining.css" key
+        """
+        resources['inlining']= {}
+        resources['inlining']['css'] = self.header
+        return nb, resources
+
+    header= []
+
+    def __init__(self, config=None, **kw):
+        super(CSSHtmlHeaderTransformer,self).__init__(config=config, **kw)
+        if self.enabled :
+            self.regen_header()
+
+    def regen_header(self):
+        ## lazy load asa this might not be use in many transformers
+        import os
+        from IPython.utils import path
+        import io
+        from pygments.formatters import HtmlFormatter
+        header = []
+        static = os.path.join(path.get_ipython_package_dir(),
+            'frontend', 'html', 'notebook', 'static',
+        )
+        here = os.path.split(os.path.realpath(__file__))[0]
+        css = os.path.join(static, 'css')
+        for sheet in [
+            # do we need jquery and prettify?
+            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
+            # 'jquery-ui.min.css'),
+            # os.path.join(static, 'prettify', 'prettify.css'),
+            os.path.join(css, 'boilerplate.css'),
+            os.path.join(css, 'fbm.css'),
+            os.path.join(css, 'notebook.css'),
+            os.path.join(css, 'renderedhtml.css'),
+            os.path.join(css, 'style.min.css'),
+            # our overrides:
+            os.path.join(here, '..', 'css', 'static_html.css'),
+        ]:
+            try:
+                with io.open(sheet, encoding='utf-8') as f:
+                    s = f.read()
+                    header.append(s)
+            except IOError:
+                # new version of ipython with style.min.css, pass
+                pass
+
+        pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        header.append(pygments_css)
+        self.header = header
 
