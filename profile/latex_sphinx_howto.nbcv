@@ -1,0 +1,10 @@
+c = get_config()
+
+c.ConverterTemplate.extract_figures=True
+c.ConverterTemplate.template_file='latex_sphinx_howto'
+c.ConverterTemplate.tex_environement=True
+c.NbconvertApp.fileext='tex'
+c.NbconvertApp.write=True
+
+c.ExtractFigureTransformer.extra_ext_map={'svg':'pdf'}
+c.ExtractFigureTransformer.enabled=True
