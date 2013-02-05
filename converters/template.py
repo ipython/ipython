@@ -50,7 +50,7 @@ texenv = Environment(
 # IPython imports
 from IPython.nbformat import current as nbformat
 from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import ( Unicode, Any, List, Bool)
+from IPython.utils.traitlets import ( Unicode, List, Bool)
 
 #-----------------------------------------------------------------------------
 # Class declarations

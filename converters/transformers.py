@@ -20,7 +20,7 @@ class ConfigurableTransformers(Configurable):
                 for index, cell in enumerate(worksheet.cells):
                     worksheet.cells[index], other = self.cell_transform(cell, other, index)
             return nb, other
-        except NotImplementedError as error :
+        except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
 
     def cell_transform(self, cell, other, index):
@@ -36,9 +36,9 @@ class ActivatableTransformer(ConfigurableTransformers):
 
     def __call__(self, nb, other):
         if not self.enabled :
-            return nb,other
+            return nb, other
         else :
-            return super(ActivatableTransformer,self).__call__(nb, other)
+            return super(ActivatableTransformer, self).__call__(nb, other)
 
 
 def cell_preprocessor(function):
@@ -119,13 +119,13 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
 
     def cell_transform(self, cell, other, count):
-        if other.get('figures',None) is None :
-            other['figures']={}
-        for i, out in enumerate(cell.get('outputs', [])):
-            for type in self.display_data_priority:
-                if out.hasattr(type):
-                    figname, key, data = self._new_figure(out[type], type, count)
-                    out['key_'+type] = figname
+        if other.get('figures', None) is None :
+            other['figures'] = {}
+        for out in cell.get('outputs', []):
+            for out_type in self.display_data_priority:
+                if out.hasattr(out_type):
+                    figname, key, data = self._new_figure(out[out_type], out_type, count)
+                    out['key_'+out_type] = figname
                     other['figures'][key] = data
                     count = count+1
         return cell, other
@@ -200,8 +200,8 @@ class RevealHelpTransformer(ConfigurableTransformers):
         else :
             return False
 
-    def cell_transform(self, cell, other,count):
-        ctype = cell.metadata.get('slideshow',{}).get('slide_type',None)
+    def cell_transform(self, cell, other, count):
+        ctype = cell.metadata.get('slideshow', {}).get('slide_type', None)
         if ctype in [None, '-'] :
             cell.metadata.slideshow = {}
             cell.metadata.slideshow['slide_type'] = None
@@ -230,7 +230,7 @@ class RevealHelpTransformer(ConfigurableTransformers):
             cell.metadata.slideshow.open_section = self.open_section()
             cell.metadata.slideshow.open_subsection = self.open_subsection()
             cell.metadata.slideshow.open_fragment = False
-        return cell,other
+        return cell, other
 
 
 class CSSHtmlHeaderTransformer(ActivatableTransformer):
@@ -243,14 +243,14 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
 
         Add this css in resources in the "inlining.css" key
         """
-        resources['inlining']= {}
+        resources['inlining'] = {}
         resources['inlining']['css'] = self.header
         return nb, resources
 
-    header= []
+    header = []
 
     def __init__(self, config=None, **kw):
-        super(CSSHtmlHeaderTransformer,self).__init__(config=config, **kw)
+        super(CSSHtmlHeaderTransformer, self).__init__(config=config, **kw)
         if self.enabled :
             self.regen_header()
 
