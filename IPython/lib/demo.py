@@ -184,7 +184,6 @@ import shlex
 import sys
 
 from IPython.utils import io
-from IPython.utils.io import file_read
 from IPython.utils.text import marquee
 from IPython.utils import openpy
 __all__ = ['Demo','IPythonDemo','LineDemo','IPythonLineDemo','DemoError']
@@ -380,7 +379,8 @@ class Demo(object):
 
         filename = self.shell.mktempfile(self.src_blocks[index])
         self.shell.hooks.editor(filename,1)
-        new_block = file_read(filename)
+        with open(filename, 'r') as f:
+            new_block = f.read()
         # update the source and colored block
         self.src_blocks[index] = new_block
         self.src_blocks_colored[index] = self.ip_colorize(new_block)

@@ -154,22 +154,6 @@ class Tee(object):
             self.close()
 
 
-def file_read(filename):
-    """Read a file and close it.  Returns the file source."""
-    fobj = open(filename,'r');
-    source = fobj.read();
-    fobj.close()
-    return source
-
-
-def file_readlines(filename):
-    """Read a file and close it.  Returns the file source using readlines()."""
-    fobj = open(filename,'r');
-    lines = fobj.readlines();
-    fobj.close()
-    return lines
-
-
 def raw_input_multi(header='', ps1='==> ', ps2='..> ',terminate_str = '.'):
     """Take multiple lines of input.
 

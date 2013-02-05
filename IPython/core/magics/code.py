@@ -27,7 +27,6 @@ from IPython.core.oinspect import find_file, find_source_lines
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.contexts import preserve_keys
-from IPython.utils.io import file_read
 from IPython.utils.path import get_py_filename, unquote_filename
 from IPython.utils.warn import warn
 
@@ -531,7 +530,8 @@ class CodeMagics(Magics):
         # XXX TODO: should this be generalized for all string vars?
         # For now, this is special-cased to blocks created by cpaste
         if args.strip() == 'pasted_block':
-            self.shell.user_ns['pasted_block'] = file_read(filename)
+            with open(filename, 'r') as f:
+                self.shell.user_ns['pasted_block'] = f.read()
 
         if 'x' in opts:  # -x prevents actual execution
             print
@@ -541,8 +541,9 @@ class CodeMagics(Magics):
                 if not is_temp:
                     self.shell.user_ns['__file__'] = filename
                 if 'r' in opts:    # Untranslated IPython code
-                    self.shell.run_cell(file_read(filename),
-                                        store_history=False)
+                    with open(filename, 'r') as f:
+                        source = f.read()
+                    self.shell.run_cell(source, store_history=False)
                 else:
                     self.shell.safe_execfile(filename, self.shell.user_ns,
                                              self.shell.user_ns)
