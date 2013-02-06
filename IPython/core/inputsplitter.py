@@ -516,23 +516,31 @@ class IPythonInputSplitter(InputSplitter):
         self._buffer_raw = []
         self._validate = True
         
-        self.physical_line_transforms = physical_line_transforms or \
-                [leading_indent(),
-                 classic_prompt(),
-                 ipy_prompt(),
-                ]
+        if physical_line_transforms is not None:
+            self.physical_line_transforms = physical_line_transforms
+        else:
+            self.physical_line_transforms = [leading_indent(),
+                                             classic_prompt(),
+                                             ipy_prompt(),
+                                            ]
         
         self.assemble_logical_lines = assemble_logical_lines()
-        self.logical_line_transforms = logical_line_transforms or \
-                [cellmagic(),
-                 help_end(),
-                 escaped_commands(),
-                 assign_from_magic(),
-                 assign_from_system(),
-                ]
+        if logical_line_transforms is not None:
+            self.logical_line_transforms = logical_line_transforms
+        else:
+            self.logical_line_transforms = [cellmagic(),
+                                            help_end(),
+                                            escaped_commands(),
+                                            assign_from_magic(),
+                                            assign_from_system(),
+                                           ]
         
         self.assemble_python_lines = assemble_python_lines()
-        self.python_line_transforms = python_line_transforms or []
+        if python_line_transforms is not None:
+            self.python_line_transforms = python_line_transforms
+        else:
+            # We don't use any of these at present
+            self.python_line_transforms = []
     
     @property
     def transforms(self):

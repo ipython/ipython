@@ -98,7 +98,10 @@ class IPythonWidget(FrontendWidget):
 
     # FrontendWidget protected class variables.
     _input_splitter_class = IPythonInputSplitter
-    _prompt_transformer = IPythonInputSplitter(transforms=[ipy_prompt()])
+    _prompt_transformer = IPythonInputSplitter(physical_line_transforms=[ipy_prompt()],
+                                               logical_line_transforms=[],
+                                               python_line_transforms=[],
+                                              )
 
     # IPythonWidget protected class variables.
     _PromptBlock = namedtuple('_PromptBlock', ['block', 'length', 'number'])

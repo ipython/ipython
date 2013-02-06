@@ -114,7 +114,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     exit_requested = QtCore.Signal(object)
 
     # Protected class variables.
-    _prompt_transformer = IPythonInputSplitter(transforms=[classic_prompt()])
+    _prompt_transformer = IPythonInputSplitter(physical_line_transforms=[classic_prompt()],
+                                               logical_line_transforms=[],
+                                               python_line_transforms=[],
+                                              )
     _CallTipRequest = namedtuple('_CallTipRequest', ['id', 'pos'])
     _CompletionRequest = namedtuple('_CompletionRequest', ['id', 'pos'])
     _ExecutionRequest = namedtuple('_ExecutionRequest', ['id', 'kind'])
