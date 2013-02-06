@@ -82,8 +82,7 @@ def coalesce_streams(cell, other, count):
 
     TODO: handle \r deletion
     """
-
-    outputs = cell.get('outputs', None)
+    outputs = cell.get('outputs', [])
     if not outputs:
         return cell, other
     new_outputs = []
@@ -102,7 +101,6 @@ def coalesce_streams(cell, other, count):
     return cell, other
 
 
-# todo, make the key part configurable.
 
 class ExtractFigureTransformer(ActivatableTransformer):
 
@@ -125,9 +123,12 @@ class ExtractFigureTransformer(ActivatableTransformer):
             config=True,
             )
 
+    figname_format_map =  Dict({},
+            config=True,
+            )
 
     #to do change this to .format {} syntax
-    default_key_tpl = Unicode('_fig_%02i.%s', config=True)
+    default_key_tpl = Unicode('_fig_{count:02d}.{ext}', config=True)
 
     def _get_ext(self, ext):
         if ext in self.extra_ext_map :
@@ -137,11 +138,13 @@ class ExtractFigureTransformer(ActivatableTransformer):
     def _new_figure(self, data, fmt, count):
         """Create a new figure file in the given format.
 
-        Returns a path relative to the input file.
         """
-        tpl = self.key_format_map.get(fmt,self.default_key_tpl) 
-        figname = tpl % (count, self._get_ext(fmt))
-        key     = tpl % (count, fmt)
+        tplf = self.figname_format_map.get(fmt,self.default_key_tpl) 
+        tplk = self.key_format_map.get(fmt,self.default_key_tpl)
+        
+        # option to pass the hash as data ?
+        figname = tplf.format(count=count, ext=self._get_ext(fmt))
+        key     = tplk.format(count=count, ext=self._get_ext(fmt))
 
         # Binary files are base64-encoded, SVG is already XML
         if fmt in ('png', 'jpg', 'pdf'):

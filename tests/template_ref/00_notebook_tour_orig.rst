@@ -167,36 +167,7 @@ In[19]:
 
 .. parsed-literal::
 
-    0 
-
-.. parsed-literal::
-
-    1 
-
-.. parsed-literal::
-
-    2 
-
-.. parsed-literal::
-
-    3 
-
-.. parsed-literal::
-
-    4 
-
-.. parsed-literal::
-
-    5 
-
-.. parsed-literal::
-
-    6 
-
-.. parsed-literal::
-
-    7
-
+    0 1 2 3 4 5 6 7
 Clean crash and restart
 -----------------------
 
