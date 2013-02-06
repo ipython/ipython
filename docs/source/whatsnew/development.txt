@@ -13,6 +13,10 @@ especially intenting/deindenting blocks that is now bound to Ctrl+] and ctr+[
   containing one line of the traceback.
 * A new command, ``ipython history trim`` can be used to delete everything but
   the last 1000 entries in the history database.
+* The input transformation framework has been reworked. This fixes some corner
+  cases, and adds more flexibility for projects which use IPython, like SymPy &
+  SAGE. For more details, see :doc:`/config/inputtransforms`.
+
 
 In-process kernels
 ------------------
