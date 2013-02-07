@@ -10,9 +10,10 @@
 //============================================================================
 
 var IPython = (function (IPython) {
-    var base_url = $('body').data('baseProjectUrl');
 
-    var LoginWidget = function (selector) {
+    var LoginWidget = function (selector, options) {
+        var options = options || {};
+        this.base_url = options.baseProjectUrl || $('body').data('baseProjectUrl') ;
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -30,10 +31,10 @@ var IPython = (function (IPython) {
     LoginWidget.prototype.bind_events = function () {
         var that = this;
         this.element.find("button#logout").click(function () {
-            window.location = base_url+"logout";
+            window.location = that.base_url+"logout";
         });
         this.element.find("button#login").click(function () {
-            window.location = base_url+"login";
+            window.location = that.base_url+"login";
         });
     };
 

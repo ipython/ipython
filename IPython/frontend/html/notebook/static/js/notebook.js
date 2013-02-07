@@ -46,6 +46,10 @@ var IPython = (function (IPython) {
         $('div#notebook').addClass('border-box-sizing');
     };
 
+    Notebook.prototype.baseProjectUrl = function(){
+        return this._baseProjectUrl || $('body').data('baseProjectUrl');
+    };
+
 
     Notebook.prototype.create_elements = function () {
         // We add this end_space div to the end of the notebook div to:
@@ -1237,7 +1241,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error,this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 
@@ -1266,7 +1270,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 

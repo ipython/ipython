@@ -47,7 +47,7 @@ var IPython = (function (IPython) {
 
     MenuBar.prototype.baseProjectUrl = function(){
         return this._baseProjectUrl || $('body').data('baseProjectUrl');
-    }
+    };
 
 
     MenuBar.prototype.style = function () {
