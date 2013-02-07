@@ -20,6 +20,10 @@ var IPython = (function (IPython) {
         }
     };
 
+    NotebookList.prototype.baseProjectUrl = function () {
+        return $('body').data('baseProjectUrl')
+    };
+
     NotebookList.prototype.style = function () {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
@@ -100,7 +104,7 @@ var IPython = (function (IPython) {
                              },this)
         };
 
-        var url = $('body').data('baseProjectUrl') + 'notebooks';
+        var url = this.baseProjectUrl() + 'notebooks';
         $.ajax(url, settings);
     };
 
@@ -162,7 +166,7 @@ var IPython = (function (IPython) {
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href', $('body').data('baseProjectUrl')+notebook_id).
+            attr('href', this.baseProjectUrl()+notebook_id).
             attr('target','_blank').
             text(nbname)
         );
@@ -212,7 +216,7 @@ var IPython = (function (IPython) {
                         that.load_list();
                     }
                 };
-                var url = $('body').data('baseProjectUrl') + 'kernels/'+kernel;
+                var url = this.baseProjectUrl() + 'kernels/'+kernel;
                 $.ajax(url, settings);
             });
         new_buttons.append(shutdown_button);
@@ -253,7 +257,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = $('body').data('baseProjectUrl') + 'notebooks/' + notebook_id;
+                            var url = this.baseProjectUrl() + 'notebooks/' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
@@ -302,7 +306,7 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                var url = $('body').data('baseProjectUrl') + 'notebooks?' + qs;
+                var url = this.baseProjectUrl() + 'notebooks?' + qs;
                 $.ajax(url, settings);
             });
         var cancel_button = $('<button>Cancel</button>').button().
