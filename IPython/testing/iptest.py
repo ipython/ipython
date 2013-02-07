@@ -230,7 +230,8 @@ def make_exclude():
                   # files for web serving.  Occasionally projects may put a .py
                   # file in there (MathJax ships a conf.py), so we might as
                   # well play it safe and skip the whole thing.
-                  ipjoin('frontend', 'html', 'notebook', 'static')
+                  ipjoin('frontend', 'html', 'notebook', 'static'),
+                  ipjoin('frontend', 'html', 'notebook', 'fabfile'),
                   ]
     if not have['sqlite3']:
         exclusions.append(ipjoin('core', 'tests', 'test_history'))
