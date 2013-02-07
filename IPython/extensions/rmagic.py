@@ -114,19 +114,34 @@ def Rconverter(Robj, dataframe=False):
         Robj = np.rec.fromarrays(Robj, names = names)
     return np.asarray(Robj)
 
+def pyconverter(pyobj):
+    """Convert Python objects to R objects."""
+    if 'pandas' in sys.modules:
+        # We only do this if pandas is already loaded
+        from pandas import DataFrame
+        if isinstance(pyobj, DataFrame):
+            from pandas.rpy.common import convert_to_r_dataframe
+            return convert_to_r_dataframe(pyobj)
+    
+    return np.asarray(pyobj)
+
 @magics_class
 class RMagics(Magics):
     """A set of magics useful for interactive work with R via rpy2.
     """
 
     def __init__(self, shell, Rconverter=Rconverter,
-                 pyconverter=np.asarray,
+                 pyconverter=pyconverter,
                  cache_display_data=False):
         """
         Parameters
         ----------
 
         shell : IPython shell
+        
+        Rconverter : callable
+            To be called on values taken from R before putting them in the
+            IPython namespace.
 
         pyconverter : callable
             To be called on values in ipython namespace before 

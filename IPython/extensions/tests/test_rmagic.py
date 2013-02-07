@@ -1,5 +1,6 @@
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
 import nose.tools as nt
 
@@ -27,6 +28,20 @@ result = rmagic_addone(12344)
     ''')
     result = ip.user_ns['result']
     np.testing.assert_equal(result, 12345)
+
+@skip_without('pandas')
+def test_push_dataframe():
+    from pandas import DataFrame
+    rm = rmagic.RMagics(ip)
+    df = DataFrame([{'a': 1, 'b': 'bar'}, {'a': 5, 'b': 'foo', 'c': 20}])
+    ip.push({'df':df})
+    ip.run_line_magic('Rpush', 'df')
+    # Values come packaged in arrays, so we unbox them to test.
+    nt.assert_equal(rm.r('df$b[1]')[0], 'bar')
+    nt.assert_equal(rm.r('df$a[2]')[0], 5)
+    
+    missing = rm.r('df$c[1]')[0]
+    assert np.isnan(missing), missing
 
 def test_pull():
     rm = rmagic.RMagics(ip)
