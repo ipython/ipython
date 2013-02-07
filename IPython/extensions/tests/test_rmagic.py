@@ -65,7 +65,7 @@ def test_Rconverter():
     np.testing.assert_equal(id(w.data), id(v.data))
     nt.assert_equal(w.dtype, v.dtype)
 
-    ip.run_cell_magic('R', ' -d datar  datar=datapy', '')
+    ip.run_cell_magic('R', ' -d datar', 'datar=datapy')
 
     u = ip.run_line_magic('Rget', ' -d datar')
     np.testing.assert_almost_equal(u['x'], v['x'])
