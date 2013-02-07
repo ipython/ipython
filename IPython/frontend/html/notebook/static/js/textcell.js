@@ -26,13 +26,37 @@ var IPython = (function (IPython) {
      * @class TextCell
      * @constructor TextCell
      * @extend Ipython.Cell
+     * @param {object|undefined} [options]
+     *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
      */
-    var TextCell = function () {
+    var TextCell = function (options) {
         this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
-        IPython.Cell.apply(this, arguments);
+        var options = options || {};
+
+        var cm_overwrite_options  = {
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+        };
+
+        var arg_cm_options = options.cm_options || {};
+        var cm_config = $.extend({},TextCell.cm_default, arg_cm_options, cm_overwrite_options);
+
+        var options = {};
+        options.cm_config = cm_config;
+
+
+        IPython.Cell.apply(this, [options]);
         this.rendered = false;
         this.cell_type = this.cell_type || 'text';
     };
+
+    TextCell.cm_default = {
+            mode: this.code_mirror_mode,
+            theme: 'default',
+            value: this.placeholder,
+            lineWrapping : true,
+        }
+
 
     TextCell.prototype = new IPython.Cell();
 
@@ -50,16 +74,7 @@ var IPython = (function (IPython) {
         cell.append(this.celltoolbar.element);
 
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
-        this.code_mirror = CodeMirror(input_area.get(0), {
-            indentUnit : 4,
-            mode: this.code_mirror_mode,
-            theme: 'default',
-            value: this.placeholder,
-            readOnly: this.read_only,
-            lineWrapping : true,
-            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
-        });
+        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');

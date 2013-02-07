@@ -32,20 +32,42 @@ var IPython = (function (IPython) {
      *
      * @constructor
      * @param {Object|null} kernel
+     * @param {object|undefined} [options]
+     *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
-    var CodeCell = function (kernel) {
+    var CodeCell = function (kernel, options) {
         this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
         this.default_mode = 'python';
-        IPython.Cell.apply(this, arguments);
+
+
+        var cm_overwrite_options  = {
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
+            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
+        };
+
+        var arg_cm_options = options.cm_options || {};
+        var cm_config = $.extend({},CodeCell.cm_default, arg_cm_options, cm_overwrite_options);
+
+        var options = {};
+        options.cm_config = cm_config;
+
+        IPython.Cell.apply(this,[options]);
 
         var that = this;
         this.element.focusout(
             function() { that.auto_highlight(); }
         );
     };
+
+    CodeCell.cm_default = {
+            mode: 'python',
+            theme: 'ipython',
+            matchBrackets: true
+    };
+
 
     CodeCell.prototype = new IPython.Cell();
 
@@ -70,15 +92,7 @@ var IPython = (function (IPython) {
         input.append($('<div/>').addClass('prompt input_prompt'));
         vbox.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
-        this.code_mirror = CodeMirror(input_area.get(0), {
-            indentUnit : 4,
-            mode: 'python',
-            theme: 'ipython',
-            readOnly: this.read_only,
-            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
-            onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this),
-            matchBrackets: true
-        });
+        this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
         vbox.append(input_area);
         input.append(vbox);
         var output = $('<div></div>');

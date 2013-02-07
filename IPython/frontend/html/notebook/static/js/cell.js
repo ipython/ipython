@@ -26,8 +26,16 @@ var IPython = (function (IPython) {
 
     /*
      * @constructor
+     *
+     * * @param {object|undefined} [options]
+     *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
-    var Cell = function () {
+    var Cell = function (options) {
+
+        options = options || {};
+        // superclass default overwrite our default
+        this.cm_config = $.extend({},Cell.cm_default,options.cm_config);
+
         this.placeholder = this.placeholder || '';
         this.read_only = false;
         this.selected = false;
@@ -41,6 +49,11 @@ var IPython = (function (IPython) {
             this.bind_events();
         }
         this.cell_id = utils.uuid();
+    };
+
+    Cell.cm_default = {
+            indentUnit : 4,
+            readOnly: this.read_only,
     };
 
 
