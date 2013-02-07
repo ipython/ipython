@@ -9,9 +9,34 @@
 // MenuBar
 //============================================================================
 
+/**
+ * @module IPython
+ * @namespace IPython
+ * @submodule MenuBar
+ */
+
+
 var IPython = (function (IPython) {
 
-    var MenuBar = function (selector) {
+    /**
+     * A MenuBar Class to generate the menubar of IPython noteboko
+     * @Class MenuBar
+     *
+     * @constructor
+     *
+     *
+     * @param selector {string} selector for the menubar element in DOM
+     * @param {object} [options]
+     *      @param [options.baseProjectUrl] {String} String to use for the
+     *      Base Project url, default would be to inspect
+     *      $('body').data('baseProjectUrl');
+     *      does not support change for now is set through this option
+     */
+    var MenuBar = function (selector, options) {
+        var options = options || {};
+        if(options.baseProjectUrl!= undefined){
+            this._baseProjectUrl = options.baseProjectUrl;
+        }
         this.selector = selector;
         if (this.selector !== undefined) {
             this.element = $(selector);
@@ -21,7 +46,7 @@ var IPython = (function (IPython) {
     };
 
     MenuBar.prototype.baseProjectUrl = function(){
-        return $('body').data('baseProjectUrl');
+        return this._baseProjectUrl || $('body').data('baseProjectUrl');
     }
 
 
