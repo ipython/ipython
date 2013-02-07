@@ -17,7 +17,7 @@
     \def\sphinxdocclass{(((parentdocumentclass)))}
 
     % Declare the document class
-    \documentclass[letterpaper,10pt,english]{templates/tex/sphinx(((documentclass)))}
+    \documentclass[letterpaper,10pt,english]{sphinx(((documentclass)))}
     
     % Imports    
     \usepackage[utf8]{inputenc}
@@ -26,9 +26,9 @@
     \usepackage{babel}
     \usepackage{times}
     \usepackage{import}
-    \usepackage[Bjarne]{templates/tex/fncychap}
+    \usepackage[Bjarne]{fncychap}
     \usepackage{longtable}
-    \usepackage{templates/tex/sphinx}
+    \usepackage{sphinx}
     \usepackage{multirow}
 
     % Document level variables
