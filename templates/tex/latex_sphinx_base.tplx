@@ -42,6 +42,7 @@
 \renewcommand{\releasename}{Release} %(releasename)s}
 \makeindex %(makeindex)s
 
+((* block sphinxstyle *))((* endblock sphinxstyle *))
 ((* endblock header *))
 
 ((* block body *))

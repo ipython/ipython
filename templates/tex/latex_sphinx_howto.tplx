@@ -11,3 +11,6 @@
 ((*- extends 'latex_sphinx_base.tplx' -*))
 
 ((* block documentclass *))sphinxhowto((* endblock documentclass *))
+((* block sphinxstyle *))((* include 'sphinxhowto.cls' *))((* endblock sphinxstyle *))
+
+
