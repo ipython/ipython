@@ -79,17 +79,17 @@
 
 % Catch the end of the {abstract} environment, but here make sure the abstract
 % is followed by a blank page if the 'openright' option is used.
-%
-%\let\py@OldEndAbstract=\endabstract
-%\renewcommand{\endabstract}{
-%  \if@openright
-%    \ifodd\value{page}
-%      \typeout{Adding blank page after the abstract.}
-%      \vfil\pagebreak
-%    \fi
-%  \fi
-%  \py@OldEndAbstract
-%}
+
+\let\py@OldEndAbstract=\endabstract
+\renewcommand{\endabstract}{
+  \if@openright
+    \ifodd\value{page}
+      \typeout{Adding blank page after the abstract.}
+      \vfil\pagebreak
+    \fi
+  \fi
+  \py@OldEndAbstract
+}
 
 % This wraps the \tableofcontents macro with all the magic to get the spacing
 % right and have the right number of pages if the 'openright' option has been
@@ -117,9 +117,9 @@
 
 % This is needed to get the width of the section # area wide enough in the
 % library reference.  Doing it here keeps it the same for all the manuals.
-%
-%\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{2.6em}}
-%\renewcommand*\l@subsection{\@dottedtocline{2}{4.1em}{3.5em}}
+
+\renewcommand*\l@section{\@dottedtocline{1}{1.5em}{2.6em}}
+\renewcommand*\l@subsection{\@dottedtocline{2}{4.1em}{3.5em}}
 
 % Fix the bibliography environment to add an entry to the Table of
 % Contents.
