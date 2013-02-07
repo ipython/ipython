@@ -565,13 +565,26 @@ class TerminalInteractiveShell(InteractiveShell):
                     self.rl_do_indent = False
 
             except KeyboardInterrupt:
-                #double-guard against keyboardinterrupts during kbdint handling
+                # double-guard against keyboardinterrupts during kbdint handling
                 try:
-                    self.write('\nKeyboardInterrupt\n')
+                    # these keybindings vary based on ~/.inputrc for GNU
+                    # readline
+                    self.write('\nKeyboardInterrupt\nUse C-g to exit reverse '
+                               'search mode. Use C-u/C-k for line deletes.')
                     source_raw = self.input_splitter.source_raw_reset()[1]
                     hlen_b4_cell = \
                         self._replace_rlhist_multiline(source_raw, hlen_b4_cell)
                     more = False
+                    # If a user reverse searches with C-r, then readline will
+                    # keep the last line in the input buffer, even if the input
+                    # is interrupted with C-c. Instead, the user should use
+                    # C-g to exit reverse search mode. There is no good reason
+                    # for a user to raise a KeyboardInterrupt under normal
+                    # circumstances, and instead the readline keybindings (like
+                    # C-g, C-u, C-k) should be used. See issue #1286 or #2486.
+                    # Note: ommitting this fix is dangerous because a user
+                    # could otherwise cause a dangerous line to be re-executed.
+                    self.set_next_input(self.readline.get_line_buffer())
                 except KeyboardInterrupt:
                     pass
             except EOFError:
