@@ -121,7 +121,7 @@ def pyconverter(pyobj):
         from pandas import DataFrame
         if isinstance(pyobj, DataFrame):
             from pandas.rpy.common import convert_to_r_dataframe
-            return convert_to_r_dataframe(pyobj)
+            return convert_to_r_dataframe(pyobj, strings_as_factors=True)
     
     return np.asarray(pyobj)
 
