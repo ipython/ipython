@@ -1,20 +1,14 @@
 ================================================================
- nbconvert: conversion utilities for the IPython notebook format
+ nbconvert Sphinx-Latex Jinja2 templates
 ================================================================
 
 Overview
 ========
 
 nbconvert provides command line utilities to convert to and from IPython
-notebooks and standard formats:
-
--   ReST
--   Markdown
--   HTML
--   PDF
--   Python script
-
-As these tools mature, these utilities will be merged into IPython.
+notebooks and standard formats.  However, the latex formatting leaves
+something to be desired.  This repository contains a port of the beautiful
+and popular Sphinx latex styles for nbconvert.
 
 Requirements
 ============
@@ -25,9 +19,4 @@ Sphinx-Latex:
 
 see http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
         
-Running Tests
-=============
-
-Using nbconvert
-===============
 

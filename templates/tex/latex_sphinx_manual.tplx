@@ -10,5 +10,5 @@
 
 ((*- extends 'latex_sphinx_base.tplx' -*))
 
-((* block documentclass *))sphinxmanual((* endblock documentclass *))
-((* block sphinxstyle *))((* include 'sphinxmanual.cls' *))((* endblock sphinxstyle *))
+((* set parentdocumentclass = 'report' *))
+((* set documentclass = 'manual' *))

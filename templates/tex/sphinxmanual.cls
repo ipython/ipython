@@ -79,7 +79,7 @@
 
 % Catch the end of the {abstract} environment, but here make sure the abstract
 % is followed by a blank page if the 'openright' option is used.
-
+%
 \let\py@OldEndAbstract=\endabstract
 \renewcommand{\endabstract}{
   \if@openright
@@ -117,7 +117,7 @@
 
 % This is needed to get the width of the section # area wide enough in the
 % library reference.  Doing it here keeps it the same for all the manuals.
-
+%
 \renewcommand*\l@section{\@dottedtocline{1}{1.5em}{2.6em}}
 \renewcommand*\l@subsection{\@dottedtocline{2}{4.1em}{3.5em}}
 
