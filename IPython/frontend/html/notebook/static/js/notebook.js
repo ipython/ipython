@@ -14,8 +14,11 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
 
-    var Notebook = function (selector) {
-        this.read_only = IPython.read_only;
+    var Notebook = function (selector, options) {
+        var options = options || {};
+        this._baseProjectUrl = options.baseProjectUrl;
+        this.read_only = options.read_only || IPython.read_only;
+
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
