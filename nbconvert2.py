@@ -20,101 +20,113 @@ import sys
 import io
 import os
 
-from converters.template import *
 from converters.template import ConverterTemplate
-from converters.html import ConverterHTML
 # From IPython
 
 # All the stuff needed for the configurable things
 from IPython.config.application import Application
 from IPython.config.loader import ConfigFileNotFound
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
+from IPython.utils.traitlets import Unicode, Bool
 
-from converters.transformers import (ConfigurableTransformers,ExtractFigureTransformer)
+from converters.transformers import (ExtractFigureTransformer)
 
 from converters.jinja_filters import GlobalConfigurable
 
 
 class NbconvertApp(Application):
+    """A basic application to convert ipynb files
 
-    stdout = Bool(True, config=True)
-    write = Bool(False, config=True)
+    """
 
-    fileext = Unicode('txt', config=True)
+    stdout = Bool(True, config=True,
+            help="""
+            Wether to print the converted ipynb file to stdout
+            use full do diff files without actually writing a new file
+            """)
+
+    write = Bool(False, config=True,
+            help="""Shoudl the converted notebook file be written to disk
+            along with potential extracted resources.
+            """
+            )
+
+    fileext = Unicode('txt', config=True,
+            help="""Extension of the file that should be written to disk"""
+            )
 
     aliases = {
             'stdout':'NbconvertApp.stdout',
             'write':'NbconvertApp.write',
             }
 
-    flags= {}
+    flags = {}
     flags['no-stdout'] = (
         {'NbconvertApp' : {'stdout' : False}},
-    """the doc for this flag
-
+    """Do not print converted file to stdout, equivalent to --stdout=False
     """
     )
 
     def __init__(self, **kwargs):
         super(NbconvertApp, self).__init__(**kwargs)
-        self.classes.insert(0,ConverterTemplate)
+        self.classes.insert(0, ConverterTemplate)
         # register class here to have help with help all
-        self.classes.insert(0,ExtractFigureTransformer)
-        self.classes.insert(0,GlobalConfigurable)
-        # ensure those are registerd
+        self.classes.insert(0, ExtractFigureTransformer)
+        self.classes.insert(0, GlobalConfigurable)
 
     def load_config_file(self, profile_name):
+        """load a config file from the config file dir
+
+        profile_name : {string} name of the profile file to load without file extension.
+        """
         try:
             Application.load_config_file(
                 self,
                 profile_name+'.nbcv',
-                path=[os.path.join(os.getcwdu(),'profile')]
+                path=[os.path.join(os.getcwdu(), 'profile')]
             )
+            return True
         except ConfigFileNotFound:
-            self.log.warn("Config file for profile '%s' not found, giving up ",profile_name)
-            exit(1)
+            self.log.warn("Config file for profile '%s' not found, giving up ", profile_name)
+            return False
 
 
     def initialize(self, argv=None):
+        """parse command line and load config"""
         self.parse_command_line(argv)
         cl_config = self.config
-        profile_file = sys.argv[1]
-        self.load_config_file(profile_file)
+        profile_file = argv[1]
+        if not self.load_config_file(profile_file):
+            exit(1)
         self.update_config(cl_config)
 
 
 
     def run(self):
-        """Convert a notebook to html in one step"""
-        template_file = (self.extra_args or [None])[0]
-        ipynb_file = (self.extra_args or [None])[1]
-
-        template_file = sys.argv[1]
+        """Convert a notebook in one step"""
+        ipynb_file = (self.extra_args or [None])[2]
 
         C = ConverterTemplate(config=self.config)
 
-        output,resources = C.from_filename(ipynb_file)
+        output, resources = C.from_filename(ipynb_file)
         if self.stdout :
             print(output.encode('utf-8'))
 
-        out_root = ipynb_file[:-6].replace('.','_').replace(' ','_')
+        out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
 
-        keys = resources.get('figures',{}).keys()
+        keys = resources.get('figures', {}).keys()
         if self.write :
-            with io.open(os.path.join(out_root+'.'+self.fileext),'w') as f:
-                        f.write(output)
+            with io.open(os.path.join(out_root+'.'+self.fileext), 'w') as f:
+                f.write(output)
         if keys :
-            if self.write and not os.path.exists(out_root+'_files'):
-                os.mkdir(out_root+'_files')
-            for key in keys:
-                if self.write:
-                    with io.open(os.path.join(out_root+'_files',key),'wb') as f:
-                        print(' writing to ',os.path.join(out_root,key))
+            if self.write:
+                files_dir = out_root+'_files'
+                if not os.path.exists(out_root+'_files'):
+                    os.mkdir(files_dir)
+                for key in keys:
+                    with io.open(os.path.join(files_dir, key), 'wb') as f:
                         f.write(resources['figures'][key])
-            if self.stdout:
-                print('''
-====================== Keys in Resources ==================================
-''')
+            elif self.stdout:
+                print('''====================== Keys in Resources ==================================''')
                 print(resources['figures'].keys())
                 print("""
 ===========================================================================
@@ -127,7 +139,7 @@ def main():
     """Convert a notebook to html in one step"""
     app = NbconvertApp.instance()
     app.description = __doc__
-    app.initialize()
+    app.initialize(argv=sys.argv)
     app.start()
     app.run()
 #-----------------------------------------------------------------------------
