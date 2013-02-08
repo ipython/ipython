@@ -22,6 +22,16 @@
 
 %slides%
 
+    <!-- Social buttons -->
+    <div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
+    <a class="addthis_button_twitter"></a>
+    <a class="addthis_button_google_plusone_share"></a>
+    <a class="addthis_button_linkedin"></a>
+    <a class="addthis_button_facebook"></a>
+    <a class="addthis_button_more"></a>
+    </div>
+    <!-- End of social buttons -->
+
     <script src="reveal/lib/js/head.min.js"></script>
 
     <script src="reveal/js/reveal.min.js"></script>
@@ -43,14 +53,15 @@
                 { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
                 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
                 { src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-                { src: 'https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML', async: true },  
-                { src: 'js/revealmathjax.js', async: true}                                   
+                { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
+                { src: 'js/revealmathjax.js', async: true},
+                { src: 'js/mathjax-onload.js', async: true}
                 ]
                 });
     </script>
 
     <script>
-        Reveal.addEventListener( 'slidechanged', function( event ) {   
+        Reveal.addEventListener( 'slidechanged', function( event ) {
         MathJax.Hub.Rerender(event.currentSlide);
         });
     </script>

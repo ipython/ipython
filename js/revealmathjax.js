@@ -1,4 +1,4 @@
-init_mathjax = function() {
+reveal_mathjax = function() {
     if (window.MathJax) {
         // MathJax loaded
         MathJax.Hub.Config({
@@ -14,4 +14,4 @@ init_mathjax = function() {
         MathJax.Hub.Queue(["Typeset",MathJax.Hub]);
     }
 }
-init_mathjax();
+reveal_mathjax();
