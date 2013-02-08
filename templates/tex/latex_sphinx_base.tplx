@@ -66,6 +66,9 @@
 ((* endblock footer *))
 
 ((*- block headingcell-*))
+
+    ((= Prevent trim =))
+    ((("\n")))
     
     ((*- if cell.level == 1 -*))
         \part
@@ -81,6 +84,18 @@
         \paragraph
     ((*- endif -*)){((( cell.source )))}
 ((*- endblock headingcell -*))
+
+((*- block rawcell -*))
+    ((("\n")))
+
+    \setbox0\vbox{
+    \begin{minipage}{0.95\linewidth}
+        ((( cell.source )))
+    \end{minipage}}
+    \begin{center}\setlength{\fboxsep}{5pt}
+    \shadowbox{\box0}\end{center}
+
+((*- endblock rawcell -*))
 
 ((*- block codecell scoped -*))
     ((*- block input_group -*))
@@ -123,14 +138,7 @@
 ((*- endblock codecell -*))
 
 ((*- block markdowncell scoped-*))
-%TODO: Get this working!
 ((*- endblock markdowncell -*))
 
-
-((*- block rawcell scoped-*))
-
-((*- endblock rawcell -*))
-
 ((*- block unknowncell scoped-*))
-
 ((*- endblock unknowncell -*))
