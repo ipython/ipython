@@ -92,6 +92,21 @@ div.output_prompt {
 </div>
 <!-- End of social buttons -->
 
+<!-- MathJax configuration -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+    },
+    displayAlign: 'center', // Change this to 'center' to center equations.
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+    }
+});
+</script>
+<!-- End of mathjax configuration -->
+
 <script src="reveal/lib/js/head.min.js"></script>
 
 <script src="reveal/js/reveal.min.js"></script>
@@ -114,7 +129,6 @@ dependencies: [
 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
-{ src: 'js/revealmathjax.js', async: true},
 { src: 'js/mathjax-onload.js', async: true}
 ]
 });

@@ -4986,6 +4986,7 @@ X07vG9Z4QUTEBQ4dOkRpaSklJSVnnQPx/xV9BfkfDyZLAAAAAElFTkSuQmCC
 <!-- MathJax configuration -->
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
+<<<<<<< HEAD
 tex2jax: {
 inlineMath: [ ['$','$'], ["\\(","\\)"] ],
 displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
@@ -4994,6 +4995,16 @@ displayAlign: 'left', // Change this to 'center' to center equations.
 "HTML-CSS": {
 styles: {'.MathJax_Display': {"margin": 0}}
 }
+=======
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+    },
+    displayAlign: 'center', // Change this to 'center' to center equations.
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+    }
+>>>>>>> Fixed mathjax inline and some not implemented notice.
 });
 </script>
 <!-- End of mathjax configuration -->
@@ -5020,7 +5031,6 @@ dependencies: [
 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
-{ src: 'js/revealmathjax.js', async: true},
 { src: 'js/mathjax-onload.js', async: true}
 ]
 });
