@@ -74,7 +74,7 @@ kernel_aliases.update({
     'transport': 'IPKernelApp.transport',
 })
 if sys.platform.startswith('win'):
-    kernel_aliases['interrupt'] = 'KernelApp.interrupt'
+    kernel_aliases['interrupt'] = 'IPKernelApp.interrupt'
 
 kernel_flags = dict(base_flags)
 kernel_flags.update({

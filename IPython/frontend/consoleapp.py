@@ -194,7 +194,7 @@ class IPythonConsoleApp(Configurable):
             argv = sys.argv[1:]
         self.kernel_argv = swallow_argv(argv, self.frontend_aliases, self.frontend_flags)
         # kernel should inherit default config file from frontend
-        self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
+        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
     
     def init_connection_file(self):
         """find the connection file, and load the info if found.
@@ -244,7 +244,7 @@ class IPythonConsoleApp(Configurable):
     
     def load_connection_file(self):
         """load ip/port/hmac config from JSON connection file"""
-        # this is identical to KernelApp.load_connection_file
+        # this is identical to IPKernelApp.load_connection_file
         # perhaps it can be centralized somewhere?
         try:
             fname = filefind(self.connection_file, ['.', self.profile_dir.security_dir])

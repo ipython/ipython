@@ -123,7 +123,7 @@ def get_connection_file(app=None):
     
     Parameters
     ----------
-    app : KernelApp instance [optional]
+    app : IPKernelApp instance [optional]
         If unspecified, the currently running app will be used
     """
     if app is None:
