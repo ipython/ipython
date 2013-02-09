@@ -20,16 +20,7 @@ Sphinx-Latex:
 
 See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
 
-*IMPORTANT*:
-Markdown2latex is required, but this command will **NOT** work
+Pandoc, to convert markdown into latex
 ::
-    sudo Pip Install Markdown2latex
-::
-
-Instead
-::
-    sudo git clone https://github.com/bwkeller/markdown2latex.git
-    cd markdown2latex
-    sudo python setup.py build
-    sudo python setup.py install
+    sudo apt-get install pandoc
 ::
