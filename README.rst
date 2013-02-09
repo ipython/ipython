@@ -15,17 +15,17 @@ Requirements
 
 Sphinx-Latex:
 
-    $ sudo apt-get install texlive-full
+    sudo apt-get install texlive-full
 
 See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
 
-*IMPORTANT:*
+*IMPORTANT*:
 
-Markdown2latex is required, but this command will *NOT* work
-    $ sudo Pip Install Markdown2latex
+Markdown2latex is required, but this command will **NOT** work
+    sudo Pip Install Markdown2latex
      
 Instead
-    $ sudo git clone https://github.com/bwkeller/markdown2latex.git
-    $ cd markdown2latex
-    $ sudo python setup.py build
-    $ sudo python setup.py install
+    sudo git clone https://github.com/bwkeller/markdown2latex.git
+    cd markdown2latex
+    sudo python setup.py build
+    sudo python setup.py install
