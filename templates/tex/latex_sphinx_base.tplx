@@ -10,8 +10,8 @@
 
 ((*- extends 'latex_base.tplx' -*))
 
-% Header, overrides base
 ((* block header *))
+% Header, overrides base
     
     % Make sure that the sphinx doc style knows who it inherits from.
     \def\sphinxdocclass{(((parentdocumentclass)))}
@@ -45,19 +45,20 @@
 
 ((* endblock header *))
 
-% Body
 ((* block bodyBegin *))
+% Body
 
     % Start of the document
     \begin{document}
         \maketitle
         \tableofcontents 
-((* endblock bodyBegin *))
-((* block bodyEnd *))
 
+((* endblock bodyBegin *))((* block bodyEnd *))
 
         \renewcommand{\indexname}{Index}
         \printindex
+
+    % End of document
     \end{document}
 ((* endblock bodyEnd *))
 
@@ -65,10 +66,7 @@
 ((* block footer *))
 ((* endblock footer *))
 
-((*- block headingcell-*))
-
-    ((= Prevent trim =))
-    ((("\n")))
+((* block headingcell -*))
     
     ((*- if cell.level == 1 -*))
         \part
@@ -82,20 +80,39 @@
         \subsubsection
     ((*- elif cell.level == 6 -*))
         \paragraph
-    ((*- endif -*)){((( cell.source )))}
-((*- endblock headingcell -*))
+    ((*- endif -*)){((( filterOutLatex(cell.source) )))}
+((*- endblock headingcell *))
 
 ((*- block rawcell -*))
     ((("\n")))
 
     \setbox0\vbox{
     \begin{minipage}{0.95\linewidth}
-        ((( cell.source )))
+        ((( filterOutLatex(cell.source) )))
     \end{minipage}}
     \begin{center}\setlength{\fboxsep}{5pt}
     \shadowbox{\box0}\end{center}
 
 ((*- endblock rawcell -*))
+
+((*- block unknowncell scoped-*))
+    ((("\n")))
+    
+    % Unsupported cell type, no formatting
+    ((( filterOutLatex(cell.source) )))
+((*- endblock unknowncell -*))
+
+((* macro filterOutLatex(text) -*))
+    ((*- set text = text|replace("\\","\\backslash") -*))
+    ((*- set text = text|replace("{","\\{") -*))
+    ((*- set text = text|replace("}","\\}") -*))
+    ((*- set text = text|replace("|","\\vert") -*))
+    ((( text )))
+((*- endmacro *))
+
+((========================================================================
+    EVERYTHING BELOW HERE STILL NEEDS TO BE FILLED IN!
+  ========================================================================))
 
 ((*- block codecell scoped -*))
     ((*- block input_group -*))
@@ -139,6 +156,3 @@
 
 ((*- block markdowncell scoped-*))
 ((*- endblock markdowncell -*))
-
-((*- block unknowncell scoped-*))
-((*- endblock unknowncell -*))
