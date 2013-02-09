@@ -80,7 +80,7 @@
         \subsubsection
     ((*- elif cell.level == 6 -*))
         \paragraph
-    ((*- endif -*)){((( filterOutLatex(cell.source) )))}
+    ((*- endif -*)){((( cell.source | markdown2latex )))}
 ((*- endblock headingcell *))
 
 ((*- block rawcell -*))
