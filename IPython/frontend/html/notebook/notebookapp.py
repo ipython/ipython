@@ -461,7 +461,7 @@ class NotebookApp(BaseIPythonApplication):
         # Scrub frontend-specific flags
         self.kernel_argv = swallow_argv(argv, notebook_aliases, notebook_flags)
         # Kernel should inherit default config file from frontend
-        self.kernel_argv.append("--KernelApp.parent_appname='%s'"%self.name)
+        self.kernel_argv.append("--IPKernelApp.parent_appname='%s'" % self.name)
 
         if self.extra_args:
             f = os.path.abspath(self.extra_args[0])
