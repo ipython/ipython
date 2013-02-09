@@ -227,6 +227,17 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Show/Hide CodeMirror LineNumber
+     * @method show_line_number
+     *
+     * @param value {Bool}  show (true), or hide (false) the line number in CodeMirror
+     **/
+    Cell.prototype.show_line_numbers = function (value) {
+        this.code_mirror.setOption('lineNumbers', value);
+        this.code_mirror.refresh();
+    };
+
+    /**
      * Toggle  CodeMirror LineNumber
      * @method toggle_line_numbers
      **/
