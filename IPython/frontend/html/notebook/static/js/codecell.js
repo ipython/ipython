@@ -216,12 +216,12 @@ var IPython = (function (IPython) {
     CodeCell.prototype._handle_execute_reply = function (content) {
         this.set_input_prompt(content.execution_count);
         this.element.removeClass("running");
-        $([IPython.events]).trigger('set_dirty.Notebook', {'value': true});
+        $([IPython.events]).trigger('set_dirty.Worksheet', {'value': true});
     }
 
     CodeCell.prototype._handle_set_next_input = function (text) {
         var data = {'cell': this, 'text': text}
-        $([IPython.events]).trigger('set_next_input.Notebook', data);
+        $([IPython.events]).trigger('set_next_input.Worksheet', data);
     }
 
     // Basic cell manipulation.

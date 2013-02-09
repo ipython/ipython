@@ -88,6 +88,8 @@ class="notebook_app"
                 <hr/>
                 <li id="select_previous"><a href="#">Select Previous Cell</a></li>
                 <li id="select_next"><a href="#">Select Next Cell</a></li>
+                <hr/>
+                <li id="delete_worksheet"><a href="#">Delete Sheet</a></li>
             </ul>
         </li>
         <li><a href="#">View</a>
@@ -98,6 +100,9 @@ class="notebook_app"
         </li>
         <li><a href="#">Insert</a>
             <ul>
+                <li id="insert_worksheet_above"><a href="#">Insert Sheet Before</a></li>
+                <li id="insert_worksheet_below"><a href="#">Insert Sheet After</a></li>
+                <hr/>
                 <li id="insert_cell_above"><a href="#">Insert Cell Above</a></li>
                 <li id="insert_cell_below"><a href="#">Insert Cell Below</a></li>
             </ul>
@@ -163,7 +168,12 @@ class="notebook_app"
 <div id="ipython-main-app">
 
     <div id="notebook_panel">
-        <div id="notebook"></div>
+        <div id="notebook">
+          <div id="tabs">
+            <ul>
+            </ul>
+          </div>
+        </div>
         <div id="pager_splitter"></div>
         <div id="pager_container">
             <div id='pager_button_area'>
@@ -219,10 +229,11 @@ class="notebook_app"
 <script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notificationarea.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ static_url("js/tabmanager.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/config.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
-
+<script src="{{ static_url("js/worksheet.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("js/celltoolbarpresets/default.js") }}" type="text/javascript" charset="utf-8"></script>
