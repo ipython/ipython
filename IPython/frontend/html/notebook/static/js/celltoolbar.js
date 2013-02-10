@@ -34,15 +34,9 @@ var IPython = (function (IPython) {
 
 
     CellToolbar.prototype.create_element = function () {
-        this.inner_element = $('<div/>');
-        var ctb_element = $('<div/>').addClass('celltoolbar')
-            .append(this.inner_element);
-        ctb_element.addClass('box-flex1');
-        var ctb_area = $('<div/>').addClass('ctb_area hbox');
-        var ctb_prompt = $('<div/>').addClass('ctb_prompt prompt');
-        ctb_area.append(ctb_prompt).append(ctb_element);
+        this.inner_element = $('<div/>').addClass('celltoolbar hbox reverse')
         this.element = $('<div/>').addClass('ctb_hideshow')
-            .append(ctb_area);
+            .append(this.inner_element);
     };
 
 
