@@ -69,6 +69,14 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 {{- '=' * len }}
 {%- elif cell.level == 2 %}
 {{- '-' * len }}
+{%- elif cell.level == 3 %}
+{{- '~' * len }}
+{%- elif cell.level == 4 %}
+{{- '.' * len }}
+{%- elif cell.level == 5 %}
+{{- '\\' * len }}
+{%- elif cell.level == 6 %}
+{{- '`' * len }}
 {% endif %}
 
 {% endblock headingcell %}
