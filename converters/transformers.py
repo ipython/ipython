@@ -169,8 +169,8 @@ class ExtractFigureTransformer(ActivatableTransformer):
         """Create a new figure file in the given format.
 
         """
-        tplf = self.figname_format_map.get(fmt,self.default_key_tpl)
-        tplk = self.key_format_map.get(fmt,self.default_key_tpl)
+        tplf = self.figname_format_map.get(fmt, self.default_key_tpl)
+        tplk = self.key_format_map.get(fmt, self.default_key_tpl)
 
         # option to pass the hash as data ?
         figname = tplf.format(count=count, ext=self._get_ext(fmt))
