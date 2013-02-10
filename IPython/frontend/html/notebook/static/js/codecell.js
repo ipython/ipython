@@ -36,6 +36,7 @@ var IPython = (function (IPython) {
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
     var CodeCell = function (kernel, options) {
+        var options = options || {}
         this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
