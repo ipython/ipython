@@ -127,7 +127,7 @@ dependencies: [
 { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
 { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
 { src: 'js/mathjax-onload.js', async: true}
 ]
