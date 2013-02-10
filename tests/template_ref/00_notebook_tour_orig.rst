@@ -65,7 +65,6 @@ In[3]:
 Plots with matplotlib
 ---------------------
 
-
 IPython adds an 'inline' matplotlib backend, which embeds any matplotlib
 figures into the notebook.
 
@@ -168,6 +167,7 @@ In[19]:
 .. parsed-literal::
 
     0 1 2 3 4 5 6 7
+
 Clean crash and restart
 -----------------------
 
@@ -248,6 +248,10 @@ In[2]:
     Image(url='http://python.org/images/python-logo.gif')
 
 Out[2]:
+.. parsed-literal::
+
+    <IPython.core.display.Image at 0x1060e7410>
+
 
 SVG images are also supported out of the box (since modern browsers do a
 good job of rendering them):
@@ -314,6 +318,10 @@ In[6]:
     SoftLinked
 
 Out[6]:
+.. parsed-literal::
+
+    <IPython.core.display.Image at 0x10fb99b10>
+
 
 Of course, if you re-run the all notebook, the two images will be the
 same again.
@@ -338,6 +346,10 @@ In[7]:
     YouTubeVideo('1j_HxD4iLn8')
 
 Out[7]:
+.. parsed-literal::
+
+    <IPython.lib.display.YouTubeVideo at 0x10fba2190>
+
 
 Using the nascent video capabilities of modern browsers, you may also be
 able to display local videos. At the moment this doesn't work very well
@@ -360,6 +372,10 @@ In[8]:
     HTML(data=video_tag)
 
 Out[8]:
+.. parsed-literal::
+
+    <IPython.core.display.HTML at 0x10fba28d0>
+
 
 Local Files
 -----------
@@ -446,6 +462,10 @@ In[2]:
     FileLink('00_notebook_tour.ipynb')
 
 Out[2]:
+.. parsed-literal::
+
+    <IPython.lib.display.FileLink at 0x10f7ea3d0>
+
 
 Alternatively, if we want to link to all of them, we can use the
 ``FileLinks`` object, passing ``'.'`` to indicate that we want links
@@ -462,6 +482,10 @@ In[7]:
     FileLinks('.')
 
 Out[7]:
+.. parsed-literal::
+
+    <IPython.lib.display.FileLinks at 0x10f7eaad0>
+
 
 External sites
 ~~~~~~~~~~~~~~
@@ -476,6 +500,10 @@ In[9]:
     HTML('<iframe src=http://en.mobile.wikipedia.org/?useformat=mobile width=700 height=350></iframe>')
 
 Out[9]:
+.. parsed-literal::
+
+    <IPython.core.display.HTML at 0x1094900d0>
+
 
 Mathematics
 ~~~~~~~~~~~
@@ -630,4 +658,3 @@ In[16]:
 
 
 .. image:: _fig_60.png
-
