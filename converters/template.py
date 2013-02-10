@@ -42,7 +42,7 @@ from converters.jinja_filters import (python_comment, indent,
         ansi2html, markdown2latex, escape_tex, FilterDataType)
 
 from converters.utils import  markdown2rst
-
+from converters.config import  GlobalConfigurable
 
 
 

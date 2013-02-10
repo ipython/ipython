@@ -30,7 +30,7 @@ from IPython.utils.traitlets import Unicode, Bool
 
 from converters.transformers import (ExtractFigureTransformer)
 
-from converters.jinja_filters import GlobalConfigurable
+from converters.config import GlobalConfigurable
 
 
 class NbconvertApp(Application):

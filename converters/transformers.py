@@ -11,7 +11,9 @@ from __future__ import print_function
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Unicode, Bool, Dict, List
 
-class ConfigurableTransformers(Configurable):
+from converters.config import GlobalConfigurable
+
+class ConfigurableTransformers(GlobalConfigurable):
     """ A configurable transformer
 
     Inherit from this class if you wish to have configurability for your
@@ -144,14 +146,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
             help="""extra map to override extension based on type.
             Usefull for latex where svg will be converted to pdf before inclusion
             """
-            )
-    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
-            config=True,
-              help= """
-                    An ordered list of prefered output type, the first
-                    encounterd will usually be used when converting discarding
-                    the others.
-                    """
             )
 
     key_format_map =  Dict({},
