@@ -325,23 +325,20 @@ var IPython = (function (IPython) {
         };
     };
 
+    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
-        if (json.javascript !== undefined && dynamic) {
-            this.append_javascript(json.javascript, element, dynamic);
-        } else if (json.html !== undefined) {
-            this.append_html(json.html, element);
-        } else if (json.latex !== undefined) {
-            this.append_latex(json.latex, element);
-        } else if (json.svg !== undefined) {
-            this.append_svg(json.svg, element);
-        } else if (json.png !== undefined) {
-            this.append_png(json.png, element);
-        } else if (json.jpeg !== undefined) {
-            this.append_jpeg(json.jpeg, element);
-        } else if (json.text !== undefined) {
-            this.append_text(json.text, element);
-        };
+        for(var type_i in OutputArea.display_order){
+            var type = OutputArea.display_order[type_i];
+            if(json[type] != undefined ){
+                if(type != 'javascript' && dynamic){
+                    this['append_'+type](json[type],element)
+                } else {
+                    this.append_javascript(json.javascript, element, dynamic);
+                }
+                return
+            }
+        }
     };
 
 
