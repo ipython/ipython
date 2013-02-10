@@ -64,11 +64,12 @@ var IPython = (function (IPython) {
         cell.attr('tabindex','2');
 
         this.celltoolbar = new IPython.CellToolbar(this);
-        cell.append(this.celltoolbar.element);
 
         var input = $('<div></div>').addClass('input hbox');
+        var vbox = $('<div/>').addClass('vbox box-flex1')
         input.append($('<div/>').addClass('prompt input_prompt'));
-        var input_area = $('<div/>').addClass('input_area box-flex1');
+        vbox.append(this.celltoolbar.element);
+        var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), {
             indentUnit : 4,
             mode: 'python',
@@ -78,7 +79,8 @@ var IPython = (function (IPython) {
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this),
             matchBrackets: true
         });
-        input.append(input_area);
+        vbox.append(input_area);
+        input.append(vbox);
         var output = $('<div></div>');
         cell.append(input).append(output);
         this.element = cell;
