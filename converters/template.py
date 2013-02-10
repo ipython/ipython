@@ -1,10 +1,13 @@
 """Base classes for the notebook conversion pipeline.
 
-This module defines Converter, from which all objects designed to implement
-a conversion of IPython notebooks to some other format should inherit.
+This module defines ConverterTemplate, a highly configurable converter
+that uses Jinja2 to convert notebook files into different format.
+
+You can register both pre-transformers that will act on the notebook format
+befor conversion and jinja filter that would then be availlable in the templates
 """
 #-----------------------------------------------------------------------------
-# Copyright (c) 2012, the IPython Development Team.
+# Copyright (c) 2013, the IPython Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -16,7 +19,24 @@ a conversion of IPython notebooks to some other format should inherit.
 #-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
+
+# Stdlib imports
+import io
+
+# IPython imports
+from IPython.utils.traitlets import MetaHasTraits
+from IPython.utils.traitlets import (Unicode, List, Bool)
+from IPython.config.configurable import Configurable
+from IPython.nbformat import current as nbformat
+
+# other libs/dependencies
+from jinja2 import Environment, FileSystemLoader
+
+
+# local import (pre-transformers)
 import converters.transformers as trans
+
+# some jinja filters
 from converters.jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight,
         ansi2html, markdown2latex, escape_tex, FilterDataType)
@@ -25,12 +45,10 @@ from converters.utils import  markdown2rst
 
 
 
-# Stdlib imports
-import io
 
-from IPython.utils.traitlets import MetaHasTraits
+# define differents environemnt with different
+# delimiters not to conflict with languages inside
 
-from jinja2 import Environment, FileSystemLoader
 env = Environment(
         loader=FileSystemLoader([
             './templates/',
@@ -47,18 +65,6 @@ texenv = Environment(
         extensions=['jinja2.ext.loopcontrols']
         )
 
-# IPython imports
-from IPython.nbformat import current as nbformat
-from IPython.config.configurable import Configurable
-from IPython.utils.traitlets import ( Unicode, List, Bool)
-
-#-----------------------------------------------------------------------------
-# Class declarations
-#-----------------------------------------------------------------------------
-class ConversionException(Exception):
-    pass
-
-
 
 texenv.block_start_string = '((*'
 texenv.block_end_string = '*))'
@@ -71,6 +77,11 @@ texenv.comment_end_string = '=))'
 
 texenv.filters['escape_tex'] = escape_tex
 
+#-----------------------------------------------------------------------------
+# Class declarations
+#-----------------------------------------------------------------------------
+class ConversionException(Exception):
+    pass
 
 class ConverterTemplate(Configurable):
     """ A Jinja2 base converter templates
@@ -107,22 +118,33 @@ class ConverterTemplate(Configurable):
     def __init__(self, preprocessors={}, jinja_filters={}, config=None, **kw):
         """ Init a new converter.
 
-
-        config: the Configurable confgg object to pass around
+        config: the Configurable config object to pass around.
 
         preprocessors: dict of **availlable** key/value function to run on
-        ipynb json data before conversion to extract/inline file,
+                       ipynb json data before conversion to extract/inline file.
+                       See `transformer.py` and `ConfigurableTransformers`
 
-        jinja_filter : dict of supplementary jinja filter that should be made
-        availlable in template. If those are of Configurable Class type, they
-        will be instanciated with the config object as argument.
+                       set the order in which the transformers should apply
+                       with the `pre_transformer_order` trait of this class
 
+                       transformers registerd by this key will take precedence on
+                       default one.
+
+
+        jinja_filters: dict of supplementary jinja filter that should be made
+                       availlable in template. If those are of Configurable Class type,
+                       they will be instanciated with the config object as argument.
+
+                       user defined filter will overwrite the one availlable by default.
         """
         super(ConverterTemplate, self).__init__(config=config, **kw)
+
+        # variable parameters depending on the pype of jinja environement
         self.env = texenv  if self.tex_environement else env
         self.ext = '.tplx' if self.tex_environement else '.tpl'
 
         for name in self.pre_transformer_order:
+            # get the user-defined transformer first
             transformer = getattr(preprocessors, name, getattr(trans, name, None))
             if isinstance(transformer, MetaHasTraits):
                 transformer = transformer(config=config)
@@ -145,6 +167,8 @@ class ConverterTemplate(Configurable):
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
+
+        ## user  filter will overwrite
         for key, filtr in jinja_filters.iteritems():
             if isinstance(filtr, MetaHasTraits):
                 self.env.filters[key] = filtr(config=config)
