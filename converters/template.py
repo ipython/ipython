@@ -204,9 +204,21 @@ class ConverterTemplate(Configurable):
 
 
     def from_filename(self, filename):
-        "read and parse notebook into NotebookNode called self.nb"
+        """read and convert a notebook from a file name"""
         with io.open(filename) as f:
             return self.convert(nbformat.read(f, 'json'))
 
+    def from_file(self, filelike):
+        """read and convert a notebook from a filelike object
 
+        filelike object will just be "read" and should be json format..
+        """
+        return self.convert(nbformat.read(filelike, 'json'))
+
+    def from_json(self, json):
+        """ not implemented
+
+        Should convert from a json object
+        """
+        raise NotImplementedError('not implemented (yet?)')
 
