@@ -97,6 +97,12 @@ def main():
     """Convert a notebook to html in one step"""
     app = NbconvertApp.instance()
     app.description = __doc__
+    print("""
+======================================================
+Warning, we are deprecating this version of nbconvert,
+please consider using the new version.
+======================================================
+    """)
     app.initialize()
     app.start()
     app.run()
