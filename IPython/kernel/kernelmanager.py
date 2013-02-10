@@ -849,7 +849,7 @@ class KernelManager(Configurable):
             self._connection_file_written = False
             try:
                 os.remove(self.connection_file)
-            except (IOError, OSError):
+            except (IOError, OSError, AttributeError):
                 pass
     
     def cleanup_ipc_files(self):
