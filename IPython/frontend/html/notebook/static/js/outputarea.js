@@ -428,8 +428,16 @@ var IPython = (function (IPython) {
         }, 250);
     };
 
+    OutputArea.notbase64re = /[^A-Za-z0-9+/=]/;
 
     OutputArea.prototype.append_png = function (png, md, element) {
+        if( OutputArea.notbase64re.test(png) == true ){
+            // we are sure this is **not** a base 64 encoded string.
+            // but a few other string could go through.
+            // but those should be harmless
+            console.log('Cowardly refusing to insert non-base 64 png');
+            return
+        }
         var toinsert = $("<div/>").addClass("output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         if (md['height']) {
@@ -445,6 +453,10 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
+        if( OutputArea.notbase64re.test(jpeg) == true ){
+            console.log('Cowardly refusing to insert non-base 64 jpeg');
+            return
+        }
         var toinsert = $("<div/>").addClass("output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         if (md['height']) {
