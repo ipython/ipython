@@ -1,20 +1,44 @@
 """
+Module that regroups transformer that woudl be applied to ipynb files
+before going through the templating machinery.
 
+It exposes convenient classes to inherit from to access configurability
+as well as decorator to simplify tasks.
 """
 
 from __future__ import print_function
-
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Unicode, Bool, Dict, List
 
 class ConfigurableTransformers(Configurable):
-    """ A configurable transformer """
+    """ A configurable transformer
+
+    Inherit from this class if you wish to have configurability for your
+    transformer.
+
+    Any configurable traitlets this class exposed will be configurable in profiles
+    using c.SubClassName.atribute=value
+
+    you can overwrite cell_transform to apply a transformation independently on each cell
+    or __call__ if you prefer your own logic. See orresponding docstring for informations.
+
+
+    """
 
     def __init__(self, config=None, **kw):
         super(ConfigurableTransformers, self).__init__(config=config, **kw)
 
     def __call__(self, nb, other):
+        """transformation to apply on each notebook.
+
+        received a handle to the current notebook as well as a dict of resources
+        which structure depends on the transformer.
+
+        You should return modified nb, other.
+
+        If you wish to apply on each cell, you might want to overwrite cell_transform method.
+        """
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
@@ -25,12 +49,24 @@ class ConfigurableTransformers(Configurable):
 
     def cell_transform(self, cell, other, index):
         """
-        Overwrite if you want to apply a transformation on each cell
+        Overwrite if you want to apply a transformation on each cell,
+
+        receive the current cell, the resource dict and the index of current cell as parameter.
+
+        You should return modified cell and resource dict.
         """
         raise NotImplementedError('should be implemented by subclass')
+        return cell, other
 
 
 class ActivatableTransformer(ConfigurableTransformers):
+    """A simple ConfigurableTransformers that have an enabled flag
+
+    Inherit from that if you just want to have a transformer which is
+    no-op by default but can be activated in profiles with
+
+    c.YourTransformerName.enabled = True
+    """
 
     enabled = Bool(False, config=True)
 
@@ -45,9 +81,9 @@ def cell_preprocessor(function):
     """ wrap a function to be executed on all cells of a notebook
 
     wrapped function  parameters :
-    cell  : the cell
-    other : external resources
-    index : index of the cell
+        cell  : the cell
+        other : external resources
+        index : index of the cell
     """
     def wrappedfunc(nb, other):
         for worksheet in nb.worksheets :
@@ -100,9 +136,8 @@ def coalesce_streams(cell, other, count):
     cell.outputs = new_outputs
     return cell, other
 
-
-
 class ExtractFigureTransformer(ActivatableTransformer):
+
 
     extra_ext_map =  Dict({},
             config=True,
@@ -126,6 +161,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
     figname_format_map =  Dict({},
             config=True,
             )
+
 
     #to do change this to .format {} syntax
     default_key_tpl = Unicode('_fig_{count:02d}.{ext}', config=True)
