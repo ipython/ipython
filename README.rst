@@ -15,41 +15,39 @@ Requirements
 
 Sphinx-Latex:
 ::
-    sudo apt-get install texlive-full
-::
+
+  sudo apt-get install texlive-full
+
 
 See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
 
 Pandoc, to convert markdown into latex
 ::
-    sudo apt-get install pandoc
-::
 
-Testing
-=======
+  sudo apt-get install pandoc
 
 To test, I place a Test1.ipynb file in my nbconvert directory.
-Then I run this shell script:
+Then I run this shell script
 
 ::
-mkdir test_out
-rm test_out/*
-cp Test1.ipynb test_out/Test1.ipynb
-cp templates/tex/*.cls test_out/
-cp templates/tex/*.sty test_out/
 
-python nbconvert2.py latex_sphinx_manual test_out/Test1.ipynb
-cd test_out
-pdflatex Test1.tex
-mv Test1.pdf Test1_Manual.pdf
-cd ..
+  mkdir test_out
+  rm test_out/*
+  cp Test1.ipynb test_out/Test1.ipynb
+  cp templates/tex/*.cls test_out/
+  cp templates/tex/*.sty test_out/
 
-python nbconvert2.py latex_sphinx_howto test_out/Test1.ipynb
-cd test_out
-pdflatex Test1.tex
-mv Test1.pdf Test1_HowTo.pdf
-cd ..
-::
+  python nbconvert2.py latex_sphinx_manual test_out/Test1.ipynb
+  cd test_out
+  pdflatex Test1.tex
+  mv Test1.pdf Test1_Manual.pdf
+  cd ..
+  
+  python nbconvert2.py latex_sphinx_howto test_out/Test1.ipynb
+  cd test_out
+  pdflatex Test1.tex
+  mv Test1.pdf Test1_HowTo.pdf
+  cd ..
 
 This script will build both a Sphinx-howto and a Sphinx-manual out of the
 Test1 IPython notebook.
