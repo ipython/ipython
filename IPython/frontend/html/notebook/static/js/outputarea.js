@@ -331,10 +331,10 @@ var IPython = (function (IPython) {
         for(var type_i in OutputArea.display_order){
             var type = OutputArea.display_order[type_i];
             if(json[type] != undefined ){
-                if(type != 'javascript' && dynamic){
-                    this['append_'+type](json[type],element)
-                } else {
+                if(type == 'javascript' && dynamic){
                     this.append_javascript(json.javascript, element, dynamic);
+                } else {
+                    this['append_'+type](json[type],element)
                 }
                 return
             }
