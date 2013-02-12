@@ -565,54 +565,51 @@ var IPython = (function (IPython) {
         return this.insert_cell_below(type,len-1);
     }
 
+    /**
+     * Insert a cell of given type below given index, or at bottom
+     * of notebook if index greater thatn number of cell
+     *
+     * default index value is the one of currently selected cell
+     *
+     * @param type {string} cell type
+     * @param [index] {integer}
+     *
+     * @return handle to created cell or null
+     *
+     **/
     Notebook.prototype.insert_cell_below = function (type, index) {
-        // type = ('code','html','markdown')
-        // index = cell index or undefined to insert below selected
         index = this.index_or_selected(index);
-        var cell = null;
-        // This is intentionally < rather than <= for the sake of more
-        // sensible behavior in some cases.
-        if (this.undelete_index !== null && index < this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
-        }
-        if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
-                cell.set_input_prompt();
-            } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell();
-            } else if (type === 'html') {
-                cell = new IPython.HTMLCell();
-            } else if (type === 'raw') {
-                cell = new IPython.RawCell();
-            } else if (type === 'heading') {
-                cell = new IPython.HeadingCell();
-            };
-            if (cell !== null) {
-                if (this.ncells() === 0) {
-                    this.element.find('div.end_space').before(cell.element);
-                } else if (this.is_valid_cell_index(index)) {
-                    this.get_cell_element(index).after(cell.element);
-                };
-                cell.render();
-                this.select(this.find_cell_index(cell));
-                this.dirty = true;
-                return cell;
-            };
-        };
-        return cell;
+        return this.insert_cell_at_index(type, index+1);
     };
 
+    /**
+     * Insert a cell so that after insertion the cell is at given index.
+     *
+     * Similar to insert_above, but index parameter is mandatory
+     *
+     * Index will be brought back into the accissible range [0,n]
+     *
+     * @param type {string} in ['code','html','markdown','heading']
+     * @param index {int} a valid index where to inser cell
+     *
+     * return created cell or null
+     **/
+    Notebook.prototype.insert_cell_at_index = function(type, index){
+        var ncell = this.ncells()
+        var index = Math.min(index,ncells);
+            index = Math.max(index,0);
 
-    Notebook.prototype.insert_cell_above = function (type, index) {
-        // type = ('code','html','markdown')
-        // index = cell index or undefined to insert above selected
-        index = this.index_or_selected(index);
-        var cell = null;
+        var cell = null
+
+
+        /// this use to be index < this.undelete_index in some case
         if (this.undelete_index !== null && index <= this.undelete_index) {
             this.undelete_index = this.undelete_index + 1;
+            this.dirty = true;
         }
-        if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
+
+        // this should be alway true now
+        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncell) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
@@ -626,9 +623,14 @@ var IPython = (function (IPython) {
                 cell = new IPython.HeadingCell();
             };
             if (cell !== null) {
-                if (this.ncells() === 0) {
+                if (ncells === 0) {
+                    // special case append if empty
                     this.element.find('div.end_space').before(cell.element);
+                } else if ( ncell == index ) {
+                    // special case append it the end, but not empty
+                    this.get_cell_element(index-1).after(cell.element);
                 } else if (this.is_valid_cell_index(index)) {
+                    // otherwise always somewhere to append to
                     this.get_cell_element(index).before(cell.element);
                 };
                 cell.render();
@@ -638,6 +640,24 @@ var IPython = (function (IPython) {
             };
         };
         return cell;
+
+
+    };
+
+    /**
+     * Insert a cell of given type above given index, or at top
+     * of notebook if index smaller than 0.
+     *
+     * default index value is the one of currently selected cell
+     *
+     * @param type {string} cell type
+     * @param [index] {integer}
+     *
+     * @return handle to created cell or null
+     **/
+    Notebook.prototype.insert_cell_above = function (type, index) {
+        index = this.index_or_selected(index);
+        return this.insert_cell_at_index(type, index);
     };
 
 
