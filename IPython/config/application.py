@@ -140,7 +140,7 @@ class Application(SingletonConfigurable):
     def _log_default(self):
         """Start logging for this application.
 
-        The default is to log to stdout using a StreamHandler, if no default
+        The default is to log to stderr using a StreamHandler, if no default
         handler already exists.  The log level starts at logging.WARN, but this
         can be adjusted by setting the ``log_level`` attribute.
         """
