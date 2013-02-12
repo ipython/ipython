@@ -140,12 +140,20 @@ class Application(SingletonConfigurable):
     def _log_default(self):
         """Start logging for this application.
 
-        The default is to log to stdout using a StreaHandler. The log level
-        starts at loggin.WARN, but this can be adjusted by setting the
-        ``log_level`` attribute.
+        The default is to log to stdout using a StreamHandler, if no default
+        handler already exists.  The log level starts at logging.WARN, but this
+        can be adjusted by setting the ``log_level`` attribute.
         """
         log = logging.getLogger(self.__class__.__name__)
         log.setLevel(self.log_level)
+        _log = log # copied from Logger.hasHandlers() (new in Python 3.2)
+        while _log:
+            if _log.handlers:
+                return log
+            if not _log.propagate:
+                break
+            else:
+                _log = _log.parent
         if sys.executable.endswith('pythonw.exe'):
             # this should really go to a file, but file-logging is only
             # hooked up in parallel applications
