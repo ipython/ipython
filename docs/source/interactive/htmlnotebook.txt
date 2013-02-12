@@ -252,9 +252,14 @@ To see a list of available options ehter:
   $ ipython help notebook
 
 Defaults for these options can also be set by creating a file named 
-ipython_notebook_config.py in you IPython profile folder. The profile folder is
+ipython_notebook_config.py in your IPython profile folder. The profile folder is
 a subfolder of your IPython directory (`ipython locate` will show you where that
 is). 
+
+.. seealso:
+
+    :ref:`config_overview`, in particular :ref:`Profiles`.
+
 
 Keyboard use
 ------------
