@@ -1,85 +1,8 @@
-{%- extends 'basichtml.tpl' -%}
+{%- extends 'slides.tpl' -%}
 
 
-{% block any_cell -%}
-
-{% if cell.metadata.slideshow.close_fragment %}
-</div>
-{% endif %}
-{% if cell.metadata.slideshow.close_subsection %}
-</section>
-{% endif %}
-{% if cell.metadata.slideshow.close_section %}
-</section>
-{% endif %}
-
-{% if cell.metadata.slideshow.open_section %}
-<section>
-{%- endif %}
-{% if cell.metadata.slideshow.open_subsection %}
-<section>
-{%- endif %}
-{% if cell.metadata.slideshow.open_fragment %}
-<div class='fragment'>
-{% endif %}
-{% if cell.metadata.slideshow.slide_type in ['notes'] %}
-<aside class="notes">
-{{ super() }}
-</aside>
-{% elif cell.metadata.slideshow.slide_type not in ['skip'] %}
-{{ super() }}
-{% endif %}
-
-{% endblock %}
-
-
-{% block body %}
-<body>
-<div class="reveal"><div class="slides">
-{{ super() }}
-</section>
-</section>
-</div></div>
-
-<script src="reveal/lib/js/head.min.js"></script>
-
-<script src="reveal/js/reveal.min.js"></script>
-
-<script>
- 
-// Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
-Reveal.initialize({
-controls: true,
-progress: true,
-history: true,
-
-theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
-
-// Optional libraries used to extend on reveal.js
-dependencies: [
-{ src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-{ src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-{ src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML', async: true },
-{ src: 'js/revealmathjax.js', async: true}
-]
-});
-</script>
-
-<script>
-Reveal.addEventListener( 'slidechanged', function( event ) {
-MathJax.Hub.Rerender(event.currentSlide);
-});
-</script>
-</body>
-</html>{% endblock body %}
-
-
-
-
-{% block header %}<!DOCTYPE html>
+{% block header %}
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -147,4 +70,79 @@ div.output_prompt {
     margin: 5px 5px 0 -5px;
 }
 </style>
-</head>{% endblock %}
+</head>
+{% endblock header%}
+
+
+{% block body %}
+<body>
+<div class="reveal"><div class="slides">
+
+{{ super() }}
+
+</div></div>
+
+<!-- Social buttons -->
+<div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
+<a class="addthis_button_twitter"></a>
+<a class="addthis_button_google_plusone_share"></a>
+<a class="addthis_button_linkedin"></a>
+<a class="addthis_button_facebook"></a>
+<a class="addthis_button_more"></a>
+</div>
+<!-- End of social buttons -->
+
+<!-- MathJax configuration -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+    },
+    displayAlign: 'center', // Change this to 'center' to center equations.
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+    }
+});
+</script>
+<!-- End of mathjax configuration -->
+
+<script src="reveal/lib/js/head.min.js"></script>
+
+<script src="reveal/js/reveal.min.js"></script>
+
+<script>
+
+// Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
+{ src: 'js/mathjax-onload.js', async: true}
+]
+});
+</script>
+
+<script>
+Reveal.addEventListener( 'slidechanged', function( event ) {
+MathJax.Hub.Rerender(event.currentSlide);
+});
+</script>
+
+</body>
+{% endblock body %}
+
+{% block footer %}
+</html>
+{% endblock footer %}

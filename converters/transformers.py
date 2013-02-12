@@ -195,107 +195,20 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     count = count+1
         return cell, other
 
+
 class RevealHelpTransformer(ConfigurableTransformers):
 
-    section_open = False
-    subsection_open = False
-    fragment_open = False
-
-    def open_subsection(self):
-        self.subsection_open = True
-        return True
-
-    def open_section(self):
-        self.section_open = True
-        return True
-
-    def open_fragment(self):
-        self.fragment_open = True
-        return True
-
-    # could probaly write those maybe_close/open
-    # with a function functor
-    def maybe_close_section(self):
-        """return True is already open, false otherwise
-        and change state to close
-        """
-        if self.section_open :
-            self.section_open = False
-            return True
-        else :
-            return False
-
-    def maybe_open_section(self):
-        """return True is already open, false otherwise
-        and change state to close
-        """
-        if not self.section_open :
-            self.section_open = True
-            return True
-        else :
-            return False
-
-    def maybe_open_subsection(self):
-        """return True is already open, false otherwise
-        and change state to close
-        """
-        if not self.subsection_open :
-            self.subsection_open = True
-            return True
-        else :
-            return False
-
-    def maybe_close_subsection(self):
-        """return True is already open, false otherwise
-        and change state to close
-        """
-        if self.subsection_open :
-            self.subsection_open = False
-            return True
-        else :
-            return False
-
-    def maybe_close_fragment(self):
-        """return True is already open, false otherwise
-        and change state to close
-        """
-        if self.fragment_open :
-            self.fragment_open = False
-            return True
-        else :
-            return False
-
-    def cell_transform(self, cell, other, count):
-        ctype = cell.metadata.get('slideshow', {}).get('slide_type', None)
-        if ctype in [None, '-'] :
-            cell.metadata.slideshow = {}
-            cell.metadata.slideshow['slide_type'] = None
-        elif ctype == 'fragment':
-            cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
-            cell.metadata.slideshow.close_subsection = False
-            cell.metadata.slideshow.close_section = False
-
-            cell.metadata.slideshow.open_section = self.maybe_open_section()
-            cell.metadata.slideshow.open_subsection = self.maybe_open_subsection()
-            cell.metadata.slideshow.open_fragment = self.open_fragment()
-
-        elif ctype == 'subslide':
-            cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
-            cell.metadata.slideshow.close_subsection = self.maybe_close_subsection()
-            cell.metadata.slideshow.close_section = False
-
-            cell.metadata.slideshow.open_section = self.maybe_open_section()
-            cell.metadata.slideshow.open_subsection = self.open_subsection()
-            cell.metadata.slideshow.open_fragment = False
-        elif ctype == 'slide':
-            cell.metadata.slideshow.close_fragment = self.maybe_close_fragment()
-            cell.metadata.slideshow.close_subsection = self.maybe_close_subsection()
-            cell.metadata.slideshow.close_section = self.maybe_close_section()
-
-            cell.metadata.slideshow.open_section = self.open_section()
-            cell.metadata.slideshow.open_subsection = self.open_subsection()
-            cell.metadata.slideshow.open_fragment = False
-        return cell, other
+    def __call__(self, nb, other):
+        for worksheet in nb.worksheets :
+            for i, cell in enumerate(worksheet.cells):
+                cell.metadata.slide_type = cell.metadata.get('slideshow', {}).get('slide_type', None)
+                if cell.metadata.slide_type is None:
+                    cell.metadata.slide_type = '-'
+                if cell.metadata.slide_type in ['slide']:
+                    worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
+                if cell.metadata.slide_type in ['subslide']:
+                    worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
+        return nb, other
 
 
 class CSSHtmlHeaderTransformer(ActivatableTransformer):
