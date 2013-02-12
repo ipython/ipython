@@ -377,7 +377,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.get_next_cell = function (cell) {
         var result = null;
         var index = this.find_cell_index(cell);
-        if (index !== null && index < this.ncells()) {
+        if (this.is_valid_cell_index(index+1)) {
             result = this.get_cell(index+1);
         }
         return result;
@@ -425,7 +425,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.is_valid_cell_index = function (index) {
-        if (index !== null && index >= 0 && index < this.ncells()) {
+        if (index != undefined && index >= 0 && index < this.ncells()) {
             return true;
         } else {
             return false;
@@ -446,7 +446,7 @@ var IPython = (function (IPython) {
     // Cell selection.
 
     Notebook.prototype.select = function (index) {
-        if (index !== undefined && index >= 0 && index < this.ncells()) {
+        if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
@@ -469,18 +469,14 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.select_next = function () {
         var index = this.get_selected_index();
-        if (index !== null && index >= 0 && (index+1) < this.ncells()) {
-            this.select(index+1);
-        };
+        this.select(index+1);
         return this;
     };
 
 
     Notebook.prototype.select_prev = function () {
         var index = this.get_selected_index();
-        if (index !== null && index >= 0 && (index-1) < this.ncells()) {
-            this.select(index-1);
-        };
+        this.select(index-1);
         return this;
     };
 
@@ -489,7 +485,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.move_cell_up = function (index) {
         var i = this.index_or_selected();
-        if (i !== null && i < this.ncells() && i > 0) {
+        if (this.is_valid_cell_index(index) && i > 0) {
             var pivot = this.get_cell_element(i-1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
@@ -497,15 +493,15 @@ var IPython = (function (IPython) {
                 pivot.before(tomove);
                 this.select(i-1);
             };
+            this.dirty = true;
         };
-        this.dirty = true;
         return this;
     };
 
 
     Notebook.prototype.move_cell_down = function (index) {
         var i = this.index_or_selected();
-        if (i !== null && i < (this.ncells()-1) && i >= 0) {
+        if ( this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
             var pivot = this.get_cell_element(i+1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
