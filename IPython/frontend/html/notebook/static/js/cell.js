@@ -22,13 +22,13 @@ var IPython = (function (IPython) {
     /**
      * The Base `Cell` class from which to inherit
      * @class Cell
-     */
+     **/
 
     /*
      * @constructor
      *
-     * * @param {object|undefined} [options]
-     *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
+     * @param {object|undefined} [options]
+     *     @param [options.cm_config] {object} config to pass to CodeMirror, will extend default parameters
      */
     var Cell = function (options) {
 
@@ -253,7 +253,7 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * force codemirror highlight mode
+     * Force codemirror highlight mode
      * @method force_highlight
      * @param {object} - CodeMirror mode
      **/
