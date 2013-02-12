@@ -83,6 +83,9 @@ var IPython = (function (IPython) {
         this.element.find('#delete_cell').click(function () {
             IPython.notebook.delete_cell();
         });
+        this.element.find('#undelete_cell').click(function () {
+            IPython.notebook.undelete();
+        });
         this.element.find('#split_cell').click(function () {
             IPython.notebook.split_cell();
         });
