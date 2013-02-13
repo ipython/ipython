@@ -5,9 +5,10 @@ They should honor the line number argument, at least.
 Contributions are *very* welcome.
 """
 
-from IPython.core.error import TryNext
-from IPython.frontend.qt.console import ipython_widget
 import os
+import pipes
+import subprocess
+from IPython.core.error import TryNext
 
 
 def install_editor(template, wait=False):
@@ -38,11 +39,10 @@ def install_editor(template, wait=False):
     #        ' for string substitution. You supplied "%s"' % (substitution,
     #            run_template)))
 
-
     def call_editor(self, filename, line=0):
         if line is None:
             line = 0
-        cmd = template.format(filename=filename, line=line)
+        cmd = template.format(filename=pipes.quote(filename), line=line)
         print ">", cmd
         proc = subprocess.Popen(cmd, shell=True)
         if wait and proc.wait() != 0:
@@ -58,22 +58,22 @@ def install_editor(template, wait=False):
 # if you don't have the editor directory in your path
 def komodo(exe=u'komodo'):
     """ Activestate Komodo [Edit] """
-    install_editor(exe + u' -l {line} "{filename}"', wait=True)
+    install_editor(exe + u' -l {line} {filename}', wait=True)
 
 
 def scite(exe=u"scite"):
     """ SciTE or Sc1 """
-    install_editor(exe + u' "{filename}" -goto:{line}')
+    install_editor(exe + u' {filename} -goto:{line}')
 
 
 def notepadplusplus(exe=u'notepad++'):
     """ Notepad++ http://notepad-plus.sourceforge.net """
-    install_editor(exe + u' -n{line} "{filename}"')
+    install_editor(exe + u' -n{line} {filename}')
 
 
 def jed(exe=u'jed'):
     """ JED, the lightweight emacsish editor """
-    install_editor(exe + u' +{line} "{filename}"')
+    install_editor(exe + u' +{line} {filename}')
 
 
 def idle(exe=u'idle'):
@@ -87,16 +87,16 @@ def idle(exe=u'idle'):
     if exe is None:
         import idlelib
         p = os.path.dirname(idlelib.__filename__)
-        # i'm not sure if this actually works. Is this idle.py script guarenteed
-        # to be executable?
+        # i'm not sure if this actually works. Is this idle.py script
+        # guarenteed to be executable?
         exe = os.path.join(p, 'idle.py')
-    install_editor(exe + u' "{filename}"')
+    install_editor(exe + u' {filename}')
 
 
 def mate(exe=u'mate'):
     """ TextMate, the missing editor"""
     # wait=True is not required since we're using the -w flag to mate
-    install_editor(exe + u' -w -l {line} "{filename}"')
+    install_editor(exe + u' -w -l {line} {filename}')
 
 
 # ##########################################
@@ -105,16 +105,16 @@ def mate(exe=u'mate'):
 
 
 def emacs(exe=u'emacs'):
-    install_editor(exe + u' +{line} "{filename}"')
+    install_editor(exe + u' +{line} {filename}')
 
 
 def gnuclient(exe=u'gnuclient'):
-    install_editor(exe + u' -nw +{line} "{filename}"')
+    install_editor(exe + u' -nw +{line} {filename}')
 
 
 def crimson_editor(exe=u'cedt.exe'):
-    install_editor(exe + u' /L:{line} "{filename}"')
+    install_editor(exe + u' /L:{line} {filename}')
 
 
 def kate(exe=u'kate'):
-    install_editor(exe + u' -u -l {line} "{filename}"')
+    install_editor(exe + u' -u -l {line} {filename}')
