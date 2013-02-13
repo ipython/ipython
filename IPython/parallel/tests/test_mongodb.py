@@ -16,6 +16,8 @@ Authors:
 # Imports
 #-------------------------------------------------------------------------------
 
+import os
+
 from unittest import TestCase
 
 from nose import SkipTest
@@ -25,8 +27,14 @@ from IPython.parallel.controller.mongodb import MongoDB
 
 from . import test_db
 
+conn_kwargs = {}
+if 'DB_IP' in os.environ:
+    conn_kwargs['host'] = os.environ['DB_IP']
+if 'DB_PORT' in os.environ:
+    conn_kwargs['port'] = int(os.environ['DB_PORT'])
+
 try:
-    c = Connection()
+    c = Connection(**conn_kwargs)
 except Exception:
     c=None
 
