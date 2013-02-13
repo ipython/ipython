@@ -15,6 +15,32 @@
  * @submodule CodeCell
  */
 
+
+/* local util for codemirror */
+var posEq = function(a, b) {return a.line == b.line && a.ch == b.ch;}
+
+/**
+ *
+ * function to delete until previous non blanking space character
+ * or first multiple of 4 tabstop.
+ * @private
+ */
+CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+    var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
+    if (!posEq(from, to)) {cm.replaceRange("", from, to); return}
+    var cur = cm.getCursor(), line = cm.getLine(cur.line);
+    var tabsize = cm.getOption('tabSize');
+    var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
+    var from = {ch:cur.ch-chToPrevTabStop,line:cur.line}
+    var select = cm.getRange(from,cur)
+    if( select.match(/^\ +$/) != null){
+        cm.replaceRange("",from,cur)
+    } else {
+        cm.deleteH(-1,"char")
+    }
+};
+
+
 var IPython = (function (IPython) {
     "use strict";
 
