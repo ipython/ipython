@@ -2,7 +2,8 @@ import io
 import nose.tools as nt
 from nose.tools import nottest
 from converters import (
-    ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML
+    ConverterLaTeX, ConverterMarkdown, ConverterPy, ConverterHTML,
+    ConverterReveal
 )
 
 @nottest
@@ -33,6 +34,12 @@ def test_evens():
     for root in reflist:
         for conv, ext in converters:
             yield test_conversion, conv, root + '.ipynb', root + '.' + ext
+
+
+def test_reveal():
+    conv = ConverterReveal
+    root = 'tests/ipynbref/reveal.orig'
+    return test_conversion, conv, root + '.ipynb', root + '_slides.' + 'html'
 
 
 @nottest

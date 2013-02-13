@@ -1,0 +1,81 @@
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="stylesheet" href="reveal/css/reveal.css">
+    <link rel="stylesheet" href="reveal/css/theme/simple.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="reveal/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+        document.write( '<link rel="stylesheet" href="reveal/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <!--[if lt IE 9]>
+    <script src="reveal/lib/js/html5shiv.js"></script>
+    <![endif]-->
+
+%slides%
+
+    <!-- Social buttons -->
+    <div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
+    <a class="addthis_button_twitter"></a>
+    <a class="addthis_button_google_plusone_share"></a>
+    <a class="addthis_button_linkedin"></a>
+    <a class="addthis_button_facebook"></a>
+    <a class="addthis_button_more"></a>
+    </div>
+    <!-- End of social buttons -->
+
+    <!-- MathJax configuration -->    
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+        },
+        displayAlign: 'left', // Change this to 'center' to center equations.
+        "HTML-CSS": {
+            styles: {'.MathJax_Display': {"margin": 0}}
+        }
+    });
+    </script>
+    <!-- End of mathjax configuration -->
+
+    <script src="reveal/lib/js/head.min.js"></script>
+
+    <script src="reveal/js/reveal.min.js"></script>
+
+    <script>
+
+        // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+        Reveal.initialize({
+            controls: true,
+            progress: true,
+            history: true,
+
+            theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+            transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+            // Optional libraries used to extend on reveal.js
+            dependencies: [
+                { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+                { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+                { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+                { src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+                { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
+                { src: 'js/mathjax-onload.js', async: true}
+                ]
+                });
+    </script>
+
+    <script>
+        Reveal.addEventListener( 'slidechanged', function( event ) {
+        MathJax.Hub.Rerender(event.currentSlide);
+        });
+    </script>
