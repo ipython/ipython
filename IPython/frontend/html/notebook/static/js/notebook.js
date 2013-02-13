@@ -560,27 +560,7 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.insert_cell_at_bottom = function (type){
-        var len = this.ncells();
-        return this.insert_cell_below(type,len-1);
-    }
 
-    /**
-     * Insert a cell of given type below given index, or at bottom
-     * of notebook if index greater thatn number of cell
-     *
-     * default index value is the one of currently selected cell
-     *
-     * @param type {string} cell type
-     * @param [index] {integer}
-     *
-     * @return handle to created cell or null
-     *
-     **/
-    Notebook.prototype.insert_cell_below = function (type, index) {
-        index = this.index_or_selected(index);
-        return this.insert_cell_at_index(type, index+1);
-    };
 
     /**
      * Insert a cell so that after insertion the cell is at given index.
@@ -590,26 +570,18 @@ var IPython = (function (IPython) {
      * Index will be brought back into the accissible range [0,n]
      *
      * @param type {string} in ['code','html','markdown','heading']
-     * @param index {int} a valid index where to inser cell
+     * @param [index] {int} a valid index where to inser cell
      *
-     * return created cell or null
+     * @return cell {cell|null} created cell or null
      **/
     Notebook.prototype.insert_cell_at_index = function(type, index){
-        var ncell = this.ncells()
+
+        var ncells = this.ncells();
         var index = Math.min(index,ncells);
             index = Math.max(index,0);
+        var cell = null;
 
-        var cell = null
-
-
-        /// this use to be index < this.undelete_index in some case
-        if (this.undelete_index !== null && index <= this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
-            this.dirty = true;
-        }
-
-        // this should be alway true now
-        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncell) {
+        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncells) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
@@ -621,27 +593,53 @@ var IPython = (function (IPython) {
                 cell = new IPython.RawCell();
             } else if (type === 'heading') {
                 cell = new IPython.HeadingCell();
-            };
-            if (cell !== null) {
-                if (ncells === 0) {
-                    // special case append if empty
-                    this.element.find('div.end_space').before(cell.element);
-                } else if ( ncell == index ) {
-                    // special case append it the end, but not empty
-                    this.get_cell_element(index-1).after(cell.element);
-                } else if (this.is_valid_cell_index(index)) {
-                    // otherwise always somewhere to append to
-                    this.get_cell_element(index).before(cell.element);
-                };
+            }
+
+            if(this._insert_element_at_index(cell.element,index)){
                 cell.render();
                 this.select(this.find_cell_index(cell));
                 this.dirty = true;
-                return cell;
-            };
-        };
+            }
+        }
         return cell;
 
+    };
 
+    /**
+     * Insert an element at given cell index.
+     *
+     * @param element {dom element} a cell element
+     * @param [index] {int} a valid index where to inser cell
+     * @private
+     *
+     * return true if everything whent fine.
+     **/
+    Notebook.prototype._insert_element_at_index = function(element, index){
+        var ncells = this.ncells();
+
+        /// this use to be index < this.undelete_index in some case
+        if (this.undelete_index !== null && index <= this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+            this.dirty = true;
+        }
+
+        // this should be alway true now
+        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncells) {
+            if (element !== null) {
+                if (ncells === 0) {
+                    // special case append if empty
+                    this.element.find('div.end_space').before(element);
+                } else if ( ncells == index ) {
+                    // special case append it the end, but not empty
+                    this.get_cell_element(index-1).after(element);
+                } else if (this.is_valid_cell_index(index)) {
+                    // otherwise always somewhere to append to
+                    this.get_cell_element(index).before(element);
+                }
+                return true;
+            }
+        }
+        return false;
     };
 
     /**
@@ -659,6 +657,39 @@ var IPython = (function (IPython) {
         index = this.index_or_selected(index);
         return this.insert_cell_at_index(type, index);
     };
+
+    /**
+     * Insert a cell of given type below given index, or at bottom
+     * of notebook if index greater thatn number of cell
+     *
+     * default index value is the one of currently selected cell
+     *
+     * @method insert_cell_below
+     * @param type {string} cell type
+     * @param [index] {integer}
+     *
+     * @return handle to created cell or null
+     *
+     **/
+    Notebook.prototype.insert_cell_below = function (type, index) {
+        index = this.index_or_selected(index);
+        return this.insert_cell_at_index(type, index+1);
+    };
+
+
+    /**
+     * Insert cell at end of notebook
+     *
+     * @method insert_cell_at_bottom
+     * @param type {String} cell type
+     *
+     * @return the added cell; or null
+     **/
+    Notebook.prototype.insert_cell_at_bottom = function (type){
+        var len = this.ncells();
+        return this.insert_cell_below(type,len-1);
+    };
+
 
 
     Notebook.prototype.to_code = function (index) {
