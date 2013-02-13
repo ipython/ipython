@@ -321,16 +321,10 @@ class KernelMagics(Magics):
         # directory of client and kernel don't match
         filename = os.path.abspath(filename)
 
-        try:
-            editor = self.shell.editor
-        except AttributeError:
-            editor = None
-
         payload = {
             'source' : 'IPython.zmq.zmqshell.ZMQInteractiveShell.edit_magic',
             'filename' : filename,
-            'line_number' : lineno,
-            'editor_template' : editor
+            'line_number' : lineno
         }
         self.shell.payload_manager.write_payload(payload)
 
