@@ -208,9 +208,7 @@ class ConverterReveal(ConverterHTML):
             # 'jquery-ui.min.css'),
             # os.path.join(static, 'prettify', 'prettify.css'),
             os.path.join(css, 'boilerplate.css'),
-            os.path.join(css, 'fbm.css'),
-            os.path.join(css, 'notebook.css'),
-            os.path.join(css, 'renderedhtml.css'),
+            os.path.join(css, 'style.min.css'),
             # our overrides:
             os.path.join(here, '..', 'css', 'reveal_html.css'),
         ]:

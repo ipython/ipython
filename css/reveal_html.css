@@ -7,10 +7,10 @@
 }
 .reveal pre {
 width: 100%;
-padding: 0.2em;
+padding: 0.3em;
 margin: 0px auto;
 font-family: monospace, sans-serif;
-font-size: 60%;
+font-size: 80%;
 box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .reveal section img {
@@ -18,18 +18,22 @@ border: 0px solid black;
 box-shadow: 0 0 10px rgba(0, 0, 0, 0);
 }
 div.input_area {
-padding: 0.2em;
+padding: 0.06em;
 }
 div.code_cell {
 background-color: transparent;
 }
 div.prompt {
 width: 11ex;
-padding: 0.0em;
+padding: 0.4em;
 margin: 0px;
-font-family: monospace;
-font-size: 60%;
-text-align: center;
+font-family: monospace, sans-serif;
+font-size: 80%;
+text-align: right;
+}
+div.output_area pre {
+font-family: monospace, sans-serif;
+font-size: 80%;
 }
 div.output_prompt {
     /* 5px right shift to account for margin in parent container */
