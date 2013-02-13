@@ -546,6 +546,7 @@ var IPython = (function (IPython) {
         var i = this.index_or_selected(index);
         var cell = this.get_selected_cell();
         this.undelete_backup = cell.toJSON();
+        $('#undelete_cell').removeClass('ui-state-disabled');
         if (this.is_valid_cell_index(i)) {
             var ce = this.get_cell_element(i);
             ce.remove();
@@ -866,6 +867,7 @@ var IPython = (function (IPython) {
             this.undelete_backup = null;
             this.undelete_index = null;
         }
+        $('#undelete_cell').addClass('ui-state-disabled');
     }
 
     // Split/merge
