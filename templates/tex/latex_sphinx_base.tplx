@@ -53,7 +53,7 @@
         \maketitle
         \tableofcontents 
 
-((* endblock bodyBegin *))((* block bodyEnd *))
+        ((* endblock bodyBegin *))((* block bodyEnd *))
 
         \renewcommand{\indexname}{Index}
         \printindex
@@ -67,44 +67,37 @@
 ((* endblock footer *))
 
 ((* block headingcell -*))
-    
+    \
     ((*- if cell.level == 1 -*))
-        \part
+        ((* block h1 -*))part((* endblock h1 -*))
     ((*- elif cell.level == 2 -*))
-        \chapter
+        ((* block h2 -*))chapter((* endblock h2 -*))
     ((*- elif cell.level == 3 -*))
-        \section
+        ((* block h3 -*))section((* endblock h3 -*))
     ((*- elif cell.level == 4 -*))
-        \subsection
+        ((* block h4 -*))subsection((* endblock h4 -*))
     ((*- elif cell.level == 5 -*))
-        \subsubsection
+        ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
-        \paragraph
+        ((* block h6 -*))paragraph((* endblock h6 -*))
     ((*- endif -*)){((( cell.source | markdown2latex )))}
 ((*- endblock headingcell *))
 
-((*- block rawcell -*))
-    ((("\n")))
-
-    \setbox0\vbox{
-    \begin{minipage}{0.95\linewidth}
-        ((( filterOutLatex(cell.source) )))
-    \end{minipage}}
-    \begin{center}\setlength{\fboxsep}{5pt}
-    \shadowbox{\box0}\end{center}
-
-((*- endblock rawcell -*))
-
-((*- block unknowncell scoped-*))
-    ((("\n")))
+((* block unknowncell scoped*))
     
     % Unsupported cell type, no formatting
     ((( filterOutLatex(cell.source) )))
-((*- endblock unknowncell -*))
+((* endblock unknowncell *))
 
 ((*- block markdowncell scoped-*))
     ((( super() )))
 ((*- endblock markdowncell -*))
+
+((= Raw text cells allow the user to manually inject document code that will
+not get touched by the templating system. =))
+((*- block rawcell *))
+    ((( cell.source )))
+((* endblock rawcell -*))
 
 ((* macro filterOutLatex(text) -*))
     ((*- set text = text|replace("\\","\\backslash") -*))
@@ -113,6 +106,16 @@
     ((*- set text = text|replace("|","\\vert") -*))
     ((( text )))
 ((*- endmacro *))
+
+% Useful to block TODO: Remove/move this block below
+
+    \setbox0\vbox{
+    \begin{minipage}{0.95\linewidth}
+
+    \end{minipage}}
+    \begin{center}\setlength{\fboxsep}{5pt}
+    \shadowbox{\box0}\end{center}
+
 
 ((========================================================================
     EVERYTHING BELOW HERE STILL NEEDS TO BE FILLED IN!
