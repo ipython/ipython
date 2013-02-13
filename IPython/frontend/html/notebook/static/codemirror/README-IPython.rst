@@ -62,44 +62,10 @@ Then don't forget to reintroduce ipython.css
      IPython/frontend/html/notebook/static/codemirror/theme/ipython.css | 40 ++++++++++++++++++++++++++++++++++++++++
      1 file changed, 40 insertions(+)
 
-and 
-
-    git show head^
-    commit 331a5f7fe85a6e894c35b64cd7987ed53f59ea57
-    Author: Matthias BUSSONNIER <bussonniermatthias@gmail.com>
-    Date:   Wed Jul 25 12:41:13 2012 +0200
-
-        patch deletion in codemirror
-
-    diff --git a/IPython/frontend/html/notebook/static/codemirror/lib/codemirror.js b/IPython/frontend/html/notebook/static/codemirror/lib/codemirror.js
-    index 89401a9..a9dfdfe 100644
-    --- a/IPython/frontend/html/notebook/static/codemirror/lib/codemirror.js
-    +++ b/IPython/frontend/html/notebook/static/codemirror/lib/codemirror.js
-    @@ -2194,6 +2194,20 @@ var CodeMirror = (function() {
-        cm.indentLine(cm.getCursor().line);
-        },
-        toggleOverwrite: function(cm) {cm.toggleOverwrite();}
-    +    ,delSpaceToPrevTabStop : function(cm){
-    +        var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
-    +        if (!posEq(from, to)) {cm.replaceRange("", from, to); return}
-    +        var cur = cm.getCursor(), line = cm.getLine(cur.line);
-    +        var tabsize = cm.getOption('tabSize');
-    +        var chToPrevTabStop = cur.ch-(Math.ceil(cur.ch/tabsize)-1)*tabsize;
-    +        var from = {ch:cur.ch-chToPrevTabStop,line:cur.line}
-    +        var select = cm.getRange(from,cur)
-    +        if( select.match(/^\ +$/) != null){
-    +            cm.replaceRange("",from,cur)
-    +        } else {
-    +            cm.deleteH(-1,"char")
-    +        }
-    +    }
-    };
-    
-    var keyMap = CodeMirror.keyMap = {};
 
 that you should be able to apply after updating codemirror with
 
-git cherry-pick 271e17 39a602 331a5f
+git cherry-pick 271e17 39a602
 
 We'll turn this into a proper patchset if it ever gets more complicated than
 this, but for now this note should be enough.
