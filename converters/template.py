@@ -154,7 +154,7 @@ class ConverterTemplate(Configurable):
 
         for name in self.pre_transformer_order:
             # get the user-defined transformer first
-            transformer = getattr(preprocessors, name, getattr(trans, name, None))
+            transformer = preprocessors.get(name, getattr(trans, name, None))
             if isinstance(transformer, MetaHasTraits):
                 transformer = transformer(config=config)
             self.preprocessors.append(transformer)
