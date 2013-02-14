@@ -243,6 +243,27 @@ and then on any cell that you need to protect, use::
   if script:
     # rest of the cell...
 
+Configuration
+-------------
+
+The IPython notebook server can be run with a variety of command line arguments. 
+To see a list of available options enter:
+
+  $ ipython notebook --help 
+
+Defaults for these options can also be set by creating a file named 
+ipython_notebook_config.py in your IPython profile folder. The profile folder is
+a subfolder of your IPython directory (`ipython locate` will show you where that
+is). To create default configuration files (with lots of info on available 
+options) use:
+
+  $ ipython profile create
+
+.. seealso:
+
+    :ref:`config_overview`, in particular :ref:`Profiles`.
+
+
 Keyboard use
 ------------
 
