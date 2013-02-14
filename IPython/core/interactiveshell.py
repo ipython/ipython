@@ -2483,7 +2483,7 @@ class InteractiveShell(SingletonConfigurable):
                 # explicitly silenced, but only in short form.
                 if kw['raise_exceptions']:
                     raise
-                if status.code not in (0, None) and not kw['exit_ignore']:
+                if status.code and not kw['exit_ignore']:
                     self.showtraceback(exception_only=True)
             except:
                 if kw['raise_exceptions']:
@@ -2532,6 +2532,8 @@ class InteractiveShell(SingletonConfigurable):
         This version will never throw an exception, but instead print
         helpful error messages to the screen.
 
+        `SystemExit` exceptions with status code 0 or None are ignored.
+
         Parameters
         ----------
         mod_name : string
@@ -2540,10 +2542,14 @@ class InteractiveShell(SingletonConfigurable):
             The globals namespace.
         """
         try:
-            where.update(
-                runpy.run_module(str(mod_name), run_name="__main__",
-                                 alter_sys=True)
-                )
+            try:
+                where.update(
+                    runpy.run_module(str(mod_name), run_name="__main__",
+                                     alter_sys=True)
+                    )
+            except SystemExit as status:
+                if status.code:
+                    raise
         except:
             self.showtraceback()
             warn('Unknown failure executing module: <%s>' % mod_name)
