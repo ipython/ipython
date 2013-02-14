@@ -7,14 +7,8 @@ IPython developer's guide
 .. toctree::
    :maxdepth: 1
 
-   contributing.txt
+ 
    gitwash/index.txt
-   coding_guide.txt
-   doc_guide.txt
-   testing.txt
-   release.txt
-   reorg.txt
    messaging.txt
    parallel_messages.txt
    parallel_connections.txt
-   ipython_directive.txt
