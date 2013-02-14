@@ -11,13 +11,14 @@
 ((*- extends 'latex_base.tplx' -*))
 
 ((* block header *))
+
 % Header, overrides base
-    
+
     % Make sure that the sphinx doc style knows who it inherits from.
     \def\sphinxdocclass{(((parentdocumentclass)))}
-
+    
     % Declare the document class
-    \documentclass[letterpaper,10pt,english]{sphinx(((documentclass)))}
+    \documentclass[letterpaper,10pt,english]{((( resources.sphinx_texinputs )))/sphinx(((documentclass)))}
     
     % Imports    
     \usepackage[utf8]{inputenc}
@@ -26,18 +27,18 @@
     \usepackage{babel}
     \usepackage{times}
     \usepackage{import}
-    \usepackage[Bjarne]{fncychap}
+    \usepackage[((( resources.sphinx_chapterstyle )))]{((( resources.sphinx_texinputs )))/fncychap}
     \usepackage{longtable}
-    \usepackage{sphinx}
+    \usepackage{((( resources.sphinx_texinputs )))/sphinx}
     \usepackage{multirow}
 
     % Document level variables
     \title{((( nb.metadata.name )))} 
-    \date{\today}
-    \release{} 
-    \author{Unknown Author}
+    \date{((( nb.metadata.date )))}
+    \release{((( nb.metadata.version )))} 
+    \author{((( nb.metadata.author )))}
     \newcommand{\sphinxlogo}{}
-    \renewcommand{\releasename}{Release} 
+    \renewcommand{\releasename}{((( nb.metadata.release )))} 
     \makeindex
 
     
