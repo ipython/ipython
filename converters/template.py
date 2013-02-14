@@ -98,7 +98,7 @@ class ConverterTemplate(Configurable):
     Preprocess the ipynb files, feed it throug jinja templates,
     and spit an converted files and a data object with other data
 
-    shoudl be mostly configurable
+    should be mostly configurable
     """
 
     pre_transformer_order = List(['haspyout_transformer'],
