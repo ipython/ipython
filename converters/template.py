@@ -105,7 +105,7 @@ class ConverterTemplate(Configurable):
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
-                    file befor running through templates
+                    file before running through templates
                     """
             )
 
