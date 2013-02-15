@@ -96,6 +96,9 @@ ipython notebook --certfile=mycert.pem # use SSL/TLS certificate
 ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 """
 
+# Packagers: modify this line if you store the notebook static files elsewhere
+DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
+
 #-----------------------------------------------------------------------------
 # Helper functions
 #-----------------------------------------------------------------------------
@@ -416,7 +419,7 @@ class NotebookApp(BaseIPythonApplication):
     @property
     def static_file_path(self):
         """return extra paths + the default location"""
-        return self.extra_static_paths + [os.path.join(os.path.dirname(__file__), "static")]
+        return self.extra_static_paths + [DEFAULT_STATIC_FILES_PATH]
 
     mathjax_url = Unicode("", config=True,
         help="""The url for MathJax.js."""
