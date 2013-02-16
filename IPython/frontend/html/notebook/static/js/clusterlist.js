@@ -20,6 +20,10 @@ var IPython = (function (IPython) {
         }
     };
 
+    ClusterList.prototype.baseProjectUrl = function(){
+        return this._baseProjectUrl || $('body').data('baseProjectUrl');
+    };
+
     ClusterList.prototype.style = function () {
         $('#cluster_toolbar').addClass('list_toolbar');
         $('#cluster_list_info').addClass('toolbar_info');
@@ -52,7 +56,7 @@ var IPython = (function (IPython) {
             dataType : "json",
             success : $.proxy(this.load_list_success, this)
         };
-        var url = $('body').data('baseProjectUrl') + 'clusters';
+        var url = this.baseProjectUrl() + 'clusters';
         $.ajax(url, settings);
     };
 
@@ -134,7 +138,7 @@ var IPython = (function (IPython) {
                     }
                 };
                 status_col.html('starting');
-                var url = $('body').data('baseProjectUrl') + 'clusters/' + that.data.profile + '/start';
+                var url = this.baseProjectUrl() + 'clusters/' + that.data.profile + '/start';
                 $.ajax(url, settings);
             };
         });
@@ -168,7 +172,7 @@ var IPython = (function (IPython) {
                 }
             };
             status_col.html('stopping')
-            var url = $('body').data('baseProjectUrl') + 'clusters/' + that.data.profile + '/stop';
+            var url = this.baseProjectUrl() + 'clusters/' + that.data.profile + '/stop';
             $.ajax(url, settings);
         });
     };
