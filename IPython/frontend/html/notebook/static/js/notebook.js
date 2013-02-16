@@ -515,27 +515,6 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.sort_cells = function () {
-        // This is not working right now. Calling this will actually crash
-        // the browser. I think there is an infinite loop in here...
-        var ncells = this.ncells();
-        var sindex = this.get_selected_index();
-        var swapped;
-        do {
-            swapped = false;
-            for (var i=1; i<ncells; i++) {
-                current = this.get_cell(i);
-                previous = this.get_cell(i-1);
-                if (previous.input_prompt_number > current.input_prompt_number) {
-                    this.move_cell_up(i);
-                    swapped = true;
-                };
-            };
-        } while (swapped);
-        this.select(sindex);
-        return this;
-    };
-
     // Insertion, deletion.
 
     Notebook.prototype.delete_cell = function (index) {
