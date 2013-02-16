@@ -46,7 +46,7 @@ var IPython = (function (IPython) {
 
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
-    CodeMirror.modeURL = "/static/codemirror/mode/%N/%N.js";
+    CodeMirror.modeURL = "/static/components/codemirror/mode/%N/%N.js";
 
     /**
      * A Cell conceived to write code.

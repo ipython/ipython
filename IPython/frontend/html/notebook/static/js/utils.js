@@ -213,6 +213,7 @@ IPython.utils = (function (IPython) {
             "$1<a target=\"_blank\" href=\"$2$3\">$2$3</a>");
     }
 
+
     // some keycodes that seem to be platform/browser independant
     var keycodes ={
                 BACKSPACE:  8,
@@ -268,7 +269,7 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        browser : browser
     };
 
 }(IPython));
