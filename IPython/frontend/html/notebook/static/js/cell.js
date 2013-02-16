@@ -228,7 +228,7 @@ var IPython = (function (IPython) {
 
     /**
      * Show/Hide CodeMirror LineNumber
-     * @method show_line_number
+     * @method show_line_numbers
      *
      * @param value {Bool}  show (true), or hide (false) the line number in CodeMirror
      **/
@@ -242,12 +242,8 @@ var IPython = (function (IPython) {
      * @method toggle_line_numbers
      **/
     Cell.prototype.toggle_line_numbers = function () {
-        if (this.code_mirror.getOption('lineNumbers') == false) {
-            this.code_mirror.setOption('lineNumbers', true);
-        } else {
-            this.code_mirror.setOption('lineNumbers', false);
-        }
-        this.code_mirror.refresh();
+        var val = this.code_mirror.getOption('lineNumbers');
+        this.show_line_numbers(!val);
     };
 
     /**
