@@ -240,16 +240,23 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Show/Hide CodeMirror LineNumber
+     * @method show_line_numbers
+     *
+     * @param value {Bool}  show (true), or hide (false) the line number in CodeMirror
+     **/
+    Cell.prototype.show_line_numbers = function (value) {
+        this.code_mirror.setOption('lineNumbers', value);
+        this.code_mirror.refresh();
+    };
+
+    /**
      * Toggle  CodeMirror LineNumber
      * @method toggle_line_numbers
      **/
     Cell.prototype.toggle_line_numbers = function () {
-        if (this.code_mirror.getOption('lineNumbers') == false) {
-            this.code_mirror.setOption('lineNumbers', true);
-        } else {
-            this.code_mirror.setOption('lineNumbers', false);
-        }
-        this.code_mirror.refresh();
+        var val = this.code_mirror.getOption('lineNumbers');
+        this.show_line_numbers(!val);
     };
 
     /**

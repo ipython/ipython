@@ -40,7 +40,7 @@ var IPython = (function (IPython) {
      *          {
      *            label:'my button',
      *            icon:'ui-icon-disk',
-     *            callback:function(){alert('hoho'),
+     *            callback:function(){alert('hoho')},
      *            id : 'my_button_id',    // this is optional
      *          },
      *          {
