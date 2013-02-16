@@ -29,6 +29,7 @@ from IPython.utils.traitlets import (Unicode, List, Bool)
 from IPython.config.configurable import Configurable
 from IPython.nbformat import current as nbformat
 
+
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
 
@@ -42,6 +43,15 @@ from converters.jinja_filters import (python_comment, indent,
         ansi2html, markdown2latex, escape_tex, FilterDataType)
 
 from converters.utils import  markdown2rst
+
+import textwrap
+
+def wrap(text, width=100):
+    """ try to detect and wrap paragraph"""
+    splitt = text.split('\n')
+    wrp = map(lambda x:textwrap.wrap(x,width),splitt)
+    wrpd = map('\n'.join, wrp)
+    return '\n'.join(wrpd)
 
 
 
@@ -166,6 +176,7 @@ class ConverterTemplate(Configurable):
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
+        self.env.filters['wrap'] = wrap
 
         ## user  filter will overwrite
         for key, filtr in jinja_filters.iteritems():
