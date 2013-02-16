@@ -50,22 +50,9 @@ The only changes we've applied so far are these::
 In practice it's just a one-line change, adding `\\?` to singleOperators,
 surrounded by a comment. 
 
-Then don't forget to reintroduce ipython.css
-
-    git show 39a602468ee1ca8fdb660826d6185e0f9a026fdf --stat
-    commit 39a602468ee1ca8fdb660826d6185e0f9a026fdf
-    Author: Matthias BUSSONNIER <bussonniermatthias@gmail.com>
-    Date:   Mon Jul 23 14:47:08 2012 +0200
-
-        reintroduce ipython.css
-
-     IPython/frontend/html/notebook/static/codemirror/theme/ipython.css | 40 ++++++++++++++++++++++++++++++++++++++++
-     1 file changed, 40 insertions(+)
-
-
 that you should be able to apply after updating codemirror with
 
-git cherry-pick 271e17 39a602
+git cherry-pick 271e17
 
 We'll turn this into a proper patchset if it ever gets more complicated than
 this, but for now this note should be enough.
