@@ -35,35 +35,41 @@ document.write( '<link rel="stylesheet" href="reveal/css/print/' + ( window.loca
 
 <style type="text/css">
 /* Overrides of notebook CSS for static HTML export */
-
 .reveal {
   font-size: 20px;
 }
 .reveal pre {
-    width: 100%;
-    padding: 0.2em;
-    margin: 0px auto;
-    font-family: monospace, sans-serif;
-    font-size: 60%;
-    box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+width: 100%;
+padding: 0.3em;
+margin: 0px auto;
+font-family: monospace, sans-serif;
+font-size: 80%;
+box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
 }
 .reveal section img {
-    border: 0px solid black;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+border: 0px solid black;
+box-shadow: 0 0 10px rgba(0, 0, 0, 0);
+}
+.reveal .slides {
+text-align: left;
 }
 div.input_area {
-    padding: 0.2em;
+padding: 0.06em;
 }
 div.code_cell {
-    background-color: transparent;
+background-color: transparent;
 }
 div.prompt {
-    width: 11ex;
-    padding: 0.0em;
-    margin: 0px;
-    font-family: monospace;
-    font-size: 60%;
-    text-align: center;
+width: 11ex;
+padding: 0.4em;
+margin: 0px;
+font-family: monospace, sans-serif;
+font-size: 80%;
+text-align: right;
+}
+div.output_area pre {
+font-family: monospace, sans-serif;
+font-size: 80%;
 }
 div.output_prompt {
     /* 5px right shift to account for margin in parent container */
@@ -99,7 +105,7 @@ MathJax.Hub.Config({
         inlineMath: [ ['$','$'], ["\\(","\\)"] ],
         displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
     },
-    displayAlign: 'center', // Change this to 'center' to center equations.
+    displayAlign: 'left', // Change this to 'center' to center equations.
     "HTML-CSS": {
         styles: {'.MathJax_Display': {"margin": 0}}
     }

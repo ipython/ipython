@@ -29,7 +29,10 @@ from converters.bloggerhtml import ConverterBloggerHTML
 from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
 from converters.python import ConverterPy
+<<<<<<< HEAD
 from converters.reveal import ConverterReveal
+=======
+>>>>>>> damianavila/reveal_css_fix
 from converters.base import Converter
 
 

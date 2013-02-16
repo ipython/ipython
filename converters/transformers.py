@@ -254,8 +254,6 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
             os.path.join(css, 'notebook.css'),
             os.path.join(css, 'renderedhtml.css'),
             os.path.join(css, 'style.min.css'),
-            # our overrides:
-            os.path.join(here, '..', 'css', 'static_html.css'),
         ]:
             try:
                 with io.open(sheet, encoding='utf-8') as f:
