@@ -14,8 +14,11 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
 
-    var Notebook = function (selector) {
-        this.read_only = IPython.read_only;
+    var Notebook = function (selector, options) {
+        var options = options || {};
+        this._baseProjectUrl = options.baseProjectUrl;
+        this.read_only = options.read_only || IPython.read_only;
+
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -44,6 +47,10 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.style = function () {
         $('div#notebook').addClass('border-box-sizing');
+    };
+
+    Notebook.prototype.baseProjectUrl = function(){
+        return this._baseProjectUrl || $('body').data('baseProjectUrl');
     };
 
 
@@ -1239,7 +1246,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error,this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 
@@ -1268,7 +1275,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = $('body').data('baseProjectUrl') + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
 
