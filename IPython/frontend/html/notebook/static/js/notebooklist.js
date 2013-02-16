@@ -216,7 +216,7 @@ var IPython = (function (IPython) {
                         that.load_list();
                     }
                 };
-                var url = this.baseProjectUrl() + 'kernels/'+kernel;
+                var url = that.baseProjectUrl() + 'kernels/'+kernel;
                 $.ajax(url, settings);
             });
         new_buttons.append(shutdown_button);
@@ -257,7 +257,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = this.baseProjectUrl() + 'notebooks/' + notebook_id;
+                            var url = that.baseProjectUrl() + 'notebooks/' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
@@ -306,7 +306,7 @@ var IPython = (function (IPython) {
                 };
 
                 var qs = $.param({name:nbname, format:nbformat});
-                var url = this.baseProjectUrl() + 'notebooks?' + qs;
+                var url = that.baseProjectUrl() + 'notebooks?' + qs;
                 $.ajax(url, settings);
             });
         var cancel_button = $('<button>Cancel</button>').button().

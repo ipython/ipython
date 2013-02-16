@@ -84,6 +84,11 @@ var IPython = (function (IPython) {
         this.style();
     };
 
+    ClusterItem.prototype.baseProjectUrl = function(){
+        return this._baseProjectUrl || $('body').data('baseProjectUrl');
+    };
+
+
 
     ClusterItem.prototype.style = function () {
         this.element.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
@@ -138,7 +143,7 @@ var IPython = (function (IPython) {
                     }
                 };
                 status_col.html('starting');
-                var url = this.baseProjectUrl() + 'clusters/' + that.data.profile + '/start';
+                var url = that.baseProjectUrl() + 'clusters/' + that.data.profile + '/start';
                 $.ajax(url, settings);
             };
         });
@@ -172,7 +177,7 @@ var IPython = (function (IPython) {
                 }
             };
             status_col.html('stopping')
-            var url = this.baseProjectUrl() + 'clusters/' + that.data.profile + '/stop';
+            var url = that.baseProjectUrl() + 'clusters/' + that.data.profile + '/stop';
             $.ajax(url, settings);
         });
     };
