@@ -615,31 +615,30 @@ var IPython = (function (IPython) {
      * return true if everything whent fine.
      **/
     Notebook.prototype._insert_element_at_index = function(element, index){
+        if (element == undefined){
+            return false;
+        }
+
         var ncells = this.ncells();
 
-        /// this use to be index < this.undelete_index in some case
+        if (ncells === 0) {
+            // special case append if empty
+            this.element.find('div.end_space').before(element);
+        } else if ( ncells == index ) {
+            // special case append it the end, but not empty
+            this.get_cell_element(index-1).after(element);
+        } else if (this.is_valid_cell_index(index)) {
+            // otherwise always somewhere to append to
+            this.get_cell_element(index).before(element);
+        } else {
+            return false;
+        }
+
         if (this.undelete_index !== null && index <= this.undelete_index) {
             this.undelete_index = this.undelete_index + 1;
             this.dirty = true;
         }
-
-        // this should be alway true now
-        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncells) {
-            if (element !== null) {
-                if (ncells === 0) {
-                    // special case append if empty
-                    this.element.find('div.end_space').before(element);
-                } else if ( ncells == index ) {
-                    // special case append it the end, but not empty
-                    this.get_cell_element(index-1).after(element);
-                } else if (this.is_valid_cell_index(index)) {
-                    // otherwise always somewhere to append to
-                    this.get_cell_element(index).before(element);
-                }
-                return true;
-            }
-        }
-        return false;
+        return true;
     };
 
     /**
