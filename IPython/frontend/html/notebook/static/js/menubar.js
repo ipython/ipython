@@ -65,18 +65,19 @@ var IPython = (function (IPython) {
 
     MenuBar.prototype.bind_events = function () {
         //  File
+        var that = this;
         this.element.find('#new_notebook').click(function () {
-            window.open(this.baseProjectUrl()+'new');
+            window.open(that.baseProjectUrl()+'new');
         });
         this.element.find('#open_notebook').click(function () {
-            window.open(this.baseProjectUrl());
+            window.open(that.baseProjectUrl());
         });
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
         });
         this.element.find('#copy_notebook').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
-            var url = this.baseProjectUrl() + notebook_id + '/copy';
+            var url = that.baseProjectUrl() + notebook_id + '/copy';
             window.open(url,'_blank');
             return false;
         });
@@ -85,13 +86,13 @@ var IPython = (function (IPython) {
         });
         this.element.find('#download_ipynb').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
-            var url = this.baseProjectUrl() + 'notebooks/' +
+            var url = that.baseProjectUrl() + 'notebooks/' +
                       notebook_id + '?format=json';
             window.location.assign(url);
         });
         this.element.find('#download_py').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
-            var url = this.baseProjectUrl() + 'notebooks/' +
+            var url = that.baseProjectUrl() + 'notebooks/' +
                       notebook_id + '?format=py';
             window.location.assign(url);
         });
