@@ -20,6 +20,7 @@
 {{ super() }}
 </div>
 </div>
+</div>
 {% endblock output_group %}
 
 
