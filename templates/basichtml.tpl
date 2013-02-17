@@ -14,9 +14,11 @@
 {% endblock input_group %}
 
 {% block output_group -%}
-<div class="output_wrapper">
+<div class="vbox output_wrapper">
 <div class="output vbox">
+<div class="hbox output_area">
 {{ super() }}
+</div>
 </div>
 </div>
 {% endblock output_group %}
@@ -28,11 +30,9 @@
 
 {% block output_prompt -%}
 <div class="prompt output_prompt">
-<div class="output vbox">
 {%- if cell.haspyout -%}
 Out[{{cell.prompt_number}}]:
 {%- endif -%}
-</div>
 </div>
 {% endblock output_prompt %}
 
@@ -67,29 +67,20 @@ unknown type  {{cell.type}}
 
 
 {% block pyout -%}
-<div class="hbox output_area">
-<div class="prompt"></div>
 <div class="box-flex1 output_subarea output_pyout">
 {% block data_priority scoped %}{{ super()}}{% endblock %}
-</div>
 </div>
 {%- endblock pyout %}
 
 {% block stream_stdout -%}
-<div class="hbox output_area">
-<div class="prompt"></div>
 <div class="box-flex1 output_subarea output_stream output_stdout">
 <pre>{{output.text |ansi2html}}</pre>
-</div>
 </div>
 {%- endblock stream_stdout %}
 
 {% block stream_stderr -%}
-<div class="hbox output_area">
-<div class="prompt"></div>
 <div class="box-flex1 output_subarea output_stream output_stderr">
 <pre>{{output.text |ansi2html}}</pre>
-</div>
 </div>
 {%- endblock stream_stderr %}
 
@@ -119,11 +110,8 @@ unknown type  {{cell.type}}
 {%- endblock data_latex %}
 
 {% block pyerr -%}
-<div class="hbox output_area">
-<div class="prompt"></div>
 <div class="box-flex1 output_subarea output_pyerr">
 <pre>{{super()}}</pre>
-</div>
 </div>
 {%- endblock pyerr %}
 
@@ -133,15 +121,12 @@ unknown type  {{cell.type}}
 
 
 {%- block data_text %}
-<pre>{{output.text | ansi2html}}</pre>
+<pre>{{output.text | ansi2html}}</pre>
 {%- endblock -%}
 
 
 {%- block display_data scoped -%}
-<div class="hbox output_area">
-<div class="prompt"></div>
 <div class="box-flex1 output_subarea output_display_data">
 {{super()}}
-</div>
 </div>
 {%- endblock display_data -%}
