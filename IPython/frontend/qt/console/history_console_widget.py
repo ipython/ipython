@@ -90,7 +90,7 @@ class HistoryConsoleWidget(ConsoleWidget):
             # and the cursor is at the end of the first line
             
             # check if we are at the end of the first line
-            c = self._get_prompt_cursor()
+            c = self._get_cursor()
             current_pos = c.position()
             c.movePosition(QtGui.QTextCursor.EndOfLine)
             at_eol = (c.position() == current_pos)
