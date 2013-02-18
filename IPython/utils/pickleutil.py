@@ -18,6 +18,7 @@ __docformat__ = "restructuredtext en"
 import copy
 import logging
 import sys
+from collections import namedtuple
 from types import FunctionType
 
 try:
@@ -249,7 +250,7 @@ def can_class(obj):
 
 def can_dict(obj):
     """can the *values* of a dict"""
-    if isinstance(obj, dict):
+    if istype(obj, dict):
         newobj = {}
         for k, v in obj.iteritems():
             newobj[k] = can(v)
@@ -257,9 +258,11 @@ def can_dict(obj):
     else:
         return obj
 
+sequence_types = (list, tuple, set)
+
 def can_sequence(obj):
     """can the elements of a sequence"""
-    if isinstance(obj, (list, tuple)):
+    if istype(obj, sequence_types):
         t = type(obj)
         return t([can(i) for i in obj])
     else:
@@ -285,7 +288,7 @@ def uncan(obj, g=None):
     return obj
 
 def uncan_dict(obj, g=None):
-    if isinstance(obj, dict):
+    if istype(obj, dict):
         newobj = {}
         for k, v in obj.iteritems():
             newobj[k] = uncan(v,g)
@@ -294,7 +297,7 @@ def uncan_dict(obj, g=None):
         return obj
 
 def uncan_sequence(obj, g=None):
-    if isinstance(obj, (list, tuple)):
+    if istype(obj, sequence_types):
         t = type(obj)
         return t([uncan(i,g) for i in obj])
     else:
