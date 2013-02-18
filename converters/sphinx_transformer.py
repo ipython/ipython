@@ -17,9 +17,9 @@ from datetime import date
 from IPython.utils.traitlets import Unicode, Bool
 
 # Needed to override transformer
-from converters.transformers import (ConfigurableTransformers)
+from converters.transformers import (ActivatableTransformer)
 
-class SphinxTransformer(ConfigurableTransformers):
+class SphinxTransformer(ActivatableTransformer):
     """
     Sphinx utility transformer.
 
@@ -66,12 +66,18 @@ class SphinxTransformer(ConfigurableTransformers):
     
     def __call__(self, nb, other):
         """
-        Sphinx transformation to apply on each notebook.
-
+        Entry
         Since we are not interested in any additional manipulation on a cell
         by cell basis, we do not  call the base implementation.
         """
+        if self.enabled:
+            return self.Transform(nb, other)
 
+    def Transform(self, nb, other):
+        """
+        Sphinx transformation to apply on each notebook.
+        """
+        
         if self.interactive:
             
             # Prompt the user for additional meta data that doesn't exist currently
@@ -101,7 +107,7 @@ class SphinxTransformer(ConfigurableTransformers):
         other["sphinx_texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
         
         # End
-        return nb, other
+        return nb, other        
     
     def _prompt_author(self):
         return  self._input("Author name: ")

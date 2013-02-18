@@ -36,6 +36,7 @@ from jinja2 import Environment, FileSystemLoader
 
 # local import (pre-transformers)
 import converters.transformers as trans
+from converters.sphinx_transformer import (SphinxTransformer)
 
 # some jinja filters
 from converters.jinja_filters import (python_comment, indent,
@@ -164,6 +165,7 @@ class ConverterTemplate(Configurable):
         self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
         self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
+        self.preprocessors.append(SphinxTransformer(config=config))
 
         ##
         self.env.filters['filter_data_type'] = FilterDataType(config=config)

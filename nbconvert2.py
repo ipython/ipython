@@ -29,7 +29,6 @@ from IPython.config.loader import ConfigFileNotFound
 from IPython.utils.traitlets import Unicode, Bool
 
 from converters.transformers import (ExtractFigureTransformer)
-from converters.sphinx_transformer import (SphinxTransformer)
 
 from converters.config import GlobalConfigurable
 
@@ -109,7 +108,6 @@ class NbconvertApp(Application):
         # If you are writting a custom transformer, append it to the dictionary
         # below.
         userpreprocessors = {}
-        userpreprocessors["SphinxTransformer"] = SphinxTransformer(config=self.config) # Sphinx templates
         
         # Create the converter
         C = ConverterTemplate(config=self.config, preprocessors=userpreprocessors)
