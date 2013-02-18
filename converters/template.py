@@ -37,6 +37,7 @@ from jinja2 import Environment, FileSystemLoader
 # local import (pre-transformers)
 import converters.transformers as trans
 from converters.sphinx_transformer import (SphinxTransformer)
+from converters.latex_transformer import (LatexTransformer)
 
 # some jinja filters
 from converters.jinja_filters import (python_comment, indent,
