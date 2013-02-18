@@ -19,6 +19,7 @@ Authors:
 import sys
 import platform
 import time
+from collections import namedtuple
 from tempfile import mktemp
 from StringIO import StringIO
 
@@ -42,6 +43,8 @@ from .clienttest import ClusterTestCase, crash, wait, skip_without
 
 def setup():
     add_engines(3, total=True)
+
+point = namedtuple("point", "x y")
 
 class TestView(ClusterTestCase, ParametricTestCase):
     
@@ -735,3 +738,22 @@ class TestView(ClusterTestCase, ParametricTestCase):
         r = view.apply_sync(lambda x: x.b, ra)
         self.assertEqual(r, 0)
         self.assertEqual(view['a.b'], 0)
+    
+    def test_return_namedtuple(self):
+        def namedtuplify(x, y):
+            from IPython.parallel.tests.test_view import point
+            return point(x, y)
+        
+        view = self.client[-1]
+        p = view.apply_sync(namedtuplify, 1, 2)
+        self.assertEqual(p.x, 1)
+        self.assertEqual(p.y, 2)
+
+    def test_apply_namedtuple(self):
+        def echoxy(p):
+            return p.y, p.x
+        
+        view = self.client[-1]
+        tup = view.apply_sync(echoxy, point(1, 2))
+        self.assertEqual(tup, (2,1))
+
