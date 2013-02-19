@@ -13,31 +13,19 @@ class LatexTransformer(ActivatableTransformer):
     """
     Converter for latex destined documents.
     """    
-    
-    def __call__(self, nb, other):
+
+    def cell_transform(self, cell, other, index):
         """
-        Entrypoint
-        
-        nb - Input notebook
-        other - Maps to 'resources' in Jinja
+        Apply a transformation on each cell,
+
+        receive the current cell, the resource dict and the index of current cell as parameter.
+
+        Returns modified cell and resource dict.
         """
-        
-        # Only run if enabled.
-        if self.enabled:
-            return self.Transform(nb, other)
-            
-    def Transform(self, nb, other):
-        """
-        Transform the notebook to make it compatible with markdown2latex.
-        """
-        
-        #Fix the markdown in every markdown cell.
-        for sheet in nb.worksheets:
-            for cell in sheet.cells:
-                if hasattr(cell, "source") and cell.cell_type == "markdown":
-                    cell.source = self.remove_math_space(cell.source)
-        return nb, other
-    
+        if hasattr(cell, "source") and cell.cell_type == "markdown":
+            cell.source = self.remove_math_space(cell.source)
+        return cell, other
+
     def remove_math_space(self, text):
         """
         Remove the space between latex math commands and enclosing $ symbols.
