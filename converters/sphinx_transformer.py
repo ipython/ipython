@@ -71,9 +71,9 @@ class SphinxTransformer(ActivatableTransformer):
         by cell basis, we do not  call the base implementation.
         """
         if self.enabled:
-            return self.Transform(nb, other)
+            return self.transform(nb, other)
 
-    def Transform(self, nb, other):
+    def transform(self, nb, other):
         """
         Sphinx transformation to apply on each notebook.
         """
