@@ -12,6 +12,7 @@
 #-------------------------------------------------------------------------------
 
 import pickle
+from collections import namedtuple
 
 import nose.tools as nt
 
@@ -186,10 +187,40 @@ def test_class_oldstyle():
     
     bufs = serialize_object(dict(C=C))
     canned = pickle.loads(bufs[0])
-    yield nt.assert_true(canned['C'], CannedClass)
+    yield nt.assert_true(isinstance(canned['C'], CannedClass))
     d, r = unserialize_object(bufs)
     C2 = d['C']
     yield nt.assert_equal(C2.a, C.a)
+
+@dec.parametric
+def test_tuple():
+    tup = (lambda x:x, 1)
+    bufs = serialize_object(tup)
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(isinstance(canned, tuple))
+    t2, r = unserialize_object(bufs)
+    yield nt.assert_equal(t2[0](t2[1]), tup[0](tup[1]))
+
+point = namedtuple('point', 'x y')
+
+@dec.parametric
+def test_namedtuple():
+    p = point(1,2)
+    bufs = serialize_object(p)
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(isinstance(canned, point))
+    p2, r = unserialize_object(bufs, globals())
+    yield nt.assert_equal(p2.x, p.x)
+    yield nt.assert_equal(p2.y, p.y)
+
+@dec.parametric
+def test_list():
+    lis = [lambda x:x, 1]
+    bufs = serialize_object(lis)
+    canned = pickle.loads(bufs[0])
+    yield nt.assert_true(isinstance(canned, list))
+    l2, r = unserialize_object(bufs)
+    yield nt.assert_equal(l2[0](l2[1]), lis[0](lis[1]))
 
 @dec.parametric
 def test_class_inheritance():
