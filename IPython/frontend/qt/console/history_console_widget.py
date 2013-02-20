@@ -88,9 +88,15 @@ class HistoryConsoleWidget(ConsoleWidget):
             # to the line up to the cursor is if we are already
             # in a simple scroll (no prefix),
             # and the cursor is at the end of the first line
-            first_line = input_buffer.split('\n', 1)[0]
+            
+            # check if we are at the end of the first line
+            c = self._get_cursor()
+            current_pos = c.position()
+            c.movePosition(QtGui.QTextCursor.EndOfLine)
+            at_eol = (c.position() == current_pos)
+            
             if self._history_index == len(self._history) or \
-                not (self._history_prefix == '' and col == len(first_line)) or \
+                not (self._history_prefix == '' and at_eol) or \
                 not (self._get_edited_history(self._history_index)[:col] == input_buffer[:col]):
                 self._history_prefix = input_buffer[:col]
 
