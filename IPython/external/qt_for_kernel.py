@@ -4,6 +4,9 @@ This is the import used for the `gui=qt` or `pylab=qt` initialization.
 
 Import Priority:
 
+if Qt4 has been imported anywhere else:
+   use that
+
 if matplotlib has been imported and doesn't support v2 (<= 1.0.1):
     use PyQt4 @v1
 
@@ -33,56 +36,49 @@ import sys
 
 from IPython.utils.warn import warn
 from IPython.utils.version import check_version
+from IPython.external.qt_loaders import (load_qt, QT_API_PYSIDE,
+                                         QT_API_PYQT, QT_API_PYQTv1,
+                                         loaded_api)
 
-matplotlib = sys.modules.get('matplotlib')
-if matplotlib and not check_version(matplotlib.__version__, '1.0.2'):
-    # 1.0.1 doesn't support pyside or v2, so stick with PyQt @v1,
-    # and ignore everything else
-    from PyQt4 import QtCore, QtGui
-else:
-    # ask QT_API ETS variable *first*
-    QT_API = os.environ.get('QT_API', None)
-    if QT_API is None:
-        # QT_API not set, ask matplotlib if it was imported (e.g. `pylab=qt`)
-        if matplotlib:
-            mpqt = matplotlib.rcParams.get('backend.qt4', None)
-        else:
-            mpqt = None
-        if mpqt is None:
-            # matplotlib not imported or had nothing to say.
-            try:
-                # default to unconfigured PyQt4
-                from PyQt4 import QtCore, QtGui
-            except ImportError:
-                # fallback on PySide
-                try:
-                    from PySide import QtCore, QtGui
-                except ImportError:
-                    raise ImportError('Cannot import PySide or PyQt4')
-        elif mpqt.lower() == 'pyqt4':
-            # import PyQt4 unconfigured
-            from PyQt4 import QtCore, QtGui
-        elif mpqt.lower() == 'pyside':
-            from PySide import QtCore, QtGui
-        else:
-            raise ImportError("unhandled value for backend.qt4 from matplotlib: %r"%mpqt)
-    else:
-        # QT_API specified, use PySide or PyQt+v2 API from external.qt
-        # this means ETS is likely to be used, which requires v2
-        try:
-            from IPython.external.qt import QtCore, QtGui
-        except ValueError as e:
-            if 'API' in str(e):
-                # PyQt4 already imported, and APIv2 couldn't be set
-                # Give more meaningful message, and warn instead of raising
-                warn("""
-    Assigning the ETS variable `QT_API=pyqt` implies PyQt's v2 API for
-    QString and QVariant, but PyQt has already been imported
-    with v1 APIs.  You should unset QT_API to work with PyQt4
-    in its default mode.
-""")
-                # allow it to still work
-                from PyQt4 import QtCore, QtGui
-            else:
-                raise
+#Constraints placed on an imported matplotlib
+def matplotlib_options(mpl):
+    if mpl is None:
+        return
+    mpqt = mpl.rcParams.get('backend.qt4', None)
+    if mpqt is None:
+        return None
+    if mpqt.lower() == 'pyside':
+        return [QT_API_PYSIDE]
+    elif mpqt.lower() == 'pyqt4':
+        return [QT_API_PYQTv1]
+    raise ImportError("unhandled value for backend.qt4 from matplotlib: %r" %
+                      mpqt)
 
+def get_options():
+    """Return a list of acceptable QT APIs, in decreasing order of
+    preference
+    """
+    #already imported Qt somewhere. Use that
+    loaded = loaded_api()
+    if loaded is not None:
+        return [loaded]
+
+    mpl = sys.modules.get('matplotlib', None)
+
+    if mpl is not None and check_version(mpl.__version__, '1.0.2'):
+        #1.0.1 only supports PyQt4 v1
+        return [QT_API_PYQTv1]
+
+    if os.environ.get('QT_API', None) is None:
+        #no ETS variable. Ask mpl, then use either
+        return matplotlib_options(mpl) or [QT_API_PYQTv1, QT_API_PYSIDE]
+
+    #ETS variable present. Will fallback to external.qt
+    return None
+
+api_opts = get_options()
+if api_opts is not None:
+    QtCore, QtGui, QtSvg, QT_API = load_qt(api_opts)
+
+else: # use ETS variable
+    from IPython.external.qt import QtCore, QtGui, QtSvg, QT_API
