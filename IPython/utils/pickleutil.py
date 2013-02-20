@@ -18,7 +18,6 @@ __docformat__ = "restructuredtext en"
 import copy
 import logging
 import sys
-from collections import namedtuple
 from types import FunctionType
 
 try:
