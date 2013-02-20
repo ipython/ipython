@@ -560,25 +560,25 @@ more other types of exceptions. Here is how it works:
     In [79]: dview.execute("1/0")
     [0:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [1:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [2:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [3:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
@@ -595,7 +595,7 @@ If you want, you can even raise one of these original exceptions:
        ....: 
        ....: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
@@ -608,25 +608,25 @@ instance:
     In [81]: dview.execute('1/0')
     [0:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [1:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [2:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
 
     [3:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
     
@@ -654,9 +654,29 @@ instance:
     ipdb> e.print_traceback(1)
     [1:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
+
+
+Since you might have 100 engines, you probably don't want to see 100 tracebacks
+for a simple NameError because of a typo.
+For this reason, CompositeError truncates the list of exceptions it will print
+to :attr:`CompositeError.tb_limit` (default is five).
+You can change this limit to suit your needs with:
+
+.. sourcecode:: ipython
+
+    In [20]: from IPython.parallel import CompositeError
+    In [21]: CompositeError.tb_limit = 1
+    In [22]: %px a=b
+    [0:execute]: 
+    ---------------------------------------------------------------------------
+    NameError                                 Traceback (most recent call last)
+    ----> 1 a=b
+    NameError: name 'b' is not defined
+
+    ... 3 more exceptions ...
 
 
 All of this same error handling magic even works in non-blocking mode:
@@ -670,25 +690,8 @@ All of this same error handling magic even works in non-blocking mode:
     In [85]: ar.get()
     [0:execute]: 
     ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
+    ZeroDivisionError                         Traceback (most recent call last)
     ----> 1 1/0
     ZeroDivisionError: integer division or modulo by zero
-
-    [1:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
-    ----> 1 1/0
-    ZeroDivisionError: integer division or modulo by zero
-
-    [2:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
-    ----> 1 1/0
-    ZeroDivisionError: integer division or modulo by zero
-
-    [3:execute]: 
-    ---------------------------------------------------------------------------
-    ZeroDivisionError                         Traceback (most recent call last)<ipython-input-1-05c9758a9c21> in <module>()
-    ----> 1 1/0
-    ZeroDivisionError: integer division or modulo by zero
-
+    
+    ... 3 more exceptions ...
