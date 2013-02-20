@@ -34,7 +34,8 @@ except:
 from IPython.utils import py3compat
 from IPython.utils.data import flatten
 from IPython.utils.pickleutil import (
-    can, uncan, can_sequence, uncan_sequence, CannedObject
+    can, uncan, can_sequence, uncan_sequence, CannedObject,
+    istype, sequence_types,
 )
 
 if py3compat.PY3:
@@ -91,11 +92,11 @@ def serialize_object(obj, buffer_threshold=MAX_BYTES, item_threshold=MAX_ITEMS):
     [bufs] : list of buffers representing the serialized object.
     """
     buffers = []
-    if isinstance(obj, (list, tuple)) and len(obj) < item_threshold:
+    if istype(obj, sequence_types) and len(obj) < item_threshold:
         cobj = can_sequence(obj)
         for c in cobj:
             buffers.extend(_extract_buffers(c, buffer_threshold))
-    elif isinstance(obj, dict) and len(obj) < item_threshold:
+    elif istype(obj, dict) and len(obj) < item_threshold:
         cobj = {}
         for k in sorted(obj.iterkeys()):
             c = can(obj[k])
@@ -129,7 +130,7 @@ def unserialize_object(buffers, g=None):
         # a zmq message
         pobj = bytes(pobj)
     canned = pickle.loads(pobj)
-    if isinstance(canned, (list, tuple)) and len(canned) < MAX_ITEMS:
+    if istype(canned, sequence_types) and len(canned) < MAX_ITEMS:
         for c in canned:
             _restore_buffers(c, bufs)
         newobj = uncan_sequence(canned, g)
