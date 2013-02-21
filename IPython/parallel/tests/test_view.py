@@ -636,8 +636,8 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = self.client.get_result(msg_ids)
         try:
             ar.get()
-        except error.CompositeError as e:
-            pass
+        except error.CompositeError as _e:
+            e = _e
         else:
             self.fail("Should have raised CompositeError")
         
