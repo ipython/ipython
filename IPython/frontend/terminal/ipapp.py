@@ -241,6 +241,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         locate=('IPython.frontend.terminal.ipapp.LocateIPythonApp',
             LocateIPythonApp.description
         ),
+        history=('IPython.core.historyapp.HistoryApp',
+            "Manage the IPython history database."
+        ),
     ))
 
     # *do* autocreate requested profile, but don't create the config file.
