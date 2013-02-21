@@ -8,7 +8,7 @@
 
   ==========================================================================))
 
-((*- extends 'latex_base.tplx' -*))
+((*- extends 'display_priority.tplx' -*))
 
 ((* block header *))
 
@@ -38,102 +38,19 @@
     \usepackage{ucs}
     \usepackage{enumerate}
 
-% Define a few colors for use in code, links and cell shading
-\usepackage{color}
-\definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
-\definecolor{darkorange}{rgb}{.71,0.21,0.01}
-\definecolor{darkgreen}{rgb}{.12,.54,.11}
-\definecolor{myteal}{rgb}{.26, .44, .56}
-\definecolor{gray}{gray}{0.45}
-\definecolor{lightgray}{gray}{.95}
-\definecolor{mediumgray}{gray}{.8}
-\definecolor{inputbackground}{rgb}{.95, .95, .85}
-\definecolor{outputbackground}{rgb}{.95, .95, .95}
-\definecolor{traceback}{rgb}{1, .95, .95}
+    % Pygments requirements
+    \usepackage{fancyvrb}
+    \usepackage{color}
 
-% Framed environments for code cells (inputs, outputs, errors, ...).  The
-% various uses of \unskip (or not) at the end were fine-tuned by hand, so don't
-% randomly change them unless you're sure of the effect it will have.
-\usepackage{framed}
+    % For formatting output while also word wrapping.
+    \usepackage{listings}
+    \lstset{breaklines=true} 
+    \lstset{basicstyle=\small\ttfamily}
+    %Pygments definitions
+    ((( resources.pygment_definitions )))
 
-% remove extraneous vertical space in boxes
-\setlength\fboxsep{0pt}
-
-% codecell is the whole input+output set of blocks that a Code cell can
-% generate.
-
-% TODO: unfortunately, it seems that using a framed codecell environment breaks
-% the ability of the frames inside of it to be broken across pages.  This
-% causes at least the problem of having lots of empty space at the bottom of
-% pages as new frames are moved to the next page, and if a single frame is too
-% long to fit on a page, will completely stop latex from compiling the
-% document.  So unless we figure out a solution to this, we'll have to instead
-% leave the codecell env. as empty.  I'm keeping the original codecell
-% definition here (a thin vertical bar) for reference, in case we find a
-% solution to the page break issue.
-
-%% \newenvironment{codecell}{%
-%%     \def\FrameCommand{\color{mediumgray} \vrule width 1pt \hspace{5pt}}%
-%%    \MakeFramed{\vspace{-0.5em}}}
-%%  {\unskip\endMakeFramed}
-
-% For now, make this a no-op...
-\newenvironment{codecell}{}
-
- \newenvironment{codeinput}{%
-   \def\FrameCommand{\colorbox{inputbackground}}%
-   \MakeFramed{\advance\hsize-\width \FrameRestore}}
- {\unskip\endMakeFramed}
-
-\newenvironment{codeoutput}{%
-   \def\FrameCommand{\colorbox{outputbackground}}%
-   \vspace{-1.4em}
-   \MakeFramed{\advance\hsize-\width \FrameRestore}}
- {\unskip\medskip\endMakeFramed}
-
-\newenvironment{traceback}{%
-   \def\FrameCommand{\colorbox{traceback}}%
-   \MakeFramed{\advance\hsize-\width \FrameRestore}}
- {\endMakeFramed}
-
-% Use and configure listings package for nicely formatted code
-\usepackage{listingsutf8}
-\lstset{
-  language=python,
-  inputencoding=utf8x,
-  extendedchars=\true,
-  aboveskip=\smallskipamount,
-  belowskip=\smallskipamount,
-  xleftmargin=2mm,
-  breaklines=true,
-  basicstyle=\small \ttfamily,
-  showstringspaces=false,
-  keywordstyle=\color{blue}\bfseries,
-  commentstyle=\color{myteal},
-  stringstyle=\color{darkgreen},
-  identifierstyle=\color{darkorange},
-  columns=fullflexible,  % tighter character kerning, like verb
-}
-
-% The hyperref package gives us a pdf with properly built
-% internal navigation ('pdf bookmarks' for the table of contents,
-% internal cross-reference links, web links for URLs, etc.)
-\usepackage{hyperref}
-\hypersetup{
-  breaklinks=true,  % so long urls are correctly broken across lines
-  colorlinks=true,
-  urlcolor=blue,
-  linkcolor=darkorange,
-  citecolor=darkgreen,
-  }
-
-% hardcode size of all verbatim environments to be a bit smaller
-\makeatletter 
-\g@addto@macro\@verbatim\small\topsep=0.5em\partopsep=0pt
-\makeatother 
-
-% Prevent overflowing lines due to urls and other hard-to-break entities.
-\sloppy
+    % Prevent overflowing lines due to urls and other hard-to-break entities.
+    \sloppy
 
     % Document level variables
     \title{((( filterOutLatex(nb.metadata.name) )))} 
@@ -149,6 +66,7 @@
 
 ((* endblock header *))
 
+((* block body *))
 ((* block bodyBegin *))
 % Body
 
@@ -157,7 +75,7 @@
         \maketitle
         \tableofcontents 
 
-        ((* endblock bodyBegin *))((* block bodyEnd *))
+        ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
 
         \renewcommand{\indexname}{Index}
         \printindex
@@ -165,6 +83,7 @@
     % End of document
     \end{document}
 ((* endblock bodyEnd *))
+((* endblock body *))
 
 % Footer
 ((* block footer *))
@@ -184,7 +103,7 @@
         ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
         ((* block h6 -*))paragraph((* endblock h6 -*))
-    ((*- endif -*)){((( filterOutLatex(cell.source) )))} ((= | markdown2latex =))
+    ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))} 
 ((*- endblock headingcell *))
 
 ((* block unknowncell scoped*))
@@ -194,7 +113,7 @@
 ((* endblock unknowncell *))
 
 ((*- block markdowncell scoped-*))
-    ((( super() )))
+    ((( cell.source | markdown2latex )))
 ((*- endblock markdowncell -*))
 
 ((= Raw text cells allow the user to manually inject document code that will
@@ -202,6 +121,96 @@ not get touched by the templating system. =))
 ((*- block rawcell *))
     ((( cell.source )))
 ((* endblock rawcell -*))
+
+((* block input *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Input}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        ((( cell.input | get_lines(end=3) | highlight2latex )))
+    \end{minipage}
+    ((( cell.input | get_lines(start=3) | highlight2latex )))
+((* endblock input *))
+
+((* block pyerr *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        \begin{lstlisting}
+((( super() | get_lines(end=3) )))
+        \end{lstlisting}
+    \end{minipage}
+    \begin{lstlisting}
+((( super() | get_lines(start=3) )))
+    \end{lstlisting}
+((* endblock pyerr *))
+
+((*- block display_data -*))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-20pt}
+        ((( super() )))
+    \end{minipage} \\
+((*- endblock display_data -*))
+
+((* block stream *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        \begin{lstlisting}
+((( output.text | get_lines(end=3) )))
+        \end{lstlisting}
+    \end{minipage}
+    \begin{lstlisting}
+((( output.text | get_lines(start=3) )))
+    \end{lstlisting}
+((* endblock stream *))
+
+((* block pyout *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        \begin{lstlisting}
+((( output.text | get_lines(end=3) )))
+        \end{lstlisting}
+    \end{minipage}
+    \begin{lstlisting}
+((( output.text | get_lines(start=3) )))
+    \end{lstlisting}
+((* endblock pyout *))
+
+((* block traceback_line *))
+((( line |indent| rm_ansi )))((* endblock traceback_line *))
+((= .... =))
+
+((* block data_text *))
+\begin{lstlisting}
+((( output.text )))
+\end{lstlisting}
+((* endblock *))
+
+((*- block data_png -*))
+\begin{center}
+\includegraphics[width=0.7\textwidth]{(((output.key_png)))}
+\par
+\end{center}
+((*- endblock -*))
+
+((*- block data_svg -*))
+\begin{center}
+\includegraphics[width=0.7\textwidth]{(((output.key_svg)))}
+\par
+\end{center}
+((*- endblock -*))
 
 ((* macro filterOutLatex(text) -*))
     ((*- set text = text|replace("\\","\\backslash") -*))
@@ -212,57 +221,8 @@ not get touched by the templating system. =))
     ((( text )))
 ((*- endmacro *))
 
-% Useful to block TODO: Remove/move this block below
-
-    \setbox0\vbox{
-    \begin{minipage}{0.95\linewidth}
-
-    \end{minipage}}
-    \begin{center}\setlength{\fboxsep}{5pt}
-    \shadowbox{\box0}\end{center}
-
-((========================================================================
-    EVERYTHING BELOW HERE STILL NEEDS TO BE FILLED IN!
-  ========================================================================))
-((=
-((*- block codecell scoped -*))
-    ((*- block input_group -*))
-        ((*- block in_prompt -*))((*- endblock in_prompt -*))
-        ((*- block input -*))((*- endblock input -*))
-    ((*- endblock input_group -*))
-        ((*- if cell.outputs -*))
-    ((*- block output_group -*))
-            ((*- block output_prompt -*))((*- endblock output_prompt -*))
-            ((*- block outputs -*))
-                ((*- for output in cell.outputs -*))
-                    ((*- if output.output_type in ['pyout'] -*))
-                        ((*- block pyout scoped -*))((*- endblock pyout -*))
-                    ((*- elif output.output_type in ['stream'] -*))
-                        ((*- block stream scoped -*))
-                            ((*- if output.stream in ['stdout'] -*))
-                                ((*- block stream_stdout scoped -*))
-                                ((*- endblock stream_stdout -*))
-                            ((*- elif output.stream in ['stderr'] -*))
-                                ((*- block stream_stderr scoped -*))
-                                ((*- endblock stream_stderr -*))
-                            ((*- endif -*))
-                        ((*- endblock stream -*))
-                    ((*- elif output.output_type in ['display_data'] -*))
-                        ((*- block display_data scoped -*))
-                            ((*- block data_priority scoped -*))
-                            ((*- endblock data_priority -*))
-                        ((*- endblock display_data -*))
-                    ((*- elif output.output_type in ['pyerr'] -*))
-                        ((*- block pyerr scoped -*))
-                        ((*- for line in output.traceback -*))
-                            ((*- block traceback_line scoped -*))((*- endblock traceback_line -*))
-                        ((*- endfor -*))
-                        ((*- endblock pyerr -*))
-                    ((*- endif -*))
-                ((*- endfor -*))
-            ((*- endblock outputs -*))
-    ((*- endblock output_group -*))
-        ((*- endif -*))
-((*- endblock codecell -*))
-=))
+((* macro escapeUnderscores(text) -*))
+    ((*- set text = text|replace("_","\\_") -*))
+    ((( text )))
+((*- endmacro *))
 
