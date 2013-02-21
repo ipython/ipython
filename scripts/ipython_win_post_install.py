@@ -113,16 +113,10 @@ def install():
                arguments(scripts, 'ipengine'), iconpath)
     mkshortcut(pythonw, 'IPython Qt Console', ip_start_menu,
                arguments(scripts, 'ipython', 'qtconsole'), iconpath)
-    mkshortcut(pythonw, 'IPython Qt Console (pylab mode)', ip_start_menu,
-               arguments(scripts, 'ipython', 'qtconsole --pylab=inline'),
-               iconpath)
 
     iconpath = pjoin(scripts, 'ipython_nb.ico')
     mkshortcut(python, 'IPython Notebook', ip_start_menu,
                arguments(scripts, 'ipython', 'notebook'), iconpath)
-    mkshortcut(python, 'IPython Notebook (pylab mode)', ip_start_menu,
-               arguments(scripts, 'ipython', 'notebook --pylab=inline'),
-               iconpath)
 
     try:
         import IPython
