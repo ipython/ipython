@@ -11,6 +11,8 @@ especially intenting/deindenting blocks that is now bound to Ctrl+] and ctr+[
 * Exception types can now be displayed with a custom traceback, by defining a
   ``_render_traceback_()`` method which returns a list of strings, each
   containing one line of the traceback.
+* A new command, ``ipython history trim`` can be used to delete everything but
+  the last 1000 entries in the history database.
 
 In-process kernels
 ------------------
