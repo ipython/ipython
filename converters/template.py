@@ -41,8 +41,8 @@ from converters.latex_transformer import (LatexTransformer)
 
 # some jinja filters
 from converters.jinja_filters import (python_comment, indent,
-        rm_fake, remove_ansi, markdown, highlight,
-        ansi2html, markdown2latex, escape_tex, FilterDataType)
+        rm_fake, remove_ansi, markdown, highlight, highlight2latex,
+        ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType)
 
 from converters.utils import  markdown2rst
 
@@ -176,9 +176,11 @@ class ConverterTemplate(Configurable):
         self.env.filters['rm_ansi'] = remove_ansi
         self.env.filters['markdown'] = markdown
         self.env.filters['highlight'] = highlight
+        self.env.filters['highlight2latex'] = highlight2latex
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
+        self.env.filters['get_lines'] = get_lines
         self.env.filters['wrap'] = wrap
 
         ## user  filter will overwrite

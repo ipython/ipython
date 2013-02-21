@@ -16,6 +16,9 @@ from datetime import date
 # Configurable traitlets
 from IPython.utils.traitlets import Unicode, Bool
 
+# Needed for Pygments latex definitions.
+from pygments.formatters import LatexFormatter
+
 # Needed to override transformer
 from converters.transformers import (ActivatableTransformer)
 
@@ -106,8 +109,14 @@ class SphinxTransformer(ActivatableTransformer):
         # Find and pass in the path to the Sphinx dependencies.
         other["sphinx_texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
         
+        # Generate Pygments definitions for Latex 
+        other["pygment_definitions"] = self._generate_pygments_latex_def()
+        
         # End
-        return nb, other        
+        return nb, other 
+    
+    def _generate_pygments_latex_def(self):
+        return LatexFormatter().get_style_defs()       
     
     def _prompt_author(self):
         return  self._input("Author name: ")
