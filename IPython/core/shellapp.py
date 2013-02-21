@@ -203,6 +203,10 @@ class InteractiveShellApp(Configurable):
                     self.log.info("Enabling GUI event loop integration, "
                                   "toolkit=%s" % self.gui)
                     shell.enable_gui(self.gui)
+            except ImportError:
+                self.log.warn("pylab mode doesn't work as matplotlib could not be found." + \
+                              "\nIs it installed on the system?")
+                self.shell.showtraceback()
             except Exception:
                 self.log.warn("GUI event loop or pylab initialization failed")
                 self.shell.showtraceback()
