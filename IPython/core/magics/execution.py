@@ -948,8 +948,10 @@ python-profiler package from non-free.""")
         cpu_user = end[0]-st[0]
         cpu_sys = end[1]-st[1]
         cpu_tot = cpu_user+cpu_sys
-        print "CPU times: user %s, sys: %s, total: %s" % \
-              (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot))
+        # On windows cpu_sys is always zero, so no new information to the next print 
+        if sys.platform != 'win32':
+            print "CPU times: user %s, sys: %s, total: %s" % \
+                (_format_time(cpu_user),_format_time(cpu_sys),_format_time(cpu_tot))
         print "Wall time: %s" % _format_time(wall_time)
         if tc > tc_min:
             print "Compiler : %s" % _format_time(tc)
