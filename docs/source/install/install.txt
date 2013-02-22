@@ -370,19 +370,30 @@ of :mod:`IPython.external.mathjax`
 Browser Compatibility
 ---------------------
 
-The notebook uses WebSockets and the flexible box model. These features are
-available in the following browsers:
+The IPython notebook is officially supported on the following browers:
 
-* Chrome
-* Safari
-* Firefox 6 and above
-* Firefox 4 and 5: These browsers have WebSocket support, but it is disabled by
-  default. If you're unable to upgrade, you can enable it by entering ``about:config``
-  in the URL bar and then setting ``network.websocket.enabled`` and
-  ``network.websocket.override-security-block`` to ``true``.
+* Chrome ≥ 13
+* Safari ≥ 5
+* Firefox ≥ 6
 
-Internet Explorer 9 does not support WebSockets or the flexible box model, but
-these features should appear in Internet Explorer 10.
+The is mainly due to the notebook's usage of WebSockets and the flexible box model.
+
+The following browsers are unsupported:
+
+* Safari < 5
+* Firefox < 6
+* Chrome < 13
+* Opera (any): CSS issues, but execution might work
+* Internet Explorer < 10
+
+The following specific combinations are known **NOT** to work:
+
+* Safari, IPython 0.12, tornado ≥ 2.2.0
+* Safari with HTTPS connection to notebook and an untrusted certificate (websockets will fail)
+* The [diigo Chrome extension](http://help.diigo.com/tools/chrome-extension) seems to interfere with scrolling
+
+There are some early reports that the Notebook works on Internet Explorer 10, but we
+expect there will be some CSS issues related to the flexible box model.
 
 
 .. _ZeroMQ: http://www.zeromq.org
