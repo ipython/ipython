@@ -37,7 +37,7 @@ import sys
 from IPython.utils.warn import warn
 from IPython.utils.version import check_version
 from IPython.external.qt_loaders import (load_qt, QT_API_PYSIDE,
-                                         QT_API_PYQT, QT_API_PYQTv1,
+                                         QT_API_PYQT, QT_API_PYQT_DEFAULT,
                                          loaded_api)
 
 #Constraints placed on an imported matplotlib
@@ -50,7 +50,7 @@ def matplotlib_options(mpl):
     if mpqt.lower() == 'pyside':
         return [QT_API_PYSIDE]
     elif mpqt.lower() == 'pyqt4':
-        return [QT_API_PYQTv1]
+        return [QT_API_PYQT_DEFAULT]
     raise ImportError("unhandled value for backend.qt4 from matplotlib: %r" %
                       mpqt)
 
@@ -65,13 +65,13 @@ def get_options():
 
     mpl = sys.modules.get('matplotlib', None)
 
-    if mpl is not None and check_version(mpl.__version__, '1.0.2'):
+    if mpl is not None and not check_version(mpl.__version__, '1.0.2'):
         #1.0.1 only supports PyQt4 v1
-        return [QT_API_PYQTv1]
+        return [QT_API_PYQT_DEFAULT]
 
     if os.environ.get('QT_API', None) is None:
         #no ETS variable. Ask mpl, then use either
-        return matplotlib_options(mpl) or [QT_API_PYQTv1, QT_API_PYSIDE]
+        return matplotlib_options(mpl) or [QT_API_PYQT_DEFAULT, QT_API_PYSIDE]
 
     #ETS variable present. Will fallback to external.qt
     return None

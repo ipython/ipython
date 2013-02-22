@@ -16,6 +16,7 @@ from IPython.utils.version import check_version
 # Available APIs.
 QT_API_PYQT = 'pyqt'
 QT_API_PYQTv1 = 'pyqtv1'
+QT_API_PYQT_DEFAULT = 'pyqtdefault' # don't set SIP explicitly
 QT_API_PYSIDE = 'pyside'
 
 
@@ -23,7 +24,6 @@ class ImportDenier(object):
     """Import Hook that will guard against bad Qt imports
     once IPython commits to a specific binding
     """
-    __forbidden = set()
 
     def __init__(self):
         self.__forbidden = None
@@ -84,7 +84,7 @@ def has_binding(api):
 
        Parameters
        ----------
-       api : str [ 'pyqtv1' | 'pyqt' | 'pyside']
+       api : str [ 'pyqtv1' | 'pyqt' | 'pyside' | 'pyqtdefault']
             Which module to check for
 
        Returns
@@ -96,7 +96,8 @@ def has_binding(api):
     # check for complete presence before importing
     module_name = {QT_API_PYSIDE: 'PySide',
                    QT_API_PYQT: 'PyQt4',
-                   QT_API_PYQTv1: 'PyQt4'}
+                   QT_API_PYQTv1: 'PyQt4',
+                   QT_API_PYQT_DEFAULT: 'PyQt4'}
     module_name = module_name[api]
 
     import imp
@@ -136,13 +137,25 @@ def qtapi_version():
 
 def can_import(api):
     """Safely query whether an API is importable, without importing it"""
+    if not has_binding(api):
+        return False
+
     current = loaded_api()
-    return has_binding(api) and current in [api, None]
+    if api == QT_API_PYQT_DEFAULT:
+        return current in [QT_API_PYQT, QT_API_PYQTv1, None]
+    else:
+        return current in [api, None]
 
 
 def import_pyqt4(version=2):
     """
     Import PyQt4
+
+    Parameters
+    ----------
+    version : 1, 2, or None
+      Which QString/QVariant API to use. Set to None to use the system
+      default
 
     ImportErrors rasied within this function are non-recoverable
     """
@@ -150,8 +163,10 @@ def import_pyqt4(version=2):
     # converts QStrings to Unicode Python strings. Also, automatically unpacks
     # QVariants to their underlying objects.
     import sip
-    sip.setapi('QString', version)
-    sip.setapi('QVariant', version)
+
+    if version is not None:
+        sip.setapi('QString', version)
+        sip.setapi('QVariant', version)
 
     from PyQt4 import QtGui, QtCore, QtSvg
 
@@ -163,6 +178,8 @@ def import_pyqt4(version=2):
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
 
+    # query for the API version (in case version == None)
+    version = sip.getapi('QString')
     api = QT_API_PYQTv1 if version == 1 else QT_API_PYQT
     return QtCore, QtGui, QtSvg, api
 
@@ -205,21 +222,24 @@ def load_qt(api_options):
     """
     loaders = {QT_API_PYSIDE: import_pyside,
                QT_API_PYQT: import_pyqt4,
-               QT_API_PYQTv1: partial(import_pyqt4, version=1)
+               QT_API_PYQTv1: partial(import_pyqt4, version=1),
+               QT_API_PYQT_DEFAULT: partial(import_pyqt4, version=None)
                }
 
     for api in api_options:
 
         if api not in loaders:
             raise RuntimeError(
-                "Invalid Qt API %r, valid values are: %r, %r, %r" %
-                (api, QT_API_PYSIDE, QT_API_PYQT, QT_API_PYQTv1))
+                "Invalid Qt API %r, valid values are: %r, %r, %r, %r" %
+                (api, QT_API_PYSIDE, QT_API_PYQT,
+                 QT_API_PYQTv1, QT_API_PYQT_DEFAULT))
 
         if not can_import(api):
             continue
 
         #cannot safely recover from an ImportError during this
         result = loaders[api]()
+        api = result[-1]  # changed if api = QT_API_PYQT_DEFAULT
         commit_api(api)
         return result
     else:
