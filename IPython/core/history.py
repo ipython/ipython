@@ -776,8 +776,7 @@ def extract_hist_ranges(ranges_str):
         endsess = rmatch.group("endsess") or startsess
         startsess = int(startsess.replace("~","-"))
         endsess = int(endsess.replace("~","-"))
-        assert endsess >= startsess, ("start session must be older than end "
-                                      "session")
+        assert endsess >= startsess, "start session must be earlier than end session"
 
         if endsess == startsess:
             yield (startsess, start, end)
