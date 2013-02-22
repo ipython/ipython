@@ -425,7 +425,7 @@ var IPython = (function (IPython) {
 
 
     Notebook.prototype.is_valid_cell_index = function (index) {
-        if (index != undefined && index >= 0 && index < this.ncells()) {
+        if (index !== null && index >= 0 && index < this.ncells()) {
             return true;
         } else {
             return false;
@@ -483,9 +483,14 @@ var IPython = (function (IPython) {
 
     // Cell movement
 
+    /**
+     * Move given (or selected) cell up and select it
+     * @method move_cell_up
+     * @param [index] {integer} cell index
+     **/
     Notebook.prototype.move_cell_up = function (index) {
-        var i = this.index_or_selected();
-        if (this.is_valid_cell_index(index) && i > 0) {
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i) && i > 0) {
             var pivot = this.get_cell_element(i-1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
@@ -499,8 +504,13 @@ var IPython = (function (IPython) {
     };
 
 
+    /**
+     * Move given (or selected) cell down and select it
+     * @method move_cell_down
+     * @param [index] {integer} cell index
+     **/
     Notebook.prototype.move_cell_down = function (index) {
-        var i = this.index_or_selected();
+        var i = this.index_or_selected(index);
         if ( this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
             var pivot = this.get_cell_element(i+1);
             var tomove = this.get_cell_element(i);
@@ -594,7 +604,7 @@ var IPython = (function (IPython) {
      * return true if everything whent fine.
      **/
     Notebook.prototype._insert_element_at_index = function(element, index){
-        if (element == undefined){
+        if (element === undefined){
             return false;
         }
 
@@ -603,7 +613,7 @@ var IPython = (function (IPython) {
         if (ncells === 0) {
             // special case append if empty
             this.element.find('div.end_space').before(element);
-        } else if ( ncells == index ) {
+        } else if ( ncells === index ) {
             // special case append it the end, but not empty
             this.get_cell_element(index-1).after(element);
         } else if (this.is_valid_cell_index(index)) {
