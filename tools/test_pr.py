@@ -12,11 +12,9 @@ from __future__ import print_function
 import errno
 from glob import glob
 import io
-import json
 import os
 import pickle
 import re
-import requests
 import shutil
 import time
 from subprocess import call, check_call, check_output, PIPE, STDOUT, CalledProcessError

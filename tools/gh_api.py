@@ -66,7 +66,7 @@ def make_auth_header():
 def post_issue_comment(project, num, body):
     url = 'https://api.github.com/repos/{project}/issues/{num}/comments'.format(project=project, num=num)
     payload = json.dumps({'body': body})
-    r = requests.post(url, data=payload, headers=make_auth_header())
+    requests.post(url, data=payload, headers=make_auth_header())
 
 def post_gist(content, description='', filename='file', auth=False):
     """Post some text to a Gist, and return the URL."""
