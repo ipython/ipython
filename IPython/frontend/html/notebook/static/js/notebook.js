@@ -570,7 +570,7 @@ var IPython = (function (IPython) {
             index = Math.max(index,0);
         var cell = null;
 
-        if (ncells === 0 || this.is_valid_cell_index(index) || index== ncells) {
+        if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
                 cell = new IPython.CodeCell(this.kernel);
                 cell.set_input_prompt();
