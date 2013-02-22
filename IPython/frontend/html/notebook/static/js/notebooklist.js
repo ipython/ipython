@@ -230,6 +230,7 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass('item_buttons');
+        var notebooklist = this;
         var delete_button = $('<button>Delete</button>').button().
             click(function (e) {
                 // $(this) is the button that was clicked.
@@ -257,7 +258,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = that.baseProjectUrl() + 'notebooks/' + notebook_id;
+                            var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
