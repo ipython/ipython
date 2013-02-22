@@ -748,7 +748,7 @@ class HistorySavingThread(threading.Thread):
 # To match, e.g. ~5/8-~2/3
 range_re = re.compile(r"""
 ((?P<startsess>~?\d+)/)?
-(?P<start>\d+)                    # Only the start line num is compulsory
+(?P<start>\d+)?
 ((?P<sep>[\-:])
  ((?P<endsess>~?\d+)/)?
  (?P<end>\d+))?
@@ -767,9 +767,18 @@ def extract_hist_ranges(ranges_str):
         rmatch = range_re.match(range_str)
         if not rmatch:
             continue
-        start = int(rmatch.group("start"))
-        end = rmatch.group("end")
-        end = int(end) if end else start+1   # If no end specified, get (a, a+1)
+        start = rmatch.group("start")
+        if start:
+            start = int(start)
+            end = rmatch.group("end")
+            # If no end specified, get (a, a + 1)
+            end = int(end) if end else start + 1
+        else:  # start not specified
+            if not rmatch.group('startsess'):  # no startsess
+                continue
+            start = 1
+            end = None  # provide the entire session hist
+
         if rmatch.group("sep") == "-":       # 1-3 == 1:4 --> [1, 2, 3]
             end += 1
         startsess = rmatch.group("startsess") or "0"
