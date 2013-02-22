@@ -384,7 +384,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.get_next_cell = function (cell) {
         var result = null;
         var index = this.find_cell_index(cell);
-        if (index !== null && index < this.ncells()) {
+        if (this.is_valid_cell_index(index+1)) {
             result = this.get_cell(index+1);
         }
         return result;
@@ -453,7 +453,7 @@ var IPython = (function (IPython) {
     // Cell selection.
 
     Notebook.prototype.select = function (index) {
-        if (index !== undefined && index >= 0 && index < this.ncells()) {
+        if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
                 this.get_cell(sindex).unselect();
@@ -476,27 +476,28 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.select_next = function () {
         var index = this.get_selected_index();
-        if (index !== null && index >= 0 && (index+1) < this.ncells()) {
-            this.select(index+1);
-        };
+        this.select(index+1);
         return this;
     };
 
 
     Notebook.prototype.select_prev = function () {
         var index = this.get_selected_index();
-        if (index !== null && index >= 0 && (index-1) < this.ncells()) {
-            this.select(index-1);
-        };
+        this.select(index-1);
         return this;
     };
 
 
     // Cell movement
 
+    /**
+     * Move given (or selected) cell up and select it
+     * @method move_cell_up
+     * @param [index] {integer} cell index
+     **/
     Notebook.prototype.move_cell_up = function (index) {
-        var i = this.index_or_selected();
-        if (i !== null && i < this.ncells() && i > 0) {
+        var i = this.index_or_selected(index);
+        if (this.is_valid_cell_index(i) && i > 0) {
             var pivot = this.get_cell_element(i-1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
@@ -504,15 +505,20 @@ var IPython = (function (IPython) {
                 pivot.before(tomove);
                 this.select(i-1);
             };
+            this.dirty = true;
         };
-        this.dirty = true;
         return this;
     };
 
 
+    /**
+     * Move given (or selected) cell down and select it
+     * @method move_cell_down
+     * @param [index] {integer} cell index
+     **/
     Notebook.prototype.move_cell_down = function (index) {
-        var i = this.index_or_selected();
-        if (i !== null && i < (this.ncells()-1) && i >= 0) {
+        var i = this.index_or_selected(index);
+        if ( this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
             var pivot = this.get_cell_element(i+1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
@@ -525,27 +531,6 @@ var IPython = (function (IPython) {
         return this;
     };
 
-
-    Notebook.prototype.sort_cells = function () {
-        // This is not working right now. Calling this will actually crash
-        // the browser. I think there is an infinite loop in here...
-        var ncells = this.ncells();
-        var sindex = this.get_selected_index();
-        var swapped;
-        do {
-            swapped = false;
-            for (var i=1; i<ncells; i++) {
-                current = this.get_cell(i);
-                previous = this.get_cell(i-1);
-                if (previous.input_prompt_number > current.input_prompt_number) {
-                    this.move_cell_up(i);
-                    swapped = true;
-                };
-            };
-        } while (swapped);
-        this.select(sindex);
-        return this;
-    };
 
     // Insertion, deletion.
 
@@ -572,85 +557,135 @@ var IPython = (function (IPython) {
     };
 
 
+
+
+    /**
+     * Insert a cell so that after insertion the cell is at given index.
+     *
+     * Similar to insert_above, but index parameter is mandatory
+     *
+     * Index will be brought back into the accissible range [0,n]
+     *
+     * @param type {string} in ['code','html','markdown','heading']
+     * @param [index] {int} a valid index where to inser cell
+     *
+     * @return cell {cell|null} created cell or null
+     **/
+    Notebook.prototype.insert_cell_at_index = function(type, index){
+
+        var ncells = this.ncells();
+        var index = Math.min(index,ncells);
+            index = Math.max(index,0);
+        var cell = null;
+
+        if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
+            if (type === 'code') {
+                cell = new IPython.CodeCell(this.kernel);
+                cell.set_input_prompt();
+            } else if (type === 'markdown') {
+                cell = new IPython.MarkdownCell();
+            } else if (type === 'html') {
+                cell = new IPython.HTMLCell();
+            } else if (type === 'raw') {
+                cell = new IPython.RawCell();
+            } else if (type === 'heading') {
+                cell = new IPython.HeadingCell();
+            }
+
+            if(this._insert_element_at_index(cell.element,index)){
+                cell.render();
+                this.select(this.find_cell_index(cell));
+                this.dirty = true;
+            }
+        }
+        return cell;
+
+    };
+
+    /**
+     * Insert an element at given cell index.
+     *
+     * @param element {dom element} a cell element
+     * @param [index] {int} a valid index where to inser cell
+     * @private
+     *
+     * return true if everything whent fine.
+     **/
+    Notebook.prototype._insert_element_at_index = function(element, index){
+        if (element === undefined){
+            return false;
+        }
+
+        var ncells = this.ncells();
+
+        if (ncells === 0) {
+            // special case append if empty
+            this.element.find('div.end_space').before(element);
+        } else if ( ncells === index ) {
+            // special case append it the end, but not empty
+            this.get_cell_element(index-1).after(element);
+        } else if (this.is_valid_cell_index(index)) {
+            // otherwise always somewhere to append to
+            this.get_cell_element(index).before(element);
+        } else {
+            return false;
+        }
+
+        if (this.undelete_index !== null && index <= this.undelete_index) {
+            this.undelete_index = this.undelete_index + 1;
+            this.dirty = true;
+        }
+        return true;
+    };
+
+    /**
+     * Insert a cell of given type above given index, or at top
+     * of notebook if index smaller than 0.
+     *
+     * default index value is the one of currently selected cell
+     *
+     * @param type {string} cell type
+     * @param [index] {integer}
+     *
+     * @return handle to created cell or null
+     **/
+    Notebook.prototype.insert_cell_above = function (type, index) {
+        index = this.index_or_selected(index);
+        return this.insert_cell_at_index(type, index);
+    };
+
+    /**
+     * Insert a cell of given type below given index, or at bottom
+     * of notebook if index greater thatn number of cell
+     *
+     * default index value is the one of currently selected cell
+     *
+     * @method insert_cell_below
+     * @param type {string} cell type
+     * @param [index] {integer}
+     *
+     * @return handle to created cell or null
+     *
+     **/
+    Notebook.prototype.insert_cell_below = function (type, index) {
+        index = this.index_or_selected(index);
+        return this.insert_cell_at_index(type, index+1);
+    };
+
+
+    /**
+     * Insert cell at end of notebook
+     *
+     * @method insert_cell_at_bottom
+     * @param type {String} cell type
+     *
+     * @return the added cell; or null
+     **/
     Notebook.prototype.insert_cell_at_bottom = function (type){
         var len = this.ncells();
         return this.insert_cell_below(type,len-1);
-    }
-
-    Notebook.prototype.insert_cell_below = function (type, index) {
-        // type = ('code','html','markdown')
-        // index = cell index or undefined to insert below selected
-        index = this.index_or_selected(index);
-        var cell = null;
-        // This is intentionally < rather than <= for the sake of more
-        // sensible behavior in some cases.
-        if (this.undelete_index !== null && index < this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
-        }
-        if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
-                cell.set_input_prompt();
-            } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell();
-            } else if (type === 'html') {
-                cell = new IPython.HTMLCell();
-            } else if (type === 'raw') {
-                cell = new IPython.RawCell();
-            } else if (type === 'heading') {
-                cell = new IPython.HeadingCell();
-            };
-            if (cell !== null) {
-                if (this.ncells() === 0) {
-                    this.element.find('div.end_space').before(cell.element);
-                } else if (this.is_valid_cell_index(index)) {
-                    this.get_cell_element(index).after(cell.element);
-                };
-                cell.render();
-                this.select(this.find_cell_index(cell));
-                this.dirty = true;
-                return cell;
-            };
-        };
-        return cell;
     };
 
-
-    Notebook.prototype.insert_cell_above = function (type, index) {
-        // type = ('code','html','markdown')
-        // index = cell index or undefined to insert above selected
-        index = this.index_or_selected(index);
-        var cell = null;
-        if (this.undelete_index !== null && index <= this.undelete_index) {
-            this.undelete_index = this.undelete_index + 1;
-        }
-        if (this.ncells() === 0 || this.is_valid_cell_index(index)) {
-            if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
-                cell.set_input_prompt();
-            } else if (type === 'markdown') {
-                cell = new IPython.MarkdownCell();
-            } else if (type === 'html') {
-                cell = new IPython.HTMLCell();
-            } else if (type === 'raw') {
-                cell = new IPython.RawCell();
-            } else if (type === 'heading') {
-                cell = new IPython.HeadingCell();
-            };
-            if (cell !== null) {
-                if (this.ncells() === 0) {
-                    this.element.find('div.end_space').before(cell.element);
-                } else if (this.is_valid_cell_index(index)) {
-                    this.get_cell_element(index).before(cell.element);
-                };
-                cell.render();
-                this.select(this.find_cell_index(cell));
-                this.dirty = true;
-                return cell;
-            };
-        };
-        return cell;
-    };
 
 
     Notebook.prototype.to_code = function (index) {
