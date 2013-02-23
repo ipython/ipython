@@ -105,7 +105,12 @@ class NbconvertApp(Application):
         """Convert a notebook in one step"""
         ipynb_file = (self.extra_args or [None])[2]
 
-        C = ConverterTemplate(config=self.config)
+        # If you are writting a custom transformer, append it to the dictionary
+        # below.
+        userpreprocessors = {}
+        
+        # Create the converter
+        C = ConverterTemplate(config=self.config, preprocessors=userpreprocessors)
 
         output, resources = C.from_filename(ipynb_file)
         if self.stdout :

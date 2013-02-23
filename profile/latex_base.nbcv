@@ -13,3 +13,6 @@ c.ExtractFigureTransformer.display_data_priority=['latex', 'svg', 'png', 'jpg', 
 
 c.ExtractFigureTransformer.extra_ext_map={'svg':'pdf'}
 c.ExtractFigureTransformer.enabled=True
+
+# Enable latex transformer (make markdown2latex work with math $.)
+c.LatexTransformer.enabled=True

@@ -16,6 +16,8 @@ from markdown import markdown
 from .utils import remove_ansi
 from .utils import highlight, ansi2html
 from .utils import markdown2latex
+from .utils import highlight2latex
+from .utils import get_lines
 
 from converters.config import GlobalConfigurable
 

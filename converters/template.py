@@ -36,11 +36,13 @@ from jinja2 import Environment, FileSystemLoader
 
 # local import (pre-transformers)
 import converters.transformers as trans
+from converters.sphinx_transformer import (SphinxTransformer)
+from converters.latex_transformer import (LatexTransformer)
 
 # some jinja filters
 from converters.jinja_filters import (python_comment, indent,
-        rm_fake, remove_ansi, markdown, highlight,
-        ansi2html, markdown2latex, escape_tex, FilterDataType)
+        rm_fake, remove_ansi, markdown, highlight, highlight2latex,
+        ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType)
 
 from converters.utils import  markdown2rst
 
@@ -98,14 +100,14 @@ class ConverterTemplate(Configurable):
     Preprocess the ipynb files, feed it throug jinja templates,
     and spit an converted files and a data object with other data
 
-    shoudl be mostly configurable
+    should be mostly configurable
     """
 
     pre_transformer_order = List(['haspyout_transformer'],
             config=True,
               help= """
                     An ordered list of pre transformer to apply to the ipynb
-                    file befor running through templates
+                    file before running through templates
                     """
             )
 
@@ -154,7 +156,7 @@ class ConverterTemplate(Configurable):
 
         for name in self.pre_transformer_order:
             # get the user-defined transformer first
-            transformer = getattr(preprocessors, name, getattr(trans, name, None))
+            transformer = preprocessors.get(name, getattr(trans, name, None))
             if isinstance(transformer, MetaHasTraits):
                 transformer = transformer(config=config)
             self.preprocessors.append(transformer)
@@ -164,6 +166,8 @@ class ConverterTemplate(Configurable):
         self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
         self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
+        self.preprocessors.append(SphinxTransformer(config=config))
+        self.preprocessors.append(LatexTransformer(config=config))
 
         ##
         self.env.filters['filter_data_type'] = FilterDataType(config=config)
@@ -173,9 +177,11 @@ class ConverterTemplate(Configurable):
         self.env.filters['rm_ansi'] = remove_ansi
         self.env.filters['markdown'] = markdown
         self.env.filters['highlight'] = highlight
+        self.env.filters['highlight2latex'] = highlight2latex
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
+        self.env.filters['get_lines'] = get_lines
         self.env.filters['wrap'] = wrap
 
         ## user  filter will overwrite
@@ -231,4 +237,3 @@ class ConverterTemplate(Configurable):
         Should convert from a json object
         """
         raise NotImplementedError('not implemented (yet?)')
-
