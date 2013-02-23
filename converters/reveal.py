@@ -1,27 +1,79 @@
-from converters.markdown import ConverterMarkdown
-import io
+from __future__ import absolute_import
+
+from converters.html import ConverterHTML
+from converters.utils import text_cell
+from converters.utils import highlight, coalesce_streams
+
+from IPython.utils import path
+from markdown import markdown
+
 import os
+import io
+import itertools
 
-class ConverterReveal(ConverterMarkdown):
-    """Convert a notebook to a html slideshow.
 
-    It generates a static html slideshow based in markdown and reveal.js. 
+class ConverterReveal(ConverterHTML):
+    """
+     Convert a ipython notebook to a html slideshow
+     based in reveal.js library.
     """
 
-    def __init__(self, infile, highlight_source=False, show_prompts=True,
-                 inline_prompt=True):
-        super(ConverterMarkdown, self).__init__(infile)
-        self.highlight_source = highlight_source
-        self.show_prompts = show_prompts
-        self.inline_prompt = inline_prompt
+    @text_cell
+    def render_heading(self, cell):
+        marker = cell.level
+        return [self.meta2str(cell.metadata),
+                u'<h{1}>\n  {0}\n</h{1}>'.format(cell.source, marker)]
+
+    def render_code(self, cell):
+        if not cell.input:
+            return []
+        lines = []
+        meta_code = self.meta2str(cell.metadata)
+        lines.extend([meta_code])
+        lines.extend(['<div class="cell border-box-sizing code_cell vbox">'])
+        lines.append('<div class="input hbox">')
+        n = self._get_prompt_number(cell)
+        lines.append(
+            '<div class="prompt input_prompt">In&nbsp;[%s]:</div>' % n
+        )
+        lines.append('<div class="input_area box-flex1">')
+        lines.append(highlight(cell.input))
+        lines.append('</div>')  # input_area
+        lines.append('</div>')  # input
+        if cell.outputs:
+            lines.append('<div class="vbox output_wrapper">')
+            lines.append('<div class="output vbox">')
+            for output in coalesce_streams(cell.outputs):
+                conv_fn = self.dispatch(output.output_type)
+                lines.extend(conv_fn(output))
+            lines.append('</div>')  # output
+            lines.append('</div>')  # output_wrapper
+        lines.append('</div>')  # cell
+        return lines
+
+    @text_cell
+    def render_markdown(self, cell):
+        return [self.meta2str(cell.metadata), markdown(cell.source)]
+
+    def render_raw(self, cell):
+        if self.raw_as_verbatim:
+            return [self.in_tag('pre', self.meta2str(cell.metadata)),
+                    self.in_tag('pre', cell.source)]
+        else:
+            return [self.meta2str(cell.metadata), cell.source]
+
+    def meta2str(self, meta):
+        "transform metadata dict (containing slides delimiters) to string "
+        try:
+            meta_tuple = meta[u'slideshow'].items()
+        except KeyError as e:  # if there is not slideshow metadata
+            meta_tuple = [(u'slide_type', u'untouched')]
+        meta_list = [[x + ' = ' + unicode(y)] for x, y in meta_tuple]
+        return u'\n'.join(list(itertools.chain(*meta_list)))
 
     def convert(self, cell_separator='\n'):
         """
-        Generic method to converts notebook to a string representation.
-
-        This is accomplished by dispatching on the cell_type, so subclasses of
-        Convereter class do not need to re-implement this method, but just
-        need implementation for the methods that will be dispatched.
+        Specific method to converts notebook to a string representation.
 
         Parameters
         ----------
@@ -32,15 +84,15 @@ class ConverterReveal(ConverterMarkdown):
         -------
         out : string
         """
+
         lines = []
         lines.extend(self.optional_header())
-        top = '<section data-markdown><script type="text/template">'
-        bottom = '</script></section>'
-        text = self.main_body(cell_separator)
-        for i,j in enumerate(text):
-            if j == u'---':
-                text[i] = bottom + top 
-        lines.extend(text)
+        begin = ['<div class="reveal"><div class="slides">']
+        lines.extend(begin)
+        slides_list = self.build_slides()
+        lines.extend(slides_list)
+        end = ['</div></div>']
+        lines.extend(end)
         lines.extend(self.optional_footer())
         return u'\n'.join(lines)
 
@@ -73,7 +125,6 @@ class ConverterReveal(ConverterMarkdown):
                 else:
                     text[i - 1] = self.delim[6]
                 text[i] = text_cell_render
-        text.append(u'slide_type = untouched')  # to end search of skipped
         return text
 
     def build_slides(self):
@@ -83,19 +134,18 @@ class ConverterReveal(ConverterMarkdown):
         right = '</section>'
         notes_start = '<aside class="notes">'
         notes_end = '</aside>'
-        set_delim_skip = self.delim[:6]  # to skip adjacent skkiped cells
-        #elimination of skipped cells
+        #encapsulation of skipped cells
         for i, j in enumerate(text):
             if j == u'slide_type = skip':
                 text.pop(i)
-                while not text[i] in set_delim_skip:
-                    text.pop(i)
+                text[i] = text[i][:4] + \
+                    ' style=display:none' + text[i][4:]
         #encapsulation of notes cells
         for i, j in enumerate(text):
             if j == u'slide_type = notes':
                 text.pop(i)
                 temp_list = []
-                while not text[i] in set_delim_skip:
+                while not text[i] in self.delim[:6]:
                     temp_list.append(text.pop(i))
                 else:
                     temp_list.insert(0, notes_start)
@@ -144,81 +194,55 @@ class ConverterReveal(ConverterMarkdown):
             f.write(self.output)
         return os.path.abspath(outfile)
 
+    def header_body(self):
+        "return the body of the header as a list of strings"
+        from pygments.formatters import HtmlFormatter
+        header = []
+        static = os.path.join(path.get_ipython_package_dir(),
+        'frontend', 'html', 'notebook', 'static',)
+        here = os.path.split(os.path.realpath(__file__))[0]
+        css = os.path.join(static, 'css')
+        for sheet in [
+            # do we need jquery and prettify?
+            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
+            # 'jquery-ui.min.css'),
+            # os.path.join(static, 'prettify', 'prettify.css'),
+            os.path.join(css, 'boilerplate.css'),
+            os.path.join(css, 'style.min.css'),
+            # our overrides:
+            os.path.join(here, '..', 'css', 'reveal_html.css'),
+        ]:
+            header.extend(self._stylesheet(sheet))
+        # pygments css
+        pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        header.extend(['<meta charset="UTF-8">'])
+        header.extend(self.in_tag('style', pygments_css,
+                                  dict(type='"text/css"')))
+        return header
+
+    def template_read(self, templ):
+        "read the reveal_template.html"
+        here = os.path.split(os.path.realpath(__file__))[0]
+        reveal_template = os.path.join(here, '..', 'templates',
+            templ)
+        with io.open(reveal_template, 'r', encoding='utf-8') as f:
+            template = f.readlines()
+        template = [s.strip() for s in template]
+        return template
+
+    def template_split(self):
+        "split the reveal_template.html in header and footer lists"
+        temp = self.template_read('reveal_base.html')
+        splitted_temp = [list(x[1]) for x in itertools.groupby(temp,
+            lambda x: x == u'%slides%') if not x[0]]
+        return splitted_temp
+
     def optional_header(self):
-        optional_header_body = [\
-'''
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
-    <link rel="stylesheet" href="reveal/css/reveal.css">
-    <link rel="stylesheet" href="reveal/css/theme/default.css" id="theme">
-
-    <!-- For syntax highlighting -->
-    <link rel="stylesheet" href="reveal/lib/css/zenburn.css">
-
-    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
-    <script>
-        document.write( '<link rel="stylesheet" href="reveal/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
-    </script>
-
-    <!--[if lt IE 9]>
-    <script src="reveal/lib/js/html5shiv.js"></script>
-    <![endif]-->
-
-</head>
-<body><div class="reveal"><div class="slides">
-<section data-markdown><script type="text/template">
-'''] 
-        return optional_header_body
+        optional_header_body = self.template_split()
+        return ['<!DOCTYPE html>', '<html>', '<head>'] + \
+                optional_header_body[0] + self.header_body() + \
+               ['</head>', '<body>']
 
     def optional_footer(self):
-        optional_footer_body = [\
-'''
-</script></section>
-</div></div>
-
-    <script src="reveal/lib/js/head.min.js"></script>
-
-    <script src="reveal/js/reveal.min.js"></script>
-
-    <script>
-
-        // Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
-        Reveal.initialize({
-            controls: true,
-            progress: true,
-            history: true,
-
-            theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-            transition: Reveal.getQueryHash().transition || 'page', // default/cube/page/concave/zoom/linear/none
-
-            // Optional libraries used to extend on reveal.js
-            dependencies: [
-                { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-                { src: 'reveal/plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-                { src: 'reveal/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
-                { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-                { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-                { src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-                { src: 'https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML', async: true },                                     
-                { src: 'js/initmathjax.js', async: true}
-                ]
-                });
-    </script>
-
-    <script>
-        Reveal.addEventListener( 'slidechanged', function( event ) {   
-        MathJax.Hub.Rerender();
-        });
-    </script>
-
-</body>
-</html>
-''']
-        return optional_footer_body
+        optional_footer_body = self.template_split()
+        return optional_footer_body[1] + ['</body>', '</html>']

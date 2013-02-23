@@ -76,7 +76,8 @@ div.output_prompt {
     margin: 5px 5px 0 -5px;
 }
 </style>
-</head>{% endblock %}
+</head>
+{% endblock header%}
 
 
 {% block body %}
@@ -96,6 +97,21 @@ div.output_prompt {
 <a class="addthis_button_more"></a>
 </div>
 <!-- End of social buttons -->
+
+<!-- MathJax configuration -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+    },
+    displayAlign: 'left', // Change this to 'center' to center equations.
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+    }
+});
+</script>
+<!-- End of mathjax configuration -->
 
 <script src="reveal/lib/js/head.min.js"></script>
 
@@ -117,9 +133,8 @@ dependencies: [
 { src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
 { src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
 { src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
-{ src: 'js/revealmathjax.js', async: true},
 { src: 'js/mathjax-onload.js', async: true}
 ]
 });

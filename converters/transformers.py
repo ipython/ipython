@@ -169,8 +169,8 @@ class ExtractFigureTransformer(ActivatableTransformer):
         """Create a new figure file in the given format.
 
         """
-        tplf = self.figname_format_map.get(fmt,self.default_key_tpl)
-        tplk = self.key_format_map.get(fmt,self.default_key_tpl)
+        tplf = self.figname_format_map.get(fmt, self.default_key_tpl)
+        tplk = self.key_format_map.get(fmt, self.default_key_tpl)
 
         # option to pass the hash as data ?
         figname = tplf.format(count=count, ext=self._get_ext(fmt))
@@ -199,19 +199,16 @@ class ExtractFigureTransformer(ActivatableTransformer):
 class RevealHelpTransformer(ConfigurableTransformers):
 
     def __call__(self, nb, other):
-        try :
-            for worksheet in nb.worksheets :
-                for i, cell in enumerate(worksheet.cells):
-                    cell.metadata.slide_type = cell.metadata.get('slideshow', {}).get('slide_type', None)
-                    if cell.metadata.slide_type is None:
-                        cell.metadata.slide_type = '-'
-                    if cell.metadata.slide_type in ['slide']:
-                        worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
-                    if cell.metadata.slide_type in ['subslide']:
-                        worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
-            return nb, other
-        except NotImplementedError as error :
-            raise NotImplementedError('should be implemented by subclass')
+        for worksheet in nb.worksheets :
+            for i, cell in enumerate(worksheet.cells):
+                cell.metadata.slide_type = cell.metadata.get('slideshow', {}).get('slide_type', None)
+                if cell.metadata.slide_type is None:
+                    cell.metadata.slide_type = '-'
+                if cell.metadata.slide_type in ['slide']:
+                    worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
+                if cell.metadata.slide_type in ['subslide']:
+                    worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
+        return nb, other
 
 
 class CSSHtmlHeaderTransformer(ActivatableTransformer):
