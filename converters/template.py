@@ -167,6 +167,7 @@ class ConverterTemplate(Configurable):
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
         self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
         self.preprocessors.append(SphinxTransformer(config=config))
+        self.preprocessors.append(LatexTransformer(config=config))
 
         ##
         self.env.filters['filter_data_type'] = FilterDataType(config=config)

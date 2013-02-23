@@ -10,6 +10,8 @@
 
 ((*- extends 'display_priority.tplx' -*))
 
+((*- set wrap_size = 87 -*))
+
 ((* block header *))
 
 % Header, overrides base
@@ -103,23 +105,23 @@
         ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
         ((* block h6 -*))paragraph((* endblock h6 -*))
-    ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))} 
+    ((*- endif -*)){((( escapeUnderscores(cell.source | wrap(wrap_size) | markdown2latex ) )))} 
 ((*- endblock headingcell *))
 
 ((* block unknowncell scoped*))
     
     % Unsupported cell type, no formatting
-    ((( filterOutLatex(cell.source) )))
+    ((( filterOutLatex(cell.source | wrap) )))
 ((* endblock unknowncell *))
 
 ((*- block markdowncell scoped-*))
-    ((( cell.source | markdown2latex )))
+    ((( cell.source | wrap(wrap_size) | markdown2latex )))
 ((*- endblock markdowncell -*))
 
 ((= Raw text cells allow the user to manually inject document code that will
 not get touched by the templating system. =))
 ((*- block rawcell *))
-    ((( cell.source )))
+    ((( cell.source | wrap(wrap_size) )))
 ((* endblock rawcell -*))
 
 ((* block input *))
@@ -128,9 +130,8 @@ not get touched by the templating system. =))
         {\scriptsize Input}\\*
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
-        ((( cell.input | get_lines(end=3) | highlight2latex )))
-    \end{minipage}
-    ((( cell.input | get_lines(start=3) | highlight2latex )))
+        ((( cell.input | wrap(wrap_size) | get_lines(end=3) | highlight2latex )))
+    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=3) | highlight2latex )))
 ((* endblock input *))
 
 ((* block pyerr *))
@@ -140,11 +141,10 @@ not get touched by the templating system. =))
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
         \begin{lstlisting}
-((( super() | get_lines(end=3) )))
+((( super() | wrap(wrap_size) | get_lines(end=3) )))
         \end{lstlisting}
-    \end{minipage}
-    \begin{lstlisting}
-((( super() | get_lines(start=3) )))
+    \end{minipage} \begin{lstlisting}
+((( super() | wrap(wrap_size) | get_lines(start=3) )))
     \end{lstlisting}
 ((* endblock pyerr *))
 
@@ -165,11 +165,10 @@ not get touched by the templating system. =))
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
         \begin{lstlisting}
-((( output.text | get_lines(end=3) )))
+((( output.text | wrap(wrap_size) | get_lines(end=3) )))
         \end{lstlisting}
-    \end{minipage}
-    \begin{lstlisting}
-((( output.text | get_lines(start=3) )))
+    \end{minipage} \begin{lstlisting}
+((( output.text | wrap(wrap_size) | get_lines(start=3) )))
     \end{lstlisting}
 ((* endblock stream *))
 
@@ -180,21 +179,20 @@ not get touched by the templating system. =))
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
         \begin{lstlisting}
-((( output.text | get_lines(end=3) )))
+((( output.text | wrap(wrap_size) | get_lines(end=3) )))
         \end{lstlisting}
-    \end{minipage}
-    \begin{lstlisting}
-((( output.text | get_lines(start=3) )))
+    \end{minipage} \begin{lstlisting}
+((( output.text | wrap(wrap_size) | get_lines(start=3) )))
     \end{lstlisting}
 ((* endblock pyout *))
 
 ((* block traceback_line *))
-((( line |indent| rm_ansi )))((* endblock traceback_line *))
+((( line | wrap(wrap_size) |indent| rm_ansi )))((* endblock traceback_line *))
 ((= .... =))
 
 ((* block data_text *))
 \begin{lstlisting}
-((( output.text )))
+((( output.text | wrap(wrap_size) )))
 \end{lstlisting}
 ((* endblock *))
 
