@@ -148,7 +148,7 @@ def test_extract_hist_ranges():
                 (-4, 7, 10),
                 (-9, 2, None),  # None == to end
                 (-8, 1, None),
-                (-7, 1, 6)
+                (-7, 1, 6),
                 (-10, 1, None)]
     actual = list(extract_hist_ranges(instr))
     nt.assert_equal(actual, expected)
