@@ -314,9 +314,13 @@ var IPython = (function (IPython) {
      */
     var MarkdownCell = function () {
         this.placeholder = "Type *Markdown* and LaTeX: $\\alpha^2$";
-        IPython.TextCell.apply(this, arguments);
+        IPython.TextCell.apply(this, [{cm_options: MarkdownCell.cm_default}]);
         this.cell_type = 'markdown';
     };
+
+    MarkdownCell.cm_default = {
+            mode: "markdown"
+        }
 
 
     MarkdownCell.prototype = new TextCell();
