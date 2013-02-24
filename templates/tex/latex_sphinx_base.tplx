@@ -18,13 +18,13 @@
 
     % Make sure that the sphinx doc style knows who it inherits from.
     \def\sphinxdocclass{(((parentdocumentclass)))}
-    
+
     % Declare the document class
     \documentclass[letterpaper,10pt,english]{((( resources.sphinx_texinputs )))/sphinx(((documentclass)))}
-    
-    % Imports    
+
+    % Imports
     \usepackage[utf8]{inputenc}
-    \DeclareUnicodeCharacter{00A0}{\\nobreakspace} 
+    \DeclareUnicodeCharacter{00A0}{\\nobreakspace}
     \usepackage[T1]{fontenc}
     \usepackage{babel}
     \usepackage{times}
@@ -37,6 +37,7 @@
     \usepackage{amsmath}
     \usepackage{amssymb}
     \usepackage{graphicx}
+    \graphicspath{ {figs/} }
     \usepackage{ucs}
     \usepackage{enumerate}
 
@@ -46,7 +47,7 @@
 
     % For formatting output while also word wrapping.
     \usepackage{listings}
-    \lstset{breaklines=true} 
+    \lstset{breaklines=true}
     \lstset{basicstyle=\small\ttfamily}
     %Pygments definitions
     ((( resources.pygment_definitions )))
@@ -55,12 +56,12 @@
     \sloppy
 
     % Document level variables
-    \title{((( filterOutLatex(nb.metadata.name) )))} 
+    \title{((( filterOutLatex(nb.metadata.name) )))}
     \date{((( filterOutLatex(nb.metadata.date) )))}
-    \release{((( filterOutLatex(nb.metadata.version) )))} 
+    \release{((( filterOutLatex(nb.metadata.version) )))}
     \author{((( filterOutLatex(nb.metadata.author) )))}
     \newcommand{\sphinxlogo}{}
-    \renewcommand{\releasename}{((( filterOutLatex(nb.metadata.release) )))} 
+    \renewcommand{\releasename}{((( filterOutLatex(nb.metadata.release) )))}
     \makeindex
 
     
@@ -105,17 +106,17 @@
         ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
         ((* block h6 -*))paragraph((* endblock h6 -*))
-    ((*- endif -*)){((( escapeUnderscores(cell.source | wrap(wrap_size) | markdown2latex ) )))} 
+    ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))}
 ((*- endblock headingcell *))
 
 ((* block unknowncell scoped*))
-    
+
     % Unsupported cell type, no formatting
     ((( filterOutLatex(cell.source | wrap) )))
 ((* endblock unknowncell *))
 
 ((*- block markdowncell scoped-*))
-    ((( cell.source | wrap(wrap_size) | markdown2latex )))
+    ((( cell.source | markdown2latex )))
 ((*- endblock markdowncell -*))
 
 ((= Raw text cells allow the user to manually inject document code that will
@@ -173,17 +174,7 @@ not get touched by the templating system. =))
 ((* endblock stream *))
 
 ((* block pyout *))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize Output}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
-        \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(end=3) )))
-        \end{lstlisting}
-    \end{minipage} \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(start=3) )))
-    \end{lstlisting}
+((* block data_priority scoped *))((( super() )))((* endblock *))
 ((* endblock pyout *))
 
 ((* block traceback_line *))
