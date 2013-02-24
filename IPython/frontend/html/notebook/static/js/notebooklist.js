@@ -170,12 +170,7 @@ var IPython = (function (IPython) {
             attr('target','_blank').
             text(nbname)
         );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
+        this.append_or_replace(item, '.item_name', new_item_name);
     };
 
 
@@ -188,14 +183,17 @@ var IPython = (function (IPython) {
             attr('size', '30').
             attr('type', 'text')
         );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
+        this.append_or_replace(item, '.item_name', new_item_name);
     };
 
+    NotebookList.prototype.append_or_replace = function(item, selector, element) {
+        var e = item.find(selector);
+        if (e.length === 0) {
+            item.append(element);
+        } else {
+            e.replaceWith(element);
+        }
+    };
 
     NotebookList.prototype.add_notebook_data = function (data, item) {
         item.data('nbdata',data);
@@ -220,12 +218,7 @@ var IPython = (function (IPython) {
                 $.ajax(url, settings);
             });
         new_buttons.append(shutdown_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        this.append_or_replace(item, '.item_buttons', new_buttons);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
@@ -269,12 +262,7 @@ var IPython = (function (IPython) {
                 });
             });
         new_buttons.append(delete_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        this.append_or_replace(item, '.item_buttons', new_buttons);
     };
 
 
@@ -316,12 +304,7 @@ var IPython = (function (IPython) {
             });
         upload_button.addClass('upload_button');
         new_buttons.append(upload_button).append(cancel_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        this.append_or_replace(item, '.item_buttons', new_buttons);
     };
 
 
