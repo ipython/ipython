@@ -19,7 +19,6 @@ Authors:
 import datetime
 import io
 import os
-import glob
 
 from tornado import web
 
@@ -50,11 +49,22 @@ class FileNotebookManager(NotebookManager):
 
     def get_notebook_names(self):
         """List all notebook names in the notebook dir."""
-        names = glob.glob(os.path.join(self.notebook_dir,
-                                       '*' + self.filename_ext))
-        names = [os.path.splitext(os.path.basename(name))[0]
-                 for name in names]
+        names = []
+        for path in self._find_files(self.notebook_dir):
+            if path.endswith(self.filename_ext):
+                names.append(self.get_name_by_path(path))
         return names
+
+    def _find_files(self, path):
+        """Recursively find all files in a path."""
+        result = []
+        for file in sorted(os.listdir(path)):
+            file_path = os.path.join(path, file)
+            if os.path.isdir(file_path):
+                result += self._find_files(file_path)
+            else:
+                result.append(file_path)
+        return result
 
     def list_notebooks(self):
         """List all notebooks in the notebook dir."""
@@ -100,9 +110,16 @@ class FileNotebookManager(NotebookManager):
 
     def get_path_by_name(self, name):
         """Return a full path to a notebook given its name."""
-        filename = name + self.filename_ext
+        filename = name.replace('/', os.sep) + self.filename_ext
         path = os.path.join(self.notebook_dir, filename)
-        return path       
+        return path
+
+    def get_name_by_path(self, path):
+        """Return a notebook name given it's full path."""
+        path = os.path.relpath(path, self.notebook_dir)
+        path = os.path.splitext(path)[0]
+        path = path.replace(os.sep, '/')
+        return path
 
     def read_notebook_object(self, notebook_id):
         """Get the NotebookNode representation of a notebook by notebook_id."""
@@ -119,7 +136,7 @@ class FileNotebookManager(NotebookManager):
             except:
                 raise web.HTTPError(500, u'Unreadable JSON notebook.')
         # Always use the filename as the notebook name.
-        nb.metadata.name = os.path.splitext(os.path.basename(path))[0]
+        nb.metadata.name = self.get_name_by_path(path)
         return last_modified, nb
 
     def write_notebook_object(self, nb, notebook_id=None):
@@ -135,9 +152,13 @@ class FileNotebookManager(NotebookManager):
         if notebook_id not in self.mapping:
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
 
+        if not self._is_name_valid(new_name):
+            raise web.HTTPError(400, u'Invalid name: {0}'.format(new_name))
         old_name = self.mapping[notebook_id]
         path = self.get_path_by_name(new_name)
         try:
+            if not os.path.isdir(os.path.dirname(path)):
+                os.makedirs(os.path.dirname(path))
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
@@ -161,11 +182,25 @@ class FileNotebookManager(NotebookManager):
                 old_pypath = os.path.splitext(old_path)[0] + '.py'
                 if os.path.isfile(old_pypath):
                     os.unlink(old_pypath)
+            # unlink empty directories
+            self._unlink_directories(old_path)
             self.mapping[notebook_id] = new_name
             self.rev_mapping[new_name] = notebook_id
             del self.rev_mapping[old_name]
         
         return notebook_id
+
+    def _is_name_valid(self, name):
+        if name.startswith('/'): return False
+        if any('..' == part for part in name.split('/')): return False
+
+        return True
+
+    def _unlink_directories(self, path):
+        path = os.path.dirname(path)
+        if len(os.listdir(path)) == 0 and path != self.notebook_dir:
+            os.rmdir(path)
+            self._unlink_directories(path)
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
@@ -173,6 +208,7 @@ class FileNotebookManager(NotebookManager):
         if not os.path.isfile(path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         os.unlink(path)
+        self._unlink_directories(path)
         self.delete_notebook_id(notebook_id)
 
     def increment_filename(self, basename):
