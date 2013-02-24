@@ -68,7 +68,7 @@ var IPython = (function (IPython) {
             var fname = f.name.split('.'); 
             var nbname = fname.slice(0,-1).join('.');
             var nbformat = fname.slice(-1)[0];
-            if (nbformat === 'ipynb') {nbformat = 'json';};
+            if (nbformat === 'ipynb') {nbformat = 'json';}
             if (nbformat === 'py' || nbformat === 'json') {
                 var item = that.new_notebook_item(0);
                 that.add_name_input(nbname, item);
@@ -81,7 +81,7 @@ var IPython = (function (IPython) {
                     that.add_notebook_data(event.target.result, nbitem);
                     that.add_upload_button(nbitem);
                 };
-            };
+            }
         }
         return false;
         };
@@ -112,51 +112,126 @@ var IPython = (function (IPython) {
     NotebookList.prototype.list_loaded = function (data, status, xhr, param) {
         var message = 'Notebook list empty.';
         if (param !== undefined && param.msg) {
-            var message = param.msg;
+            message = param.msg;
         }
-        var len = data.length;
         this.clear_list();
 
-        if(len == 0)
+        if(data.length == 0)
         {
             $(this.new_notebook_item(0))
                 .append(
                     $('<div style="margin:auto;text-align:center;color:grey"/>')
-                    .text(message)
-                    )
+                        .text(message)
+                );
         }
 
-        for (var i=0; i<len; i++) {
-            var notebook_id = data[i].notebook_id;
-            var nbname = data[i].name;
-            var kernel = data[i].kernel_id;
-            var item = this.new_notebook_item(i);
-            this.add_link(notebook_id, nbname, item);
-            if (!IPython.read_only){
-                // hide delete buttons when readonly
-                if(kernel == null){
-                    this.add_delete_button(item);
-                } else {
-                    this.add_shutdown_button(item,kernel);
-                }
-            }
-        };
+        var tree = this.build_notebook_tree(data);
+
+        this.add_notebook_items(this.element, tree);
     };
 
+    NotebookList.prototype.build_notebook_tree = function(data) {
+        var tree = [];
+        for (var i = 0; i < data.length; i++) {
+            var notebook   = data[i],
+                path_parts = notebook.name.split("/");
+            this._build_subtree(tree, path_parts, notebook);
+        }
+        return tree;
+    };
 
-    NotebookList.prototype.new_notebook_item = function (index) {
+    NotebookList.prototype._build_subtree = function(target, path_parts, notebook) {
+        if (path_parts.length === 1) {
+            notebook.name = path_parts[path_parts.length - 1];
+            target.push(notebook);
+        } else {
+            var group = null,
+                found = false;
+            for (var i = 0; i < target.length; i++) {
+                if (target[i].type == "group" && target[i].name == path_parts[0]) {
+                    group = target[i];
+                    found = true;
+                }
+            }
+            if (!found) {
+                group = {type:"group", name:path_parts[0], notebooks:[]}
+            }
+            this._build_subtree(group.notebooks, path_parts.slice(1), notebook);
+            if (!found) {
+                target.push(group);
+            }
+        }
+    };
+
+    NotebookList.prototype.add_notebook_items = function (element, tree) {
+        for (var i=0; i < tree.length; i++) {
+            var item = this.new_notebook_item(i, element);
+            if (tree[i].type == "group") {
+                this.add_group(tree[i].name, item, tree[i].notebooks);
+            } else {
+                var notebook_id = tree[i].notebook_id;
+                var nbname = tree[i].name;
+                var kernel = tree[i].kernel_id;
+                this.add_link(notebook_id, nbname, item);
+                if (!IPython.read_only){
+                    // hide delete buttons when readonly
+                    if(kernel == null){
+                        this.add_delete_button(item);
+                    } else {
+                        this.add_shutdown_button(item,kernel);
+                    }
+                }
+            }
+        }
+    };
+
+    NotebookList.prototype.new_notebook_item = function (index, add_to) {
         var item = $('<div/>');
         item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
+        if (add_to !== undefined) {
+            item.addClass("inner");
+        }
         item.css('border-top-style','none');
         var item_name = $('<span/>').addClass('item_name');
 
         item.append(item_name);
-        if (index === -1) {
-            this.element.append(item);
+        if (add_to === undefined) {
+            if (index === -1) {
+                this.element.append(item);
+            } else {
+                this.element.children().eq(index).after(item);
+            }
         } else {
-            this.element.children().eq(index).after(item);
+            add_to.append(item);
         }
         return item;
+    };
+
+    NotebookList.prototype.add_group = function(name, item, notebooks) {
+        var new_group = $('<span/>').addClass('item_name'),
+            sub_group = $('<div/>').addClass('subgroup').hide();
+
+        new_group.append(
+            $('<a/>').
+                attr('href', '#').
+                text('+ ' + name)
+        );
+        item.append(new_group);
+
+        this.add_notebook_items(sub_group, notebooks);
+
+        new_group.on("click", function(sub_group) {
+            return function(e) {
+                sub_group.toggle();
+                e.stopPropagation();
+                e.preventDefault();
+                var target = $(e.target),
+                    prefix = target.text().substr(0, 1) == '+' ? '-' : '+';
+                target.text(prefix + target.text().substr(1));
+            };
+        }(sub_group));
+
+        item.append(sub_group);
     };
 
 
