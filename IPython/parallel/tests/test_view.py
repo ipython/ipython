@@ -615,12 +615,15 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = view.execute("1/0")
         ip = get_ipython()
         ip.user_ns['ar'] = ar
+
         with capture_output() as io:
             ip.run_cell("ar.get(2)")
         
-        self.assertEqual(io.stdout.count('ZeroDivisionError'), len(view) * 2, io.stdout)
-        self.assertEqual(io.stdout.count('by zero'), len(view), io.stdout)
-        self.assertEqual(io.stdout.count(':execute'), len(view), io.stdout)
+        count = min(error.CompositeError.tb_limit, len(view))
+        
+        self.assertEqual(io.stdout.count('ZeroDivisionError'), count * 2, io.stdout)
+        self.assertEqual(io.stdout.count('by zero'), count, io.stdout)
+        self.assertEqual(io.stdout.count(':execute'), count, io.stdout)
     
     def test_compositeerror_truncate(self):
         """Truncate CompositeErrors with many exceptions"""
@@ -633,8 +636,8 @@ class TestView(ClusterTestCase, ParametricTestCase):
         ar = self.client.get_result(msg_ids)
         try:
             ar.get()
-        except error.CompositeError as e:
-            pass
+        except error.CompositeError as _e:
+            e = _e
         else:
             self.fail("Should have raised CompositeError")
         
