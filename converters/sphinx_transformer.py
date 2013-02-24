@@ -75,6 +75,8 @@ class SphinxTransformer(ActivatableTransformer):
         """
         if self.enabled:
             return self.transform(nb, other)
+        else:
+            return nb,other
 
     def transform(self, nb, other):
         """
