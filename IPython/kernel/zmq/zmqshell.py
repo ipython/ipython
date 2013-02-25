@@ -150,18 +150,18 @@ class KernelMagics(Magics):
         # save a few values we'll need to recover later
         mode = save_dstore('mode', False)
         save_dstore('rc_pprint', ptformatter.pprint)
-        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
+        save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('xmode', shell.InteractiveTB.mode)
 
         if mode == False:
             # turn on
             ptformatter.pprint = False
-            disp_formatter.plain_text_only = True
+            disp_formatter.active_types = ['text/plain']
             shell.magic('xmode Plain')
         else:
             # turn off
             ptformatter.pprint = dstore.rc_pprint
-            disp_formatter.plain_text_only = dstore.rc_plain_text_only
+            disp_formatter.active_types = dstore.rc_active_types
             shell.magic("xmode " + dstore.xmode)
 
         # Store new mode and inform on console
