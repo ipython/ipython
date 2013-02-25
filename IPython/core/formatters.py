@@ -26,6 +26,7 @@ Authors:
 # Stdlib imports
 import abc
 import sys
+import warnings
 # We must use StringIO, as cStringIO doesn't handle unicode properly.
 from StringIO import StringIO
 
