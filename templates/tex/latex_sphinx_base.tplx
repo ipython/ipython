@@ -12,6 +12,16 @@
 
 ((*- set wrap_size = 87 -*))
 
+% In order to make sure that the input/output header follows the code it 
+% preceeds, we have to use a minipage environment.  This causes problems
+% for large blocks of input and output.  If there is a large input/output
+% block, we don't want to minipage the whole thing since it will break
+% the line wrapping.  The solution is to split the input/output line by
+% line before we minipage which allows us to minipage the first X lines
+% preceeding the input/output bar.  That way, a select amount of lines
+% force the input/output bar to follow it around.
+((*- set min_header_lines = 3 -*))
+
 ((* block header *))
 
 % Header, overrides base
@@ -130,8 +140,8 @@ not get touched by the templating system. =))
         {\scriptsize Input}\\*
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
-        ((( cell.input | wrap(wrap_size) | get_lines(end=3) | highlight )))
-    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=3) | highlight )))
+        ((( cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight )))
+    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight )))
 ((* endblock input *))
 
 ((* block pyerr *))
@@ -141,10 +151,10 @@ not get touched by the templating system. =))
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
         \begin{lstlisting}
-((( super() | wrap(wrap_size) | get_lines(end=3) )))
+((( super() | wrap(wrap_size) | get_lines(end=min_header_lines) )))
         \end{lstlisting}
     \end{minipage} \begin{lstlisting}
-((( super() | wrap(wrap_size) | get_lines(start=3) )))
+((( super() | wrap(wrap_size) | get_lines(start=min_header_lines) )))
     \end{lstlisting}
 ((* endblock pyerr *))
 
@@ -165,10 +175,10 @@ not get touched by the templating system. =))
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
         \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(end=3) )))
+((( output.text | wrap(wrap_size) | get_lines(end=min_header_lines) )))
         \end{lstlisting}
     \end{minipage} \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(start=3) )))
+((( output.text | wrap(wrap_size) | get_lines(start=min_header_lines) )))
     \end{lstlisting}
 ((* endblock stream *))
 
