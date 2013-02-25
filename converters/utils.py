@@ -71,7 +71,7 @@ def pygment_highlight(src, output_formatter, lang='ipython'):
 
     return highlight(src, lexer, output_formatter) 
 
-def get_lines(src, start=-1,end=-1):
+def get_lines(src, start=None,end=None):
     """
     Split the input text into separate lines and then return the 
     lines that the caller is interested in.
@@ -81,13 +81,7 @@ def get_lines(src, start=-1,end=-1):
     lines = src.split("\n")
     
     # Return the right lines.
-    if (start >= 0 and end >= 0):
-        lines = lines[start:end]
-    elif (start >= 0):
-        lines = lines[start:]
-    elif (end >= 0):
-        lines = lines[:end]
-    return "\n".join(lines) #re-join
+    return "\n".join(lines[start:end]) #re-join
 
 def output_container(f):
     """add a prompt-area next to an output"""
