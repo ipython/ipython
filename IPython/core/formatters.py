@@ -32,7 +32,9 @@ from StringIO import StringIO
 # Our own imports
 from IPython.config.configurable import Configurable
 from IPython.lib import pretty
-from IPython.utils.traitlets import Bool, Dict, Integer, Unicode, CUnicode, ObjectName
+from IPython.utils.traitlets import (
+    Bool, Dict, Integer, Unicode, CUnicode, ObjectName, List,
+)
 from IPython.utils.py3compat import unicode_to_str
 
 
@@ -45,6 +47,21 @@ class DisplayFormatter(Configurable):
 
     # When set to true only the default plain text formatter will be used.
     plain_text_only = Bool(False, config=True)
+    def _plain_text_only_changed(self, name, old, new):
+        warnings.warn("""DisplayFormatter.plain_text_only is deprecated.
+        
+        Use DisplayFormatter.active_types = ['text/plain']
+        for the same effect.
+        """, DeprecationWarning)
+        if new:
+            self.active_types = ['text/plain']
+        else:
+            self.active_types = self.format_types
+    
+    active_types = List(Unicode, config=True,
+        help="""List of currently active mime-types""")
+    def _active_types_default(self):
+        return self.format_types
 
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
@@ -91,8 +108,9 @@ class DisplayFormatter(Configurable):
             A list of format type strings (MIME types) to include in the
             format data dict. If this is set *only* the format types included
             in this list will be computed.
+            If unspecified, `active_types` will be used.
         exclude : list or tuple, optional
-            A list of format type string (MIME types) to exclue in the format
+            A list of format type string (MIME types) to exclude in the format
             data dict. If this is set all format types will be computed,
             except for those included in this argument.
 
@@ -106,23 +124,12 @@ class DisplayFormatter(Configurable):
             that format.
         """
         format_dict = {}
-
-        # If plain text only is active
-        if self.plain_text_only:
-            formatter = self.formatters['text/plain']
-            try:
-                data = formatter(obj)
-            except:
-                # FIXME: log the exception
-                raise
-            if data is not None:
-                format_dict['text/plain'] = data
-            return format_dict
+        if include is None:
+            include = self.active_types
 
         for format_type, formatter in self.formatters.items():
-            if include is not None:
-                if format_type not in include:
-                    continue
+            if format_type not in include:
+                continue
             if exclude is not None:
                 if format_type in exclude:
                     continue
