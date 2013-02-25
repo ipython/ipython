@@ -56,12 +56,12 @@
     \sloppy
 
     % Document level variables
-    \title{((( filterOutLatex(nb.metadata.name) )))}
-    \date{((( filterOutLatex(nb.metadata.date) )))}
-    \release{((( filterOutLatex(nb.metadata.version) )))}
-    \author{((( filterOutLatex(nb.metadata.author) )))}
+    \title{((( nb.metadata.name | escape_tex )))}
+    \date{((( nb.metadata.date | escape_tex )))}
+    \release{((( nb.metadata.version | escape_tex )))}
+    \author{((( nb.metadata.author | escape_tex )))}
     \newcommand{\sphinxlogo}{}
-    \renewcommand{\releasename}{((( filterOutLatex(nb.metadata.release) )))}
+    \renewcommand{\releasename}{((( nb.metadata.release | escape_tex )))}
     \makeindex
 
     
@@ -112,7 +112,7 @@
 ((* block unknowncell scoped*))
 
     % Unsupported cell type, no formatting
-    ((( filterOutLatex(cell.source | wrap) )))
+    ((( cell.source | wrap | escape_tex )))
 ((* endblock unknowncell *))
 
 ((*- block markdowncell scoped-*))
@@ -131,8 +131,8 @@ not get touched by the templating system. =))
         {\scriptsize Input}\\*
         \rule[10pt]{\linewidth}{0.5pt}
         \vspace{-25pt}
-        ((( cell.input | wrap(wrap_size) | get_lines(end=3) | highlight2latex )))
-    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=3) | highlight2latex )))
+        ((( cell.input | wrap(wrap_size) | get_lines(end=3) | highlight )))
+    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=3) | highlight )))
 ((* endblock input *))
 
 ((* block pyerr *))
@@ -200,15 +200,6 @@ not get touched by the templating system. =))
 \par
 \end{center}
 ((*- endblock -*))
-
-((* macro filterOutLatex(text) -*))
-    ((*- set text = text|replace("\\","\\backslash") -*))
-    ((*- set text = text|replace("_","\\_") -*))
-    ((*- set text = text|replace("{","\\{") -*))
-    ((*- set text = text|replace("}","\\}") -*))
-    ((*- set text = text|replace("|","\\vert") -*))
-    ((( text )))
-((*- endmacro *))
 
 ((* macro escapeUnderscores(text) -*))
     ((*- set text = text|replace("_","\\_") -*))
