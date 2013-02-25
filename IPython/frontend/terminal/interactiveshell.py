@@ -383,6 +383,15 @@ class TerminalInteractiveShell(InteractiveShell):
         self.init_banner(banner1, banner2, display_banner)
 
     #-------------------------------------------------------------------------
+    # Overrides of init stages
+    #-------------------------------------------------------------------------
+
+    def init_display_formatter(self):
+        super(TerminalInteractiveShell, self).init_display_formatter()
+        # terminal only supports plaintext
+        self.display_formatter.active_types = ['text/plain']
+
+    #-------------------------------------------------------------------------
     # Things related to the terminal
     #-------------------------------------------------------------------------
 
