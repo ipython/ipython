@@ -10,6 +10,10 @@
 
 ((*- extends 'display_priority.tplx' -*))
 
+%==============================================================================
+% Declarations
+%==============================================================================
+
 % In order to make sure that the input/output header follows the code it 
 % preceeds, we have to use a minipage environment.  This causes problems
 % for large blocks of input and output.  If there is a large input/output
@@ -26,6 +30,9 @@
 % to prevent this.)
 ((*- set wrap_size = 87 -*))
 
+%==============================================================================
+% Header
+%==============================================================================
 ((* block header *))
 
 % Header, overrides base
@@ -85,10 +92,14 @@
 
     % Make the index page of the document.
     \makeindex
-
+    
+    % Import sphinx document type specifics.
     ((* block sphinxheader *))((* endblock sphinxheader *)) 
 ((* endblock header *))
 
+%==============================================================================
+% Body
+%==============================================================================
 ((* block body *))
 ((* block bodyBegin *))
 % Body
@@ -108,10 +119,17 @@
 ((* endblock bodyEnd *))
 ((* endblock body *))
 
+%==============================================================================
 % Footer
+%==============================================================================
 ((* block footer *))
 ((* endblock footer *))
 
+%==============================================================================
+% Headings
+%
+% Purpose: Format pynb headers as sphinx headers
+%==============================================================================
 ((* block headingcell -*))
     \
     ((*- if cell.level == 1 -*))
