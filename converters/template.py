@@ -190,6 +190,8 @@ class ConverterTemplate(Configurable):
         self.env.filters['rm_ansi'] = remove_ansi
         self.env.filters['markdown'] = markdown
         self.env.filters['highlight'] = highlight if self.tex_environement else highlight2latex
+        self.env.filters['highlight2html'] = highlight 
+        self.env.filters['highlight2latex'] = highlight2latex
         self.env.filters['ansi2html'] = ansi2html
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
