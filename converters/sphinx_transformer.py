@@ -83,29 +83,34 @@ class SphinxTransformer(ActivatableTransformer):
         """
         Sphinx transformation to apply on each notebook.
         """
-        
+         
+        # TODO: Add versatile method of additional notebook metadata.  Include
+        #       handling of multiple files.  For now use a temporay namespace,
+        #       '_draft' to signify that this needs to change.
+        nb.metadata._draft = {}
+
         if self.interactive:
             
             # Prompt the user for additional meta data that doesn't exist currently
             # but would be usefull for Sphinx.
-            nb.metadata["author"] = self._prompt_author()
-            nb.metadata["version"] = self._prompt_version()
-            nb.metadata["release"] = self._prompt_release()
-            nb.metadata["date"] = self._prompt_date()
+            nb.metadata._draft["author"] = self._prompt_author()
+            nb.metadata._draft["version"] = self._prompt_version()
+            nb.metadata._draft["release"] = self._prompt_release()
+            nb.metadata._draft["date"] = self._prompt_date()
             
             # Prompt the user for the document style.
             other["sphinx_chapterstyle"] = self._prompt_chapter_title_style()
         else:
             
             # Try to use the traitlets.
-            nb.metadata["author"] = self.author
-            nb.metadata["version"] = self.version
-            nb.metadata["release"] = self.release
+            nb.metadata._draft["author"] = self.author
+            nb.metadata._draft["version"] = self.version
+            nb.metadata._draft["release"] = self.release
             
             if len(self.publishdate.strip()) == 0:
-                nb.metadata["date"] = date.today().strftime("%B %-d, %Y")
+                nb.metadata._draft["date"] = date.today().strftime("%B %-d, %Y")
             else:
-                nb.metadata["date"] = self.publishdate
+                nb.metadata._draft["date"] = self.publishdate
                 
             other["sphinx_chapterstyle"] = self.chapterstyle
             

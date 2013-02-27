@@ -57,14 +57,13 @@
 
     % Document level variables
     \title{((( nb.metadata.name | escape_tex )))}
-    \date{((( nb.metadata.date | escape_tex )))}
-    \release{((( nb.metadata.version | escape_tex )))}
-    \author{((( nb.metadata.author | escape_tex )))}
+    \date{((( nb.metadata._draft.date | escape_tex )))}
+    \release{((( nb.metadata._draft.version | escape_tex )))}
+    \author{((( nb.metadata._draft.author | escape_tex )))}
     \newcommand{\sphinxlogo}{}
-    \renewcommand{\releasename}{((( nb.metadata.release | escape_tex )))}
+    \renewcommand{\releasename}{((( nb.metadata._draft.release | escape_tex )))}
     \makeindex
 
-    
     ((* block sphinxheader *))((* endblock sphinxheader *)) 
 
 ((* endblock header *))
