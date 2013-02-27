@@ -10,8 +10,6 @@
 
 ((*- extends 'display_priority.tplx' -*))
 
-((*- set wrap_size = 87 -*))
-
 % In order to make sure that the input/output header follows the code it 
 % preceeds, we have to use a minipage environment.  This causes problems
 % for large blocks of input and output.  If there is a large input/output
@@ -21,6 +19,12 @@
 % preceeding the input/output bar.  That way, a select amount of lines
 % force the input/output bar to follow it around.
 ((*- set min_header_lines = 3 -*))
+
+% This is the number of characters that are permitted per line.  It's
+% important that this limit is set so characters do not run off the
+% edges of latex pages (since latex does not always seem smart enough
+% to prevent this.)
+((*- set wrap_size = 87 -*))
 
 ((* block header *))
 
@@ -46,8 +50,6 @@
 
     \usepackage{amsmath}
     \usepackage{amssymb}
-    \usepackage{graphicx}
-    \graphicspath{ {figs/} }
     \usepackage{ucs}
     \usepackage{enumerate}
 
@@ -55,14 +57,20 @@
     \usepackage{fancyvrb}
     \usepackage{color}
 
+    % Used to load and display graphics
+    \usepackage{graphicx}
+    \graphicspath{ {figs/} }
+
     % For formatting output while also word wrapping.
     \usepackage{listings}
     \lstset{breaklines=true}
     \lstset{basicstyle=\small\ttfamily}
+
     %Pygments definitions
     ((( resources.pygment_definitions )))
 
-    % Prevent overflowing lines due to urls and other hard-to-break entities.
+    % Help prevent overflowing lines due to urls and other hard-to-break 
+    % entities.  This doesn't catch everything...
     \sloppy
 
     % Document level variables
@@ -70,12 +78,15 @@
     \date{((( nb.metadata._draft.date | escape_tex )))}
     \release{((( nb.metadata._draft.version | escape_tex )))}
     \author{((( nb.metadata._draft.author | escape_tex )))}
-    \newcommand{\sphinxlogo}{}
     \renewcommand{\releasename}{((( nb.metadata._draft.release | escape_tex )))}
+    
+    % TODO: Add option for the user to specify a logo for his/her export.
+    \newcommand{\sphinxlogo}{}
+
+    % Make the index page of the document.
     \makeindex
 
     ((* block sphinxheader *))((* endblock sphinxheader *)) 
-
 ((* endblock header *))
 
 ((* block body *))
