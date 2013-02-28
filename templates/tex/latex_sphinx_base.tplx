@@ -1,12 +1,11 @@
-((============================================================================
-  NBConvert Sphinx-Latex Template
+((= NBConvert Sphinx-Latex Template
 
-  Purpose: Allow export of PDF friendly Latex inspired by Sphinx.  Most of the
-           template is derived directly from Sphinx source.
+Purpose: Allow export of PDF friendly Latex inspired by Sphinx.  Most of the
+       template is derived directly from Sphinx source.
 
-  Inheritance: null>display_priority>latex_base 
+Inheritance: null>display_priority>latex_base 
 
-  ==========================================================================))
+Note: For best display, use latex syntax highlighting. =))
 
 ((*- extends 'display_priority.tplx' -*))
 
@@ -28,7 +27,11 @@
 % important that this limit is set so characters do not run off the
 % edges of latex pages (since latex does not always seem smart enough
 % to prevent this.)
-((*- set wrap_size = 87 -*))
+((*- set wrap_size = 87 -*)) 
+
+% Global variable used to determine whether or not a header bar has been
+% applied to the group of input/output blocks already
+((*- set needs_header = False -*)) 
 
 %==============================================================================
 % Header
@@ -128,10 +131,12 @@
 %==============================================================================
 % Headings
 %
-% Purpose: Format pynb headers as sphinx headers
+% Purpose: Format pynb headers as sphinx headers.  Depending on the Sphinx
+%          style that is active, this will change.  Thus sphinx styles will
+%          override the values here.
 %==============================================================================
 ((* block headingcell -*))
-    \
+    \ ((= This backslash IS significant, do not delete =))
     ((*- if cell.level == 1 -*))
         ((* block h1 -*))part((* endblock h1 -*))
     ((*- elif cell.level == 2 -*))
@@ -144,100 +149,159 @@
         ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
         ((* block h6 -*))paragraph((* endblock h6 -*))
+    
+    ((= It's important to make sure that underscores (which tend to be common
+    in IPYNB file titles) do not make their way into latex.  Sometimes this
+    causes latex to barf. =))
     ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))}
 ((*- endblock headingcell *))
 
+%==============================================================================
+% Markdown
+%
+% Purpose: Convert markdown to latex.  Here markdown2latex is explicitly
+%          called since we know we want latex output.
+%==============================================================================
+((*- block markdowncell scoped-*))
+    ((( cell.source | markdown2latex )))
+((*- endblock markdowncell -*))
+
+%==============================================================================
+% Rawcell
+%
+% Purpose: Raw text cells allow the user to manually inject document code that 
+%          will not get touched by the templating system.
+%==============================================================================
+((*- block rawcell *))
+    ((( cell.source | wrap(wrap_size) )))
+((* endblock rawcell -*))
+
+%==============================================================================
+% Unknowncell
+%
+% Purpose: This is the catch anything unhandled.  To display this data, we
+%          remove all possible latex conflicts and wrap the characters so they
+%          can't flow off of the page.
+%==============================================================================
 ((* block unknowncell scoped*))
 
     % Unsupported cell type, no formatting
     ((( cell.source | wrap | escape_tex )))
 ((* endblock unknowncell *))
 
-((*- block markdowncell scoped-*))
-    ((( cell.source | markdown2latex )))
-((*- endblock markdowncell -*))
-
-((= Raw text cells allow the user to manually inject document code that will
-not get touched by the templating system. =))
-((*- block rawcell *))
-    ((( cell.source | wrap(wrap_size) )))
-((* endblock rawcell -*))
-
+%==============================================================================
+% Input
+%
+% Purpose: TODO
+%==============================================================================
 ((* block input *))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize Input}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
-        ((( cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight )))
-    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight )))
+    ((( set text_begining = cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight )))
+    ((( set text_remainer = cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight )))
+    ((( inputBlock(text_begining, text_remainer) )))
 ((* endblock input *))
 
+%==============================================================================
+% pyerr
+%
+% Purpose: TODO
+%==============================================================================
 ((* block pyerr *))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize Output}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
-        \begin{lstlisting}
-((( super() | wrap(wrap_size) | get_lines(end=min_header_lines) )))
-        \end{lstlisting}
-    \end{minipage} \begin{lstlisting}
-((( super() | wrap(wrap_size) | get_lines(start=min_header_lines) )))
-    \end{lstlisting}
+    ((( set text_begining = super() | wrap(wrap_size) | get_lines(end=min_header_lines) )))
+    ((( set text_remainer = super() | wrap(wrap_size) | get_lines(start=min_header_lines) )))
+    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
 ((* endblock pyerr *))
 
+%==============================================================================
+% display_data
+%
+% Purpose: TODO
+%==============================================================================
 ((*- block display_data -*))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize Output}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-20pt}
-        ((( super() )))
-    \end{minipage} \\
+    ((( inputBlock(super(), "") )))
 ((*- endblock display_data -*))
 
+%==============================================================================
+% stream
+%
+% Purpose: TODO
+%==============================================================================
 ((* block stream *))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize Output}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
-        \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(end=min_header_lines) )))
-        \end{lstlisting}
-    \end{minipage} \begin{lstlisting}
-((( output.text | wrap(wrap_size) | get_lines(start=min_header_lines) )))
-    \end{lstlisting}
+    ((( set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) )))
+    ((( set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) )))
+    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
 ((* endblock stream *))
 
+%==============================================================================
+% pyout
+%
+% Purpose: TODO
+%==============================================================================
 ((* block pyout *))
 ((* block data_priority scoped *))((( super() )))((* endblock *))
 ((* endblock pyout *))
 
+%==============================================================================
+% traceback_line
+%
+% Purpose: TODO
+%==============================================================================
 ((* block traceback_line *))
 ((( line | wrap(wrap_size) |indent| rm_ansi )))((* endblock traceback_line *))
 ((= .... =))
 
+%==============================================================================
+% data_text
+%
+% Purpose: TODO
+%==============================================================================
 ((* block data_text *))
-\begin{lstlisting}
-((( output.text | wrap(wrap_size) )))
-\end{lstlisting}
+((( customVerbatim(output.text | wrap(wrap_size)) )))
 ((* endblock *))
 
+%==============================================================================
+% Supported image formats
+%==============================================================================
 ((*- block data_png -*))
-\begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.key_png)))}
-\par
-\end{center}
+((( insertGraphics(output.key_png) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-\begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.key_svg)))}
-\par
-\end{center}
+((( insertGraphics(output.key_svg) )))
 ((*- endblock -*))
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+((* macro outputBlock(text_begining, text_remainer) -*))
+    ((( nbconvertBlock("Output", text_begining, text_remainer) )))
+((*- endmacro *))
+
+((* macro inputBlock(text_begining, text_remainer) -*))
+    ((( nbconvertBlock("Input", text_begining, text_remainer) )))
+((*- endmacro *))
+
+((* macro nbconvertBlock(blockTitle, text_begining, text_remainer) -*))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize (((blockTitle)))}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        ((( text_begining )))
+    \end{minipage}((( text_remainer )))
+((*- endmacro *))
+
+((* macro customVerbatim(text) -*))
+    \begin{lstlisting}
+    ((( text )))
+    \end{lstlisting}
+((*- endmacro *))
+
+((* macro insertGraphics(path) -*))
+    \begin{center}
+    \includegraphics[width=0.7\textwidth]{(((path)))}
+    \par
+    \end{center}
+((*- endmacro *))
 
 ((* macro escapeUnderscores(text) -*))
     ((*- set text = text|replace("_","\\_") -*))
