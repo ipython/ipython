@@ -2,12 +2,13 @@
 Module that allows latex output notebooks to be conditioned before 
 they are converted.
 """
+from __future__ import absolute_import
 
 # Configurable traitlets
 from IPython.utils.traitlets import Unicode, Bool
 
 # Needed to override transformer
-from converters.transformers import (ActivatableTransformer)
+from .transformers import (ActivatableTransformer)
 
 class LatexTransformer(ActivatableTransformer):
     """

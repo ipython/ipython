@@ -6,12 +6,12 @@ It exposes convenient classes to inherit from to access configurability
 as well as decorator to simplify tasks.
 """
 
-from __future__ import print_function
+from __future__ import print_function, absolute_import
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Unicode, Bool, Dict, List
 
-from converters.config import GlobalConfigurable
+from .config import GlobalConfigurable
 
 class ConfigurableTransformers(GlobalConfigurable):
     """ A configurable transformer

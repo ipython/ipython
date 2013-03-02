@@ -19,7 +19,7 @@ from .utils import markdown2latex
 from .utils import highlight2latex
 from .utils import get_lines
 
-from converters.config import GlobalConfigurable
+from .config import GlobalConfigurable
 
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import List

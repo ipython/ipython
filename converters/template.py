@@ -6,6 +6,9 @@ that uses Jinja2 to convert notebook files into different format.
 You can register both pre-transformers that will act on the notebook format
 befor conversion and jinja filter that would then be availlable in the templates
 """
+
+from __future__ import absolute_import
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -18,10 +21,12 @@ befor conversion and jinja filter that would then be availlable in the templates
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import print_function, absolute_import
+from __future__ import print_function
+from __future__ import absolute_import
 
 # Stdlib imports
 import io
+import os
 
 # IPython imports
 from IPython.utils.traitlets import MetaHasTraits
@@ -35,16 +40,16 @@ from jinja2 import Environment, FileSystemLoader
 
 
 # local import (pre-transformers)
-import converters.transformers as trans
-from converters.sphinx_transformer import (SphinxTransformer)
-from converters.latex_transformer import (LatexTransformer)
+from  . import transformers as trans
+from .sphinx_transformer import (SphinxTransformer)
+from .latex_transformer import (LatexTransformer)
 
 # some jinja filters
-from converters.jinja_filters import (python_comment, indent,
+from .jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight, highlight2latex,
         ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType)
 
-from converters.utils import  markdown2rst
+from .utils import  markdown2rst
 
 import textwrap
 
@@ -62,16 +67,19 @@ def wrap(text, width=100):
 
 env = Environment(
         loader=FileSystemLoader([
-            './templates/',
-            './templates/skeleton/',
+            os.path.dirname(os.path.realpath(__file__))+'/../templates/',
+            os.path.dirname(os.path.realpath(__file__))+'/../templates/skeleton/',
             ]),
         extensions=['jinja2.ext.loopcontrols']
         )
 
+print(os.path.dirname(os.path.realpath(__file__))+'/../templates/')
+
+
 texenv = Environment(
         loader=FileSystemLoader([
-            './templates/tex/',
-            './templates/skeleton/tex/',
+            os.path.dirname(os.path.realpath(__file__))+'/../templates/tex/',
+            os.path.dirname(os.path.realpath(__file__))+'/../templates/skeleton/tex/',
             ]),
         extensions=['jinja2.ext.loopcontrols']
         )

@@ -2,6 +2,7 @@
 Module that allows custom Sphinx parameters to be set on the notebook and
 on the 'other' object passed into Jinja.
 """
+from __future__ import absolute_import
 
 # Used to find Sphinx package location
 import sphinx
@@ -20,7 +21,7 @@ from IPython.utils.traitlets import Unicode, Bool
 from pygments.formatters import LatexFormatter
 
 # Needed to override transformer
-from converters.transformers import (ActivatableTransformer)
+from .transformers import (ActivatableTransformer)
 
 class SphinxTransformer(ActivatableTransformer):
     """

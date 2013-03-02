@@ -16,7 +16,7 @@
 {% block output_group -%}
 <div class="vbox output_wrapper">
 <div class="output vbox">
-<div class="hbox output_area">
+<div class="vbox output_area">
 {{ super() }}
 </div>
 </div>
