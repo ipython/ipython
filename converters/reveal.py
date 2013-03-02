@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
-from converters.html import ConverterHTML
-from converters.utils import text_cell
-from converters.utils import highlight, coalesce_streams
+from .html import ConverterHTML
+from .utils import text_cell
+from .utils import highlight, coalesce_streams
 
 from IPython.utils import path
 from markdown import markdown
