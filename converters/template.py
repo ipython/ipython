@@ -41,7 +41,11 @@ from jinja2 import Environment, FileSystemLoader
 
 # local import (pre-transformers)
 from  . import transformers as trans
-from .sphinx_transformer import (SphinxTransformer)
+try:
+    from .sphinx_transformer import (SphinxTransformer)
+except ImportError:
+    SphinxTransformer = None
+
 from .latex_transformer import (LatexTransformer)
 
 # some jinja filters
@@ -174,7 +178,8 @@ class ConverterTemplate(Configurable):
         self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
         self.preprocessors.append(trans.RevealHelpTransformer(config=config))
         self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
-        self.preprocessors.append(SphinxTransformer(config=config))
+        if SphinxTransformer:
+            self.preprocessors.append(SphinxTransformer(config=config))
         self.preprocessors.append(LatexTransformer(config=config))
 
         ##
