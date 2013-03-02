@@ -13,12 +13,16 @@
 </div>
 {% endblock input_group %}
 
-{% block output_group -%}
-<div class="vbox output_wrapper">
+{% block outputs -%}
 <div class="output vbox">
-<div class="vbox output_area">
 {{ super() }}
 </div>
+{% endblock outputs %}
+
+{% block output_group -%}
+<div class="vbox output_wrapper">
+<div class="hbox output_area">
+{{ super() }}
 </div>
 </div>
 {% endblock output_group %}
