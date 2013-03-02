@@ -83,10 +83,10 @@ def km_from_string(s=''):
     or just 'kernel-12345.json' for IPython 0.12
     """
     from os.path import join as pjoin
-    from IPython.kernel.zmq.blockingkernelmanager import BlockingKernelManager, Empty
+    from IPython.kernel.blockingkernelmanager import BlockingKernelManager, Queue
     from IPython.config.loader import KeyValueConfigLoader
     from IPython.kernel.zmq.kernelapp import kernel_aliases
-    global km,send,Empty
+    global km,send,Queue
 
     s = s.replace('--existing', '')
     if 'connection_file' in BlockingKernelManager.class_trait_names():
@@ -185,7 +185,7 @@ def get_doc_msg(msg_id):
     b=[]
     try:
         content = get_child_msg(msg_id)['content']
-    except Empty:
+    except Queue.Empty:
         # timeout occurred
         return ["no reply from IPython kernel"]
 
@@ -379,7 +379,7 @@ def print_prompt(prompt,msg_id=None):
             child = get_child_msg(msg_id)
             count = child['content']['execution_count']
             echo("In[%d]: %s" %(count,prompt))
-        except Empty:
+        except Queue.Empty:
             echo("In[]: %s (no reply from IPython kernel)" % prompt)
     else:
         echo("In[]: %s" % prompt)
@@ -441,7 +441,7 @@ def set_pid():
     # wait to get message back from kernel
     try:
         child = get_child_msg(msg_id)
-    except Empty:
+    except Queue.Empty:
         echo("no reply from IPython kernel")
         return
 
@@ -642,7 +642,7 @@ try:
     # because str() won't work for non-ascii characters
     # and we also have problems with unicode in vim, hence the following:
     completions = [s.encode(vim_encoding) for s in matches]
-except Empty:
+except Queue.Empty:
     echo("no reply from IPython kernel")
     completions=['']
 ## Additionally, we have no good way of communicating lists to vim, so we have
