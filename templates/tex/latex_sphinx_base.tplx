@@ -191,20 +191,53 @@ Note: For best display, use latex syntax highlighting. =))
 
 %==============================================================================
 % Input
-%
-% Purpose: TODO
 %==============================================================================
 ((* block input *))
+
+    ((= Global variable used to determine whether or not a header bar has been
+    applied to the group of output blocks already. We still need to set
+    it to true to make sure that the block bar gets rendered.=))
+    ((*- set needs_header = true -*)) 
+
     ((* set text_begining = cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight *))
     ((* set text_remainer = cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight *))
     ((( inputBlock(text_begining, text_remainer) )))
 ((* endblock input *))
 
 %==============================================================================
-% pyerr
+% Output_Group
 %
-% Purpose: TODO
+% Purpose: Make sure that only one header bar only attaches to the output 
+%          once.  By keeping track of when an input group is started
 %==============================================================================
+((*- block output_group -*))
+
+    ((= Global variable used to determine whether or not a header bar has been
+    applied to the group of output blocks already. =))
+    ((*- set needs_header = true -*)) 
+
+    ((( super() )))
+((* endblock *))
+
+%==============================================================================
+% Output types
+%==============================================================================
+((* block pyout *))
+    ((* block data_priority scoped -*))
+        ((( inputBlock(super(),"") )))
+    ((*- endblock *))
+((* endblock pyout *))
+
+((* block stream *))
+    ((* set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) *))
+    ((* set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) *))
+    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
+((* endblock stream *))
+
+((*- block display_data -*))
+    ((( inputBlock(super(), "") )))
+((*- endblock display_data -*))
+
 ((* block pyerr *))
     ((* set text_begining = super() | wrap(wrap_size) | get_lines(end=min_header_lines) *))
     ((* set text_remainer = super() | wrap(wrap_size) | get_lines(start=min_header_lines) *))
@@ -212,61 +245,25 @@ Note: For best display, use latex syntax highlighting. =))
 ((* endblock pyerr *))
 
 %==============================================================================
-% display_data
-%
-% Purpose: TODO
-%==============================================================================
-((*- block display_data -*))
-    ((( inputBlock(super(), "") )))
-((*- endblock display_data -*))
-
-%==============================================================================
-% stream
-%
-% Purpose: TODO
-%==============================================================================
-((* block stream *))
-    ((* set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) *))
-    ((* set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) *))
-    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
-((* endblock stream *))
-
-%==============================================================================
-% pyout
-%
-% Purpose: TODO
-%==============================================================================
-((* block pyout *))
-((* block data_priority scoped *))((( super() )))((* endblock *))
-((* endblock pyout *))
-
-%==============================================================================
-% traceback_line
-%
-% Purpose: TODO
-%==============================================================================
-((* block traceback_line *))
-((( line | wrap(wrap_size) |indent| rm_ansi )))((* endblock traceback_line *))
-((= .... =))
-
-%==============================================================================
-% data_text
-%
-% Purpose: TODO
+% Additional formating
 %==============================================================================
 ((* block data_text *))
-((( customVerbatim(output.text | wrap(wrap_size)) )))
+    ((( customVerbatim(output.text | wrap(wrap_size)) )))
 ((* endblock *))
+
+((* block traceback_line *))
+    ((( line | wrap(wrap_size) |indent| rm_ansi )))
+((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-((( insertGraphics(output.key_png) )))
+    ((( insertGraphics(output.key_png) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-((( insertGraphics(output.key_svg) )))
+    ((( insertGraphics(output.key_svg) )))
 ((*- endblock -*))
 
 %==============================================================================
@@ -281,13 +278,19 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endmacro *))
 
 ((* macro nbconvertBlock(blockTitle, text_begining, text_remainer) -*))
-    \vspace{10pt}
-    \begin{minipage}{\textwidth}
-        {\scriptsize (((blockTitle)))}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-25pt}
+    ((*- if needs_header -*))     
+        \vspace{10pt}
+        \begin{minipage}{\textwidth}
+            {\scriptsize (((blockTitle)))}\\*
+            \rule[10pt]{\linewidth}{0.5pt}
+            \vspace{-25pt}
+            ((( text_begining )))
+        \end{minipage}((( text_remainer )))
+    ((*- else -*))     
         ((( text_begining )))
-    \end{minipage}((( text_remainer )))
+        ((( text_remainer )))
+    ((*- endif -*))     
+    ((*- set needs_header = false -*)) 
 ((*- endmacro *))
 
 ((* macro customVerbatim(text) -*))
