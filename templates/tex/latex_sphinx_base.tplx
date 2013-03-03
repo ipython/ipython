@@ -195,8 +195,8 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: TODO
 %==============================================================================
 ((* block input *))
-    ((( set text_begining = cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight )))
-    ((( set text_remainer = cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight )))
+    ((* set text_begining = cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight *))
+    ((* set text_remainer = cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight *))
     ((( inputBlock(text_begining, text_remainer) )))
 ((* endblock input *))
 
@@ -206,8 +206,8 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: TODO
 %==============================================================================
 ((* block pyerr *))
-    ((( set text_begining = super() | wrap(wrap_size) | get_lines(end=min_header_lines) )))
-    ((( set text_remainer = super() | wrap(wrap_size) | get_lines(start=min_header_lines) )))
+    ((* set text_begining = super() | wrap(wrap_size) | get_lines(end=min_header_lines) *))
+    ((* set text_remainer = super() | wrap(wrap_size) | get_lines(start=min_header_lines) *))
     ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
 ((* endblock pyerr *))
 
@@ -226,8 +226,8 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: TODO
 %==============================================================================
 ((* block stream *))
-    ((( set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) )))
-    ((( set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) )))
+    ((* set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) *))
+    ((* set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) *))
     ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
 ((* endblock stream *))
 
