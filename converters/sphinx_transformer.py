@@ -87,7 +87,8 @@ class SphinxTransformer(ActivatableTransformer):
         # TODO: Add versatile method of additional notebook metadata.  Include
         #       handling of multiple files.  For now use a temporay namespace,
         #       '_draft' to signify that this needs to change.
-        nb.metadata._draft = {}
+        if not "_draft" in nb.metadata:
+            nb.metadata._draft = {}
 
         if self.interactive:
             
