@@ -29,10 +29,6 @@ Note: For best display, use latex syntax highlighting. =))
 % to prevent this.)
 ((*- set wrap_size = 87 -*)) 
 
-% Global variable used to determine whether or not a header bar has been
-% applied to the group of input/output blocks already
-((*- set needs_header = False -*)) 
-
 %==============================================================================
 % Header
 %==============================================================================
@@ -286,11 +282,11 @@ Note: For best display, use latex syntax highlighting. =))
             \vspace{-25pt}
             ((( text_begining )))
         \end{minipage}((( text_remainer )))
+       ((*- set needs_header = false -*)) 
     ((*- else -*))     
         ((( text_begining )))
         ((( text_remainer )))
     ((*- endif -*))     
-    ((*- set needs_header = false -*)) 
 ((*- endmacro *))
 
 ((* macro customVerbatim(text) -*))
