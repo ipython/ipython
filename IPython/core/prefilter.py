@@ -323,9 +323,6 @@ class PrefilterManager(Configurable):
 
         normal_handler = self.get_handler_by_name('normal')
         if not stripped:
-            if not continue_prompt:
-                self.shell.displayhook.prompt_count -= 1
-
             return normal_handler.handle(line_info)
 
         # special handlers are only allowed for single line statements
