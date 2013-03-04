@@ -41,6 +41,7 @@ from IPython.zmq.ipkernel import Kernel, IPKernelApp
 from IPython.zmq.session import (
     Session, session_aliases, session_flags
 )
+from IPython.zmq.zmqshell import ZMQInteractiveShell
 
 from IPython.config.configurable import Configurable
 
@@ -143,7 +144,7 @@ class IPEngineApp(BaseParallelApplication):
     description = _description
     examples = _examples
     config_file_name = Unicode(default_config_file_name)
-    classes = List([ProfileDir, Session, EngineFactory, Kernel, MPI])
+    classes = List([ZMQInteractiveShell, ProfileDir, Session, EngineFactory, Kernel, MPI])
 
     startup_script = Unicode(u'', config=True,
         help='specify a script to be run at startup')
