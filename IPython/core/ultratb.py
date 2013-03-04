@@ -567,10 +567,14 @@ class ListTB(TBTools):
                 have_filedata = True
                 #print 'filename is',filename  # dbg
                 if not value.filename: value.filename = "<string>"
-                list.append('%s  File %s"%s"%s, line %s%d%s\n' % \
+                if value.lineno:
+                    lineno = value.lineno
+                else:
+                    lineno = 'unknown'
+                list.append('%s  File %s"%s"%s, line %s%s%s\n' % \
                         (Colors.normalEm,
                          Colors.filenameEm, value.filename, Colors.normalEm,
-                         Colors.linenoEm, value.lineno, Colors.Normal  ))
+                         Colors.linenoEm, lineno, Colors.Normal  ))
                 if value.text is not None:
                     i = 0
                     while i < len(value.text) and value.text[i].isspace():
