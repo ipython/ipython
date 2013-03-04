@@ -563,7 +563,7 @@ class ListTB(TBTools):
             # Not sure if this can still happen in Python 2.6 and above
             list.append( str(stype) + '\n')
         else:
-            if etype is SyntaxError:
+            if issubclass(etype, SyntaxError):
                 have_filedata = True
                 #print 'filename is',filename  # dbg
                 if not value.filename: value.filename = "<string>"
