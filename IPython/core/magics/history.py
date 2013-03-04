@@ -98,10 +98,6 @@ class HistoryMagics(Magics):
 
         """
 
-        if not self.shell.displayhook.do_full_cache:
-            print('This feature is only available if numbered prompts '
-                  'are in use.')
-            return
         opts,args = self.parse_options(parameter_s,'noprtglf:',mode='string')
 
         # For brevity
