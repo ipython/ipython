@@ -17,7 +17,7 @@ New features
 ------------
 
 * All furl files and security certificates are now put in a read-only
-  directory named ~./ipython/security.
+  directory named ~/.ipython/security.
 
 * A single function :func:`get_ipython_dir`, in :mod:`IPython.genutils` that
   determines the user's IPython directory in a robust manner.
@@ -73,7 +73,7 @@ New features
 
 * The parallel function capabilities have been reworks.  The major changes are
   that i) there is now an `@parallel` magic that creates parallel functions,
-  ii) the syntax for mulitple variable follows that of `map`, iii) both the
+  ii) the syntax for multiple variable follows that of `map`, iii) both the
   multiengine and task controller now have a parallel function implementation.
 
 * All of the parallel computing capabilities from `ipython1-dev` have been

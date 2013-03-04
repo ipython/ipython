@@ -99,7 +99,7 @@ A quick summary of the major changes (see below for details):
   details.
 
 * **New profile model**. Profiles are now directories that contain all relevant
-  infromation for that session, and thus better isolate IPython use-cases.
+  information for that session, and thus better isolate IPython use-cases.
 
 * **SQLite storage for history**. All history is now stored in a SQLite
   database, providing support for multiple simultaneous sessions that won't
