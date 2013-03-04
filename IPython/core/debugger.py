@@ -351,8 +351,8 @@ class Pdb(OldPdb):
 
         start = lineno - 1 - context//2
         lines = linecache.getlines(filename)
-        start = max(start, 0)
         start = min(start, len(lines) - context)
+        start = max(start, 0)
         lines = lines[start : start + context]
 
         for i,line in enumerate(lines):
