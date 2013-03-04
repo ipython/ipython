@@ -711,7 +711,7 @@ class OSMagics(Magics):
         For frontends that do not support stdin (Notebook), -f is implied.
         """
         args = magic_arguments.parse_argstring(self.file, line)
-        filename = unquote_filename(args.filename)
+        filename = os.path.expanduser(unquote_filename(args.filename))
         
         if os.path.exists(filename):
             if args.amend:
