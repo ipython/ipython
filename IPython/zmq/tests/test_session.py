@@ -27,21 +27,6 @@ class SessionTestCase(BaseZMQTestCase):
         self.session = ss.Session()
 
 
-class MockSocket(zmq.Socket):
-
-    def __init__(self, *args, **kwargs):
-        super(MockSocket,self).__init__(*args,**kwargs)
-        self.data = []
-
-    def send_multipart(self, msgparts, *args, **kwargs):
-        self.data.extend(msgparts)
-
-    def send(self, part, *args, **kwargs):
-        self.data.append(part)
-
-    def recv_multipart(self, *args, **kwargs):
-        return self.data
-
 class TestSession(SessionTestCase):
 
     def test_msg(self):
@@ -73,11 +58,16 @@ class TestSession(SessionTestCase):
         self.assertEquals(type(new_msg['content']['b']),type(new_msg['content']['b']))
 
     def test_send(self):
-        socket = MockSocket(zmq.Context.instance(),zmq.PAIR)
+        ctx = zmq.Context.instance()
+        A = ctx.socket(zmq.PAIR)
+        B = ctx.socket(zmq.PAIR)
+        A.bind("inproc://test")
+        B.connect("inproc://test")
 
         msg = self.session.msg('execute', content=dict(a=10))
-        self.session.send(socket, msg, ident=b'foo', buffers=[b'bar'])
-        ident, msg_list = self.session.feed_identities(socket.data)
+        self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
+
+        ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.unserialize(msg_list)
         self.assertEquals(ident[0], b'foo')
         self.assertEquals(new_msg['msg_id'],msg['msg_id'])
@@ -86,16 +76,14 @@ class TestSession(SessionTestCase):
         self.assertEquals(new_msg['content'],msg['content'])
         self.assertEquals(new_msg['parent_header'],msg['parent_header'])
         self.assertEquals(new_msg['buffers'],[b'bar'])
-
-        socket.data = []
 
         content = msg['content']
         header = msg['header']
         parent = msg['parent_header']
         msg_type = header['msg_type']
-        self.session.send(socket, None, content=content, parent=parent,
+        self.session.send(A, None, content=content, parent=parent,
             header=header, ident=b'foo', buffers=[b'bar'])
-        ident, msg_list = self.session.feed_identities(socket.data)
+        ident, msg_list = self.session.feed_identities(B.recv_multipart())
         new_msg = self.session.unserialize(msg_list)
         self.assertEquals(ident[0], b'foo')
         self.assertEquals(new_msg['msg_id'],msg['msg_id'])
@@ -105,10 +93,8 @@ class TestSession(SessionTestCase):
         self.assertEquals(new_msg['parent_header'],msg['parent_header'])
         self.assertEquals(new_msg['buffers'],[b'bar'])
 
-        socket.data = []
-
-        self.session.send(socket, msg, ident=b'foo', buffers=[b'bar'])
-        ident, new_msg = self.session.recv(socket)
+        self.session.send(A, msg, ident=b'foo', buffers=[b'bar'])
+        ident, new_msg = self.session.recv(B)
         self.assertEquals(ident[0], b'foo')
         self.assertEquals(new_msg['msg_id'],msg['msg_id'])
         self.assertEquals(new_msg['msg_type'],msg['msg_type'])
@@ -117,7 +103,9 @@ class TestSession(SessionTestCase):
         self.assertEquals(new_msg['parent_header'],msg['parent_header'])
         self.assertEquals(new_msg['buffers'],[b'bar'])
 
-        socket.close()
+        A.close()
+        B.close()
+        ctx.term()
 
     def test_args(self):
         """initialization arguments for Session"""
