@@ -352,8 +352,14 @@ class Kernel(Configurable):
         # Set the parent message of the display hook and out streams.
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
-        sys.stdout.set_parent(parent)
-        sys.stderr.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
 
         # Re-broadcast our input for the benefit of listening clients, and
         # start computing output
@@ -532,13 +538,19 @@ class Kernel(Configurable):
             return
 
         self._publish_status(u'busy', parent)
-        
+
         # Set the parent message of the display hook and out streams.
         shell = self.shell
         shell.displayhook.set_parent(parent)
         shell.display_pub.set_parent(parent)
-        sys.stdout.set_parent(parent)
-        sys.stderr.set_parent(parent)
+        try:
+            sys.stdout.set_parent(parent)
+        except AttributeError:
+            pass
+        try:
+            sys.stderr.set_parent(parent)
+        except AttributeError:
+            pass
 
         # pyin_msg = self.session.msg(u'pyin',{u'code':code}, parent=parent)
         # self.iopub_socket.send(pyin_msg)
