@@ -248,3 +248,10 @@ tclass.py: deleting object: C-third
         na = os.path.join(mydir, 'nonascii.py')
         _ip.magic('run "%s"' % na)
         tt.assert_equals(_ip.user_ns['u'], u'Ўт№Ф')
+
+    def test_run_formatting(self):
+        """ Test that %run -t -N<N> does not raise a TypeError for N > 1."""
+        src = "pass"
+        self.mktmp(src)
+        _ip.magic('run -t -N 1 %s' % self.fname)
+        _ip.magic('run -t -N 10 %s' % self.fname)
