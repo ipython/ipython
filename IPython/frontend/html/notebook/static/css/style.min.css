@@ -900,7 +900,7 @@ div.out_prompt_overlay{height:100%;padding:0px;position:absolute;border-radius:4
 div.out_prompt_overlay:hover{box-shadow:inset 0 0 1px #000;background:rgba(240, 240, 240, 0.5);}
 div.output_prompt{color:darkred;margin:0 5px 0 -5px;}
 div.output_area{padding:0px;page-break-inside:avoid;}
-div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;font:inherit;vertical-align:baseline;color:black;}
+div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:black;}
 div.output_subarea{padding:0.44em 0.4em 0.4em 1px;}
 div.output_text{text-align:left;color:#000000;font-family:monospace;line-height:1.231;}
 div.output_stream{padding-top:0.0em;padding-bottom:0.0em;}
