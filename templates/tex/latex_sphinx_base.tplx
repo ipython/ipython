@@ -14,19 +14,18 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 
 % In order to make sure that the input/output header follows the code it 
-% preceeds, we have to use a minipage environment.  This causes problems
-% for large blocks of input and output.  If there is a large input/output
-% block, we don't want to minipage the whole thing since it will break
-% the line wrapping.  The solution is to split the input/output line by
-% line before we minipage which allows us to minipage the first X lines
-% preceeding the input/output bar.  That way, a select amount of lines
-% force the input/output bar to follow it around.
-((*- set min_header_lines = 3 -*))
+% preceeds, the needspace package is used to request that a certain
+% amount of lines (specified by this variable) are reserved.  If those
+% lines aren't available on the current page, the documenter will break
+% to the next page and the header along with accomanying lines will be
+% rendered together.  This value specifies the number of lines that
+% the header will be forced to group with without a page break.
+((*- set min_header_lines = 4 -*))
 
 % This is the number of characters that are permitted per line.  It's
 % important that this limit is set so characters do not run off the
 % edges of latex pages (since latex does not always seem smart enough
-% to prevent this.)
+% to prevent this in some cases.)  This is only applied to textual output
 ((*- set wrap_size = 87 -*)) 
 
 %==============================================================================
@@ -194,7 +193,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* block input *))
 
     % Make sure that atleast 4 lines are below the HR
-    \needspace{4\baselineskip}
+    \needspace{((( min_header_lines )))\baselineskip}
 
     % Add a horizantal break, along with break title.
     \vspace{10pt}
@@ -216,11 +215,7 @@ Note: For best display, use latex syntax highlighting. =))
     
     % If the first block is an image, minipage the image.  Else
     % request a certain amount of space for the input text.
-    ((* if cell.outputs[0].output_type in ['display_data'] -*))
-        \begin{minipage}{1.0\textwidth}
-    ((*- else -*))
-        \needspace{4\baselineskip}    
-    ((*- endif *))
+    ((( iff_figure(cell.outputs[0], "\begin{minipage}{1.0\textwidth}", "\needspace{" + min_header_lines + "\baselineskip}") )))
     
     % Add a horizantal break, along with break title.
     \vspace{10pt}
@@ -232,9 +227,7 @@ Note: For best display, use latex syntax highlighting. =))
     ((( render_output(cell.outputs[0]) )))
 
     % Close the minipage.
-    ((* if cell.outputs[0].output_type in ['display_data'] -*))
-        \end{minipage}
-    ((*- endif *))
+    ((( iff_figure(cell.outputs[0], "\end{minipage}", "") )))
 
     % Add remainer of the document contents below.
     ((* for output in cell.outputs[1:] *))
@@ -267,6 +260,9 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 % Support Macros
 %==============================================================================
+
+% Name: render_output
+% Purpose: Renders an output block appropriately.
 ((* macro render_output(output) -*))
     ((*- if output.output_type in ['pyout'] -*))
         ((*- block pyout scoped -*))
@@ -287,14 +283,30 @@ Note: For best display, use latex syntax highlighting. =))
     ((*- endif -*))
 ((*- endmacro *))
 
+% Name: iff_figure
+% Purpose: If the output block provided is a figure type, the 'true_content'
+%          parameter will be returned.  Else, the 'false_content'. 
+((* macro iff_figure(output, true_content, false_content) -*))
+    ((* if output.output_type in ['display_data'] -*))
+        ((( true_content )))
+    ((*- else -*))
+        ((( false_content )))
+    ((*- endif *))
+((*- endmacro *))
+
+% Name: custom_verbatim
+% Purpose: This macro creates a verbatim style block that fits the existing
+%          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
     \lstset{postbreak=\space, breakindent=5pt, escapebegin = \\, breaklines}
 
     \begin{lstlisting}
-    ((( text )))
+    ((( text | wrap(wrap_size) )))
     \end{lstlisting}
 ((*- endmacro *))
 
+% Name: insert_graphics
+% Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
     \includegraphics[width=0.7\textwidth]{(((path)))}
@@ -302,6 +314,9 @@ Note: For best display, use latex syntax highlighting. =))
     \end{center}
 ((*- endmacro *))
 
+% Name: escape_underscores
+% Purpose: Underscores cause a problem in latex.  It's important that we 
+%          escape any underscores that appear.
 ((* macro escape_underscores(text) -*))
     ((*- set text = text|replace("_","\\_") -*))
     ((( text )))
