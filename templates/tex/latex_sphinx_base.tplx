@@ -59,6 +59,9 @@ Note: For best display, use latex syntax highlighting. =))
     \usepackage{ucs}
     \usepackage{enumerate}
 
+    % Used to make the Input/Output rules follow around the contents.
+    \usepackage{needspace}
+
     % Pygments requirements
     \usepackage{fancyvrb}
     \usepackage{color}
@@ -132,7 +135,7 @@ Note: For best display, use latex syntax highlighting. =))
 %          override the values here.
 %==============================================================================
 ((* block headingcell -*))
-    \ ((= This backslash IS significant, do not delete =))
+    \
     ((*- if cell.level == 1 -*))
         ((* block h1 -*))part((* endblock h1 -*))
     ((*- elif cell.level == 2 -*))
@@ -149,7 +152,7 @@ Note: For best display, use latex syntax highlighting. =))
     ((= It's important to make sure that underscores (which tend to be common
     in IPYNB file titles) do not make their way into latex.  Sometimes this
     causes latex to barf. =))
-    ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))}
+    ((*- endif -*)){((( escape_underscores(cell.source | markdown2latex ) )))}
 ((*- endblock headingcell *))
 
 %==============================================================================
@@ -190,14 +193,17 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 ((* block input *))
 
-    ((= Global variable used to determine whether or not a header bar has been
-    applied to the group of output blocks already. We still need to set
-    it to true to make sure that the block bar gets rendered.=))
-    ((*- set needs_header = true -*)) 
+    % Make sure that atleast 4 lines are below the HR
+    \needspace{4\baselineskip}
 
-    ((* set text_begining = cell.input | wrap(wrap_size) | get_lines(end=min_header_lines) | highlight *))
-    ((* set text_remainer = cell.input | wrap(wrap_size) | get_lines(start=min_header_lines) | highlight *))
-    ((( inputBlock(text_begining, text_remainer) )))
+    % Add a horizantal break, along with break title.
+    \vspace{10pt}
+    {\scriptsize Input}\\*
+    \rule[10pt]{\linewidth}{0.5pt}
+    \vspace{-25pt}
+
+    % Add contents below.
+    ((( cell.input | highlight )))
 ((* endblock input *))
 
 %==============================================================================
@@ -206,103 +212,97 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: Make sure that only one header bar only attaches to the output 
 %          once.  By keeping track of when an input group is started
 %==============================================================================
-((*- block output_group -*))
+((* block output_group *))
+    
+    % If the first block is an image, minipage the image.  Else
+    % request a certain amount of space for the input text.
+    ((* if cell.outputs[0].output_type in ['display_data'] -*))
+        \begin{minipage}{1.0\textwidth}
+    ((*- else -*))
+        \needspace{4\baselineskip}    
+    ((*- endif *))
+    
+    % Add a horizantal break, along with break title.
+    \vspace{10pt}
+    {\scriptsize Output}\\*
+    \rule[10pt]{\linewidth}{0.5pt}
+    \vspace{-20pt}
 
-    ((= Global variable used to determine whether or not a header bar has been
-    applied to the group of output blocks already. =))
-    ((*- set needs_header = true -*)) 
+    % Add the contents of the first block.
+    ((( render_output(cell.outputs[0]) )))
 
-    ((( super() )))
+    % Close the minipage.
+    ((* if cell.outputs[0].output_type in ['display_data'] -*))
+        \end{minipage}
+    ((*- endif *))
+
+    % Add remainer of the document contents below.
+    ((* for output in cell.outputs[1:] *))
+        ((( render_output(output) )))
+    ((* endfor *))
 ((* endblock *))
-
-%==============================================================================
-% Output types
-%==============================================================================
-((* block pyout *))
-    ((* block data_priority scoped -*))
-        ((( inputBlock(super(),"") )))
-    ((*- endblock *))
-((* endblock pyout *))
-
-((* block stream *))
-    ((* set text_begining = output.text | wrap(wrap_size) | get_lines(end=min_header_lines) *))
-    ((* set text_remainer = output.text | wrap(wrap_size) | get_lines(start=min_header_lines) *))
-    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
-((* endblock stream *))
-
-((*- block display_data -*))
-    ((( inputBlock(super(), "") )))
-((*- endblock display_data -*))
-
-((* block pyerr *))
-    ((* set text_begining = super() | wrap(wrap_size) | get_lines(end=min_header_lines) *))
-    ((* set text_remainer = super() | wrap(wrap_size) | get_lines(start=min_header_lines) *))
-    ((( inputBlock(customVerbatim(text_begining), customVerbatim(text_remainer)) )))
-((* endblock pyerr *))
 
 %==============================================================================
 % Additional formating
 %==============================================================================
 ((* block data_text *))
-    ((( customVerbatim(output.text | wrap(wrap_size)) )))
+    ((( custom_verbatim(output.text) )))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( line | wrap(wrap_size) |indent| rm_ansi )))
+    ((( line | indent| rm_ansi )))
 ((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( insertGraphics(output.key_png) )))
+    ((( insert_graphics(output.key_png) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( insertGraphics(output.key_svg) )))
+    ((( insert_graphics(output.key_svg) )))
 ((*- endblock -*))
 
 %==============================================================================
 % Support Macros
 %==============================================================================
-((* macro outputBlock(text_begining, text_remainer) -*))
-    ((( nbconvertBlock("Output", text_begining, text_remainer) )))
+((* macro render_output(output) -*))
+    ((*- if output.output_type in ['pyout'] -*))
+        ((*- block pyout scoped -*))
+            ((( custom_verbatim(super()) )))
+        ((*- endblock pyout -*))
+    ((*- elif output.output_type in ['stream'] -*))
+        ((*- block stream scoped -*))
+           ((( custom_verbatim(output.text) ))) 
+        ((*- endblock stream -*))
+    ((*- elif output.output_type in ['display_data'] -*))
+        ((*- block display_data scoped -*))
+            ((( super() )))
+        ((*- endblock display_data -*))
+    ((*- elif output.output_type in ['pyerr'] -*))
+        ((*- block pyerr scoped -*))
+            ((( custom_verbatim(super()) )))
+        ((*- endblock pyerr -*))
+    ((*- endif -*))
 ((*- endmacro *))
 
-((* macro inputBlock(text_begining, text_remainer) -*))
-    ((( nbconvertBlock("Input", text_begining, text_remainer) )))
-((*- endmacro *))
+((* macro custom_verbatim(text) -*))
+    \lstset{postbreak=\space, breakindent=5pt, escapebegin = \\, breaklines}
 
-((* macro nbconvertBlock(blockTitle, text_begining, text_remainer) -*))
-    ((*- if needs_header -*))     
-        \vspace{10pt}
-        \begin{minipage}{\textwidth}
-            {\scriptsize (((blockTitle)))}\\*
-            \rule[10pt]{\linewidth}{0.5pt}
-            \vspace{-25pt}
-            ((( text_begining )))
-        \end{minipage}((( text_remainer )))
-       ((*- set needs_header = false -*)) 
-    ((*- else -*))     
-        ((( text_begining )))
-        ((( text_remainer )))
-    ((*- endif -*))     
-((*- endmacro *))
-
-((* macro customVerbatim(text) -*))
     \begin{lstlisting}
     ((( text )))
     \end{lstlisting}
 ((*- endmacro *))
 
-((* macro insertGraphics(path) -*))
+((* macro insert_graphics(path) -*))
     \begin{center}
     \includegraphics[width=0.7\textwidth]{(((path)))}
     \par
     \end{center}
 ((*- endmacro *))
 
-((* macro escapeUnderscores(text) -*))
+((* macro escape_underscores(text) -*))
     ((*- set text = text|replace("_","\\_") -*))
     ((( text )))
 ((*- endmacro *))
