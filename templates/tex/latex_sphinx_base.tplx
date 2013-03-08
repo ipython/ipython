@@ -26,7 +26,7 @@ Note: For best display, use latex syntax highlighting. =))
 % important that this limit is set so characters do not run off the
 % edges of latex pages (since latex does not always seem smart enough
 % to prevent this in some cases.)  This is only applied to textual output
-((*- set wrap_size = 87 -*)) 
+((*- set wrap_size = 85 -*)) 
 
 %==============================================================================
 % Header
