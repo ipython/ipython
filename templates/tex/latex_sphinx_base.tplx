@@ -298,7 +298,6 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro creates a verbatim style block that fits the existing
 %          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
-    \lstset{postbreak=\space, breakindent=5pt, escapebegin = \\, breaklines}
 
     \begin{lstlisting}
     ((( text | wrap(wrap_size) )))
