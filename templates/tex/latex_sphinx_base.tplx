@@ -215,7 +215,7 @@ Note: For best display, use latex syntax highlighting. =))
     
     % If the first block is an image, minipage the image.  Else
     % request a certain amount of space for the input text.
-    ((( iff_figure(cell.outputs[0], "\begin{minipage}{1.0\textwidth}", "\needspace{" + min_header_lines + "\baselineskip}") )))
+    ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
     
     % Add a horizantal break, along with break title.
     \vspace{10pt}
