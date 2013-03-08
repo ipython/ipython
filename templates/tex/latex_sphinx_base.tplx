@@ -227,7 +227,7 @@ Note: For best display, use latex syntax highlighting. =))
     ((( render_output(cell.outputs[0]) )))
 
     % Close the minipage.
-    ((( iff_figure(cell.outputs[0], "\end{minipage}", "") )))
+    ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
 
     % Add remainer of the document contents below.
     ((* for output in cell.outputs[1:] *))
