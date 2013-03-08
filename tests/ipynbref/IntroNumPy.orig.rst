@@ -169,7 +169,7 @@ Our task will be to compute this formula for a function such as:
 
    f(x) = (x-3)(x-5)(x-7)+85
 
-integrated between :math:`a=1` and :math:`b=9`.
+integrated between :math:`a=1` and :math:`b=9`\ .
 
 First, we define the function and sample it evenly between 0 and 10 at
 200 points:
@@ -185,7 +185,7 @@ In[1]:
     x = np.linspace(0, 10, 200)
     y = f(x)
 
-We select :math:`a` and :math:`b`, our integration limits, and we take
+We select :math:`a` and :math:`b`\ , our integration limits, and we take
 only a few points in that region to illustrate the error behavior of the
 trapezoid approximation:
 
@@ -1085,7 +1085,7 @@ In[50]:
 
 
 For matrix-matrix multiplication, the same dimension-matching rules must
-be satisfied, e.g. consider the difference between :math:`A \times A^T`:
+be satisfied, e.g. consider the difference between :math:`A \times A^T`\ :
 
 In[51]:
 
@@ -1099,7 +1099,7 @@ In[51]:
      [14 50]]
 
 
-and :math:`A^T \times A`:
+and :math:`A^T \times A`\ :
 
 In[52]:
 
