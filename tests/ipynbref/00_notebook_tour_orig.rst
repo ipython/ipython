@@ -28,16 +28,17 @@ In[1]:
     pwd
 
 Out[1]:
-
 .. parsed-literal::
 
     u'/Users/minrk/dev/ip/mine/docs/examples/notebooks'
+
 
 In[2]:
 
 .. code:: python
 
     ls
+
 
 .. parsed-literal::
 
@@ -48,7 +49,6 @@ In[2]:
     Script Magics.ipynb             octavemagic_extension.ipynb     trapezoid_rule.ipynb
     animation.m4v                   progbar.ipynb
 
-
 In[3]:
 
 .. code:: python
@@ -57,10 +57,10 @@ In[3]:
     # note: the echo command does not run on Windows, it's a unix command.
     !echo $message
 
+
 .. parsed-literal::
 
     The IPython notebook is great!
-
 
 Plots with matplotlib
 ---------------------
@@ -74,12 +74,12 @@ In[4]:
 
     %pylab inline
 
+
 .. parsed-literal::
 
     
     Welcome to pylab, a matplotlib-based Python environment [backend: module://IPython.zmq.pylab.backend_inline].
     For more information, type 'help(pylab)'.
-
 
 In[5]:
 
@@ -89,7 +89,7 @@ In[5]:
     plot(x, sin(x**2))
     title('A simple chirp');
 
-.. image:: tests/ipynbref/00_notebook_tour_orig_files/00_notebook_tour_orig_fig_00.png
+.. image:: _fig_07.png
 
 You can paste blocks of input with prompt markers, such as those from
 `the official Python
@@ -103,10 +103,10 @@ In[6]:
     >>> if the_world_is_flat:
     ...     print "Be careful not to fall off!"
 
+
 .. parsed-literal::
 
     Be careful not to fall off!
-
 
 Errors are shown in informative ways:
 
@@ -116,10 +116,10 @@ In[7]:
 
     %run non_existent_file
 
+
 .. parsed-literal::
 
     ERROR: File `u'non_existent_file.py'` not found.
-
 In[8]:
 
 .. code:: python
@@ -138,7 +138,6 @@ In[8]:
     ----> 3 z = y/(1-x)
     
     ZeroDivisionError: integer division or modulo by zero
-
 When IPython needs to display additional information (such as providing
 details on an object via ``x?`` it will automatically invoke a pager at
 the bottom of the screen:
@@ -164,38 +163,10 @@ In[19]:
         print i,
         time.sleep(0.5)
 
-.. parsed-literal::
-
-    0 
 
 .. parsed-literal::
 
-    1 
-
-.. parsed-literal::
-
-    2 
-
-.. parsed-literal::
-
-    3 
-
-.. parsed-literal::
-
-    4 
-
-.. parsed-literal::
-
-    5 
-
-.. parsed-literal::
-
-    6 
-
-.. parsed-literal::
-
-    7
-
+    0 1 2 3 4 5 6 7
 
 Clean crash and restart
 -----------------------
@@ -265,10 +236,8 @@ In[1]:
     Image(filename='../../source/_static/logo.png')
 
 Out[1]:
+.. image:: _fig_22.png
 
-.. parsed-literal::
-
-    <IPython.core.display.Image at 0x10faeafd0>
 
 An image can also be displayed from raw data or a url
 
@@ -279,10 +248,10 @@ In[2]:
     Image(url='http://python.org/images/python-logo.gif')
 
 Out[2]:
-
 .. parsed-literal::
 
     <IPython.core.display.Image at 0x1060e7410>
+
 
 SVG images are also supported out of the box (since modern browsers do a
 good job of rendering them):
@@ -295,10 +264,8 @@ In[3]:
     SVG(filename='python-logo.svg')
 
 Out[3]:
+.. image:: _fig_26.svg
 
-.. parsed-literal::
-
-    <IPython.core.display.SVG at 0x10fb998d0>
 
 Embedded vs Non-embedded Images
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -334,10 +301,8 @@ In[5]:
     Embed
 
 Out[5]:
+..jpg image:: 
 
-.. parsed-literal::
-
-    <IPython.core.display.Image at 0x10fb99b50>
 
 Today's image from same webcam at Berkeley, (refreshed every minutes, if
 you reload the notebook), visible only with an active internet
@@ -353,10 +318,10 @@ In[6]:
     SoftLinked
 
 Out[6]:
-
 .. parsed-literal::
 
     <IPython.core.display.Image at 0x10fb99b10>
+
 
 Of course, if you re-run the all notebook, the two images will be the
 same again.
@@ -381,10 +346,10 @@ In[7]:
     YouTubeVideo('1j_HxD4iLn8')
 
 Out[7]:
-
 .. parsed-literal::
 
     <IPython.lib.display.YouTubeVideo at 0x10fba2190>
+
 
 Using the nascent video capabilities of modern browsers, you may also be
 able to display local videos. At the moment this doesn't work very well
@@ -407,10 +372,10 @@ In[8]:
     HTML(data=video_tag)
 
 Out[8]:
-
 .. parsed-literal::
 
     <IPython.core.display.HTML at 0x10fba28d0>
+
 
 Local Files
 -----------
@@ -474,6 +439,7 @@ In[1]:
 
     ls
 
+
 .. parsed-literal::
 
     00_notebook_tour.ipynb          formatting.ipynb
@@ -484,7 +450,6 @@ In[1]:
     animation.m4v                   sympy.ipynb
     cython_extension.ipynb          sympy_quantum_computing.ipynb
     display_protocol.ipynb          trapezoid_rule.ipynb
-
 
 If we want to create a link to one of them, we can call use the
 ``FileLink`` object.
@@ -497,10 +462,10 @@ In[2]:
     FileLink('00_notebook_tour.ipynb')
 
 Out[2]:
-
 .. parsed-literal::
 
     <IPython.lib.display.FileLink at 0x10f7ea3d0>
+
 
 Alternatively, if we want to link to all of them, we can use the
 ``FileLinks`` object, passing ``'.'`` to indicate that we want links
@@ -517,10 +482,10 @@ In[7]:
     FileLinks('.')
 
 Out[7]:
-
 .. parsed-literal::
 
     <IPython.lib.display.FileLinks at 0x10f7eaad0>
+
 
 External sites
 ~~~~~~~~~~~~~~
@@ -535,10 +500,10 @@ In[9]:
     HTML('<iframe src=http://en.mobile.wikipedia.org/?useformat=mobile width=700 height=350></iframe>')
 
 Out[9]:
-
 .. parsed-literal::
 
     <IPython.core.display.HTML at 0x1094900d0>
+
 
 Mathematics
 ~~~~~~~~~~~
@@ -562,14 +527,10 @@ In[10]:
     Math(r'F(k) = \int_{-\infty}^{\infty} f(x) e^{2\pi i k} dx')
 
 Out[10]:
-
 .. math::
 
     $$F(k) = \int_{-\infty}^{\infty} f(x) e^{2\pi i k} dx$$
 
-.. parsed-literal::
-
-    <IPython.core.display.Math at 0x10fba26d0>
 
 With the ``Latex`` class, you have to include the delimiters yourself.
 This allows you to use other LaTeX modes such as ``eqnarray``:
@@ -587,7 +548,6 @@ In[11]:
     \end{eqnarray}""")
 
 Out[11]:
-
 .. math::
 
     \begin{eqnarray}
@@ -597,9 +557,6 @@ Out[11]:
     \nabla \cdot \vec{\mathbf{B}} & = 0 
     \end{eqnarray}
 
-.. parsed-literal::
-
-    <IPython.core.display.Latex at 0x10fba2c10>
 
 Or you can enter latex directly with the ``%%latex`` cell magic:
 
@@ -615,9 +572,14 @@ In[12]:
     \nabla \cdot \vec{\mathbf{B}} & = 0
     \end{aligned}
 
-.. parsed-literal::
+.. math::
 
-    <IPython.core.display.Latex at 0x10a617c90>
+    \begin{aligned}
+    \nabla \times \vec{\mathbf{B}} -\, \frac1c\, \frac{\partial\vec{\mathbf{E}}}{\partial t} & = \frac{4\pi}{c}\vec{\mathbf{j}} \\
+    \nabla \cdot \vec{\mathbf{E}} & = 4 \pi \rho \\
+    \nabla \times \vec{\mathbf{E}}\, +\, \frac1c\, \frac{\partial\vec{\mathbf{B}}}{\partial t} & = \vec{\mathbf{0}} \\
+    \nabla \cdot \vec{\mathbf{B}} & = 0
+    \end{aligned}
 
 There is also a ``%%javascript`` cell magic for running javascript
 directly, and ``%%svg`` for manually entering SVG content.
@@ -642,12 +604,12 @@ In[12]:
 
     %pylab inline
 
+
 .. parsed-literal::
 
     
     Welcome to pylab, a matplotlib-based Python environment [backend: module://IPython.zmq.pylab.backend_inline].
     For more information, type 'help(pylab)'.
-
 
 In[15]:
 
@@ -695,4 +657,5 @@ In[16]:
     show()
 
 
-.. image:: tests/ipynbref/00_notebook_tour_orig_files/00_notebook_tour_orig_fig_01.png
+.. image:: _fig_60.png
+
