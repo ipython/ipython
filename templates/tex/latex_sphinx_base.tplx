@@ -300,8 +300,9 @@ Note: For best display, use latex syntax highlighting. =))
 ((* macro custom_verbatim(text) -*))
 
     \begin{lstlisting}
-    ((( text | wrap(wrap_size) )))
+((( text | wrap(wrap_size) )))
     \end{lstlisting}
+    
 ((*- endmacro *))
 
 % Name: insert_graphics
