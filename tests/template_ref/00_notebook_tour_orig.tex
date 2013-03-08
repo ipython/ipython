@@ -120,8 +120,13 @@
 % Prevent overflowing lines due to urls and other hard-to-break entities.
 \sloppy
 
-\begin{document}
-\section{A brief tour of the IPython notebook}
+
+
+	
+	\begin{document}
+	
+	
+	\section{A brief tour of the IPython notebook}
 
 This document will give you a brief tour of the capabilities of the
 IPython notebook.\\You can view its contents by scrolling around, or
@@ -151,7 +156,11 @@ pwd
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 u'/Users/minrk/dev/ip/mine/docs/examples/notebooks'
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -224,7 +233,7 @@ title('A simple chirp');
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{_fig_07.png}
+\includegraphics[width=0.7\textwidth, height=0.9\textheight, keepaspectratio]{_fig_07.png}
 \par
 \end{center}
 \end{codeoutput}
@@ -317,6 +326,7 @@ for i in range(8):
 
 \begin{verbatim}
 0 1 2 3 4 5 6 7
+
 \end{verbatim}
 
 \end{codeoutput}
@@ -369,7 +379,7 @@ if (i=0; i<n; i++) {
 Courtesy of MathJax, you can include mathematical expressions both
 inline: $e^{i\pi} + 1 = 0$ and displayed:
 
-\[e^x=\sum_{i=0}^\infty \frac{1}{i!}x^i\]
+\[^x=\sum_{i=0}^\infty \frac{1}{i!}x^i\]
 
 \subsection{Rich displays: include anyting a browser can show}
 
@@ -388,7 +398,10 @@ Image(filename='../../source/_static/logo.png')
 \end{codeinput}
 \begin{codeoutput}
 
-<IPython.core.display.Image at 0x10faeafd0>
+\begin{center}
+\includegraphics[width=0.7\textwidth, height=0.9\textheight, keepaspectratio]{_fig_22.png}
+\par
+\end{center}
 
 \end{codeoutput}
 \end{codecell}
@@ -402,7 +415,11 @@ Image(url='http://python.org/images/python-logo.gif')
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.core.display.Image at 0x1060e7410>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -418,7 +435,10 @@ SVG(filename='python-logo.svg')
 \end{codeinput}
 \begin{codeoutput}
 
-<IPython.core.display.SVG at 0x10fb998d0>
+\begin{center}
+\includegraphics[width=0.7\textwidth]{_fig_26.pdf}
+\par
+\end{center}
 
 \end{codeoutput}
 \end{codecell}
@@ -458,7 +478,7 @@ Embed
 \end{codeinput}
 \begin{codeoutput}
 
-<IPython.core.display.Image at 0x10fb99b50>
+
 
 \end{codeoutput}
 \end{codecell}
@@ -477,7 +497,11 @@ SoftLinked
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.core.display.Image at 0x10fb99b10>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -504,7 +528,11 @@ YouTubeVideo('1j_HxD4iLn8')
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.lib.display.YouTubeVideo at 0x10fba2190>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -531,7 +559,11 @@ HTML(data=video_tag)
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.core.display.HTML at 0x10fba28d0>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -619,7 +651,11 @@ FileLink('00_notebook_tour.ipynb')
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.lib.display.FileLink at 0x10f7ea3d0>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -639,7 +675,11 @@ FileLinks('.')
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.lib.display.FileLinks at 0x10f7eaad0>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -656,7 +696,11 @@ HTML('<iframe src=http://en.mobile.wikipedia.org/?useformat=mobile width=700 hei
 \end{codeinput}
 \begin{codeoutput}
 
+
+\begin{verbatim}
 <IPython.core.display.HTML at 0x1094900d0>
+\end{verbatim}
+
 
 \end{codeoutput}
 \end{codecell}
@@ -671,8 +715,8 @@ were typing mathematical expressions in Markdown cells (along with
 normal text) and letting the browser render them; now we are displaying
 the output of a Python computation as a LaTeX expression wrapped by the
 \texttt{Math()} object so the browser renders it. The \texttt{Math}
-object will add the needed LaTeX delimiters (\texttt{\$\$}) if they are
-not provided:
+object will add the needed LaTeX delimiters (`\$\$) if they are not
+provided:
 
 \begin{codecell}
 \begin{codeinput}
@@ -683,7 +727,7 @@ Math(r'F(k) = \int_{-\infty}^{\infty} f(x) e^{2\pi i k} dx')
 \end{codeinput}
 \begin{codeoutput}
 
-<IPython.core.display.Math at 0x10fba26d0>
+
 
 \end{codeoutput}
 \end{codecell}
@@ -705,7 +749,7 @@ Latex(r"""\begin{eqnarray}
 \end{codeinput}
 \begin{codeoutput}
 
-<IPython.core.display.Latex at 0x10fba2c10>
+
 
 \end{codeoutput}
 \end{codecell}
@@ -815,10 +859,13 @@ show()
 \end{codeinput}
 \begin{codeoutput}
 \begin{center}
-\includegraphics[width=0.7\textwidth]{_fig_60.png}
+\includegraphics[width=0.7\textwidth, height=0.9\textheight, keepaspectratio]{_fig_60.png}
 \par
 \end{center}
 \end{codeoutput}
 \end{codecell}
 
-\end{document}
+
+	
+	\end{document}
+	
