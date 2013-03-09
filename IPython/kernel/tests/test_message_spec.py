@@ -15,7 +15,7 @@ from Queue import Empty
 
 import nose.tools as nt
 
-from ..blockingkernelmanager import BlockingKernelManager
+from IPython.kernel.blocking import BlockingKernelManager
 
 
 from IPython.testing import decorators as dec

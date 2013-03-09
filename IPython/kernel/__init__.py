@@ -5,6 +5,6 @@ from . import zmq
 
 from .connect import *
 from .launcher import *
-from .kernelmanager import KernelManager
-from .blockingkernelmanager import BlockingKernelManager
+from .manager import KernelManager
+from .blocking import BlockingKernelManager
 from .multikernelmanager import MultiKernelManager

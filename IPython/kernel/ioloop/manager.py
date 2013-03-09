@@ -20,8 +20,8 @@ from IPython.utils.traitlets import (
     Instance
 )
 
-from .blockingkernelmanager import BlockingKernelManager
-from .ioloopkernelrestarter import IOLoopKernelRestarter
+from IPython.kernel.blocking.manager import BlockingKernelManager
+from .restarter import IOLoopKernelRestarter
 
 #-----------------------------------------------------------------------------
 # Code
@@ -33,7 +33,7 @@ class IOLoopKernelManager(BlockingKernelManager):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    _restarter = Instance('IPython.kernel.ioloopkernelrestarter.IOLoopKernelRestarter')
+    _restarter = Instance('IPython.kernel.ioloop.IOLoopKernelRestarter')
 
     def start_restarter(self):
         if self.autorestart and self.has_kernel:

@@ -37,7 +37,7 @@ class IOLoopKernelRestarter(LoggingConfigurable):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    kernel_manager = Instance('IPython.kernel.kernelmanager.KernelManager')
+    kernel_manager = Instance('IPython.kernel.KernelManager')
 
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""

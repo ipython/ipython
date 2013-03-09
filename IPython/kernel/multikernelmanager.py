@@ -42,7 +42,7 @@ class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
     
     kernel_manager_class = DottedObjectName(
-        "IPython.kernel.ioloopkernelmanager.IOLoopKernelManager", config=True,
+        "IPython.kernel.ioloop.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """

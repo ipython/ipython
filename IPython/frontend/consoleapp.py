@@ -34,8 +34,8 @@ import uuid
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.core.profiledir import ProfileDir
-from IPython.kernel.blockingkernelmanager import BlockingKernelManager
-from IPython.kernel.kernelmanager import KernelManager
+from IPython.kernel.blocking import BlockingKernelManager
+from IPython.kernel import KernelManager
 from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
