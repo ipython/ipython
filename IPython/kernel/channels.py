@@ -203,7 +203,7 @@ class ShellChannel(ZMQSocketChannel):
 
         Subclasses should override this method to handle incoming messages.
         It is important to remember that this method is called in the thread
-        so that some logic must be done to ensure that the application leve
+        so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
