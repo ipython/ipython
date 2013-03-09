@@ -2,13 +2,11 @@ import io
 import nose.tools as nt
 from nose.tools import nottest
 
-from converters import latex_transformer
-lt = latex_transformer.LatexTransformer()
-lt.enabled = True
+from converters.latex_transformer import remove_math_space
 
 @nottest
 def test_space(input, reference):
-    nt.assert_equal(lt.remove_math_space(input),reference)
+    nt.assert_equal(remove_math_space(input),reference)
     
 
 
