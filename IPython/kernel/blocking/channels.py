@@ -1,9 +1,9 @@
-""" Implements a fully blocking kernel manager.
+"""Blocking channels
 
 Useful for test suites and blocking terminal interfaces.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2012  The IPython Development Team
+#  Copyright (C) 2013 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING.txt, distributed as part of this software.
@@ -15,8 +15,7 @@ Useful for test suites and blocking terminal interfaces.
 
 import Queue
 
-from IPython.utils.traitlets import Type
-from IPython.kernel.manager import KernelManager, IOPubChannel, HBChannel, \
+from IPython.kernel.channels import IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
 
 #-----------------------------------------------------------------------------
@@ -78,12 +77,3 @@ class BlockingHBChannel(HBChannel):
     def call_handlers(self, since_last_heartbeat):
         """ Pause beating on missed heartbeat. """
         pass
-
-
-class BlockingKernelManager(KernelManager):
-
-    # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingShellChannel)
-    iopub_channel_class = Type(BlockingIOPubChannel)
-    stdin_channel_class = Type(BlockingStdInChannel)
-    hb_channel_class = Type(BlockingHBChannel)

@@ -1,4 +1,4 @@
-"""A kernel manager with ioloop based logic."""
+"""A kernel manager with a tornado IOLoop"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2013  The IPython Development Team
@@ -20,14 +20,14 @@ from IPython.utils.traitlets import (
     Instance
 )
 
-from IPython.kernel.blocking.manager import BlockingKernelManager
+from IPython.kernel.manager import KernelManager
 from .restarter import IOLoopKernelRestarter
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-class IOLoopKernelManager(BlockingKernelManager):
+class IOLoopKernelManager(KernelManager):
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):

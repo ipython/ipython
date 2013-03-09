@@ -1,1 +1,1 @@
-from .manager import BlockingKernelManager
+from .client import BlockingKernelClient

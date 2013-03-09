@@ -30,10 +30,15 @@ import tempfile
 from IPython.external.ssh import tunnel
 
 # IPython imports
+# from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
+from IPython.utils.traitlets import (
+    Bool, Integer, Unicode, CaselessStrEnum,
+    HasTraits,
+)
 
 
 #-----------------------------------------------------------------------------
@@ -336,6 +341,106 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
         tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password)
     
     return tuple(lports)
+
+
+#-----------------------------------------------------------------------------
+# Mixin for classes that workw ith connection files
+#-----------------------------------------------------------------------------
+
+class ConnectionFileMixin(HasTraits):
+    """Mixin for configurable classes that work with connection files"""
+
+    # The addresses for the communication channels
+    connection_file = Unicode('')
+    _connection_file_written = Bool(False)
+
+    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
+
+    ip = Unicode(LOCALHOST, config=True,
+        help="""Set the kernel\'s IP address [default localhost].
+        If the IP address is something other than localhost, then
+        Consoles on other machines will be able to connect
+        to the Kernel, so be careful!"""
+    )
+
+    def _ip_default(self):
+        if self.transport == 'ipc':
+            if self.connection_file:
+                return os.path.splitext(self.connection_file)[0] + '-ipc'
+            else:
+                return 'kernel-ipc'
+        else:
+            return LOCALHOST
+
+    def _ip_changed(self, name, old, new):
+        if new == '*':
+            self.ip = '0.0.0.0'
+
+    # protected traits
+
+    shell_port = Integer(0)
+    iopub_port = Integer(0)
+    stdin_port = Integer(0)
+    hb_port = Integer(0)
+
+    #--------------------------------------------------------------------------
+    # Connection and ipc file management
+    #--------------------------------------------------------------------------
+
+    def cleanup_connection_file(self):
+        """Cleanup connection file *if we wrote it*
+
+        Will not raise if the connection file was already removed somehow.
+        """
+        if self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except (IOError, OSError, AttributeError):
+                pass
+
+    def cleanup_ipc_files(self):
+        """Cleanup ipc files if we wrote them."""
+        if self.transport != 'ipc':
+            return
+        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
+            ipcfile = "%s-%i" % (self.ip, port)
+            try:
+                os.remove(ipcfile)
+            except (IOError, OSError):
+                pass
+
+    def write_connection_file(self):
+        """Write connection info to JSON dict in self.connection_file."""
+        if self._connection_file_written:
+            return
+        self.connection_file,cfg = write_connection_file(self.connection_file,
+            transport=self.transport, ip=self.ip, key=self.session.key,
+            stdin_port=self.stdin_port, iopub_port=self.iopub_port,
+            shell_port=self.shell_port, hb_port=self.hb_port)
+        # write_connection_file also sets default ports:
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.iopub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+
+        self._connection_file_written = True
+
+    def load_connection_file(self):
+        """Load connection info from JSON dict in self.connection_file."""
+        with open(self.connection_file) as f:
+            cfg = json.loads(f.read())
+
+        self.transport = cfg.get('transport', 'tcp')
+        self.ip = cfg['ip']
+        self.shell_port = cfg['shell_port']
+        self.stdin_port = cfg['stdin_port']
+        self.iopub_port = cfg['iopub_port']
+        self.hb_port = cfg['hb_port']
+        self.session.key = str_to_bytes(cfg['key'])
+
+
 
 __all__ = [
     'write_connection_file',

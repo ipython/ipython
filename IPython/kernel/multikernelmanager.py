@@ -97,8 +97,6 @@ class MultiKernelManager(LoggingConfigurable):
                     config=self.config, autorestart=True, log=self.log
         )
         km.start_kernel(**kwargs)
-        # start just the shell channel, needed for graceful restart
-        km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         self._kernels[kernel_id] = km
         return kernel_id
 
@@ -114,7 +112,6 @@ class MultiKernelManager(LoggingConfigurable):
         """
         k = self.get_kernel(kernel_id)
         k.shutdown_kernel(now=now)
-        k.shell_channel.stop()
         del self._kernels[kernel_id]
 
     def shutdown_all(self, now=False):
