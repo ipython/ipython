@@ -1,4 +1,4 @@
-from nbconvert import main, converters , NbconvertApp
+from nbconvert import converters, NbconvertApp
 from converters.rst import ConverterRST
 import nose.tools as nt
 
