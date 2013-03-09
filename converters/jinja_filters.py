@@ -54,6 +54,9 @@ class FilterDataType(ConfigurableFilter):
 def rm_fake(strng):
     return strng.replace('/files/', '')
 
+def rm_dollars(strng):
+    return strng.strip('$')
+
 def python_comment(string):
     return '# '+'\n# '.join(string.split('\n'))
 

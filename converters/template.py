@@ -51,7 +51,9 @@ from .latex_transformer import (LatexTransformer)
 # some jinja filters
 from .jinja_filters import (python_comment, indent,
         rm_fake, remove_ansi, markdown, highlight, highlight2latex,
-        ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType)
+        ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType,
+        rm_dollars
+        )
 
 from .utils import  markdown2rst
 
@@ -196,6 +198,7 @@ class ConverterTemplate(Configurable):
         self.env.filters['markdown2rst'] = markdown2rst
         self.env.filters['get_lines'] = get_lines
         self.env.filters['wrap'] = wrap
+        self.env.filters['rm_dollars'] = rm_dollars
 
         ## user  filter will overwrite
         for key, filtr in jinja_filters.iteritems():
