@@ -64,7 +64,6 @@ def remove_math_space(text):
                 if math_lines > 1:
                     within_math = False
                     ptext = ptext+text[math_start_index:index]+"\n"
-                    print 'catching up with --',text[math_start_index:index],'--'
 
         # Remember the last character so we can easily watch
         # for backslashes
