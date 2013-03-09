@@ -223,4 +223,3 @@ class KernelManagerABC(object):
     @abc.abstractmethod
     def is_alive(self):
         pass
-

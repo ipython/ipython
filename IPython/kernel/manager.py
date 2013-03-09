@@ -128,7 +128,7 @@ class ZMQSocketChannel(Thread):
             address = "tcp://%s:%i" % address
         self._address = address
         atexit.register(self._notice_exit)
-    
+
     def _notice_exit(self):
         self._exiting = True
 
@@ -169,11 +169,11 @@ class ZMQSocketChannel(Thread):
 
     def _queue_send(self, msg):
         """Queue a message to be sent from the IOLoop's thread.
-        
+
         Parameters
         ----------
         msg : message to send
-        
+
         This is threadsafe, as it uses IOLoop.add_callback to give the loop's
         thread control of the action.
         """
@@ -188,7 +188,7 @@ class ZMQSocketChannel(Thread):
         """
         ident,smsg = self.session.feed_identities(msg)
         self.call_handlers(self.session.unserialize(smsg))
-    
+
 
 
 class ShellChannel(ZMQSocketChannel):
@@ -260,7 +260,7 @@ class ShellChannel(ZMQSocketChannel):
         allow_stdin : bool, optional (default self.allow_stdin)
             Flag for whether the kernel can send stdin requests to frontends.
 
-            Some frontends (e.g. the Notebook) do not support stdin requests. 
+            Some frontends (e.g. the Notebook) do not support stdin requests.
             If raw_input is called from code executed from such a frontend, a
             StdinNotImplementedError will be raised.
 
@@ -274,8 +274,8 @@ class ShellChannel(ZMQSocketChannel):
             user_expressions = {}
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
-        
-        
+
+
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, basestring):
             raise ValueError('code %r must be a string' % code)
@@ -542,17 +542,17 @@ class HBChannel(ZMQSocketChannel):
         self.socket = self.context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.LINGER, 0)
         self.socket.connect(self.address)
-        
+
         self.poller.register(self.socket, zmq.POLLIN)
-    
+
     def _poll(self, start_time):
         """poll for heartbeat replies until we reach self.time_to_dead.
-        
+
         Ignores interrupts, and returns the result of poll(), which
         will be an empty list if no messages arrived before the timeout,
         or the event tuple if there is a message to receive.
         """
-        
+
         until_dead = self.time_to_dead - (time.time() - start_time)
         # ensure poll at least once
         until_dead = max(until_dead, 1e-3)
@@ -583,13 +583,13 @@ class HBChannel(ZMQSocketChannel):
         self._create_socket()
         self._running = True
         self._beating = True
-        
+
         while self._running:
             if self._pause:
                 # just sleep, and skip the rest of the loop
                 time.sleep(self.time_to_dead)
                 continue
-            
+
             since_last_heartbeat = 0.0
             # io.rprint('Ping from HB channel') # dbg
             # no need to catch EFSM here, because the previous event was
@@ -683,11 +683,11 @@ class KernelManager(Configurable):
 
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
-    kernel = Any() 
-    
+    kernel = Any()
+
     kernel_cmd = List(Unicode, config=True,
         help="""The Popen Command to launch the kernel.
-        Override this if you have a custom 
+        Override this if you have a custom
         """
     )
 
@@ -698,7 +698,7 @@ class KernelManager(Configurable):
 
     # The addresses for the communication channels.
     connection_file = Unicode('')
-    
+
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
 
     ip = Unicode(LOCALHOST, config=True,
@@ -756,7 +756,7 @@ class KernelManager(Configurable):
 
         This will create the channels if they do not exist and then start
         them (their activity runs in a thread). If port numbers of 0 are
-        being used (random ports) then you must first call 
+        being used (random ports) then you must first call
         :method:`start_kernel`. If the channels have been stopped and you
         call this, :class:`RuntimeError` will be raised.
         """
@@ -844,10 +844,10 @@ class KernelManager(Configurable):
     #--------------------------------------------------------------------------
     # Connection and ipc file management
     #--------------------------------------------------------------------------
-    
+
     def cleanup_connection_file(self):
         """Cleanup connection file *if we wrote it*
-        
+
         Will not raise if the connection file was already removed somehow.
         """
         if self._connection_file_written:
@@ -857,7 +857,7 @@ class KernelManager(Configurable):
                 os.remove(self.connection_file)
             except (IOError, OSError, AttributeError):
                 pass
-    
+
     def cleanup_ipc_files(self):
         """Cleanup ipc files if we wrote them."""
         if self.transport != 'ipc':
@@ -883,7 +883,7 @@ class KernelManager(Configurable):
         self.iopub_port = cfg['iopub_port']
         self.hb_port = cfg['hb_port']
         self.session.key = str_to_bytes(cfg['key'])
-    
+
     def write_connection_file(self):
         """Write connection info to JSON dict in self.connection_file."""
         if self._connection_file_written:
@@ -897,7 +897,7 @@ class KernelManager(Configurable):
         self.stdin_port = cfg['stdin_port']
         self.iopub_port = cfg['iopub_port']
         self.hb_port = cfg['hb_port']
-        
+
         self._connection_file_written = True
 
     #--------------------------------------------------------------------------
@@ -926,14 +926,14 @@ class KernelManager(Configurable):
         ns = dict(connection_file=self.connection_file)
         ns.update(self._launch_args)
         return [ c.format(**ns) for c in cmd ]
-    
+
     def _launch_kernel(self, kernel_cmd, **kw):
         """actually launch the kernel
-        
+
         override in a subclass to launch kernel subprocesses differently
         """
         return launch_kernel(kernel_cmd, **kw)
-    
+
     def start_kernel(self, **kw):
         """Starts a kernel on this host in a separate process.
 
@@ -952,7 +952,7 @@ class KernelManager(Configurable):
                                "configured properly. "
                                "Currently valid addresses are: %s"%LOCAL_IPS
                                )
-        
+
         # write connection file / get default ports
         self.write_connection_file()
 
@@ -967,7 +967,7 @@ class KernelManager(Configurable):
         self.start_restarter()
 
     def shutdown_kernel(self, now=False, restart=False):
-        """Attempts to the stop the kernel process cleanly. 
+        """Attempts to the stop the kernel process cleanly.
 
         This attempts to shutdown the kernels cleanly by:
 
@@ -1144,4 +1144,3 @@ IOPubChannelABC.register(IOPubChannel)
 HBChannelABC.register(HBChannel)
 StdInChannelABC.register(StdInChannel)
 KernelManagerABC.register(KernelManager)
-

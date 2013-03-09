@@ -25,14 +25,14 @@ from .kernelmanager import KernelManager, IOPubChannel, HBChannel, \
 
 
 class BlockingChannelMixin(object):
-    
+
     def __init__(self, *args, **kwds):
         super(BlockingChannelMixin, self).__init__(*args, **kwds)
         self._in_queue = Queue.Queue()
-        
+
     def call_handlers(self, msg):
         self._in_queue.put(msg)
-        
+
     def get_msg(self, block=True, timeout=None):
         """ Gets a message if there is one that is ready. """
         if timeout is None:
@@ -40,7 +40,7 @@ class BlockingChannelMixin(object):
             # behavior, so wait for a week instead
             timeout = 604800
         return self._in_queue.get(block, timeout)
-        
+
     def get_msgs(self):
         """ Get all messages that are currently ready. """
         msgs = []
@@ -50,7 +50,7 @@ class BlockingChannelMixin(object):
             except Queue.Empty:
                 break
         return msgs
-    
+
     def msg_ready(self):
         """ Is there a message that has been received? """
         return not self._in_queue.empty()
@@ -69,7 +69,7 @@ class BlockingStdInChannel(BlockingChannelMixin, StdInChannel):
 
 
 class BlockingHBChannel(HBChannel):
-    
+
     # This kernel needs quicker monitoring, shorten to 1 sec.
     # less than 0.5s is unreliable, and will get occasional
     # false reports of missed beats.
@@ -87,4 +87,3 @@ class BlockingKernelManager(KernelManager):
     iopub_channel_class = Type(BlockingIOPubChannel)
     stdin_channel_class = Type(BlockingStdInChannel)
     hb_channel_class = Type(BlockingHBChannel)
-
