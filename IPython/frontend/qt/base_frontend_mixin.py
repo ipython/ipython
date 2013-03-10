@@ -13,55 +13,53 @@ class BaseFrontendMixin(object):
     # 'BaseFrontendMixin' concrete interface
     #---------------------------------------------------------------------------
 
-    def _get_kernel_manager(self):
-        """ Returns the current kernel manager.
+    def _get_kernel_client(self):
+        """Returns the current kernel client.
         """
-        return self._kernel_manager
+        return self._kernel_client
 
-    def _set_kernel_manager(self, kernel_manager):
-        """ Disconnect from the current kernel manager (if any) and set a new
-            kernel manager.
+    def _set_kernel_client(self, kernel_client):
+        """Disconnect from the current kernel client (if any) and set a new
+            kernel client.
         """
-        # Disconnect the old kernel manager, if necessary.
-        old_manager = self._kernel_manager
-        if old_manager is not None:
-            old_manager.started_kernel.disconnect(self._started_kernel)
-            old_manager.started_channels.disconnect(self._started_channels)
-            old_manager.stopped_channels.disconnect(self._stopped_channels)
+        # Disconnect the old kernel client, if necessary.
+        old_client = self._kernel_client
+        if old_client is not None:
+            old_client.started_channels.disconnect(self._started_channels)
+            old_client.stopped_channels.disconnect(self._stopped_channels)
 
-            # Disconnect the old kernel manager's channels.
-            old_manager.iopub_channel.message_received.disconnect(self._dispatch)
-            old_manager.shell_channel.message_received.disconnect(self._dispatch)
-            old_manager.stdin_channel.message_received.disconnect(self._dispatch)
-            old_manager.hb_channel.kernel_died.disconnect(
+            # Disconnect the old kernel client's channels.
+            old_client.iopub_channel.message_received.disconnect(self._dispatch)
+            old_client.shell_channel.message_received.disconnect(self._dispatch)
+            old_client.stdin_channel.message_received.disconnect(self._dispatch)
+            old_client.hb_channel.kernel_died.disconnect(
                 self._handle_kernel_died)
 
-            # Handle the case where the old kernel manager is still listening.
-            if old_manager.channels_running:
+            # Handle the case where the old kernel client is still listening.
+            if old_client.channels_running:
                 self._stopped_channels()
 
-        # Set the new kernel manager.
-        self._kernel_manager = kernel_manager
-        if kernel_manager is None:
+        # Set the new kernel client.
+        self._kernel_client = kernel_client
+        if kernel_client is None:
             return
 
-        # Connect the new kernel manager.
-        kernel_manager.started_kernel.connect(self._started_kernel)
-        kernel_manager.started_channels.connect(self._started_channels)
-        kernel_manager.stopped_channels.connect(self._stopped_channels)
+        # Connect the new kernel client.
+        kernel_client.started_channels.connect(self._started_channels)
+        kernel_client.stopped_channels.connect(self._stopped_channels)
 
-        # Connect the new kernel manager's channels.
-        kernel_manager.iopub_channel.message_received.connect(self._dispatch)
-        kernel_manager.shell_channel.message_received.connect(self._dispatch)
-        kernel_manager.stdin_channel.message_received.connect(self._dispatch)
-        kernel_manager.hb_channel.kernel_died.connect(self._handle_kernel_died)
+        # Connect the new kernel client's channels.
+        kernel_client.iopub_channel.message_received.connect(self._dispatch)
+        kernel_client.shell_channel.message_received.connect(self._dispatch)
+        kernel_client.stdin_channel.message_received.connect(self._dispatch)
+        kernel_client.hb_channel.kernel_died.connect(self._handle_kernel_died)
 
-        # Handle the case where the kernel manager started channels before
+        # Handle the case where the kernel client started channels before
         # we connected.
-        if kernel_manager.channels_running:
+        if kernel_client.channels_running:
             self._started_channels()
 
-    kernel_manager = property(_get_kernel_manager, _set_kernel_manager)
+    kernel_client = property(_get_kernel_client, _set_kernel_client)
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
@@ -112,7 +110,7 @@ class BaseFrontendMixin(object):
         """ Returns whether a reply from the kernel originated from a request
             from this frontend.
         """
-        session = self._kernel_manager.session.session
+        session = self._kernel_client.session.session
         parent = msg['parent_header']
         if not parent:
             # if the message has no parent, assume it is meant for all frontends

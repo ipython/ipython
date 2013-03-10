@@ -194,7 +194,7 @@ class IPythonWidget(FrontendWidget):
                 self._retrying_history_request = True
                 # wait out the kernel's queue flush, which is currently timed at 0.1s
                 time.sleep(0.25)
-                self.kernel_manager.shell_channel.history(hist_access_type='tail',n=1000)
+                self.kernel_client.shell_channel.history(hist_access_type='tail',n=1000)
             else:
                 self._retrying_history_request = False
             return
@@ -261,7 +261,7 @@ class IPythonWidget(FrontendWidget):
         """Reimplemented to make a history request and load %guiref."""
         super(IPythonWidget, self)._started_channels()
         self._load_guiref_magic()
-        self.kernel_manager.shell_channel.history(hist_access_type='tail',
+        self.kernel_client.shell_channel.history(hist_access_type='tail',
                                                   n=1000)
     
     def _started_kernel(self):
@@ -269,12 +269,12 @@ class IPythonWidget(FrontendWidget):
         
         Principally triggered by kernel restart.
         """
-        if self.kernel_manager.shell_channel is not None:
+        if self.kernel_client.shell_channel is not None:
             self._load_guiref_magic()
     
     def _load_guiref_magic(self):
         """Load %guiref magic."""
-        self.kernel_manager.shell_channel.execute('\n'.join([
+        self.kernel_client.shell_channel.execute('\n'.join([
             "try:",
             "    _usage",
             "except:",
@@ -330,7 +330,7 @@ class IPythonWidget(FrontendWidget):
         text = ''
 
         # Send the completion request to the kernel
-        msg_id = self.kernel_manager.shell_channel.complete(
+        msg_id = self.kernel_client.shell_channel.complete(
             text,                                    # text
             self._get_input_buffer_cursor_line(),    # line
             self._get_input_buffer_cursor_column(),  # cursor_pos
@@ -376,7 +376,7 @@ class IPythonWidget(FrontendWidget):
         """
         # If a number was not specified, make a prompt number request.
         if number is None:
-            msg_id = self.kernel_manager.shell_channel.execute('', silent=True)
+            msg_id = self.kernel_client.shell_channel.execute('', silent=True)
             info = self._ExecutionRequest(msg_id, 'prompt')
             self._request_info['execute'][msg_id] = info
             return

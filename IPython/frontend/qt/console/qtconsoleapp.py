@@ -64,7 +64,7 @@ from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
-from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.frontend.qt.client import QtKernelClient
 from IPython.kernel import tunnel_to_kernel, find_connection_file
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
@@ -166,7 +166,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     aliases = Dict(aliases)
     frontend_flags = Any(qt_flags)
     frontend_aliases = Any(qt_aliases)
-    kernel_manager_class = QtKernelManager
+    kernel_client_class = QtKernelClient
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
@@ -201,7 +201,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         kwargs = dict()
         kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
-        kernel_manager.start_channels()
+        kernel_client.start_channels()
         widget = self.widget_factory(config=self.config,
                                    local_kernel=True)
         self.init_colors(widget)
@@ -219,19 +219,19 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         current_widget : IPythonWidget
             The IPythonWidget whose kernel this frontend is to share
         """
-        kernel_manager = self.kernel_manager_class(
-                                connection_file=current_widget.kernel_manager.connection_file,
+        kernel_client = self.kernel_client_class(
+                                connection_file=current_widget.kernel_client.connection_file,
                                 config = self.config,
         )
-        kernel_manager.load_connection_file()
-        kernel_manager.start_channels()
+        kernel_client.load_connection_file()
+        kernel_client.start_channels()
         widget = self.widget_factory(config=self.config,
                                 local_kernel=False)
         self.init_colors(widget)
         widget._existing = True
         widget._may_close = False
         widget._confirm_exit = False
-        widget.kernel_manager = kernel_manager
+        widget.kernel_client = kernel_client
         return widget
 
     def init_qt_elements(self):
@@ -256,6 +256,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.widget._confirm_exit = self.confirm_exit
 
         self.widget.kernel_manager = self.kernel_manager
+        self.widget.kernel_client = self.kernel_client
         self.window = MainWindow(self.app,
                                 confirm_exit=self.confirm_exit,
                                 new_frontend_factory=self.new_frontend_master,

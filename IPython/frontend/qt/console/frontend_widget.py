@@ -148,6 +148,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._highlighter = FrontendHighlighter(self)
         self._input_splitter = self._input_splitter_class()
         self._kernel_manager = None
+        self._kernel_client = None
         self._request_info = {}
         self._request_info['execute'] = {};
         self._callback_dict = {}
@@ -215,7 +216,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        msg_id = self.kernel_manager.shell_channel.execute(source, hidden)
+        msg_id = self.kernel_client.shell_channel.execute(source, hidden)
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         if not hidden:
@@ -357,7 +358,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # generate uuid, which would be used as an indication of whether or
         # not the unique request originated from here (can use msg id ?)
         local_uuid = str(uuid.uuid1())
-        msg_id = self.kernel_manager.shell_channel.execute('',
+        msg_id = self.kernel_client.shell_channel.execute('',
             silent=True, user_expressions={ local_uuid:expr })
         self._callback_dict[local_uuid] = callback
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
@@ -400,7 +401,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info and info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_manager.iopub_channel.flush()
+            self.kernel_client.iopub_channel.flush()
 
             # Reset the ANSI style information to prevent bad text in stdout
             # from messing up our colors. We're not a true terminal so we're
@@ -435,10 +436,10 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
-        self.kernel_manager.iopub_channel.flush()
+        self.kernel_client.iopub_channel.flush()
 
         def callback(line):
-            self.kernel_manager.stdin_channel.input(line)
+            self.kernel_client.stdin_channel.input(line)
         if self._reading:
             self.log.debug("Got second input request, assuming first was interrupted.")
             self._reading = False
@@ -568,7 +569,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_interrupt:
             self._reading = False
             self.custom_interrupt_requested.emit()
-        elif self.kernel_manager.has_kernel:
+        elif self.kernel_manager:
             self._reading = False
             self.kernel_manager.interrupt_kernel()
         else:
@@ -615,9 +616,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_restart:
             self.custom_restart_requested.emit()
 
-        elif self.kernel_manager.has_kernel:
+        elif self.kernel_manager:
             # Pause the heart beat channel to prevent further warnings.
-            self.kernel_manager.hb_channel.pause()
+            self.kernel_client.hb_channel.pause()
 
             # Prompt the user to restart the kernel. Un-pause the heartbeat if
             # they decline. (If they accept, the heartbeat will be un-paused
@@ -642,7 +643,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                 else:
                     self.reset()
             else:
-                self.kernel_manager.hb_channel.unpause()
+                self.kernel_client.hb_channel.unpause()
 
         else:
             self._append_plain_text('Kernel process is either remote or '
@@ -670,7 +671,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        msg_id = self.kernel_manager.shell_channel.object_info(name)
+        msg_id = self.kernel_client.shell_channel.object_info(name)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -681,7 +682,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         context = self._get_context()
         if context:
             # Send the completion request to the kernel
-            msg_id = self.kernel_manager.shell_channel.complete(
+            msg_id = self.kernel_client.shell_channel.complete(
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos

@@ -176,14 +176,14 @@ class MainWindow(QtGui.QMainWindow):
                     self.update_tab_bar_visibility()
                     return
 
-        kernel_manager = closing_widget.kernel_manager
+        kernel_client = closing_widget.kernel_client
 
         if keepkernel is None and not closing_widget._confirm_exit:
             # don't prompt, just terminate the kernel if we own it
             # or leave it alone if we don't
             keepkernel = closing_widget._existing
         if keepkernel is None: #show prompt
-            if kernel_manager and kernel_manager.channels_running:
+            if kernel_client and kernel_client.channels_running:
                 title = self.window().windowTitle()
                 cancel = QtGui.QMessageBox.Cancel
                 okay = QtGui.QMessageBox.Ok
@@ -209,17 +209,17 @@ class MainWindow(QtGui.QMainWindow):
                     reply = box.exec_()
                     if reply == 1: # close All
                         for slave in slave_tabs:
-                            background(slave.kernel_manager.stop_channels)
+                            background(slave.kernel_client.stop_channels)
                             self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
                         closing_widget.execute("exit")
                         self.tab_widget.removeTab(current_tab)
-                        background(kernel_manager.stop_channels)
+                        background(kernel_client.stop_channels)
                     elif reply == 0: # close Console
                         if not closing_widget._existing:
                             # Have kernel: don't quit, just close the tab
                             closing_widget.execute("exit True")
                         self.tab_widget.removeTab(current_tab)
-                        background(kernel_manager.stop_channels)
+                        background(kernel_client.stop_channels)
                 else:
                     reply = QtGui.QMessageBox.question(self, title,
                         "Are you sure you want to close this Console?"+
@@ -231,15 +231,15 @@ class MainWindow(QtGui.QMainWindow):
                         self.tab_widget.removeTab(current_tab)
         elif keepkernel: #close console but leave kernel running (no prompt)
             self.tab_widget.removeTab(current_tab)
-            background(kernel_manager.stop_channels)
+            background(kernel_client.stop_channels)
         else: #close console and kernel (no prompt)
             self.tab_widget.removeTab(current_tab)
-            if kernel_manager and kernel_manager.channels_running:
+            if kernel_client and kernel_client.channels_running:
                 for slave in slave_tabs:
-                    background(slave.kernel_manager.stop_channels)
+                    background(slave.kernel_client.stop_channels)
                     self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
                 kernel_manager.shutdown_kernel()
-                background(kernel_manager.stop_channels)
+                background(kernel_client.stop_channels)
         
         self.update_tab_bar_visibility()
 
@@ -284,7 +284,7 @@ class MainWindow(QtGui.QMainWindow):
         #convert from/to int/richIpythonWidget if needed
         if isinstance(tab, int):
             tab = self.tab_widget.widget(tab)
-        km=tab.kernel_manager
+        km=tab.kernel_client
 
         #build list of all widgets
         widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
@@ -292,7 +292,7 @@ class MainWindow(QtGui.QMainWindow):
         # widget that are candidate to be the owner of the kernel does have all the same port of the curent widget
         # And should have a _may_close attribute
         filtered_widget_list = [ widget for widget in widget_list if
-                                widget.kernel_manager.connection_file == km.connection_file and
+                                widget.kernel_client.connection_file == km.connection_file and
                                 hasattr(widget,'_may_close') ]
         # the master widget is the one that may close the kernel
         master_widget= [ widget for widget in filtered_widget_list if widget._may_close]
@@ -315,14 +315,14 @@ class MainWindow(QtGui.QMainWindow):
         #convert from/to int/richIpythonWidget if needed
         if isinstance(tab, int):
             tab = self.tab_widget.widget(tab)
-        km=tab.kernel_manager
+        km=tab.kernel_client
 
         #build list of all widgets
         widget_list = [self.tab_widget.widget(i) for i in range(self.tab_widget.count())]
 
         # widget that are candidate not to be the owner of the kernel does have all the same port of the curent widget
         filtered_widget_list = ( widget for widget in widget_list if
-                                widget.kernel_manager.connection_file == km.connection_file)
+                                widget.kernel_client.connection_file == km.connection_file)
         # Get a list of all widget owning the same kernel and removed it from
         # the previous cadidate. (better using sets ?)
         master_widget_list = self.find_master_tab(tab, as_list=True)
