@@ -636,7 +636,7 @@ class NotebookRootHandler(AuthenticatedHandler):
 
 class NotebookHandler(AuthenticatedHandler):
 
-    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
+    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE', 'REPLACE')
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
@@ -669,6 +669,14 @@ class NotebookHandler(AuthenticatedHandler):
         self.set_status(204)
         self.finish()
 
+    @web.authenticated
+    def replace(self, notebook_id):
+        nbm = self.application.notebook_manager
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        nbm.replace_notebook(notebook_id, self.request.body, name=name, format=format)
+        self.set_status(204)
+        self.finish()
 
 class NotebookCopyHandler(AuthenticatedHandler):
 
