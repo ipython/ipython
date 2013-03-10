@@ -25,8 +25,14 @@ from IPython import kernel
 
 @dec.parametric
 def test_kms():
-    for base in ("", "Blocking", "Multi"):
+    for base in ("", "Multi"):
         KM = base + "KernelManager"
+        yield nt.assert_true(KM in dir(kernel), KM)
+
+@dec.parametric
+def test_kcs():
+    for base in ("", "Blocking"):
+        KM = base + "KernelClient"
         yield nt.assert_true(KM in dir(kernel), KM)
 
 @dec.parametric

@@ -28,7 +28,6 @@ class TestKernelManager(TestCase):
     def _run_lifecycle(self, km):
         km.start_kernel(stdout=PIPE, stderr=PIPE)
         self.assertTrue(km.is_alive())
-        km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         km.restart_kernel()
         self.assertTrue(km.is_alive())
         # We need a delay here to give the restarting kernel a chance to
@@ -41,7 +40,6 @@ class TestKernelManager(TestCase):
         km.interrupt_kernel()
         self.assertTrue(isinstance(km, KernelManager))
         km.shutdown_kernel()
-        km.shell_channel.stop()
 
     def test_tcp_lifecycle(self):
         km = self._get_tcp_km()
