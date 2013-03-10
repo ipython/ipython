@@ -22,7 +22,7 @@ from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
-from IPython.kernel.blocking import BlockingKernelManager
+from IPython.kernel import BlockingKernelClient
 from IPython.utils import path, py3compat
 
 #-------------------------------------------------------------------------------
@@ -83,14 +83,14 @@ def setup_kernel(cmd):
             kernel.terminate()
         raise IOError("Connection file %r never arrived" % connection_file)
     
-    km = BlockingKernelManager(connection_file=connection_file)
-    km.load_connection_file()
-    km.start_channels()
+    client = BlockingKernelClient(connection_file=connection_file)
+    client.load_connection_file()
+    client.start_channels()
     
     try:
-        yield km
+        yield client
     finally:
-        km.stop_channels()
+        client.stop_channels()
         kernel.terminate()
 
 def test_embed_kernel_basic():
@@ -105,8 +105,8 @@ def test_embed_kernel_basic():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
+    with setup_kernel(cmd) as client:
+        shell = client.shell_channel
     
         # oinfo a (int)
         msg_id = shell.object_info('a')
@@ -138,8 +138,8 @@ def test_embed_kernel_namespace():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
+    with setup_kernel(cmd) as client:
+        shell = client.shell_channel
     
         # oinfo a (int)
         msg_id = shell.object_info('a')
@@ -176,8 +176,8 @@ def test_embed_kernel_reentrant():
         '',
     ])
     
-    with setup_kernel(cmd) as km:
-        shell = km.shell_channel
+    with setup_kernel(cmd) as client:
+        shell = client.shell_channel
         for i in range(5):
             msg_id = shell.object_info('count')
             msg = shell.get_msg(block=True, timeout=2)
