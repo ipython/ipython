@@ -411,6 +411,9 @@ This feature uses the readline library, so it will honor your
 to). Adding the following lines to your :file:`.inputrc` file can make
 indenting/unindenting more convenient (M-i indents, M-u unindents)::
 
+    # if you don't already have a ~/.inputrc file, you need this include:
+    $include /etc/inputrc
+    
     $if Python 
     "\M-i": "    "  
     "\M-u": "\d\d\d\d"  
