@@ -20,11 +20,9 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import json
 import os
 import signal
 import sys
-import uuid
 
 # If run on Windows, install an exception hook which pops up a
 # message box. Pythonw.exe hides the console, so without this
@@ -59,21 +57,16 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.config.application import boolean_flag, catch_config_error
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
-from IPython.frontend.qt.console.frontend_widget import FrontendWidget
 from IPython.frontend.qt.console.ipython_widget import IPythonWidget
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.client import QtKernelClient
 from IPython.kernel import tunnel_to_kernel, find_connection_file
-from IPython.utils.path import filefind
-from IPython.utils.py3compat import str_to_bytes
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Integer, CaselessStrEnum, CBool, Any
+    Dict, List, Unicode, CBool, Any
 )
-from IPython.kernel.zmq.kernelapp import IPKernelApp
-from IPython.kernel.zmq.session import Session, default_secure
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.session import default_secure
 
 from IPython.frontend.consoleapp import (
         IPythonConsoleApp, app_aliases, app_flags, flags, aliases
@@ -201,11 +194,19 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         kwargs = dict()
         kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
+
+        # connect to the kernel
+        kernel_client = self.kernel_client_class(
+                                connection_file=kernel_manager.connection_file,
+                                config=self.config,
+        )
+        kernel_client.load_connection_file()
         kernel_client.start_channels()
         widget = self.widget_factory(config=self.config,
                                    local_kernel=True)
         self.init_colors(widget)
         widget.kernel_manager = kernel_manager
+        widget.kernel_client = kernel_client
         widget._existing = False
         widget._may_close = True
         widget._confirm_exit = self.confirm_exit
@@ -219,6 +220,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         current_widget : IPythonWidget
             The IPythonWidget whose kernel this frontend is to share
         """
+
         kernel_client = self.kernel_client_class(
                                 connection_file=current_widget.kernel_client.connection_file,
                                 config = self.config,
