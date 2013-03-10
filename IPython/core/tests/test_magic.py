@@ -283,15 +283,23 @@ def test_tb_syntaxerror():
 def test_time():
     ip = get_ipython()
     
-    with tt.AssertPrints("CPU times: user "):
+    with tt.AssertPrints("Wall time: "):
         ip.run_cell("%time None")
     
     ip.run_cell("def f(kmjy):\n"
                 "    %time print (2*kmjy)")
     
-    with tt.AssertPrints("CPU times: user "):
+    with tt.AssertPrints("Wall time: "):
         with tt.AssertPrints("hihi", suppress=False):
             ip.run_cell("f('hi')")
+
+
+@dec.skip_win32
+def test_time2():
+    ip = get_ipython()
+    
+    with tt.AssertPrints("CPU times: user "):
+        ip.run_cell("%time None")
 
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
