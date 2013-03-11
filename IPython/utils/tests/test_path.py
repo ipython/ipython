@@ -60,6 +60,7 @@ TEST_FILE_PATH = split(abspath(__file__))[0]
 TMP_TEST_DIR = tempfile.mkdtemp()
 HOME_TEST_DIR = join(TMP_TEST_DIR, "home_test_dir")
 XDG_TEST_DIR = join(HOME_TEST_DIR, "xdg_test_dir")
+XDG_CACHE_DIR = join(HOME_TEST_DIR, "xdg_cache_dir")
 IP_TEST_DIR = join(HOME_TEST_DIR,'.ipython')
 #
 # Setup/teardown functions/decorators
@@ -74,6 +75,7 @@ def setup():
     # problem because that exception is only defined on Windows...
     os.makedirs(IP_TEST_DIR)
     os.makedirs(os.path.join(XDG_TEST_DIR, 'ipython'))
+    os.makedirs(os.path.join(XDG_CACHE_DIR, 'ipython'))
 
 
 def teardown():
@@ -361,6 +363,26 @@ def test_filefind():
     t = path.filefind(f.name, alt_dirs)
     # print 'found:',t
 
+@with_environment
+def test_get_ipython_cache_dir():
+    os.environ["HOME"] = HOME_TEST_DIR
+    if os.name == 'posix' and sys.platform != 'darwin':
+        # test default
+        os.makedirs(os.path.join(HOME_TEST_DIR, ".cache"))
+        os.environ.pop("XDG_CACHE_HOME", None)
+        ipdir = path.get_ipython_cache_dir()
+        nt.assert_equal(os.path.join(HOME_TEST_DIR, ".cache", "ipython"),
+                        ipdir)
+        nt.assert_true(os.path.isdir(ipdir))
+
+        # test env override
+        os.environ["XDG_CACHE_HOME"] = XDG_CACHE_DIR
+        ipdir = path.get_ipython_cache_dir()
+        nt.assert_true(os.path.isdir(ipdir))
+        nt.assert_equal(ipdir, os.path.join(XDG_CACHE_DIR, "ipython"))
+    else:
+        nt.assert_equal(path.get_ipython_cache_dir(),
+                        path.get_ipython_dir())
 
 def test_get_ipython_package_dir():
     ipdir = path.get_ipython_package_dir()
