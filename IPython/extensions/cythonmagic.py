@@ -59,6 +59,7 @@ from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, cell_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
+from IPython.utils.path import get_ipython_cache_dir
 
 import Cython
 from Cython.Compiler.Errors import CompileError
@@ -192,7 +193,7 @@ class CythonMagics(Magics):
         """
         args = magic_arguments.parse_argstring(self.cython, line)
         code = cell if cell.endswith('\n') else cell+'\n'
-        lib_dir = os.path.join(self.shell.ipython_dir, 'cython')
+        lib_dir = os.path.join(get_ipython_cache_dir(), 'cython')
         quiet = True
         key = code, sys.version_info, sys.executable, Cython.__version__
 
