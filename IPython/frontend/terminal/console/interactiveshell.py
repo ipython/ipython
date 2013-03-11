@@ -106,7 +106,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     )
 
     def __init__(self, *args, **kwargs):
-        self.manager = kwargs.pop('kernel_manager')
+        self.manager = kwargs.pop('kernel_manager', None)
         self.client = kwargs.pop('kernel_client')
         self.session_id = self.client.session.session
         super(ZMQTerminalInteractiveShell, self).__init__(*args, **kwargs)
