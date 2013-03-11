@@ -15,6 +15,13 @@ from __future__ import print_function
 # From IPython
 from IPython.external import argparse
 
+# All the stuff needed for the configurable things
+from IPython.config.application import Application, catch_config_error
+from IPython.config.configurable import Configurable, SingletonConfigurable
+from IPython.config.loader import Config, ConfigFileNotFound
+from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
+
+
 # local
 from converters.html import ConverterHTML
 from converters.markdown import ConverterMarkdown
@@ -23,6 +30,7 @@ from converters.rst import ConverterRST
 from converters.latex import ConverterLaTeX
 from converters.python import ConverterPy
 from converters.reveal import ConverterReveal
+from converters.base import Converter
 
 
 # When adding a new format, make sure to add it to the `converters`
@@ -46,44 +54,72 @@ default_format = 'rst'
 known_formats = ', '.join([key + " (default)" if key == default_format else key
                            for key in converters])
 
+class NbconvertApp(Application):
 
-def main(infile, format='rst', preamble=None, exclude=[],
-         highlight_source=True):
+
+    fmt = CaselessStrEnum(converters.keys(),
+                          default_value='rst',
+                          config=True,
+                          help="Supported conversion format")
+
+    exclude = List( [],
+                    config=True,
+                    help = 'list of cells to exclude while converting')
+
+    aliases = {
+            'format':'NbconvertApp.fmt',
+            'exclude':'NbconvertApp.exclude',
+            'highlight':'Converter.highlight_source',
+            'preamble':'Converter.preamble',
+            }
+
+    def __init__(self, **kwargs):
+        super(NbconvertApp, self).__init__(**kwargs)
+        # ensure those are registerd
+        self.classes.insert(0,Converter)
+        self.classes.insert(0,ConverterRST)
+        self.classes.insert(0,ConverterMarkdown)
+        self.classes.insert(0,ConverterBloggerHTML)
+        self.classes.insert(0,ConverterLaTeX)
+        self.classes.insert(0,ConverterPy)
+
+    def initialize(self, argv=None):
+        self.parse_command_line(argv)
+        cl_config = self.config
+        self.update_config(cl_config)
+
+    def run(self):
+        """Convert a notebook in one step"""
+        ConverterClass = converters[self.fmt]
+        infile = (self.extra_args or [None])[0]
+        converter = ConverterClass(infile=infile,  config=self.config)
+        converter.render()
+
+def main():
     """Convert a notebook to html in one step"""
-    try:
-        ConverterClass = converters[format]
-    except KeyError:
-        raise SystemExit("Unknown format '%s', " % format +
-                         "known formats are: " + known_formats)
-
-    converter = ConverterClass(infile, highlight_source=highlight_source, exclude=exclude)
-    converter.render()
-
+    app = NbconvertApp.instance()
+    app.description = __doc__
+    print("""
+======================================================
+Warning, we are deprecating this version of nbconvert,
+please consider using the new version.
+======================================================
+    """)
+    app.initialize()
+    app.start()
+    app.run()
 #-----------------------------------------------------------------------------
 # Script main
 #-----------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=__doc__,
-            formatter_class=argparse.RawTextHelpFormatter)
     # TODO: consider passing file like object around, rather than filenames
     # would allow us to process stdin, or even http streams
     #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
     #                    default=sys.stdin)
 
-    #Require a filename as a positional argument
-    parser.add_argument('infile', nargs=1)
-    parser.add_argument('-f', '--format', default='rst',
-                        help='Output format. Supported formats: \n' +
-                        known_formats)
-    parser.add_argument('-p', '--preamble',
-                        help='Path to a user-specified preamble file')
-    parser.add_argument('-e', '--exclude', default='',
-                        help='Comma-separated list of cells to exclude')
-    parser.add_argument('-H', '--no-highlighting', action='store_false',
-                        help='Disable syntax highlighting for code blocks.')
-    args = parser.parse_args()
-    exclude_cells = [s.strip() for s in args.exclude.split(',')]
+    #parser.add_argument('-e', '--exclude', default='',
+    #                    help='Comma-separated list of cells to exclude')
+    #exclude_cells = [s.strip() for s in args.exclude.split(',')]
 
-    main(infile=args.infile[0], format=args.format, preamble=args.preamble,
-         exclude=exclude_cells, highlight_source=args.no_highlighting)
+    main()

@@ -1,0 +1,217 @@
+((============================================================================
+  NBConvert Sphinx-Latex Template
+
+  Purpose: Allow export of PDF friendly Latex inspired by Sphinx.  Most of the
+           template is derived directly from Sphinx source.
+
+  Inheritance: null>display_priority>latex_base 
+
+  ==========================================================================))
+
+((*- extends 'display_priority.tplx' -*))
+
+((*- set wrap_size = 87 -*))
+
+((* block header *))
+
+% Header, overrides base
+
+    % Make sure that the sphinx doc style knows who it inherits from.
+    \def\sphinxdocclass{(((parentdocumentclass)))}
+
+    % Declare the document class
+    \documentclass[letterpaper,10pt,english]{((( resources.sphinx_texinputs )))/sphinx(((documentclass)))}
+
+    % Imports
+    \usepackage[utf8]{inputenc}
+    \DeclareUnicodeCharacter{00A0}{\\nobreakspace}
+    \usepackage[T1]{fontenc}
+    \usepackage{babel}
+    \usepackage{times}
+    \usepackage{import}
+    \usepackage[((( resources.sphinx_chapterstyle )))]{((( resources.sphinx_texinputs )))/fncychap}
+    \usepackage{longtable}
+    \usepackage{((( resources.sphinx_texinputs )))/sphinx}
+    \usepackage{multirow}
+
+    \usepackage{amsmath}
+    \usepackage{amssymb}
+    \usepackage{graphicx}
+    \graphicspath{ {figs/} }
+    \usepackage{ucs}
+    \usepackage{enumerate}
+
+    % Pygments requirements
+    \usepackage{fancyvrb}
+    \usepackage{color}
+
+    % For formatting output while also word wrapping.
+    \usepackage{listings}
+    \lstset{breaklines=true}
+    \lstset{basicstyle=\small\ttfamily}
+    %Pygments definitions
+    ((( resources.pygment_definitions )))
+
+    % Prevent overflowing lines due to urls and other hard-to-break entities.
+    \sloppy
+
+    % Document level variables
+    \title{((( filterOutLatex(nb.metadata.name) )))}
+    \date{((( filterOutLatex(nb.metadata.date) )))}
+    \release{((( filterOutLatex(nb.metadata.version) )))}
+    \author{((( filterOutLatex(nb.metadata.author) )))}
+    \newcommand{\sphinxlogo}{}
+    \renewcommand{\releasename}{((( filterOutLatex(nb.metadata.release) )))}
+    \makeindex
+
+    
+    ((* block sphinxheader *))((* endblock sphinxheader *)) 
+
+((* endblock header *))
+
+((* block body *))
+((* block bodyBegin *))
+% Body
+
+    % Start of the document
+    \begin{document}
+        \maketitle
+        \tableofcontents 
+
+        ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
+
+        \renewcommand{\indexname}{Index}
+        \printindex
+
+    % End of document
+    \end{document}
+((* endblock bodyEnd *))
+((* endblock body *))
+
+% Footer
+((* block footer *))
+((* endblock footer *))
+
+((* block headingcell -*))
+    \
+    ((*- if cell.level == 1 -*))
+        ((* block h1 -*))part((* endblock h1 -*))
+    ((*- elif cell.level == 2 -*))
+        ((* block h2 -*))chapter((* endblock h2 -*))
+    ((*- elif cell.level == 3 -*))
+        ((* block h3 -*))section((* endblock h3 -*))
+    ((*- elif cell.level == 4 -*))
+        ((* block h4 -*))subsection((* endblock h4 -*))
+    ((*- elif cell.level == 5 -*))
+        ((* block h5 -*))subsubsection((* endblock h5 -*))
+    ((*- elif cell.level == 6 -*))
+        ((* block h6 -*))paragraph((* endblock h6 -*))
+    ((*- endif -*)){((( escapeUnderscores(cell.source | markdown2latex ) )))}
+((*- endblock headingcell *))
+
+((* block unknowncell scoped*))
+
+    % Unsupported cell type, no formatting
+    ((( filterOutLatex(cell.source | wrap) )))
+((* endblock unknowncell *))
+
+((*- block markdowncell scoped-*))
+    ((( cell.source | markdown2latex )))
+((*- endblock markdowncell -*))
+
+((= Raw text cells allow the user to manually inject document code that will
+not get touched by the templating system. =))
+((*- block rawcell *))
+    ((( cell.source | wrap(wrap_size) )))
+((* endblock rawcell -*))
+
+((* block input *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Input}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        ((( cell.input | wrap(wrap_size) | get_lines(end=3) | highlight2latex )))
+    \end{minipage}((( cell.input | wrap(wrap_size) | get_lines(start=3) | highlight2latex )))
+((* endblock input *))
+
+((* block pyerr *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        \begin{lstlisting}
+((( super() | wrap(wrap_size) | get_lines(end=3) )))
+        \end{lstlisting}
+    \end{minipage} \begin{lstlisting}
+((( super() | wrap(wrap_size) | get_lines(start=3) )))
+    \end{lstlisting}
+((* endblock pyerr *))
+
+((*- block display_data -*))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-20pt}
+        ((( super() )))
+    \end{minipage} \\
+((*- endblock display_data -*))
+
+((* block stream *))
+    \vspace{10pt}
+    \begin{minipage}{\textwidth}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+        \begin{lstlisting}
+((( output.text | wrap(wrap_size) | get_lines(end=3) )))
+        \end{lstlisting}
+    \end{minipage} \begin{lstlisting}
+((( output.text | wrap(wrap_size) | get_lines(start=3) )))
+    \end{lstlisting}
+((* endblock stream *))
+
+((* block pyout *))
+((* block data_priority scoped *))((( super() )))((* endblock *))
+((* endblock pyout *))
+
+((* block traceback_line *))
+((( line | wrap(wrap_size) |indent| rm_ansi )))((* endblock traceback_line *))
+((= .... =))
+
+((* block data_text *))
+\begin{lstlisting}
+((( output.text | wrap(wrap_size) )))
+\end{lstlisting}
+((* endblock *))
+
+((*- block data_png -*))
+\begin{center}
+\includegraphics[width=0.7\textwidth]{(((output.key_png)))}
+\par
+\end{center}
+((*- endblock -*))
+
+((*- block data_svg -*))
+\begin{center}
+\includegraphics[width=0.7\textwidth]{(((output.key_svg)))}
+\par
+\end{center}
+((*- endblock -*))
+
+((* macro filterOutLatex(text) -*))
+    ((*- set text = text|replace("\\","\\backslash") -*))
+    ((*- set text = text|replace("_","\\_") -*))
+    ((*- set text = text|replace("{","\\{") -*))
+    ((*- set text = text|replace("}","\\}") -*))
+    ((*- set text = text|replace("|","\\vert") -*))
+    ((( text )))
+((*- endmacro *))
+
+((* macro escapeUnderscores(text) -*))
+    ((*- set text = text|replace("_","\\_") -*))
+    ((( text )))
+((*- endmacro *))
+

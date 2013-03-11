@@ -1,0 +1,7 @@
+c = get_config()
+
+#Inherit
+load_subconfig('latex_sphinx_base.nbcv')
+
+#Overrides
+c.ConverterTemplate.template_file='latex_sphinx_howto'

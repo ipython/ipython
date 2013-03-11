@@ -1,4 +1,5 @@
-docutils
+docutils==0.9.1
 markdown
 -e git://github.com/ipython/ipython.git#egg=IPython
 pygments
+Jinja2

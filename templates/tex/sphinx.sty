@@ -1,0 +1,542 @@
+%
+% sphinx.sty
+%
+% Adapted from the old python.sty, mostly written by Fred Drake,
+% by Georg Brandl.
+%
+
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{sphinx}[2010/01/15 LaTeX package (Sphinx markup)]
+
+\@ifclassloaded{memoir}{}{\RequirePackage{fancyhdr}}
+
+\RequirePackage{textcomp}
+\RequirePackage{fancybox}
+\RequirePackage{titlesec}
+\RequirePackage{tabulary}
+\RequirePackage{amsmath} % for \text
+\RequirePackage{makeidx}
+\RequirePackage{framed}
+\RequirePackage{ifthen}
+\RequirePackage{color}
+% For highlighted code.
+\RequirePackage{fancyvrb}
+% For table captions.
+\RequirePackage{threeparttable}
+% Handle footnotes in tables.
+\RequirePackage{footnote}
+\makesavenoteenv{tabulary}
+% For floating figures in the text.
+\RequirePackage{wrapfig}
+% Separate paragraphs by space by default.
+\RequirePackage{parskip}
+
+% Redefine these colors to your liking in the preamble.
+\definecolor{TitleColor}{rgb}{0.126,0.263,0.361}
+\definecolor{InnerLinkColor}{rgb}{0.208,0.374,0.486}
+\definecolor{OuterLinkColor}{rgb}{0.216,0.439,0.388}
+% Redefine these colors to something not white if you want to have colored
+% background and border for code examples.
+\definecolor{VerbatimColor}{rgb}{1,1,1}
+\definecolor{VerbatimBorderColor}{rgb}{1,1,1}
+
+% Uncomment these two lines to ignore the paper size and make the page 
+% size more like a typical published manual.
+%\renewcommand{\paperheight}{9in}
+%\renewcommand{\paperwidth}{8.5in}   % typical squarish manual
+%\renewcommand{\paperwidth}{7in}     % O'Reilly ``Programmming Python''
+
+% use pdfoutput for pTeX and dvipdfmx
+\ifx\kanjiskip\undefined\else
+  \ifx\Gin@driver{dvipdfmx.def}\undefined\else
+    \newcount\pdfoutput\pdfoutput=0
+  \fi
+\fi
+
+% For graphicx, check if we are compiling under latex or pdflatex.
+\ifx\pdftexversion\undefined
+  \usepackage{graphicx}
+\else
+  \usepackage[pdftex]{graphicx}
+\fi
+
+% for PDF output, use colors and maximal compression
+\newif\ifsphinxpdfoutput\sphinxpdfoutputfalse
+\ifx\pdfoutput\undefined\else\ifcase\pdfoutput
+  \let\py@NormalColor\relax
+  \let\py@TitleColor\relax
+\else
+  \sphinxpdfoutputtrue
+  \input{pdfcolor}
+  \def\py@NormalColor{\color[rgb]{0.0,0.0,0.0}}
+  \def\py@TitleColor{\color{TitleColor}}
+  \pdfcompresslevel=9
+\fi\fi
+
+% XeLaTeX can do colors, too
+\ifx\XeTeXrevision\undefined\else
+  \def\py@NormalColor{\color[rgb]{0.0,0.0,0.0}}
+  \def\py@TitleColor{\color{TitleColor}}
+\fi
+
+% Increase printable page size (copied from fullpage.sty)
+\topmargin 0pt
+\advance \topmargin by -\headheight
+\advance \topmargin by -\headsep
+
+% attempt to work a little better for A4 users
+\textheight \paperheight
+\advance\textheight by -2in
+
+\oddsidemargin 0pt
+\evensidemargin 0pt
+%\evensidemargin -.25in  % for ``manual size'' documents
+\marginparwidth 0.5in
+
+\textwidth \paperwidth
+\advance\textwidth by -2in
+
+
+% Style parameters and macros used by most documents here
+\raggedbottom
+\sloppy
+\hbadness = 5000                % don't print trivial gripes
+
+\pagestyle{empty}               % start this way; change for
+\pagenumbering{roman}           % ToC & chapters
+
+% Use this to set the font family for headers and other decor:
+\newcommand{\py@HeaderFamily}{\sffamily\bfseries}
+
+% Redefine the 'normal' header/footer style when using "fancyhdr" package:
+\@ifundefined{fancyhf}{}{
+  % Use \pagestyle{normal} as the primary pagestyle for text.
+  \fancypagestyle{normal}{
+    \fancyhf{}
+    \fancyfoot[LE,RO]{{\py@HeaderFamily\thepage}}
+    \fancyfoot[LO]{{\py@HeaderFamily\nouppercase{\rightmark}}}
+    \fancyfoot[RE]{{\py@HeaderFamily\nouppercase{\leftmark}}}
+    \fancyhead[LE,RO]{{\py@HeaderFamily \@title, \py@release}}
+    \renewcommand{\headrulewidth}{0.4pt}
+    \renewcommand{\footrulewidth}{0.4pt}
+    % define chaptermark with \@chappos when \@chappos is available for Japanese
+    \ifx\@chappos\undefined\else
+      \def\chaptermark##1{\markboth{\@chapapp\space\thechapter\space\@chappos\space ##1}{}}
+    \fi
+  }
+  % Update the plain style so we get the page number & footer line,
+  % but not a chapter or section title.  This is to keep the first
+  % page of a chapter and the blank page between chapters `clean.'
+  \fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[LE,RO]{{\py@HeaderFamily\thepage}}
+    \renewcommand{\headrulewidth}{0pt}
+    \renewcommand{\footrulewidth}{0.4pt}
+  }
+}
+
+% Some custom font markup commands.
+%
+\newcommand{\strong}[1]{{\textbf{#1}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\bfcode}[1]{\code{\bfseries#1}}
+\newcommand{\email}[1]{\textsf{#1}}
+
+% Redefine the Verbatim environment to allow border and background colors.
+% The original environment is still used for verbatims within tables.
+\let\OriginalVerbatim=\Verbatim
+\let\endOriginalVerbatim=\endVerbatim
+
+% Play with vspace to be able to keep the indentation.
+\newlength\distancetoright
+\def\mycolorbox#1{%
+  \setlength\distancetoright{\linewidth}%
+  \advance\distancetoright -\@totalleftmargin %
+  \fcolorbox{VerbatimBorderColor}{VerbatimColor}{%
+  \begin{minipage}{\distancetoright}%
+    #1
+  \end{minipage}%
+  }%
+}
+\def\FrameCommand{\mycolorbox}
+
+\renewcommand{\Verbatim}[1][1]{%
+  % list starts new par, but we don't want it to be set apart vertically
+  \bgroup\parskip=0pt%
+  \smallskip%
+  % The list environement is needed to control perfectly the vertical
+  % space.
+  \list{}{%
+  \setlength\parskip{0pt}%
+  \setlength\itemsep{0ex}%
+  \setlength\topsep{0ex}%
+  \setlength\partopsep{0pt}%
+  \setlength\leftmargin{0pt}%
+  }%
+  \item\MakeFramed {\FrameRestore}%
+     \small%
+    \OriginalVerbatim[#1]%
+}
+\renewcommand{\endVerbatim}{%
+    \endOriginalVerbatim%
+  \endMakeFramed%
+  \endlist%
+  % close group to restore \parskip
+  \egroup%
+}
+
+
+% \moduleauthor{name}{email}
+\newcommand{\moduleauthor}[2]{}
+
+% \sectionauthor{name}{email}
+\newcommand{\sectionauthor}[2]{}
+
+% Augment the sectioning commands used to get our own font family in place,
+% and reset some internal data items:
+\titleformat{\section}{\Large\py@HeaderFamily}%
+            {\py@TitleColor\thesection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\subsection}{\large\py@HeaderFamily}%
+            {\py@TitleColor\thesubsection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\subsubsection}{\py@HeaderFamily}%
+            {\py@TitleColor\thesubsubsection}{0.5em}{\py@TitleColor}{\py@NormalColor}
+\titleformat{\paragraph}{\small\py@HeaderFamily}%
+            {\py@TitleColor}{0em}{\py@TitleColor}{\py@NormalColor}
+
+% {fulllineitems} is the main environment for object descriptions.
+%
+\newcommand{\py@itemnewline}[1]{%
+  \@tempdima\linewidth%
+  \advance\@tempdima \leftmargin\makebox[\@tempdima][l]{#1}%
+}
+
+\newenvironment{fulllineitems}{
+  \begin{list}{}{\labelwidth \leftmargin \labelsep 0pt
+                 \rightmargin 0pt \topsep -\parskip \partopsep \parskip
+                 \itemsep -\parsep
+                 \let\makelabel=\py@itemnewline}
+}{\end{list}}
+
+% \optional is used for ``[, arg]``, i.e. desc_optional nodes.
+\newcommand{\optional}[1]{%
+  {\textnormal{\Large[}}{#1}\hspace{0.5mm}{\textnormal{\Large]}}}
+
+\newlength{\py@argswidth}
+\newcommand{\py@sigparams}[2]{%
+  \parbox[t]{\py@argswidth}{#1\code{)}#2}}
+\newcommand{\pysigline}[1]{\item[#1]\nopagebreak}
+\newcommand{\pysiglinewithargsret}[3]{%
+  \settowidth{\py@argswidth}{#1\code{(}}%
+  \addtolength{\py@argswidth}{-2\py@argswidth}%
+  \addtolength{\py@argswidth}{\linewidth}%
+  \item[#1\code{(}\py@sigparams{#2}{#3}]}
+
+% Production lists
+%
+\newenvironment{productionlist}{
+%  \def\optional##1{{\Large[}##1{\Large]}}
+  \def\production##1##2{\\\code{##1}&::=&\code{##2}}
+  \def\productioncont##1{\\& &\code{##1}}
+  \parindent=2em
+  \indent
+  \begin{tabular}{lcl}
+}{%
+  \end{tabular}
+}
+
+% Notices / Admonitions
+%
+\newlength{\py@noticelength}
+
+\newcommand{\py@heavybox}{
+  \setlength{\fboxrule}{1pt}
+  \setlength{\fboxsep}{6pt}
+  \setlength{\py@noticelength}{\linewidth}
+  \addtolength{\py@noticelength}{-2\fboxsep}
+  \addtolength{\py@noticelength}{-2\fboxrule}
+  %\setlength{\shadowsize}{3pt}
+  \noindent\Sbox
+  \minipage{\py@noticelength}
+}
+\newcommand{\py@endheavybox}{
+  \endminipage
+  \endSbox
+  \fbox{\TheSbox}
+}
+
+\newcommand{\py@lightbox}{{%
+  \setlength\parskip{0pt}\par
+  \noindent\rule[0ex]{\linewidth}{0.5pt}%
+  \par\noindent\vspace{-0.5ex}%
+  }}
+\newcommand{\py@endlightbox}{{%
+  \setlength{\parskip}{0pt}%
+  \par\noindent\rule[0.5ex]{\linewidth}{0.5pt}%
+  \par\vspace{-0.5ex}%
+  }}
+
+% Some are quite plain:
+\newcommand{\py@noticestart@note}{\py@lightbox}
+\newcommand{\py@noticeend@note}{\py@endlightbox}
+\newcommand{\py@noticestart@hint}{\py@lightbox}
+\newcommand{\py@noticeend@hint}{\py@endlightbox}
+\newcommand{\py@noticestart@important}{\py@lightbox}
+\newcommand{\py@noticeend@important}{\py@endlightbox}
+\newcommand{\py@noticestart@tip}{\py@lightbox}
+\newcommand{\py@noticeend@tip}{\py@endlightbox}
+
+% Others gets more visible distinction:
+\newcommand{\py@noticestart@warning}{\py@heavybox}
+\newcommand{\py@noticeend@warning}{\py@endheavybox}
+\newcommand{\py@noticestart@caution}{\py@heavybox}
+\newcommand{\py@noticeend@caution}{\py@endheavybox}
+\newcommand{\py@noticestart@attention}{\py@heavybox}
+\newcommand{\py@noticeend@attention}{\py@endheavybox}
+\newcommand{\py@noticestart@danger}{\py@heavybox}
+\newcommand{\py@noticeend@danger}{\py@endheavybox}
+\newcommand{\py@noticestart@error}{\py@heavybox}
+\newcommand{\py@noticeend@error}{\py@endheavybox}
+
+\newenvironment{notice}[2]{
+  \def\py@noticetype{#1}
+  \csname py@noticestart@#1\endcsname
+  \strong{#2}
+}{\csname py@noticeend@\py@noticetype\endcsname}
+
+% Allow the release number to be specified independently of the
+% \date{}.  This allows the date to reflect the document's date and
+% release to specify the release that is documented.
+%
+\newcommand{\py@release}{}
+\newcommand{\version}{}
+\newcommand{\shortversion}{}
+\newcommand{\releaseinfo}{}
+\newcommand{\releasename}{Release}
+\newcommand{\release}[1]{%
+  \renewcommand{\py@release}{\releasename\space\version}%
+  \renewcommand{\version}{#1}}
+\newcommand{\setshortversion}[1]{%
+  \renewcommand{\shortversion}{#1}}
+\newcommand{\setreleaseinfo}[1]{%
+  \renewcommand{\releaseinfo}{#1}}
+
+% Allow specification of the author's address separately from the
+% author's name.  This can be used to format them differently, which
+% is a good thing.
+%
+\newcommand{\py@authoraddress}{}
+\newcommand{\authoraddress}[1]{\renewcommand{\py@authoraddress}{#1}}
+
+% This sets up the fancy chapter headings that make the documents look
+% at least a little better than the usual LaTeX output.
+%
+\@ifundefined{ChTitleVar}{}{
+  \ChNameVar{\raggedleft\normalsize\py@HeaderFamily}
+  \ChNumVar{\raggedleft \bfseries\Large\py@HeaderFamily}
+  \ChTitleVar{\raggedleft \textrm{\Huge\py@HeaderFamily}}
+  % This creates chapter heads without the leading \vspace*{}:
+  \def\@makechapterhead#1{%
+    {\parindent \z@ \raggedright \normalfont
+      \ifnum \c@secnumdepth >\m@ne
+        \DOCH
+      \fi
+      \interlinepenalty\@M
+      \DOTI{#1}
+    }
+  }
+}
+
+% Redefine description environment so that it is usable inside fulllineitems.
+%
+\renewcommand{\description}{%
+  \list{}{\labelwidth\z@%
+          \itemindent-\leftmargin%
+	  \labelsep5pt%
+          \let\makelabel=\descriptionlabel}}
+
+% Definition lists; requested by AMK for HOWTO documents.  Probably useful
+% elsewhere as well, so keep in in the general style support.
+%
+\newenvironment{definitions}{%
+  \begin{description}%
+  \def\term##1{\item[##1]\mbox{}\\*[0mm]}
+}{%
+  \end{description}%
+}
+
+% Tell TeX about pathological hyphenation cases:
+\hyphenation{Base-HTTP-Re-quest-Hand-ler}
+
+
+% The following is stuff copied from docutils' latex writer.
+%
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+
+\newlength{\lineblockindentation}
+\setlength{\lineblockindentation}{2.5em}
+\newenvironment{lineblock}[1]
+{\begin{list}{}
+  {\setlength{\partopsep}{\parskip}
+   \addtolength{\partopsep}{\baselineskip}
+   \topsep0pt\itemsep0.15\baselineskip\parsep0pt
+   \leftmargin#1}
+ \raggedright}
+{\end{list}}
+
+% Redefine includgraphics for avoiding images larger than the screen size
+% If the size is not specified.
+\let\py@Oldincludegraphics\includegraphics
+
+\newbox\image@box%
+\newdimen\image@width%
+\renewcommand\includegraphics[2][\@empty]{%
+  \ifx#1\@empty%
+    \setbox\image@box=\hbox{\py@Oldincludegraphics{#2}}%
+    \image@width\wd\image@box%
+    \ifdim \image@width>\linewidth%
+      \setbox\image@box=\hbox{\py@Oldincludegraphics[width=\linewidth]{#2}}%
+      \box\image@box%
+    \else%
+      \py@Oldincludegraphics{#2}%
+    \fi%
+  \else%
+    \py@Oldincludegraphics[#1]{#2}%
+  \fi%
+}
+
+
+% Fix the index environment to add an entry to the Table of
+% Contents; this is much nicer than just having to jump to the end of the book
+% and flip around, especially with multiple indexes.
+% The memoir class already does this, so we don't duplicate it in that case.
+%
+% A similiar fix must be done to the bibliography environment, although
+% dependant on document class. In particular, the '\addcontentsline' command
+% should use 'chapter' for a report and 'section' for an article.
+% See sphinxmanual.cls and sphinxhowto.cls for specific fixes.
+%
+\@ifclassloaded{memoir}{}{
+  \let\py@OldTheindex=\theindex
+  \renewcommand{\theindex}{
+    \cleardoublepage
+    \phantomsection
+    \py@OldTheindex
+    \addcontentsline{toc}{chapter}{\indexname}
+  }
+}
+
+% to make pdf with correct encoded bookmarks in Japanese
+% this should precede the hyperref package
+\ifx\kanjiskip\undefined\else
+  \usepackage{atbegshi}
+  \ifx\ucs\undefined
+    \ifnum 42146=\euc"A4A2
+      \AtBeginShipoutFirst{\special{pdf:tounicode EUC-UCS2}}
+    \else
+      \AtBeginShipoutFirst{\special{pdf:tounicode 90ms-RKSJ-UCS2}}
+    \fi
+  \else
+    \AtBeginShipoutFirst{\special{pdf:tounicode UTF8-UCS2}}
+  \fi
+\fi
+
+% Include hyperref last.
+\RequirePackage[colorlinks,breaklinks,
+                linkcolor=InnerLinkColor,filecolor=OuterLinkColor,
+                menucolor=OuterLinkColor,urlcolor=OuterLinkColor,
+                citecolor=InnerLinkColor]{hyperref}
+% Fix anchor placement for figures with captions.
+% (Note: we don't use a package option here; instead, we give an explicit
+% \capstart for figures that actually have a caption.)
+\RequirePackage{hypcap}
+
+% From docutils.writers.latex2e
+\providecommand{\DUspan}[2]{%
+  {% group ("span") to limit the scope of styling commands
+    \@for\node@class@name:=#1\do{%
+    \ifcsname docutilsrole\node@class@name\endcsname%
+      \csname docutilsrole\node@class@name\endcsname%
+    \fi%
+    }%
+    {#2}% node content
+  }% close "span"
+}
+
+\providecommand*{\DUprovidelength}[2]{
+  \ifthenelse{\isundefined{#1}}{\newlength{#1}\setlength{#1}{#2}}{}
+}
+
+\DUprovidelength{\DUlineblockindent}{2.5em}
+\ifthenelse{\isundefined{\DUlineblock}}{
+  \newenvironment{DUlineblock}[1]{%
+    \list{}{\setlength{\partopsep}{\parskip}
+            \addtolength{\partopsep}{\baselineskip}
+            \setlength{\topsep}{0pt}
+            \setlength{\itemsep}{0.15\baselineskip}
+            \setlength{\parsep}{0pt}
+            \setlength{\leftmargin}{#1}}
+    \raggedright
+  }
+  {\endlist}
+}{}
+
+
+% From footmisc.sty: allows footnotes in titles
+\let\FN@sf@@footnote\footnote
+\def\footnote{\ifx\protect\@typeset@protect
+    \expandafter\FN@sf@@footnote
+  \else
+    \expandafter\FN@sf@gobble@opt
+  \fi
+}
+\edef\FN@sf@gobble@opt{\noexpand\protect
+  \expandafter\noexpand\csname FN@sf@gobble@opt \endcsname}
+\expandafter\def\csname FN@sf@gobble@opt \endcsname{%
+  \@ifnextchar[%]
+    \FN@sf@gobble@twobracket
+    \@gobble
+}
+\def\FN@sf@gobble@twobracket[#1]#2{}
+
+% adjust the margins for footer,
+% this works with the jsclasses only (Japanese standard document classes)
+\ifx\@jsc@uplatextrue\undefined\else
+  \hypersetup{setpagesize=false}
+  \setlength\footskip{2\baselineskip}
+  \addtolength{\textheight}{-2\baselineskip}
+\fi
+
+% fix the double index and bibliography on the table of contents
+% in jsclasses (Japanese standard document classes)
+\ifx\@jsc@uplatextrue\undefined\else
+  \renewcommand{\theindex}{
+    \cleardoublepage
+    \phantomsection
+    \py@OldTheindex
+  }
+  \renewcommand{\thebibliography}[1]{
+    \cleardoublepage
+    \phantomsection
+    \py@OldThebibliography{1}
+  }
+\fi
+
+% do not use \@chappos in Appendix in pTeX
+\ifx\kanjiskip\undefined\else
+  \renewcommand{\appendix}{\par
+    \setcounter{chapter}{0}
+      \setcounter{section}{0}
+      \gdef\@chapapp{\appendixname}
+      \gdef\@chappos{}
+      \gdef\thechapter{\@Alph\c@chapter}
+  }
+\fi
