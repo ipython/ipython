@@ -65,10 +65,10 @@ class IOLoopKernelRestarter(LoggingConfigurable):
             self._pcallback = None
 
     def _poll(self):
-        self.log.info('Polling kernel...')
+        self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
             # This restart event should leave the connection file in place so
             # the ports are the same. Because this takes place below the
             # MappingKernelManager, the kernel_id will also remain the same.
             self.log.info('KernelRestarter: restarting kernel')
-            self.kernel_manager.restart_kernel(now=True);
+            self.kernel_manager.restart_kernel(now=True)
