@@ -20,6 +20,11 @@ import os, sys
 import imp
 
 try:
+    reload
+except NameError:   # Python 3
+    from imp import reload
+
+try:
     import hashlib
 except ImportError:
     import md5 as hashlib
