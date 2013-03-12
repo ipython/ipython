@@ -34,7 +34,7 @@ class SphinxTransformer(ActivatableTransformer):
     interactive = Bool(True, config=True, help="""
     Allows you to define whether or not the Sphinx exporter will prompt
     you for input during the conversion process.  If this is set to false,
-    the author, version, release, date, and chapterstyle traits should
+    the author, version, release, date, and chapter_style traits should
     be set.
     """)
     
@@ -50,13 +50,13 @@ class SphinxTransformer(ActivatableTransformer):
     Example: "Rough Draft"
     """)
     
-    publishdate = Unicode("", config=True, help="""Publish date
+    publish_date = Unicode("", config=True, help="""Publish date
     This is the date to render on the document as the publish date.
     Leave this blank to default to todays date.  
     Example: "June 12, 1990"
     """)
     
-    chapterstyle = Unicode("Bjarne", config=True, help="""Sphinx chapter style
+    chapter_style = Unicode("Bjarne", config=True, help="""Sphinx chapter style
     This is the style to use for the chapter headers in the document.
     You may choose one of the following:
         "Bjarne"    (default)
@@ -66,7 +66,6 @@ class SphinxTransformer(ActivatableTransformer):
         "Rejne"
         "Sonny"    (used for international documents)
     """)
-    
     
     def __call__(self, nb, other):
         """
@@ -108,12 +107,12 @@ class SphinxTransformer(ActivatableTransformer):
             nb.metadata._draft["version"] = self.version
             nb.metadata._draft["release"] = self.release
             
-            if len(self.publishdate.strip()) == 0:
+            if len(self.publish_date.strip()) == 0:
                 nb.metadata._draft["date"] = date.today().strftime("%B %-d, %Y")
             else:
-                nb.metadata._draft["date"] = self.publishdate
+                nb.metadata._draft["date"] = self.publish_date
                 
-            other["sphinx_chapterstyle"] = self.chapterstyle
+            other["sphinx_chapterstyle"] = self.chapter_style
             
         # Find and pass in the path to the Sphinx dependencies.
         other["sphinx_texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
