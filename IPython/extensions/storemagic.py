@@ -28,33 +28,37 @@ import inspect, os, sys, textwrap
 from IPython.core.error import UsageError
 from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, magics_class, line_magic
+from IPython.core.plugin import Plugin
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.traitlets import Bool, Instance
 
 #-----------------------------------------------------------------------------
 # Functions and classes
 #-----------------------------------------------------------------------------
     
-def restore_aliases(ip):
-    staliases = ip.db.get('stored_aliases', {})
-    for k,v in staliases.items():
+def restore_alias(ip, k, v):
+    try:
         #print "restore alias",k,v # dbg
-        #self.alias_table[k] = v
         ip.alias_manager.define_alias(k,v)
+    except:
+        print "Unable to restore alias '%s', ignoring (use %%store -d to forget!)" % key
+        print "The error was:", sys.exc_info()[0]
 
 
-def refresh_variables(ip):
+def refresh_variable(ip, key):
     db = ip.db
-    for key in db.keys('autorestore/*'):
-        # strip autorestore
-        justkey = os.path.basename(key)
-        try:
-            obj = db[key]
-        except KeyError:
-            print "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey
-            print "The error was:", sys.exc_info()[0]
-        else:
-            #print "restored",justkey,"=",obj #dbg
-            ip.user_ns[justkey] = obj
+
+    # strip autorestore
+    justkey = os.path.basename(key)
+    try:
+        #print "restore variable",justkey # dbg
+        obj = db[key]
+    except:
+        print "Unable to restore variable '%s', ignoring (use %%store -d to forget!)" % justkey
+        print "The error was:", sys.exc_info()[0]
+    else:
+        #print "restored",justkey,"=",obj #dbg
+        ip.user_ns[justkey] = obj
 
 
 def restore_dhist(ip):
@@ -62,8 +66,11 @@ def restore_dhist(ip):
 
 
 def restore_data(ip):
-    refresh_variables(ip)
-    restore_aliases(ip)
+    for k in ip.db.keys('autorestore/*'):
+        refresh_variable(ip, k)
+    staliases = ip.db.get('stored_aliases', {})
+    for k, v in staliases.items():
+        restore_alias(ip, k, v)
     restore_dhist(ip)
 
 
@@ -77,6 +84,8 @@ class StoreMagics(Magics):
     @line_magic
     def store(self, parameter_s=''):
         """Lightweight persistence for python variables.
+
+        Stores variables, aliases and macros in IPython's database.
 
         Example::
 
@@ -96,10 +105,14 @@ class StoreMagics(Magics):
                                 values
         * ``%store spam``     - Store the *current* value of the variable spam
                                 to disk
+        * ``%store -d``       - Remove all variables and aliases from storage
         * ``%store -d spam``  - Remove the variable and its value from storage
-        * ``%store -z``       - Remove all variables from storage
+        * ``%store -h``       - Refresh %dhist (delete current vals)
         * ``%store -r``       - Refresh all variables from store (delete
                                 current vals)
+        * ``%store -r spam``  - Refresh the variable from store (delete
+                                current val)
+        * ``%store -r spam``  - Refresh the variable from storage
         * ``%store foo >a.txt``  - Store value of foo to new file a.txt
         * ``%store foo >>a.txt`` - Append value of foo to file a.txt
 
@@ -110,30 +123,70 @@ class StoreMagics(Magics):
         python types can be safely %store'd.
 
         Also aliases can be %store'd across sessions.
+
+        To automatically restore stored variables at startup, add this to your
+        :file:`ipython_config.py` file::
+
+        c.StoreMagic.autorestore = True
         """
 
-        opts,argsl = self.parse_options(parameter_s,'drz',mode='string')
+        opts,argsl = self.parse_options(parameter_s,'dhr',mode='string')
         args = argsl.split(None,1)
         ip = self.shell
         db = ip.db
         # delete
-        if 'd' in opts:
+        if opts.has_key('d'):
             try:
                 todel = args[0]
             except IndexError:
-                raise UsageError('You must provide the variable to forget')
+                for k in db.keys('autorestore/*'):
+                    del db[k]
+
+                del db['stored_aliases']
+                print 'All variables and aliases have been deleted'
             else:
                 try:
+                    dummy = db['autorestore/' + todel]
                     del db['autorestore/' + todel]
+                except KeyError:
+                    staliases = db.get('stored_aliases',{})
+                    try:
+                        dummy = staliases[todel]
+                        del staliases[todel]
+                    except:
+                        raise UsageError("Can't delete '%s'" % todel)
+                    else:
+                        db['stored_aliases'] = staliases
+                        print "Alias deleted '%s'" % todel
                 except:
                     raise UsageError("Can't delete variable '%s'" % todel)
+                else:
+                    print "Variable deleted '%s'" % todel
         # reset
-        elif 'z' in opts:
-            for k in db.keys('autorestore/*'):
-                del db[k]
+        elif opts.has_key('h'):
+            restore_dhist(ip)
 
-        elif 'r' in opts:
-            refresh_variables(ip)
+        elif opts.has_key('r'):
+            try:
+                torestore = args[0]
+            except IndexError:
+                for k in db.keys('autorestore/*'):
+                    refresh_variable(ip, k)
+
+                staliases = db.get('stored_aliases', {})
+                for k, v in staliases.items():
+                    restore_alias(ip, k, v)
+
+                print 'All variables and aliases have been refreshed'
+
+            else:
+                try:
+                    dummy = db['autorestore/' + torestore]
+                    refresh_variable(ip, 'autorestore/' + torestore)
+                except KeyError:
+                    staliases = db.get('stored_aliases',{})
+                    val = staliases[torestore]
+                    restore_alias(ip, torestore, val)
 
 
         # run without arguments -> list variables & values
@@ -141,7 +194,7 @@ class StoreMagics(Magics):
             vars = db.keys('autorestore/*')
             vars.sort()
             if vars:
-                size = max(map(len, vars))
+                size = max(map(lambda v: len(os.path.basename(v)), vars))
             else:
                 size = 0
 
@@ -150,8 +203,19 @@ class StoreMagics(Magics):
             get = db.get
             for var in vars:
                 justkey = os.path.basename(var)
-                # print 30 first characters from every var
+                # print 50 first characters from every var
                 print fmt % (justkey, repr(get(var, '<unavailable>'))[:50])
+
+            # aliasses listing
+            staliases = db.get('stored_aliases',{})
+            asize = max(map(len, staliases.keys())) if staliases else 0
+
+            print '\nStored aliases and their in-db values:'
+            fmt = '%-'+str(asize)+'s -> %s'
+            for aname, avalue in staliases.items():
+                # print 50 first characters from every alias
+                print fmt % (aname, repr(avalue)[:50])
+
 
         # default action - store the variable
         else:
@@ -209,6 +273,24 @@ class StoreMagics(Magics):
                 print "Stored '%s' (%s)" % (args[0], obj.__class__.__name__)
 
 
+class StoreMagic(Plugin):
+    shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
+    autorestore = Bool(False, config=True)
+    
+    def __init__(self, shell, config):
+        super(StoreMagic, self).__init__(shell=shell, config=config)
+        shell.register_magics(StoreMagics)
+        
+        if self.autorestore:
+            restore_data(shell)
+
+
+_loaded = False
+
 def load_ipython_extension(ip):
     """Load the extension in IPython."""
-    ip.register_magics(StoreMagics)
+    global _loaded
+    if not _loaded:
+        plugin = StoreMagic(shell=ip, config=ip.config)
+        ip.plugin_manager.register_plugin('storemagic', plugin)
+        _loaded = True
