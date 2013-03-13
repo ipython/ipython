@@ -79,8 +79,6 @@ env = Environment(
         extensions=['jinja2.ext.loopcontrols']
         )
 
-print(os.path.dirname(os.path.realpath(__file__))+'/../templates/')
-
 
 texenv = Environment(
         loader=FileSystemLoader([
