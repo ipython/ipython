@@ -151,8 +151,7 @@ class CythonMagics(Magics):
         ctx = Context(cython_include_dirs, default_options)
         key = code, sys.version_info, sys.executable, Cython.__version__
         module_name = "_cython_magic_" + hashlib.md5(str(key).encode('utf-8')).hexdigest()
-        so_ext = [ ext for ext,_,mod_type in imp.get_suffixes() if mod_type == imp.C_EXTENSION ][0]
-        module_path = os.path.join(lib_dir, module_name+so_ext)
+        module_path = os.path.join(lib_dir, module_name+self.so_ext)
 
         if not os.path.exists(lib_dir):
             os.makedirs(lib_dir)
@@ -173,15 +172,7 @@ class CythonMagics(Magics):
                 extra_compile_args = args.compile_args,
                 libraries = args.lib,
             )
-            dist = Distribution()
-            config_files = dist.find_config_files()
-            try: 
-                config_files.remove('setup.cfg')
-            except ValueError:
-                pass
-            dist.parse_config_files(config_files)
-            build_extension = build_ext(dist)
-            build_extension.finalize_options()
+            build_extension = self._get_build_extension()
             try:
                 build_extension.extensions = cythonize([extension], ctx=ctx, quiet=quiet)
             except CompileError:
@@ -193,6 +184,27 @@ class CythonMagics(Magics):
 
         module = imp.load_dynamic(module_name, module_path)
         self._import_all(module)
+
+    @property
+    def so_ext(self):
+        """The extension suffix for compiled modules."""
+        try:
+            return self._so_ext
+        except AttributeError:
+            self._so_ext = self._get_build_extension().get_ext_filename('')
+            return self._so_ext
+
+    def _get_build_extension(self):
+        dist = Distribution()
+        config_files = dist.find_config_files()
+        try:
+            config_files.remove('setup.cfg')
+        except ValueError:
+            pass
+        dist.parse_config_files(config_files)
+        build_extension = build_ext(dist)
+        build_extension.finalize_options()
+        return build_extension
 
 
 _loaded = False
