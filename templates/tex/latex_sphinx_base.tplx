@@ -39,7 +39,7 @@ Note: For best display, use latex syntax highlighting. =))
     \def\sphinxdocclass{(((parentdocumentclass)))}
 
     % Declare the document class
-    \documentclass[letterpaper,10pt,english]{((( resources.sphinx_texinputs )))/sphinx(((documentclass)))}
+    \documentclass[letterpaper,10pt,english]{((( resources.sphinx.texinputs )))/sphinx(((documentclass)))}
 
     % Imports
     \usepackage[utf8]{inputenc}
@@ -48,9 +48,9 @@ Note: For best display, use latex syntax highlighting. =))
     \usepackage{babel}
     \usepackage{times}
     \usepackage{import}
-    \usepackage[((( resources.sphinx_chapterstyle )))]{((( resources.sphinx_texinputs )))/fncychap}
+    \usepackage[((( resources.sphinx.chapterstyle )))]{((( resources.sphinx.texinputs )))/fncychap}
     \usepackage{longtable}
-    \usepackage{((( resources.sphinx_texinputs )))/sphinx}
+    \usepackage{((( resources.sphinx.texinputs )))/sphinx}
     \usepackage{multirow}
 
     \usepackage{amsmath}
@@ -75,7 +75,7 @@ Note: For best display, use latex syntax highlighting. =))
     \lstset{basicstyle=\small\ttfamily}
 
     %Pygments definitions
-    ((( resources.pygment_definitions )))
+    ((( resources.sphinx.pygment_definitions )))
 
     % Help prevent overflowing lines due to urls and other hard-to-break 
     % entities.  This doesn't catch everything...

@@ -88,6 +88,9 @@ class SphinxTransformer(ActivatableTransformer):
         #       '_draft' to signify that this needs to change.
         if not "_draft" in nb.metadata:
             nb.metadata._draft = {}
+            
+        if not "sphinx" in other:
+            other["sphinx"] = {}
 
         if self.interactive:
             
@@ -99,7 +102,7 @@ class SphinxTransformer(ActivatableTransformer):
             nb.metadata._draft["date"] = self._prompt_date()
             
             # Prompt the user for the document style.
-            other["sphinx_chapterstyle"] = self._prompt_chapter_title_style()
+            other["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
         else:
             
             # Try to use the traitlets.
@@ -112,13 +115,13 @@ class SphinxTransformer(ActivatableTransformer):
             else:
                 nb.metadata._draft["date"] = self.publish_date
                 
-            other["sphinx_chapterstyle"] = self.chapter_style
+            other["sphinx"]["chapterstyle"] = self.chapter_style
             
         # Find and pass in the path to the Sphinx dependencies.
-        other["sphinx_texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
+        other["sphinx"]["texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
         
         # Generate Pygments definitions for Latex 
-        other["pygment_definitions"] = self._generate_pygments_latex_def()
+        other["sphinx"]["pygment_definitions"] = self._generate_pygments_latex_def()
         
         # End
         return nb, other 
