@@ -67,12 +67,19 @@ class SphinxTransformer(ActivatableTransformer):
         "Sonny"    (used for international documents)
     """)
     
+    output_style = Unicode("simple", config=True, help="""Nbconvert Ipython
+    notebook input/output formatting style.
+    You may choose one of the following:
+        "simple"    (default)
+        "notebook"  (similar to the notebook)
+    """)
+    
     def __call__(self, nb, other):
         """
         Entry
         Since we are not interested in any additional manipulation on a cell
         by cell basis, we do not  call the base implementation.
-        """
+        """ 
         if self.enabled:
             return self.transform(nb, other)
         else:
@@ -103,6 +110,7 @@ class SphinxTransformer(ActivatableTransformer):
             
             # Prompt the user for the document style.
             other["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
+            other["sphinx"]["outputstyle"] = self._prompt_output_style()
         else:
             
             # Try to use the traitlets.
@@ -116,6 +124,7 @@ class SphinxTransformer(ActivatableTransformer):
                 nb.metadata._draft["date"] = self.publish_date
                 
             other["sphinx"]["chapterstyle"] = self.chapter_style
+            other["sphinx"]["outputstyle"] = self.output_style
             
         # Find and pass in the path to the Sphinx dependencies.
         other["sphinx"]["texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
@@ -144,6 +153,18 @@ class SphinxTransformer(ActivatableTransformer):
         if len(user_date.strip()) == 0:
             user_date = default_date
         return user_date
+    
+    def _prompt_output_style(self):
+        
+        # Dictionary of available output styles
+        styles = {1: "simple",
+                  2: "notebook"}
+        
+        #Append comments to the menu when displaying it to the user.
+        comments = {1: "(default)",
+                    2: "(similar to the notebook)"}
+        
+        return self._prompt_dictionary(styles, menu_comments=comments)
     
     def _prompt_chapter_title_style(self):
         

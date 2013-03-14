@@ -64,6 +64,10 @@ Note: For best display, use latex syntax highlighting. =))
     % Pygments requirements
     \usepackage{fancyvrb}
     \usepackage{color}
+    
+    % Needed to box output/input
+    \usepackage{mdframed}
+    \usepackage{alltt}
 
     % Used to load and display graphics
     \usepackage{graphicx}
@@ -76,6 +80,20 @@ Note: For best display, use latex syntax highlighting. =))
 
     %Pygments definitions
     ((( resources.sphinx.pygment_definitions )))
+    
+    %Set pygments styles if needed...
+    ((* if resources.sphinx.outputstyle == 'notebook' *))
+        \definecolor{nbframe-border}{rgb}{0.8,0.8,0.8}
+        \definecolor{nbframe-bg}{rgb}{0.95,0.95,0.95}
+        
+        \newenvironment{ColorVerbatim}[1][\unskip]
+        {#1\\*\vspace{-2.4\baselineskip}\begin{mdframed}[backgroundcolor=nbframe-bg,    userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
+        {\end{mdframed}}
+        
+        \renewenvironment{Verbatim}[1][\unskip]
+        {\begin{alltt}}
+        {\end{alltt}}
+    ((* endif *))
 
     % Help prevent overflowing lines due to urls and other hard-to-break 
     % entities.  This doesn't catch everything...
@@ -191,18 +209,24 @@ Note: For best display, use latex syntax highlighting. =))
 % Input
 %==============================================================================
 ((* block input *))
+    ((* if resources.sphinx.outputstyle == 'simple' *))
+        % Make sure that atleast 4 lines are below the HR
+        \needspace{((( min_header_lines )))\baselineskip}
 
-    % Make sure that atleast 4 lines are below the HR
-    \needspace{((( min_header_lines )))\baselineskip}
+        % Add a horizantal break, along with break title.
+        \vspace{10pt}
+        {\scriptsize Input}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
 
-    % Add a horizantal break, along with break title.
-    \vspace{10pt}
-    {\scriptsize Input}\\*
-    \rule[10pt]{\linewidth}{0.5pt}
-    \vspace{-25pt}
-
-    % Add contents below.
-    ((( cell.input | highlight )))
+        % Add contents below.
+        ((( cell.input | highlight )))
+        
+    ((* elif resources.sphinx.outputstyle == 'notebook' *))
+        \begin{ColorVerbatim}[\textbf{In {[}((( cell.prompt_number ))){]}:}]
+            ((( cell.input | highlight )))
+        \end{ColorVerbatim}
+    ((* endif *))
 ((* endblock input *))
 
 %==============================================================================
@@ -212,27 +236,35 @@ Note: For best display, use latex syntax highlighting. =))
 %          once.  By keeping track of when an input group is started
 %==============================================================================
 ((* block output_group *))
-    
-    % If the first block is an image, minipage the image.  Else
-    % request a certain amount of space for the input text.
-    ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
-    
-    % Add a horizantal break, along with break title.
-    \vspace{10pt}
-    {\scriptsize Output}\\*
-    \rule[10pt]{\linewidth}{0.5pt}
-    \vspace{-20pt}
+    ((* if resources.sphinx.outputstyle == 'simple' *))
+        
+        % If the first block is an image, minipage the image.  Else
+        % request a certain amount of space for the input text.
+        ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        
+        % Add a horizantal break, along with break title.
+        \vspace{10pt}
+        {\scriptsize Output}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-20pt}
 
-    % Add the contents of the first block.
-    ((( render_output(cell.outputs[0]) )))
+        % Add the contents of the first block.
+        ((( render_output(cell.outputs[0]) )))
 
-    % Close the minipage.
-    ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
+        % Close the minipage.
+        ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
 
-    % Add remainer of the document contents below.
-    ((* for output in cell.outputs[1:] *))
-        ((( render_output(output) )))
-    ((* endfor *))
+        % Add remainer of the document contents below.
+        ((* for output in cell.outputs[1:] *))
+            ((( render_output(output) )))
+        ((* endfor *))
+    ((* elif resources.sphinx.outputstyle == 'notebook' *))
+        
+        % Add remainer of the document contents below.
+        ((* for output in cell.outputs *))
+            ((( render_output(output) )))
+        ((* endfor *))
+    ((* endif *))
 ((* endblock *))
 
 %==============================================================================
@@ -264,19 +296,19 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: render_output
 % Purpose: Renders an output block appropriately.
 ((* macro render_output(output) -*))
-    ((*- if output.output_type in ['pyout'] -*))
+    ((*- if output.output_type == 'pyout' -*))
         ((*- block pyout scoped -*))
             ((( custom_verbatim(super()) )))
         ((*- endblock pyout -*))
-    ((*- elif output.output_type in ['stream'] -*))
+    ((*- elif output.output_type == 'stream' -*))
         ((*- block stream scoped -*))
            ((( custom_verbatim(output.text) ))) 
         ((*- endblock stream -*))
-    ((*- elif output.output_type in ['display_data'] -*))
+    ((*- elif output.output_type == 'display_data' -*))
         ((*- block display_data scoped -*))
             ((( super() )))
         ((*- endblock display_data -*))
-    ((*- elif output.output_type in ['pyerr'] -*))
+    ((*- elif output.output_type == 'pyerr' -*))
         ((*- block pyerr scoped -*))
             ((( custom_verbatim(super()) )))
         ((*- endblock pyerr -*))
