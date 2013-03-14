@@ -154,34 +154,39 @@ class SphinxTransformer(ActivatableTransformer):
                   4: "Conny",
                   5: "Rejne",
                   6: "Sonny"}
-        default_style = 1
         
+        #Append comments to the menu when displaying it to the user.
+        comments = {1: "(default)",
+                    6: "(for international documents)"}
+        
+        return self._prompt_dictionary(styles, menu_comments=comments)
+    
+    def _prompt_dictionary(self, choices, default_style=1, menu_comments={}):
+                
         # Build the menu that will be displayed to the user with
         # all of the options available. 
-        style_prompt = ""
-        for key, value in styles.iteritems():
-            style_prompt += "%d %s" % (key, value)
-            if key == default_style:
-                style_prompt += " (default)"
-            elif value == "Sonny":
-                style_prompt += " (for international documents)"
-            style_prompt += "\n"
+        prompt = ""
+        for key, value in choices.iteritems():
+            prompt += "%d %s " % (key, value)
+            if key in menu_comments:
+                prompt += menu_comments[key]
+            prompt += "\n"
         
         # Continue to ask the user for a style until an appropriate
         # one is specified.
         response = -1
-        while (0 > response or response > 6):
+        while (not response in choices):
             try:
-                text_response = self._input(style_prompt)
+                text_response = self._input(prompt)
                 
                 # Use default option if no input.
                 if len(text_response.strip()) == 0:
-                    response = 1
+                    response = default_style
                 else:
                     response = int(text_response)
             except:
-                print("Error: Value must be a number between 1 and 6, leave blank for default\n")
-        return styles[response]
+                print("Error: Value is not an available option.  0 selects the default.\n")
+        return choices[response]
           
     def _input(self, prompt_text):
         """
