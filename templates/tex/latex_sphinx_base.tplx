@@ -26,7 +26,11 @@ Note: For best display, use latex syntax highlighting. =))
 % important that this limit is set so characters do not run off the
 % edges of latex pages (since latex does not always seem smart enough
 % to prevent this in some cases.)  This is only applied to textual output
-((*- set wrap_size = 85 -*)) 
+((* if resources.sphinx.outputstyle == 'simple' *))
+    ((*- set wrap_size = 85 -*))         
+((* elif resources.sphinx.outputstyle == 'notebook' *))
+    ((*- set wrap_size = 70 -*)) 
+((* endif *))
 
 %==============================================================================
 % Header
@@ -86,8 +90,8 @@ Note: For best display, use latex syntax highlighting. =))
         \definecolor{nbframe-border}{rgb}{0.8,0.8,0.8}
         \definecolor{nbframe-bg}{rgb}{0.95,0.95,0.95}
         
-        \newenvironment{ColorVerbatim}[1][\unskip]
-        {#1\\*\vspace{-2.4\baselineskip}\begin{mdframed}[backgroundcolor=nbframe-bg,    userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
+        \newenvironment{ColorVerbatim}
+        {\begin{mdframed}[backgroundcolor=nbframe-bg,    userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
         {\end{mdframed}}
         
         \renewenvironment{Verbatim}[1][\unskip]
@@ -223,7 +227,9 @@ Note: For best display, use latex syntax highlighting. =))
         ((( cell.input | highlight )))
         
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \begin{ColorVerbatim}[\textbf{In {[}((( cell.prompt_number ))){]}:}]
+        \textbf{In {[}((( cell.prompt_number ))){]}:}\\*
+        \vspace{-2.4\baselineskip}
+        \begin{ColorVerbatim}
             ((( cell.input | highlight )))
         \end{ColorVerbatim}
     ((* endif *))
@@ -260,10 +266,15 @@ Note: For best display, use latex syntax highlighting. =))
         ((* endfor *))
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
         
-        % Add remainer of the document contents below.
-        ((* for output in cell.outputs *))
-            ((( render_output(output) )))
-        ((* endfor *))
+        %Skip one line down.
+        \vspace{1\baselineskip}
+        
+        % Add document contents.
+        \begin{ColorVerbatim}
+            ((* for output in cell.outputs *))
+                ((( render_output(output) )))
+            ((* endfor *))
+        \end{ColorVerbatim}
     ((* endif *))
 ((* endblock *))
 
@@ -330,11 +341,15 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro creates a verbatim style block that fits the existing
 %          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
-
+    ((* if resources.sphinx.outputstyle == 'simple' *))
     \begin{lstlisting}
 ((( text | wrap(wrap_size) )))
-    \end{lstlisting}
-    
+    \end{lstlisting}       
+    ((* elif resources.sphinx.outputstyle == 'notebook' *))
+    \begin{alltt}
+((( text | wrap(wrap_size) )))
+    \end{alltt}
+    ((* endif *))
 ((*- endmacro *))
 
 % Name: insert_graphics
