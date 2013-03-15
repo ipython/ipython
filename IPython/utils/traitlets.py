@@ -300,9 +300,8 @@ class TraitType(object):
                     obj._trait_values[self.name] = value
                     return value
                 else:
-                    raise TraitError('Unexpected error in TraitType: '
-                        'both default value and dynamic initializer are '
-                        'absent.')
+                    return None
+
             except Exception:
                 # HasTraits should call set_default_value to populate
                 # this.  So this should never be reached.
