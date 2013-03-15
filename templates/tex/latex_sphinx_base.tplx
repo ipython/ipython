@@ -76,6 +76,8 @@ Note: For best display, use latex syntax highlighting. =))
     % Used to load and display graphics
     \usepackage{graphicx}
     \graphicspath{ {figs/} }
+    \usepackage[export]{adjustbox} % To resize
+    
 
     % For formatting output while also word wrapping.
     \usepackage{listings}
@@ -356,7 +358,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
-    \includegraphics[width=0.7\textwidth]{(((path)))}
+    \includegraphics[max width=0.7\textwidth]{(((path)))}
     \par
     \end{center}
 ((*- endmacro *))
