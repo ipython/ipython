@@ -19,3 +19,7 @@
 ((* block h4 -*))subsubsection((* endblock h4 -*))
 ((* block h5 -*))paragraph((* endblock h5 -*))
 ((* block h6 -*))subparagraph((* endblock h6 -*))
+
+% Diasble table of contents for howto
+((* block toc *))
+((* endblock toc *))
