@@ -91,9 +91,10 @@ Note: For best display, use latex syntax highlighting. =))
     ((* if resources.sphinx.outputstyle == 'notebook' *))
         \definecolor{nbframe-border}{rgb}{0.8,0.8,0.8}
         \definecolor{nbframe-bg}{rgb}{0.95,0.95,0.95}
+        \definecolor{nbframe-prompt}{rgb}{0.05,0.05,0.3}
         
         \newenvironment{ColorVerbatim}
-        {\begin{mdframed}[backgroundcolor=nbframe-bg,    userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
+        {\begin{mdframed}[backgroundcolor=nbframe-bg, userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
         {\end{mdframed}}
         
         \renewenvironment{Verbatim}[1][\unskip]
@@ -132,7 +133,10 @@ Note: For best display, use latex syntax highlighting. =))
     % Start of the document
     \begin{document}
         \maketitle
+        
+        ((* block toc *))
         \tableofcontents 
+        ((* endblock toc *))
 
         ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
 
@@ -215,9 +219,11 @@ Note: For best display, use latex syntax highlighting. =))
 % Input
 %==============================================================================
 ((* block input *))
+
+    % Make sure that atleast 4 lines are below the HR
+    \needspace{((( min_header_lines )))\baselineskip}
+        
     ((* if resources.sphinx.outputstyle == 'simple' *))
-        % Make sure that atleast 4 lines are below the HR
-        \needspace{((( min_header_lines )))\baselineskip}
 
         % Add a horizantal break, along with break title.
         \vspace{10pt}
@@ -229,9 +235,11 @@ Note: For best display, use latex syntax highlighting. =))
         ((( cell.input | highlight )))
         
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \textbf{In {[}((( cell.prompt_number ))){]}:}\\*
-        \vspace{-2.4\baselineskip}
+        \vspace{5pt}
+        {\color{nbframe-prompt}\textbf{In {[}((( cell.prompt_number ))){]}:}}\\*
+        \vspace{-2.6\baselineskip}
         \begin{ColorVerbatim}
+            \vspace{-0.5\baselineskip}
             ((( cell.input | highlight )))
         \end{ColorVerbatim}
     ((* endif *))
@@ -244,39 +252,41 @@ Note: For best display, use latex syntax highlighting. =))
 %          once.  By keeping track of when an input group is started
 %==============================================================================
 ((* block output_group *))
-    ((* if resources.sphinx.outputstyle == 'simple' *))
-        
-        % If the first block is an image, minipage the image.  Else
-        % request a certain amount of space for the input text.
-        ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
-        
-        % Add a horizantal break, along with break title.
-        \vspace{10pt}
-        {\scriptsize Output}\\*
-        \rule[10pt]{\linewidth}{0.5pt}
-        \vspace{-20pt}
+    ((* if cell.outputs.__len__() > 0 *))
+        ((* if resources.sphinx.outputstyle == 'simple' *))
+            
+            % If the first block is an image, minipage the image.  Else
+            % request a certain amount of space for the input text.
+            ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+            
+            % Add a horizantal break, along with break title.
+            \vspace{10pt}
+            {\scriptsize Output}\\*
+            \rule[10pt]{\linewidth}{0.5pt}
+            \vspace{-20pt}
 
-        % Add the contents of the first block.
-        ((( render_output(cell.outputs[0]) )))
+            % Add the contents of the first block.
+            ((( render_output(cell.outputs[0]) )))
 
-        % Close the minipage.
-        ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
+            % Close the minipage.
+            ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
 
-        % Add remainer of the document contents below.
-        ((* for output in cell.outputs[1:] *))
-            ((( render_output(output) )))
-        ((* endfor *))
-    ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        
-        %Skip one line down.
-        \vspace{1\baselineskip}
-        
-        % Add document contents.
-        \begin{ColorVerbatim}
-            ((* for output in cell.outputs *))
+            % Add remainer of the document contents below.
+            ((* for output in cell.outputs[1:] *))
                 ((( render_output(output) )))
             ((* endfor *))
-        \end{ColorVerbatim}
+        ((* elif resources.sphinx.outputstyle == 'notebook' *))
+            
+            %Skip one line down.
+            \vspace{1\baselineskip}
+            
+            % Add document contents.
+            \begin{ColorVerbatim}
+                ((* for output in cell.outputs *))
+                    ((( render_output(output) )))
+                ((* endfor *))
+            \end{ColorVerbatim}
+        ((* endif *))
     ((* endif *))
 ((* endblock *))
 
@@ -302,6 +312,10 @@ Note: For best display, use latex syntax highlighting. =))
     ((( insert_graphics(output.key_svg) )))
 ((*- endblock -*))
 
+((*- block data_latex *))
+((( output.latex )))
+((* endblock -*))
+
 %==============================================================================
 % Support Macros
 %==============================================================================
@@ -309,22 +323,14 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: render_output
 % Purpose: Renders an output block appropriately.
 ((* macro render_output(output) -*))
-    ((*- if output.output_type == 'pyout' -*))
-        ((*- block pyout scoped -*))
-            ((( custom_verbatim(super()) )))
-        ((*- endblock pyout -*))
-    ((*- elif output.output_type == 'stream' -*))
-        ((*- block stream scoped -*))
-           ((( custom_verbatim(output.text) ))) 
-        ((*- endblock stream -*))
-    ((*- elif output.output_type == 'display_data' -*))
+    ((*- if output.output_type == 'pyerr' -*))
+        ((*- block pyerr scoped *))
+            ((( custom_verbatim(super()) )))  
+        ((* endblock pyerr -*))
+    ((*- else -*))
         ((*- block display_data scoped -*))
             ((( super() )))
         ((*- endblock display_data -*))
-    ((*- elif output.output_type == 'pyerr' -*))
-        ((*- block pyerr scoped -*))
-            ((( custom_verbatim(super()) )))
-        ((*- endblock pyerr -*))
     ((*- endif -*))
 ((*- endmacro *))
 
