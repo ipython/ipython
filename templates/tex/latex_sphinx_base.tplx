@@ -338,7 +338,14 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: If the output block provided is a figure type, the 'true_content'
 %          parameter will be returned.  Else, the 'false_content'. 
 ((* macro iff_figure(output, true_content, false_content) -*))
-    ((* if output.output_type in ['display_data'] -*))
+    ((*- set is_figure = false -*))
+    ((*- for type in output | filter_data_type -*))
+        ((*- if type in ['pdf', 'svg', 'png', 'jpeg','html','jpeg']*))
+            ((*- set is_figure = true -*))
+        ((*- endif -*))
+    ((*- endfor -*))
+    
+    ((* if is_figure -*))
         ((( true_content )))
     ((*- else -*))
         ((( false_content )))
