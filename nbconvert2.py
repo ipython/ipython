@@ -118,18 +118,24 @@ class NbconvertApp(Application):
 
         out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
 
-        keys = resources.get('figures', {}).keys()
         if self.write :
             with io.open(os.path.join(out_root+'.'+self.fileext), 'w') as f:
                 f.write(output)
-        if keys :
+
+        binkeys = resources.get('figures', {}).get('binary',{}).keys()
+        textkeys = resources.get('figures', {}).get('text',{}).keys()
+        if binkeys or textkeys :
             if self.write:
                 files_dir = out_root+'_files'
                 if not os.path.exists(out_root+'_files'):
                     os.mkdir(files_dir)
-                for key in keys:
+                for key in binkeys:
                     with io.open(os.path.join(files_dir, key), 'wb') as f:
-                        f.write(resources['figures'][key])
+                        f.write(resources['figures']['binary'][key])
+                for key in textkeys:
+                    with io.open(os.path.join(files_dir, key), 'w') as f:
+                        f.write(resources['figures']['text'][key])
+
             elif self.stdout:
                 print('''====================== Keys in Resources ==================================''')
                 print(resources['figures'].keys())

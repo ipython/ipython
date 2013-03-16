@@ -177,21 +177,26 @@ class ExtractFigureTransformer(ActivatableTransformer):
         key     = tplk.format(count=count, ext=self._get_ext(fmt))
 
         # Binary files are base64-encoded, SVG is already XML
+        binary = False
         if fmt in ('png', 'jpg', 'pdf'):
             data = data.decode('base64')
+            binary = True
 
-        return figname, key, data
+        return figname, key, data, binary
 
 
     def cell_transform(self, cell, other, count):
         if other.get('figures', None) is None :
-            other['figures'] = {}
+            other['figures'] = {'text':{},'binary':{}}
         for out in cell.get('outputs', []):
             for out_type in self.display_data_priority:
                 if out.hasattr(out_type):
-                    figname, key, data = self._new_figure(out[out_type], out_type, count)
+                    figname, key, data, binary = self._new_figure(out[out_type], out_type, count)
                     out['key_'+out_type] = figname
-                    other['figures'][key] = data
+                    if binary :
+                        other['figures']['binary'][key] = data
+                    else :
+                        other['figures']['text'][key] = data
                     count = count+1
         return cell, other
 
