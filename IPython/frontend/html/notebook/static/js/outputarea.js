@@ -50,11 +50,11 @@ var IPython = (function (IPython) {
         
         this.collapse_button.button();
         this.collapse_button.addClass('output_collapsed vbox');
-        this.collapse_button.attr('title', 'click to expand outout');
+        this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.html('. . .');
         
         this.prompt_overlay.addClass('out_prompt_overlay prompt');
-        this.prompt_overlay.attr('title', 'click to expand outout; double click to hide output');
+        this.prompt_overlay.attr('title', 'click to expand output; double click to hide output');
         
         this.collapse();
     };
