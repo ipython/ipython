@@ -493,13 +493,13 @@ class TestAstTransform(unittest.TestCase):
         ip.push({'f':f})
         
         # Test with an expression
-        with tt.AssertPrints("CPU times"):
+        with tt.AssertPrints("Wall time: "):
             ip.run_line_magic("time", "f(5+9)")
         self.assertEqual(called, [-14])
         called[:] = []
         
         # Test with a statement (different code path)
-        with tt.AssertPrints("CPU times"):
+        with tt.AssertPrints("Wall time: "):
             ip.run_line_magic("time", "a = f(-3 + -2)")
         self.assertEqual(called, [5])
     
