@@ -47,7 +47,7 @@ class FilterDataType(ConfigurableFilter):
         for fmt in self.display_data_priority:
             if fmt in output:
                 return [fmt]
-        raise Exception("did not found any format I can extract in output, shoudl at lest have one")
+        return []
 
 
 
