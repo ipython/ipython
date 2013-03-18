@@ -576,7 +576,7 @@ class NotebookApp(BaseIPythonApplication):
         """
         # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
         time.sleep(0.1)
-        sys.stdout.write("Shutdown Notebook Server (y/[n])? ")
+        sys.stdout.write("Shutdown Notebook Server at %s (y/[n])? " % self._url)
         sys.stdout.flush()
         r,w,x = select.select([sys.stdin], [], [], 5)
         if r:
@@ -616,11 +616,16 @@ class NotebookApp(BaseIPythonApplication):
         self.kernel_manager.shutdown_all()
 
     def start(self):
+        """ Start the IPython Notebok server app, after initialization
+        
+        This method takes no arguments so all configuration and initialization
+        must be done prior to calling this method."""
         ip = self.ip if self.ip else '[all ip addresses on your system]'
         proto = 'https' if self.certfile else 'http'
         info = self.log.info
-        info("The IPython Notebook is running at: %s://%s:%i%s" %
-             (proto, ip, self.port,self.base_project_url) )
+        self._url = "%s://%s:%i%s" % (proto, ip, self.port,
+                                      self.base_project_url)
+        info("The IPython Notebook is running at: %s" % self._url)
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:
