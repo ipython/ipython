@@ -127,7 +127,7 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.set_last_saved = function () {
         var d = new Date();
-        this.set_save_status('Last saved: '+d.format('mmm dd h:MM TT'));
+        this.set_save_status('Last saved: '+d.format('mmm dd HH:MM'));
     };
 
 
