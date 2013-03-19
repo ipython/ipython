@@ -57,6 +57,7 @@ from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
 from .clustermanager import ClusterManager
 
+from IPython import __version__
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
 from IPython.core.profiledir import ProfileDir
@@ -619,8 +620,8 @@ class NotebookApp(BaseIPythonApplication):
         ip = self.ip if self.ip else '[all ip addresses on your system]'
         proto = 'https' if self.certfile else 'http'
         info = self.log.info
-        info("The IPython Notebook is running at: %s://%s:%i%s" %
-             (proto, ip, self.port,self.base_project_url) )
+        info("The IPython %s Notebook is running at: %s://%s:%i%s" %
+             (__version__, proto, ip, self.port,self.base_project_url) )
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:
