@@ -507,6 +507,12 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             # under Python 2.x for some reason
             msg = msg.encode('utf8', 'replace')
         try:
+            bsession, msg = msg.split(':', 1)
+            self.session.session = bsession.decode('ascii')
+        except Exception:
+            logging.error("No bsession!", exc_info=True)
+            pass
+        try:
             self.request._cookies = Cookie.SimpleCookie(msg)
         except:
             self.log.warn("couldn't parse cookie string: %s",msg, exc_info=True)
@@ -528,7 +534,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     def create_stream(self):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
-        self.zmq_stream = meth(self.kernel_id)
+        self.zmq_stream = meth(self.kernel_id, identity=self.session.bsession)
     
     def initialize(self, *args, **kwargs):
         self.zmq_stream = None
