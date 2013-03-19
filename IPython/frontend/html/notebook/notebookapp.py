@@ -550,6 +550,10 @@ class NotebookApp(BaseIPythonApplication):
             # but it will work
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
+        signal.signal(signal.SIGUSR1, self._signal_info)
+        if hasattr(signal, 'SIGINFO'):
+            # only on BSD-based systems
+            signal.signal(signal.SIGINFO, self._signal_info)
     
     def _handle_sigint(self, sig, frame):
         """SIGINT handler spawns confirmation dialog"""
@@ -599,6 +603,9 @@ class NotebookApp(BaseIPythonApplication):
     def _signal_stop(self, sig, frame):
         self.log.critical("received signal %s, stopping", sig)
         ioloop.IOLoop.instance().stop()
+
+    def _signal_info(self, sig, frame):
+        self.print_notebook_info()
     
     @catch_config_error
     def initialize(self, argv=None):
