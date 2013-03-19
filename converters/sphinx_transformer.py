@@ -77,11 +77,11 @@ class SphinxTransformer(ActivatableTransformer):
     center_output = Bool(False, config=True, help="""
     Optional attempt to center all output.  If this is false, no additional
     formatting is applied.
-    """))
+    """)
     
     use_headers = Bool(True, config=True, help="""
     Whether not a header should be added to the document.
-    """))
+    """)
     
     def __call__(self, nb, other):
         """
