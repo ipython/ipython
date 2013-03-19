@@ -74,6 +74,15 @@ class SphinxTransformer(ActivatableTransformer):
         "notebook"  (similar to the notebook)
     """)
     
+    center_output = Bool(False, config=True, help="""
+    Optional attempt to center all output.  If this is false, no additional
+    formatting is applied.
+    """))
+    
+    use_headers = Bool(True, config=True, help="""
+    Whether not a header should be added to the document.
+    """))
+    
     def __call__(self, nb, other):
         """
         Entry
@@ -111,6 +120,10 @@ class SphinxTransformer(ActivatableTransformer):
             # Prompt the user for the document style.
             other["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
             other["sphinx"]["outputstyle"] = self._prompt_output_style()
+            
+            # Small options
+            other["sphinx"]["centeroutput"] = self._prompt_boolean("Do you want to center the output? (false)", False)
+            other["sphinx"]["header"] = self._prompt_boolean("Should a Sphinx document header be used? (true)", True)
         else:
             
             # Try to use the traitlets.
@@ -118,13 +131,17 @@ class SphinxTransformer(ActivatableTransformer):
             nb.metadata._draft["version"] = self.version
             nb.metadata._draft["release"] = self.release
             
+            # Use todays date if none is provided.
             if len(self.publish_date.strip()) == 0:
                 nb.metadata._draft["date"] = date.today().strftime("%B %-d, %Y")
             else:
                 nb.metadata._draft["date"] = self.publish_date
-                
+            
+            # Sphinx traitlets.
             other["sphinx"]["chapterstyle"] = self.chapter_style
             other["sphinx"]["outputstyle"] = self.output_style
+            other["sphinx"]["centeroutput"] = self.center_output
+            other["sphinx"]["header"] = self.use_headers
             
         # Find and pass in the path to the Sphinx dependencies.
         other["sphinx"]["texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
@@ -154,6 +171,21 @@ class SphinxTransformer(ActivatableTransformer):
             user_date = default_date
         return user_date
     
+    def _prompt_boolean(self, prompt, default=False):
+        response = self._input(prompt)
+        response = response.strip().lower()
+        
+        #Catch 1, true, yes as True
+        if (response == "1" or response[0] == "t" or response[0] == "y"):
+            return True
+        
+        #Catch 0, false, no as False
+        elif (response == "0" or response[0] == "f" or response[0] == "n"):
+            return False
+            
+        else:
+            return Default
+        
     def _prompt_output_style(self):
         
         # Dictionary of available output styles
