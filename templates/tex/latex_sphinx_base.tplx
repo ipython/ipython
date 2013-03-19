@@ -367,9 +367,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: center_output
 % Purpose: This macro centers the output if the output centering is enabled.
 ((* macro center_output(text) -*))
-    ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))
-    ((* if resources.sphinx.centeroutput *))
-    }((* endif *))
+    ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))((* if resources.sphinx.centeroutput *))}((* endif *))
 ((*- endmacro *))
 
 % Name: insert_graphics
