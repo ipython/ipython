@@ -27,9 +27,9 @@ Note: For best display, use latex syntax highlighting. =))
 % edges of latex pages (since latex does not always seem smart enough
 % to prevent this in some cases.)  This is only applied to textual output
 ((* if resources.sphinx.outputstyle == 'simple' *))
-    ((*- set wrap_size = 85 -*))         
+    ((*- set wrap_size = 85 -*))
 ((* elif resources.sphinx.outputstyle == 'notebook' *))
-    ((*- set wrap_size = 70 -*)) 
+    ((*- set wrap_size = 70 -*))
 ((* endif *))
 
 %==============================================================================
@@ -68,7 +68,7 @@ Note: For best display, use latex syntax highlighting. =))
     % Pygments requirements
     \usepackage{fancyvrb}
     \usepackage{color}
-    
+
     % Needed to box output/input
     \usepackage{mdframed}
     \usepackage{alltt}
@@ -77,7 +77,7 @@ Note: For best display, use latex syntax highlighting. =))
     \usepackage{graphicx}
     \graphicspath{ {figs/} }
     \usepackage[export]{adjustbox} % To resize
-    
+
 
     % For formatting output while also word wrapping.
     \usepackage{listings}
@@ -86,17 +86,17 @@ Note: For best display, use latex syntax highlighting. =))
 
     %Pygments definitions
     ((( resources.sphinx.pygment_definitions )))
-    
+
     %Set pygments styles if needed...
     ((* if resources.sphinx.outputstyle == 'notebook' *))
         \definecolor{nbframe-border}{rgb}{0.8,0.8,0.8}
         \definecolor{nbframe-bg}{rgb}{0.95,0.95,0.95}
         \definecolor{nbframe-prompt}{rgb}{0.05,0.05,0.3}
-        
+
         \newenvironment{ColorVerbatim}
         {\begin{mdframed}[backgroundcolor=nbframe-bg, userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
         {\end{mdframed}}
-        
+
         \renewenvironment{Verbatim}[1][\unskip]
         {\begin{alltt}}
         {\end{alltt}}
@@ -112,13 +112,13 @@ Note: For best display, use latex syntax highlighting. =))
     \release{((( nb.metadata._draft.version | escape_tex )))}
     \author{((( nb.metadata._draft.author | escape_tex )))}
     \renewcommand{\releasename}{((( nb.metadata._draft.release | escape_tex )))}
-    
+
     % TODO: Add option for the user to specify a logo for his/her export.
     \newcommand{\sphinxlogo}{}
 
     % Make the index page of the document.
     \makeindex
-    
+
     % Import sphinx document type specifics.
     ((* block sphinxheader *))((* endblock sphinxheader *)) 
 ((* endblock header *))
@@ -132,11 +132,11 @@ Note: For best display, use latex syntax highlighting. =))
 
     % Start of the document
     \begin{document}
-    
+
         ((* if resources.sphinx.header *))
             \maketitle
         ((* endif *))
-        
+
         ((* block toc *))
             \tableofcontents 
         ((* endblock toc *))
@@ -178,7 +178,7 @@ Note: For best display, use latex syntax highlighting. =))
         ((* block h5 -*))subsubsection((* endblock h5 -*))
     ((*- elif cell.level == 6 -*))
         ((* block h6 -*))paragraph((* endblock h6 -*))
-    
+
     ((= It's important to make sure that underscores (which tend to be common
     in IPYNB file titles) do not make their way into latex.  Sometimes this
     causes latex to barf. =))
@@ -225,7 +225,7 @@ Note: For best display, use latex syntax highlighting. =))
 
     % Make sure that atleast 4 lines are below the HR
     \needspace{((( min_header_lines )))\baselineskip}
-        
+
     ((* if resources.sphinx.outputstyle == 'simple' *))
 
         % Add a horizantal break, along with break title.
@@ -236,7 +236,7 @@ Note: For best display, use latex syntax highlighting. =))
 
         % Add contents below.
         ((( cell.input | highlight )))
-        
+
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
         \vspace{5pt}
         {\color{nbframe-prompt}\textbf{In {[}((( cell.prompt_number ))){]}:}}\\*
@@ -257,11 +257,11 @@ Note: For best display, use latex syntax highlighting. =))
 ((* block output_group *))
     ((* if cell.outputs.__len__() > 0 *))
         ((* if resources.sphinx.outputstyle == 'simple' *))
-            
+
             % If the first block is an image, minipage the image.  Else
             % request a certain amount of space for the input text.
             ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
-            
+
             % Add a horizantal break, along with break title.
             \vspace{10pt}
             {\scriptsize Output}\\*
@@ -279,10 +279,10 @@ Note: For best display, use latex syntax highlighting. =))
                 ((( render_output(output) )))
             ((* endfor *))
         ((* elif resources.sphinx.outputstyle == 'notebook' *))
-            
+
             %Skip one line down.
             \vspace{1\baselineskip}
-            
+
             % Add document contents.
             \begin{ColorVerbatim}
                 ((* for output in cell.outputs *))
@@ -316,7 +316,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_latex -*))
-    ((( center_output(output.latex | rm_math_space) ))) 
+    ((( center_output(output.latex | rm_math_space) )))
 ((*- endblock -*))
 
 %==============================================================================
@@ -328,7 +328,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* macro render_output(output) -*))
     ((*- if output.output_type == 'pyerr' -*))
         ((*- block pyerr scoped *))
-            ((( custom_verbatim(super()) )))  
+            ((( custom_verbatim(super()) )))
         ((* endblock pyerr -*))
     ((*- else -*))
         ((*- block display_data scoped -*))
@@ -361,7 +361,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* macro custom_verbatim(text) -*))
     \begin{alltt}
 ((( center_output(text | wrap(wrap_size)) )))
-    \end{alltt}       
+    \end{alltt}
 ((*- endmacro *))
 
 % Name: center_output
