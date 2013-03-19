@@ -356,15 +356,9 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro creates a verbatim style block that fits the existing
 %          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
-    ((* if resources.sphinx.outputstyle == 'simple' *))
-    \begin{lstlisting}
-((( text | wrap(wrap_size) )))
-    \end{lstlisting}       
-    ((* elif resources.sphinx.outputstyle == 'notebook' *))
     \begin{alltt}
 ((( text | wrap(wrap_size) )))
-    \end{alltt}
-    ((* endif *))
+    \end{alltt}       
 ((*- endmacro *))
 
 % Name: insert_graphics
