@@ -312,9 +312,11 @@ Note: For best display, use latex syntax highlighting. =))
     ((( insert_graphics(output.key_svg) )))
 ((*- endblock -*))
 
-((*- block data_latex *))
-((( output.latex )))
-((* endblock -*))
+((*- block data_latex -*))
+\begin{alltt}
+((( output.latex ))) 
+\end{alltt}
+((*- endblock -*))
 
 %==============================================================================
 % Support Macros
