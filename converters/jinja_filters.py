@@ -18,6 +18,7 @@ from .utils import highlight, ansi2html
 from .utils import markdown2latex
 from .utils import highlight2latex
 from .utils import get_lines
+from .latex_transformer import rm_math_space
 
 from .config import GlobalConfigurable
 
