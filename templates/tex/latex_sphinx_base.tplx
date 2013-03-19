@@ -367,8 +367,8 @@ Note: For best display, use latex syntax highlighting. =))
 % Name: center_output
 % Purpose: This macro centers the output if the output centering is enabled.
 ((* macro center_output(text) -*))
-    ((* if resources.sphinx.center_output *)){\centering ((* endif *))((( text | wrap(wrap_size) )))
-    ((* if resources.sphinx.center_output *))
+    ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))
+    ((* if resources.sphinx.centeroutput *))
     }((* endif *))
 ((*- endmacro *))
 
