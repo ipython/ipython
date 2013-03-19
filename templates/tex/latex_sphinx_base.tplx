@@ -316,7 +316,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_latex -*))
-    ((( custom_verbatim(output.latex | rm_math_space ) ))) 
+    ((( output.latex | rm_math_space ))) 
 ((*- endblock -*))
 
 %==============================================================================
