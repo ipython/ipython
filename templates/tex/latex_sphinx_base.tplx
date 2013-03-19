@@ -316,7 +316,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_latex -*))
-    ((( output.latex | rm_math_space ))) 
+    ((( center_output(output.latex | rm_math_space) ))) 
 ((*- endblock -*))
 
 %==============================================================================
