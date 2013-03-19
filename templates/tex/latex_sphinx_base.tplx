@@ -301,18 +301,18 @@ Note: For best display, use latex syntax highlighting. =))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( line | indent| rm_ansi )))
+    ((( center_output(line | indent| rm_ansi) )))
 ((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( insert_graphics(output.key_png) )))
+    ((( center_output(insert_graphics(output.key_png)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( insert_graphics(output.key_svg) )))
+    ((( center_output(insert_graphics(output.key_svg)) )))
 ((*- endblock -*))
 
 ((*- block data_latex -*))
@@ -360,7 +360,7 @@ Note: For best display, use latex syntax highlighting. =))
 %          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
     \begin{alltt}
-((( text | wrap(wrap_size) )))
+((( center_output(text | wrap(wrap_size)) )))
     \end{alltt}       
 ((*- endmacro *))
 
