@@ -168,6 +168,10 @@ var IPython = (function (IPython) {
         this.shell_channel.onmessage = $.proxy(this._handle_shell_reply, this);
         this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply, this);
         this.stdin_channel.onmessage = $.proxy(this._handle_input_request, this);
+
+        $([IPython.events]).on('send_input_reply.Kernel', function(evt, data) { 
+            that.send_input_reply(data);
+        });
     };
 
     /**
@@ -283,8 +287,11 @@ var IPython = (function (IPython) {
             silent : true,
             user_variables : [],
             user_expressions : {},
-            allow_stdin : true
+            allow_stdin : false
         };
+        if (callbacks.input_request !== undefined) {
+            content.allow_stdin = true;
+        }
         $.extend(true, content, options)
         $([IPython.events]).trigger('execution_request.Kernel', {kernel: this, content:content});
         var msg = this._get_msg("execute_request", content);
@@ -344,8 +351,7 @@ var IPython = (function (IPython) {
         };
     };
 
-    Kernel.prototype.send_input_reply = function (input, header) {
-
+    Kernel.prototype.send_input_reply = function (input) {
         var content = {
             value : input,
         };
@@ -447,7 +453,6 @@ var IPython = (function (IPython) {
 
     Kernel.prototype._handle_input_request = function (e) {
         var request = $.parseJSON(e.data);
-        console.log("input", request);
         var header = request.header;
         var content = request.content;
         var metadata = request.metadata;
@@ -456,7 +461,13 @@ var IPython = (function (IPython) {
             console.log("Invalid input request!", request);
             return;
         }
-        $([IPython.events]).trigger('input_request.Kernel', {kernel: this, request:request});
+        var callbacks = this.get_callbacks_for_msg(request.parent_header.msg_id);
+        if (callbacks !== undefined) {
+            var cb = callbacks[msg_type];
+            if (cb !== undefined) {
+                cb(content, metadata);
+            }
+        };
     };
 
 

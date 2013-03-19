@@ -74,6 +74,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.bind_events = function () {
         var that = this;
+        this._submit_raw_input_proxy = $.proxy(this._submit_raw_input, this);
         this.prompt_overlay.dblclick(function () { that.toggle_output(); });
         this.prompt_overlay.click(function () { that.toggle_scroll(); });
 
@@ -448,6 +449,51 @@ var IPython = (function (IPython) {
         toinsert.append(latex);
         element.append(toinsert);
     };
+    
+    OutputArea.prototype.append_raw_input = function (content) {
+        this.expand();
+        this.flush_clear_timeout();
+        var area = this.create_output_area();
+        area.append(
+            $("<div/>")
+            .addClass("box-flex1 output_subarea raw_input")
+            .append(
+                $("<form/>")
+                .attr("action", "javascript:$([IPython.events]).trigger('submit_raw_input.OutputArea');")
+                .append(
+                    $("<span/>")
+                    .addClass("input_prompt")
+                    .text(content.prompt)
+                ).append(
+                    $("<input/>")
+                    .attr("size", 80)
+                    .addClass("raw_input")
+                )
+            )
+        )
+        // clear events first
+        $([IPython.events]).off('submit_raw_input.OutputArea');
+        $([IPython.events]).on('submit_raw_input.OutputArea', this._submit_raw_input_proxy);
+        this.element.append(area);
+        area.find("input.raw_input").focus();
+    }
+    OutputArea.prototype._submit_raw_input = function (evt) {
+        var container = this.element.find("div.raw_input");
+        var theprompt = container.find("span.input_prompt");
+        var theinput = container.find("input.raw_input");
+        var value = theinput.attr("value");
+        var content = {
+            output_type : 'stream',
+            name : 'stdout',
+            text : theprompt.text() + value + '\n'
+        }
+        // remove form container
+        container.parent().remove();
+        // replace with plaintext version in stdout
+        this.append_output(content, false);
+        $([IPython.events]).off('submit_raw_input.OutputArea', this._submit_raw_input_proxy);
+        $([IPython.events]).trigger('send_input_reply.Kernel', value);
+    }
 
 
     OutputArea.prototype.handle_clear_output = function (content) {

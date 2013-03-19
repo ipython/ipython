@@ -115,34 +115,6 @@ var IPython = (function (IPython) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
-        $([IPython.events]).on('input_request.Kernel', function (event, data) {
-            var dialog = $('<div/>').attr('id','input_form').append(
-            $('<form/>')
-            .attr("action", "javascript:$('#input_form').parent().find('button').click();")
-            .append(
-                $('<input/>')
-                .attr('id', 'input_prompt_dialog')
-                .attr('type', 'text')
-                .attr('name', 'input')
-            ));
-            $(document).append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
-                title: data.request.content.prompt,
-                closeText: '',
-                buttons : {
-                    "Okay": function () {
-                        IPython.notebook.kernel.send_input_reply(
-                            $("input#input_prompt_dialog").attr('value'),
-                            data.request.header
-                        );
-                        $(this).dialog('close');
-                        dialog.remove();
-                    }
-                }
-            });
-        });
 
 
         $(document).keydown(function (event) {
