@@ -132,10 +132,13 @@ Note: For best display, use latex syntax highlighting. =))
 
     % Start of the document
     \begin{document}
-        \maketitle
+    
+        ((* if resources.sphinx.header *))
+            \maketitle
+        ((* endif *))
         
         ((* block toc *))
-        \tableofcontents 
+            \tableofcontents 
         ((* endblock toc *))
 
         ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
@@ -313,9 +316,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_latex -*))
-\begin{alltt}
-((( output.latex ))) 
-\end{alltt}
+    ((( custom_verbatim(output.latex) ))) 
 ((*- endblock -*))
 
 %==============================================================================
@@ -361,6 +362,14 @@ Note: For best display, use latex syntax highlighting. =))
     \begin{alltt}
 ((( text | wrap(wrap_size) )))
     \end{alltt}       
+((*- endmacro *))
+
+% Name: center_output
+% Purpose: This macro centers the output if the output centering is enabled.
+((* macro center_output(text) -*))
+    ((* if resources.sphinx.center_output *)){\centering ((* endif *))((( text | wrap(wrap_size) )))
+    ((* if resources.sphinx.center_output *))
+    }((* endif *))
 ((*- endmacro *))
 
 % Name: insert_graphics
