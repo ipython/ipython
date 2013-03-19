@@ -359,9 +359,13 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro creates a verbatim style block that fits the existing
 %          sphinx style more readily than standard verbatim blocks.
 ((* macro custom_verbatim(text) -*))
-    \begin{alltt}
-((( center_output(text | wrap(wrap_size)) )))
-    \end{alltt}
+    
+        \begin{alltt}
+        ((*- if resources.sphinx.centeroutput *))\begin{center} ((* endif -*))
+((( text | wrap(wrap_size) )))
+        ((*- if resources.sphinx.centeroutput *))\end{center}((* endif -*))
+        \end{alltt}
+    
 ((*- endmacro *))
 
 % Name: center_output
