@@ -379,4 +379,3 @@ Note: For best display, use latex syntax highlighting. =))
     ((*- set text = text|replace("_","\\_") -*))
     ((( text )))
 ((*- endmacro *))
-
