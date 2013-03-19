@@ -554,14 +554,13 @@ Defaulting color scheme to 'NoColor'"""
         help='Export IPython history as a notebook. The filename argument '
              'is used to specify the notebook name and format. For example '
              'a filename of notebook.ipynb will result in a notebook name '
-             'of "notebook" and a format of "xml". Likewise using a ".json" '
-             'or ".py" file extension will write the notebook in the json '
-             'or py formats.'
+             'of "notebook" and a format of "json". Likewise using a ".py" '
+             'file extension will write the notebook as a Python script'
     )
     @magic_arguments.argument(
         '-f', '--format',
         help='Convert an existing IPython notebook to a new format. This option '
-             'specifies the new format and can have the values: xml, json, py. '
+             'specifies the new format and can have the values: json, py. '
              'The target filename is chosen automatically based on the new '
              'format. The filename argument gives the name of the source file.'
     )
