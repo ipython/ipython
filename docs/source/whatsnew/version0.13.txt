@@ -2,6 +2,66 @@
  0.13 Series
 =============
 
+Release 0.13.2
+==============
+
+0.13.2 is a bugfix release for 0.13.
+
+Most notable fixes are related to compatibility with Qt and Wx GUIs.
+
+The following 48 Pull Requests were backported to 0.13.2:
+
+* :ghpull:`2399`: IndentationError display
+* :ghpull:`2503`: Fix traceback handling of SyntaxErrors without line numbers.
+* :ghpull:`2500`: Add `encoding` attribute to `OutStream` class.
+* :ghpull:`2498`: Don't catch tab press when something selected
+* :ghpull:`2490`: add ZMQInteractiveShell to IPEngineApp class list
+* :ghpull:`2491`: color is supported in ironpython
+* :ghpull:`2511`: trigger default remote_profile_dir when profile_dir is set
+* :ghpull:`2294`: inputhook_qt4: Use QEventLoop instead of starting up the QCoreApplication
+* :ghpull:`2554`: Avoid stopping in ipdb until we reach the main script.
+* :ghpull:`2561`: Fix display of plain text containing multiple carriage returns before line feed
+* :ghpull:`2546`: use 4 Pythons to build 4 Windows installers
+* :ghpull:`2526`: Don't kill paramiko tunnels when receiving ^C
+* :ghpull:`2591`: Fix for Issue #2584 
+* :ghpull:`2582`: Fix displaying history when output cache is disabled.
+* :ghpull:`2574`: Fix #2244
+* :ghpull:`2638`: Fix %paste in Python 3 on Mac
+* :ghpull:`2656`: Fix irunner tests when $PYTHONSTARTUP is set
+* :ghpull:`2663`: Fix issue #2660: parsing of help and version arguments
+* :ghpull:`2668`: pylab_not_importable: Catch all exceptions, not just RuntimeErrors.
+* :ghpull:`2662`: qtconsole: wrap argument list in tooltip to match width of text body
+* :ghpull:`2686`: Fix tox.ini
+* :ghpull:`2685`: Fix pretty print of types when ``__module__`` is not available.
+* :ghpull:`2713`: Doc bugfix: user_ns is not an attribute of Magic objects.
+* :ghpull:`2717`: One liner to fix debugger printing stack traces when lines of context are larger than source.
+* :ghpull:`2544`: Infinite loop when multiple debuggers have been attached.
+* :ghpull:`2749`: Tell Travis CI to test on Python 3.3 as well
+* :ghpull:`2738`: Unicode content crashes the pager (console)
+* :ghpull:`2769`: Allow shutdown when no engines are registered
+* :ghpull:`2773`: Fixed minor typo causing AttributeError to be thrown.
+* :ghpull:`2778`: P3K: fix DeprecationWarning under Python 3.x 
+* :ghpull:`2757`: check for complete pyside presence before trying to import
+* :ghpull:`2783`: Prefilter shouldn't touch execution_count
+* :ghpull:`2796`: P3K: fix cookie parsing under Python 3.x (+ duplicate import is removed)
+* :ghpull:`2799`: Exit code
+* :ghpull:`2816`: in %edit, don't save "last_call" unless last call succeeded
+* :ghpull:`2830`: BUG: Opening parenthesis after non-callable raises ValueError
+* :ghpull:`2849`: utils/data: Use list comprehension for uniq_stable()
+* :ghpull:`2859`: Correct docstring of ipython.py
+* :ghpull:`2863`: whatsnew/version0.9.txt: Fix '~./ipython' -> '~/.ipython' typo
+* :ghpull:`2852`: future pyzmq compatibility
+* :ghpull:`2864`: Fix %run -t -N<N> TypeError
+* :ghpull:`2926`: Don't die if stderr/stdout do not support set_parent() #2925
+* :ghpull:`2924`: safe_run_module: Silence SystemExit codes 0 and None.
+* :ghpull:`2901`: Fix inputhook_wx on osx
+* :ghpull:`2994`: expanduser on %%file targets
+* :ghpull:`2831`: avoid string version comparisons in external.qt
+* :ghpull:`3013`: py3 workaround for reload in cythonmagic
+* :ghpull:`3008`: fix cython module so extension for multiarched python
+
+
+
 Release 0.13.1
 ==============
 
