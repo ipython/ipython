@@ -37,6 +37,10 @@ def wait(n):
     time.sleep(n)
     return n
 
+@pmod.interactive
+def func(x):
+    return x*x
+
 mixed = map(str, range(10))
 completed = map(str, range(0,10,2))
 failed = map(str, range(1,10,2))
@@ -104,3 +108,29 @@ class DependencyTest(ClusterTestCase):
         dep.all=False
         self.assertUnmet(dep)
         self.assertUnreachable(dep)
+    
+    def test_require_function(self):
+        
+        @pmod.interactive
+        def bar(a):
+            return func(a)
+
+        @pmod.require(func)
+        @pmod.interactive
+        def bar2(a):
+            return func(a)
+        
+        self.client[:].clear()
+        self.assertRaisesRemote(NameError, self.view.apply_sync, bar, 5)
+        ar = self.view.apply_async(bar2, 5)
+        self.assertEqual(ar.get(5), func(5))
+
+    def test_require_object(self):
+        
+        @pmod.require(foo=func)
+        @pmod.interactive
+        def bar(a):
+            return foo(a)
+
+        ar = self.view.apply_async(bar, 5)
+        self.assertEqual(ar.get(5), func(5))
