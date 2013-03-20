@@ -11,8 +11,6 @@ Authors:
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import sys
-
 from types import ModuleType
 
 from IPython.parallel.client.asyncresult import AsyncResult
@@ -63,9 +61,6 @@ class dependent(object):
         self.dkwargs = dkwargs
 
     def __call__(self, *args, **kwargs):
-        user_ns = sys.modules['__main__'].__dict__
-        for key, value in self.dkwargs.items():
-            self.dkwargs[key] = uncan(value, user_ns)
         if self.df(*self.dargs, **self.dkwargs) is False:
             raise UnmetDependency()
         return self.f(*args, **kwargs)
