@@ -21,6 +21,7 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
+from IPython.utils.py3compat import cast_bytes_py2
 
 #-----------------------------------------------------------------------------
 # Launching Kernels
@@ -185,6 +186,11 @@ def launch_kernel(cmd, stdin=None, stdout=None, stderr=None,
 
     # Spawn a kernel.
     if sys.platform == 'win32':
+        
+        if cwd:
+            # Popen on Python 2 on Windows cannot handle unicode cwd.
+            cwd = cast_bytes_py2(cwd, sys.getfilesystemencoding() or 'ascii')
+        
         from IPython.kernel.zmq.parentpoller import ParentPollerWindows
         # Create a Win32 event for interrupting the kernel.
         interrupt_event = ParentPollerWindows.create_interrupt_event()
