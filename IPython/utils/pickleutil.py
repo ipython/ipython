@@ -50,6 +50,22 @@ else:
 
 class CannedObject(object):
     def __init__(self, obj, keys=[], hook=None):
+        """can an object for safe pickling
+        
+        Parameters
+        ==========
+        
+        obj:
+            The object to be canned
+        keys: list (optional)
+            list of attribute names that will be explicitly canned / uncanned
+        hook: callable (optional)
+            An optional extra callable,
+            which can do additional processing of the uncanned object.
+        
+        large data may be offloaded into the buffers list,
+        used for zero-copy transfers.
+        """
         self.keys = keys
         self.obj = copy.copy(obj)
         self.hook = can(hook)
