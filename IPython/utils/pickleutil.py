@@ -49,9 +49,10 @@ else:
 
 
 class CannedObject(object):
-    def __init__(self, obj, keys=[]):
+    def __init__(self, obj, keys=[], hook=None):
         self.keys = keys
         self.obj = copy.copy(obj)
+        self.hook = can(hook)
         for key in keys:
             setattr(self.obj, key, can(getattr(obj, key)))
         
@@ -60,8 +61,13 @@ class CannedObject(object):
     def get_object(self, g=None):
         if g is None:
             g = {}
+        obj = self.obj
         for key in self.keys:
-            setattr(self.obj, key, uncan(getattr(self.obj, key), g))
+            setattr(obj, key, uncan(getattr(obj, key), g))
+
+        if self.hook:
+            self.hook = uncan(self.hook, g)
+            self.hook(obj, g)
         return self.obj
     
 
