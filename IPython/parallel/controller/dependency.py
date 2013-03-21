@@ -59,10 +59,12 @@ class dependent(object):
         self.df = df
         self.dargs = dargs
         self.dkwargs = dkwargs
-
-    def __call__(self, *args, **kwargs):
+    
+    def check_dependency(self):
         if self.df(*self.dargs, **self.dkwargs) is False:
             raise UnmetDependency()
+    
+    def __call__(self, *args, **kwargs):
         return self.f(*args, **kwargs)
     
     if not py3compat.PY3:
