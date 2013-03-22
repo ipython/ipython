@@ -255,8 +255,8 @@ def get_ipython_dir():
     pjoin = os.path.join
 
 
-    ipdir_def = '.ipython'
-    xdg_def = 'ipython'
+    ipdir_def = '.ipython' + sys.version[0]
+    xdg_def = 'ipython' + sys.version[0]
 
     home_dir = get_home_dir()
     xdg_dir = get_xdg_dir()
