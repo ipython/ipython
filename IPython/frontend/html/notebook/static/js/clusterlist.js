@@ -114,7 +114,6 @@ var IPython = (function (IPython) {
         var engines_col = $('<span/>').addClass('engines_col');
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
-                .attr('value',2)
                 .attr('size',3)
                 .addClass('engine_num_input');
         engines_col.append(input);
