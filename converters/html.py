@@ -27,6 +27,7 @@ from markdown import markdown
 
 # IPython imports
 from IPython.utils import path
+from IPython.frontend.html.notebook import notebookapp
 
 # Our own imports
 from .base import Converter
@@ -74,9 +75,12 @@ class ConverterHTML(Converter):
         from pygments.formatters import HtmlFormatter
 
         header = []
-        static = os.path.join(path.get_ipython_package_dir(),
-        'frontend', 'html', 'notebook', 'static',
-        )
+        static = getattr(notebookapp, 'DEFAULT_STATIC_FILES_PATH', None)
+        # ipython < 1.0
+        if static is None:
+            static = os.path.join(path.get_ipython_package_dir(),
+            'frontend', 'html', 'notebook', 'static',
+            )
         here = os.path.split(os.path.realpath(__file__))[0]
         css = os.path.join(static, 'css')
         for sheet in [
