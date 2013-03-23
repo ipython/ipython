@@ -82,6 +82,11 @@ $(document).ready(function () {
     IPython.layout_manager.do_resize();
     $([IPython.events]).on('notebook_loaded.Notebook', function () {
         IPython.layout_manager.do_resize();
+        var hash = document.location.hash;
+        if (hash) {
+            document.location.hash = '';
+            document.location.hash = hash;
+        }
     });
     IPython.notebook.load_notebook($('body').data('notebookId'));
 
