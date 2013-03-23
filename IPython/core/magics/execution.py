@@ -593,14 +593,18 @@ python-profiler package from non-free.""")
                             # user (run by exec in pdb itself).
                             self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
                     else:
-                        if runner is None:
-                            runner = self.default_runner
-                        if runner is None:
-                            runner = self.shell.safe_execfile
+                        if 'm' in opts:
+                            def run():
+                                self.shell.safe_run_module(modulename, prog_ns)
+                        else:
+                            if runner is None:
+                                runner = self.default_runner
+                            if runner is None:
+                                runner = self.shell.safe_execfile
 
-                        def run():
-                            runner(filename, prog_ns, prog_ns,
-                                   exit_ignore=exit_ignore)
+                            def run():
+                                runner(filename, prog_ns, prog_ns,
+                                       exit_ignore=exit_ignore)
 
                         if 't' in opts:
                             # timed execution
