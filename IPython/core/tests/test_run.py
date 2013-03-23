@@ -379,8 +379,8 @@ class TestMagicRunWithPackage(unittest.TestCase):
         sys.path[:] = filter(lambda x: x != self.tempdir.name, sys.path)
         self.tempdir.cleanup()
 
-    def check_run_submodule(self, submodule):
-        _ip.magic('run -m {0}.{1}'.format(self.package, submodule))
+    def check_run_submodule(self, submodule, opts=''):
+        _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
         self.assertEqual(_ip.user_ns['x'], self.value,
                          'Variable `x` is not loaded from module `{0}`.'
                          .format(submodule))
@@ -391,3 +391,9 @@ class TestMagicRunWithPackage(unittest.TestCase):
     def test_run_submodule_with_relative_import(self):
         """Run submodule that has a relative import statement (#2727)."""
         self.check_run_submodule('relative')
+
+    def test_prun_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute', '-p')
+
+    def test_prun_submodule_with_relative_import(self):
+        self.check_run_submodule('relative', '-p')
