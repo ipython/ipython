@@ -934,6 +934,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 .js-error{color:darkred;}
 a{text-decoration:underline;}
 p{margin-bottom:0;}
+a.heading-link:link{text-decoration:none;color:inherit;}
 @media print{body{overflow:visible !important;} div#notebook{overflow:visible !important;} .ui-widget-content{border:0px;} #save_widget{margin:0px !important;} #header,#pager,#pager_splitter,#menubar,#toolbar{display:none !important;} .cell{border:none !important;} .toolbar{display:none;}}.rendered_html{color:black;}.rendered_html em{font-style:italic;}
 .rendered_html strong{font-weight:bold;}
 .rendered_html u{text-decoration:underline;}
