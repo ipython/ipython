@@ -208,6 +208,19 @@ latex_documents = [
 latex_use_modindex = True
 
 
+# Options for texinfo output
+# --------------------------
+
+texinfo_documents = [
+  (master_doc, 'ipython', 'IPython Documentation',
+   'The IPython Development Team',
+   'IPython',
+   'IPython Documentation',
+   'Programming',
+   1),
+]
+
+
 # Cleanup
 # -------
 # delete release info to avoid pickling errors from sphinx
