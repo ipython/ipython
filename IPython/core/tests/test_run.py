@@ -366,14 +366,14 @@ class TestMagicRunWithPackage(unittest.TestCase):
         sys.path.insert(0, self.tempdir.name)
 
         self.writefile(os.path.join(package, '__init__.py'), '')
-        self.writefile(os.path.join(package, 'foo.py'), """
+        self.writefile(os.path.join(package, 'sub.py'), """
         x = {0!r}
         """.format(self.value))
         self.writefile(os.path.join(package, 'relative.py'), """
-        from .foo import x
+        from .sub import x
         """)
         self.writefile(os.path.join(package, 'absolute.py'), """
-        from {0}.foo import x
+        from {0}.sub import x
         """.format(package))
 
     def tearDown(self):
