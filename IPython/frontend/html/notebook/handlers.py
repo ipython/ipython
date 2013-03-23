@@ -609,6 +609,20 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
 # Notebook web service handlers
 #-----------------------------------------------------------------------------
 
+class NotebookRedirectHandler(AuthenticatedHandler):
+    
+    @authenticate_unless_readonly
+    def get(self, notebook_name):
+        app = self.application
+        if notebook_name.endswith('.ipynb'):
+            notebook_name = notebook_name[:-6]
+        notebook_id = app.notebook_manager.rev_mapping.get(notebook_name, '')
+        if notebook_id:
+            url = self.settings.get('base_project_url', '/') + notebook_id
+            return self.redirect(url)
+        else:
+            raise HTTPError(404)
+
 class NotebookRootHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
