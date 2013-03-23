@@ -543,25 +543,27 @@ python-profiler package from non-free.""")
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
 
+        if 'p' in opts or 'd' in opts:
+            if 'm' in opts:
+                code = 'run_module(modulename, prog_ns)'
+                code_ns = {
+                    'run_module': self.shell.safe_run_module,
+                    'prog_ns': prog_ns,
+                    'modulename': modulename,
+                }
+            else:
+                code = 'execfile(filename, prog_ns)'
+                code_ns = {
+                    'execfile': self.shell.safe_execfile,
+                    'prog_ns': prog_ns,
+                    'filename': get_py_filename(filename),
+                }
+
         try:
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    if 'm' in opts:
-                        code = 'run_module(modulename, prog_ns)'
-                        prun_ns = {
-                            'run_module': self.shell.safe_run_module,
-                            'prog_ns': prog_ns,
-                            'modulename': modulename,
-                        }
-                    else:
-                        code = 'execfile(filename, prog_ns)'
-                        prun_ns = {
-                            'execfile': self.shell.safe_execfile,
-                            'prog_ns': prog_ns,
-                            'filename': get_py_filename(filename),
-                        }
-                    stats = self.prun('', code, False, opts, namespace=prun_ns)
+                    stats = self.prun('', code, False, opts, namespace=code_ns)
                 else:
                     if 'd' in opts:
                         deb = debugger.Pdb(self.shell.colors)
@@ -596,11 +598,10 @@ python-profiler package from non-free.""")
                         # Start file run
                         print "NOTE: Enter 'c' at the",
                         print "%s prompt to start your script." % deb.prompt
-                        ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
                         try:
                             #save filename so it can be used by methods on the deb object
                             deb._exec_filename = filename
-                            deb.run('execfile("%s", prog_ns)' % filename, ns)
+                            deb.run(code, code_ns)
 
                         except:
                             etype, value, tb = sys.exc_info()
