@@ -19,6 +19,7 @@ import tempfile
 import unittest
 import textwrap
 import random
+import functools
 
 import nose.tools as nt
 from nose import SkipTest
@@ -27,6 +28,7 @@ from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.core import debugger
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -397,3 +399,18 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
     def test_prun_submodule_with_relative_import(self):
         self.check_run_submodule('relative', '-p')
+
+    def with_fake_debugger(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwds):
+            with tt.monkeypatch(debugger.Pdb, 'run', staticmethod(eval)):
+                return func(*args, **kwds)
+        return wrapper
+
+    @with_fake_debugger
+    def test_debug_run_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute', '-d')
+
+    @with_fake_debugger
+    def test_debug_run_submodule_with_relative_import(self):
+        self.check_run_submodule('relative', '-d')
