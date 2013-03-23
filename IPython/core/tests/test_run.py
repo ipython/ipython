@@ -16,6 +16,9 @@ from __future__ import absolute_import
 import os
 import sys
 import tempfile
+import unittest
+import textwrap
+import random
 
 import nose.tools as nt
 from nose import SkipTest
@@ -23,6 +26,7 @@ from nose import SkipTest
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -337,3 +341,53 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _ip.magic('run -t -N 1 %s' % self.fname)
         _ip.magic('run -t -N 10 %s' % self.fname)
+
+
+class TestMagicRunWithPackage(unittest.TestCase):
+
+    def writefile(self, name, content):
+        path = os.path.join(self.tempdir.name, name)
+        d = os.path.dirname(path)
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        with open(path, 'w') as f:
+            f.write(textwrap.dedent(content))
+
+    def setUp(self):
+        self.package = package = 'tmp{0}'.format(repr(random.random())[2:])
+        """Temporary valid python package name."""
+
+        self.value = int(random.random() * 10000)
+
+        self.tempdir = TemporaryDirectory()
+        self.__orig_cwd = os.getcwdu()
+        sys.path.insert(0, self.tempdir.name)
+
+        self.writefile(os.path.join(package, '__init__.py'), '')
+        self.writefile(os.path.join(package, 'foo.py'), """
+        x = {0!r}
+        """.format(self.value))
+        self.writefile(os.path.join(package, 'relative.py'), """
+        from .foo import x
+        """)
+        self.writefile(os.path.join(package, 'absolute.py'), """
+        from {0}.foo import x
+        """.format(package))
+
+    def tearDown(self):
+        os.chdir(self.__orig_cwd)
+        sys.path[:] = filter(lambda x: x != self.tempdir.name, sys.path)
+        self.tempdir.cleanup()
+
+    def check_run_submodule(self, submodule):
+        _ip.magic('run -m {0}.{1}'.format(self.package, submodule))
+        self.assertEqual(_ip.user_ns['x'], self.value,
+                         'Variable `x` is not loaded from module `{0}`.'
+                         .format(submodule))
+
+    def test_run_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute')
+
+    def test_run_submodule_with_relative_import(self):
+        """Run submodule that has a relative import statement (#2727)."""
+        self.check_run_submodule('relative')
