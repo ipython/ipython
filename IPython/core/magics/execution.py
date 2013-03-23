@@ -566,49 +566,8 @@ python-profiler package from non-free.""")
                     stats = self.prun('', code, False, opts, namespace=code_ns)
                 else:
                     if 'd' in opts:
-                        deb = debugger.Pdb(self.shell.colors)
-                        # reset Breakpoint state, which is moronically kept
-                        # in a class
-                        bdb.Breakpoint.next = 1
-                        bdb.Breakpoint.bplist = {}
-                        bdb.Breakpoint.bpbynumber = [None]
-                        # Set an initial breakpoint to stop execution
-                        maxtries = 10
-                        bp_file, bp_line = parse_breakpoint(opts.get('b', ['1'])[0], filename)
-                        checkline = deb.checkline(bp_file, bp_line)
-                        if not checkline:
-                            for bp in range(bp_line + 1, bp_line + maxtries + 1):
-                                if deb.checkline(bp_file, bp):
-                                    break
-                            else:
-                                msg = ("\nI failed to find a valid line to set "
-                                       "a breakpoint\n"
-                                       "after trying up to line: %s.\n"
-                                       "Please set a valid breakpoint manually "
-                                       "with the -b option." % bp)
-                                error(msg)
-                                return
-                        # if we find a good linenumber, set the breakpoint
-                        deb.do_break('%s:%s' % (bp_file, bp_line))
-
-                        # Mimic Pdb._runscript(...)
-                        deb._wait_for_mainpyfile = True
-                        deb.mainpyfile = deb.canonic(filename)
-
-                        # Start file run
-                        print "NOTE: Enter 'c' at the",
-                        print "%s prompt to start your script." % deb.prompt
-                        try:
-                            #save filename so it can be used by methods on the deb object
-                            deb._exec_filename = filename
-                            deb.run(code, code_ns)
-
-                        except:
-                            etype, value, tb = sys.exc_info()
-                            # Skip three frames in the traceback: the %run one,
-                            # one inside bdb.py, and the command-line typed by the
-                            # user (run by exec in pdb itself).
-                            self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
+                        self._run_with_debugger(
+                            code, code_ns, opts.get('b', ['1'])[0], filename)
                     else:
                         if 'm' in opts:
                             def run():
@@ -675,6 +634,51 @@ python-profiler package from non-free.""")
                 del sys.modules[main_mod_name]
 
         return stats
+
+    def _run_with_debugger(self, code, code_ns, break_point, filename):
+        deb = debugger.Pdb(self.shell.colors)
+        # reset Breakpoint state, which is moronically kept
+        # in a class
+        bdb.Breakpoint.next = 1
+        bdb.Breakpoint.bplist = {}
+        bdb.Breakpoint.bpbynumber = [None]
+        # Set an initial breakpoint to stop execution
+        maxtries = 10
+        bp_file, bp_line = parse_breakpoint(break_point, filename)
+        checkline = deb.checkline(bp_file, bp_line)
+        if not checkline:
+            for bp in range(bp_line + 1, bp_line + maxtries + 1):
+                if deb.checkline(bp_file, bp):
+                    break
+            else:
+                msg = ("\nI failed to find a valid line to set "
+                       "a breakpoint\n"
+                       "after trying up to line: %s.\n"
+                       "Please set a valid breakpoint manually "
+                       "with the -b option." % bp)
+                error(msg)
+                return
+        # if we find a good linenumber, set the breakpoint
+        deb.do_break('%s:%s' % (bp_file, bp_line))
+
+        # Mimic Pdb._runscript(...)
+        deb._wait_for_mainpyfile = True
+        deb.mainpyfile = deb.canonic(filename)
+
+        # Start file run
+        print "NOTE: Enter 'c' at the",
+        print "%s prompt to start your script." % deb.prompt
+        try:
+            #save filename so it can be used by methods on the deb object
+            deb._exec_filename = filename
+            deb.run(code, code_ns)
+
+        except:
+            etype, value, tb = sys.exc_info()
+            # Skip three frames in the traceback: the %run one,
+            # one inside bdb.py, and the command-line typed by the
+            # user (run by exec in pdb itself).
+            self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
 
     @staticmethod
     def _run_with_timing(run, nruns):
