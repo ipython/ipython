@@ -597,6 +597,11 @@ python-profiler package from non-free.""")
                             runner = self.default_runner
                         if runner is None:
                             runner = self.shell.safe_execfile
+
+                        def run():
+                            runner(filename, prog_ns, prog_ns,
+                                   exit_ignore=exit_ignore)
+
                         if 't' in opts:
                             # timed execution
                             try:
@@ -606,37 +611,10 @@ python-profiler package from non-free.""")
                                     return
                             except (KeyError):
                                 nruns = 1
-                            twall0 = time.time()
-                            if nruns == 1:
-                                t0 = clock2()
-                                runner(filename, prog_ns, prog_ns,
-                                       exit_ignore=exit_ignore)
-                                t1 = clock2()
-                                t_usr = t1[0] - t0[0]
-                                t_sys = t1[1] - t0[1]
-                                print "\nIPython CPU timings (estimated):"
-                                print "  User   : %10.2f s." % t_usr
-                                print "  System : %10.2f s." % t_sys
-                            else:
-                                runs = range(nruns)
-                                t0 = clock2()
-                                for nr in runs:
-                                    runner(filename, prog_ns, prog_ns,
-                                           exit_ignore=exit_ignore)
-                                t1 = clock2()
-                                t_usr = t1[0] - t0[0]
-                                t_sys = t1[1] - t0[1]
-                                print "\nIPython CPU timings (estimated):"
-                                print "Total runs performed:", nruns
-                                print "  Times  : %10s   %10s" % ('Total', 'Per run')
-                                print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
-                                print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
-                            twall1 = time.time()
-                            print "Wall time: %10.2f s." % (twall1 - twall0)
-
+                            self._run_with_timing(run, nruns)
                         else:
                             # regular execution
-                            runner(filename, prog_ns, prog_ns, exit_ignore=exit_ignore)
+                            run()
 
                 if 'i' in opts:
                     self.shell.user_ns['__name__'] = __name__save
@@ -676,7 +654,35 @@ python-profiler package from non-free.""")
                 del sys.modules[main_mod_name]
 
         return stats
-    
+
+    @staticmethod
+    def _run_with_timing(run, nruns):
+        twall0 = time.time()
+        if nruns == 1:
+            t0 = clock2()
+            run()
+            t1 = clock2()
+            t_usr = t1[0] - t0[0]
+            t_sys = t1[1] - t0[1]
+            print "\nIPython CPU timings (estimated):"
+            print "  User   : %10.2f s." % t_usr
+            print "  System : %10.2f s." % t_sys
+        else:
+            runs = range(nruns)
+            t0 = clock2()
+            for nr in runs:
+                run()
+            t1 = clock2()
+            t_usr = t1[0] - t0[0]
+            t_sys = t1[1] - t0[1]
+            print "\nIPython CPU timings (estimated):"
+            print "Total runs performed:", nruns
+            print "  Times  : %10s   %10s" % ('Total', 'Per run')
+            print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
+            print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
+        twall1 = time.time()
+        print "Wall time: %10.2f s." % (twall1 - twall0)
+
     @skip_doctest
     @line_cell_magic
     def timeit(self, line='', cell=None):
