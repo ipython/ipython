@@ -78,7 +78,7 @@ python-profiler package from non-free.""")
     @skip_doctest
     @line_cell_magic
     def prun(self, parameter_s='', cell=None, user_mode=True,
-                   opts=None,arg_lst=None,prog_ns=None):
+                   opts=None,arg_lst=None,prog_ns=None, namespace=None):
 
         """Run a statement through the python code profiler.
 
@@ -187,7 +187,9 @@ python-profiler package from non-free.""")
             namespace = self.shell.user_ns
             if cell is not None:
                 arg_str += '\n' + cell
-        else:  # called to run a program by %run -p
+        elif namespace is not None:  # called to run a program by %run -p
+            arg_str = cell
+        else:
             try:
                 filename = get_py_filename(arg_lst[0])
             except IOError as e:
@@ -545,7 +547,21 @@ python-profiler package from non-free.""")
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self.prun('', None, False, opts, arg_lst, prog_ns)
+                    if 'm' in opts:
+                        code = 'run_module(modulename, prog_ns)'
+                        prun_ns = {
+                            'run_module': self.shell.safe_run_module,
+                            'prog_ns': prog_ns,
+                            'modulename': modulename,
+                        }
+                    else:
+                        code = 'execfile(filename, prog_ns)'
+                        prun_ns = {
+                            'execfile': self.shell.safe_execfile,
+                            'prog_ns': prog_ns,
+                            'filename': get_py_filename(filename),
+                        }
+                    stats = self.prun('', code, False, opts, namespace=prun_ns)
                 else:
                     if 'd' in opts:
                         deb = debugger.Pdb(self.shell.colors)
