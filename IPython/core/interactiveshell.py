@@ -64,7 +64,6 @@ from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils import openpy
 from IPython.utils.decorators import undoc
-from IPython.utils.doctestreload import doctest_reload
 from IPython.utils.io import ask_yes_no
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import get_home_dir, get_ipython_dir, get_py_filename, unquote_filename
@@ -489,7 +488,6 @@ class InteractiveShell(SingletonConfigurable):
         self.init_display_pub()
         self.init_data_pub()
         self.init_displayhook()
-        self.init_reload_doctest()
         self.init_latextool()
         self.init_magics()
         self.init_logstart()
@@ -681,14 +679,6 @@ class InteractiveShell(SingletonConfigurable):
         # This is a context manager that installs/revmoes the displayhook at
         # the appropriate time.
         self.display_trap = DisplayTrap(hook=self.displayhook)
-
-    def init_reload_doctest(self):
-        # Do a proper resetting of doctest, including the necessary displayhook
-        # monkeypatching
-        try:
-            doctest_reload()
-        except ImportError:
-            warn("doctest module does not exist.")
 
     def init_latextool(self):
         """Configure LaTeXTool."""

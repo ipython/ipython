@@ -62,6 +62,11 @@ def doctest_reload():
 
     Notes
     -----
+    
+    As of Python 2.6.6, 2.7.1 and 3.2, this monkeypatching is no longer required.
+    doctest now takes care of resetting sys.displayhook itself. This function
+    remains for now in case anyone has to work with older versions, but it's
+    no longer called during IPython startup.
 
     This function *used to* reload doctest, but this has been disabled because
     reloading doctest unconditionally can cause massive breakage of other
