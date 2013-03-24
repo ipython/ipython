@@ -581,8 +581,8 @@ class NotebookApp(BaseIPythonApplication):
         time.sleep(0.1)
         info = self.log.info
         info('interrupted')
-        self.print_notebook_info()
-        info("Shutdown this notebook server (y/[n])? ")
+        print self.notebook_info()
+        sys.stdout.write("Shutdown this notebook server (y/[n])? ")
         sys.stdout.flush()
         r,w,x = select.select([sys.stdin], [], [], 5)
         if r:
@@ -605,7 +605,7 @@ class NotebookApp(BaseIPythonApplication):
         ioloop.IOLoop.instance().stop()
 
     def _signal_info(self, sig, frame):
-        self.print_notebook_info()
+        print self.notebook_info()
     
     @catch_config_error
     def initialize(self, argv=None):
@@ -624,10 +624,10 @@ class NotebookApp(BaseIPythonApplication):
         self.log.info('Shutting down kernels')
         self.kernel_manager.shutdown_all()
 
-    def print_notebook_info(self):
-        "Print the current working directory and the server url information"
-        self.notebook_manager.log_info()
-        self.log.info("The IPython Notebook is running at: %s" % self._url)
+    def notebook_info(self):
+        "Return the current working directory and the server url information"
+        mgr_info = self.notebook_manager.info_string() + "\n"
+        return mgr_info +"The IPython Notebook is running at: %s" % self._url
 
     def start(self):
         """ Start the IPython Notebok server app, after initialization
@@ -639,7 +639,8 @@ class NotebookApp(BaseIPythonApplication):
         info = self.log.info
         self._url = "%s://%s:%i%s" % (proto, ip, self.port,
                                       self.base_project_url)
-        self.print_notebook_info()
+        for line in self.notebook_info().split("\n"):
+            info(line)
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:

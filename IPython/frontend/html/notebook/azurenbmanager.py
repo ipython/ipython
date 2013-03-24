@@ -139,5 +139,5 @@ class AzureNotebookManager(NotebookManager):
         else:
             self.delete_notebook_id(notebook_id)
 
-    def log_info(self):
-        self.log.info("Serving notebooks from Azure storage: %s, %s", self.account_name, self.container)
+    def info_string(self):
+        return "Serving notebooks from Azure storage: %s, %s" % (self.account_name, self.container)
