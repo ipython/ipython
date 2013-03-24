@@ -177,41 +177,15 @@ python-profiler package from non-free.""")
 
           In [1]: import profile; profile.help()
         """
-        return self._run_with_profiler(parameter_s, cell)
+        opts, arg_str = self.parse_options(parameter_s, 'D:l:rs:T:q',
+                                           list_all=True, posix=False)
+        if cell is not None:
+            arg_str += '\n' + cell
+        return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
-    def _run_with_profiler(
-            self, parameter_s='', cell=None, user_mode=True,
-            opts=None, arg_lst=None, prog_ns=None, namespace=None):
+    def _run_with_profiler(self, arg_str, opts, namespace):
 
-        opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
-
-        if user_mode:  # regular user call
-            opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:q',
-                                              list_all=True, posix=False)
-            namespace = self.shell.user_ns
-            if cell is not None:
-                arg_str += '\n' + cell
-        elif namespace is not None:  # called to run a program by %run -p
-            arg_str = cell
-        else:
-            try:
-                filename = get_py_filename(arg_lst[0])
-            except IOError as e:
-                try:
-                    msg = str(e)
-                except UnicodeError:
-                    msg = e.message
-                error(msg)
-                return
-
-            arg_str = 'execfile(filename,prog_ns)'
-            namespace = {
-                'execfile': self.shell.safe_execfile,
-                'prog_ns': prog_ns,
-                'filename': filename
-                }
-
-        opts.merge(opts_def)
+        opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
 
         prof = profile.Profile()
         try:
@@ -567,9 +541,7 @@ python-profiler package from non-free.""")
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self._run_with_profiler(
-                        cell=code, user_mode=False, opts=opts,
-                        namespace=code_ns)
+                    stats = self._run_with_profiler(code, opts, code_ns)
                 else:
                     if 'd' in opts:
                         self._run_with_debugger(
