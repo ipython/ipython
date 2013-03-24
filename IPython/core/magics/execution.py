@@ -184,6 +184,19 @@ python-profiler package from non-free.""")
         return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
     def _run_with_profiler(self, code, opts, namespace):
+        """
+        Run `code` with profiler.  Used by ``%prun`` and ``%run -p``.
+
+        Parameters
+        ----------
+        code : str
+            Code to be executed.
+        opts : Struct
+            Options parsed by `self.parse_options`.
+        namespace : dict
+            A dictionary for Python namespace (e.g., `self.shell.user_ns`).
+
+        """
 
         opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
 
