@@ -198,6 +198,7 @@ python-profiler package from non-free.""")
 
         """
 
+        # Fill default values for unspecified options:
         opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
 
         prof = profile.Profile()
