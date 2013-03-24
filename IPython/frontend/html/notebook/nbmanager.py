@@ -207,4 +207,8 @@ class NotebookManager(LoggingConfigurable):
         return notebook_id
 
     def log_info(self):
-        self.log.info("Serving notebooks")
+        self.log.info(self.info_string())
+    
+    def info_string(self):
+        return "Serving notebooks"
+

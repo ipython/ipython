@@ -484,7 +484,6 @@ class NotebookApp(BaseIPythonApplication):
         )
         kls = import_item(self.notebook_manager_class)
         self.notebook_manager = kls(config=self.config, log=self.log)
-        self.notebook_manager.log_info()
         self.notebook_manager.load_notebook_names()
         self.cluster_manager = ClusterManager(config=self.config, log=self.log)
         self.cluster_manager.update_profiles()
@@ -551,6 +550,10 @@ class NotebookApp(BaseIPythonApplication):
             # but it will work
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
+        signal.signal(signal.SIGUSR1, self._signal_info)
+        if hasattr(signal, 'SIGINFO'):
+            # only on BSD-based systems
+            signal.signal(signal.SIGINFO, self._signal_info)
     
     def _handle_sigint(self, sig, frame):
         """SIGINT handler spawns confirmation dialog"""
@@ -576,7 +579,10 @@ class NotebookApp(BaseIPythonApplication):
         """
         # FIXME: remove this delay when pyzmq dependency is >= 2.1.11
         time.sleep(0.1)
-        sys.stdout.write("Shutdown Notebook Server (y/[n])? ")
+        info = self.log.info
+        info('interrupted')
+        print self.notebook_info()
+        sys.stdout.write("Shutdown this notebook server (y/[n])? ")
         sys.stdout.flush()
         r,w,x = select.select([sys.stdin], [], [], 5)
         if r:
@@ -597,6 +603,9 @@ class NotebookApp(BaseIPythonApplication):
     def _signal_stop(self, sig, frame):
         self.log.critical("received signal %s, stopping", sig)
         ioloop.IOLoop.instance().stop()
+
+    def _signal_info(self, sig, frame):
+        print self.notebook_info()
     
     @catch_config_error
     def initialize(self, argv=None):
@@ -615,12 +624,23 @@ class NotebookApp(BaseIPythonApplication):
         self.log.info('Shutting down kernels')
         self.kernel_manager.shutdown_all()
 
+    def notebook_info(self):
+        "Return the current working directory and the server url information"
+        mgr_info = self.notebook_manager.info_string() + "\n"
+        return mgr_info +"The IPython Notebook is running at: %s" % self._url
+
     def start(self):
+        """ Start the IPython Notebok server app, after initialization
+        
+        This method takes no arguments so all configuration and initialization
+        must be done prior to calling this method."""
         ip = self.ip if self.ip else '[all ip addresses on your system]'
         proto = 'https' if self.certfile else 'http'
         info = self.log.info
-        info("The IPython Notebook is running at: %s://%s:%i%s" %
-             (proto, ip, self.port,self.base_project_url) )
+        self._url = "%s://%s:%i%s" % (proto, ip, self.port,
+                                      self.base_project_url)
+        for line in self.notebook_info().split("\n"):
+            info(line)
         info("Use Control-C to stop this server and shut down all kernels.")
 
         if self.open_browser or self.file_to_run:
