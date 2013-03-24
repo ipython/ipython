@@ -77,8 +77,7 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_cell_magic
-    def prun(self, parameter_s='', cell=None, user_mode=True,
-                   opts=None,arg_lst=None,prog_ns=None, namespace=None):
+    def prun(self, parameter_s='', cell=None):
 
         """Run a statement through the python code profiler.
 
@@ -178,6 +177,11 @@ python-profiler package from non-free.""")
 
           In [1]: import profile; profile.help()
         """
+        return self._run_with_profiler(parameter_s, cell)
+
+    def _run_with_profiler(
+            self, parameter_s='', cell=None, user_mode=True,
+            opts=None, arg_lst=None, prog_ns=None, namespace=None):
 
         opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
 
@@ -563,7 +567,9 @@ python-profiler package from non-free.""")
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self.prun('', code, False, opts, namespace=code_ns)
+                    stats = self._run_with_profiler(
+                        cell=code, user_mode=False, opts=opts,
+                        namespace=code_ns)
                 else:
                     if 'd' in opts:
                         self._run_with_debugger(
