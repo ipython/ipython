@@ -56,7 +56,9 @@ Out[{{cell.prompt_number}}]:
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
 <h{{cell.level}}>
+<a class="heading-anchor" name="{{cell.source}}">
   {{cell.source}}
+</a>
 </h{{cell.level}}>
 </div>
 {% endblock headingcell %}
