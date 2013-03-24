@@ -14,6 +14,14 @@ var IPython = (function (IPython) {
     var utils = IPython.utils;
     var key   = IPython.utils.keycodes;
 
+    /**
+     * A notebook contains and manages cells.
+     * 
+     * @class Notebook
+     * @constructor
+     * @param {String} selector A jQuery selector for the notebook's DOM element
+     * @param {Object} [options] A config object
+     */
     var Notebook = function (selector, options) {
         var options = options || {};
         this._baseProjectUrl = options.baseProjectUrl;
@@ -44,16 +52,30 @@ var IPython = (function (IPython) {
         this.bind_events();
     };
 
-
+    /**
+     * Tweak the notebook's CSS style.
+     * 
+     * @method style
+     */
     Notebook.prototype.style = function () {
         $('div#notebook').addClass('border-box-sizing');
     };
 
+    /**
+     * Get the root URL of the notebook server.
+     * 
+     * @method baseProjectUrl
+     * @return {String} The base project URL
+     */
     Notebook.prototype.baseProjectUrl = function(){
         return this._baseProjectUrl || $('body').data('baseProjectUrl');
     };
 
-
+    /**
+     * Create an HTML and CSS representation of the notebook.
+     * 
+     * @method create_elements
+     */
     Notebook.prototype.create_elements = function () {
         // We add this end_space div to the end of the notebook div to:
         // i) provide a margin between the last cell and the end of the notebook
@@ -70,7 +92,11 @@ var IPython = (function (IPython) {
         $('div#notebook').addClass('border-box-sizing');
     };
 
-
+    /**
+     * Bind JavaScript events: key presses and custom IPython events.
+     * 
+     * @method bind_events
+     */
     Notebook.prototype.bind_events = function () {
         var that = this;
 
@@ -319,6 +345,14 @@ var IPython = (function (IPython) {
         });
     };
 
+    /**
+     * Scroll the top of the page to a given cell.
+     * 
+     * @method scroll_to_cell
+     * @param {Number} cell_number An index of the cell to view
+     * @param {Number} time Animation time in milliseconds
+     * @return {Number} Pixel offset from the top of the container
+     */
     Notebook.prototype.scroll_to_cell = function (cell_number, time) {
         var cells = this.get_cells();
         var time = time || 0;
@@ -329,12 +363,20 @@ var IPython = (function (IPython) {
         return scroll_value;
     };
 
-
+    /**
+     * Scroll to the bottom of the page.
+     * 
+     * @method scroll_to_bottom
+     */
     Notebook.prototype.scroll_to_bottom = function () {
         this.element.animate({scrollTop:this.element.get(0).scrollHeight}, 0);
     };
 
-
+    /**
+     * Scroll to the top of the page.
+     * 
+     * @method scroll_to_top
+     */
     Notebook.prototype.scroll_to_top = function () {
         this.element.animate({scrollTop:0}, 0);
     };
@@ -342,11 +384,23 @@ var IPython = (function (IPython) {
 
     // Cell indexing, retrieval, etc.
 
+    /**
+     * Get all cell elements in the notebook.
+     * 
+     * @method get_cell_elements
+     * @return {jQuery} A selector of all cell elements
+     */
     Notebook.prototype.get_cell_elements = function () {
         return this.element.children("div.cell");
     };
 
-
+    /**
+     * Get a particular cell element.
+     * 
+     * @method get_cell_element
+     * @param {Number} index An index of a cell to select
+     * @return {jQuery} A selector of the given cell.
+     */
     Notebook.prototype.get_cell_element = function (index) {
         var result = null;
         var e = this.get_cell_elements().eq(index);
@@ -356,12 +410,22 @@ var IPython = (function (IPython) {
         return result;
     };
 
-
-    Notebook.prototype.ncells = function (cell) {
+    /**
+     * Count the cells in this notebook.
+     * 
+     * @method ncells
+     * @return {Number} The number of cells in this notebook
+     */
+    Notebook.prototype.ncells = function () {
         return this.get_cell_elements().length;
     };
 
-
+    /**
+     * Get all Cell objects in this notebook.
+     * 
+     * @method get_cells
+     * @return {Array} This notebook's Cell objects
+     */
     // TODO: we are often calling cells as cells()[i], which we should optimize
     // to cells(i) or a new method.
     Notebook.prototype.get_cells = function () {
@@ -370,7 +434,13 @@ var IPython = (function (IPython) {
         });
     };
 
-
+    /**
+     * Get a Cell object from this notebook.
+     * 
+     * @method get_cell
+     * @param {Number} index An index of a cell to retrieve
+     * @return {Cell} A particular cell
+     */
     Notebook.prototype.get_cell = function (index) {
         var result = null;
         var ce = this.get_cell_element(index);
@@ -380,7 +450,13 @@ var IPython = (function (IPython) {
         return result;
     }
 
-
+    /**
+     * Get the cell below a given cell.
+     * 
+     * @method get_next_cell
+     * @param {Cell} cell The provided cell
+     * @return {Cell} The next cell
+     */
     Notebook.prototype.get_next_cell = function (cell) {
         var result = null;
         var index = this.find_cell_index(cell);
@@ -390,8 +466,16 @@ var IPython = (function (IPython) {
         return result;
     }
 
-
+    /**
+     * Get the cell above a given cell.
+     * 
+     * @method get_prev_cell
+     * @param {Cell} cell The provided cell
+     * @return {Cell} The previous cell
+     */
     Notebook.prototype.get_prev_cell = function (cell) {
+        // TODO: off-by-one
+        // nb.get_prev_cell(nb.get_cell(1)) is null
         var result = null;
         var index = this.find_cell_index(cell);
         if (index !== null && index > 1) {
@@ -399,7 +483,14 @@ var IPython = (function (IPython) {
         }
         return result;
     }
-
+    
+    /**
+     * Get the numeric index of a given cell.
+     * 
+     * @method find_cell_index
+     * @param {Cell} cell The provided cell
+     * @return {Number} The cell's numeric index
+     */
     Notebook.prototype.find_cell_index = function (cell) {
         var result = null;
         this.get_cell_elements().filter(function (index) {
@@ -410,7 +501,13 @@ var IPython = (function (IPython) {
         return result;
     };
 
-
+    /**
+     * Get a given index , or the selected index if none is provided.
+     * 
+     * @method index_or_selected
+     * @param {Number} index A cell's index
+     * @return {Number} The given index, or selected index if none is provided.
+     */
     Notebook.prototype.index_or_selected = function (index) {
         var i;
         if (index === undefined || index === null) {
@@ -424,13 +521,23 @@ var IPython = (function (IPython) {
         return i;
     };
 
-
+    /**
+     * Get the currently selected cell.
+     * @method get_selected_cell
+     * @return {Cell} The selected cell
+     */
     Notebook.prototype.get_selected_cell = function () {
         var index = this.get_selected_index();
         return this.get_cell(index);
     };
 
-
+    /**
+     * Check whether a cell index is valid.
+     * 
+     * @method is_valid_cell_index
+     * @param {Number} index A cell index
+     * @return True if the index is valid, false otherwise
+     */
     Notebook.prototype.is_valid_cell_index = function (index) {
         if (index !== null && index >= 0 && index < this.ncells()) {
             return true;
@@ -439,6 +546,12 @@ var IPython = (function (IPython) {
         };
     }
 
+    /**
+     * Get the index of the currently selected cell.
+     
+     * @method get_selected_index
+     * @return {Number} The selected cell's numeric index
+     */
     Notebook.prototype.get_selected_index = function () {
         var result = null;
         this.get_cell_elements().filter(function (index) {
@@ -452,6 +565,13 @@ var IPython = (function (IPython) {
 
     // Cell selection.
 
+    /**
+     * Programmatically select a cell.
+     * 
+     * @method select
+     * @param {Number} index A cell's index
+     * @return {Notebook} This notebook
+     */
     Notebook.prototype.select = function (index) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index()
@@ -473,14 +593,24 @@ var IPython = (function (IPython) {
         return this;
     };
 
-
+    /**
+     * Programmatically select the next cell.
+     *
+     * @method select_next
+     * @return {Notebook} This notebook
+     */
     Notebook.prototype.select_next = function () {
         var index = this.get_selected_index();
         this.select(index+1);
         return this;
     };
 
-
+    /**
+     * Programmatically select the previous cell.
+     *
+     * @method select_prev
+     * @return {Notebook} This notebook
+     */
     Notebook.prototype.select_prev = function () {
         var index = this.get_selected_index();
         this.select(index-1);
@@ -491,9 +621,11 @@ var IPython = (function (IPython) {
     // Cell movement
 
     /**
-     * Move given (or selected) cell up and select it
+     * Move given (or selected) cell up and select it.
+     * 
      * @method move_cell_up
      * @param [index] {integer} cell index
+     * @return {Notebook} This notebook
      **/
     Notebook.prototype.move_cell_up = function (index) {
         var i = this.index_or_selected(index);
@@ -513,8 +645,10 @@ var IPython = (function (IPython) {
 
     /**
      * Move given (or selected) cell down and select it
+     * 
      * @method move_cell_down
      * @param [index] {integer} cell index
+     * @return {Notebook} This notebook
      **/
     Notebook.prototype.move_cell_down = function (index) {
         var i = this.index_or_selected(index);
@@ -534,6 +668,13 @@ var IPython = (function (IPython) {
 
     // Insertion, deletion.
 
+    /**
+     * Delete a cell from the notebook.
+     * 
+     * @method delete_cell
+     * @param [index] A cell's numeric index
+     * @return {Notebook} This notebook
+     */
     Notebook.prototype.delete_cell = function (index) {
         var i = this.index_or_selected(index);
         var cell = this.get_selected_cell();
@@ -556,9 +697,6 @@ var IPython = (function (IPython) {
         return this;
     };
 
-
-
-
     /**
      * Insert a cell so that after insertion the cell is at given index.
      *
@@ -566,6 +704,7 @@ var IPython = (function (IPython) {
      *
      * Index will be brought back into the accissible range [0,n]
      *
+     * @method insert_cell_at_index
      * @param type {string} in ['code','html','markdown','heading']
      * @param [index] {int} a valid index where to inser cell
      *
@@ -605,6 +744,7 @@ var IPython = (function (IPython) {
     /**
      * Insert an element at given cell index.
      *
+     * @method _insert_element_at_index
      * @param element {dom element} a cell element
      * @param [index] {int} a valid index where to inser cell
      * @private
@@ -644,6 +784,7 @@ var IPython = (function (IPython) {
      *
      * default index value is the one of currently selected cell
      *
+     * @method insert_cell_above
      * @param type {string} cell type
      * @param [index] {integer}
      *
@@ -677,7 +818,7 @@ var IPython = (function (IPython) {
      * Insert cell at end of notebook
      *
      * @method insert_cell_at_bottom
-     * @param type {String} cell type
+     * @param {String} type cell type
      *
      * @return the added cell; or null
      **/
@@ -686,8 +827,12 @@ var IPython = (function (IPython) {
         return this.insert_cell_below(type,len-1);
     };
 
-
-
+    /**
+     * Turn a cell into a code cell.
+     * 
+     * @method to_code
+     * @param {Number} [index] A cell's index
+     */
     Notebook.prototype.to_code = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
@@ -709,7 +854,12 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Turn a cell into a Markdown cell.
+     * 
+     * @method to_markdown
+     * @param {Number} [index] A cell's index
+     */
     Notebook.prototype.to_markdown = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
@@ -733,8 +883,14 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Turn a cell into an HTML cell.
+     * 
+     * @method to_html
+     * @param {Number} [index] A cell's index
+     */
     Notebook.prototype.to_html = function (index) {
+        // TODO: remove? This is never called
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
             var source_element = this.get_cell_element(i);
@@ -758,7 +914,12 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Turn a cell into a raw text cell.
+     * 
+     * @method to_raw
+     * @param {Number} [index] A cell's index
+     */
     Notebook.prototype.to_raw = function (index) {
         var i = this.index_or_selected(index);
         if (this.is_valid_cell_index(i)) {
@@ -783,7 +944,13 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Turn a cell into a heading cell.
+     * 
+     * @method to_heading
+     * @param {Number} [index] A cell's index
+     * @param {Number} [level] A heading level (e.g., 1 becomes &lt;h1&gt;)
+     */
     Notebook.prototype.to_heading = function (index, level) {
         level = level || 1;
         var i = this.index_or_selected(index);
@@ -818,6 +985,11 @@ var IPython = (function (IPython) {
 
     // Cut/Copy/Paste
 
+    /**
+     * Enable UI elements for pasting cells.
+     * 
+     * @method enable_paste
+     */
     Notebook.prototype.enable_paste = function () {
         var that = this;
         if (!this.paste_enabled) {
@@ -831,7 +1003,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Disable UI elements for pasting cells.
+     * 
+     * @method disable_paste
+     */
     Notebook.prototype.disable_paste = function () {
         if (this.paste_enabled) {
             $('#paste_cell_replace').addClass('ui-state-disabled').off('click');
@@ -841,19 +1017,32 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Cut a cell.
+     * 
+     * @method cut_cell
+     */
     Notebook.prototype.cut_cell = function () {
         this.copy_cell();
         this.delete_cell();
     }
 
+    /**
+     * Copy a cell.
+     * 
+     * @method copy_cell
+     */
     Notebook.prototype.copy_cell = function () {
         var cell = this.get_selected_cell();
         this.clipboard = cell.toJSON();
         this.enable_paste();
     };
 
-
+    /**
+     * Replace the selected cell with a cell in the clipboard.
+     * 
+     * @method paste_cell_replace
+     */
     Notebook.prototype.paste_cell_replace = function () {
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
@@ -865,7 +1054,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Paste a cell from the clipboard above the selected cell.
+     * 
+     * @method paste_cell_above
+     */
     Notebook.prototype.paste_cell_above = function () {
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
@@ -874,7 +1067,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Paste a cell from the clipboard below the selected cell.
+     * 
+     * @method paste_cell_below
+     */
     Notebook.prototype.paste_cell_below = function () {
         if (this.clipboard !== null && this.paste_enabled) {
             var cell_data = this.clipboard;
@@ -885,6 +1082,11 @@ var IPython = (function (IPython) {
 
     // Cell undelete
 
+    /**
+     * Restore the most recently deleted cell.
+     * 
+     * @method undelete
+     */
     Notebook.prototype.undelete = function() {
         if (this.undelete_backup !== null && this.undelete_index !== null) {
             var current_index = this.get_selected_index();
@@ -914,6 +1116,11 @@ var IPython = (function (IPython) {
 
     // Split/merge
 
+    /**
+     * Split the selected cell into two, at the cursor.
+     * 
+     * @method split_cell
+     */
     Notebook.prototype.split_cell = function () {
         // Todo: implement spliting for other cell types.
         var cell = this.get_selected_cell();
@@ -942,7 +1149,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Combine the selected cell into the cell above it.
+     * 
+     * @method merge_cell_above
+     */
     Notebook.prototype.merge_cell_above = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
@@ -962,7 +1173,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Combine the selected cell into the cell below it.
+     * 
+     * @method merge_cell_below
+     */
     Notebook.prototype.merge_cell_below = function () {
         var index = this.get_selected_index();
         var cell = this.get_cell(index);
@@ -985,33 +1200,57 @@ var IPython = (function (IPython) {
 
     // Cell collapsing and output clearing
 
+    /**
+     * Hide a cell's output.
+     * 
+     * @method collapse
+     * @param {Number} index A cell's numeric index
+     */
     Notebook.prototype.collapse = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).collapse();
         this.dirty = true;
     };
 
-
+    /**
+     * Show a cell's output.
+     * 
+     * @method expand
+     * @param {Number} index A cell's numeric index
+     */
     Notebook.prototype.expand = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).expand();
         this.dirty = true;
     };
 
-
+    /** Toggle whether a cell's output is collapsed or expanded.
+     * 
+     * @method toggle_output
+     * @param {Number} index A cell's numeric index
+     */
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).toggle_output();
         this.dirty = true;
     };
 
-
+    /**
+     * Toggle a scrollbar for long cell outputs.
+     * 
+     * @method toggle_output_scroll
+     * @param {Number} index A cell's numeric index
+     */
     Notebook.prototype.toggle_output_scroll = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).toggle_output_scroll();
     };
 
-
+    /**
+     * Hide each code cell's output area.
+     * 
+     * @method collapse_all_output
+     */
     Notebook.prototype.collapse_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -1024,7 +1263,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
-
+    /**
+     * Expand each code cell's output area, and add a scrollbar for long output.
+     * 
+     * @method scroll_all_output
+     */
     Notebook.prototype.scroll_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -1038,7 +1281,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
-
+    /**
+     * Expand each code cell's output area, and remove scrollbars.
+     * 
+     * @method expand_all_output
+     */
     Notebook.prototype.expand_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -1052,7 +1299,11 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
-
+    /**
+     * Clear each code cell's output area.
+     * 
+     * @method clear_all_output
+     */
     Notebook.prototype.clear_all_output = function () {
         var ncells = this.ncells();
         var cells = this.get_cells();
@@ -1070,12 +1321,22 @@ var IPython = (function (IPython) {
 
     // Other cell functions: line numbers, ...
 
+    /**
+     * Toggle line numbers in the selected cell's input area.
+     * 
+     * @method cell_toggle_line_numbers
+     */
     Notebook.prototype.cell_toggle_line_numbers = function() {
         this.get_selected_cell().toggle_line_numbers();
     };
 
     // Kernel related things
 
+    /**
+     * Start a new kernel and set it on each code cell.
+     * 
+     * @method start_kernel
+     */
     Notebook.prototype.start_kernel = function () {
         var base_url = $('body').data('baseKernelUrl') + "kernels";
         this.kernel = new IPython.Kernel(base_url);
@@ -1090,7 +1351,11 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Prompt the user to restart the IPython kernel.
+     * 
+     * @method restart_kernel
+     */
     Notebook.prototype.restart_kernel = function () {
         var that = this;
         var dialog = $('<div/>');
@@ -1113,7 +1378,14 @@ var IPython = (function (IPython) {
         });
     };
 
-
+    /**
+     * Run the selected cell.
+     * 
+     * This executes code cells, and skips all others.
+     * 
+     * @method execute_selected_cell
+     * @param {Object} options Customize post-execution behavior
+     */
     Notebook.prototype.execute_selected_cell = function (options) {
         // add_new: should a new cell be added if we are at the end of the nb
         // terminal: execute in terminal mode, which stays in the current cell
@@ -1141,21 +1413,42 @@ var IPython = (function (IPython) {
         this.dirty = true;
     };
 
-
+    /**
+     * Execute all cells below the selected cell.
+     * 
+     * @method execute_cells_below
+     */
     Notebook.prototype.execute_cells_below = function () {
         this.execute_cell_range(this.get_selected_index(), this.ncells());
         this.scroll_to_bottom();
     };
 
+    /**
+     * Execute all cells above the selected cell.
+     * 
+     * @method execute_cells_above
+     */
     Notebook.prototype.execute_cells_above = function () {
         this.execute_cell_range(0, this.get_selected_index());
     };
 
+    /**
+     * Execute all cells.
+     * 
+     * @method execute_all_cells
+     */
     Notebook.prototype.execute_all_cells = function () {
         this.execute_cell_range(0, this.ncells());
         this.scroll_to_bottom();
     };
 
+    /**
+     * Execute a contiguous range of cells.
+     * 
+     * @method execute_cell_range
+     * @param {Number} start Index of the first cell to execute (inclusive)
+     * @param {Number} end Index of the last cell to execute (exclusive)
+     */
     Notebook.prototype.execute_cell_range = function (start, end) {
         for (var i=start; i<end; i++) {
             this.select(i);
@@ -1165,21 +1458,43 @@ var IPython = (function (IPython) {
 
     // Persistance and loading
 
+    /**
+     * Getter method for this notebook's ID.
+     * 
+     * @method get_notebook_id
+     * @return {String} This notebook's ID
+     */
     Notebook.prototype.get_notebook_id = function () {
         return this.notebook_id;
     };
 
-
+    /**
+     * Getter method for this notebook's name.
+     * 
+     * @method get_notebook_name
+     * @return {String} This notebook's name
+     */
     Notebook.prototype.get_notebook_name = function () {
         return this.notebook_name;
     };
 
-
+    /**
+     * Setter method for this notebook's name.
+     *
+     * @method set_notebook_name
+     * @param {String} name A new name for this notebook
+     */
     Notebook.prototype.set_notebook_name = function (name) {
         this.notebook_name = name;
     };
 
-
+    /**
+     * Check that a notebook's name is valid.
+     * 
+     * @method test_notebook_name
+     * @param {String} nbname A name for this notebook
+     * @return {Boolean} True if the name is valid, false if invalid
+     */
     Notebook.prototype.test_notebook_name = function (nbname) {
         nbname = nbname || '';
         if (this.notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
@@ -1189,7 +1504,14 @@ var IPython = (function (IPython) {
         };
     };
 
-
+    /**
+     * Load a notebook from JSON (.ipynb).
+     * 
+     * This currently handles one worksheet: others are deleted.
+     * 
+     * @method fromJSON
+     * @param {Object} data JSON representation of a notebook
+     */
     Notebook.prototype.fromJSON = function (data) {
         var ncells = this.ncells();
         var i;
@@ -1245,7 +1567,12 @@ var IPython = (function (IPython) {
         }
     };
 
-
+    /**
+     * Dump this notebook into a JSON-friendly object.
+     * 
+     * @method toJSON
+     * @return {Object} A JSON-friendly representation of this notebook.
+     */
     Notebook.prototype.toJSON = function () {
         var cells = this.get_cells();
         var ncells = cells.length;
@@ -1264,6 +1591,11 @@ var IPython = (function (IPython) {
         return data;
     };
 
+    /**
+     * Save this notebook on the server.
+     * 
+     * @method save_notebook
+     */
     Notebook.prototype.save_notebook = function () {
         // We may want to move the name/id/nbformat logic inside toJSON?
         var data = this.toJSON();
@@ -1285,18 +1617,37 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
 
-
+    /**
+     * Success callback for saving a notebook.
+     * 
+     * @method save_notebook_success
+     * @param {Object} data JSON representation of a notebook
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
     Notebook.prototype.save_notebook_success = function (data, status, xhr) {
         this.dirty = false;
         $([IPython.events]).trigger('notebook_saved.Notebook');
     };
 
-
+    /**
+     * Failure callback for saving a notebook.
+     * 
+     * @method save_notebook_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} status Description of response status
+     * @param {String} error_msg HTTP error message
+     */
     Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook');
     };
 
-
+    /**
+     * Request a notebook's data from the server.
+     * 
+     * @method load_notebook
+     * @param {String} notebook_id A notebook to load
+     */
     Notebook.prototype.load_notebook = function (notebook_id) {
         var that = this;
         this.notebook_id = notebook_id;
@@ -1314,7 +1665,16 @@ var IPython = (function (IPython) {
         $.ajax(url, settings);
     };
 
-
+    /**
+     * Success callback for loading a notebook from the server.
+     * 
+     * Load notebook data from the JSON response.
+     * 
+     * @method load_notebook_success
+     * @param {Object} data JSON representation of a notebook
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
         this.fromJSON(data);
         if (this.ncells() === 0) {
@@ -1380,7 +1740,14 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
 
-
+    /**
+     * Failure callback for loading a notebook from the server.
+     * 
+     * @method load_notebook_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} textStatus Description of response status
+     * @param {String} errorThrow HTTP error message
+     */
     Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
         if (xhr.status === 500) {
             var msg = "An error occurred while loading this notebook. Most likely " +
