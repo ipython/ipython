@@ -517,12 +517,12 @@ var IPython = (function (IPython) {
         var r = this.element.find("div.text_cell_render");
         r.empty();
         r.append(
-            $('<a/>')
-            .addClass('heading-link')
-            .attr('href', '#' + text)
-            .attr('name', text)
+            $('<h'+this.level+'/>')
             .append(
-                $('<h'+this.level+'/>')
+            $('<a/>')
+                .addClass('heading-link')
+                .attr('href', '#' + text)
+                .attr('name', text)
                 .html(text)
             )
         );
