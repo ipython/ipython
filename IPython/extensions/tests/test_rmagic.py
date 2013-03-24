@@ -1,7 +1,10 @@
+from StringIO import StringIO
+
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
+from rpy2 import rinterface
 import nose.tools as nt
 
 ip = get_ipython()
@@ -36,10 +39,19 @@ def test_push_dataframe():
     df = DataFrame([{'a': 1, 'b': 'bar'}, {'a': 5, 'b': 'foo', 'c': 20}])
     ip.push({'df':df})
     ip.run_line_magic('Rpush', 'df')
-    # Values come packaged in arrays, so we unbox them to test.
-    nt.assert_equal(rm.r('df$b[1]')[0], 'bar')
-    nt.assert_equal(rm.r('df$a[2]')[0], 5)
     
+    # This is converted to factors, which are currently converted back to Python
+    # as integers, so for now we test its representation in R.
+    sio = StringIO()
+    rinterface.set_writeconsole(sio.write)
+    try:
+        rm.r('print(df$b[1])')
+        nt.assert_in('[1] bar', sio.getvalue())
+    finally:
+        rinterface.set_writeconsole(None)
+    
+    # Values come packaged in arrays, so we unbox them to test.
+    nt.assert_equal(rm.r('df$a[2]')[0], 5)
     missing = rm.r('df$c[1]')[0]
     assert np.isnan(missing), missing
 
