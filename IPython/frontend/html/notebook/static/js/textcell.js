@@ -520,7 +520,7 @@ var IPython = (function (IPython) {
             $('<h'+this.level+'/>')
             .append(
             $('<a/>')
-                .addClass('heading-link')
+                .addClass('heading-anchor')
                 .attr('href', '#' + text)
                 .attr('name', text)
                 .html(text)
