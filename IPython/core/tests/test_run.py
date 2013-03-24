@@ -378,7 +378,7 @@ class TestMagicRunWithPackage(unittest.TestCase):
 
     def tearDown(self):
         os.chdir(self.__orig_cwd)
-        sys.path[:] = filter(lambda x: x != self.tempdir.name, sys.path)
+        sys.path[:] = [p for p in sys.path if p != self.tempdir.name]
         self.tempdir.cleanup()
 
     def check_run_submodule(self, submodule, opts=''):
