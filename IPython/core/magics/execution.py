@@ -183,13 +183,13 @@ python-profiler package from non-free.""")
             arg_str += '\n' + cell
         return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
-    def _run_with_profiler(self, arg_str, opts, namespace):
+    def _run_with_profiler(self, code, opts, namespace):
 
         opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
 
         prof = profile.Profile()
         try:
-            prof = prof.runctx(arg_str,namespace,namespace)
+            prof = prof.runctx(code, namespace, namespace)
             sys_exit = ''
         except SystemExit:
             sys_exit = """*** SystemExit exception caught in code being profiled."""
