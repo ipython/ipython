@@ -647,8 +647,7 @@ python-profiler package from non-free.""")
                        "after trying up to line: %s.\n"
                        "Please set a valid breakpoint manually "
                        "with the -b option." % bp)
-                error(msg)
-                return
+                raise UsageError(msg)
         # if we find a good linenumber, set the breakpoint
         deb.do_break('%s:%s' % (bp_file, bp_line))
 
