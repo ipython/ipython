@@ -550,7 +550,9 @@ class NotebookApp(BaseIPythonApplication):
             # but it will work
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
-        signal.signal(signal.SIGUSR1, self._signal_info)
+        if hasattr(signal, 'SIGUSR1'):
+            # Windows doesn't support SIGUSR1
+            signal.signal(signal.SIGUSR1, self._signal_info)
         if hasattr(signal, 'SIGINFO'):
             # only on BSD-based systems
             signal.signal(signal.SIGINFO, self._signal_info)
