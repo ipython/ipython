@@ -13,31 +13,23 @@
 </div>
 {% endblock input_group %}
 
-{% block outputs -%}
-{{ super() }}
-{% endblock outputs %}
-
-{% block output_group -%}
-<div class="output vbox">
+{% block output_group %}
 <div class="vbox output_wrapper">
-<div class="hbox output_area">
+<div class="output vbox">
 {{ super() }}
-</div>
 </div>
 </div>
 {% endblock output_group %}
-
 
 {% block in_prompt -%}
 <div class="prompt input_prompt">In&nbsp;[{{cell.prompt_number}}]:</div>
 {%- endblock in_prompt %}
 
-{% block output_prompt -%}
-<div class="prompt output_prompt">
-{%- if cell.haspyout -%}
-Out[{{cell.prompt_number}}]:
-{%- endif -%}
-</div>
+{# 
+  output_prompt doesn't do anything in HTML,
+  because there is a prompt div in each output area (see output block)
+#}
+{% block output_prompt %}
 {% endblock output_prompt %}
 
 {% block input %}
@@ -46,6 +38,18 @@ Out[{{cell.prompt_number}}]:
 </div>
 {%- endblock input %}
 
+{% block output %}
+<div class="hbox output_area">
+{%- if output.output_type == 'pyout' -%}
+<div class="prompt output_prompt">
+Out[{{cell.prompt_number}}]:
+{%- else -%}
+<div class="prompt">
+{%- endif -%}
+</div>
+{{ super() }}
+</div>
+{% endblock output %}
 
 {% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">

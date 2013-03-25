@@ -5,11 +5,11 @@ IF YOU ARE COPY AND PASTING THIS FILE
 YOU ARE PROBABLY DOING THINGS WRONG.
 
 Null template, Does nothing except defining a basic structure
-To layout the diferents blocks of a notebook.
+To layout the different blocks of a notebook.
 
-Subtemplates can Override Blocks to define their custom reresentation.
+Subtemplates can override blocks to define their custom representation.
 
-If one of the block you do overrite is not a leave block, consider
+If one of the block you do overwrite is not a leave block, consider
 calling super.
 
 {%- block nonLeaveBlock -%}
@@ -18,7 +18,7 @@ calling super.
     #add stuff at end
 {%- endblock nonLeaveBlock -%}
 
-consider calling super even if block is leave block, we might insert more block later.
+consider calling super even if it is a leave block, we might insert more blocks later.
 
 #}
 {%- block header -%}
@@ -33,11 +33,12 @@ consider calling super even if block is leave block, we might insert more block 
                         {%- block in_prompt -%}{%- endblock in_prompt -%}
                         {%- block input -%}{%- endblock input -%}
                     {%- endblock input_group -%}
-                        {%- if cell.outputs -%}
+                    {%- if cell.outputs -%}
                     {%- block output_group -%}
-                            {%- block output_prompt -%}{%- endblock output_prompt -%}
-                            {%- block outputs -%}
-                                {%- for output in cell.outputs -%}
+                        {%- block output_prompt -%}{%- endblock output_prompt -%}
+                        {%- block outputs scoped -%}
+                            {%- for output in cell.outputs -%}
+                                {%- block output scoped -%}
                                     {%- if output.output_type in ['pyout'] -%}
                                         {%- block pyout scoped -%}{%- endblock pyout -%}
                                     {%- elif output.output_type in ['stream'] -%}
@@ -62,10 +63,11 @@ consider calling super even if block is leave block, we might insert more block 
                                         {%- endfor -%}
                                         {%- endblock pyerr -%}
                                     {%- endif -%}
-                                {%- endfor -%}
-                            {%- endblock outputs -%}
+                                {%- endblock output -%}
+                            {%- endfor -%}
+                        {%- endblock outputs -%}
                     {%- endblock output_group -%}
-                        {%- endif -%}
+                    {%- endif -%}
                 {%- endblock codecell -%}
             {%- elif cell.type in ['markdown'] -%}
                 {%- block markdowncell scoped-%}
