@@ -12,7 +12,7 @@
 #-----------------------------------------------------------------------------
 
 # Our own packages
-from IPython.core.display import display, Javascript, Latex, SVG
+from IPython.core.display import display, Javascript, Latex, SVG, HTML
 from IPython.core.magic import  (
     Magics, magics_class, cell_magic
 )
@@ -45,3 +45,8 @@ class DisplayMagics(Magics):
     def svg(self, line, cell):
         """Render the cell as an SVG literal"""
         display(SVG(cell))
+
+    @cell_magic
+    def html(self, line, cell):
+        """Render the cell as an SVG literal"""
+        display(HTML(cell))
