@@ -849,7 +849,7 @@ a.label:hover,a.badge:hover{color:#ffffff;text-decoration:none;cursor:pointer;}
 .corner-all{border-radius:4px;}
 .hbox{display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
 .hbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;}
-.vbox{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;}
+.vbox{display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}
 .vbox>*{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;}
 .reverse{-webkit-box-direction:reverse;-moz-box-direction:reverse;box-direction:reverse;}
 .box-flex0{-webkit-box-flex:0;-moz-box-flex:0;box-flex:0;}
