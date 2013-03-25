@@ -29,7 +29,7 @@ First, cd into js directory :
 ```bash
 cd IPython/frontend/html/notebook/static/js/
 # install yuidoc
-npm install yuidoc
+npm install yuidocjs
 ```
 
 
