@@ -176,15 +176,15 @@ class SphinxTransformer(ActivatableTransformer):
         response = response.strip().lower()
         
         #Catch 1, true, yes as True
-        if (response == "1" or response[0] == "t" or response[0] == "y"):
+        if len(response) > 0 and (response == "1" or response[0] == "t" or response[0] == "y"):
             return True
         
         #Catch 0, false, no as False
-        elif (response == "0" or response[0] == "f" or response[0] == "n"):
+        elif len(response) > 0 and (response == "0" or response[0] == "f" or response[0] == "n"):
             return False
             
         else:
-            return Default
+            return default
         
     def _prompt_output_style(self):
         
