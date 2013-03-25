@@ -403,7 +403,7 @@ class Hub(SessionFactory):
         """
 
         super(Hub, self).__init__(**kwargs)
-        self.registration_timeout = max(5000, 2*self.heartmonitor.period)
+        self.registration_timeout = max(10000, 5*self.heartmonitor.period)
 
         # register our callbacks
         self.query.on_recv(self.dispatch_query)
