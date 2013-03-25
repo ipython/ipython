@@ -67,11 +67,11 @@ class SphinxTransformer(ActivatableTransformer):
         "Sonny"    (used for international documents)
     """)
     
-    output_style = Unicode("simple", config=True, help="""Nbconvert Ipython
+    output_style = Unicode("notebook", config=True, help="""Nbconvert Ipython
     notebook input/output formatting style.
     You may choose one of the following:
-        "simple"    (default)
-        "notebook"  (similar to the notebook)
+        "simple     (recommended for long code segments)"
+        "notebook"  (default)
     """)
     
     center_output = Bool(False, config=True, help="""
@@ -193,10 +193,10 @@ class SphinxTransformer(ActivatableTransformer):
                   2: "notebook"}
         
         #Append comments to the menu when displaying it to the user.
-        comments = {1: "(default)",
-                    2: "(similar to the notebook)"}
+        comments = {1: "(recommended for long code segments)",
+                    2: "(default)"}
         
-        return self._prompt_dictionary(styles, menu_comments=comments)
+        return self._prompt_dictionary(styles, default_style=2, menu_comments=comments)
     
     def _prompt_chapter_title_style(self):
         
