@@ -70,7 +70,11 @@ Note: For best display, use latex syntax highlighting. =))
     \usepackage{color}
 
     % Needed to box output/input
-    \usepackage{mdframed}
+    \usepackage{tikz}
+        \usetikzlibrary{calc,arrows,shadows}
+    \usepackage[framemethod=tikz]{mdframed}
+
+
     \usepackage{alltt}
 
     % Used to load and display graphics
@@ -89,12 +93,34 @@ Note: For best display, use latex syntax highlighting. =))
 
     %Set pygments styles if needed...
     ((* if resources.sphinx.outputstyle == 'notebook' *))
-        \definecolor{nbframe-border}{rgb}{0.8,0.8,0.8}
-        \definecolor{nbframe-bg}{rgb}{0.95,0.95,0.95}
-        \definecolor{nbframe-prompt}{rgb}{0.05,0.05,0.3}
+        \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
+        \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
+        \definecolor{nbframe-in-prompt}{rgb}{0.0,0.0,0.502}
+        \definecolor{nbframe-out-prompt}{rgb}{0.545,0.0,0.0}
 
         \newenvironment{ColorVerbatim}
-        {\begin{mdframed}[backgroundcolor=nbframe-bg, userdefinedwidth=1\linewidth, leftmargin=0.08\linewidth, linecolor=nbframe-border, linewidth=1pt, usetwoside=false]}
+        {\begin{mdframed}[%
+            roundcorner=1.0pt, %
+            backgroundcolor=nbframe-bg, %
+            userdefinedwidth=1\linewidth, %
+            leftmargin=0.1\linewidth, %
+            innerleftmargin=0pt, %
+            innerrightmargin=0pt, %
+            linecolor=nbframe-border, %
+            linewidth=1pt, %
+            usetwoside=false, %
+            everyline=true, %
+            innerlinewidth=3pt, %
+            innerlinecolor=nbframe-bg, %
+            middlelinewidth=1pt, %
+            middlelinecolor=nbframe-bg, %
+            outerlinewidth=0.5pt, %
+            outerlinecolor=nbframe-border %
+        ]}
+        {\end{mdframed}}
+        
+        \newenvironment{InvisibleVerbatim}
+        {\begin{mdframed}[leftmargin=0.1\linewidth,innerleftmargin=3pt,innerrightmargin=3pt, userdefinedwidth=1\linewidth, linewidth=0pt, linecolor=white, usetwoside=false]}
         {\end{mdframed}}
 
         \renewenvironment{Verbatim}[1][\unskip]
@@ -238,11 +264,12 @@ Note: For best display, use latex syntax highlighting. =))
         ((( cell.input | highlight )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \vspace{5pt}
-        {\color{nbframe-prompt}\textbf{In {[}((( cell.prompt_number ))){]}:}}\\*
-        \vspace{-2.6\baselineskip}
+        \vspace{8pt}
+        \makebox[0.1\linewidth]{\hfill\tt\color{nbframe-in-prompt}In{[}((( cell.prompt_number ))){]}:}\\*
+        \vspace{-3pt}
+        \vspace{-2.55\baselineskip}
         \begin{ColorVerbatim}
-            \vspace{-0.5\baselineskip}
+            \vspace{-0.6\baselineskip}
             ((( cell.input | highlight )))
         \end{ColorVerbatim}
     ((* endif *))
@@ -276,19 +303,14 @@ Note: For best display, use latex syntax highlighting. =))
 
             % Add remainer of the document contents below.
             ((* for output in cell.outputs[1:] *))
-                ((( render_output(output) )))
+                ((( render_output(output, cell.prompt_number) )))
             ((* endfor *))
         ((* elif resources.sphinx.outputstyle == 'notebook' *))
 
-            %Skip one line down.
-            \vspace{1\baselineskip}
-
             % Add document contents.
-            \begin{ColorVerbatim}
-                ((* for output in cell.outputs *))
-                    ((( render_output(output) )))
-                ((* endfor *))
-            \end{ColorVerbatim}
+            ((* for output in cell.outputs *))
+                ((( render_output(output, cell.prompt_number) )))
+            ((* endfor *))
         ((* endif *))
     ((* endif *))
 ((* endblock *))
@@ -315,8 +337,9 @@ Note: For best display, use latex syntax highlighting. =))
     ((( center_output(insert_graphics(output.key_svg)) )))
 ((*- endblock -*))
 
-((*- block data_latex -*))
-    ((( center_output(output.latex | rm_math_space) )))
+((*- block data_latex *))
+    \vspace{-1\baselineskip}
+    ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
 ((*- endblock -*))
 
 %==============================================================================
@@ -325,15 +348,30 @@ Note: For best display, use latex syntax highlighting. =))
 
 % Name: render_output
 % Purpose: Renders an output block appropriately.
-((* macro render_output(output) -*))
+((* macro render_output(output, prompt_number) -*))
     ((*- if output.output_type == 'pyerr' -*))
         ((*- block pyerr scoped *))
             ((( custom_verbatim(super()) )))
         ((* endblock pyerr -*))
     ((*- else -*))
+
+        ((* if resources.sphinx.outputstyle == 'notebook' *))
+            ((*- if output.output_type == 'pyout' -*))
+                \makebox[0.1\linewidth]{\hfill\tt\color{nbframe-out-prompt}Out{[}((( prompt_number ))){]}:}\\*
+                \vspace{-2.55\baselineskip}
+            ((*- endif -*))
+
+            \begin{InvisibleVerbatim}
+                \vspace{-0.5\baselineskip}
+        ((*- endif -*))
+
         ((*- block display_data scoped -*))
             ((( super() )))
         ((*- endblock display_data -*))
+
+        ((* if resources.sphinx.outputstyle == 'notebook' *))
+            \end{InvisibleVerbatim}
+        ((*- endif -*))
     ((*- endif -*))
 ((*- endmacro *))
 
