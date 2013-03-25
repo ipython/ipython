@@ -414,7 +414,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
-    \includegraphics[max width=0.7\textwidth]{(((path)))}
+    \includegraphics[max width=1.0\textwidth]{(((path)))}
     \par
     \end{center}
 ((*- endmacro *))
