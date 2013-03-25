@@ -38,3 +38,5 @@ Backwards incompatible changes
   event loops are no longer exposed in the top level of :mod:`IPython.lib`.
   Code calling these should make sure to import them from
   :mod:`IPython.lib.inputhook`.
+* For all kernel managers, the ``sub_channel`` attribute has been renamed to
+  ``iopub_channel``.
