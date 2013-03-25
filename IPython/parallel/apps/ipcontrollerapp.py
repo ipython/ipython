@@ -54,18 +54,27 @@ from IPython.kernel.zmq.session import (
 from IPython.parallel.controller.heartmonitor import HeartMonitor
 from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
-from IPython.parallel.controller.sqlitedb import SQLiteDB
+from IPython.parallel.controller.dictdb import DictDB
 
 from IPython.parallel.util import split_url, disambiguate_url
 
-# conditional import of MongoDB backend class
+# conditional import of SQLiteDB / MongoDB backend class
+real_dbs = []
+
+try:
+    from IPython.parallel.controller.sqlitedb import SQLiteDB
+except ImportError:
+    pass
+else:
+    real_dbs.append(SQLiteDB)
 
 try:
     from IPython.parallel.controller.mongodb import MongoDB
 except ImportError:
-    maybe_mongo = []
+    pass
 else:
-    maybe_mongo = [MongoDB]
+    real_dbs.append(MongoDB)
+
 
 
 #-----------------------------------------------------------------------------
@@ -148,7 +157,7 @@ class IPControllerApp(BaseParallelApplication):
     description = _description
     examples = _examples
     config_file_name = Unicode(default_config_file_name)
-    classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, SQLiteDB] + maybe_mongo
+    classes = [ProfileDir, Session, HubFactory, TaskScheduler, HeartMonitor, DictDB] + real_dbs
     
     # change default to True
     auto_create = Bool(True, config=True,
