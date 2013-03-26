@@ -108,7 +108,12 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     flags = Dict(kernel_flags)
     classes = [Kernel, ZMQInteractiveShell, ProfileDir, Session]
     # the kernel class, as an importstring
-    kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel')
+    kernel_class = DottedObjectName('IPython.kernel.zmq.ipkernel.Kernel', config=True,
+    help="""The Kernel subclass to be used.
+    
+    This should allow easy re-use of the IPKernelApp entry point
+    to configure and launch kernels other than IPython's own.
+    """)
     kernel = Any()
     poller = Any() # don't restrict this even though current pollers are all Threads
     heartbeat = Instance(Heartbeat)
@@ -348,8 +353,10 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def init_kernel(self):
         """Create the Kernel object itself"""
         shell_stream = ZMQStream(self.shell_socket)
+        
+        kernel_factory = import_item(str(self.kernel_class))
 
-        kernel = Kernel(config=self.config, session=self.session,
+        kernel = kernel_factory(config=self.config, session=self.session,
                                 shell_streams=[shell_stream],
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
