@@ -22,7 +22,6 @@ import os
 import uuid
 
 import zmq
-from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
@@ -36,6 +35,23 @@ from IPython.utils.traitlets import (
 
 class DuplicateKernelError(Exception):
     pass
+
+
+
+def kernel_method(f):
+    """decorator for proxying MKM.method(kernel_id) to individual KMs by ID"""
+    def wrapped(self, kernel_id, *args, **kwargs):
+        # get the kernel
+        km = self.get_kernel(kernel_id)
+        method = getattr(km, f.__name__)
+        # call the kernel's method
+        r = method(*args, **kwargs)
+        # last thing, call anything defined in the actual class method
+        # such as logging messages
+        f(self, kernel_id, *args, **kwargs)
+        # return the method result
+        return r
+    return wrapped
 
 
 class MultiKernelManager(LoggingConfigurable):
@@ -100,6 +116,7 @@ class MultiKernelManager(LoggingConfigurable):
         self._kernels[kernel_id] = km
         return kernel_id
 
+    @kernel_method
     def shutdown_kernel(self, kernel_id, now=False):
         """Shutdown a kernel by its kernel uuid.
 
@@ -110,8 +127,7 @@ class MultiKernelManager(LoggingConfigurable):
         now : bool
             Should the kernel be shutdown forcibly using a signal.
         """
-        k = self.get_kernel(kernel_id)
-        k.shutdown_kernel(now=now)
+        self.log.info("Kernel shutdown: %s" % kernel_id)
         del self._kernels[kernel_id]
 
     def shutdown_all(self, now=False):
@@ -119,6 +135,7 @@ class MultiKernelManager(LoggingConfigurable):
         for kid in self.list_kernel_ids():
             self.shutdown_kernel(kid, now=now)
 
+    @kernel_method
     def interrupt_kernel(self, kernel_id):
         """Interrupt (SIGINT) the kernel by its uuid.
 
@@ -127,8 +144,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to interrupt.
         """
-        return self.get_kernel(kernel_id).interrupt_kernel()
+        self.log.info("Kernel interrupted: %s" % kernel_id)
 
+    @kernel_method
     def signal_kernel(self, kernel_id, signum):
         """Sends a signal to the kernel by its uuid.
 
@@ -140,8 +158,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to signal.
         """
-        return self.get_kernel(kernel_id).signal_kernel(signum)
+        self.log.info("Signaled Kernel %s with %s" % (kernel_id, signum))
 
+    @kernel_method
     def restart_kernel(self, kernel_id):
         """Restart a kernel by its uuid, keeping the same ports.
 
@@ -150,9 +169,9 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to interrupt.
         """
-        km = self.get_kernel(kernel_id)
-        km.restart_kernel()
+        self.log.info("Kernel restarted: %s" % kernel_id)
 
+    @kernel_method
     def is_alive(self, kernel_id):
         """Is the kernel alive.
 
@@ -164,7 +183,11 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel.
         """
-        return self.get_kernel(kernel_id).is_alive()
+
+    def _check_kernel_id(self, kernel_id):
+        """check that a kernel id is valid"""
+        if kernel_id not in self:
+            raise KeyError("Kernel with id not found: %s" % kernel_id)
 
     def get_kernel(self, kernel_id):
         """Get the single KernelManager object for a kernel by its uuid.
@@ -174,12 +197,10 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel.
         """
-        km = self._kernels.get(kernel_id)
-        if km is not None:
-            return km
-        else:
-            raise KeyError("Kernel with id not found: %s" % kernel_id)
+        self._check_kernel_id(kernel_id)
+        return self._kernels[kernel_id]
 
+    @kernel_method
     def get_connection_info(self, kernel_id):
         """Return a dictionary of connection data for a kernel.
 
@@ -196,35 +217,10 @@ class MultiKernelManager(LoggingConfigurable):
             numbers of the different channels (stdin_port, iopub_port,
             shell_port, hb_port).
         """
-        km = self.get_kernel(kernel_id)
-        return dict(transport=km.transport,
-                    ip=km.ip,
-                    shell_port=km.shell_port,
-                    iopub_port=km.iopub_port,
-                    stdin_port=km.stdin_port,
-                    hb_port=km.hb_port,
-        )  
 
-    def _make_url(self, transport, ip, port):
-        """Make a ZeroMQ URL for a given transport, ip and port."""
-        if transport == 'tcp':
-            return "tcp://%s:%i" % (ip, port)
-        else:
-            return "%s://%s-%s" % (transport, ip, port)
-
-    def _create_connected_stream(self, kernel_id, socket_type, channel):
-        """Create a connected ZMQStream for a kernel."""
-        cinfo = self.get_connection_info(kernel_id)
-        url = self._make_url(cinfo['transport'], cinfo['ip'],
-                cinfo['%s_port' % channel]
-        )
-        sock = self.context.socket(socket_type)
-        self.log.info("Connecting to: %s" % url)
-        sock.connect(url)
-        return ZMQStream(sock)
-
-    def create_iopub_stream(self, kernel_id):
-        """Return a ZMQStream object connected to the iopub channel.
+    @kernel_method
+    def connect_iopub(self, kernel_id):
+        """Return a zmq Socket connected to the iopub channel.
 
         Parameters
         ==========
@@ -233,14 +229,12 @@ class MultiKernelManager(LoggingConfigurable):
 
         Returns
         =======
-        stream : ZMQStream
+        stream : zmq Socket or ZMQStream
         """
-        iopub_stream = self._create_connected_stream(kernel_id, zmq.SUB, 'iopub')
-        iopub_stream.socket.setsockopt(zmq.SUBSCRIBE, b'')
-        return iopub_stream
 
-    def create_shell_stream(self, kernel_id):
-        """Return a ZMQStream object connected to the shell channel.
+    @kernel_method
+    def connect_shell(self, kernel_id):
+        """Return a zmq Socket connected to the shell channel.
 
         Parameters
         ==========
@@ -249,13 +243,12 @@ class MultiKernelManager(LoggingConfigurable):
 
         Returns
         =======
-        stream : ZMQStream
+        stream : zmq Socket or ZMQStream
         """
-        shell_stream = self._create_connected_stream(kernel_id, zmq.DEALER, 'shell')
-        return shell_stream
 
-    def create_hb_stream(self, kernel_id):
-        """Return a ZMQStream object connected to the hb channel.
+    @kernel_method
+    def connect_stdin(self, kernel_id):
+        """Return a zmq Socket connected to the stdin channel.
 
         Parameters
         ==========
@@ -264,8 +257,19 @@ class MultiKernelManager(LoggingConfigurable):
 
         Returns
         =======
-        stream : ZMQStream
+        stream : zmq Socket or ZMQStream
         """
-        hb_stream = self._create_connected_stream(kernel_id, zmq.REQ, 'hb')
-        return hb_stream
 
+    @kernel_method
+    def connect_hb(self, kernel_id):
+        """Return a zmq Socket connected to the hb channel.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+
+        Returns
+        =======
+        stream : zmq Socket or ZMQStream
+        """

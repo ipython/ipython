@@ -21,23 +21,21 @@ import zmq
 from zmq.eventloop import ioloop
 
 
-from IPython.config.configurable import LoggingConfigurable
+from IPython.kernel.restarter import KernelRestarter
 from IPython.utils.traitlets import (
-    Instance, Float
+    Instance, Float, List,
 )
 
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
-class IOLoopKernelRestarter(LoggingConfigurable):
+class IOLoopKernelRestarter(KernelRestarter):
     """Monitor and autorestart a kernel."""
 
     loop = Instance('zmq.eventloop.ioloop.IOLoop', allow_none=False)
     def _loop_default(self):
         return ioloop.IOLoop.instance()
-
-    kernel_manager = Instance('IPython.kernel.KernelManager')
 
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""
@@ -49,7 +47,7 @@ class IOLoopKernelRestarter(LoggingConfigurable):
         """Start the polling of the kernel."""
         if self._pcallback is None:
             self._pcallback = ioloop.PeriodicCallback(
-                self._poll, 1000*self.time_to_dead, self.loop
+                self.poll, 1000*self.time_to_dead, self.loop
             )
         self._pcallback.start()
 
@@ -61,14 +59,4 @@ class IOLoopKernelRestarter(LoggingConfigurable):
     def clear(self):
         """Clear the underlying PeriodicCallback."""
         self.stop()
-        if self._pcallback is not None:
-            self._pcallback = None
-
-    def _poll(self):
-        self.log.debug('Polling kernel...')
-        if not self.kernel_manager.is_alive():
-            # This restart event should leave the connection file in place so
-            # the ports are the same. Because this takes place below the
-            # MappingKernelManager, the kernel_id will also remain the same.
-            self.log.info('KernelRestarter: restarting kernel')
-            self.kernel_manager.restart_kernel(now=True)
+        self._pcallback = None

@@ -41,6 +41,13 @@ from .managerabc import (
 # Main kernel manager class
 #-----------------------------------------------------------------------------
 
+_socket_types = {
+    'hb' : zmq.REQ,
+    'shell' : zmq.DEALER,
+    'iopub' : zmq.SUB,
+    'stdin' : zmq.DEALER,
+}
+
 class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     """Manages a single kernel in a subprocess on this host.
 
@@ -91,6 +98,59 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 
     def stop_restarter(self):
         pass
+
+    #--------------------------------------------------------------------------
+    # Connection info
+    #--------------------------------------------------------------------------
+
+    def get_connection_info(self):
+        """return the connection info as a dict"""
+        return dict(
+            transport=self.transport,
+            ip=self.ip,
+            shell_port=self.shell_port,
+            iopub_port=self.iopub_port,
+            stdin_port=self.stdin_port,
+            hb_port=self.hb_port,
+        )
+
+    def _make_url(self, channel):
+        """Make a ZeroMQ URL for a given channel."""
+        transport = self.transport
+        ip = self.ip
+        port = getattr(self, '%s_port' % channel)
+
+        if transport == 'tcp':
+            return "tcp://%s:%i" % (ip, port)
+        else:
+            return "%s://%s-%s" % (transport, ip, port)
+
+    def _create_connected_socket(self, channel):
+        """Create a zmq Socket and connect it to the kernel."""
+        url = self._make_url(channel)
+        socket_type = _socket_types[channel]
+        sock = self.context.socket(socket_type)
+        self.log.info("Connecting to: %s" % url)
+        sock.connect(url)
+        return sock
+
+    def connect_iopub(self):
+        """return zmq Socket connected to the IOPub channel"""
+        sock = self._create_connected_socket('iopub')
+        sock.setsockopt(zmq.SUBSCRIBE, b'')
+        return sock
+
+    def connect_shell(self):
+        """return zmq Socket connected to the Shell channel"""
+        return self._create_connected_socket('shell')
+
+    def connect_stdin(self):
+        """return zmq Socket connected to the StdIn channel"""
+        return self._create_connected_socket('stdin')
+
+    def connect_hb(self):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('hb')
 
     #--------------------------------------------------------------------------
     # Kernel management

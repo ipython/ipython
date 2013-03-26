@@ -480,7 +480,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         km = self.application.kernel_manager
         kernel_id = self.kernel_id
         try:
-            self.iopub_stream = km.create_iopub_stream(kernel_id)
+            self.iopub_stream = km.connect_iopub(kernel_id)
         except web.HTTPError:
             # WebSockets don't response to traditional error codes so we
             # close the connection.
@@ -517,7 +517,7 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
         self.max_msg_size = km.max_msg_size
         kernel_id = self.kernel_id
         try:
-            self.shell_stream = km.create_shell_stream(kernel_id)
+            self.shell_stream = km.connect_shell(kernel_id)
         except web.HTTPError:
             # WebSockets don't response to traditional error codes so we
             # close the connection.

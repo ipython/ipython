@@ -15,6 +15,7 @@ from __future__ import absolute_import
 
 import zmq
 from zmq.eventloop import ioloop
+from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.utils.traitlets import (
     Instance
@@ -26,6 +27,13 @@ from .restarter import IOLoopKernelRestarter
 #-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
+
+
+def as_zmqstream(f):
+    def wrapped(self, *args, **kwargs):
+        socket = f(self, *args, **kwargs)
+        return ZMQStream(socket, self.loop)
+    return wrapped
 
 class IOLoopKernelManager(KernelManager):
 
@@ -48,3 +56,8 @@ class IOLoopKernelManager(KernelManager):
         if self.autorestart:
             if self._restarter is not None:
                 self._restarter.stop()
+
+    connect_shell = as_zmqstream(KernelManager.connect_shell)
+    connect_iopub = as_zmqstream(KernelManager.connect_iopub)
+    connect_stdin = as_zmqstream(KernelManager.connect_stdin)
+    connect_hb = as_zmqstream(KernelManager.connect_hb)

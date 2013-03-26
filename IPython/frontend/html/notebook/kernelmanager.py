@@ -31,6 +31,9 @@ from IPython.utils.traitlets import (
 class MappingKernelManager(MultiKernelManager):
     """A KernelManager that handles notebok mapping and HTTP error handling"""
 
+    def _kernel_manager_class_default(self):
+        return "IPython.kernel.ioloop.IOLoopKernelManager"
+
     kernel_argv = List(Unicode)
     
     max_msg_size = Integer(65536, config=True, help="""
@@ -88,42 +91,7 @@ class MappingKernelManager(MultiKernelManager):
             self.log.info("Using existing kernel: %s" % kernel_id)
         return kernel_id
 
-    def shutdown_kernel(self, kernel_id, now=False):
-        """Shutdown a kernel and remove its notebook association."""
-        self._check_kernel_id(kernel_id)
-        super(MappingKernelManager, self).shutdown_kernel(
-            kernel_id, now=now
-        )
-        self.delete_mapping_for_kernel(kernel_id)
-        self.log.info("Kernel shutdown: %s" % kernel_id)
-
-    def interrupt_kernel(self, kernel_id):
-        """Interrupt a kernel."""
-        self._check_kernel_id(kernel_id)
-        super(MappingKernelManager, self).interrupt_kernel(kernel_id)
-        self.log.info("Kernel interrupted: %s" % kernel_id)
-
-    def restart_kernel(self, kernel_id):
-        """Restart a kernel while keeping clients connected."""
-        self._check_kernel_id(kernel_id)
-        super(MappingKernelManager, self).restart_kernel(kernel_id)
-        self.log.info("Kernel restarted: %s" % kernel_id)
-
-    def create_iopub_stream(self, kernel_id):
-        """Create a new iopub stream."""
-        self._check_kernel_id(kernel_id)
-        return super(MappingKernelManager, self).create_iopub_stream(kernel_id)
-
-    def create_shell_stream(self, kernel_id):
-        """Create a new shell stream."""
-        self._check_kernel_id(kernel_id)
-        return super(MappingKernelManager, self).create_shell_stream(kernel_id)
-
-    def create_hb_stream(self, kernel_id):
-        """Create a new hb stream."""
-        self._check_kernel_id(kernel_id)
-        return super(MappingKernelManager, self).create_hb_stream(kernel_id)
-
+    # override _check_kernel_id to raise 404 instead of KeyError
     def _check_kernel_id(self, kernel_id):
         """Check a that a kernel_id exists and raise 404 if not."""
         if kernel_id not in self:
