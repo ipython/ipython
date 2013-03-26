@@ -27,15 +27,16 @@ Tools for Interactive Computing in Python
 
 Usage
 
-    ipython [subcommand] [options] [-c cmd | -m mod | file] [arg] ...
+    ipython [subcommand] [options] [-c cmd | -m mod | file] [--] [arg] ...
 
     If invoked with no options, it executes the file and exits, passing the
     remaining arguments to the script, just as if you had specified the same
-    command with python. If you specify the option `-i` before the filename, it
-    will enter an interactive IPython session after running the script, rather
-    than exiting. Files ending in .py will be treated as normal Python, but
-    files ending in .ipy can contain special IPython syntax (magic commands,
-    shell expansions, etc.)
+    command with python. You may need to specify `--` before args to be passed
+    to the script, to prevent IPython from attempting to parse them. If you
+    specify the option `-i` before the filename, it will enter an interactive
+    IPython session after running the script, rather than exiting. Files ending
+    in .py will be treated as normal Python, but files ending in .ipy can
+    contain special IPython syntax (magic commands, shell expansions, etc.).
 
     Almost all configuration in IPython is available via the command-line. Do
     `ipython --help-all` to see all available options.  For persistent
