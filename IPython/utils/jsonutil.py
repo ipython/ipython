@@ -97,7 +97,9 @@ def date_default(obj):
 
 # constants for identifying png/jpeg data
 PNG = b'\x89PNG\r\n\x1a\n'
+PNG64 = encodebytes(PNG)
 JPEG = b'\xff\xd8'
+JPEG64 = encodebytes(JPEG)
 
 def encode_images(format_dict):
     """b64-encodes images in a displaypub format dict
@@ -120,12 +122,21 @@ def encode_images(format_dict):
 
     """
     encoded = format_dict.copy()
+
     pngdata = format_dict.get('image/png')
-    if isinstance(pngdata, bytes) and pngdata[:8] == PNG:
-        encoded['image/png'] = encodebytes(pngdata).decode('ascii')
+    if isinstance(pngdata, bytes):
+        # make sure we don't double-encode
+        if pngdata[:13] != PNG64:
+            pngdata = encodebytes(pngdata)
+        encoded['image/png'] = pngdata.decode('ascii')
+
     jpegdata = format_dict.get('image/jpeg')
-    if isinstance(jpegdata, bytes) and jpegdata[:2] == JPEG:
-        encoded['image/jpeg'] = encodebytes(jpegdata).decode('ascii')
+    if isinstance(jpegdata, bytes):
+        # make sure we don't double-encode
+        if jpegdata[:5] != JPEG64:
+            jpegdata = encodebytes(jpegdata)
+        encoded['image/jpeg'] = jpegdata.decode('ascii')
+
     return encoded
 
 
