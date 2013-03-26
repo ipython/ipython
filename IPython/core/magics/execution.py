@@ -321,8 +321,10 @@ python-profiler package from non-free.""")
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
-        Usage:\\
-          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options] -G] file [args]
+        Usage:
+          %run [-n -i -e -G]
+               [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
+               ( -m mod | file ) [args]
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
