@@ -420,6 +420,9 @@ class Javascript(DisplayObject):
         r += lib_t2*len(self.lib)
         return r
 
+# constants for identifying png/jpeg data
+_PNG = b'\x89PNG\r\n\x1a\n'
+_JPEG = b'\xff\xd8'
 
 class Image(DisplayObject):
 
@@ -487,6 +490,11 @@ class Image(DisplayObject):
                 format = self._FMT_JPEG
             if ext == u'png':
                 format = self._FMT_PNG
+        elif isinstance(data, bytes) and format == 'png':
+            # infer image type from image data header,
+            # only if format might not have been specified.
+            if data[:2] == _JPEG:
+                format = 'jpeg'
 
         self.format = unicode(format).lower()
         self.embed = embed if embed is not None else (url is None)
