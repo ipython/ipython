@@ -187,7 +187,7 @@ class InProcessKernelManager(Configurable):
     This class implements the interface of
     `IPython.kernel.kernelmanagerabc.KernelManagerABC` and allows
     (asynchronous) frontends to be used seamlessly with an in-process kernel.
-    
+
     See `IPython.kernel.kernelmanager.KernelManager` for docstrings.
     """
 
@@ -271,7 +271,7 @@ class InProcessKernelManager(Configurable):
     #--------------------------------------------------------------------------
     # Kernel management methods:
     #--------------------------------------------------------------------------
-    
+
     def start_kernel(self, **kwds):
         from IPython.kernel.inprocess.ipkernel import InProcessKernel
         self.kernel = InProcessKernel()
