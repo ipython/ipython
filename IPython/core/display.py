@@ -7,7 +7,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#       Copyright (C) 2008-2011 The IPython Development Team
+#       Copyright (C) 2013 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -19,6 +19,8 @@ Authors:
 
 from __future__ import print_function
 
+import os
+
 from .displaypub import (
     publish_pretty, publish_html,
     publish_latex, publish_svg,
@@ -27,6 +29,17 @@ from .displaypub import (
 )
 
 from IPython.utils.py3compat import string_types
+
+#-----------------------------------------------------------------------------
+# utility functions
+#-----------------------------------------------------------------------------
+
+def _safe_exists(path):
+    """check path, but don't let exceptions raise"""
+    try:
+        return os.path.exists(path)
+    except Exception:
+        return False
 
 #-----------------------------------------------------------------------------
 # Main functions
@@ -248,20 +261,26 @@ class DisplayObject(object):
         Parameters
         ----------
         data : unicode, str or bytes
-            The raw data or a URL to download the data from.
+            The raw data or a URL or file to load the data from
         url : unicode
             A URL to download the data from.
         filename : unicode
             Path to a local file to load the data from.
         """
-        if data is not None and isinstance(data, string_types) and data.startswith('http'):
-            self.url = data
-            self.filename = None
-            self.data = None
-        else:
-            self.data = data
-            self.url = url
-            self.filename = None if filename is None else unicode(filename)
+        if data is not None and isinstance(data, string_types):
+            if data.startswith('http') and url is None:
+                url = data
+                filename = None
+                data = None
+            elif _safe_exists(data) and filename is None:
+                url = None
+                filename = data
+                data = None
+        
+        self.data = data
+        self.url = url
+        self.filename = None if filename is None else unicode(filename)
+        
         self.reload()
 
     def reload(self):
@@ -479,7 +498,9 @@ class Image(DisplayObject):
             ext = self._find_ext(url)
         elif data is None:
             raise ValueError("No image data found. Expecting filename, url, or data.")
-        elif isinstance(data, string_types) and data.startswith('http'):
+        elif isinstance(data, string_types) and (
+            data.startswith('http') or _safe_exists(data)
+        ):
             ext = self._find_ext(data)
         else:
             ext = None
