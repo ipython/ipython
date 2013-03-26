@@ -46,7 +46,7 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         ip=LOCALHOST, key=b'', transport='tcp'):
+                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp'):
     """Generates a JSON config file, including the selection of random ports.
     
     Parameters
@@ -62,7 +62,10 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The port to use for the SUB channel.
 
     stdin_port : int, optional
-        The port to use for the REQ (raw input) channel.
+        The port to use for the ROUTER (raw input) channel.
+
+    control_port : int, optional
+        The port to use for the ROUTER (raw input) channel.
 
     hb_port : int, optional
         The port to use for the hearbeat REP channel.
@@ -81,8 +84,11 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     # Find open ports as necessary.
     
     ports = []
-    ports_needed = int(shell_port <= 0) + int(iopub_port <= 0) + \
-                   int(stdin_port <= 0) + int(hb_port <= 0)
+    ports_needed = int(shell_port <= 0) + \
+                   int(iopub_port <= 0) + \
+                   int(stdin_port <= 0) + \
+                   int(control_port <= 0) + \
+                   int(hb_port <= 0)
     if transport == 'tcp':
         for i in range(ports_needed):
             sock = socket.socket()
@@ -105,12 +111,15 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         iopub_port = ports.pop(0)
     if stdin_port <= 0:
         stdin_port = ports.pop(0)
+    if control_port <= 0:
+        control_port = ports.pop(0)
     if hb_port <= 0:
         hb_port = ports.pop(0)
     
     cfg = dict( shell_port=shell_port,
                 iopub_port=iopub_port,
                 stdin_port=stdin_port,
+                control_port=control_port,
                 hb_port=hb_port,
               )
     cfg['ip'] = ip
@@ -346,6 +355,7 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
 #-----------------------------------------------------------------------------
 # Mixin for classes that workw ith connection files
 #-----------------------------------------------------------------------------
+port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
 class ConnectionFileMixin(HasTraits):
     """Mixin for configurable classes that work with connection files"""
@@ -381,11 +391,28 @@ class ConnectionFileMixin(HasTraits):
     shell_port = Integer(0)
     iopub_port = Integer(0)
     stdin_port = Integer(0)
+    control_port = Integer(0)
     hb_port = Integer(0)
+
+    @property
+    def ports(self):
+        return [ getattr(self, name) for name in port_names ]
 
     #--------------------------------------------------------------------------
     # Connection and ipc file management
     #--------------------------------------------------------------------------
+
+    def get_connection_info(self):
+        """return the connection info as a dict"""
+        return dict(
+            transport=self.transport,
+            ip=self.ip,
+            shell_port=self.shell_port,
+            iopub_port=self.iopub_port,
+            stdin_port=self.stdin_port,
+            hb_port=self.hb_port,
+            control_port=self.control_port,
+        )
 
     def cleanup_connection_file(self):
         """Cleanup connection file *if we wrote it*
@@ -404,7 +431,7 @@ class ConnectionFileMixin(HasTraits):
         """Cleanup ipc files if we wrote them."""
         if self.transport != 'ipc':
             return
-        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
+        for port in self.ports:
             ipcfile = "%s-%i" % (self.ip, port)
             try:
                 os.remove(ipcfile)
@@ -415,15 +442,16 @@ class ConnectionFileMixin(HasTraits):
         """Write connection info to JSON dict in self.connection_file."""
         if self._connection_file_written:
             return
-        self.connection_file,cfg = write_connection_file(self.connection_file,
+
+        self.connection_file, cfg = write_connection_file(self.connection_file,
             transport=self.transport, ip=self.ip, key=self.session.key,
             stdin_port=self.stdin_port, iopub_port=self.iopub_port,
-            shell_port=self.shell_port, hb_port=self.hb_port)
+            shell_port=self.shell_port, hb_port=self.hb_port,
+            control_port=self.control_port,
+        )
         # write_connection_file also sets default ports:
-        self.shell_port = cfg['shell_port']
-        self.stdin_port = cfg['stdin_port']
-        self.iopub_port = cfg['iopub_port']
-        self.hb_port = cfg['hb_port']
+        for name in port_names:
+            setattr(self, name, cfg[name])
 
         self._connection_file_written = True
 
@@ -434,10 +462,8 @@ class ConnectionFileMixin(HasTraits):
 
         self.transport = cfg.get('transport', 'tcp')
         self.ip = cfg['ip']
-        self.shell_port = cfg['shell_port']
-        self.stdin_port = cfg['stdin_port']
-        self.iopub_port = cfg['iopub_port']
-        self.hb_port = cfg['hb_port']
+        for name in port_names:
+            setattr(self, name, cfg[name])
         self.session.key = str_to_bytes(cfg['key'])
 
 

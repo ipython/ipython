@@ -46,6 +46,7 @@ _socket_types = {
     'shell' : zmq.DEALER,
     'iopub' : zmq.SUB,
     'stdin' : zmq.DEALER,
+    'control': zmq.DEALER,
 }
 
 class KernelManager(LoggingConfigurable, ConnectionFileMixin):
@@ -80,13 +81,15 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     ipython_kernel = Bool(True)
 
     # Protected traits
-    _launch_args = Any
+    _launch_args = Any()
+    _control_socket = Any()
 
     autorestart = Bool(False, config=True,
         help="""Should we autorestart the kernel if it dies."""
     )
 
     def __del__(self):
+        self._close_control_socket()
         self.cleanup_connection_file()
 
     #--------------------------------------------------------------------------
@@ -102,17 +105,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     #--------------------------------------------------------------------------
     # Connection info
     #--------------------------------------------------------------------------
-
-    def get_connection_info(self):
-        """return the connection info as a dict"""
-        return dict(
-            transport=self.transport,
-            ip=self.ip,
-            shell_port=self.shell_port,
-            iopub_port=self.iopub_port,
-            stdin_port=self.stdin_port,
-            hb_port=self.hb_port,
-        )
 
     def _make_url(self, channel):
         """Make a ZeroMQ URL for a given channel."""
@@ -152,6 +144,10 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         """return zmq Socket connected to the Heartbeat channel"""
         return self._create_connected_socket('hb')
 
+    def connect_control(self):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('control')
+
     #--------------------------------------------------------------------------
     # Kernel management
     #--------------------------------------------------------------------------
@@ -175,6 +171,18 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         override in a subclass to launch kernel subprocesses differently
         """
         return launch_kernel(kernel_cmd, **kw)
+
+    def _connect_control_socket(self):
+        if self._control_socket is None:
+            self._control_socket = self.connect_control()
+
+    def _close_control_socket(self):
+        if self._control_socket is None:
+            return
+        self._control_socket.linger = 100
+        self._control_socket.close()
+        self._control_socket = None
+
 
     def start_kernel(self, **kw):
         """Starts a kernel on this host in a separate process.
@@ -207,10 +215,13 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
                                     ipython_kernel=self.ipython_kernel,
                                     **kw)
         self.start_restarter()
+        self._connect_control_socket()
 
     def _send_shutdown_request(self, restart=False):
         """TODO: send a shutdown request via control channel"""
-        raise NotImplementedError("Soft shutdown needs control channel")
+        content = dict(restart=restart)
+        msg = self.session.msg("shutdown_request", content=content)
+        self.session.send(self._control_socket, msg)
 
     def shutdown_kernel(self, now=False, restart=False):
         """Attempts to the stop the kernel process cleanly.
@@ -230,7 +241,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             Will this kernel be restarted after it is shutdown. When this
             is True, connection files will not be cleaned up.
         """
-
         # Stop monitoring for restarting while we shutdown.
         self.stop_restarter()
 
@@ -239,10 +249,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             self._kill_kernel()
             return
 
-        # bypass clean shutdown while
-        # FIXME: add control channel for clean shutdown
-        now = True
-
         if now:
             if self.has_kernel:
                 self._kill_kernel()
@@ -250,7 +256,6 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
             # Don't send any additional kernel kill messages immediately, to give
             # the kernel a chance to properly execute shutdown actions. Wait for at
             # most 1s, checking every 0.1s.
-            # FIXME: this method is not yet implemented (need Control channel)
             self._send_shutdown_request(restart=restart)
             for i in range(10):
                 if self.is_alive():

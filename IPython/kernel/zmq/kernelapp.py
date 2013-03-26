@@ -69,6 +69,7 @@ kernel_aliases.update({
     'shell' : 'IPKernelApp.shell_port',
     'iopub' : 'IPKernelApp.iopub_port',
     'stdin' : 'IPKernelApp.stdin_port',
+    'control' : 'IPKernelApp.control_port',
     'f' : 'IPKernelApp.connection_file',
     'parent': 'IPKernelApp.parent',
     'transport': 'IPKernelApp.transport',
@@ -145,7 +146,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     hb_port = Integer(0, config=True, help="set the heartbeat port [default: random]")
     shell_port = Integer(0, config=True, help="set the shell (ROUTER) port [default: random]")
     iopub_port = Integer(0, config=True, help="set the iopub (PUB) port [default: random]")
-    stdin_port = Integer(0, config=True, help="set the stdin (DEALER) port [default: random]")
+    stdin_port = Integer(0, config=True, help="set the stdin (ROUTER) port [default: random]")
+    control_port = Integer(0, config=True, help="set the control (ROUTER) port [default: random]")
     connection_file = Unicode('', config=True, 
     help="""JSON file in which to store connection info [default: kernel-<pid>.json]
     
@@ -227,7 +229,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         if self.ip == self._ip_default() and 'ip' in cfg:
             # not overridden by config or cl_args
             self.ip = cfg['ip']
-        for channel in ('hb', 'shell', 'iopub', 'stdin'):
+        for channel in ('hb', 'shell', 'iopub', 'stdin', 'control'):
             name = channel + '_port'
             if getattr(self, name) == 0 and name in cfg:
                 # not overridden by config or cl_args
@@ -241,7 +243,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.log.debug("Writing connection file: %s", cf)
         write_connection_file(cf, ip=self.ip, key=self.session.key, transport=self.transport,
         shell_port=self.shell_port, stdin_port=self.stdin_port, hb_port=self.hb_port,
-        iopub_port=self.iopub_port)
+        iopub_port=self.iopub_port, control_port=self.control_port)
     
     def cleanup_connection_file(self):
         cf = self.abs_connection_file
@@ -257,7 +259,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         """cleanup ipc files if we wrote them"""
         if self.transport != 'ipc':
             return
-        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
+        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port, self.control_port):
             ipcfile = "%s-%i" % (self.ip, port)
             try:
                 os.remove(ipcfile)
@@ -282,15 +284,19 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
 
         self.shell_socket = context.socket(zmq.ROUTER)
         self.shell_port = self._bind_socket(self.shell_socket, self.shell_port)
-        self.log.debug("shell ROUTER Channel on port: %i"%self.shell_port)
+        self.log.debug("shell ROUTER Channel on port: %i" % self.shell_port)
 
         self.iopub_socket = context.socket(zmq.PUB)
         self.iopub_port = self._bind_socket(self.iopub_socket, self.iopub_port)
-        self.log.debug("iopub PUB Channel on port: %i"%self.iopub_port)
+        self.log.debug("iopub PUB Channel on port: %i" % self.iopub_port)
 
         self.stdin_socket = context.socket(zmq.ROUTER)
         self.stdin_port = self._bind_socket(self.stdin_socket, self.stdin_port)
-        self.log.debug("stdin ROUTER Channel on port: %i"%self.stdin_port)
+        self.log.debug("stdin ROUTER Channel on port: %i" % self.stdin_port)
+
+        self.control_socket = context.socket(zmq.ROUTER)
+        self.control_port = self._bind_socket(self.control_socket, self.control_port)
+        self.log.debug("control ROUTER Channel on port: %i" % self.control_port)
     
     def init_heartbeat(self):
         """start the heart beating"""
@@ -299,7 +305,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         hb_ctx = zmq.Context()
         self.heartbeat = Heartbeat(hb_ctx, (self.transport, self.ip, self.hb_port))
         self.hb_port = self.heartbeat.port
-        self.log.debug("Heartbeat REP Channel on port: %i"%self.hb_port)
+        self.log.debug("Heartbeat REP Channel on port: %i" % self.hb_port)
         self.heartbeat.start()
 
         # Helper to make it easier to connect to an existing kernel.
@@ -321,7 +327,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
 
 
         self.ports = dict(shell=self.shell_port, iopub=self.iopub_port,
-                                stdin=self.stdin_port, hb=self.hb_port)
+                                stdin=self.stdin_port, hb=self.hb_port,
+                                control=self.control_port)
 
     def init_session(self):
         """create our session object"""
@@ -353,11 +360,12 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def init_kernel(self):
         """Create the Kernel object itself"""
         shell_stream = ZMQStream(self.shell_socket)
+        control_stream = ZMQStream(self.control_socket)
         
         kernel_factory = import_item(str(self.kernel_class))
 
         kernel = kernel_factory(config=self.config, session=self.session,
-                                shell_streams=[shell_stream],
+                                shell_streams=[shell_stream, control_stream],
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,
                                 log=self.log,
