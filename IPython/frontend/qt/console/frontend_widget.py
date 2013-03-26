@@ -216,7 +216,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        msg_id = self.kernel_client.shell_channel.execute(source, hidden)
+        msg_id = self.kernel_client.execute(source, hidden)
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         if not hidden:
@@ -358,7 +358,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # generate uuid, which would be used as an indication of whether or
         # not the unique request originated from here (can use msg id ?)
         local_uuid = str(uuid.uuid1())
-        msg_id = self.kernel_client.shell_channel.execute('',
+        msg_id = self.kernel_client.execute('',
             silent=True, user_expressions={ local_uuid:expr })
         self._callback_dict[local_uuid] = callback
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
@@ -671,7 +671,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        msg_id = self.kernel_client.shell_channel.object_info(name)
+        msg_id = self.kernel_client.object_info(name)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -682,7 +682,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         context = self._get_context()
         if context:
             # Send the completion request to the kernel
-            msg_id = self.kernel_client.shell_channel.complete(
+            msg_id = self.kernel_client.complete(
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos

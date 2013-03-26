@@ -106,22 +106,20 @@ def test_embed_kernel_basic():
     ])
     
     with setup_kernel(cmd) as client:
-        shell = client.shell_channel
-    
         # oinfo a (int)
-        msg_id = shell.object_info('a')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('a')
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
     
-        msg_id = shell.execute("c=a*2")
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.execute("c=a*2")
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_equal(content['status'], u'ok')
 
         # oinfo c (should be 10)
-        msg_id = shell.object_info('c')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('c')
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'10')
@@ -139,25 +137,23 @@ def test_embed_kernel_namespace():
     ])
     
     with setup_kernel(cmd) as client:
-        shell = client.shell_channel
-    
         # oinfo a (int)
-        msg_id = shell.object_info('a')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('a')
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'5')
 
         # oinfo b (str)
-        msg_id = shell.object_info('b')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('b')
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_true(content['found'])
         nt.assert_equal(content['string_form'], u'hi there')
 
         # oinfo c (undefined)
-        msg_id = shell.object_info('c')
-        msg = shell.get_msg(block=True, timeout=2)
+        msg_id = client.object_info('c')
+        msg = client.get_shell_msg(block=True, timeout=2)
         content = msg['content']
         nt.assert_false(content['found'])
 
@@ -177,17 +173,16 @@ def test_embed_kernel_reentrant():
     ])
     
     with setup_kernel(cmd) as client:
-        shell = client.shell_channel
         for i in range(5):
-            msg_id = shell.object_info('count')
-            msg = shell.get_msg(block=True, timeout=2)
+            msg_id = client.object_info('count')
+            msg = client.get_shell_msg(block=True, timeout=2)
             content = msg['content']
             nt.assert_true(content['found'])
             nt.assert_equal(content['string_form'], unicode(i))
             
             # exit from embed_kernel
-            shell.execute("get_ipython().exit_now = True")
-            msg = shell.get_msg(block=True, timeout=2)
+            client.execute("get_ipython().exit_now = True")
+            msg = client.get_shell_msg(block=True, timeout=2)
             time.sleep(0.2)
 
 

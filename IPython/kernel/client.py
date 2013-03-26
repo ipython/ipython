@@ -69,6 +69,34 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     _stdin_channel = Any
     _hb_channel = Any
 
+    # def __init__(self, *args, **kwargs):
+    #     super(KernelClient, self).__init__(*args, **kwargs)
+    #     # setup channel proxy methods, e.g.
+    #     # Client.execute => shell_channel.execute
+    #     for channel in ['shell', 'iopub', 'stdin', 'hb']:
+    #         cls = getattr(self, '%s_channel_class' % channel)
+    #         for method in cls.proxy_methods:
+    #             setattr(self, method, self._proxy_method(channel, method))
+    #
+    #--------------------------------------------------------------------------
+    # Channel proxy methods
+    #--------------------------------------------------------------------------
+
+    def _get_msg(channel, *args, **kwargs):
+        return channel.get_msg(*args, **kwargs)
+
+    def get_shell_msg(self, *args, **kwargs):
+        """Get a message from the shell channel"""
+        return self.shell_channel.get_msg(*args, **kwargs)
+
+    def get_iopub_msg(self, *args, **kwargs):
+        """Get a message from the iopub channel"""
+        return self.iopub_channel.get_msg(*args, **kwargs)
+
+    def get_stdin_msg(self, *args, **kwargs):
+        """Get a message from the stdin channel"""
+        return self.stdin_channel.get_msg(*args, **kwargs)
+
     #--------------------------------------------------------------------------
     # Channel management methods
     #--------------------------------------------------------------------------
@@ -84,10 +112,16 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         """
         if shell:
             self.shell_channel.start()
+            for method in self.shell_channel.proxy_methods:
+                setattr(self, method, getattr(self.shell_channel, method))
         if iopub:
             self.iopub_channel.start()
+            for method in self.iopub_channel.proxy_methods:
+                setattr(self, method, getattr(self.iopub_channel, method))
         if stdin:
             self.stdin_channel.start()
+            for method in self.stdin_channel.proxy_methods:
+                setattr(self, method, getattr(self.stdin_channel, method))
             self.shell_channel.allow_stdin = True
         else:
             self.shell_channel.allow_stdin = False

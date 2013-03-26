@@ -63,20 +63,15 @@ def flush_channels(kc=None):
 
 def execute(code='', kc=None, **kwargs):
     """wrapper for doing common steps for validating an execution request"""
-    if kc is None:
-        kc = KC
-    shell = kc.shell_channel
-    sub = kc.iopub_channel
-    
-    msg_id = shell.execute(code=code, **kwargs)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.execute(code=code, **kwargs)
+    reply = KC.get_shell_msg(timeout=2)
     list(validate_message(reply, 'execute_reply', msg_id))
-    busy = sub.get_msg(timeout=2)
+    busy = KC.get_iopub_msg(timeout=2)
     list(validate_message(busy, 'status', msg_id))
     nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
-        pyin = sub.get_msg(timeout=2)
+        pyin = KC.get_iopub_msg(timeout=2)
         list(validate_message(pyin, 'pyin', msg_id))
         nt.assert_equal(pyin['content']['code'], code)
     
@@ -302,9 +297,8 @@ def validate_message(msg, msg_type=None, parent=None):
 def test_execute():
     flush_channels()
     
-    shell = KC.shell_channel
-    msg_id = shell.execute(code='x=1')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.execute(code='x=1')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'execute_reply', msg_id):
         yield tst
 
@@ -383,10 +377,8 @@ def test_user_expressions():
 def test_oinfo():
     flush_channels()
 
-    shell = KC.shell_channel
-    
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
 
@@ -395,12 +387,10 @@ def test_oinfo():
 def test_oinfo_found():
     flush_channels()
 
-    shell = KC.shell_channel
-    
     msg_id, reply = execute(code='a=5')
     
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -413,12 +403,10 @@ def test_oinfo_found():
 def test_oinfo_detail():
     flush_channels()
 
-    shell = KC.shell_channel
-    
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = shell.object_info('ip.object_inspect', detail_level=2)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('ip.object_inspect', detail_level=2)
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -432,10 +420,8 @@ def test_oinfo_detail():
 def test_oinfo_not_found():
     flush_channels()
 
-    shell = KC.shell_channel
-    
-    msg_id = shell.object_info('dne')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('dne')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -446,12 +432,10 @@ def test_oinfo_not_found():
 def test_complete():
     flush_channels()
 
-    shell = KC.shell_channel
-    
     msg_id, reply = execute(code="alpha = albert = 5")
     
-    msg_id = shell.complete('al', 'al', 2)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.complete('al', 'al', 2)
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'complete_reply', msg_id):
         yield tst
     matches = reply['content']['matches']
@@ -463,10 +447,8 @@ def test_complete():
 def test_kernel_info_request():
     flush_channels()
 
-    shell = KC.shell_channel
-
-    msg_id = shell.kernel_info()
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.kernel_info()
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'kernel_info_reply', msg_id):
         yield tst
 

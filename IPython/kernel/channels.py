@@ -81,6 +81,7 @@ class ZMQSocketChannel(Thread):
     stream = None
     _address = None
     _exiting = False
+    proxy_methods = []
 
     def __init__(self, context, session, address):
         """Create a channel.
@@ -175,6 +176,14 @@ class ShellChannel(ZMQSocketChannel):
     command_queue = None
     # flag for whether execute requests should be allowed to call raw_input:
     allow_stdin = True
+    proxy_methods = [
+        'execute',
+        'complete',
+        'object_info',
+        'history',
+        'kernel_info',
+        'shutdown',
+    ]
 
     def __init__(self, context, session, address):
         super(ShellChannel, self).__init__(context, session, address)
@@ -451,6 +460,7 @@ class StdInChannel(ZMQSocketChannel):
     """The stdin channel to handle raw_input requests that the kernel makes."""
 
     msg_queue = None
+    proxy_methods = ['input']
 
     def __init__(self, context, session, address):
         super(StdInChannel, self).__init__(context, session, address)
