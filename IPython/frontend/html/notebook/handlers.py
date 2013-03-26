@@ -103,7 +103,7 @@ if tornado.version_info <= (2,1,1):
 
 @decorator
 def not_if_readonly(f, self, *args, **kwargs):
-    if self.application.read_only:
+    if self.settings.get('read_only', False):
         raise web.HTTPError(403, "Notebook server is read-only")
     else:
         return f(self, *args, **kwargs)
@@ -120,13 +120,13 @@ def authenticate_unless_readonly(f, self, *args, **kwargs):
     def auth_f(self, *args, **kwargs):
         return f(self, *args, **kwargs)
 
-    if self.application.read_only:
+    if self.settings.get('read_only', False):
         return f(self, *args, **kwargs)
     else:
         return auth_f(self, *args, **kwargs)
 
 def urljoin(*pieces):
-    """Join componenet of url into a relative url
+    """Join components of url into a relative url
 
     Use to prevent double slash when joining subpath
     """
@@ -147,18 +147,30 @@ class RequestHandler(web.RequestHandler):
 class AuthenticatedHandler(RequestHandler):
     """A RequestHandler with an authenticated user."""
 
+    def clear_login_cookie(self):
+        self.clear_cookie(self.cookie_name)
+    
     def get_current_user(self):
-        user_id = self.get_secure_cookie(self.settings['cookie_name'])
+        user_id = self.get_secure_cookie(self.cookie_name)
         # For now the user_id should not return empty, but it could eventually
         if user_id == '':
             user_id = 'anonymous'
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
-            self.clear_cookie(self.settings['cookie_name'])
-            if not self.application.password and not self.application.read_only:
+            self.clear_login_cookie()
+            if not self.read_only and not self.login_available:
                 user_id = 'anonymous'
         return user_id
 
+    @property
+    def cookie_name(self):
+        return self.settings.get('cookie_name', '')
+    
+    @property
+    def password(self):
+        """our password"""
+        return self.settings.get('password', '')
+    
     @property
     def logged_in(self):
         """Is a user currently logged in?
@@ -175,20 +187,35 @@ class AuthenticatedHandler(RequestHandler):
         whether the user is already logged in or not.
 
         """
-        return bool(self.application.password)
+        return bool(self.settings.get('password', ''))
 
     @property
     def read_only(self):
         """Is the notebook read-only?
 
         """
-        return self.application.read_only
+        return self.settings.get('read_only', False)
 
+
+class IPythonHandler(AuthenticatedHandler):
+    """IPython-specific extensions to authenticated handling
+    
+    Mostly property shortcuts to IPython-specific settings.
+    """
+    
+    @property
+    def config(self):
+        return self.settings.get('config', None)
+    
     @property
     def use_less(self):
         """Use less instead of css in templates"""
-        return self.application.use_less
-
+        return self.settings.get('use_less', False)
+    
+    #---------------------------------------------------------------
+    # URLs
+    #---------------------------------------------------------------
+    
     @property
     def ws_url(self):
         """websocket url matching the current request
@@ -197,13 +224,69 @@ class AuthenticatedHandler(RequestHandler):
                 ws[s]://host[:port]
         """
         proto = self.request.protocol.replace('http', 'ws')
-        host = self.application.ipython_app.websocket_host # default to config value
+        host = self.settings.get('websocket_host', '')
+        # default to config value
         if host == '':
             host = self.request.host # get from request
         return "%s://%s" % (proto, host)
-        
+    
+    @property
+    def mathjax_url(self):
+        return self.settings.get('mathjax_url', '')
+    
+    @property
+    def base_project_url(self):
+        return self.settings.get('base_project_url', '/')
+    
+    @property
+    def base_kernel_url(self):
+        return self.settings.get('base_kernel_url', '/')
+    
+    #---------------------------------------------------------------
+    # Manager objects
+    #---------------------------------------------------------------
+    
+    @property
+    def kernel_manager(self):
+        return self.settings['kernel_manager']
 
-class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
+    @property
+    def notebook_manager(self):
+        return self.settings['notebook_manager']
+    
+    @property
+    def cluster_manager(self):
+        return self.settings['cluster_manager']
+    
+    @property
+    def project(self):
+        return self.notebook_manager.notebook_dir
+    
+    #---------------------------------------------------------------
+    # template rendering
+    #---------------------------------------------------------------
+    
+    def get_template(self, name):
+        """Return the jinja template object for a given name"""
+        return self.settings['jinja2_env'].get_template(name)
+    
+    def render_template(self, name, **ns):
+        ns.update(self.template_namespace)
+        template = self.get_template(name)
+        return template.render(**ns)
+    
+    @property
+    def template_namespace(self):
+        return dict(
+            base_project_url=self.base_project_url,
+            base_kernel_url=self.base_kernel_url,
+            read_only=self.read_only,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
+            use_less=self.use_less,
+        )
+
+class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
     @authenticate_unless_readonly
@@ -211,125 +294,89 @@ class AuthenticatedFileHandler(AuthenticatedHandler, web.StaticFileHandler):
         return web.StaticFileHandler.get(self, path)
 
 
-class ProjectDashboardHandler(AuthenticatedHandler):
+class ProjectDashboardHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir        
-        template = self.application.jinja2_env.get_template('projectdashboard.html')
-        self.write( template.render(
-            project=project,
-            project_component=project.split('/'),
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
-            read_only=self.read_only,
-            logged_in=self.logged_in,
-            use_less=self.use_less,
-            login_available=self.login_available))
+        self.write(self.render_template('projectdashboard.html',
+            project=self.project,
+            project_component=self.project.split('/'),
+        ))
 
 
-class LoginHandler(AuthenticatedHandler):
+class LoginHandler(IPythonHandler):
 
-    def _render(self, message=None):        
-        template = self.application.jinja2_env.get_template('login.html')
-        self.write( template.render(
-                next=url_escape(self.get_argument('next', default=self.application.ipython_app.base_project_url)),
-                read_only=self.read_only,
-                logged_in=self.logged_in,
-                login_available=self.login_available,
-                base_project_url=self.application.ipython_app.base_project_url,
-                message=message
+    def _render(self, message=None):
+        self.write(self.render_template('login.html',
+                next=url_escape(self.get_argument('next', default=self.base_project_url)),
+                message=message,
         ))
 
     def get(self):
         if self.current_user:
-            self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
+            self.redirect(self.get_argument('next', default=self.base_project_url))
         else:
             self._render()
 
     def post(self):
         pwd = self.get_argument('password', default=u'')
-        if self.application.password:
-            if passwd_check(self.application.password, pwd):
-                self.set_secure_cookie(self.settings['cookie_name'], str(uuid.uuid4()))
+        if self.login_available:
+            if passwd_check(self.password, pwd):
+                self.set_secure_cookie(self.cookie_name, str(uuid.uuid4()))
             else:
                 self._render(message={'error': 'Invalid password'})
                 return
 
-        self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
+        self.redirect(self.get_argument('next', default=self.base_project_url))
 
 
-class LogoutHandler(AuthenticatedHandler):
+class LogoutHandler(IPythonHandler):
 
     def get(self):
-        self.clear_cookie(self.settings['cookie_name'])
+        self.clear_login_cookie()
         if self.login_available:
             message = {'info': 'Successfully logged out.'}
         else:
             message = {'warning': 'Cannot log out.  Notebook authentication '
                        'is disabled.'}
-        template = self.application.jinja2_env.get_template('logout.html')
-        self.write( template.render(        
-                    read_only=self.read_only,
-                    logged_in=self.logged_in,
-                    login_available=self.login_available,
-                    base_project_url=self.application.ipython_app.base_project_url,
+        self.write(self.render_template('logout.html',
                     message=message))
 
 
-class NewHandler(AuthenticatedHandler):
+class NewHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        notebook_id = nbm.new_notebook()
-        self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
+        notebook_id = self.notebook_manager.new_notebook()
+        self.redirect('/' + urljoin(self.base_project_url, notebook_id))
 
-class NamedNotebookHandler(AuthenticatedHandler):
+class NamedNotebookHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
+        nbm = self.notebook_manager
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
-        template = self.application.jinja2_env.get_template('notebook.html')
-        self.write( template.render(
-            project=project,
+        self.write(self.render_template('notebook.html',
+            project=self.project,
             notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
-            read_only=self.read_only,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-            use_less=self.use_less
+            mathjax_url=self.mathjax_url,
             )
         )
 
 
-class PrintNotebookHandler(AuthenticatedHandler):
+class PrintNotebookHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        if not nbm.notebook_exists(notebook_id):
+        if not self.notebook_manager.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)        
-        template = self.application.jinja2_env.get_template('printnotebook.html')
-        self.write( template.render(
-             project=project,
+        self.write( self.render_template('printnotebook.html',
+            project=self.project,
             notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
             kill_kernel=False,
-            read_only=self.read_only,
-            logged_in=self.logged_in,
-            login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
+            mathjax_url=self.mathjax_url,
         ))
 
 #-----------------------------------------------------------------------------
@@ -337,17 +384,17 @@ class PrintNotebookHandler(AuthenticatedHandler):
 #-----------------------------------------------------------------------------
 
 
-class MainKernelHandler(AuthenticatedHandler):
+class MainKernelHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        km = self.application.kernel_manager
+        km = self.kernel_manager
         self.finish(jsonapi.dumps(km.list_kernel_ids()))
 
     @web.authenticated
     def post(self):
-        km = self.application.kernel_manager
-        nbm = self.application.notebook_manager
+        km = self.kernel_manager
+        nbm = self.notebook_manager
         notebook_id = self.get_argument('notebook', default=None)
         kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
         data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
@@ -355,23 +402,23 @@ class MainKernelHandler(AuthenticatedHandler):
         self.finish(jsonapi.dumps(data))
 
 
-class KernelHandler(AuthenticatedHandler):
+class KernelHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('DELETE')
 
     @web.authenticated
     def delete(self, kernel_id):
-        km = self.application.kernel_manager
+        km = self.kernel_manager
         km.shutdown_kernel(kernel_id)
         self.set_status(204)
         self.finish()
 
 
-class KernelActionHandler(AuthenticatedHandler):
+class KernelActionHandler(IPythonHandler):
 
     @web.authenticated
     def post(self, kernel_id, action):
-        km = self.application.kernel_manager
+        km = self.kernel_manager
         if action == 'interrupt':
             km.interrupt_kernel(kernel_id)
             self.set_status(204)
@@ -413,7 +460,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         try:
             msg = self._reserialize_reply(msg_list)
         except Exception:
-            self.application.log.critical("Malformed message: %r" % msg_list, exc_info=True)
+            logging.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
             self.write_message(msg)
 
@@ -426,25 +473,13 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         return True
 
 
-class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
+class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
         self.kernel_id = kernel_id.decode('ascii')
-        try:
-            cfg = self.application.config
-        except AttributeError:
-            # protect from the case where this is run from something other than
-            # the notebook app:
-            cfg = None
-        self.session = Session(config=cfg)
+        self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
-
-    def get_current_user(self):
-        user_id = self.get_secure_cookie(self.settings['cookie_name'])
-        if user_id == '' or (user_id is None and not self.application.password):
-            user_id = 'anonymous'
-        return user_id
 
     def _inject_cookie_message(self, msg):
         """Inject the first message, which is the document cookie,
@@ -477,7 +512,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         except web.HTTPError:
             self.close()
             return
-        km = self.application.kernel_manager
+        km = self.kernel_manager
         kernel_id = self.kernel_id
         km.add_restart_callback(kernel_id, self.on_kernel_restarted)
         km.add_restart_callback(kernel_id, self.on_restart_failed, 'dead')
@@ -513,7 +548,7 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         # This method can be called twice, once by self.kernel_died and once
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
-        km = self.application.kernel_manager
+        km = self.kernel_manager
         if self.kernel_id in km:
             km.remove_restart_callback(
                 self.kernel_id, self.on_kernel_restarted,
@@ -527,6 +562,10 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
 
 
 class ShellHandler(AuthenticatedZMQStreamHandler):
+    
+    @property
+    def max_msg_size(self):
+        return self.settings.get('max_msg_size', 65535)
 
     def initialize(self, *args, **kwargs):
         self.shell_stream = None
@@ -537,8 +576,7 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
         except web.HTTPError:
             self.close()
             return
-        km = self.application.kernel_manager
-        self.max_msg_size = km.max_msg_size
+        km = self.kernel_manager
         kernel_id = self.kernel_id
         try:
             self.shell_stream = km.connect_shell(kernel_id)
@@ -566,26 +604,26 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
 # Notebook web service handlers
 #-----------------------------------------------------------------------------
 
-class NotebookRedirectHandler(AuthenticatedHandler):
+class NotebookRedirectHandler(IPythonHandler):
     
     @authenticate_unless_readonly
     def get(self, notebook_name):
-        app = self.application
         # strip trailing .ipynb:
         notebook_name = os.path.splitext(notebook_name)[0]
-        notebook_id = app.notebook_manager.rev_mapping.get(notebook_name, '')
+        notebook_id = self.notebook_manager.rev_mapping.get(notebook_name, '')
         if notebook_id:
             url = self.settings.get('base_project_url', '/') + notebook_id
             return self.redirect(url)
         else:
             raise HTTPError(404)
 
-class NotebookRootHandler(AuthenticatedHandler):
+
+class NotebookRootHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        nbm = self.application.notebook_manager
-        km = self.application.kernel_manager
+        nbm = self.notebook_manager
+        km = self.kernel_manager
         files = nbm.list_notebooks()
         for f in files :
             f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])
@@ -593,7 +631,7 @@ class NotebookRootHandler(AuthenticatedHandler):
 
     @web.authenticated
     def post(self):
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         body = self.request.body.strip()
         format = self.get_argument('format', default='json')
         name = self.get_argument('name', default=None)
@@ -605,13 +643,13 @@ class NotebookRootHandler(AuthenticatedHandler):
         self.finish(jsonapi.dumps(notebook_id))
 
 
-class NotebookHandler(AuthenticatedHandler):
+class NotebookHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
         
@@ -626,7 +664,7 @@ class NotebookHandler(AuthenticatedHandler):
 
     @web.authenticated
     def put(self, notebook_id):
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         format = self.get_argument('format', default='json')
         name = self.get_argument('name', default=None)
         nbm.save_notebook(notebook_id, self.request.body, name=name, format=format)
@@ -635,20 +673,17 @@ class NotebookHandler(AuthenticatedHandler):
 
     @web.authenticated
     def delete(self, notebook_id):
-        nbm = self.application.notebook_manager
-        nbm.delete_notebook(notebook_id)
+        self.notebook_manager.delete_notebook(notebook_id)
         self.set_status(204)
         self.finish()
 
 
-class NotebookCopyHandler(AuthenticatedHandler):
+class NotebookCopyHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, notebook_id):
-        nbm = self.application.notebook_manager
-        project = nbm.notebook_dir
-        notebook_id = nbm.copy_notebook(notebook_id)
-        self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
+        notebook_id = self.notebook_manager.copy_notebook(notebook_id)
+        self.redirect('/'+urljoin(self.base_project_url, notebook_id))
 
 
 #-----------------------------------------------------------------------------
@@ -656,33 +691,31 @@ class NotebookCopyHandler(AuthenticatedHandler):
 #-----------------------------------------------------------------------------
 
 
-class MainClusterHandler(AuthenticatedHandler):
+class MainClusterHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        cm = self.application.cluster_manager
-        self.finish(jsonapi.dumps(cm.list_profiles()))
+        self.finish(jsonapi.dumps(self.cluster_manager.list_profiles()))
 
 
-class ClusterProfileHandler(AuthenticatedHandler):
+class ClusterProfileHandler(IPythonHandler):
 
     @web.authenticated
     def get(self, profile):
-        cm = self.application.cluster_manager
-        self.finish(jsonapi.dumps(cm.profile_info(profile)))
+        self.finish(jsonapi.dumps(self.cluster_manager.profile_info(profile)))
 
 
-class ClusterActionHandler(AuthenticatedHandler):
+class ClusterActionHandler(IPythonHandler):
 
     @web.authenticated
     def post(self, profile, action):
-        cm = self.application.cluster_manager
+        cm = self.cluster_manager
         if action == 'start':
             n = self.get_argument('n',default=None)
             if n is None:
                 data = cm.start_cluster(profile)
             else:
-                data = cm.start_cluster(profile,int(n))
+                data = cm.start_cluster(profile, int(n))
         if action == 'stop':
             data = cm.stop_cluster(profile)
         self.finish(jsonapi.dumps(data))
@@ -693,7 +726,7 @@ class ClusterActionHandler(AuthenticatedHandler):
 #-----------------------------------------------------------------------------
 
 
-class RSTHandler(AuthenticatedHandler):
+class RSTHandler(IPythonHandler):
 
     @web.authenticated
     def post(self):

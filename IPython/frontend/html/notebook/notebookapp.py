@@ -178,16 +178,33 @@ class NotebookWebApplication(web.Application):
         # Note that the URLs these patterns check against are escaped,
         # and thus guaranteed to be ASCII: 'héllo' is really 'h%C3%A9llo'.
         base_project_url = py3compat.unicode_to_str(base_project_url, 'ascii')
-        
+        template_path = os.path.join(os.path.dirname(__file__), "templates")
         settings = dict(
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            # basics
+            base_project_url=base_project_url,
+            base_kernel_url=ipython_app.base_kernel_url,
+            template_path=template_path,
             static_path=ipython_app.static_file_path,
             static_handler_class = FileFindHandler,
             static_url_prefix = url_path_join(base_project_url,'/static/'),
+            
+            # authentication
             cookie_secret=os.urandom(1024),
             login_url=url_path_join(base_project_url,'/login'),
             cookie_name='username-%s' % uuid.uuid4(),
-            base_project_url = base_project_url,
+            read_only=ipython_app.read_only,
+            password=ipython_app.password,
+            
+            # managers
+            kernel_manager=kernel_manager,
+            notebook_manager=notebook_manager,
+            cluster_manager=cluster_manager,
+            
+            # IPython stuff
+            max_msg_size=ipython_app.max_msg_size,
+            config=ipython_app.config,
+            use_less=ipython_app.use_less,
+            jinja2_env=Environment(loader=FileSystemLoader(template_path)),
         )
 
         # allow custom overrides for the tornado web app.
@@ -197,20 +214,10 @@ class NotebookWebApplication(web.Application):
         new_handlers = []
         for handler in handlers:
             pattern = url_path_join(base_project_url, handler[0])
-            new_handler = tuple([pattern]+list(handler[1:]))
-            new_handlers.append( new_handler )
+            new_handler = tuple([pattern] + list(handler[1:]))
+            new_handlers.append(new_handler)
 
         super(NotebookWebApplication, self).__init__(new_handlers, **settings)
-
-        self.kernel_manager = kernel_manager
-        self.notebook_manager = notebook_manager
-        self.cluster_manager = cluster_manager
-        self.ipython_app = ipython_app
-        self.read_only = self.ipython_app.read_only
-        self.config = self.ipython_app.config
-        self.use_less = self.ipython_app.use_less
-        self.log = log
-        self.jinja2_env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), "templates")))
 
 
 
@@ -301,10 +308,13 @@ class NotebookApp(BaseIPythonApplication):
 
     kernel_argv = List(Unicode)
 
-    log_level = Enum((0,10,20,30,40,50,'DEBUG','INFO','WARN','ERROR','CRITICAL'),
-                    default_value=logging.INFO,
-                    config=True,
-                    help="Set the log level by value or name.")
+    max_msg_size = Integer(65536, config=True, help="""
+        The max raw message size accepted from the browser
+        over a WebSocket connection.
+    """)
+
+    def _log_level_default(self):
+        return logging.INFO
 
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
