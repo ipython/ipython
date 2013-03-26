@@ -26,8 +26,8 @@ from IPython.core.magic import  (
 class DisplayMagics(Magics):
     """Magics for displaying various output types with literals
     
-    Defines javascript/latex cell magics for writing blocks in those languages,
-    to be rendered in the frontend.
+    Defines javascript/latex/svg/html cell magics for writing 
+    blocks in those languages, to be rendered in the frontend.
     """
     
     @cell_magic
@@ -48,5 +48,5 @@ class DisplayMagics(Magics):
 
     @cell_magic
     def html(self, line, cell):
-        """Render the cell as an SVG literal"""
+        """Render the cell as a block of HTML"""
         display(HTML(cell))
