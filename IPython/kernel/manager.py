@@ -117,36 +117,38 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         else:
             return "%s://%s-%s" % (transport, ip, port)
 
-    def _create_connected_socket(self, channel):
+    def _create_connected_socket(self, channel, identity=None):
         """Create a zmq Socket and connect it to the kernel."""
         url = self._make_url(channel)
         socket_type = _socket_types[channel]
-        sock = self.context.socket(socket_type)
         self.log.info("Connecting to: %s" % url)
+        sock = self.context.socket(socket_type)
+        if identity:
+            sock.identity = identity
         sock.connect(url)
         return sock
 
-    def connect_iopub(self):
+    def connect_iopub(self, identity=None):
         """return zmq Socket connected to the IOPub channel"""
-        sock = self._create_connected_socket('iopub')
+        sock = self._create_connected_socket('iopub', identity=identity)
         sock.setsockopt(zmq.SUBSCRIBE, b'')
         return sock
 
-    def connect_shell(self):
+    def connect_shell(self, identity=None):
         """return zmq Socket connected to the Shell channel"""
-        return self._create_connected_socket('shell')
+        return self._create_connected_socket('shell', identity=identity)
 
-    def connect_stdin(self):
+    def connect_stdin(self, identity=None):
         """return zmq Socket connected to the StdIn channel"""
-        return self._create_connected_socket('stdin')
+        return self._create_connected_socket('stdin', identity=identity)
 
-    def connect_hb(self):
+    def connect_hb(self, identity=None):
         """return zmq Socket connected to the Heartbeat channel"""
-        return self._create_connected_socket('hb')
+        return self._create_connected_socket('hb', identity=identity)
 
-    def connect_control(self):
+    def connect_control(self, identity=None):
         """return zmq Socket connected to the Heartbeat channel"""
-        return self._create_connected_socket('control')
+        return self._create_connected_socket('control', identity=identity)
 
     #--------------------------------------------------------------------------
     # Kernel management

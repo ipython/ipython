@@ -219,13 +219,15 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_iopub(self, kernel_id):
+    def connect_iopub(self, kernel_id, identity=None):
         """Return a zmq Socket connected to the iopub channel.
 
         Parameters
         ==========
         kernel_id : uuid
-            The id of the kernel.
+            The id of the kernel
+        identity : bytes (optional)
+            The zmq identity of the socket
 
         Returns
         =======
@@ -233,13 +235,15 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_shell(self, kernel_id):
+    def connect_shell(self, kernel_id, identity=None):
         """Return a zmq Socket connected to the shell channel.
 
         Parameters
         ==========
         kernel_id : uuid
-            The id of the kernel.
+            The id of the kernel
+        identity : bytes (optional)
+            The zmq identity of the socket
 
         Returns
         =======
@@ -247,13 +251,15 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_stdin(self, kernel_id):
+    def connect_stdin(self, kernel_id, identity=None):
         """Return a zmq Socket connected to the stdin channel.
 
         Parameters
         ==========
         kernel_id : uuid
-            The id of the kernel.
+            The id of the kernel
+        identity : bytes (optional)
+            The zmq identity of the socket
 
         Returns
         =======
@@ -261,13 +267,15 @@ class MultiKernelManager(LoggingConfigurable):
         """
 
     @kernel_method
-    def connect_hb(self, kernel_id):
+    def connect_hb(self, kernel_id, identity=None):
         """Return a zmq Socket connected to the hb channel.
 
         Parameters
         ==========
         kernel_id : uuid
-            The id of the kernel.
+            The id of the kernel
+        identity : bytes (optional)
+            The zmq identity of the socket
 
         Returns
         =======
