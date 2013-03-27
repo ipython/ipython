@@ -23,9 +23,10 @@ import zmq
 
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
+from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCAL_IPS
 from IPython.utils.traitlets import (
-    Any, Instance, Unicode, List, Bool,
+    Any, Instance, Unicode, List, Bool, Type, DottedObjectName
 )
 from IPython.kernel import (
     make_ipkernel_cmd,
@@ -65,6 +66,12 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     def _session_default(self):
         return Session(config=self.config)
 
+    # the class to create with our `client` method
+    client_class = DottedObjectName('IPython.kernel.client.KernelClient')
+    client_factory = Type()
+    def _client_class_changed(self, name, old, new):
+        self.client_factory = import_item(str(new))
+
     # The kernel process with which the KernelManager is communicating.
     # generally a Popen instance
     kernel = Any()
@@ -101,6 +108,23 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 
     def stop_restarter(self):
         pass
+
+    #--------------------------------------------------------------------------
+    # create a Client connected to our Kernel
+    #--------------------------------------------------------------------------
+
+    def client(self, **kwargs):
+        """Create a client configured to connect to our kernel"""
+        if self.client_factory is None:
+            self.client_factory = import_item(self.client_class)
+
+        kw = {}
+        kw.update(self.get_connection_info())
+        kw['connection_file'] = self.connection_file
+
+        # add kwargs last, for manual overrides
+        kw.update(kwargs)
+        return self.client_factory(**kw)
 
     #--------------------------------------------------------------------------
     # Connection info
@@ -174,17 +198,18 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         """
         return launch_kernel(kernel_cmd, **kw)
 
+    # Control socket used for polite kernel shutdown
+
     def _connect_control_socket(self):
         if self._control_socket is None:
             self._control_socket = self.connect_control()
+            self._control_socket.linger = 100
 
     def _close_control_socket(self):
         if self._control_socket is None:
             return
-        self._control_socket.linger = 100
         self._control_socket.close()
         self._control_socket = None
-
 
     def start_kernel(self, **kw):
         """Starts a kernel on this host in a separate process.

@@ -31,14 +31,14 @@ from IPython.utils.traitlets import (
 def setup():
     global KM, KC
     KM = KernelManager()
+    KM.client_factory = BlockingKernelClient
     KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KC = BlockingKernelClient(connection_file=KM.connection_file)
-    KC.load_connection_file()
+    KC = KM.client()
     KC.start_channels()
     
     # wait for kernel to be ready
-    KC.shell_channel.execute("pass")
-    KC.shell_channel.get_msg(block=True, timeout=5)
+    KC.execute("pass")
+    KC.get_shell_msg(block=True, timeout=5)
     flush_channels()
 
 
