@@ -378,7 +378,6 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_text = function (data, element, extra_class) {
         var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
-        data = utils.wrapUrls(data);
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
         data = utils.autoLinkUrls(data);
