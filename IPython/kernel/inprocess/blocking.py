@@ -1,4 +1,4 @@
-""" Implements a fully blocking kernel manager.
+""" Implements a fully blocking kernel client.
 
 Useful for test suites and blocking terminal interfaces.
 """
@@ -12,15 +12,19 @@ Useful for test suites and blocking terminal interfaces.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-from __future__ import print_function
 
-# Local imports.
+# IPython imports
 from IPython.utils.io import raw_print
 from IPython.utils.traitlets import Type
-from kernelmanager import InProcessKernelManager, InProcessShellChannel, \
-    InProcessIOPubChannel, InProcessStdInChannel
-from IPython.kernel.blockingkernelmanager import BlockingChannelMixin
+from IPython.kernel.blocking.channels import BlockingChannelMixin
 
+# Local imports
+from .channels import (
+    InProcessShellChannel,
+    InProcessIOPubChannel,
+    InProcessStdInChannel,
+)
+from .client import InProcessKernelClient
 
 #-----------------------------------------------------------------------------
 # Blocking kernel manager
@@ -33,7 +37,7 @@ class BlockingInProcessIOPubChannel(BlockingChannelMixin, InProcessIOPubChannel)
     pass
 
 class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel):
-    
+
     def call_handlers(self, msg):
         """ Overridden for the in-process channel.
 
@@ -41,12 +45,12 @@ class BlockingInProcessStdInChannel(BlockingChannelMixin, InProcessStdInChannel)
         """
         msg_type = msg['header']['msg_type']
         if msg_type == 'input_request':
-            _raw_input = self.manager.kernel._sys_raw_input
+            _raw_input = self.client.kernel._sys_raw_input
             prompt = msg['content']['prompt']
             raw_print(prompt, end='')
             self.input(_raw_input())
 
-class BlockingInProcessKernelManager(InProcessKernelManager):
+class BlockingInProcessKernelClient(InProcessKernelClient):
 
     # The classes to use for the various channels.
     shell_channel_class = Type(BlockingInProcessShellChannel)

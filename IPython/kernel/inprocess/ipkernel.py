@@ -37,7 +37,8 @@ class InProcessKernel(Kernel):
 
     # The frontends connected to this kernel.
     frontends = List(
-        Instance('IPython.kernel.inprocess.kernelmanager.InProcessKernelManager'))
+        Instance('IPython.kernel.inprocess.client.InProcessKernelClient')
+    )
 
     # The GUI environment that the kernel is running under. This need not be
     # specified for the normal operation for the kernel, but is required for
