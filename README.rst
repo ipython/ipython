@@ -22,7 +22,7 @@ Requirements
 Jinja2
 ~~~~~~
 
-Most of the converter should rely on Jinja2 templating language.
+Most of the converters should rely on the Jinja2 templating language.
 
 
 Markdown
@@ -36,7 +36,7 @@ You will need the `python markdown module
 Docutils
 ~~~~~~~~
 
-nbconvert require the latest development version of docutils. This can be installed
+nbconvert requires the latest development version of docutils. This can be installed
 via ::
 
     $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz
@@ -45,7 +45,7 @@ via ::
 Sphinx-Latex
 ~~~~~~~~~~~~
 
-We are trying to require as little as possible, but for now, compiling the generated Tex file require texlive-full.
+We are trying to require as little as possible, but for now, compiling the generated Tex file requires texlive-full.
 ::
 
   sudo apt-get install texlive-full
@@ -81,7 +81,7 @@ Pandoc
 
 Nbconvert also needs the `pandoc multiformat converter
 <http://johnmacfarlane.net/pandoc>`_ to do the actual text conversions.  Pandoc
-is included in most linux distributions package managers, and the author's
+is included in most Linux distribution's package managers, and the author's
 website contains links to Mac OS X and Windows installers.
 
 Pandoc, to convert markdown into latex
@@ -101,7 +101,7 @@ For conversion to HTML/LaTeX, pygments is also required for syntax highlighting
 Running Tests
 =============
 
-Please try to run the tests to avoid regression when commiting a patch, and create new test when adding features.
+Please try to run the tests to avoid regression when commiting a patch, and create new tests when adding features.
 ::
 
     $ pip install nose
@@ -118,6 +118,4 @@ to a directory in your ``$PATH``.  Once this is done, you can call it as::
     $ nbconvert -f <FORMAT> notebook.ipynb
 
 Use ``nbconvert -h`` for up to date help on the available formats.
-
-
 

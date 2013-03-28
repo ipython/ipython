@@ -1,6 +1,6 @@
 %% This is the automatic preamble used by IPython.  Note that it does *not*
-%% include a documentclass declaration, that is added at runtime to the overall
-%% document.
+%% include a documentclass declaration. The documentclass is added at runtime
+%% to the overall document.
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -43,7 +43,7 @@
 % the ability of the frames inside of it to be broken across pages.  This
 % causes at least the problem of having lots of empty space at the bottom of
 % pages as new frames are moved to the next page, and if a single frame is too
-% long to fit on a page, will completely stop latex from compiling the
+% long to fit on a page, it will completely stop latex from compiling the
 % document.  So unless we figure out a solution to this, we'll have to instead
 % leave the codecell env. as empty.  I'm keeping the original codecell
 % definition here (a thin vertical bar) for reference, in case we find a
@@ -105,9 +105,9 @@
   }
 
 % hardcode size of all verbatim environments to be a bit smaller
-\makeatletter 
+\makeatletter
 \g@addto@macro\@verbatim\small\topsep=0.5em\partopsep=0pt
-\makeatother 
+\makeatother
 
 % Prevent overflowing lines due to urls and other hard-to-break entities.
 \sloppy
