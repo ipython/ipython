@@ -21,6 +21,7 @@ from __future__ import division
 import sys
 import warnings
 
+from IPython.external.decorator import decorator
 from IPython.testing.skipdoctest import skip_doctest
 
 from . import map as Map
@@ -79,6 +80,24 @@ def getname(f):
     
     return str(f)
 
+@decorator
+def sync_view_results(f, self, *args, **kwargs):
+    """sync relevant results from self.client to our results attribute.
+    
+    This is a clone of view.sync_results, but for remote functions
+    """
+    view = self.view
+    if view._in_sync_results:
+        return f(self, *args, **kwargs)
+    print 'in sync results', f
+    view._in_sync_results = True
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        view._in_sync_results = False
+        view._sync_results()
+    return ret
+    
 #--------------------------------------------------------------------------
 # Classes
 #--------------------------------------------------------------------------
@@ -158,6 +177,7 @@ class ParallelFunction(RemoteFunction):
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
 
+    @sync_view_results
     def __call__(self, *sequences):
         client = self.view.client
         
