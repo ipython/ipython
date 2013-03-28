@@ -122,7 +122,7 @@ def remove_fake_files_url(cell):
     """Remove from the cell source the /files/ pseudo-path we use.
     """
     src = cell.source
-    cell.source = src.replace('/files/', '')
+    cell.source = re.sub(r"""([\(/"'])files/""", r'\1',src)
 
 
 # ANSI color functions:
