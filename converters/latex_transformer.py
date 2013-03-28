@@ -23,10 +23,10 @@ class LatexTransformer(ActivatableTransformer):
         Returns modified cell and resource dict.
         """
         if hasattr(cell, "source") and cell.cell_type == "markdown":
-            cell.source = remove_math_space(cell.source)
+            cell.source = rm_math_space(cell.source)
         return cell, other
 
-def remove_math_space(text):
+def rm_math_space(text):
     """
     Remove the space between latex math commands and enclosing $ symbols.
     """

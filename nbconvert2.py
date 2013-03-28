@@ -128,7 +128,7 @@ class NbconvertApp(Application):
                 if not os.path.exists(out_root+'_files'):
                     os.mkdir(files_dir)
                 for key in keys:
-                    with io.open(os.path.join(files_dir, key), 'w') as f:
+                    with io.open(os.path.join(files_dir, key), 'wb') as f:
                         f.write(resources['figures'][key])
             elif self.stdout:
                 print('''====================== Keys in Resources ==================================''')

@@ -34,7 +34,7 @@ class SphinxTransformer(ActivatableTransformer):
     interactive = Bool(True, config=True, help="""
     Allows you to define whether or not the Sphinx exporter will prompt
     you for input during the conversion process.  If this is set to false,
-    the author, version, release, date, and chapterstyle traits should
+    the author, version, release, date, and chapter_style traits should
     be set.
     """)
     
@@ -50,13 +50,13 @@ class SphinxTransformer(ActivatableTransformer):
     Example: "Rough Draft"
     """)
     
-    publishdate = Unicode("", config=True, help="""Publish date
+    publish_date = Unicode("", config=True, help="""Publish date
     This is the date to render on the document as the publish date.
     Leave this blank to default to todays date.  
     Example: "June 12, 1990"
     """)
     
-    chapterstyle = Unicode("Bjarne", config=True, help="""Sphinx chapter style
+    chapter_style = Unicode("Bjarne", config=True, help="""Sphinx chapter style
     This is the style to use for the chapter headers in the document.
     You may choose one of the following:
         "Bjarne"    (default)
@@ -67,13 +67,28 @@ class SphinxTransformer(ActivatableTransformer):
         "Sonny"    (used for international documents)
     """)
     
+    output_style = Unicode("notebook", config=True, help="""Nbconvert Ipython
+    notebook input/output formatting style.
+    You may choose one of the following:
+        "simple     (recommended for long code segments)"
+        "notebook"  (default)
+    """)
+    
+    center_output = Bool(False, config=True, help="""
+    Optional attempt to center all output.  If this is false, no additional
+    formatting is applied.
+    """)
+    
+    use_headers = Bool(True, config=True, help="""
+    Whether not a header should be added to the document.
+    """)
     
     def __call__(self, nb, other):
         """
         Entry
         Since we are not interested in any additional manipulation on a cell
         by cell basis, we do not  call the base implementation.
-        """
+        """ 
         if self.enabled:
             return self.transform(nb, other)
         else:
@@ -83,37 +98,56 @@ class SphinxTransformer(ActivatableTransformer):
         """
         Sphinx transformation to apply on each notebook.
         """
-        
+         
+        # TODO: Add versatile method of additional notebook metadata.  Include
+        #       handling of multiple files.  For now use a temporay namespace,
+        #       '_draft' to signify that this needs to change.
+        if not "_draft" in nb.metadata:
+            nb.metadata._draft = {}
+            
+        if not "sphinx" in other:
+            other["sphinx"] = {}
+
         if self.interactive:
             
             # Prompt the user for additional meta data that doesn't exist currently
             # but would be usefull for Sphinx.
-            nb.metadata["author"] = self._prompt_author()
-            nb.metadata["version"] = self._prompt_version()
-            nb.metadata["release"] = self._prompt_release()
-            nb.metadata["date"] = self._prompt_date()
+            nb.metadata._draft["author"] = self._prompt_author()
+            nb.metadata._draft["version"] = self._prompt_version()
+            nb.metadata._draft["release"] = self._prompt_release()
+            nb.metadata._draft["date"] = self._prompt_date()
             
             # Prompt the user for the document style.
-            other["sphinx_chapterstyle"] = self._prompt_chapter_title_style()
+            other["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
+            other["sphinx"]["outputstyle"] = self._prompt_output_style()
+            
+            # Small options
+            other["sphinx"]["centeroutput"] = self._prompt_boolean("Do you want to center the output? (false)", False)
+            other["sphinx"]["header"] = self._prompt_boolean("Should a Sphinx document header be used? (true)", True)
         else:
             
             # Try to use the traitlets.
-            nb.metadata["author"] = self.author
-            nb.metadata["version"] = self.version
-            nb.metadata["release"] = self.release
+            nb.metadata._draft["author"] = self.author
+            nb.metadata._draft["version"] = self.version
+            nb.metadata._draft["release"] = self.release
             
-            if len(self.publishdate.strip()) == 0:
-                nb.metadata["date"] = date.today().strftime("%B %-d, %Y")
+            # Use todays date if none is provided.
+            if len(self.publish_date.strip()) == 0:
+                nb.metadata._draft["date"] = date.today().strftime("%B %-d, %Y")
             else:
-                nb.metadata["date"] = self.publishdate
-                
-            other["sphinx_chapterstyle"] = self.chapterstyle
+                nb.metadata._draft["date"] = self.publish_date
+            
+            # Sphinx traitlets.
+            other["sphinx"]["chapterstyle"] = self.chapter_style
+            other["sphinx"]["outputstyle"] = self.output_style
+            other["sphinx"]["centeroutput"] = self.center_output
+            other["sphinx"]["header"] = self.use_headers
             
         # Find and pass in the path to the Sphinx dependencies.
-        other["sphinx_texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
+        other["sphinx"]["texinputs"] = os.path.abspath(sphinx.__file__ + "/../texinputs")
         
         # Generate Pygments definitions for Latex 
-        other["pygment_definitions"] = self._generate_pygments_latex_def()
+        other["sphinx"]["pygment_definitions"] = self._generate_pygments_latex_def()
         
         # End
         return nb, other 
@@ -137,6 +171,33 @@ class SphinxTransformer(ActivatableTransformer):
             user_date = default_date
         return user_date
     
+    def _prompt_boolean(self, prompt, default=False):
+        response = self._input(prompt)
+        response = response.strip().lower()
+        
+        #Catch 1, true, yes as True
+        if len(response) > 0 and (response == "1" or response[0] == "t" or response[0] == "y"):
+            return True
+        
+        #Catch 0, false, no as False
+        elif len(response) > 0 and (response == "0" or response[0] == "f" or response[0] == "n"):
+            return False
+            
+        else:
+            return default
+        
+    def _prompt_output_style(self):
+        
+        # Dictionary of available output styles
+        styles = {1: "simple",
+                  2: "notebook"}
+        
+        #Append comments to the menu when displaying it to the user.
+        comments = {1: "(recommended for long code segments)",
+                    2: "(default)"}
+        
+        return self._prompt_dictionary(styles, default_style=2, menu_comments=comments)
+    
     def _prompt_chapter_title_style(self):
         
         # Dictionary of available Sphinx styles
@@ -146,34 +207,39 @@ class SphinxTransformer(ActivatableTransformer):
                   4: "Conny",
                   5: "Rejne",
                   6: "Sonny"}
-        default_style = 1
         
+        #Append comments to the menu when displaying it to the user.
+        comments = {1: "(default)",
+                    6: "(for international documents)"}
+        
+        return self._prompt_dictionary(styles, menu_comments=comments)
+    
+    def _prompt_dictionary(self, choices, default_style=1, menu_comments={}):
+                
         # Build the menu that will be displayed to the user with
         # all of the options available. 
-        style_prompt = ""
-        for key, value in styles.iteritems():
-            style_prompt += "%d %s" % (key, value)
-            if key == default_style:
-                style_prompt += " (default)"
-            elif value == "Sonny":
-                style_prompt += " (for international documents)"
-            style_prompt += "\n"
+        prompt = ""
+        for key, value in choices.iteritems():
+            prompt += "%d %s " % (key, value)
+            if key in menu_comments:
+                prompt += menu_comments[key]
+            prompt += "\n"
         
         # Continue to ask the user for a style until an appropriate
         # one is specified.
         response = -1
-        while (0 > response or response > 6):
+        while (not response in choices):
             try:
-                text_response = self._input(style_prompt)
+                text_response = self._input(prompt)
                 
                 # Use default option if no input.
                 if len(text_response.strip()) == 0:
-                    response = 1
+                    response = default_style
                 else:
                     response = int(text_response)
             except:
-                print("Error: Value must be a number between 1 and 6, leave blank for default\n")
-        return styles[response]
+                print("Error: Value is not an available option.  0 selects the default.\n")
+        return choices[response]
           
     def _input(self, prompt_text):
         """
