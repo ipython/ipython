@@ -81,7 +81,7 @@ Pandoc
 
 Nbconvert also needs the `pandoc multiformat converter
 <http://johnmacfarlane.net/pandoc>`_ to do the actual text conversions.  Pandoc
-is included in most Linux package managers for each distribution, and the author's
+is included in most Linux distribution's package managers, and the author's
 website contains links to Mac OS X and Windows installers.
 
 Pandoc, to convert markdown into latex
