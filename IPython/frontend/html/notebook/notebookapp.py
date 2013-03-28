@@ -584,19 +584,7 @@ class NotebookApp(BaseIPythonApplication):
             self.exit(1)
     
     def init_signal(self):
-        # FIXME: remove this check when pyzmq dependency is >= 2.1.11
-        # safely extract zmq version info:
-        try:
-            zmq_v = zmq.pyzmq_version_info()
-        except AttributeError:
-            zmq_v = [ int(n) for n in re.findall(r'\d+', zmq.__version__) ]
-            if 'dev' in zmq.__version__:
-                zmq_v.append(999)
-            zmq_v = tuple(zmq_v)
-        if zmq_v >= (2,1,9) and not sys.platform.startswith('win'):
-            # This won't work with 2.1.7 and
-            # 2.1.9-10 will log ugly 'Interrupted system call' messages,
-            # but it will work
+        if not sys.platform.startswith('win'):
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
         if hasattr(signal, 'SIGUSR1'):
