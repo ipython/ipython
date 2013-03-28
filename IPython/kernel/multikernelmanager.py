@@ -27,8 +27,9 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
-    Instance, Dict, Unicode, Any, DottedObjectName,
+    Instance, Dict, Unicode, Any, DottedObjectName, Bool
 )
+
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
@@ -41,7 +42,7 @@ class MultiKernelManager(LoggingConfigurable):
     """A class for managing multiple kernels."""
     
     kernel_manager_class = DottedObjectName(
-        "IPython.kernel.blockingkernelmanager.BlockingKernelManager", config=True,
+        "IPython.kernel.ioloopkernelmanager.IOLoopKernelManager", config=True,
         help="""The kernel manager class.  This is configurable to allow
         subclassing of the KernelManager for customized behavior.
         """
@@ -56,7 +57,7 @@ class MultiKernelManager(LoggingConfigurable):
     context = Instance('zmq.Context')
     def _context_default(self):
         return zmq.Context.instance()
-    
+
     connection_dir = Unicode('')
 
     _kernels = Dict()
@@ -93,7 +94,7 @@ class MultiKernelManager(LoggingConfigurable):
         # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
-                    config=self.config,
+                    config=self.config, autorestart=True, log=self.log
         )
         km.start_kernel(**kwargs)
         # start just the shell channel, needed for graceful restart
@@ -152,7 +153,21 @@ class MultiKernelManager(LoggingConfigurable):
         kernel_id : uuid
             The id of the kernel to interrupt.
         """
-        return self.get_kernel(kernel_id).restart_kernel()
+        km = self.get_kernel(kernel_id)
+        km.restart_kernel()
+
+    def is_alive(self, kernel_id):
+        """Is the kernel alive.
+
+        This calls KernelManager.is_alive() which calls Popen.poll on the
+        actual kernel subprocess.
+
+        Parameters
+        ==========
+        kernel_id : uuid
+            The id of the kernel.
+        """
+        return self.get_kernel(kernel_id).is_alive()
 
     def get_kernel(self, kernel_id):
         """Get the single KernelManager object for a kernel by its uuid.

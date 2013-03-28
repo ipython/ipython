@@ -14,21 +14,27 @@ from IPython.kernel.multikernelmanager import MultiKernelManager
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
-        return MultiKernelManager()
+        c = Config()
+        # c.KernelManager.autorestart=False
+        km = MultiKernelManager(config=c)
+        return km
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
+        # c.KernelManager.autorestart=False
         km = MultiKernelManager(config=c)
         return km
 
     def _run_lifecycle(self, km):
         kid = km.start_kernel(stdout=PIPE, stderr=PIPE)
+        self.assertTrue(km.is_alive(kid))
         self.assertTrue(kid in km)
         self.assertTrue(kid in km.list_kernel_ids())
         self.assertEqual(len(km),1)
         km.restart_kernel(kid)
+        self.assertTrue(km.is_alive(kid))
         self.assertTrue(kid in km.list_kernel_ids())
         # We need a delay here to give the restarting kernel a chance to
         # restart. Otherwise, the interrupt will kill it, causing the test

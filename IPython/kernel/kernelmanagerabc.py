@@ -220,7 +220,7 @@ class KernelManagerABC(object):
     def signal_kernel(self, signum):
         pass
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def is_alive(self):
         pass
 

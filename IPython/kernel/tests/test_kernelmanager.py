@@ -12,19 +12,25 @@ from IPython.kernel.kernelmanager import KernelManager
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
-        return KernelManager()
+        c = Config()
+        # c.KernelManager.autorestart=False
+        km = KernelManager(config=c)
+        return km
 
     def _get_ipc_km(self):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
+        # c.KernelManager.autorestart=False
         km = KernelManager(config=c)
         return km
 
     def _run_lifecycle(self, km):
         km.start_kernel(stdout=PIPE, stderr=PIPE)
+        self.assertTrue(km.is_alive())
         km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
         km.restart_kernel()
+        self.assertTrue(km.is_alive())
         # We need a delay here to give the restarting kernel a chance to
         # restart. Otherwise, the interrupt will kill it, causing the test
         # suite to hang. The reason it *hangs* is that the shutdown

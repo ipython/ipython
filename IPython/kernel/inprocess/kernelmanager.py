@@ -298,7 +298,6 @@ class InProcessKernelManager(Configurable):
     def signal_kernel(self, signum):
         raise NotImplementedError("Cannot signal in-process kernel.")
 
-    @property
     def is_alive(self):
         return True
 

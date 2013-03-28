@@ -160,7 +160,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             self.km.shell_channel.get_msg()
         # shell_channel.execute takes 'hidden', which is the inverse of store_hist
         msg_id = self.km.shell_channel.execute(cell, not store_history)
-        while not self.km.shell_channel.msg_ready() and self.km.is_alive:
+        while not self.km.shell_channel.msg_ready() and self.km.is_alive():
             try:
                 self.handle_stdin_request(timeout=0.05)
             except Empty:
@@ -389,7 +389,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # ask_exit callback.
 
         while not self.exit_now:
-            if not self.km.is_alive:
+            if not self.km.is_alive():
                 # kernel died, prompt for action or exit
                 action = "restart" if self.km.has_kernel else "wait for restart"
                 ans = self.ask_yes_no("kernel died, %s ([y]/n)?" % action, default='y')
