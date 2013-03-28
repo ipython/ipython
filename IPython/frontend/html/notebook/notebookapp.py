@@ -31,7 +31,12 @@ import time
 import uuid
 import webbrowser
 
+
 # Third party
+# check for pyzmq 2.1.11 (this is actually redundant)
+from IPython.kernel.zmq import check_for_zmq
+check_for_zmq('2.1.11', 'IPython.frontend.html.notebook')
+
 import zmq
 from jinja2 import Environment, FileSystemLoader
 
@@ -40,11 +45,24 @@ from jinja2 import Environment, FileSystemLoader
 from zmq.eventloop import ioloop
 ioloop.install()
 
-import tornado
+# check for tornado 2.1.0
+msg = "The IPython Notebook requires tornado >= 2.1.0"
+try:
+    import tornado
+except ImportError:
+    raise ImportError(msg)
+try:
+    version_info = tornado.version_info
+except AttributeError:
+    raise ImportError(msg + ", but you have < 1.1.0")
+if version_info < (2,1,0):
+    raise ImportError(msg + ", but you have %s" % tornado.version)
+
 from tornado import httpserver
 from tornado import web
 
 # Our own libraries
+from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
@@ -97,9 +115,6 @@ ipython notebook --pylab=inline        # pylab in inline plotting mode
 ipython notebook --certfile=mycert.pem # use SSL/TLS certificate
 ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 """
-
-# Packagers: modify this line if you store the notebook static files elsewhere
-DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
 
 #-----------------------------------------------------------------------------
 # Helper functions
