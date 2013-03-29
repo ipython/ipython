@@ -9,8 +9,9 @@ Release 0.13.2
 
 Most notable fixes are related to compatibility with Qt and Wx GUIs.
 
-The following 48 Pull Requests were backported to 0.13.2:
+The following 50 Pull Requests were backported to 0.13.2:
 
+* :ghpull:`2244`: fix css typo
 * :ghpull:`2399`: IndentationError display
 * :ghpull:`2503`: Fix traceback handling of SyntaxErrors without line numbers.
 * :ghpull:`2500`: Add `encoding` attribute to `OutStream` class.
@@ -59,7 +60,7 @@ The following 48 Pull Requests were backported to 0.13.2:
 * :ghpull:`2831`: avoid string version comparisons in external.qt
 * :ghpull:`3013`: py3 workaround for reload in cythonmagic
 * :ghpull:`3008`: fix cython module so extension for multiarched python
-
+* :ghpull:`3097`: PyQt 4.10: use self._document = self.document()
 
 
 Release 0.13.1
