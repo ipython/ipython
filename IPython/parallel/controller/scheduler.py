@@ -796,7 +796,7 @@ def launch_scheduler(in_addr, out_addr, mon_addr, not_addr, reg_addr, config=Non
                         identity=b'task', in_thread=False):
 
     ZMQStream = zmqstream.ZMQStream
-    loglevel = logging.DEBUG
+
     if config:
         # unwrap dict back into Config
         config = Config(config)
