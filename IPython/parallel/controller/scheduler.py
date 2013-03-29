@@ -577,6 +577,7 @@ class TaskScheduler(SessionFactory):
     def save_unmet(self, job):
         """Save a message for later submission when its dependencies are met."""
         msg_id = job.msg_id
+        self.log.debug("Adding task %s to the queue", msg_id)
         self.queue_map[msg_id] = job
         heapq.heappush(self.queue, job)
         # track the ids in follow or after, but not those already finished
