@@ -24,6 +24,7 @@ from IPython.utils.warn import error
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
+reg = re.compile('^\w+\.\w+$')
 @magics_class
 class ConfigMagics(Magics):
 
@@ -129,9 +130,21 @@ class ConfigMagics(Magics):
             help = re.sub(re.compile(r'^--', re.MULTILINE), '', help)
             print help
             return
+        elif reg.match(line):
+            cls, attr = line.split('.')
+            return getattr(configurables[classnames.index(cls)],attr)
         elif '=' not in line:
-            raise UsageError("Invalid config statement: %r, "
-                             "should be Class.trait = value" % line)
+            extra = ''
+            lcname = map(str.lower,classnames)
+            ll = line.lower()
+            if ll in lcname:
+                correctname = classnames[lcname.index(ll) ]
+                extra = '\nDid you mean '+correctname+' (Difference in Case)'
+            msg = "Invalid config statement: %r, "\
+                  "should be `Class.trait = value`."
+
+            msg = msg+extra
+            raise UsageError( msg % line)
 
         # otherwise, assume we are setting configurables.
         # leave quotes on args when splitting, because we want
