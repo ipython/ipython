@@ -7,6 +7,7 @@ python:
     - 3.3
 before_install:
     - easy_install -q pyzmq
+    - pip install pyrepl
 install:
     - python setup.py install -q 
 script:
