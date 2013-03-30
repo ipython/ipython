@@ -76,7 +76,7 @@ if uses_libedit and sys.platform == 'darwin':
         "     pip install pyrepl",
         "*"*78]),
         RuntimeWarning)
-elif have_readline and not sys.platform in ('win32', 'cli'):
+elif have_readline and not have_pyrepl and not sys.platform in ('win32', 'cli'):
     warnings.warn('\n'.join(["",
         "Python readline has a bug, where C-c to interrupt C-r reverse-i search",
         "can leave hidden input. Make sure you use C-g to end C-r search, and not C-c.",
