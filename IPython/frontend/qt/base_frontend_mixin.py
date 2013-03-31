@@ -12,6 +12,7 @@ class BaseFrontendMixin(object):
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' concrete interface
     #---------------------------------------------------------------------------
+    _kernel_client = None
 
     def _get_kernel_client(self):
         """Returns the current kernel client.
