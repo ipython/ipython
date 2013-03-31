@@ -303,6 +303,9 @@ class MagicsManager(Configurable):
 
     auto_magic = Bool(True, config=True, help=
         "Automatically call line magics without requiring explicit % prefix")
+
+    def _auto_magic_changed(self, name, value):
+        self.shell.automagic = value
     
     _auto_status = [
         'Automagic is OFF, % prefix IS needed for line magics.',
