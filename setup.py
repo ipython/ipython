@@ -93,13 +93,10 @@ def cleanup():
 # Handle OS specific things
 #-------------------------------------------------------------------------------
 
-if os.name == 'posix':
-    os_name = 'posix'
-elif os.name in ['nt','dos']:
+if os.name in ('nt','dos'):
     os_name = 'windows'
 else:
-    print('Unsupported operating system:',os.name)
-    sys.exit(1)
+    os_name = os.name
 
 # Under Windows, 'sdist' has not been supported.  Now that the docs build with
 # Sphinx it might work, but let's not turn it on until someone confirms that it
