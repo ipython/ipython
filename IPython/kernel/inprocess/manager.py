@@ -11,7 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Instance
+from IPython.utils.traitlets import Instance, DottedObjectName
 from IPython.kernel.managerabc import KernelManagerABC
 from IPython.kernel.manager import KernelManager
 
@@ -31,6 +31,8 @@ class InProcessKernelManager(KernelManager):
 
     # The kernel process with which the KernelManager is communicating.
     kernel = Instance('IPython.kernel.inprocess.ipkernel.InProcessKernel')
+    # the client class for KM.client() shortcut
+    client_class = DottedObjectName('IPython.kernel.inprocess.BlockingInProcessKernelClient')
 
     #--------------------------------------------------------------------------
     # Kernel management methods
@@ -61,7 +63,11 @@ class InProcessKernelManager(KernelManager):
         raise NotImplementedError("Cannot signal in-process kernel.")
 
     def is_alive(self):
-        return True
+        return self.kernel is not None
+
+    def client(self, **kwargs):
+        kwargs['kernel'] = self.kernel
+        return super(InProcessKernelManager, self).client(**kwargs)
 
 
 #-----------------------------------------------------------------------------
