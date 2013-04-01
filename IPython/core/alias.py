@@ -70,8 +70,22 @@ def default_aliases():
                           # things which are executable
                           ('lx', 'ls -F -o --color %l | grep ^-..x'),
                           ]
+        elif sys.platform.startswith('darwin'):
+            # OSX
+            ls_aliases = [('ls', 'ls -FG'),
+                          # long ls
+                          ('ll', 'ls -FG -l'),
+                          # ls normal files only
+                          ('lf', 'ls -FG -l %l | grep ^-'),
+                          # ls symbolic links
+                          ('lk', 'ls -FG -l %l | grep ^l'),
+                          # directories or links to directories,
+                          ('ldir', 'ls -FG -l %l | grep /$'),
+                          # things which are executable
+                          ('lx', 'ls -FG -l %l | grep ^-..x'),
+                          ]
         else:
-            # BSD, OSX, etc.
+            # BSD, etc.
             ls_aliases = [('ls', 'ls -F'),
                           # long ls
                           ('ll', 'ls -F -l'),
@@ -255,7 +269,7 @@ class AliasManager(Configurable):
                 if l2.split(None,1)[0] == line.split(None,1)[0]:
                     line = l2
                     break
-                line=l2
+                line = l2
             else:
                 break
 
