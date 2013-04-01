@@ -2644,10 +2644,11 @@ class InteractiveShell(SingletonConfigurable):
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
                         if self.implicit_cd:
-                            if os.path.isdir(cell.strip()): # implicit cd
+                            command = cell.strip()
+                            if os.path.isdir(command): # implicit cd
                                 if store_history:
                                     self.execution_count += 1
-                                os.chdir(cell.strip())
+                                self.run_line_magic('cd', command)
                                 return None
                         self.showsyntaxerror()
                         if store_history:
@@ -2830,9 +2831,9 @@ class InteractiveShell(SingletonConfigurable):
             self.CustomTB(etype,value,tb)
         except NameError:
             if self.implicit_cd:
-                command = code_obj.co_names[0]
-                if os.path.isdir(command.strip()): # implicit cd
-                    os.chdir(command.strip())
+                command = code_obj.co_names[0].strip()
+                if os.path.isdir(command): # implicit cd
+                    self.run_line_magic('cd', command)
             else:
                 raise
         except:
