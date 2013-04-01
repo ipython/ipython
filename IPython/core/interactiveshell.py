@@ -2645,6 +2645,8 @@ class InteractiveShell(SingletonConfigurable):
                             MemoryError):
                         if self.implicit_cd:
                             if os.path.isdir(cell.strip()): # implicit cd
+                                if store_history:
+                                    self.execution_count += 1
                                 os.chdir(cell.strip())
                                 return None
                         self.showsyntaxerror()
