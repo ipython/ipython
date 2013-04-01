@@ -353,7 +353,9 @@ class InteractiveShell(SingletonConfigurable):
 
     history_length = Integer(10000, config=True)
 
-    # The readline stuff will eventually be moved to the terminal subclass
+    implicit_cd = CBool(False, config=True, help="If true (not default), allow implicit cd")
+
+# The readline stuff will eventually be moved to the terminal subclass
     # but for now, we can't do that as readline is welded in everywhere.
     readline_use = CBool(True, config=True)
     readline_remove_delims = Unicode('-/~', config=True)
@@ -2641,11 +2643,15 @@ class InteractiveShell(SingletonConfigurable):
                         return None
                     except (OverflowError, SyntaxError, ValueError, TypeError,
                             MemoryError):
+                        if self.implicit_cd:
+                            if os.path.isdir(cell.strip()): # implicit cd
+                                os.chdir(cell.strip())
+                                return None
                         self.showsyntaxerror()
                         if store_history:
                             self.execution_count += 1
                         return None
-                    
+
                     code_ast = self.transform_ast(code_ast)
                     
                     interactivity = "none" if silent else self.ast_node_interactivity
@@ -2820,6 +2826,13 @@ class InteractiveShell(SingletonConfigurable):
         except self.custom_exceptions:
             etype,value,tb = sys.exc_info()
             self.CustomTB(etype,value,tb)
+        except NameError:
+            if self.implicit_cd:
+                command = code_obj.co_names[0]
+                if os.path.isdir(command.strip()): # implicit cd
+                    os.chdir(command.strip())
+            else:
+                raise
         except:
             self.showtraceback()
         else:
