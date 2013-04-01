@@ -120,6 +120,7 @@ var IPython = (function (IPython) {
         vbox.append(this.celltoolbar.element);
         var input_area = $('<div/>').addClass('input_area');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+        $(this.code_mirror.getInputField()).attr("spellcheck", "false");
         vbox.append(input_area);
         input.append(vbox);
         var output = $('<div></div>');
