@@ -244,7 +244,8 @@ class Completer(Configurable):
         but can be unsafe because the code is actually evaluated on TAB.
         """
     )
-    
+
+    case_insensitive = CBool(False, config=True, help="Enable case insensitive matches")
 
     def __init__(self, namespace=None, global_namespace=None, config=None, **kwargs):
         """Create a new completer for the command line.
@@ -313,13 +314,18 @@ class Completer(Configurable):
         matches = []
         match_append = matches.append
         n = len(text)
+        if self.case_insensitive:
+            text = text.lower()
         for lst in [keyword.kwlist,
                     __builtin__.__dict__.keys(),
                     self.namespace.keys(),
                     self.global_namespace.keys()]:
-            for word in lst:
+            for _word in lst:
+                word = _word
+                if self.case_insensitive:
+                    word = word.lower()
                 if word[:n] == text and word != "__builtins__":
-                    match_append(word)
+                    match_append(_word)
         return matches
 
     def attr_matches(self, text):
@@ -338,12 +344,15 @@ class Completer(Configurable):
 
         #io.rprint('Completer->attr_matches, txt=%r' % text) # dbg
         # Another option, seems to work great. Catches things like ''.<tab>
-        m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text)
+        flags = 0
+        if self.case_insensitive:
+            flags = re.IGNORECASE
+        m = re.match(r"(\S+(\.\w+)*)\.(\w*)$", text, flags)
     
         if m:
             expr, attr = m.group(1, 3)
         elif self.greedy:
-            m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer)
+            m2 = re.match(r"(.+)\.(\w*)$", self.line_buffer, flags)
             if not m2:
                 return []
             expr, attr = m2.group(1,2)
@@ -482,7 +491,16 @@ class IPCompleter(Completer):
         # Regexp to split filenames with spaces in them
         self.space_name_re = re.compile(r'([^\\] )')
         # Hold a local ref. to glob.glob for speed
-        self.glob = glob.glob
+
+        if self.case_insensitive:
+            def case_insensive_glob(text):
+                self.glob_pattern = "%s*" % text
+                import fnmatch
+                p = re.compile(fnmatch.translate(self.glob_pattern), re.IGNORECASE)
+                return [d for d in os.listdir('.') if p.match(d)]
+            self.glob = case_insensive_glob
+        else:
+            self.glob = glob.glob
 
         # Determine if we are running on 'dumb' terminals, like (X)Emacs
         # buffers, to avoid completion problems.
@@ -644,10 +662,13 @@ class IPCompleter(Completer):
         else:
             return [a for a in aliases if a.startswith(text)]
 
-    def python_matches(self,text):
+    def python_matches(self, text):
         """Match attributes or global python names"""
         
         #io.rprint('Completer->python_matches, txt=%r' % text) # dbg
+        flags = 0
+        if self.case_insensitive:
+            flags = re.IGNORECASE
         if "." in text:
             try:
                 matches = self.attr_matches(text)
@@ -655,11 +676,11 @@ class IPCompleter(Completer):
                     if self.omit__names == 1:
                         # true if txt is _not_ a __ name, false otherwise:
                         no__name = (lambda txt:
-                                    re.match(r'.*\.__.*?__',txt) is None)
+                                    re.match(r'.*\.__.*?__', txt, flags) is None)
                     else:
                         # true if txt is _not_ a _ name, false otherwise:
                         no__name = (lambda txt:
-                                    re.match(r'.*\._.*?',txt) is None)
+                                    re.match(r'.*\._.*?', txt, flags) is None)
                     matches = filter(no__name, matches)
             except NameError:
                 # catches <undefined attributes>.<tab>
