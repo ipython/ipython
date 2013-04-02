@@ -80,7 +80,7 @@ Note: For best display, use latex syntax highlighting. =))
     % Used to load and display graphics
     \usepackage{graphicx}
     \graphicspath{ {figs/} }
-    \usepackage[export]{adjustbox} % To resize
+    \usepackage[Export]{adjustbox} % To resize
 
 
     % For formatting output while also word wrapping.
@@ -414,7 +414,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
-    \includegraphics[max width=1.0\textwidth]{(((path)))}
+    \includegraphics[max size={\textwidth}{\textheight}]{(((path)))}
     \par
     \end{center}
 ((*- endmacro *))
