@@ -1381,7 +1381,7 @@ var IPython = (function (IPython) {
     /**
      * Run the selected cell.
      * 
-     * This executes code cells, and skips all others.
+     * Execute or render cell outputs.
      * 
      * @method execute_selected_cell
      * @param {Object} options Customize post-execution behavior
