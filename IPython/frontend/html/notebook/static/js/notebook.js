@@ -137,13 +137,13 @@ var IPython = (function (IPython) {
             }
             if (event.which === key.UPARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
-                if (cell.at_top()) {
+                if (cell && cell.at_top()) {
                     event.preventDefault();
                     that.select_prev();
                 };
             } else if (event.which === key.DOWNARROW && !event.shiftKey) {
                 var cell = that.get_selected_cell();
-                if (cell.at_bottom()) {
+                if (cell && cell.at_bottom()) {
                     event.preventDefault();
                     that.select_next();
                 };
