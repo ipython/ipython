@@ -16,12 +16,7 @@ casper.openNewNotebook = function () {
 // Shut down the current notebook's kernel.
 casper.shutdownCurrentKernel = function () {
     this.thenEvaluate(function() {
-        var baseUrl = $('body').data('baseProjectUrl');
-        var kernelId = IPython.notebook.kernel.kernel_id;
-        var url = baseUrl  + 'kernels/' + kernelId;
-        $.ajax(url, {
-            type: 'DELETE',
-        });
+        IPython.notebook.kernel.kill();
     });
 };
 
