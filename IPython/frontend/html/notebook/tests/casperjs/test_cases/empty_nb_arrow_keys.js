@@ -1,9 +1,7 @@
 //
 // Check for errors with up and down arrow presses in an empty notebook.
 //
-casper.openNewNotebook();
-
-casper.then(function () {
+casper.notebookTest(function () {
     var result = this.evaluate(function() {
         var ncells = IPython.notebook.ncells(),
             i;
@@ -20,12 +18,5 @@ casper.then(function () {
         $(document).trigger(down_press);
         return true;
     });
-    casper.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');
-});
-
-casper.deleteCurrentNotebook();
-
-// Run the browser automation.
-casper.run(function() {
-    this.test.done();
+    this.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');
 });
