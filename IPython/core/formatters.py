@@ -133,11 +133,10 @@ class DisplayFormatter(Configurable):
         format_dict = {}
 
         for format_type, formatter in self.formatters.items():
-            if format_type not in include:
+            if include and format_type not in include:
                 continue
-            if exclude is not None:
-                if format_type in exclude:
-                    continue
+            if exclude and format_type in exclude:
+                continue
             try:
                 data = formatter(obj)
             except:
