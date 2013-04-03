@@ -2,20 +2,35 @@
 // Test that a Markdown cell is rendered to HTML.
 //
 casper.notebookTest(function () {
-    var output = this.evaluate(function() {
-        // Does it make more sense to test the UI or the JS API here?
-        //
-        // $('#cell_type').val('markdown');
-        // $('#cell_type').change();
-        // $('#run_b').click();
-        //
-        // $('#to_markdown').click(); // fails via jQuery UI menubar
-        // $('#run_cell').click(); // fails via jQuery UI menubar
+    // Test JavaScript models.
+    var output = this.evaluate(function () {
         IPython.notebook.to_markdown();
         var cell = IPython.notebook.get_selected_cell();
         cell.set_text('# Foo');
         cell.render();
         return cell.get_rendered();
     });
-    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown converted to HTML.');
+    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown JS API works.');
+    
+    // Test menubar entries.
+    output = this.evaluate(function () {
+        $('#to_code').mouseenter().click();
+        $('#to_markdown').mouseenter().click();
+        var cell = IPython.notebook.get_selected_cell();
+        cell.set_text('# Foo');
+        $('#run_cell').mouseenter().click();
+        return cell.get_rendered();
+    });
+    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown menubar items work.');
+    
+    // Test toolbar buttons.
+    output = this.evaluate(function () {
+        $('#cell_type').val('code').change();
+        $('#cell_type').val('markdown').change();
+        var cell = IPython.notebook.get_selected_cell();
+        cell.set_text('# Foo');
+        $('#run_b').click();
+        return cell.get_rendered();
+    });
+    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown toolbar items work.');
 });
