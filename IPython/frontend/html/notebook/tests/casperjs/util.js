@@ -14,7 +14,7 @@ casper.openNewNotebook = function () {
 };
 
 // Shut down the current notebook's kernel.
-casper._shutdownCurrentKernel = function () {
+casper.shutdownCurrentKernel = function () {
     this.thenEvaluate(function() {
         var baseUrl = $('body').data('baseProjectUrl');
         var kernelId = IPython.notebook.kernel.kernel_id;
@@ -27,13 +27,25 @@ casper._shutdownCurrentKernel = function () {
 
 // Delete created notebook.
 casper.deleteCurrentNotebook = function () {
-    this._shutdownCurrentKernel();
     this.thenEvaluate(function() {
         var nbData = $('body').data();
         var url = nbData.baseProjectUrl + 'notebooks/' + nbData.notebookId;
         $.ajax(url, {
             type: 'DELETE',
         });
+    });
+};
+
+// Wrap a notebook test to reduce boilerplate.
+casper.notebookTest = function(test) {
+    this.openNewNotebook();
+    this.then(test);
+    this.shutdownCurrentKernel();
+    this.deleteCurrentNotebook();
+    
+    // Run the browser automation.
+    this.run(function() {
+        this.test.done();
     });
 };
 

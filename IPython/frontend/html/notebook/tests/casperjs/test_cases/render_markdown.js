@@ -1,9 +1,7 @@
 //
 // Test that a Markdown cell is rendered to HTML.
 //
-casper.openNewNotebook();
-
-casper.then(function () {
+casper.notebookTest(function () {
     var output = this.evaluate(function() {
         // Does it make more sense to test the UI or the JS API here?
         //
@@ -19,12 +17,5 @@ casper.then(function () {
         cell.render();
         return cell.get_rendered();
     });
-    casper.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown converted to HTML.');
-});
-
-casper.deleteCurrentNotebook();
-
-// Run the browser automation.
-casper.run(function() {
-    this.test.done();
+    this.test.assertEquals(output, '<h1>Foo</h1>', 'Markdown converted to HTML.');
 });
