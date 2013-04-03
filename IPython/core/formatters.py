@@ -63,7 +63,14 @@ class DisplayFormatter(Configurable):
         help="""List of currently active mime-types""")
     def _active_types_default(self):
         return self.format_types
-
+    
+    def _active_types_changed(self, name, old, new):
+        for key, formatter in self.formatters.keys():
+            if key in new:
+                formatter.enabled = True
+            else:
+                formatter.enabled = False
+    
     # A dict of formatter whose keys are format types (MIME types) and whose
     # values are subclasses of BaseFormatter.
     formatters = Dict()
@@ -109,7 +116,6 @@ class DisplayFormatter(Configurable):
             A list of format type strings (MIME types) to include in the
             format data dict. If this is set *only* the format types included
             in this list will be computed.
-            If unspecified, `active_types` will be used.
         exclude : list or tuple, optional
             A list of format type string (MIME types) to exclude in the format
             data dict. If this is set all format types will be computed,
@@ -125,8 +131,6 @@ class DisplayFormatter(Configurable):
             that format.
         """
         format_dict = {}
-        if include is None:
-            include = self.active_types
 
         for format_type, formatter in self.formatters.items():
             if format_type not in include:
