@@ -65,7 +65,7 @@ class DisplayFormatter(Configurable):
         return self.format_types
     
     def _active_types_changed(self, name, old, new):
-        for key, formatter in self.formatters.keys():
+        for key, formatter in self.formatters.items():
             if key in new:
                 formatter.enabled = True
             else:
