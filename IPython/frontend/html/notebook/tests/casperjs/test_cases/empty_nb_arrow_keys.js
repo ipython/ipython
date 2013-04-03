@@ -14,13 +14,13 @@ casper.then(function () {
         }
         
         // Simulate the "up arrow" and "down arrow" keys.
-        var up_press = jQuery.Event("keydown", {which: 38});
+        var up_press = $.Event('keydown', {which: $.ui.keyCode.UP});
         $(document).trigger(up_press);
-        var down_press = jQuery.Event("keydown", {which: 40});
+        var down_press = $.Event('keydown', {which: $.ui.keyCode.DOWN});
         $(document).trigger(down_press);
         return true;
     });
-    casper.test.assertTrue(result, 'Trivial assertion to check for JS errors');
+    casper.test.assertTrue(result, 'Up/down arrow okay in empty notebook.');
 });
 
 casper.deleteCurrentNotebook();
