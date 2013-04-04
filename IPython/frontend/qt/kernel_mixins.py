@@ -168,6 +168,21 @@ class QtHBChannelMixin(ChannelQObject):
         self.kernel_died.emit(since_last_heartbeat)
 
 
+class QtKernelRestarterMixin(HasTraits, SuperQObject):
+
+    __metaclass__ = MetaQObjectHasTraits
+    _timer = None
+
+
+class QtKernelManagerMixin(HasTraits, SuperQObject):
+    """ A KernelClient that provides signals and slots.
+    """
+
+    __metaclass__ = MetaQObjectHasTraits
+
+    kernel_restarted = QtCore.Signal()
+
+
 class QtKernelClientMixin(HasTraits, SuperQObject):
     """ A KernelClient that provides signals and slots.
     """
