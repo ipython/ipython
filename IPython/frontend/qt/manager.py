@@ -40,7 +40,7 @@ class QtKernelManager(KernelManager, QtKernelManagerMixin):
                     config=self.config,
                     log=self.log,
                 )
-                self._restarter.register_callback(self._handle_kernel_restarted)
+                self._restarter.add_callback(self._handle_kernel_restarted)
             self._restarter.start()
 
     def stop_restarter(self):
