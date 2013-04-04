@@ -201,6 +201,14 @@ class MultiKernelManager(LoggingConfigurable):
         return self._kernels[kernel_id]
 
     @kernel_method
+    def add_restart_callback(self, kernel_id, callback, event='restart'):
+        """add a callback for the KernelRestarter"""
+
+    @kernel_method
+    def remove_restart_callback(self, kernel_id, callback, event='restart'):
+        """remove a callback for the KernelRestarter"""
+
+    @kernel_method
     def get_connection_info(self, kernel_id):
         """Return a dictionary of connection data for a kernel.
 

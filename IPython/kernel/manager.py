@@ -111,6 +111,18 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     def stop_restarter(self):
         pass
 
+    def add_restart_callback(self, callback, event='restart'):
+        """register a callback to be called when a kernel is restarted"""
+        if self._restarter is None:
+            return
+        self._restarter.add_callback(callback, event)
+
+    def remove_restart_callback(self, callback, event='restart'):
+        """unregister a callback to be called when a kernel is restarted"""
+        if self._restarter is None:
+            return
+        self._restarter.remove_callback(callback, event)
+
     #--------------------------------------------------------------------------
     # create a Client connected to our Kernel
     #--------------------------------------------------------------------------

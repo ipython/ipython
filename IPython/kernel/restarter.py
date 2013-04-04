@@ -17,10 +17,9 @@ It is an incomplete base class, and must be subclassed.
 # Imports
 #-----------------------------------------------------------------------------
 
-
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import (
-    Instance, Float, List,
+    Instance, Float, Dict,
 )
 
 #-----------------------------------------------------------------------------
@@ -35,7 +34,9 @@ class KernelRestarter(LoggingConfigurable):
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""
     )
-    _callbacks = List()
+    callbacks = Dict()
+    def _callbacks_default(self):
+        return dict(restart=[], dead=[])
 
     def start(self):
         """Start the polling of the kernel."""
@@ -45,13 +46,28 @@ class KernelRestarter(LoggingConfigurable):
         """Stop the kernel polling."""
         raise NotImplementedError("Must be implemented in a subclass")
 
-    def register_callback(self, f):
-        """register a callback to fire"""
-        self._callbacks.append(f)
+    def add_callback(self, f, event='restart'):
+        """register a callback to fire on a particular event
 
-    def unregister_callback(self, f):
+        Possible values for event:
+
+          'restart' (default): kernel has died, and will be restarted.
+          'dead': restart has failed, kernel will be left dead.
+
+        """
+        self.callbacks[event].append(f)
+
+    def remove_callback(self, f, event='restart'):
+        """unregister a callback to fire on a particular event
+
+        Possible values for event:
+
+          'restart' (default): kernel has died, and will be restarted.
+          'dead': restart has failed, kernel will be left dead.
+
+        """
         try:
-            self._callbacks.remove(f)
+            self.callbacks[event].remove(f)
         except ValueError:
             pass
 
@@ -59,7 +75,7 @@ class KernelRestarter(LoggingConfigurable):
         self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
             self.log.info('KernelRestarter: restarting kernel')
-            for callback in self._callbacks:
+            for callback in self.callbacks['restart']:
                 try:
                     callback()
                 except Exception as e:
