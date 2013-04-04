@@ -343,11 +343,11 @@ class IPythonConsoleApp(Configurable):
                                 connection_file=self.connection_file,
                                 config=self.config,
         )
-        # start the kernel
-        if not self.existing:
-            self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
-            atexit.register(self.kernel_manager.cleanup_ipc_files)
-        elif self.sshserver:
+        self.kernel_manager.client_factory = self.kernel_client_class
+        self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
+        atexit.register(self.kernel_manager.cleanup_ipc_files)
+
+        if self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()
 
@@ -362,14 +362,17 @@ class IPythonConsoleApp(Configurable):
         atexit.register(self.kernel_manager.cleanup_connection_file)
 
     def init_kernel_client(self):
-        self.kernel_client = self.kernel_client_class(
+        if self.kernel_manager is not None:
+            self.kernel_client = self.kernel_manager.client()
+        else:
+            self.kernel_client = self.kernel_client_class(
                                 shell_port=self.shell_port,
                                 iopub_port=self.iopub_port,
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
                                 connection_file=self.connection_file,
                                 config=self.config,
-        )
+            )
 
         self.kernel_client.start_channels()
 
