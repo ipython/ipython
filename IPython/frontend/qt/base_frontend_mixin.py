@@ -13,13 +13,15 @@ class BaseFrontendMixin(object):
     # 'BaseFrontendMixin' concrete interface
     #---------------------------------------------------------------------------
     _kernel_client = None
+    _kernel_manager = None
 
-    def _get_kernel_client(self):
-        """Returns the current kernel client.
-        """
+    @property
+    def kernel_client(self):
+        """Returns the current kernel client."""
         return self._kernel_client
 
-    def _set_kernel_client(self, kernel_client):
+    @kernel_client.setter
+    def kernel_client(self, kernel_client):
         """Disconnect from the current kernel client (if any) and set a new
             kernel client.
         """
@@ -53,6 +55,7 @@ class BaseFrontendMixin(object):
         kernel_client.iopub_channel.message_received.connect(self._dispatch)
         kernel_client.shell_channel.message_received.connect(self._dispatch)
         kernel_client.stdin_channel.message_received.connect(self._dispatch)
+        # hb_channel
         kernel_client.hb_channel.kernel_died.connect(self._handle_kernel_died)
 
         # Handle the case where the kernel client started channels before
@@ -60,7 +63,22 @@ class BaseFrontendMixin(object):
         if kernel_client.channels_running:
             self._started_channels()
 
-    kernel_client = property(_get_kernel_client, _set_kernel_client)
+    @property
+    def kernel_manager(self):
+        """The kernel manager, if any"""
+        return self._kernel_manager
+
+    @kernel_manager.setter
+    def kernel_manager(self, kernel_manager):
+        old_man = self._kernel_manager
+        if old_man is not None:
+            old_man.kernel_restarted.disconnect(self._handle_kernel_restarted)
+
+        self._kernel_manager = kernel_manager
+        if kernel_manager is None:
+            return
+
+        kernel_manager.kernel_restarted.connect(self._handle_kernel_restarted)
 
     #---------------------------------------------------------------------------
     # 'BaseFrontendMixin' abstract interface
@@ -70,8 +88,9 @@ class BaseFrontendMixin(object):
         """ This is called when the ``kernel_died`` signal is emitted.
 
         This method is called when the kernel heartbeat has not been
-        active for a certain amount of time. The typical action will be to
-        give the user the option of restarting the kernel.
+        active for a certain amount of time.
+        This is a strictly passive notification -
+        the kernel is likely being restarted by its KernelManager.
 
         Parameters
         ----------
@@ -79,6 +98,17 @@ class BaseFrontendMixin(object):
             The time since the heartbeat was last received.
         """
 
+    def _handle_kernel_restarted(self):
+        """ This is called when the ``kernel_restarted`` signal is emitted.
+
+        This method is called when the kernel has been restarted by the
+        autorestart mechanism.
+
+        Parameters
+        ----------
+        since_last_heartbeat : float
+            The time since the heartbeat was last received.
+        """
     def _started_kernel(self):
         """Called when the KernelManager starts (or restarts) the kernel subprocess.
         Channels may or may not be running at this point.
