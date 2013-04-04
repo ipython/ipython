@@ -40,3 +40,7 @@ Backwards incompatible changes
   :mod:`IPython.lib.inputhook`.
 * For all kernel managers, the ``sub_channel`` attribute has been renamed to
   ``iopub_channel``.
+* Users on Python versions before 2.6.6, 2.7.1 or 3.2 will now need to call
+  :func:`IPython.utils.doctestreload.doctest_reload` to make doctests run 
+  correctly inside IPython. Python releases since those versions are unaffected.
+  For details, see :ghpull:`3068` and `Python issue 8048 <http://bugs.python.org/issue8048>`_.

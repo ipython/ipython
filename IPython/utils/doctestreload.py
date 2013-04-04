@@ -52,13 +52,13 @@ def doctest_reload():
       - imports doctest but does NOT reload it (see below).
 
       - resets its global 'master' attribute to None, so that multiple uses of
-      the module interactively don't produce cumulative reports.
+        the module interactively don't produce cumulative reports.
 
       - Monkeypatches its core test runner method to protect it from IPython's
-      modified displayhook.  Doctest expects the default displayhook behavior
-      deep down, so our modification breaks it completely.  For this reason, a
-      hard monkeypatch seems like a reasonable solution rather than asking
-      users to manually use a different doctest runner when under IPython.
+        modified displayhook.  Doctest expects the default displayhook behavior
+        deep down, so our modification breaks it completely.  For this reason, a
+        hard monkeypatch seems like a reasonable solution rather than asking
+        users to manually use a different doctest runner when under IPython.
 
     Notes
     -----
