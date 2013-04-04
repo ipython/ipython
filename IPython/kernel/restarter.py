@@ -47,11 +47,11 @@ class KernelRestarter(LoggingConfigurable):
 
     def register_callback(self, f):
         """register a callback to fire"""
-        self.callbacks.append(f)
+        self._callbacks.append(f)
 
     def unregister_callback(self, f):
         try:
-            self.callbacks.remove(f)
+            self._callbacks.remove(f)
         except ValueError:
             pass
 
@@ -59,7 +59,7 @@ class KernelRestarter(LoggingConfigurable):
         self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
             self.log.info('KernelRestarter: restarting kernel')
-            for callback in self.callbacks:
+            for callback in self._callbacks:
                 try:
                     callback()
                 except Exception as e:
