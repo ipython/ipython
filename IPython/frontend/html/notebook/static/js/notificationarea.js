@@ -84,7 +84,7 @@ var IPython = (function (IPython) {
 
         $([IPython.events]).on('status_restarting.Kernel',function () {
             IPython.save_widget.update_document_title();
-            knw.set_message("Restarting kernel",1000);
+            knw.set_message("Restarting kernel", 2000);
         });
 
         $([IPython.events]).on('status_interrupting.Kernel',function () {
@@ -93,9 +93,10 @@ var IPython = (function (IPython) {
 
         $([IPython.events]).on('status_dead.Kernel',function () {
             var dialog = $('<div/>');
-            dialog.html('The kernel has died, would you like to restart it?' +
-                ' If you do not restart the kernel, you will be able to save' +
-                ' the notebook, but running code will not work until the notebook' +
+            dialog.html('The kernel has died, and the automatic restart has failed.' +
+                ' It is possible the kernel cannot be restarted.' +
+                ' If you are not able to restart the kernel, you will still be able to save' +
+                ' the notebook, but running code will no longer work until the notebook' +
                 ' is reopened.'
             );
             $(document).append(dialog);
@@ -105,7 +106,7 @@ var IPython = (function (IPython) {
                 title: "Dead kernel",
                 close: function(event, ui) {$(this).dialog('destroy').remove();},
                 buttons : {
-                    "Restart": function () {
+                    "Manual Restart": function () {
                         $([IPython.events]).trigger('status_restarting.Kernel');
                         IPython.notebook.start_kernel();
                         $(this).dialog('close');

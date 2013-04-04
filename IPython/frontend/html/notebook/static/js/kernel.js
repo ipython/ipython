@@ -418,6 +418,8 @@ var IPython = (function (IPython) {
                 $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
             } else if (content.execution_state === 'idle') {
                 $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
+            } else if (content.execution_state === 'restarting') {
+                $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
             } else if (content.execution_state === 'dead') {
                 this.stop_channels();
                 $([IPython.events]).trigger('status_dead.Kernel', {kernel: this});
