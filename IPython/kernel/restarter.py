@@ -19,7 +19,7 @@ It is an incomplete base class, and must be subclassed.
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import (
-    Instance, Float, Dict,
+    Instance, Float, Dict, Bool,
 )
 
 #-----------------------------------------------------------------------------
@@ -34,6 +34,9 @@ class KernelRestarter(LoggingConfigurable):
     time_to_dead = Float(3.0, config=True,
         help="""Kernel heartbeat interval in seconds."""
     )
+
+    _restarting = Bool(True)
+
     callbacks = Dict()
     def _callbacks_default(self):
         return dict(restart=[], dead=[])
@@ -71,13 +74,23 @@ class KernelRestarter(LoggingConfigurable):
         except ValueError:
             pass
 
+    def _fire_callbacks(self, event):
+        """fire our callbacks for a particular event"""
+        for callback in self.callbacks[event]:
+            try:
+                callback()
+            except Exception as e:
+                self.log.error("KernelRestarter: %s callback %r failed", event, callback, exc_info=True)
+
     def poll(self):
         self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
-            self.log.info('KernelRestarter: restarting kernel')
-            for callback in self.callbacks['restart']:
-                try:
-                    callback()
-                except Exception as e:
-                    self.log.error("Kernel restart callback %r failed", callback, exc_info=True)
-            self.kernel_manager.restart_kernel(now=True)
+            if self._restarting:
+                self.log.warn("KernelRestarter: restart failed")
+                self._fire_callbacks('dead')
+                self._restarting = False
+            else:
+                self.log.info('KernelRestarter: restarting kernel')
+                self._fire_callbacks('restart')
+                self.kernel_manager.restart_kernel(now=True)
+                self._restarting = True
