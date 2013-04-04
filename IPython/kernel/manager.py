@@ -91,6 +91,8 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     _launch_args = Any()
     _control_socket = Any()
 
+    _restarter = Any()
+
     autorestart = Bool(False, config=True,
         help="""Should we autorestart the kernel if it dies."""
     )
@@ -120,7 +122,11 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
 
         kw = {}
         kw.update(self.get_connection_info())
-        kw['connection_file'] = self.connection_file
+        kw.update(dict(
+            connection_file=self.connection_file,
+            session=self.session,
+            config=self.config,
+        ))
 
         # add kwargs last, for manual overrides
         kw.update(kwargs)
