@@ -479,6 +479,8 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             return
         km = self.application.kernel_manager
         kernel_id = self.kernel_id
+        km.add_restart_callback(kernel_id, self.on_kernel_restarted)
+        km.add_restart_callback(kernel_id, self.on_restart_failed, 'dead')
         try:
             self.iopub_stream = km.connect_iopub(kernel_id)
         except web.HTTPError:
@@ -493,10 +495,31 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
     def on_message(self, msg):
         pass
 
+    def _send_status_message(self, status):
+        msg = self.session.msg("status",
+            {'execution_state': status}
+        )
+        self.write_message(jsonapi.dumps(msg, default=date_default))
+
+    def on_kernel_restarted(self):
+        logging.warn("kernel %s restarted", self.kernel_id)
+        self._send_status_message('restarting')
+
+    def on_restart_failed(self):
+        logging.error("kernel %s restarted failed!", self.kernel_id)
+        self._send_status_message('dead')
+
     def on_close(self):
         # This method can be called twice, once by self.kernel_died and once
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
+        km = self.application.kernel_manager
+        km.remove_restart_callback(
+            self.kernel_id, self.on_kernel_restarted,
+        )
+        km.remove_restart_callback(
+            self.kernel_id, self.on_restart_failed, 'dead',
+        )
         if self.iopub_stream is not None and not self.iopub_stream.closed():
             self.iopub_stream.on_recv(None)
             self.iopub_stream.close()
