@@ -62,6 +62,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from IPython.frontend.qt.console import styles
 from IPython.frontend.qt.console.mainwindow import MainWindow
 from IPython.frontend.qt.client import QtKernelClient
+from IPython.frontend.qt.manager import QtKernelManager
 from IPython.kernel import tunnel_to_kernel, find_connection_file
 from IPython.utils.traitlets import (
     Dict, List, Unicode, CBool, Any
@@ -160,6 +161,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     frontend_flags = Any(qt_flags)
     frontend_aliases = Any(qt_aliases)
     kernel_client_class = QtKernelClient
+    kernel_manager_class = QtKernelManager
 
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
@@ -189,19 +191,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         kernel_manager = self.kernel_manager_class(
                                 connection_file=self._new_connection_file(),
                                 config=self.config,
+                                autorestart=True,
         )
         # start the kernel
         kwargs = dict()
         kwargs['extra_arguments'] = self.kernel_argv
         kernel_manager.start_kernel(**kwargs)
-
-        # connect to the kernel
-        kernel_client = self.kernel_client_class(
-                                connection_file=kernel_manager.connection_file,
-                                config=self.config,
-        )
-        kernel_client.load_connection_file()
-        kernel_client.start_channels()
+        kernel_manager.client_factory = self.kernel_client_class
+        kernel_client = kernel_manager.client()
+        kernel_client.start_channels(shell=True, iopub=True)
         widget = self.widget_factory(config=self.config,
                                    local_kernel=True)
         self.init_colors(widget)
@@ -220,7 +218,6 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         current_widget : IPythonWidget
             The IPythonWidget whose kernel this frontend is to share
         """
-
         kernel_client = self.kernel_client_class(
                                 connection_file=current_widget.kernel_client.connection_file,
                                 config = self.config,
@@ -234,11 +231,15 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         widget._may_close = False
         widget._confirm_exit = False
         widget.kernel_client = kernel_client
+        widget.kernel_manager = current_widget.kernel_manager
         return widget
+
+    def init_qt_app(self):
+        # separate from qt_elements, because it must run first
+        self.app = QtGui.QApplication([])
 
     def init_qt_elements(self):
         # Create the widget.
-        self.app = QtGui.QApplication([])
 
         base_path = os.path.abspath(os.path.dirname(__file__))
         icon_path = os.path.join(base_path, 'resources', 'icon', 'IPythonConsole.svg')
@@ -345,6 +346,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
 
     @catch_config_error
     def initialize(self, argv=None):
+        self.init_qt_app()
         super(IPythonQtConsoleApp, self).initialize(argv)
         IPythonConsoleApp.initialize(self,argv)
         self.init_qt_elements()
