@@ -183,7 +183,7 @@ class InheritanceGraph(object):
         "shape": "box",
         "fontsize": 10,
         "height": 0.25,
-        "fontname": "Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans",
+        "fontname": '"Vera Sans, DejaVu Sans, Liberation Sans, Arial, Helvetica, sans"',
         "style": '"setlinewidth(0.5)"'
         }
     default_edge_options = {
