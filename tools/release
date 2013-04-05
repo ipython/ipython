@@ -48,9 +48,8 @@ print( 'Registering with PyPI...')
 cd(ipdir)
 sh('./setup.py register')
 
-# Upload all files
-for cmd in [sdists, eggs] + win_builds:
-    sh(cmd + ' upload')
+# Upload sdists
+sh(sdists + ' upload')
 cd(distdir)
 print( 'Uploading distribution files...')
 
