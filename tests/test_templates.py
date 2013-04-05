@@ -46,7 +46,7 @@ def check_null_profile(profile):
 
 @nottest
 def test_profile(profile_name,infile, reference_file):
-    loader = PyFileConfigLoader(profile_name+'.nbcv',path=[os.path.join(os.getcwdu(),'profile/')])
+    loader = PyFileConfigLoader(profile_name+'.py',path=[os.path.join(os.getcwdu(),'profile/')])
     config = loader.load_config()
     C = ConverterTemplate(config=config)
     output,resources = C.from_filename(infile)

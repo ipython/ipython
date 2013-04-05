@@ -81,7 +81,7 @@ class NbconvertApp(Application):
         try:
             Application.load_config_file(
                 self,
-                profile_name+'.nbcv',
+                profile_name+'.py',
                 path=[os.path.join(os.getcwdu(), 'profile')]
             )
             return True
