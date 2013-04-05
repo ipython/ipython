@@ -35,7 +35,7 @@ class KernelRestarter(LoggingConfigurable):
         help="""Kernel heartbeat interval in seconds."""
     )
 
-    _restarting = Bool(True)
+    _restarting = Bool(False)
 
     callbacks = Dict()
     def _callbacks_default(self):
