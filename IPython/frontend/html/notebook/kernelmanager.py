@@ -58,17 +58,22 @@ class MappingKernelManager(MultiKernelManager):
 
     def notebook_for_kernel(self, kernel_id):
         """Return the notebook_id for a kernel_id or None."""
-        notebook_ids = [k for k, v in self._notebook_mapping.iteritems() if v == kernel_id]
-        if len(notebook_ids) == 1:
-            return notebook_ids[0]
-        else:
-            return None
+        for notebook_id, kid in self._notebook_mapping.iteritems():
+            if kernel_id == kid:
+                return notebook_id
+        return None
 
     def delete_mapping_for_kernel(self, kernel_id):
         """Remove the kernel/notebook mapping for kernel_id."""
         notebook_id = self.notebook_for_kernel(kernel_id)
         if notebook_id is not None:
             del self._notebook_mapping[notebook_id]
+
+    def _handle_kernel_died(self, kernel_id):
+        """notice that a kernel died"""
+        self.log.warn("Kernel %s died, removing from map.", kernel_id)
+        self.delete_mapping_for_kernel(kernel_id)
+        self.remove_kernel(kernel_id, now=True)
 
     def start_kernel(self, notebook_id=None, **kwargs):
         """Start a kernel for a notebok an return its kernel_id.
@@ -87,8 +92,14 @@ class MappingKernelManager(MultiKernelManager):
             self.set_kernel_for_notebook(notebook_id, kernel_id)
             self.log.info("Kernel started: %s" % kernel_id)
             self.log.debug("Kernel args: %r" % kwargs)
+            # register callback for failed auto-restart
+            self.add_restart_callback(kernel_id,
+                lambda : self._handle_kernel_died(kernel_id),
+                'dead',
+            )
         else:
             self.log.info("Using existing kernel: %s" % kernel_id)
+
         return kernel_id
 
     # override _check_kernel_id to raise 404 instead of KeyError

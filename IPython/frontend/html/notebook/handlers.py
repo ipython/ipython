@@ -514,12 +514,13 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
         km = self.application.kernel_manager
-        km.remove_restart_callback(
-            self.kernel_id, self.on_kernel_restarted,
-        )
-        km.remove_restart_callback(
-            self.kernel_id, self.on_restart_failed, 'dead',
-        )
+        if self.kernel_id in km:
+            km.remove_restart_callback(
+                self.kernel_id, self.on_kernel_restarted,
+            )
+            km.remove_restart_callback(
+                self.kernel_id, self.on_restart_failed, 'dead',
+            )
         if self.iopub_stream is not None and not self.iopub_stream.closed():
             self.iopub_stream.on_recv(None)
             self.iopub_stream.close()
