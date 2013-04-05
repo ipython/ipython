@@ -37,10 +37,6 @@ class IOLoopKernelRestarter(KernelRestarter):
     def _loop_default(self):
         return ioloop.IOLoop.instance()
 
-    time_to_dead = Float(3.0, config=True,
-        help="""Kernel heartbeat interval in seconds."""
-    )
-
     _pcallback = None
 
     def start(self):
