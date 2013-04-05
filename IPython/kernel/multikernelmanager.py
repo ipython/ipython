@@ -128,7 +128,17 @@ class MultiKernelManager(LoggingConfigurable):
             Should the kernel be shutdown forcibly using a signal.
         """
         self.log.info("Kernel shutdown: %s" % kernel_id)
-        del self._kernels[kernel_id]
+        self.remove_kernel(kernel_id)
+
+    def remove_kernel(self, kernel_id):
+        """remove a kernel from our mapping.
+
+        Mainly so that a kernel can be removed if it is already dead,
+        without having to call shutdown_kernel.
+
+        The kernel object is returned.
+        """
+        return self._kernels.pop(kernel_id)
 
     def shutdown_all(self, now=False):
         """Shutdown all kernels."""
