@@ -49,14 +49,11 @@ class IOLoopKernelRestarter(KernelRestarter):
             self._pcallback = ioloop.PeriodicCallback(
                 self.poll, 1000*self.time_to_dead, self.loop
             )
-        self._pcallback.start()
+            self._pcallback.start()
 
     def stop(self):
         """Stop the kernel polling."""
         if self._pcallback is not None:
             self._pcallback.stop()
+            self._pcallback = None
 
-    def clear(self):
-        """Clear the underlying PeriodicCallback."""
-        self.stop()
-        self._pcallback = None

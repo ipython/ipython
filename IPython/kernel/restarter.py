@@ -89,8 +89,13 @@ class KernelRestarter(LoggingConfigurable):
                 self.log.warn("KernelRestarter: restart failed")
                 self._fire_callbacks('dead')
                 self._restarting = False
+                self.stop()
             else:
                 self.log.info('KernelRestarter: restarting kernel')
                 self._fire_callbacks('restart')
                 self.kernel_manager.restart_kernel(now=True)
                 self._restarting = True
+        else:
+            if self._restarting:
+                self.log.debug("KernelRestarter: restart apparently succeeded")
+            self._restarting = False
