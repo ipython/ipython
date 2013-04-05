@@ -5,7 +5,7 @@
 Release 0.13.2
 ==============
 
-0.13.2 is a bugfix release for 0.13.
+0.13.2 is a bugfix release for 0.13, released on April 5, 2013.
 
 Most notable fixes are related to compatibility with Qt and Wx GUIs.
 
