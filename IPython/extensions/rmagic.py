@@ -46,8 +46,13 @@ import numpy as np
 
 import rpy2.rinterface as ri
 import rpy2.robjects as ro
-from rpy2.robjects.numpy2ri import numpy2ri
-ro.conversion.py2ri = numpy2ri
+try:
+    from rpy2.robjects import pandas2ri
+    pandas2ri.activate()
+except ImportError:
+    pandas2ri = None
+    from rpy2.robjects import numpy2ri
+    numpy2ri.activate()
 
 # IPython imports
 
@@ -58,6 +63,7 @@ from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
     argument, magic_arguments, parse_argstring
 )
+from IPython.external.simplegeneric import generic
 from IPython.utils.py3compat import str_to_unicode, unicode_to_str, PY3
 
 class RInterpreterError(ri.RRuntimeError):
@@ -114,19 +120,50 @@ def Rconverter(Robj, dataframe=False):
         Robj = np.rec.fromarrays(Robj, names = names)
     return np.asarray(Robj)
 
+@generic
+def pyconverter(pyobj):
+    """Convert Python objects to R objects. Add types using the decorator:
+    
+    @pyconverter.when_type
+    """
+    return pyobj
+
+# The default conversion for lists seems to make them a nested list. That has
+# some advantages, but is rarely convenient, so for interactive use, we convert
+# lists to a numpy array, which becomes an R vector.
+@pyconverter.when_type(list)
+def pyconverter_list(pyobj):
+    return np.asarray(pyobj)
+
+if pandas2ri is None:
+    # pandas2ri was new in rpy2 2.3.3, so for now we'll fallback to pandas'
+    # conversion function.
+    try:
+        from pandas import DataFrame
+        from pandas.rpy.common import convert_to_r_dataframe
+        @pyconverter.when_type(DataFrame)
+        def pyconverter_dataframe(pyobj):
+            return convert_to_r_dataframe(pyobj, strings_as_factors=True)
+    except ImportError:
+        pass
+
 @magics_class
 class RMagics(Magics):
     """A set of magics useful for interactive work with R via rpy2.
     """
 
     def __init__(self, shell, Rconverter=Rconverter,
-                 pyconverter=np.asarray,
+                 pyconverter=pyconverter,
                  cache_display_data=False):
         """
         Parameters
         ----------
 
         shell : IPython shell
+        
+        Rconverter : callable
+            To be called on values taken from R before putting them in the
+            IPython namespace.
 
         pyconverter : callable
             To be called on values in ipython namespace before 
