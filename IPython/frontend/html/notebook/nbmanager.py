@@ -197,18 +197,21 @@ class NotebookManager(LoggingConfigurable):
         """
         return name
 
-    def new_notebook(self):
+    def new_notebook(self, name=None):
         """Create a new notebook and return its notebook_id."""
-        name = self.increment_filename('Untitled')
+        if name is None:
+            name = 'Untitled'
+        name = self.increment_filename(name)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
         notebook_id = self.write_notebook_object(nb)
         return notebook_id
 
-    def copy_notebook(self, notebook_id):
+    def copy_notebook(self, notebook_id, name=None):
         """Copy an existing notebook and return its notebook_id."""
         last_mod, nb = self.read_notebook_object(notebook_id)
-        name = nb.metadata.name + '-Copy'
+        if name is None:
+            name = nb.metadata.name + '-Copy'
         name = self.increment_filename(name)
         nb.metadata.name = name
         notebook_id = self.write_notebook_object(nb)
