@@ -74,7 +74,6 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.bind_events = function () {
         var that = this;
-        this._submit_raw_input_proxy = $.proxy(this._submit_raw_input, this);
         this.prompt_overlay.dblclick(function () { that.toggle_output(); });
         this.prompt_overlay.click(function () { that.toggle_scroll(); });
 
@@ -451,29 +450,34 @@ var IPython = (function (IPython) {
     };
     
     OutputArea.prototype.append_raw_input = function (content) {
+        var that = this;
         this.expand();
         this.flush_clear_timeout();
         var area = this.create_output_area();
+
         area.append(
             $("<div/>")
             .addClass("box-flex1 output_subarea raw_input")
             .append(
-                $("<form/>")
-                .attr("action", "javascript:$([IPython.events]).trigger('submit_raw_input.OutputArea');")
-                .append(
-                    $("<span/>")
-                    .addClass("input_prompt")
-                    .text(content.prompt)
-                ).append(
-                    $("<input/>")
-                    .attr("size", 80)
-                    .addClass("raw_input")
-                )
+                $("<span/>")
+                .addClass("input_prompt")
+                .text(content.prompt)
             )
-        )
-        // clear events first
-        $([IPython.events]).off('submit_raw_input.OutputArea');
-        $([IPython.events]).on('submit_raw_input.OutputArea', this._submit_raw_input_proxy);
+            .append(
+                $("<input/>")
+                .addClass("raw_input")
+                .attr('type', 'text')
+                .attr("size", 80)
+                .keydown(function (event, ui) {
+                    // make sure we submit on enter,
+                    // and don't re-execute the *cell* on shift-enter
+                    if (event.which === utils.keycodes.ENTER) {
+                        that._submit_raw_input();
+                        return false;
+                    }
+                })
+            )
+        );
         this.element.append(area);
         area.find("input.raw_input").focus();
     }
@@ -491,7 +495,6 @@ var IPython = (function (IPython) {
         container.parent().remove();
         // replace with plaintext version in stdout
         this.append_output(content, false);
-        $([IPython.events]).off('submit_raw_input.OutputArea', this._submit_raw_input_proxy);
         $([IPython.events]).trigger('send_input_reply.Kernel', value);
     }
 
