@@ -1,6 +1,10 @@
+from StringIO import StringIO
+
 import numpy as np
 from IPython.core.interactiveshell import InteractiveShell
+from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
+from rpy2 import rinterface
 import nose.tools as nt
 
 ip = get_ipython()
@@ -28,6 +32,29 @@ result = rmagic_addone(12344)
     result = ip.user_ns['result']
     np.testing.assert_equal(result, 12345)
 
+@skip_without('pandas')
+def test_push_dataframe():
+    from pandas import DataFrame
+    rm = rmagic.RMagics(ip)
+    df = DataFrame([{'a': 1, 'b': 'bar'}, {'a': 5, 'b': 'foo', 'c': 20}])
+    ip.push({'df':df})
+    ip.run_line_magic('Rpush', 'df')
+    
+    # This is converted to factors, which are currently converted back to Python
+    # as integers, so for now we test its representation in R.
+    sio = StringIO()
+    rinterface.set_writeconsole(sio.write)
+    try:
+        rm.r('print(df$b[1])')
+        nt.assert_in('[1] bar', sio.getvalue())
+    finally:
+        rinterface.set_writeconsole(None)
+    
+    # Values come packaged in arrays, so we unbox them to test.
+    nt.assert_equal(rm.r('df$a[2]')[0], 5)
+    missing = rm.r('df$c[1]')[0]
+    assert np.isnan(missing), missing
+
 def test_pull():
     rm = rmagic.RMagics(ip)
     rm.r('Z=c(11:20)')
@@ -50,7 +77,7 @@ def test_Rconverter():
     np.testing.assert_equal(id(w.data), id(v.data))
     nt.assert_equal(w.dtype, v.dtype)
 
-    ip.run_cell_magic('R', ' -d datar  datar=datapy', '')
+    ip.run_cell_magic('R', ' -d datar', 'datar=datapy')
 
     u = ip.run_line_magic('Rget', ' -d datar')
     np.testing.assert_almost_equal(u['x'], v['x'])
