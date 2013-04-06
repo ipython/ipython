@@ -12,49 +12,25 @@ boolean and _outputfile variable used in IPython.utils.
 import sys
 import warnings
 
-if sys.platform == 'darwin':
-    # dirty trick, to skip the system readline, because pip-installed readline
-    # will never be found on OSX, since lib-dynload always comes ahead of site-packages
-    from distutils import sysconfig
-    lib_dynload = sysconfig.get_config_var('DESTSHARED')
-    del sysconfig
-    try:
-        dynload_idx = sys.path.index(lib_dynload)
-    except ValueError:
-        dynload_idx = None
-    else:
-        sys.path.pop(dynload_idx)
+# priority: pyrepl > readline > pyreadline
+have_pyrepl = False
 try:
-    from readline import *
-    import readline as _rl
+    from pyrepl.readline import *
+    import pyrepl.readline as _rl
     have_readline = True
+    have_pyrepl = True
 except ImportError:
     try:
-        from pyreadline import *
-        import pyreadline as _rl
+        from readline import *
+        import readline as _rl
         have_readline = True
     except ImportError:
-        have_readline = False
-
-if sys.platform == 'darwin':
-    # dirty trick, part II:
-    if dynload_idx is not None:
-        # restore path
-        sys.path.insert(dynload_idx, lib_dynload)
-        if not have_readline:
-            # *only* have system readline, try import again
-            try:
-                from readline import *
-                import readline as _rl
-                have_readline = True
-            except ImportError:
-                have_readline = False
-            else:
-                # if we want to warn about EPD / Fink having bad readline
-                # we would do it here
-                pass
-    # cleanup dirty trick vars
-    del dynload_idx, lib_dynload
+        try:
+            from pyreadline import *
+            import pyreadline as _rl
+            have_readline = True
+        except ImportError:
+            have_readline = False
 
 if have_readline and hasattr(_rl, 'rlmain'):
     # patch add_history to allow for strings in pyreadline <= 1.5:
@@ -96,14 +72,18 @@ if uses_libedit and sys.platform == 'darwin':
         "   * incorrect history navigation",
         "   * corrupting long-lines",
         "   * failure to wrap or indent lines properly",
-        "It is highly recommended that you install readline, which is easy_installable:",
-        "     easy_install readline",
-        "Note that `pip install readline` generally DOES NOT WORK, because",
-        "it installs to site-packages, which come *after* lib-dynload in sys.path,",
-        "where readline is located.  It must be `easy_install readline`, or to a custom",
-        "location on your PYTHONPATH (even --user comes after lib-dyload).",
+        "It is highly recommended that you install pyrepl, which is pip installable:",
+        "     pip install pyrepl",
         "*"*78]),
         RuntimeWarning)
+elif have_readline and not have_pyrepl and not sys.platform in ('win32', 'cli'):
+    warnings.warn('\n'.join(["",
+        "Python readline has a bug, where C-c to interrupt C-r reverse-i search",
+        "can leave hidden input. Make sure you use C-g to end C-r search, and not C-c.",
+        "It is highly recommended that you install pyrepl, which is pip installable:",
+        "     pip install pyrepl",
+        ]),
+    RuntimeWarning)
 
 # the clear_history() function was only introduced in Python 2.4 and is
 # actually optional in the readline API, so we must explicitly check for its

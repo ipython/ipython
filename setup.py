@@ -236,16 +236,13 @@ if 'setuptools' in sys.modules:
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
     if not setupext.check_for_readline():
-        if sys.platform == 'darwin':
-            requires.append('readline')
-        elif sys.platform.startswith('win'):
+        if sys.platform.startswith('win'):
             # Pyreadline 64 bit windows issue solved in versions >=1.7.1
             # Also solves issues with some older versions of pyreadline that
             # satisfy the unconstrained depdendency.
             requires.append('pyreadline>=1.7.1')
         else:
-            pass
-            # do we want to install readline here?
+            requires.append('pyrepl>=0.8.4')
 
     # Script to be run by the windows binary installer after the default setup
     # routine, to add shortcuts and similar windows-only things.  Windows

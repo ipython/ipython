@@ -28,6 +28,7 @@ import runpy
 import sys
 import tempfile
 import types
+import warnings
 from io import open as io_open
 
 from IPython.config.configurable import SingletonConfigurable
@@ -1833,7 +1834,8 @@ class InteractiveShell(SingletonConfigurable):
                 inputrc_name = os.path.join(self.home_dir, inputrc_name)
             if os.path.isfile(inputrc_name):
                 try:
-                    readline.read_init_file(inputrc_name)
+                    with warnings.catch_warnings('ignore'):
+                        readline.read_init_file(inputrc_name)
                 except:
                     warn('Problems reading readline initialization file <%s>'
                          % inputrc_name)
