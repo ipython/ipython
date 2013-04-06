@@ -67,7 +67,14 @@ var IPython = (function (IPython) {
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
-            window.open(that.baseProjectUrl()+'new');
+            IPython.utils.notebook_name_dialog(
+                "New Notebook",
+                "Enter new notebook name:",
+                "Untitled",
+                function(new_name) {
+                    window.open(that.baseProjectUrl()+'new?name=' + new_name);
+                }
+            );
         });
         this.element.find('#open_notebook').click(function () {
             window.open(that.baseProjectUrl());
@@ -76,9 +83,16 @@ var IPython = (function (IPython) {
             IPython.save_widget.rename_notebook();
         });
         this.element.find('#copy_notebook').click(function () {
-            var notebook_id = IPython.notebook.get_notebook_id();
-            var url = that.baseProjectUrl() + notebook_id + '/copy';
-            window.open(url,'_blank');
+            IPython.utils.notebook_name_dialog(
+                "Copy Notebook",
+                "Enter new notebook name:",
+                IPython.notebook.notebook_name + '-Copy',
+                function(new_name) {
+                    var notebook_id = IPython.notebook.get_notebook_id();
+                    var url = that.baseProjectUrl()+ notebook_id + '/copy?name=' + new_name;
+                    window.open(url, '_blank');
+                }
+            );
             return false;
         });
         this.element.find('#save_notebook').click(function () {

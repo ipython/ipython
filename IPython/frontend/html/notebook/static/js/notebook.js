@@ -44,7 +44,6 @@ var IPython = (function (IPython) {
         this.control_key_active = false;
         this.notebook_id = null;
         this.notebook_name = null;
-        this.notebook_name_blacklist_re = /[\/\\:]/;
         this.nbformat = 3 // Increment this when changing the nbformat
         this.nbformat_minor = 0 // Increment this when changing the nbformat
         this.style();
@@ -1486,22 +1485,6 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.set_notebook_name = function (name) {
         this.notebook_name = name;
-    };
-
-    /**
-     * Check that a notebook's name is valid.
-     * 
-     * @method test_notebook_name
-     * @param {String} nbname A name for this notebook
-     * @return {Boolean} True if the name is valid, false if invalid
-     */
-    Notebook.prototype.test_notebook_name = function (nbname) {
-        nbname = nbname || '';
-        if (this.notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
-            return true;
-        } else {
-            return false;
-        };
     };
 
     /**

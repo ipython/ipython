@@ -22,7 +22,14 @@ $(document).ready(function () {
     $('#ipython-main-app').addClass('border-box-sizing ui-widget');
     $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
     $('#new_notebook').button().click(function (e) {
-        window.open($('body').data('baseProjectUrl')+'new');
+        IPython.utils.notebook_name_dialog(
+            "New Notebook",
+            "Enter new notebook name:",
+            "Untitled",
+            function(new_name) {
+                window.open($('body').data('baseProjectUrl')+'new?name=' + new_name);
+            }
+        );
     });
 
     IPython.read_only = $('body').data('readOnly') === 'True';
