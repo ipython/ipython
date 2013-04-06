@@ -174,6 +174,12 @@ IPython.utils = (function (IPython) {
         var cmds = [];
         var opener = "";
         var closer = "";
+
+        // Strip all ANSI codes that are not color related.  Matches
+        // all ANSI codes that do not end with "m".
+        var ignored_re = /(?=(\033\[[\d;=]*[a-ln-zA-Z]{1}))\1(?!m)/g;
+        txt = txt.replace(ignored_re, "");
+
         while (re.test(txt)) {
             var cmds = txt.match(re)[1].split(";");
             closer = opened?"</span>":"";
