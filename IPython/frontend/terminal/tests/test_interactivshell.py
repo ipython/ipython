@@ -176,8 +176,8 @@ class InteractiveShellTestCase(unittest.TestCase):
         trigger a message about paste magics and also the opposite."""
 
         ip = get_ipython()
-        s = ''' sum([1, 2,
-3, 4])'''
+        s = ('for a in range(5):\n'
+             'print(a)')
 
         tm = ip.magics_manager.registry['TerminalMagics']
         with tt.AssertPrints("If you want to paste code into IPython, try the "
