@@ -937,7 +937,7 @@ a{text-decoration:underline;}
 p{margin-bottom:0;}
 a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;color:inherit;}
 span.input_prompt{font-family:monospace;}
-input.raw_input{width: auto; font-family: monospace;}
+input.raw_input{width:auto;font-family:monospace;height:1em;line-height:1em;margin:-2px 0px 0px 0px;}
 
 @media print{body{overflow:visible !important;} div#notebook{overflow:visible !important;} .ui-widget-content{border:0px;} #save_widget{margin:0px !important;} #header,#pager,#pager_splitter,#menubar,#toolbar{display:none !important;} .cell{border:none !important;} .toolbar{display:none;}}.rendered_html{color:black;}.rendered_html em{font-style:italic;}
 .rendered_html strong{font-weight:bold;}
