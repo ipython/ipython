@@ -169,14 +169,14 @@ for t in ("'", '"',
 if sys.version_info.minor >= 3:
     # Python 3.3
     for _prefix in ['rb', 'rB', 'Rb', 'RB', 'u', 'U']:
-        _t2 = prefix+'"""'
+        _t2 = _prefix+'"""'
         endprogs[_t2] = double3prog
         triple_quoted[_t2] = _t2
-        _t1 = prefix + "'''"
+        _t1 = _prefix + "'''"
         endprogs[_t1] = single3prog
         triple_quoted[_t1] = _t1
         single_quoted[_prefix+'"'] = _prefix+'"'
-        single_quoted[_prefix+"'"] + _prefix+"'"
+        single_quoted[_prefix+"'"] = _prefix+"'"
     del _prefix, _t2, _t1
     endprogs['u'] = None
     endprogs['U'] = None
