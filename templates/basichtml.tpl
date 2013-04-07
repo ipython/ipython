@@ -102,12 +102,12 @@ unknown type  {{cell.type}}
 {%- endblock data_html %}
 
 {% block data_png %}
-<img src="data:image/png;base64,{{output.png}}"></img>
+<img src="data:image/png;base64,{{output.png}}">
 {%- endblock data_png %}
 
 
 {% block data_jpg %}
-<img src="data:image/jpeg;base64,{{output.jpeg}}"></img>
+<img src="data:image/jpeg;base64,{{output.jpeg}}">
 {%- endblock data_jpg %}
 
 
