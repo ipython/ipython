@@ -240,8 +240,7 @@ class RMagics(Magics):
         if local_ns is None:
             local_ns = {}
 
-        inputs = line.split(' ')
-        for input in inputs:
+        for input in line.replace(',', ' ').split():
             try:
                 val = local_ns[input]
             except KeyError:
@@ -303,7 +302,7 @@ class RMagics(Magics):
 
         '''
         args = parse_argstring(self.Rpull, line)
-        outputs = args.outputs
+        outputs = ','.join(args.outputs).split(',')
         for output in outputs:
             self.shell.push({output:self.Rconverter(self.r(output),dataframe=args.as_dataframe)})
 

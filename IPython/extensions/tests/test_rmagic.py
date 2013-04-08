@@ -13,10 +13,13 @@ ip.magic('load_ext rmagic')
 
 def test_push():
     rm = rmagic.RMagics(ip)
-    ip.push({'X':np.arange(5), 'Y':np.array([3,5,4,6,7])})
-    ip.run_line_magic('Rpush', 'X Y')
+    ip.push({'X':np.arange(5), 'Y':np.array([3,5,4,6,7]),
+             'Z':np.arange(2), 'W':np.array([10.5, 3.0])})
+    ip.run_line_magic('Rpush', 'X, Y  Z , W')
     np.testing.assert_almost_equal(np.asarray(rm.r('X')), ip.user_ns['X'])
     np.testing.assert_almost_equal(np.asarray(rm.r('Y')), ip.user_ns['Y'])
+    np.testing.assert_almost_equal(np.asarray(rm.r('Z')), ip.user_ns['Z'])
+    np.testing.assert_almost_equal(np.asarray(rm.r('W')), ip.user_ns['W'])
 
 def test_push_localscope():
     """Test that Rpush looks for variables in the local scope first."""
@@ -57,10 +60,12 @@ def test_push_dataframe():
 
 def test_pull():
     rm = rmagic.RMagics(ip)
-    rm.r('Z=c(11:20)')
-    ip.run_line_magic('Rpull', 'Z')
+    rm.r('Z=c(11:20); W=10')
+    ip.run_line_magic('Rpull', 'Z , W')
     np.testing.assert_almost_equal(np.asarray(rm.r('Z')), ip.user_ns['Z'])
     np.testing.assert_almost_equal(ip.user_ns['Z'], np.arange(11,21))
+    np.testing.assert_almost_equal(ip.user_ns['W'], np.array([10]))
+
 
 def test_Rconverter():
     datapy= np.array([(1, 2.9, 'a'), (2, 3.5, 'b'), (3, 2.1, 'c')], 
