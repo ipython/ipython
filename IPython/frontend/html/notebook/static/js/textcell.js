@@ -516,13 +516,14 @@ var IPython = (function (IPython) {
     HeadingCell.prototype.set_rendered = function (text) {
         var r = this.element.find("div.text_cell_render");
         r.empty();
+        var link = text.replace(/ /g, '_');
         r.append(
             $('<h'+this.level+'/>')
             .append(
             $('<a/>')
                 .addClass('heading-anchor')
-                .attr('href', '#' + text)
-                .attr('name', text)
+                .attr('href', '#' + link)
+                .attr('id', link)
                 .html(text)
             )
         );
