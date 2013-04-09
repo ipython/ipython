@@ -156,11 +156,13 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         """)
 
     width = Integer(81, config=True,
-        help="""The width of the console at start time in number of caracters
+        help="""The width of the console at start time in number
+        of characters (will double with `hsplit` paging)
         """)
 
     height = Integer(25, config=True,
-        help="""The height of the console at start time in number of caracters
+        help="""The height of the console at start time in number
+        of characters (will double with `vsplit` paging)
         """)
 
     # Whether to override ShortcutEvents for the keybindings defined by this
