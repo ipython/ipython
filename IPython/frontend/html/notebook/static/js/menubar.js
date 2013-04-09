@@ -84,6 +84,9 @@ var IPython = (function (IPython) {
         this.element.find('#save_notebook').click(function () {
             IPython.notebook.save_notebook();
         });
+        this.element.find('#save_checkpoint').click(function () {
+            IPython.notebook.save_checkpoint();
+        });
         this.element.find('#download_ipynb').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = that.baseProjectUrl() + 'notebooks/' +
