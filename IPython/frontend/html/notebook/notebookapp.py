@@ -69,7 +69,8 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     AuthenticatedFileHandler, MainClusterHandler, ClusterProfileHandler, 
-    ClusterActionHandler, FileFindHandler, NotebookRedirectHandler,
+    ClusterActionHandler, FileFindHandler,
+    NotebookRedirectHandler, NotebookCheckpointHandler,
 )
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -161,6 +162,7 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+            (r"/notebooks/%s/checkpoint" % _notebook_id_regex, NotebookCheckpointHandler),
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
             (r"/clusters", MainClusterHandler),
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
