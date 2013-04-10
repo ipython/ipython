@@ -339,7 +339,7 @@ var IPython = (function (IPython) {
                 that.kernel.kill();
             }
             if (that.dirty && ! that.read_only) {
-                return "You have unsaved changes that will be lost if you leave this page.";
+                that.save_notebook();
             };
             // Null is the *only* return value that will make the browser not
             // pop up the "don't leave" dialog.
