@@ -87,6 +87,8 @@ var IPython = (function (IPython) {
         this.element.find('#save_checkpoint').click(function () {
             IPython.notebook.save_checkpoint();
         });
+        this.element.find('#restore_checkpoint').click(function () {
+        });
         this.element.find('#download_ipynb').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
             var url = that.baseProjectUrl() + 'notebooks/' +
@@ -221,8 +223,34 @@ var IPython = (function (IPython) {
         this.element.find('#keyboard_shortcuts').click(function () {
             IPython.quick_help.show_keyboard_shortcuts();
         });
+        
+        this.update_restore_checkpoint(null);
+        
+        $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
+            that.update_restore_checkpoint(data);
+        });
+        
+        $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
+            that.update_restore_checkpoint(data);
+        });
     };
 
+    MenuBar.prototype.update_restore_checkpoint = function(checkpoint) {
+        if (!checkpoint) {
+            this.element.find("#restore_checkpoint")
+                .addClass('ui-state-disabled')
+                .off('click')
+                .find('a').text("Revert");
+            return;
+        };
+        var d = new Date(checkpoint.last_modified);
+        this.element.find("#restore_checkpoint")
+            .removeClass('ui-state-disabled')
+            .off('click')
+            .click(function () {
+                IPython.notebook.restore_checkpoint_dialog();
+            }).find('a').html("Revert to: <br/>" + d.format("mmm dd HH:MM:ss"));
+    }
 
     IPython.MenuBar = MenuBar;
 
