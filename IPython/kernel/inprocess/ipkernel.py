@@ -140,11 +140,11 @@ class InProcessKernel(Kernel):
 
     def _stdout_default(self):
         from IPython.kernel.zmq.iostream import OutStream
-        return OutStream(self.session, self.iopub_socket, u'stdout')
+        return OutStream(self.session, self.iopub_socket, u'stdout', pipe=False)
 
     def _stderr_default(self):
         from IPython.kernel.zmq.iostream import OutStream
-        return OutStream(self.session, self.iopub_socket, u'stderr')
+        return OutStream(self.session, self.iopub_socket, u'stderr', pipe=False)
 
 #-----------------------------------------------------------------------------
 # Interactive shell subclass

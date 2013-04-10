@@ -46,9 +46,11 @@ def teardown():
     KM.shutdown_kernel()
 
 
-def flush_channels():
+def flush_channels(km=None):
+    if km is None:
+        km = KM
     """flush any messages waiting on the queue"""
-    for channel in (KM.shell_channel, KM.iopub_channel):
+    for channel in (km.shell_channel, km.iopub_channel):
         while True:
             try:
                 msg = channel.get_msg(block=True, timeout=0.1)
@@ -58,10 +60,12 @@ def flush_channels():
                 list(validate_message(msg))
 
 
-def execute(code='', **kwargs):
+def execute(code='', km=None, **kwargs):
     """wrapper for doing common steps for validating an execution request"""
-    shell = KM.shell_channel
-    sub = KM.iopub_channel
+    if km is None:
+        km = KM
+    shell = km.shell_channel
+    sub = km.iopub_channel
     
     msg_id = shell.execute(code=code, **kwargs)
     reply = shell.get_msg(timeout=2)
