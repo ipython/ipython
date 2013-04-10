@@ -288,11 +288,12 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 ((* block output_group *))
     ((* if cell.outputs.__len__() > 0 *))
-        ((* if resources.sphinx.outputstyle == 'simple' *))
 
-            % If the first block is an image, minipage the image.  Else
-            % request a certain amount of space for the input text.
-            ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        % If the first block is an image, minipage the image.  Else
+        % request a certain amount of space for the input text.
+        ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        
+        ((* if resources.sphinx.outputstyle == 'simple' *))
 
             % Add a horizantal break, along with break title.
             \vspace{10pt}
