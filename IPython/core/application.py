@@ -147,18 +147,12 @@ class BaseIPythonApplication(Application):
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
-        level_up = False
-        while True:
-            try:
-                directory = os.getcwdu()
-            except OSError:
-                # search level up until directory exists
-                os.chdir("..")
-                level_up = True
-            else:
-                if level_up:
-                    self.log.warn("Current working directory doesn't exist.\nSetting to: %s"%(directory))
-                break
+        try:
+            directory = os.getcwdu()
+        except:
+            # raise exception
+            self.log.error("Current working directory doesn't exist.")
+            raise
 
         # ensure even default IPYTHONDIR exists
         if not os.path.exists(self.ipython_dir):
