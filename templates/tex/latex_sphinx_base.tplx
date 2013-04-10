@@ -115,7 +115,8 @@ Note: For best display, use latex syntax highlighting. =))
             middlelinewidth=1pt, %
             middlelinecolor=nbframe-bg, %
             outerlinewidth=0.5pt, %
-            outerlinecolor=nbframe-border %
+            outerlinecolor=nbframe-border, %
+            needspace=0pt
         ]}
         {\end{mdframed}}
         
