@@ -327,22 +327,21 @@ Note: For best display, use latex syntax highlighting. =))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( center_output(line | indent| rm_ansi) )))
+    ((( conditionally_center_output(line | indent| rm_ansi) )))
 ((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( center_output(insert_graphics(output.key_png)) )))
+    ((( conditionally_center_output(insert_graphics(output.key_png)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( center_output(insert_graphics(output.key_svg)) )))
+    ((( conditionally_center_output(insert_graphics(output.key_svg)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))
-    \vspace{-1\baselineskip}
     ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
 ((*- endblock -*))
 
@@ -414,9 +413,9 @@ Note: For best display, use latex syntax highlighting. =))
     \end{alltt}
 ((*- endmacro *))
 
-% Name: center_output
+% Name: conditionally_center_output
 % Purpose: This macro centers the output if the output centering is enabled.
-((* macro center_output(text) -*))
+((* macro conditionally_center_output(text) -*))
     ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))((* if resources.sphinx.centeroutput *))}((* endif *))
 ((*- endmacro *))
 
