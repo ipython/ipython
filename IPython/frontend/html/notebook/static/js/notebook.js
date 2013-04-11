@@ -41,6 +41,9 @@ var IPython = (function (IPython) {
         this.metadata = {};
         this._checkpoint_after_save = false;
         this.last_checkpoint = null;
+        this.autosave_interval = 0;
+        this.autosave_timer = null;
+        this.minimum_autosave_interval = 30000;
         // single worksheet for now
         this.worksheet_metadata = {};
         this.control_key_active = false;
@@ -1552,6 +1555,31 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Start an autosave timer, for periodically saving the notebook.
+     * 
+     * @method autosave_notebook
+     * @param {Integer} interval the autosave interval in milliseconds
+     */
+    Notebook.prototype.autosave_notebook = function (interval) {
+        var that = this;
+        // clear previous interval, so we don't get simultaneous timers
+        if (this.autosave_timer) {
+            clearInterval(this.autosave_timer);
+        }
+        
+        this.autosave_interval = interval;
+        if (interval) {
+            this.autosave_timer = setInterval(function() {
+                that.save_notebook();
+            }, interval);
+            $([IPython.events]).trigger("autosave_enabled.Notebook", interval);
+        } else {
+            this.autosave_timer = null;
+            $([IPython.events]).trigger("autosave_disabled.Notebook");
+        };
+    };
+    
+    /**
      * Save this notebook on the server.
      * 
      * @method save_notebook
@@ -1562,6 +1590,10 @@ var IPython = (function (IPython) {
         data.metadata.name = this.notebook_name;
         data.nbformat = this.nbformat;
         data.nbformat_minor = this.nbformat_minor;
+        
+        // time the ajax call for autosave tuning purposes.
+        var start =  new Date().getTime();
+
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1569,8 +1601,8 @@ var IPython = (function (IPython) {
             type : "PUT",
             data : JSON.stringify(data),
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(this.save_notebook_success,this),
-            error : $.proxy(this.save_notebook_error,this)
+            success : $.proxy(this.save_notebook_success, this, start),
+            error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
         var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
@@ -1581,17 +1613,39 @@ var IPython = (function (IPython) {
      * Success callback for saving a notebook.
      * 
      * @method save_notebook_success
+     * @param {Integer} start the time when the save request started
      * @param {Object} data JSON representation of a notebook
      * @param {String} status Description of response status
      * @param {jqXHR} xhr jQuery Ajax object
      */
-    Notebook.prototype.save_notebook_success = function (data, status, xhr) {
+    Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.dirty = false;
         $([IPython.events]).trigger('notebook_saved.Notebook');
+        this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
             this.create_checkpoint();
             this._checkpoint_after_save = false;
         };
+    };
+    
+    /**
+     * update the autosave interval based on how long the last save took
+     * 
+     * @method _update_autosave_interval
+     * @param {Integer} timestamp when the save request started
+     */
+    Notebook.prototype._update_autosave_interval = function (start) {
+        var duration = (new Date().getTime() - start);
+        if (this.autosave_interval) {
+            // new save interval: higher of 10x save duration or parameter (default 30 seconds)
+            var interval = Math.max(10 * duration, this.minimum_autosave_interval);
+            // round to 10 seconds, otherwise we will be setting a new interval too often
+            interval = 10000 * Math.round(interval / 10000);
+            // set new interval, if it's changed
+            if (interval != this.autosave_interval) {
+                this.autosave_notebook(interval);
+            }
+        }
     };
     
     /**
