@@ -101,7 +101,7 @@ For conversion to HTML/LaTeX, pygments is also required for syntax highlighting
 Running Tests
 =============
 
-Please try to run the tests to avoid regression when commiting a patch, and create new tests when adding features.
+Please try to run the tests to avoid regression when committing a patch, and create new tests when adding features.
 ::
 
     $ pip install nose
@@ -112,10 +112,13 @@ Using nbconvert
 ===============
 
 You will need to either put the source repository in your ``$PATH`` or symlink
-the ``nbconvert.py`` script, as well as the ``css`` and ``js`` subdirectories
-to a directory in your ``$PATH``.  Once this is done, you can call it as::
+the ``nbconvert2.py`` script to a directory in your ``$PATH``, e.g.::
 
-    $ nbconvert -f <FORMAT> notebook.ipynb
+    $ ln -s /usr/local/bin/nbconvert "$PWD/nbconvert2.py"
+
+Once this is done, you can call it as::
+
+    $ nbconvert <FORMAT> notebook.ipynb > converted.fmt
 
 Use ``nbconvert -h`` for up to date help on the available formats.
 
