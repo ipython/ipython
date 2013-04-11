@@ -45,6 +45,7 @@ from zmq.eventloop.zmqstream import ZMQStream
 
 from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
+from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes
@@ -318,6 +319,9 @@ class Session(Configurable):
         with open(new, 'rb') as f:
             self.key = f.read().strip()
 
+    # for protecting against sends from forks
+    pid = Integer()
+    
     # serialization traits:
     
     pack = Any(default_packer) # the actual packer function
@@ -341,6 +345,7 @@ class Session(Configurable):
         Containers larger than this are pickled outright.
         """
     )
+
     
     def __init__(self, **kwargs):
         """create a Session object
@@ -382,6 +387,7 @@ class Session(Configurable):
         self.none = self.pack({})
         # ensure self._session_default() if necessary, so bsession is defined:
         self.session
+        self.pid = os.getpid()
 
     @property
     def msg_id(self):
@@ -568,7 +574,10 @@ class Session(Configurable):
         else:
             msg = self.msg(msg_or_type, content=content, parent=parent,
                            header=header, metadata=metadata)
-
+        if not os.getpid() == self.pid:
+            io.rprint("WARNING: attempted to send message from fork")
+            io.rprint(msg)
+            return
         buffers = [] if buffers is None else buffers
         to_send = self.serialize(msg, ident)
         to_send.extend(buffers)
