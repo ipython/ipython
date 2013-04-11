@@ -2581,13 +2581,6 @@ class InteractiveShell(SingletonConfigurable):
 
         self.input_splitter.push(raw_cell)
 
-        # Check for cell magics, which leave state behind.  This interface is
-        # ugly, we need to do something cleaner later...  Now the logic is
-        # simply that the input_splitter remembers if there was a cell magic,
-        # and in that case we grab the cell body.
-        if self.input_splitter.cell_magic_parts:
-            self._current_cell_magic_body = \
-                               ''.join(self.input_splitter.cell_magic_parts)
         cell = self.input_splitter.source_reset()
         
         # Our own compiler remembers the __future__ environment. If we want to
