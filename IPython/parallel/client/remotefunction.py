@@ -168,6 +168,7 @@ class ParallelFunction(RemoteFunction):
     chunksize=None
     ordered=None
     mapObject=None
+    _mapping = False
 
     def __init__(self, view, f, dist='b', block=None, chunksize=None, ordered=True, **flags):
         super(ParallelFunction, self).__init__(view, f, block=block, **flags)
@@ -176,17 +177,27 @@ class ParallelFunction(RemoteFunction):
 
         mapClass = Map.dists[dist]
         self.mapObject = mapClass()
-
+    
     @sync_view_results
     def __call__(self, *sequences):
         client = self.view.client
         
+        lens = []
+        for i, seq in enumerate(sequences):
+            try:
+                n = len(seq)
+            except Exception:
+                seq = list(seq)
+                sequences[i] = seq
+                n = len(seq)
+            lens.append(n)
+        
         # check that the length of sequences match
-        len_0 = len(sequences[0])
-        for s in sequences:
-            if len(s)!=len_0:
-                msg = 'all sequences must have equal length, but %i!=%i'%(len_0,len(s))
-                raise ValueError(msg)
+        len_0 = lens[0]
+        if min(lens) != len_0:
+            msg = 'all sequences must have equal length, but have %s' % lens
+            raise ValueError(msg)
+        
         balanced = 'Balanced' in self.view.__class__.__name__
         if balanced:
             if self.chunksize:
@@ -219,8 +230,7 @@ class ParallelFunction(RemoteFunction):
             if not args:
                 continue
 
-            # print (args)
-            if hasattr(self, '_map'):
+            if self._mapping:
                 if sys.version_info[0] >= 3:
                     f = lambda f, *sequences: list(map(f, *sequences))
                 else:
@@ -253,12 +263,12 @@ class ParallelFunction(RemoteFunction):
         This should behave very much like the builtin map, but return an AsyncMapResult
         if self.block is False.
         """
-        # set _map as a flag for use inside self.__call__
-        self._map = True
+        # set _mapping as a flag for use inside self.__call__
+        self._mapping = True
         try:
-            ret = self.__call__(*sequences)
+            ret = self(*sequences)
         finally:
-            del self._map
+            self._mapping = False
         return ret
 
 __all__ = ['remote', 'parallel', 'RemoteFunction', 'ParallelFunction']
