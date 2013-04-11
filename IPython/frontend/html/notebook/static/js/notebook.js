@@ -1570,7 +1570,9 @@ var IPython = (function (IPython) {
         this.autosave_interval = interval;
         if (interval) {
             this.autosave_timer = setInterval(function() {
-                that.save_notebook();
+                if (that.dirty) {
+                    that.save_notebook();
+                }
             }, interval);
             $([IPython.events]).trigger("autosave_enabled.Notebook", interval);
         } else {
