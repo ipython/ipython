@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import absolute_import
+
 import glob
 import json
 import os
@@ -25,6 +27,8 @@ import sys
 from getpass import getpass
 from subprocess import Popen, PIPE
 import tempfile
+
+import zmq
 
 # external imports
 from IPython.external.ssh import tunnel
@@ -353,8 +357,17 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
 
 
 #-----------------------------------------------------------------------------
-# Mixin for classes that workw ith connection files
+# Mixin for classes that work with connection files
 #-----------------------------------------------------------------------------
+
+channel_socket_types = {
+    'hb' : zmq.REQ,
+    'shell' : zmq.DEALER,
+    'iopub' : zmq.SUB,
+    'stdin' : zmq.DEALER,
+    'control': zmq.DEALER,
+}
+
 port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
 
 class ConnectionFileMixin(HasTraits):
@@ -466,6 +479,53 @@ class ConnectionFileMixin(HasTraits):
             setattr(self, name, cfg[name])
         self.session.key = str_to_bytes(cfg['key'])
 
+    #--------------------------------------------------------------------------
+    # Creating connected sockets
+    #--------------------------------------------------------------------------
+
+    def _make_url(self, channel):
+        """Make a ZeroMQ URL for a given channel."""
+        transport = self.transport
+        ip = self.ip
+        port = getattr(self, '%s_port' % channel)
+
+        if transport == 'tcp':
+            return "tcp://%s:%i" % (ip, port)
+        else:
+            return "%s://%s-%s" % (transport, ip, port)
+
+    def _create_connected_socket(self, channel, identity=None):
+        """Create a zmq Socket and connect it to the kernel."""
+        url = self._make_url(channel)
+        socket_type = channel_socket_types[channel]
+        self.log.info("Connecting to: %s" % url)
+        sock = self.context.socket(socket_type)
+        if identity:
+            sock.identity = identity
+        sock.connect(url)
+        return sock
+
+    def connect_iopub(self, identity=None):
+        """return zmq Socket connected to the IOPub channel"""
+        sock = self._create_connected_socket('iopub', identity=identity)
+        sock.setsockopt(zmq.SUBSCRIBE, b'')
+        return sock
+
+    def connect_shell(self, identity=None):
+        """return zmq Socket connected to the Shell channel"""
+        return self._create_connected_socket('shell', identity=identity)
+
+    def connect_stdin(self, identity=None):
+        """return zmq Socket connected to the StdIn channel"""
+        return self._create_connected_socket('stdin', identity=identity)
+
+    def connect_hb(self, identity=None):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('hb', identity=identity)
+
+    def connect_control(self, identity=None):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('control', identity=identity)
 
 
 __all__ = [

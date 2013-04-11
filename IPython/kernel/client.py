@@ -148,25 +148,12 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
                 self.stdin_channel.is_alive() or self.hb_channel.is_alive())
 
-    def _make_url(self, port):
-        """Make a zmq url with a port.
-
-        There are two cases that this handles:
-
-        * tcp: tcp://ip:port
-        * ipc: ipc://ip-port
-        """
-        if self.transport == 'tcp':
-            return "tcp://%s:%i" % (self.ip, port)
-        else:
-            return "%s://%s-%s" % (self.transport, self.ip, port)
-
     @property
     def shell_channel(self):
         """Get the shell channel object for this kernel."""
         if self._shell_channel is None:
             self._shell_channel = self.shell_channel_class(
-                self.context, self.session, self._make_url(self.shell_port)
+                self.context, self.session, self._make_url('shell')
             )
         return self._shell_channel
 
@@ -175,7 +162,7 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         """Get the iopub channel object for this kernel."""
         if self._iopub_channel is None:
             self._iopub_channel = self.iopub_channel_class(
-                self.context, self.session, self._make_url(self.iopub_port)
+                self.context, self.session, self._make_url('iopub')
             )
         return self._iopub_channel
 
@@ -184,7 +171,7 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         """Get the stdin channel object for this kernel."""
         if self._stdin_channel is None:
             self._stdin_channel = self.stdin_channel_class(
-                self.context, self.session, self._make_url(self.stdin_port)
+                self.context, self.session, self._make_url('stdin')
             )
         return self._stdin_channel
 
@@ -193,7 +180,7 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
         """Get the hb channel object for this kernel."""
         if self._hb_channel is None:
             self._hb_channel = self.hb_channel_class(
-                self.context, self.session, self._make_url(self.hb_port)
+                self.context, self.session, self._make_url('hb')
             )
         return self._hb_channel
 
