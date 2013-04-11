@@ -19,13 +19,12 @@ Authors:
 # Imports
 #----------------------------------------------------------------------
 
-from __future__ import print_function
-
 import logging
 import sys
 import time
 
-from datetime import datetime, timedelta
+from collections import deque
+from datetime import datetime
 from random import randint, random
 from types import FunctionType
 
@@ -141,10 +140,16 @@ class Job(object):
         self.after = after
         self.follow = follow
         self.timeout = timeout
-        
+        self.removed = False # used for lazy-delete from sorted queue
         
         self.timestamp = time.time()
         self.blacklist = set()
+
+    def __lt__(self, other):
+        return self.timestamp < other.timestamp
+
+    def __cmp__(self, other):
+        return cmp(self.timestamp, other.timestamp)
 
     @property
     def dependents(self):
@@ -194,10 +199,13 @@ class TaskScheduler(SessionFactory):
     query_stream = Instance(zmqstream.ZMQStream) # hub-facing DEALER stream
 
     # internals:
+    queue = Instance(deque) # sorted list of Jobs
+    def _queue_default(self):
+        return deque()
+    queue_map = Dict() # dict by msg_id of Jobs (for O(1) access to the Queue)
     graph = Dict() # dict by msg_id of [ msg_ids that depend on key ]
     retries = Dict() # dict by msg_id of retries remaining (non-neg ints)
     # waiting = List() # list of msg_ids ready to run, but haven't due to HWM
-    depending = Dict() # dict by msg_id of Jobs
     pending = Dict() # dict by engine_uuid of submitted tasks
     completed = Dict() # dict by engine_uuid of completed tasks
     failed = Dict() # dict by engine_uuid of failed tasks
@@ -210,8 +218,6 @@ class TaskScheduler(SessionFactory):
     all_failed = Set() # set of all failed tasks
     all_done = Set() # set of all finished tasks=union(completed,failed)
     all_ids = Set() # set of all submitted task IDs
-
-    auditor = Instance('zmq.eventloop.ioloop.PeriodicCallback')
 
     ident = CBytes() # ZMQ identity. This should just be self.session.session
                      # but ensure Bytes
@@ -230,9 +236,7 @@ class TaskScheduler(SessionFactory):
             unregistration_notification = self._unregister_engine
         )
         self.notifier_stream.on_recv(self.dispatch_notification)
-        self.auditor = ioloop.PeriodicCallback(self.audit_timeouts, 2e3, self.loop) # 1 Hz
-        self.auditor.start()
-        self.log.info("Scheduler started [%s]"%self.scheme_name)
+        self.log.info("Scheduler started [%s]" % self.scheme_name)
 
     def resume_receiving(self):
         """Resume accepting jobs."""
@@ -371,7 +375,7 @@ class TaskScheduler(SessionFactory):
     # Job Submission
     #-----------------------------------------------------------------------
     
-    
+
     @util.log_errors
     def dispatch_submission(self, raw_msg):
         """Dispatch job submission to appropriate handlers."""
@@ -432,26 +436,27 @@ class TaskScheduler(SessionFactory):
         # turn timeouts into datetime objects:
         timeout = md.get('timeout', None)
         if timeout:
-            # cast to float, because jsonlib returns floats as decimal.Decimal,
-            # which timedelta does not accept
-            timeout = datetime.now() + timedelta(0,float(timeout),0)
+            timeout = time.time() + float(timeout)
 
         job = Job(msg_id=msg_id, raw_msg=raw_msg, idents=idents, msg=msg,
                  header=header, targets=targets, after=after, follow=follow,
                  timeout=timeout, metadata=md,
         )
-
+        if timeout:
+            # schedule timeout callback
+            self.loop.add_timeout(timeout, lambda : self.job_timeout(job))
+        
         # validate and reduce dependencies:
         for dep in after,follow:
             if not dep: # empty dependency
                 continue
             # check valid:
             if msg_id in dep or dep.difference(self.all_ids):
-                self.depending[msg_id] = job
+                self.queue_map[msg_id] = job
                 return self.fail_unreachable(msg_id, error.InvalidDependency)
             # check if unreachable:
             if dep.unreachable(self.all_completed, self.all_failed):
-                self.depending[msg_id] = job
+                self.queue_map[msg_id] = job
                 return self.fail_unreachable(msg_id)
 
         if after.check(self.all_completed, self.all_failed):
@@ -464,23 +469,30 @@ class TaskScheduler(SessionFactory):
         else:
             self.save_unmet(job)
 
-    def audit_timeouts(self):
-        """Audit all waiting tasks for expired timeouts."""
-        now = datetime.now()
-        for msg_id in self.depending.keys():
-            # must recheck, in case one failure cascaded to another:
-            if msg_id in self.depending:
-                job = self.depending[msg_id]
-                if job.timeout and job.timeout < now:
-                    self.fail_unreachable(msg_id, error.TaskTimeout)
+    def job_timeout(self, job):
+        """callback for a job's timeout.
+        
+        The job may or may not have been run at this point.
+        """
+        now = time.time()
+        if job.timeout >= (now + 1):
+            self.log.warn("task %s timeout fired prematurely: %s > %s",
+                job.msg_id, job.timeout, now
+            )
+        if job.msg_id in self.queue_map:
+            # still waiting, but ran out of time
+            self.log.info("task %r timed out", job.msg_id)
+            self.fail_unreachable(job.msg_id, error.TaskTimeout)
 
     def fail_unreachable(self, msg_id, why=error.ImpossibleDependency):
         """a task has become unreachable, send a reply with an ImpossibleDependency
         error."""
-        if msg_id not in self.depending:
-            self.log.error("msg %r already failed!", msg_id)
+        if msg_id not in self.queue_map:
+            self.log.error("task %r already failed!", msg_id)
             return
-        job = self.depending.pop(msg_id)
+        job = self.queue_map.pop(msg_id)
+        # lazy-delete from the queue
+        job.removed = True
         for mid in job.dependents:
             if mid in self.graph:
                 self.graph[mid].remove(msg_id)
@@ -489,6 +501,7 @@ class TaskScheduler(SessionFactory):
             raise why()
         except:
             content = error.wrap_exception()
+        self.log.debug("task %r failing as unreachable with: %s", msg_id, content['ename'])
 
         self.all_done.add(msg_id)
         self.all_failed.add(msg_id)
@@ -499,11 +512,22 @@ class TaskScheduler(SessionFactory):
 
         self.update_graph(msg_id, success=False)
 
+    def available_engines(self):
+        """return a list of available engine indices based on HWM"""
+        if not self.hwm:
+            return range(len(self.targets))
+        available = []
+        for idx in range(len(self.targets)):
+            if self.loads[idx] < self.hwm:
+                available.append(idx)
+        return available
+
     def maybe_run(self, job):
         """check location dependencies, and run if they are met."""
         msg_id = job.msg_id
         self.log.debug("Attempting to assign task %s", msg_id)
-        if not self.targets:
+        available = self.available_engines()
+        if not available:
             # no engines, definitely can't run
             return False
         
@@ -523,7 +547,7 @@ class TaskScheduler(SessionFactory):
                 # check follow
                 return job.follow.check(self.completed[target], self.failed[target])
 
-            indices = filter(can_run, range(len(self.targets)))
+            indices = filter(can_run, available)
 
             if not indices:
                 # couldn't run
@@ -538,14 +562,14 @@ class TaskScheduler(SessionFactory):
                     for m in job.follow.intersection(relevant):
                         dests.add(self.destinations[m])
                     if len(dests) > 1:
-                        self.depending[msg_id] = job
+                        self.queue_map[msg_id] = job
                         self.fail_unreachable(msg_id)
                         return False
                 if job.targets:
                     # check blacklist+targets for impossibility
                     job.targets.difference_update(job.blacklist)
                     if not job.targets or not job.targets.intersection(self.targets):
-                        self.depending[msg_id] = job
+                        self.queue_map[msg_id] = job
                         self.fail_unreachable(msg_id)
                         return False
                 return False
@@ -558,7 +582,9 @@ class TaskScheduler(SessionFactory):
     def save_unmet(self, job):
         """Save a message for later submission when its dependencies are met."""
         msg_id = job.msg_id
-        self.depending[msg_id] = job
+        self.log.debug("Adding task %s to the queue", msg_id)
+        self.queue_map[msg_id] = job
+        self.queue.append(job)
         # track the ids in follow or after, but not those already finished
         for dep_id in job.after.union(job.follow).difference(self.all_done):
             if dep_id not in self.graph:
@@ -661,7 +687,7 @@ class TaskScheduler(SessionFactory):
         job.blacklist.add(engine)
 
         if job.blacklist == job.targets:
-            self.depending[msg_id] = job
+            self.queue_map[msg_id] = job
             self.fail_unreachable(msg_id)
         elif not self.maybe_run(job):
             # resubmit failed
@@ -678,47 +704,73 @@ class TaskScheduler(SessionFactory):
                 if self.loads[idx] == self.hwm-1:
                     self.update_graph(None)
 
-
-
     def update_graph(self, dep_id=None, success=True):
         """dep_id just finished. Update our dependency
-        graph and submit any jobs that just became runable.
+        graph and submit any jobs that just became runnable.
 
-        Called with dep_id=None to update entire graph for hwm, but without finishing
-        a task.
+        Called with dep_id=None to update entire graph for hwm, but without finishing a task.
         """
         # print ("\n\n***********")
         # pprint (dep_id)
         # pprint (self.graph)
-        # pprint (self.depending)
+        # pprint (self.queue_map)
         # pprint (self.all_completed)
         # pprint (self.all_failed)
         # print ("\n\n***********\n\n")
         # update any jobs that depended on the dependency
-        jobs = self.graph.pop(dep_id, [])
+        msg_ids = self.graph.pop(dep_id, [])
 
         # recheck *all* jobs if
         # a) we have HWM and an engine just become no longer full
         # or b) dep_id was given as None
         
         if dep_id is None or self.hwm and any( [ load==self.hwm-1 for load in self.loads ]):
-            jobs = self.depending.keys()
+            jobs = self.queue
+            using_queue = True
+        else:
+            using_queue = False
+            jobs = deque(sorted( self.queue_map[msg_id] for msg_id in msg_ids ))
         
-        for msg_id in sorted(jobs, key=lambda msg_id: self.depending[msg_id].timestamp):
-            job = self.depending[msg_id]
-
+        to_restore = []
+        while jobs:
+            job = jobs.popleft()
+            if job.removed:
+                continue
+            msg_id = job.msg_id
+            
+            put_it_back = True
+            
             if job.after.unreachable(self.all_completed, self.all_failed)\
                     or job.follow.unreachable(self.all_completed, self.all_failed):
                 self.fail_unreachable(msg_id)
+                put_it_back = False
 
             elif job.after.check(self.all_completed, self.all_failed): # time deps met, maybe run
                 if self.maybe_run(job):
-
-                    self.depending.pop(msg_id)
+                    put_it_back = False
+                    self.queue_map.pop(msg_id)
                     for mid in job.dependents:
                         if mid in self.graph:
                             self.graph[mid].remove(msg_id)
-
+                    
+                    # abort the loop if we just filled up all of our engines.
+                    # avoids an O(N) operation in situation of full queue,
+                    # where graph update is triggered as soon as an engine becomes
+                    # non-full, and all tasks after the first are checked,
+                    # even though they can't run.
+                    if not self.available_engines():
+                        break
+            
+            if using_queue and put_it_back:
+                # popped a job from the queue but it neither ran nor failed,
+                # so we need to put it back when we are done
+                # make sure to_restore preserves the same ordering
+                to_restore.append(job)
+        
+        # put back any tasks we popped but didn't run
+        if using_queue:
+            self.queue.extendleft(to_restore)
+    
     #----------------------------------------------------------------------
     # methods to be overridden by subclasses
     #----------------------------------------------------------------------

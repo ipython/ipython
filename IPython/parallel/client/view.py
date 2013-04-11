@@ -56,10 +56,14 @@ def save_ids(f, self, *args, **kwargs):
 @decorator
 def sync_results(f, self, *args, **kwargs):
     """sync relevant results from self.client to our results attribute."""
-    ret = f(self, *args, **kwargs)
-    delta = self.outstanding.difference(self.client.outstanding)
-    completed = self.outstanding.intersection(delta)
-    self.outstanding = self.outstanding.difference(completed)
+    if self._in_sync_results:
+        return f(self, *args, **kwargs)
+    self._in_sync_results = True
+    try:
+        ret = f(self, *args, **kwargs)
+    finally:
+        self._in_sync_results = False
+        self._sync_results()
     return ret
 
 @decorator
@@ -115,6 +119,7 @@ class View(HasTraits):
 
     _socket = Instance('zmq.Socket')
     _flag_names = List(['targets', 'block', 'track'])
+    _in_sync_results = Bool(False)
     _targets = Any()
     _idents = Any()
 
@@ -198,6 +203,15 @@ class View(HasTraits):
     # apply
     #----------------------------------------------------------------
 
+    def _sync_results(self):
+        """to be called by @sync_results decorator
+        
+        after submitting any tasks.
+        """
+        delta = self.outstanding.difference(self.client.outstanding)
+        completed = self.outstanding.intersection(delta)
+        self.outstanding = self.outstanding.difference(completed)
+        
     @sync_results
     @save_ids
     def _really_apply(self, f, args, kwargs, block=None, **options):
@@ -323,6 +337,7 @@ class View(HasTraits):
     # Map
     #-------------------------------------------------------------------
 
+    @sync_results
     def map(self, f, *sequences, **kwargs):
         """override in subclasses"""
         raise NotImplementedError
@@ -554,7 +569,7 @@ class DirectView(View):
         return ar
 
 
-    @spin_after
+    @sync_results
     def map(self, f, *sequences, **kwargs):
         """view.map(f, *sequences, block=self.block) => list|AsyncMapResult
 
@@ -1031,7 +1046,7 @@ class LoadBalancedView(View):
                 pass
         return ar
 
-    @spin_after
+    @sync_results
     @save_ids
     def map(self, f, *sequences, **kwargs):
         """view.map(f, *sequences, block=self.block, chunksize=1, ordered=True) => list|AsyncMapResult

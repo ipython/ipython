@@ -56,9 +56,9 @@ else:
     arrayModules.append({'module':numarray,
         'type':numarray.numarraycore.NumArray})
 
-class Map:
+class Map(object):
     """A class for partitioning a sequence using a map."""
-            
+    
     def getPartition(self, seq, p, q):
         """Returns the pth partition of q partitions of seq."""
         
@@ -66,25 +66,24 @@ class Map:
         if p<0 or p>=q:
           print "No partition exists."
           return
-          
-        remainder = len(seq)%q
-        basesize = len(seq)//q
-        hi = []
-        lo = []
-        for n in range(q):
-            if n < remainder:
-                lo.append(n * (basesize + 1))
-                hi.append(lo[-1] + basesize + 1)
-            else:
-                lo.append(n*basesize + remainder)
-                hi.append(lo[-1] + basesize)
+        
+        N = len(seq)
+        remainder = N % q
+        basesize = N // q
+        
+        if p < remainder:
+            low = p * (basesize + 1)
+            high = low + basesize + 1
+        else:
+            low = p * basesize + remainder
+            high = low + basesize
         
         try:
-            result = seq[lo[p]:hi[p]]
+            result = seq[low:high]
         except TypeError:
             # some objects (iterators) can't be sliced,
             # use islice:
-            result = list(islice(seq, lo[p], hi[p]))
+            result = list(islice(seq, low, high))
             
         return result
            
