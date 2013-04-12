@@ -19,7 +19,7 @@ It is an incomplete base class, and must be subclassed.
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.traitlets import (
-    Instance, Float, Dict, Bool,
+    Instance, Float, Dict, Bool, Integer,
 )
 
 #-----------------------------------------------------------------------------
@@ -35,7 +35,11 @@ class KernelRestarter(LoggingConfigurable):
         help="""Kernel heartbeat interval in seconds."""
     )
 
+    restart_limit = Integer(5, config=True,
+        help="""The number of consecutive autorestarts before the kernel is presumed dead."""
+    )
     _restarting = Bool(False)
+    _restart_count = Integer(0)
 
     callbacks = Dict()
     def _callbacks_default(self):
@@ -86,12 +90,21 @@ class KernelRestarter(LoggingConfigurable):
         self.log.debug('Polling kernel...')
         if not self.kernel_manager.is_alive():
             if self._restarting:
+                self._restart_count += 1
+            else:
+                self._restart_count = 1
+
+            if self._restart_count >= self.restart_limit:
                 self.log.warn("KernelRestarter: restart failed")
                 self._fire_callbacks('dead')
                 self._restarting = False
+                self._restart_count = 0
                 self.stop()
             else:
-                self.log.info('KernelRestarter: restarting kernel')
+                self.log.info('KernelRestarter: restarting kernel (%i/%i)',
+                    self._restart_count,
+                    self.restart_limit
+                )
                 self._fire_callbacks('restart')
                 self.kernel_manager.restart_kernel(now=True)
                 self._restarting = True
