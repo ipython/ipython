@@ -427,7 +427,7 @@ Defaulting color scheme to 'NoColor'"""
         save_dstore('rc_separate_out2',shell.separate_out2)
         save_dstore('rc_prompts_pad_left',pm.justify)
         save_dstore('rc_separate_in',shell.separate_in)
-        save_dstore('rc_plain_text_only',disp_formatter.plain_text_only)
+        save_dstore('rc_active_types',disp_formatter.active_types)
         save_dstore('prompt_templates',(pm.in_template, pm.in2_template, pm.out_template))
 
         if mode == False:
@@ -444,7 +444,7 @@ Defaulting color scheme to 'NoColor'"""
             pm.justify = False
 
             ptformatter.pprint = False
-            disp_formatter.plain_text_only = True
+            disp_formatter.active_types = ['text/plain']
 
             shell.magic('xmode Plain')
         else:
@@ -459,7 +459,7 @@ Defaulting color scheme to 'NoColor'"""
             pm.justify = dstore.rc_prompts_pad_left
 
             ptformatter.pprint = dstore.rc_pprint
-            disp_formatter.plain_text_only = dstore.rc_plain_text_only
+            disp_formatter.active_types = dstore.rc_active_types
 
             shell.magic('xmode ' + dstore.xmode)
 
