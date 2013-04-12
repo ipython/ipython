@@ -49,9 +49,26 @@ else:
 
 
 class CannedObject(object):
-    def __init__(self, obj, keys=[]):
+    def __init__(self, obj, keys=[], hook=None):
+        """can an object for safe pickling
+        
+        Parameters
+        ==========
+        
+        obj:
+            The object to be canned
+        keys: list (optional)
+            list of attribute names that will be explicitly canned / uncanned
+        hook: callable (optional)
+            An optional extra callable,
+            which can do additional processing of the uncanned object.
+        
+        large data may be offloaded into the buffers list,
+        used for zero-copy transfers.
+        """
         self.keys = keys
         self.obj = copy.copy(obj)
+        self.hook = can(hook)
         for key in keys:
             setattr(self.obj, key, can(getattr(obj, key)))
         
@@ -60,8 +77,13 @@ class CannedObject(object):
     def get_object(self, g=None):
         if g is None:
             g = {}
+        obj = self.obj
         for key in self.keys:
-            setattr(self.obj, key, uncan(getattr(self.obj, key), g))
+            setattr(obj, key, uncan(getattr(obj, key), g))
+        
+        if self.hook:
+            self.hook = uncan(self.hook, g)
+            self.hook(obj, g)
         return self.obj
     
 
@@ -302,6 +324,11 @@ def uncan_sequence(obj, g=None):
     else:
         return obj
 
+def _uncan_dependent_hook(dep, g=None):
+    dep.check_dependency()
+    
+def can_dependent(obj):
+    return CannedObject(obj, keys=('f', 'df'), hook=_uncan_dependent_hook)
 
 #-------------------------------------------------------------------------------
 # API dictionaries
@@ -310,7 +337,7 @@ def uncan_sequence(obj, g=None):
 # These dicts can be extended for custom serialization of new objects
 
 can_map = {
-    'IPython.parallel.dependent' : lambda obj: CannedObject(obj, keys=('f','df')),
+    'IPython.parallel.dependent' : can_dependent,
     'numpy.ndarray' : CannedArray,
     FunctionType : CannedFunction,
     bytes : CannedBytes,
