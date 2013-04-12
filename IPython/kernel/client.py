@@ -45,6 +45,10 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     * hb: for monitoring the kernel's heartbeat.
     * stdin: for frontends to reply to raw_input calls in the kernel.
 
+    The methods of the channels are exposed as methods of the client itself
+    (KernelClient.execute, complete, history, etc.).
+    See the channels themselves for documentation of these methods.
+
     """
 
     # The PyZMQ Context to use for communication with the kernel.
