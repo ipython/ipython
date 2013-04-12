@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Frontend of ipython working with python-zmq
+"""terminal client to the IPython kernel
 
-Ipython's frontend, is a ipython interface that send request to kernel and proccess the kernel's outputs.
-
-For more details, see the ipython-zmq design
 """
 #-----------------------------------------------------------------------------
-# Copyright (C) 2011 The IPython Development Team
+# Copyright (C) 2013 The IPython Development Team
 #
 # Distributed under the terms of the BSD License. The full license is in
 # the file COPYING, distributed as part of this software.
@@ -37,7 +34,7 @@ from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
-from IPython.utils.traitlets import List, Enum, Any
+from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
@@ -105,12 +102,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
     )
 
-    def __init__(self, *args, **kwargs):
-        self.manager = kwargs.pop('kernel_manager', None)
-        self.client = kwargs.pop('kernel_client')
-        self.session_id = self.client.session.session
-        super(ZMQTerminalInteractiveShell, self).__init__(*args, **kwargs)
-        
+    manager = Instance('IPython.kernel.KernelManager')
+    client = Instance('IPython.kernel.KernelClient')
+    def _client_changed(self, name, old, new):
+        self.session_id = new.session.session
+    session_id = Unicode()
+
     def init_completer(self):
         """Initialize the completion machinery.
 
