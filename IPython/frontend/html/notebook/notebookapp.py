@@ -460,6 +460,11 @@ class NotebookApp(BaseIPythonApplication):
         config=True,
         help='The notebook manager class to use.')
 
+    trust_xheaders = Bool(False, config=True,
+        help=("Whether to trust or not X-Scheme/X-Forwarded-Proto and X-Real-Ip/X-Forwarded-For headers"
+              "sent by the upstream reverse proxy. Neccesary if the proxy handles SSL")
+    )
+
     def parse_command_line(self, argv=None):
         super(NotebookApp, self).parse_command_line(argv)
         if argv is None:
@@ -512,7 +517,8 @@ class NotebookApp(BaseIPythonApplication):
         else:
             ssl_options = None
         self.web_app.password = self.password
-        self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options)
+        self.http_server = httpserver.HTTPServer(self.web_app, ssl_options=ssl_options,
+                                                 xheaders=self.trust_xheaders)
         if not self.ip:
             warning = "WARNING: The notebook server is listening on all IP addresses"
             if ssl_options is None:
