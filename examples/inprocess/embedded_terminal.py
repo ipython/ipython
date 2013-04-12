@@ -22,7 +22,7 @@ def main():
     client = kernel_manager.client()
     client.start_channels()
 
-    shell = ZMQTerminalInteractiveShell(kernel_manager=kernel_manager, kernel_client=client)
+    shell = ZMQTerminalInteractiveShell(manager=kernel_manager, client=client)
     shell.mainloop()
 
 

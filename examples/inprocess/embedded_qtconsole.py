@@ -1,8 +1,7 @@
 import os
 
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.inprocess import QtInProcessKernelClient
-from IPython.kernel.inprocess import InProcessKernelManager
+from IPython.frontend.qt.inprocess import QtInProcessKernelManager
 from IPython.lib import guisupport
 
 
@@ -19,13 +18,13 @@ def main():
     # Create an in-process kernel
     # >>> print_process_id()
     # will print the same process ID as the main process
-    kernel_manager = InProcessKernelManager()
+    kernel_manager = QtInProcessKernelManager()
     kernel_manager.start_kernel()
     kernel = kernel_manager.kernel
     kernel.gui = 'qt4'
     kernel.shell.push({'foo': 43, 'print_process_id': print_process_id})
 
-    kernel_client = QtInProcessKernelClient(kernel=kernel)
+    kernel_client = kernel_manager.client()
     kernel_client.start_channels()
 
     def stop():

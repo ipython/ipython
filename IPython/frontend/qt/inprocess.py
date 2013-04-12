@@ -4,12 +4,15 @@
 # Local imports.
 from IPython.kernel.inprocess import (
     InProcessShellChannel, InProcessIOPubChannel, InProcessStdInChannel,
-    InProcessHBChannel, InProcessKernelClient
+    InProcessHBChannel, InProcessKernelClient, InProcessKernelManager,
 )
 
 from IPython.utils.traitlets import Type
-from kernel_mixins import QtShellChannelMixin, QtIOPubChannelMixin, \
-    QtStdInChannelMixin, QtHBChannelMixin, QtKernelClientMixin
+from .kernel_mixins import (
+    QtShellChannelMixin, QtIOPubChannelMixin,
+    QtStdInChannelMixin, QtHBChannelMixin, QtKernelClientMixin,
+    QtKernelManagerMixin,
+)
 
 
 class QtInProcessShellChannel(QtShellChannelMixin, InProcessShellChannel):
@@ -32,3 +35,6 @@ class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     shell_channel_class = Type(QtInProcessShellChannel)
     stdin_channel_class = Type(QtInProcessStdInChannel)
     hb_channel_class = Type(QtInProcessHBChannel)
+
+class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
+    client_class = __module__ + '.QtInProcessKernelClient'
