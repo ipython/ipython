@@ -8,12 +8,11 @@
 #  the file COPYING, distributed as part of this software.
 #-----------------------------------------------------------------------------
 
-import sys
-import time
 import os
 import threading
+import time
 import uuid
-from io import StringIO
+from io import StringIO, UnsupportedOperation
 
 import zmq
 
@@ -171,6 +170,9 @@ class OutStream(object):
 
     def readline(self, size=-1):
         raise IOError('Read not supported on a write only stream.')
+    
+    def fileno(self):
+        raise UnsupportedOperation("IOStream has no fileno.")
 
     def write(self, string):
         if self.pub_socket is None:
