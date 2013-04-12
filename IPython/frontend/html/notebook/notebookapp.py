@@ -52,7 +52,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
-    FileFindHandler,
+    FileFindHandler, NotebookRedirectHandler,
 )
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -86,6 +86,7 @@ from IPython.utils.path import filefind
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
+_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
 _profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
 
@@ -136,6 +137,7 @@ class NotebookWebApplication(web.Application):
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
+            (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
             (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/%s/print" % _notebook_id_regex, PrintNotebookHandler),
             (r"/kernels", MainKernelHandler),
@@ -170,6 +172,7 @@ class NotebookWebApplication(web.Application):
             cookie_secret=os.urandom(1024),
             login_url=url_path_join(base_project_url,'/login'),
             cookie_name='username-%s' % uuid.uuid4(),
+            base_project_url = base_project_url,
         )
 
         # allow custom overrides for the tornado web app.
