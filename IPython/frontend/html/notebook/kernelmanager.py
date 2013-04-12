@@ -76,7 +76,7 @@ class MappingKernelManager(MultiKernelManager):
         self.remove_kernel(kernel_id, now=True)
 
     def start_kernel(self, notebook_id=None, **kwargs):
-        """Start a kernel for a notebok an return its kernel_id.
+        """Start a kernel for a notebook an return its kernel_id.
 
         Parameters
         ----------
@@ -101,6 +101,11 @@ class MappingKernelManager(MultiKernelManager):
             self.log.info("Using existing kernel: %s" % kernel_id)
 
         return kernel_id
+
+    def shutdown_kernel(self, kernel_id, now=False):
+        """Shutdown a kernel by kernel_id"""
+        super(MappingKernelManager, self).shutdown_kernel(kernel_id, now=now)
+        self.delete_mapping_for_kernel(kernel_id)
 
     # override _check_kernel_id to raise 404 instead of KeyError
     def _check_kernel_id(self, kernel_id):
