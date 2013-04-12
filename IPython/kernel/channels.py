@@ -27,7 +27,7 @@ from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports
-from .channelabc import (
+from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )

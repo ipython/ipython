@@ -12,7 +12,7 @@
 #-----------------------------------------------------------------------------
 
 # IPython imports
-from IPython.kernel.channelabc import (
+from IPython.kernel.channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
 )

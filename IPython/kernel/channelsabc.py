@@ -124,4 +124,3 @@ class HBChannelABC(ChannelABC):
     @abc.abstractmethod
     def is_beating(self):
         pass
-
