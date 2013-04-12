@@ -15,7 +15,6 @@ class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
         c = Config()
-        # c.KernelManager.autorestart=False
         km = MultiKernelManager(config=c)
         return km
 
@@ -23,7 +22,6 @@ class TestKernelManager(TestCase):
         c = Config()
         c.KernelManager.transport = 'ipc'
         c.KernelManager.ip = 'test'
-        # c.KernelManager.autorestart=False
         km = MultiKernelManager(config=c)
         return km
 
