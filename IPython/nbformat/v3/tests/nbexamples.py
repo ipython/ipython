@@ -93,6 +93,7 @@ ws.cells.append(new_code_cell(
         output_text='foo\rbar\r\n'
     ),new_output(
         output_type=u'stream',
+        stream='stderr',
         output_text='\rfoo\rbar\n'
     )]
 ))
