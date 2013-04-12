@@ -60,7 +60,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The path to the file to write
 
     shell_port : int, optional
-        The port to use for ROUTER channel.
+        The port to use for ROUTER (shell) channel.
 
     iopub_port : int, optional
         The port to use for the SUB channel.
@@ -69,10 +69,10 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The port to use for the ROUTER (raw input) channel.
 
     control_port : int, optional
-        The port to use for the ROUTER (raw input) channel.
+        The port to use for the ROUTER (control) channel.
 
     hb_port : int, optional
-        The port to use for the hearbeat REP channel.
+        The port to use for the heartbeat REP channel.
 
     ip  : str, optional
         The ip address the kernel will bind to.
