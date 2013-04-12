@@ -614,8 +614,8 @@ class NotebookRedirectHandler(AuthenticatedHandler):
     @authenticate_unless_readonly
     def get(self, notebook_name):
         app = self.application
-        if notebook_name.endswith('.ipynb'):
-            notebook_name = notebook_name[:-6]
+        # strip trailing .ipynb:
+        notebook_name = os.path.splitext(notebook_name)[0]
         notebook_id = app.notebook_manager.rev_mapping.get(notebook_name, '')
         if notebook_id:
             url = self.settings.get('base_project_url', '/') + notebook_id
