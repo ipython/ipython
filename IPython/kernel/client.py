@@ -69,15 +69,6 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     _stdin_channel = Any
     _hb_channel = Any
 
-    # def __init__(self, *args, **kwargs):
-    #     super(KernelClient, self).__init__(*args, **kwargs)
-    #     # setup channel proxy methods, e.g.
-    #     # Client.execute => shell_channel.execute
-    #     for channel in ['shell', 'iopub', 'stdin', 'hb']:
-    #         cls = getattr(self, '%s_channel_class' % channel)
-    #         for method in cls.proxy_methods:
-    #             setattr(self, method, self._proxy_method(channel, method))
-    #
     #--------------------------------------------------------------------------
     # Channel proxy methods
     #--------------------------------------------------------------------------
