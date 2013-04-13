@@ -28,6 +28,7 @@ import threading
 import time
 import uuid
 import urlparse
+import json
 
 from tornado.escape import url_escape
 from tornado import web
@@ -288,7 +289,13 @@ class NewHandler(AuthenticatedHandler):
         notebook_id = nbm.new_notebook()
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
-def django_slug_libs(static_root, static_url, libs):
+def slug_json(slug_path):
+    path = os.path.join(slug_path, 'slug.json')
+    with open(path) as f:
+        return json.load(f)
+    return os.path.join(os.path.dirname(__file__))
+
+def django_slug_libs(static_root, static_url, libs, slug_path):
     targets = [os.path.join(slug_path, os.path.normpath(x)) for x in libs]
     targets = [os.path.relpath(x, static_root) for x in targets]
     targets = [urlparse.urljoin(static_url, x) for x in targets]
@@ -298,17 +305,14 @@ def make_hem_scripts(asset_url, compress_assets):
     #desired functionality - logging, homedirs, unixusername, database
     #basedir is the directory of the current file
     _basedir = os.path.abspath(os.path.dirname(__file__))
-    hemlib.slug_path = _basedir
     if compress_assets:
         return [asset_url + "js/ipynb_application.js"]
     else:
-        js_files = hemlib.slug_json()['libs']
+        js_files = slug_json(_basedir)['libs']
         #hack "static/" off the beginning of each js file
         corrected = [j[7:] for j in js_files]
-        static_js = hemlib.django_slug_libs(
-            _basedir,
-            asset_url,
-            corrected)
+        static_js = django_slug_libs(
+            _basedir, asset_url, corrected, _basedir)
         return static_js
 
 class NamedNotebookHandler(AuthenticatedHandler):
