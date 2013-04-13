@@ -18,6 +18,8 @@ window.mathjax_url = "{{mathjax_url}}";
 
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
 
+<link rel="stylesheet" href="{{ static_url("bokeh/bokeh.css") }}" type="text/css">
+<link rel="stylesheet" href="{{ static_url("bokeh/continuum.css") }}" type="text/css">
 {{super()}}
 
 {% endblock %}
@@ -179,54 +181,19 @@ class="notebook_app"
 
 {% endblock %}
 
-
+{% block page_scripts %}
+<! --
+I don't want any of the script blocks, I want them all compiled into the same script tag
+-->
+{% endblock %}
 {% block script %}
 
-{{super()}}
 
-<script src="{{ static_url("codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/lib/util/multiplex.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/python/python.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/javascript/javascript.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/css/css.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/rst/rst.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("codemirror/mode/markdown/markdown.js") }}" charset="utf-8"></script>
 
-<script src="{{ static_url("pagedown/Markdown.Converter.js") }}" charset="utf-8"></script>
+{% for jsscript in js_scripts %}
+  <script src="{{jsscript}}" type="text/javascript" charset="utf-8"></script>
+{% endfor %}
 
-<script src="{{ static_url("prettify/prettify.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>
-
-<script src="{{ static_url("js/events.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/utils.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/layoutmanager.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/mathjaxutils.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/outputarea.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/cell.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/celltoolbar.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/codecell.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/completer.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/textcell.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/kernel.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/savewidget.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/quickhelp.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/pager.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/menubar.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/toolbar.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/maintoolbar.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/notebook.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/notificationwidget.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/notificationarea.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/tooltip.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/config.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/notebookmain.js") }}" type="text/javascript" charset="utf-8"></script>
-
-<script src="{{ static_url("js/contexthint.js") }}" charset="utf-8"></script>
-
-<script src="{{ static_url("js/celltoolbarpresets/default.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ static_url("js/celltoolbarpresets/slideshow.js") }}" type="text/javascript" charset="utf-8"></script>
+    
 
 {% endblock %}

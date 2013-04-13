@@ -1,0 +1,87 @@
+{% extends "page.html" %}
+
+{% block title %}IPython Dashboard{% endblock %}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("css/continuumdashboard.css") }}" type="text/css" />
+	<link rel="stylesheet" href="{{static_url("css/alternateuploadform.css") }}" type="text/css" />
+{% endblock %}
+
+
+{% block params %}
+
+data-project={{project}}
+data-base-project-url={{base_project_url}}
+data-base-kernel-url={{base_kernel_url}}
+data-read-only={{read_only}}
+
+{% endblock %}
+
+
+{% block site %}
+
+<div id="main_app">
+<div id="tabs">
+    <ul>
+        <li><a href="#tab1">Notebooks</a></li>
+        <li><a href="#tab2">Clusters</a></li>
+    </ul>
+
+    <div id="tab1">
+        {% if logged_in or not read_only %}
+        <div id="notebook_toolbar">
+          <div id="notebook_buttons">
+            <button id="new_notebook" title="Create new notebook">New Notebook</button>
+          </div>
+        </div>
+        {% endif %}
+
+          <div id="notebook_list">
+            <div id="project_name">
+              <form class="pathform" method="POST" action="/notebookdir">
+                <button type="submit" class="refresh_button" title="Refresh notebook list">Refresh</button>                
+                <input class="pathentry" type="text" name="path" value="{{project}}"/>
+              </form>
+            </div>
+        </div>
+    </div>
+    <div id="tab2">
+
+        <div id="cluster_toolbar">
+            <span id="cluster_list_info">IPython parallel computing clusters</span>
+
+            <span id="cluster_buttons">
+                <button id="refresh_cluster_list" title="Refresh cluster list">Refresh</button>
+            </span>
+        </div>
+
+        <div id="cluster_list">
+            <div id="cluster_header">
+                <span>profile</span>
+                <span>action</span>
+                <span title="Enter the number of engines to start or empty for default"># of engines</span>
+                <span>status</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</div>
+
+{% endblock %}
+
+{% block script %}
+    <script src="{{static_url("js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+      $(function(){
+      $('.refresh_button').button({
+      icons : {primary: 'ui-icon-arrowrefresh-1-s'},
+      text : false
+      });
+      });
+    </script>
+{% endblock %}
