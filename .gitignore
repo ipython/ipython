@@ -6,6 +6,7 @@ docs/man/*.gz
 docs/source/api/generated
 docs/gh-pages
 IPython/frontend/html/notebook/static/mathjax
+IPython/frontend/html/notebook/static/components
 *.py[co]
 __pycache__
 build
