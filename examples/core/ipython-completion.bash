@@ -1,5 +1,9 @@
 # load with: . ipython-completion.bash
 
+if [[ -n ${ZSH_VERSION-} ]]; then
+    autoload -Uz bashcompinit && bashcompinit
+fi
+
 _ipython_get_flags()
 {
     local url=$1
