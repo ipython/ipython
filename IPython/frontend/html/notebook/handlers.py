@@ -27,6 +27,7 @@ import stat
 import threading
 import time
 import uuid
+import urlparse
 
 from tornado.escape import url_escape
 from tornado import web
@@ -46,7 +47,6 @@ try:
     from docutils.core import publish_string
 except ImportError:
     publish_string = None
-from .continuum_helpers import notebook_render
 
 #-----------------------------------------------------------------------------
 # Monkeypatch for Tornado <= 2.1.1 - Remove when no longer necessary!
@@ -260,42 +260,6 @@ class LoginHandler(AuthenticatedHandler):
 
         self.redirect(self.get_argument('next', default=self.application.ipython_app.base_project_url))
 
-class AutoLoginHandler(AuthenticatedHandler):
-    def _render(self, message=None):
-        template = self.application.jinja2_env.get_template('login.html')
-        self.write( template.render(
-                next=url_escape(
-                    self.get_argument(
-                        'next',
-                        default=self.application.ipython_app.base_project_url)),
-                read_only=self.read_only,
-                logged_in=self.logged_in,
-                login_available=self.login_available,
-                base_project_url=self.application.ipython_app.base_project_url,
-                message=message
-                ))
-
-
-    def get(self, password):
-        if self.current_user:
-            self.redirect(
-                self.get_argument(
-                    'next',
-                    default=self.application.ipython_app.base_project_url))
-        pwd = password
-        if passwd_check(self.application.password, pwd):
-            self.set_secure_cookie(
-                self.settings['cookie_name'], str(uuid.uuid4()))
-        else:
-            self._render(message={
-                    'error': 'Invalid password.  This is your wakari password'})
-            return
-
-        self.redirect(
-            self.get_argument(
-                'next', default=self.application.ipython_app.base_project_url))
-
-
 
 class LogoutHandler(AuthenticatedHandler):
 
@@ -324,11 +288,52 @@ class NewHandler(AuthenticatedHandler):
         notebook_id = nbm.new_notebook()
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
+def django_slug_libs(static_root, static_url, libs):
+    targets = [os.path.join(slug_path, os.path.normpath(x)) for x in libs]
+    targets = [os.path.relpath(x, static_root) for x in targets]
+    targets = [urlparse.urljoin(static_url, x) for x in targets]
+    return targets
+
+def make_hem_scripts(asset_url, compress_assets):
+    #desired functionality - logging, homedirs, unixusername, database
+    #basedir is the directory of the current file
+    _basedir = os.path.abspath(os.path.dirname(__file__))
+    hemlib.slug_path = _basedir
+    if compress_assets:
+        return [asset_url + "js/ipynb_application.js"]
+    else:
+        js_files = hemlib.slug_json()['libs']
+        #hack "static/" off the beginning of each js file
+        corrected = [j[7:] for j in js_files]
+        static_js = hemlib.django_slug_libs(
+            _basedir,
+            asset_url,
+            corrected)
+        return static_js
+
 class NamedNotebookHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
-        return notebook_render(self, notebook_id)
+        app = self.application.ipython_app
+        template = self.application.jinja2_env.get_template('notebook.html')
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir
+        if not nbm.notebook_exists(notebook_id):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        self.write( template.render(
+            project=project,
+            notebook_id=notebook_id,
+            base_project_url=app.base_project_url,
+            base_kernel_url=app.base_kernel_url,
+            kill_kernel=False,
+            read_only=self.read_only,
+            logged_in=self.logged_in,
+            login_available=self.login_available,
+            mathjax_url=app.mathjax_url,
+            use_less=self.use_less,
+            js_scripts = make_hem_scripts(app.assets_domain, app.compress_assets)))
+
 
 class PrintNotebookHandler(AuthenticatedHandler):
 
@@ -922,11 +927,3 @@ class FileFindHandler(web.StaticFileHandler):
         return url_path
 
 
-class NotebookDir(AuthenticatedHandler):
-    @authenticate_unless_readonly
-    def post(self):
-        path = self.get_argument('path',default=None)
-        self.application.notebook_manager.notebook_dir = path
-        return self.redirect("/")        
-        
-        
