@@ -10,7 +10,6 @@ from __future__ import print_function
 import os
 import sys
 import shutil
-import platform
 
 try:
     import setuptools
@@ -118,14 +117,9 @@ def install():
     mkshortcut(python, 'IPython Notebook', ip_start_menu,
                arguments(scripts, 'ipython', 'notebook'), iconpath)
 
-    try:
-        import IPython
-        mkshortcut(pythonw, 'IPython Documentation', ip_start_menu,
-                   '-m webbrowser -t "http://ipython.org/ipython-doc/'
-                   'rel-%s/index.html"' % IPython.__version__,
-                   iconpath='url.dll')
-    except Exception:
-        pass
+    mkshortcut(pythonw, 'IPython Documentation', ip_start_menu,
+               '-m webbrowser -t "http://ipython.org/documentation.html',
+               iconpath='url.dll')
 
     # Disable pysh Start item until the profile restores functionality
     # Most of this code is in IPython/deathrow, and needs to be updated
