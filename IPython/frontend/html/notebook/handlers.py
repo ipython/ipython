@@ -309,10 +309,11 @@ def make_hem_scripts(asset_url, compress_assets):
         return [asset_url + "js/ipynb_application.js"]
     else:
         js_files = slug_json(_basedir)['libs']
-        #hack "static/" off the beginning of each js file
+        #hack "static/" off the beginning of each js file the static/
+        #is needed for hem to find the file, but it messes up
+        #urls up for integration
         corrected = [j[7:] for j in js_files]
-        static_js = django_slug_libs(
-            _basedir, asset_url, corrected, _basedir)
+        static_js = django_slug_libs(_basedir, asset_url, corrected, _basedir)
         return static_js
 
 class NamedNotebookHandler(AuthenticatedHandler):

@@ -383,7 +383,7 @@ class NotebookApp(BaseIPythonApplication):
         if not new:
             self.mathjax_url = u''
 
-    assets_domain = Unicode(u'/', config=True,
+    assets_domain = Unicode(u'/static/', config=True,
         help="""The url of the IPython static directory.
         """)
 

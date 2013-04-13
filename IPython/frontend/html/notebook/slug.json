@@ -1,5 +1,5 @@
 {
-    "libs": ["static/jquery/js/jquery.1.7.2.min.js",
+    "libs": ["static/jquery/js/jquery-1.7.1.min.js",
              "static/jquery/js/jquery-ui.min.js",
              "static/js/namespace.js", 
              "static/js/page.js",
@@ -49,9 +49,8 @@
              "static/js/contexthint.js",
              
              "static/js/celltoolbarpresets/default.js",
-             "static/js/celltoolbarpresets/slideshow.js",
+             "static/js/celltoolbarpresets/slideshow.js"
              
-             "static/bokeh/application.js"
              
              
             ],
