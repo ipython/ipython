@@ -31,7 +31,12 @@ import time
 import uuid
 import webbrowser
 
+
 # Third party
+# check for pyzmq 2.1.11
+from IPython.utils.zmqrelated import check_for_zmq
+check_for_zmq('2.1.11', 'IPython.frontend.html.notebook')
+
 import zmq
 from jinja2 import Environment, FileSystemLoader
 
@@ -40,11 +45,24 @@ from jinja2 import Environment, FileSystemLoader
 from zmq.eventloop import ioloop
 ioloop.install()
 
-import tornado
+# check for tornado 2.1.0
+msg = "The IPython Notebook requires tornado >= 2.1.0"
+try:
+    import tornado
+except ImportError:
+    raise ImportError(msg)
+try:
+    version_info = tornado.version_info
+except AttributeError:
+    raise ImportError(msg + ", but you have < 1.1.0")
+if version_info < (2,1,0):
+    raise ImportError(msg + ", but you have %s" % tornado.version)
+
 from tornado import httpserver
 from tornado import web
 
 # Our own libraries
+from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
@@ -97,9 +115,6 @@ ipython notebook --pylab=inline        # pylab in inline plotting mode
 ipython notebook --certfile=mycert.pem # use SSL/TLS certificate
 ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 """
-
-# Packagers: modify this line if you store the notebook static files elsewhere
-DEFAULT_STATIC_FILES_PATH = os.path.join(os.path.dirname(__file__), "static")
 
 #-----------------------------------------------------------------------------
 # Helper functions
@@ -569,19 +584,7 @@ class NotebookApp(BaseIPythonApplication):
             self.exit(1)
     
     def init_signal(self):
-        # FIXME: remove this check when pyzmq dependency is >= 2.1.11
-        # safely extract zmq version info:
-        try:
-            zmq_v = zmq.pyzmq_version_info()
-        except AttributeError:
-            zmq_v = [ int(n) for n in re.findall(r'\d+', zmq.__version__) ]
-            if 'dev' in zmq.__version__:
-                zmq_v.append(999)
-            zmq_v = tuple(zmq_v)
-        if zmq_v >= (2,1,9) and not sys.platform.startswith('win'):
-            # This won't work with 2.1.7 and
-            # 2.1.9-10 will log ugly 'Interrupted system call' messages,
-            # but it will work
+        if not sys.platform.startswith('win'):
             signal.signal(signal.SIGINT, self._handle_sigint)
         signal.signal(signal.SIGTERM, self._signal_stop)
         if hasattr(signal, 'SIGUSR1'):
