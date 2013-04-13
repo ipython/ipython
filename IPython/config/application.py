@@ -146,6 +146,7 @@ class Application(SingletonConfigurable):
         """
         log = logging.getLogger(self.__class__.__name__)
         log.setLevel(self.log_level)
+        log.propagate = False
         _log = log # copied from Logger.hasHandlers() (new in Python 3.2)
         while _log:
             if _log.handlers:
