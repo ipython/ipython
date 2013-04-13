@@ -33,8 +33,8 @@ import webbrowser
 
 
 # Third party
-# check for pyzmq 2.1.11 (this is actually redundant)
-from IPython.kernel.zmq import check_for_zmq
+# check for pyzmq 2.1.11
+from IPython.utils.zmqrelated import check_for_zmq
 check_for_zmq('2.1.11', 'IPython.frontend.html.notebook')
 
 import zmq
