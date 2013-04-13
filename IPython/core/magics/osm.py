@@ -182,8 +182,9 @@ class OSMagics(Magics):
                             try:
                                 # Removes dots from the name since ipython
                                 # will assume names with dots to be python.
-                                self.shell.alias_manager.define_alias(
-                                    ff.replace('.',''), ff)
+                                if ff not in self.shell.alias_manager:
+                                    self.shell.alias_manager.define_alias(
+                                        ff.replace('.',''), ff)
                             except InvalidAliasError:
                                 pass
                             else:
