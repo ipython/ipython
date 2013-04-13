@@ -237,7 +237,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script', 'assets-domain']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script', 'assets-url']
 
 aliases = dict(kernel_aliases)
 
@@ -250,7 +250,7 @@ aliases.update({
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
-    'assets-domain': 'NotebookApp.assets_domain',
+    'assets-url': 'NotebookApp.assets_url',
     'compress-assets': 'NotebookApp.compress_assets',
 })
 
@@ -259,7 +259,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir', 'assets-domain', 'compress-assets']
+                    u'notebook-dir', 'assets-url', 'compress-assets']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -383,7 +383,7 @@ class NotebookApp(BaseIPythonApplication):
         if not new:
             self.mathjax_url = u''
 
-    assets_domain = Unicode(u'/static/', config=True,
+    assets_url = Unicode(u'/static/', config=True,
         help="""The url of the IPython static directory.
         """)
 

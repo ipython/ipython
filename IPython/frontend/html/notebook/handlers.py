@@ -337,7 +337,7 @@ class NamedNotebookHandler(AuthenticatedHandler):
             login_available=self.login_available,
             mathjax_url=app.mathjax_url,
             use_less=self.use_less,
-            js_scripts = make_hem_scripts(app.assets_domain, app.compress_assets)))
+            js_scripts = make_hem_scripts(app.assets_url, app.compress_assets)))
 
 
 class PrintNotebookHandler(AuthenticatedHandler):
