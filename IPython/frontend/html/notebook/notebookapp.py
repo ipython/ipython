@@ -53,9 +53,7 @@ from .handlers import (LoginHandler, LogoutHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
     FileFindHandler, NotebookDir)
 
-from .continuum_handlers import (
-    ContinuumProjectDashboardHandler, AutoLoginHandler, 
-    NotebookDirectHandler, NotebookRelativeHandler)
+from .continuum_handlers import (NotebookDirectHandler, NotebookRelativeHandler)
 
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -134,11 +132,8 @@ class NotebookWebApplication(web.Application):
                  cluster_manager, log,
                  base_project_url, settings_overrides):
         handlers = [
-            (r"/", ContinuumProjectDashboardHandler),
-            (r"/notebookdir", NotebookDir),            
-            (r"/continuum", ContinuumProjectDashboardHandler),
+            (r"/", ProjectDashboardHandler),
             (r"/login", LoginHandler),
-            (r"/auto_login/(?P<password>.*)", AutoLoginHandler),
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
             (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
@@ -245,7 +240,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script', 'assets-domain']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
 
 aliases = dict(kernel_aliases)
 
@@ -258,8 +253,6 @@ aliases.update({
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
-    'assets-domain': 'NotebookApp.assets_domain',
-    'compress-assets': 'NotebookApp.compress_assets',
 })
 
 # remove ipkernel flags that are singletons, and don't make sense in
@@ -267,7 +260,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir', 'assets-domain', 'compress-assets']
+                    u'notebook-dir']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -385,19 +378,10 @@ class NotebookApp(BaseIPythonApplication):
         When disabled, equations etc. will appear as their untransformed TeX source.
         """
     )
-
     def _enable_mathjax_changed(self, name, old, new):
         """set mathjax url to empty if mathjax is disabled"""
         if not new:
             self.mathjax_url = u''
-
-    assets_domain = Unicode(u'/', config=True,
-        help="""The url of the IPython static directory.
-        """)
-
-    compress_assets = Bool(False, config=True,
-        help="""Should assets be compressed and minimized into single files.
-        """)
 
     base_project_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server.
@@ -542,6 +526,30 @@ class NotebookApp(BaseIPythonApplication):
             try:
                 self.http_server.listen(port, self.ip)
             except socket.error as e:
+                # XXX: remove the e.errno == -9 block when we require
+                # tornado >= 3.0
+                if e.errno == -9 and tornado.version_info[0] < 3:
+                    # The flags passed to socket.getaddrinfo from
+                    # tornado.netutils.bind_sockets can cause "gaierror:
+                    # [Errno -9] Address family for hostname not supported"
+                    # when the interface is not associated, for example.
+                    # Changing the flags to exclude socket.AI_ADDRCONFIG does
+                    # not cause this error, but the only way to do this is to
+                    # monkeypatch socket to remove the AI_ADDRCONFIG attribute
+                    saved_AI_ADDRCONFIG = socket.AI_ADDRCONFIG
+                    self.log.warn('Monkeypatching socket to fix tornado bug')
+                    del(socket.AI_ADDRCONFIG)
+                    try:
+                        # retry the tornado call without AI_ADDRCONFIG flags
+                        self.http_server.listen(port, self.ip)
+                    except socket.error as e2:
+                        e = e2
+                    else:
+                        self.port = port
+                        success = True
+                        break
+                    # restore the monekypatch
+                    socket.AI_ADDRCONFIG = saved_AI_ADDRCONFIG
                 if e.errno != errno.EADDRINUSE:
                     raise
                 self.log.info('The port %i is already in use, trying another random port.' % port)
