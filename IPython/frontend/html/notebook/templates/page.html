@@ -56,14 +56,13 @@
 {% block site %}
 {% endblock %}
 </div>
-{% block page_scripts %}
-<script src="{{static_url("jquery/js/jquery.1.7.2.min.js") }}" type="text/javascript" charset="utf-8"></script>
+
+<script src="{{static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("js/page.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 
-{% endblock %}
 {% block script %}
     {% if use_less %}
         <script src="{{ static_url("components/less.js/dist/less-1.3.3.min.js") }}" charset="utf-8"></script>
