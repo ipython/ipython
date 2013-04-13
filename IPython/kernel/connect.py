@@ -304,7 +304,9 @@ def connect_qtconsole(connection_file=None, argv=None, profile=None):
         "qtconsoleapp.main()"
     ])
     
-    return Popen([sys.executable, '-c', cmd, '--existing', cf] + argv, stdout=PIPE, stderr=PIPE)
+    return Popen([sys.executable, '-c', cmd, '--existing', cf] + argv,
+        stdout=PIPE, stderr=PIPE, close_fds=True,
+    )
 
 
 def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
