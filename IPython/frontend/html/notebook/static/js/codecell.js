@@ -109,7 +109,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype.create_element = function () {
         IPython.Cell.prototype.create_element.apply(this, arguments);
 
-        var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell vbox');
+        var cell =  $('<div></div>').addClass('cell border-box-sizing code_cell');
         cell.attr('tabindex','2');
 
         this.celltoolbar = new IPython.CellToolbar(this);
