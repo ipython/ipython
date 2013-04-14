@@ -32,6 +32,7 @@ from converters.transformers import (ExtractFigureTransformer)
 
 from converters.config import GlobalConfigurable
 
+NBCONVERT_DIR = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 
 class NbconvertApp(Application):
     """A basic application to convert ipynb files
@@ -82,7 +83,7 @@ class NbconvertApp(Application):
             Application.load_config_file(
                 self,
                 profile_name+'.py',
-                path=[os.path.join(os.getcwdu(), 'profile')]
+                path=[os.path.join(NBCONVERT_DIR, 'profile')]
             )
             return True
         except ConfigFileNotFound:
