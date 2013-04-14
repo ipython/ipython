@@ -199,7 +199,7 @@ def display_latex(*objs, **kwargs):
 
 def display_json(*objs, **kwargs):
     """Display the JSON representation of an object.
-    
+
     Note that not many frontends support displaying JSON.
 
     Parameters
@@ -276,11 +276,11 @@ class DisplayObject(object):
                 url = None
                 filename = data
                 data = None
-        
+
         self.data = data
         self.url = url
         self.filename = None if filename is None else unicode(filename)
-        
+
         self.reload()
 
     def reload(self):
@@ -332,15 +332,15 @@ class Latex(DisplayObject):
 
 
 class SVG(DisplayObject):
-    
+
     # wrap data in a property, which extracts the <svg> tag, discarding
     # document headers
     _data = None
-    
+
     @property
     def data(self):
         return self._data
-    
+
     @data.setter
     def data(self, svg):
         if svg is None:
@@ -358,7 +358,7 @@ class SVG(DisplayObject):
             # but this is probably an error.
             pass
         self._data = svg
-    
+
     def _repr_svg_(self):
         return self.data
 
@@ -388,8 +388,8 @@ class Javascript(DisplayObject):
         When this object is returned by an expression or passed to the
         display function, it will result in the data being displayed
         in the frontend. If the data is a URL, the data will first be
-        downloaded and then displayed. 
-        
+        downloaded and then displayed.
+
         In the Notebook, the containing element will be available as `element`,
         and jQuery will be available.  The output area starts hidden, so if
         the js appends content to `element` that should be visible, then
@@ -410,7 +410,7 @@ class Javascript(DisplayObject):
             string.
         css: : list or str
             A sequence of css files to load before running the source code.
-            The full URLs of the css files should be give. A single css URL
+            The full URLs of the css files should be given. A single css URL
             can also be given as a string.
         """
         if isinstance(lib, basestring):
@@ -554,12 +554,12 @@ class Image(DisplayObject):
 
 def clear_output(stdout=True, stderr=True, other=True):
     """Clear the output of the current cell receiving output.
-    
+
     Optionally, each of stdout/stderr or other non-stream data (e.g. anything
     produced by display()) can be excluded from the clear event.
-    
+
     By default, everything is cleared.
-    
+
     Parameters
     ----------
     stdout : bool [default: True]
@@ -583,4 +583,4 @@ def clear_output(stdout=True, stderr=True, other=True):
         if stderr:
             print('\033[2K\r', file=io.stderr, end='')
             io.stderr.flush()
-        
+
