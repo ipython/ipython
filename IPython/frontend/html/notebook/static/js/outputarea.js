@@ -345,7 +345,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_html = function (html, element) {
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_html rendered_html");
+        var toinsert = $("<div/>").addClass("output_subarea output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
     };
@@ -353,7 +353,7 @@ var IPython = (function (IPython) {
 
     OutputArea.prototype.append_javascript = function (js, container) {
         // We just eval the JS code, element appears in the local scope.
-        var element = $("<div/>").addClass("box-flex1 output_subarea");
+        var element = $("<div/>").addClass("output_subarea");
         container.append(element);
         // Div for js shouldn't be drawn, as it will add empty height to the area.
         container.hide();
@@ -376,7 +376,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_text = function (data, element, extra_class) {
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_text");
+        var toinsert = $("<div/>").addClass("output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
         data = utils.fixCarriageReturn(data);
@@ -390,7 +390,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_svg = function (svg, element) {
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_svg");
+        var toinsert = $("<div/>").addClass("output_subarea output_svg");
         toinsert.append(svg);
         element.append(toinsert);
     };
@@ -424,7 +424,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_png = function (png, element) {
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_png");
+        var toinsert = $("<div/>").addClass("output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -433,7 +433,7 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.append_jpeg = function (jpeg, element) {
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_jpeg");
+        var toinsert = $("<div/>").addClass("output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
@@ -444,7 +444,7 @@ var IPython = (function (IPython) {
     OutputArea.prototype.append_latex = function (latex, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
-        var toinsert = $("<div/>").addClass("box-flex1 output_subarea output_latex");
+        var toinsert = $("<div/>").addClass("output_subarea output_latex");
         toinsert.append(latex);
         element.append(toinsert);
     };
