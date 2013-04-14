@@ -890,7 +890,7 @@ div.ui-widget-content{border:1px solid #ababab;outline:none;}
 .cell{border:1px solid transparent;}.cell.selected{border-radius:4px;border:thin #ababab solid;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 0px;outline:none;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231;}
-div.input{page-break-inside:avoid;}
+div.input{page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
 div.input_area{border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
 div.input_prompt{color:navy;border-top:1px solid transparent;}
 div.output_wrapper{margin-top:5px;margin-left:5px;width:100%;position:relative;}

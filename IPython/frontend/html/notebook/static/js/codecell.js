@@ -114,7 +114,7 @@ var IPython = (function (IPython) {
 
         this.celltoolbar = new IPython.CellToolbar(this);
 
-        var input = $('<div></div>').addClass('input hbox');
+        var input = $('<div></div>').addClass('input');
         var vbox = $('<div/>').addClass('vbox box-flex1')
         input.append($('<div/>').addClass('prompt input_prompt'));
         vbox.append(this.celltoolbar.element);
