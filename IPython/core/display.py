@@ -35,7 +35,7 @@ from IPython.utils.py3compat import string_types
 #-----------------------------------------------------------------------------
 
 def _safe_exists(path):
-    """check path, but don't let exceptions raise"""
+    """Check path, but don't let exceptions raise"""
     try:
         return os.path.exists(path)
     except Exception:
@@ -60,7 +60,7 @@ def display(*objs, **kwargs):
         format data dict. If this is set *only* the format types included
         in this list will be computed.
     exclude : list or tuple, optional
-        A list of format type string (MIME types) to exclue in the format
+        A list of format type strings (MIME types) to exclude in the format
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
     """
