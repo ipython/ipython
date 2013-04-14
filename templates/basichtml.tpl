@@ -56,7 +56,8 @@ Out[{{cell.prompt_number}}]:
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
 <h{{cell.level}}>
-<a class="heading-anchor" name="{{cell.source}}">
+{% set source = cell.source | replace(' ','_') %}
+<a class="heading-anchor" id="{{source}}" href="#{{source}}">
   {{cell.source}}
 </a>
 </h{{cell.level}}>
