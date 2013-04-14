@@ -45,5 +45,5 @@ environment so that you can work on your local repo copy and run it from anywher
 
    $ ipython notebook
 
-The same proces applies for other parts, such as the qtconsole (the
+The same process applies for other parts, such as the qtconsole (the
 ``extras_require`` attribute in the setup.py file lists all the possibilities).
