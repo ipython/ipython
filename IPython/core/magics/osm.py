@@ -699,7 +699,7 @@ class OSMagics(Magics):
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
         '-a', '--amend', action='store_true', default=False,
-        help='Open file for amending if it exists'
+        help='Open file for amending if it exists, instead of overwriting.'
     )
     @magic_arguments.argument(
         'filename', type=unicode,
@@ -709,7 +709,8 @@ class OSMagics(Magics):
     def file(self, line, cell):
         """Write the contents of the cell to a file.
         
-        For frontends that do not support stdin (Notebook), -f is implied.
+        The file will be overwritten if it exists, unless the `-a` flag is passed,
+        in which case the file will be amended.
         """
         args = magic_arguments.parse_argstring(self.file, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
