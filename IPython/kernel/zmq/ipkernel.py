@@ -275,6 +275,9 @@ class Kernel(Configurable):
 
         for s in self.shell_streams:
             s.on_recv(make_dispatcher(s), copy=False)
+
+        # publish idle status
+        self._publish_status('starting')
     
     def do_one_iteration(self):
         """step eventloop just once"""
