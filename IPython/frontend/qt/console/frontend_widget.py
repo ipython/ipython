@@ -541,6 +541,20 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
                     if reply == QtGui.QMessageBox.Yes:
                         self.exit_requested.emit(self)
 
+    def _handle_status(self, msg):
+        """Handle status message"""
+        # This is where a busy/idle indicator would be triggered,
+        # when we make one.
+        state = msg['content'].get('execution_state', '')
+        if state == 'starting':
+            # kernel started while we were running
+            if self._executing:
+                self._handle_kernel_restarted(died=True)
+        elif state == 'idle':
+            pass
+        elif state == 'busy':
+            pass
+
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or
             when the frontend is assigned an already listening KernelManager.
