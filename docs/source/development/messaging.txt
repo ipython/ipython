@@ -195,7 +195,7 @@ The ``user_`` fields deserve a detailed explanation.  In the past, IPython had
 the notion of a prompt string that allowed arbitrary code to be evaluated, and
 this was put to good use by many in creating prompts that displayed system
 status, path information, and even more esoteric uses like remote instrument
-status aqcuired over the network.  But now that IPython has a clean separation
+status acquired over the network.  But now that IPython has a clean separation
 between the kernel and the clients, the kernel has no prompt knowledge; prompts
 are a frontend-side feature, and it should be even possible for different
 frontends to display different prompts while interacting with the same kernel.
@@ -934,7 +934,8 @@ Message type: ``status``::
     content = {
         # When the kernel starts to execute code, it will enter the 'busy'
         # state and when it finishes, it will enter the 'idle' state.
-        execution_state : ('busy', 'idle')
+        # The kernel will publish state 'starting' exactly once at process startup.
+        execution_state : ('busy', 'idle', 'starting')
     }
 
 Kernel crashes
