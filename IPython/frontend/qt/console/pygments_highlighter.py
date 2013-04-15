@@ -103,7 +103,7 @@ class PygmentsHighlighter(QtGui.QSyntaxHighlighter):
         """ Highlight a block of text.
         """
         prev_data = self.currentBlock().previous().userData()
-        if prev_data is not None:
+        if hasattr(prev_data, 'syntax_stack'):
             self._lexer._saved_state_stack = prev_data.syntax_stack
         elif hasattr(self._lexer, '_saved_state_stack'):
             del self._lexer._saved_state_stack
