@@ -87,7 +87,7 @@ $(document).ready(function () {
             document.location.hash = '';
             document.location.hash = hash;
         }
-        IPython.notebook.autosave_notebook(30000);
+        IPython.notebook.autosave_notebook(IPython.notebook.minimum_autosave_interval);
         // only do this once
         $([IPython.events]).off('notebook_loaded.Notebook', first_load);
     };

@@ -43,7 +43,8 @@ var IPython = (function (IPython) {
         this.last_checkpoint = null;
         this.autosave_interval = 0;
         this.autosave_timer = null;
-        this.minimum_autosave_interval = 30000;
+        // autosave *at most* every two minutes
+        this.minimum_autosave_interval = 120000;
         // single worksheet for now
         this.worksheet_metadata = {};
         this.control_key_active = false;
