@@ -130,7 +130,7 @@ var IPython = (function (IPython) {
             // Save (CTRL+S) or (AppleKey+S)
             //metaKey = applekey on mac
             if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-                that.save_notebook();
+                that.save_checkpoint();
                 event.preventDefault();
                 return false;
             } else if (event.which === key.ESC) {
