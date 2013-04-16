@@ -73,8 +73,8 @@ def display(*objs, **kwargs):
     publish = inst.display_pub.publish
 
     for obj in objs:
-        format_dict = format(obj, include=include, exclude=exclude)
-        publish('IPython.core.display.display', format_dict)
+        format_dict, md_dict = format(obj, include=include, exclude=exclude)
+        publish('IPython.core.display.display', format_dict, md_dict)
 
 
 def display_pretty(*objs, **kwargs):

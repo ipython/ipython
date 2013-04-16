@@ -153,7 +153,7 @@ class DisplayHook(Configurable):
         """
         return self.shell.display_formatter.format(result)
 
-    def write_format_data(self, format_dict):
+    def write_format_data(self, format_dict, md_dict=None):
         """Write the format data dict to the frontend.
 
         This default version of this method simply writes the plain text
@@ -239,8 +239,8 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             self.start_displayhook()
             self.write_output_prompt()
-            format_dict = self.compute_format_data(result)
-            self.write_format_data(format_dict)
+            format_dict, md_dict = self.compute_format_data(result)
+            self.write_format_data(format_dict, md_dict)
             self.update_user_ns(result)
             self.log_output(format_dict)
             self.finish_displayhook()

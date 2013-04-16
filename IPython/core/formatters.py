@@ -135,20 +135,31 @@ class DisplayFormatter(Configurable):
             that format.
         """
         format_dict = {}
+        md_dict = {}
 
         for format_type, formatter in self.formatters.items():
             if include and format_type not in include:
                 continue
             if exclude and format_type in exclude:
                 continue
+            
+            md = None
             try:
                 data = formatter(obj)
             except:
                 # FIXME: log the exception
                 raise
+            
+            # formatters can return raw data or (data, metadata)
+            if isinstance(data, tuple) and len(data) == 2:
+                data, md = data
+            
             if data is not None:
                 format_dict[format_type] = data
-        return format_dict
+            if md is not None:
+                md_dict[format_type] = md
+            
+        return format_dict, md_dict
 
     @property
     def format_types(self):
