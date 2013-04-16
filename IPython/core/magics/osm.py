@@ -698,8 +698,9 @@ class OSMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-a', '--amend', action='store_true', default=False,
-        help='Open file for amending if it exists, instead of overwriting.'
+        '-a', '--append', action='store_true', default=False,
+        help='Append contents of the cell to an existing file. '
+             'The file will be created if it does not exist.'
     )
     @magic_arguments.argument(
         'filename', type=unicode,
@@ -709,20 +710,19 @@ class OSMagics(Magics):
     def file(self, line, cell):
         """Write the contents of the cell to a file.
         
-        The file will be overwritten if it exists, unless the `-a` flag is passed,
-        in which case the file will be amended.
+        The file will be overwritten unless the -a (--append) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.file, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
         
         if os.path.exists(filename):
-            if args.amend:
-                print "Amending to %s" % filename
+            if args.append:
+                print "Appending to %s" % filename
             else:
                 print "Overwriting %s" % filename
         else:
             print "Writing %s" % filename
         
-        mode = 'a' if args.amend else 'w'
+        mode = 'a' if args.append else 'w'
         with io.open(filename, mode, encoding='utf-8') as f:
             f.write(cell)
