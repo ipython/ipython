@@ -193,7 +193,7 @@ var IPython = (function (IPython) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id', 'complete');
 
-        this.sel = $('<select/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
+        this.sel = $('<select style="width: auto"/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
         var pos = this.editor.cursorCoords();
 
         // TODO: I propose to remove enough horizontal pixel
