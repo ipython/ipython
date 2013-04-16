@@ -539,14 +539,26 @@ class Image(DisplayObject):
             if self.height:
                 height = ' height="%d"' % self.height
             return u'<img src="%s"%s%s/>' % (self.url, width, height)
+    
+    def _data_and_metadata(self):
+        """shortcut for returning metadata with shape information, if defined"""
+        md = {}
+        if self.width:
+            md['width'] = self.width
+        if self.height:
+            md['height'] = self.height
+        if md:
+            return self.data, md
+        else:
+            return self.data
 
     def _repr_png_(self):
         if self.embed and self.format == u'png':
-            return self.data
+            return self._data_and_metadata()
 
     def _repr_jpeg_(self):
         if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
-            return self.data
+            return self._data_and_metadata()
 
     def _find_ext(self, s):
         return unicode(s.split('.')[-1].lower())
