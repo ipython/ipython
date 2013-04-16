@@ -34,6 +34,7 @@ from IPython.core.error import UsageError
 from IPython.core.magics import MacroToEdit, CodeMagics
 from IPython.core.magic import magics_class, line_magic, Magics
 from IPython.core.payloadpage import install_payload_page
+from IPython.display import display, Javascript
 from IPython.kernel.inprocess.socket import SocketABC
 from IPython.kernel import (
     get_connection_file, get_connection_info, connect_qtconsole
@@ -444,6 +445,29 @@ class KernelMagics(Magics):
         except Exception as e:
             error("Could not start qtconsole: %r" % e)
             return
+    
+    @line_magic
+    def autosave(self, arg_s):
+        """Set the lower-limit for the autosave frequency in the notebook (in seconds).
+        
+        The default value is 120, or two minutes.
+        ``%autosave 0`` will disable autosave.
+        """
+        
+        try:
+            interval = int(arg_s)
+        except ValueError:
+            raise UsageError("%%autosave requires an integer, got %r" % arg_s)
+        
+        # javascript wants milliseconds
+        milliseconds = 1000 * interval
+        display(Javascript("IPython.notebook.set_autosave_interval(%i)" % milliseconds),
+            include=['application/javascript']
+        )
+        if interval:
+            print("Autosaving every %i seconds" % interval)
+        else:
+            print("Autosave disabled")
 
 def safe_unicode(e):
     """unicode(e) with various fallbacks. Used for exceptions, which may not be
