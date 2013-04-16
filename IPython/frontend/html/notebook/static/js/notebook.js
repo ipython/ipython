@@ -1558,17 +1558,17 @@ var IPython = (function (IPython) {
     /**
      * Start an autosave timer, for periodically saving the notebook.
      * 
-     * @method autosave_notebook
+     * @method set_autosave_interval
      * @param {Integer} interval the autosave interval in milliseconds
      */
-    Notebook.prototype.autosave_notebook = function (interval) {
+    Notebook.prototype.set_autosave_interval = function (interval) {
         var that = this;
         // clear previous interval, so we don't get simultaneous timers
         if (this.autosave_timer) {
             clearInterval(this.autosave_timer);
         }
         
-        this.autosave_interval = interval;
+        this.autosave_interval = this.minimum_autosave_interval = interval;
         if (interval) {
             this.autosave_timer = setInterval(function() {
                 if (that.dirty) {
@@ -1646,7 +1646,7 @@ var IPython = (function (IPython) {
             interval = 10000 * Math.round(interval / 10000);
             // set new interval, if it's changed
             if (interval != this.autosave_interval) {
-                this.autosave_notebook(interval);
+                this.set_autosave_interval(interval);
             }
         }
     };
