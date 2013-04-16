@@ -2111,13 +2111,15 @@ class InteractiveShell(SingletonConfigurable):
         fn = self.find_cell_magic(magic_name)
         if fn is None:
             lm = self.find_line_magic(magic_name)
-            etpl = "Cell magic function `%%{0}` not found{1}."
+            etpl = "Cell magic `%%{0}` not found{1}."
             extra = '' if lm is None else (' (But line magic `%{0}` exists, '
                             'did you mean that instead?)'.format(magic_name))
             error(etpl.format(magic_name, extra))
         elif cell == '':
-            raise UsageError('%%{0} (with double %) expects code beneath it. '
-                            'Did you mean %{0} (single %)?'.format(magic_name))
+            message = '%%{0} is a cell magic, but the cell body is empty.'.format(magic_name)
+            if self.find_line_magic(magic_name) is not None:
+                message += ' Did you mean the line magic %{0} (single %)?'.format(magic_name)
+            raise UsageError(message)
         else:
             # Note: this is the distance in the stack to the user's frame.
             # This will need to be updated if the internal calling logic gets
