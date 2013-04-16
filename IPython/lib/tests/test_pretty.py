@@ -89,10 +89,10 @@ def test_sets():
     """
     Test that set and frozenset use Python 3 formatting.
     """
-    objects = [set(), frozenset(), set([1]), frozenset([1]), set([1,2]),
-        frozenset([1,2])]
+    objects = [set(), frozenset(), set([1]), frozenset([1]), set([1, 2]),
+        frozenset([1, 2]), set([-1, -2, -3])]
     expected = ['set()', 'frozenset()', '{1}', 'frozenset({1})', '{1, 2}',
-        'frozenset({1, 2})']
+        'frozenset({1, 2})', '{-3, -2, -1}']
     for obj, expected_output in zip(objects, expected):
         got_output = pretty.pretty(obj)
         yield nt.assert_equal, got_output, expected_output

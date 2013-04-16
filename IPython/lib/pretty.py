@@ -554,7 +554,14 @@ def _set_pprinter_factory(start, end, basetype):
         else:
             step = len(start)
             p.begin_group(step, start)
-            for idx, x in enumerate(obj):
+            # Like dictionary keys, we will try to sort the items.
+            items = list(obj)
+            try:
+                items.sort()
+            except Exception:
+                # Sometimes the items don't sort.
+                pass
+            for idx, x in enumerate(items):
                 if idx:
                     p.text(',')
                     p.breakable()
