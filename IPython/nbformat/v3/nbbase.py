@@ -53,7 +53,7 @@ def from_dict(d):
 def new_output(output_type=None, output_text=None, output_png=None,
     output_html=None, output_svg=None, output_latex=None, output_json=None,
     output_javascript=None, output_jpeg=None, prompt_number=None,
-    etype=None, evalue=None, traceback=None, stream=None):
+    ename=None, evalue=None, traceback=None, stream=None):
     """Create a new code cell with input and output"""
     output = NotebookNode()
     if output_type is not None:
@@ -82,8 +82,8 @@ def new_output(output_type=None, output_text=None, output_png=None,
             output.prompt_number = int(prompt_number)
 
     if output_type == u'pyerr':
-        if etype is not None:
-            output.etype = unicode(etype)
+        if ename is not None:
+            output.ename = unicode(ename)
         if evalue is not None:
             output.evalue = unicode(evalue)
         if traceback is not None:
