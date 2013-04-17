@@ -148,7 +148,7 @@ class OSMagics(Magics):
         from IPython.core.alias import InvalidAliasError
 
         # for the benefit of module completer in ipy_completers.py
-        del self.shell.db['rootmodules']
+        del self.shell.db['rootmodules_cache']
 
         path = [os.path.abspath(os.path.expanduser(p)) for p in
             os.environ.get('PATH','').split(os.pathsep)]

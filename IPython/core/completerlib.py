@@ -98,39 +98,44 @@ def module_list(path):
             modules.append(m.group('name'))
     return list(set(modules))
 
+
 def get_root_modules():
     """
     Returns a list containing the names of all the modules available in the
     folders of the pythonpath.
+
+    ip.db['rootmodules_cache'] maps sys.path entries to list of modules.
     """
     ip = get_ipython()
-
-    if 'rootmodules' in ip.db:
-        return ip.db['rootmodules']
-
-    t = time()
+    rootmodules_cache = ip.db.get('rootmodules_cache', {})
+    rootmodules = list(sys.builtin_module_names)
+    start_time = time()
     store = False
-    modules = list(sys.builtin_module_names)
     for path in sys.path:
-        modules += module_list(path)
-        if time() - t >= TIMEOUT_STORAGE and not store:
-            store = True
-            print("\nCaching the list of root modules, please wait!")
-            print("(This will only be done once - type '%rehashx' to "
-                  "reset cache!)\n")
-            sys.stdout.flush()
-        if time() - t > TIMEOUT_GIVEUP:
-            print("This is taking too long, we give up.\n")
-            ip.db['rootmodules'] = []
-            return []
-
-    modules = set(modules)
-    if '__init__' in modules:
-        modules.remove('__init__')
-    modules = list(modules)
+        try:
+            modules = rootmodules_cache[path]
+        except KeyError:
+            modules = module_list(path)
+            try:
+                modules.remove('__init__')
+            except ValueError:
+                pass
+            if path not in ('', '.'): # cwd modules should not be cached
+                rootmodules_cache[path] = modules
+            if time() - start_time > TIMEOUT_STORAGE and not store:
+                store = True
+                print("\nCaching the list of root modules, please wait!")
+                print("(This will only be done once - type '%rehashx' to "
+                      "reset cache!)\n")
+                sys.stdout.flush()
+            if time() - start_time > TIMEOUT_GIVEUP:
+                print("This is taking too long, we give up.\n")
+                return []
+        rootmodules.extend(modules)
     if store:
-        ip.db['rootmodules'] = modules
-    return modules
+        ip.db['rootmodules_cache'] = rootmodules_cache
+    rootmodules = list(set(rootmodules))
+    return rootmodules
 
 
 def is_importable(module, attr, only_modules):
