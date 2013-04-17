@@ -257,6 +257,7 @@ IPython.utils = (function (IPython) {
                 DOWN_ARROW: 40,
                 DOWNARROW: 40,
                 DOWN     : 40,
+                COMMAND  : 91,
     };
 
 
