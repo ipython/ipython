@@ -342,7 +342,8 @@ var IPython = (function (IPython) {
             if (kill_kernel) {
                 that.kernel.kill();
             }
-            if (that.dirty && ! that.read_only) {
+            // if we are autosaving, trigger an autosave on nav-away
+            if (that.dirty && that.autosave_interval && ! that.read_only) {
                 that.save_notebook();
             };
             // Null is the *only* return value that will make the browser not
