@@ -193,7 +193,7 @@ var IPython = (function (IPython) {
         this.complete = $('<div/>').addClass('completions');
         this.complete.attr('id', 'complete');
 
-        this.sel = $('<select/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
+        this.sel = $('<select style="width: auto"/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
         var pos = this.editor.cursorCoords();
 
         // TODO: I propose to remove enough horizontal pixel
@@ -255,6 +255,15 @@ var IPython = (function (IPython) {
     Completer.prototype.keydown = function (event) {
         var code = event.keyCode;
         var that = this;
+        var special_key = false;
+        
+        // detect special keys like SHIFT,PGUP,...
+        for( var _key in key ) {
+            if (code == key[_key] ) {
+                special_key = true;
+            }
+        };         
+
         // Enter
         if (code == key.ENTER) {
             CodeMirror.e_stop(event);
@@ -288,7 +297,7 @@ var IPython = (function (IPython) {
             // need to do that to be able to move the arrow
             // when on the first or last line ofo a code cell
             event.stopPropagation();
-        } else if (code != key.UPARROW && code != key.DOWNARROW) {
+        } else if (special_key != true) { 
             this.close();
             this.editor.focus();
             //we give focus to the editor immediately and call sell in 50 ms
