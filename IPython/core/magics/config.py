@@ -134,16 +134,15 @@ class ConfigMagics(Magics):
             cls, attr = line.split('.')
             return getattr(configurables[classnames.index(cls)],attr)
         elif '=' not in line:
-            extra = ''
-            lcname = map(str.lower,classnames)
-            ll = line.lower()
-            if ll in lcname:
-                correctname = classnames[lcname.index(ll) ]
-                extra = '\nDid you mean '+correctname+' (Difference in Case)'
             msg = "Invalid config statement: %r, "\
                   "should be `Class.trait = value`."
+            
+            ll = line.lower()
+            for classname in classnames:
+                if ll == classname.lower():
+                    msg = msg + '\nDid you mean %s (note the case)?' % classname
+                    break
 
-            msg = msg+extra
             raise UsageError( msg % line)
 
         # otherwise, assume we are setting configurables.
