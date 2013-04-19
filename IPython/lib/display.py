@@ -6,7 +6,7 @@ from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
 
 
-class VideoIframe(object):
+class VideoIFrame(object):
     """
     Generic class to embed videos in a iframe
     """
@@ -24,9 +24,12 @@ class VideoIframe(object):
             params = "?" + urlencode(self.params)
         else:
             params = ""
-        return self.iframe % (self.width, self.height, self.id, params)
+        return self.iframe.format(width=self.width,
+                                  height=self.height,
+                                  id=self.id,
+                                  params=params)
 
-class YouTubeVideo(VideoIframe):
+class YouTubeVideo(VideoIFrame):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
 
     e.g. to embed the video on this page:
@@ -52,24 +55,24 @@ class YouTubeVideo(VideoIframe):
 
     iframe = """
             <iframe
-                width="%i"
-                height="%i"
-                src="http://www.youtube.com/embed/%s%s"
+                width="{width}"
+                height={height}"
+                src="http://www.youtube.com/embed/{id}{params}"
                 frameborder="0"
                 allowfullscreen
             ></iframe>
         """
 
-class VimeoVideo(VideoIframe):
+class VimeoVideo(VideoIFrame):
     """
     Class for embedding a Vimeo video in an IPython session, based on its video id.
     """
 
     iframe = """
         <iframe
-            width = "%i"
-            height = "%i"
-            src="http://player.vimeo.com/video/%s%s"
+            width = "{width}"
+            height = "{height}"
+            src="http://player.vimeo.com/video/{id}{params}"
             frameborder="0"
             webkitAllowFullScreen
             mozallowfullscreen
