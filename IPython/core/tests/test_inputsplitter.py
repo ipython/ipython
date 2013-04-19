@@ -168,9 +168,6 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(isp.indent_spaces, 0)
 
     def test_indent2(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         isp.push('if 1:')
         self.assertEqual(isp.indent_spaces, 4)
@@ -181,9 +178,6 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(isp.indent_spaces, 4)
 
     def test_indent3(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         # When a multiline statement contains parens or multiline strings, we
         # shouldn't get confused.
@@ -192,9 +186,6 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertEqual(isp.indent_spaces, 4)
 
     def test_indent4(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         # whitespace after ':' should not screw up indent level
         isp.push('if 1: \n    x=1')
@@ -279,23 +270,12 @@ class InputSplitterTestCase(unittest.TestCase):
         isp.push('  a = 1')
         self.assertFalse(isp.push('b = [1,'))
 
-    def test_replace_mode(self):
-        isp = self.isp
-        isp.input_mode = 'cell'
-        isp.push('x=1')
-        self.assertEqual(isp.source, 'x=1\n')
-        isp.push('x=2')
-        self.assertEqual(isp.source, 'x=2\n')
-
     def test_push_accepts_more(self):
         isp = self.isp
         isp.push('x=1')
         self.assertFalse(isp.push_accepts_more())
 
     def test_push_accepts_more2(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         isp.push('if 1:')
         self.assertTrue(isp.push_accepts_more())
@@ -310,9 +290,6 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push_accepts_more())
 
     def test_push_accepts_more4(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         # When a multiline statement contains parens or multiline strings, we
         # shouldn't get confused.
@@ -331,14 +308,13 @@ class InputSplitterTestCase(unittest.TestCase):
         self.assertFalse(isp.push_accepts_more())
 
     def test_push_accepts_more5(self):
-        # In cell mode, inputs must be fed in whole blocks, so skip this test
-        if self.isp.input_mode == 'cell': return
-
         isp = self.isp
         isp.push('try:')
         isp.push('    a = 5')
         isp.push('except:')
         isp.push('    raise')
+        # We want to be able to add an else: block at this point, so it should
+        # wait for a blank line.
         self.assertTrue(isp.push_accepts_more())
 
     def test_continuation(self):
@@ -431,7 +407,7 @@ class IPythonInputTestCase(InputSplitterTestCase):
     """
 
     def setUp(self):
-        self.isp = isp.IPythonInputSplitter(input_mode='line')
+        self.isp = isp.IPythonInputSplitter()
 
     def test_syntax(self):
         """Call all single-line syntax tests from the main object"""
@@ -466,32 +442,6 @@ class IPythonInputTestCase(InputSplitterTestCase):
                 raw = '\n'.join(raw_parts).rstrip()
                 self.assertEqual(out.rstrip(), out_t)
                 self.assertEqual(out_raw.rstrip(), raw)
-
-
-class BlockIPythonInputTestCase(IPythonInputTestCase):
-
-    # Deactivate tests that don't make sense for the block mode
-    test_push3 = test_split = lambda s: None
-
-    def setUp(self):
-        self.isp = isp.IPythonInputSplitter(input_mode='cell')
-
-    def test_syntax_multiline(self):
-        isp = self.isp
-        for example in syntax_ml.itervalues():
-            raw_parts = []
-            out_t_parts = []
-            for line_pairs in example:
-                raw_parts, out_t_parts = zip(*line_pairs)
-
-                raw = '\n'.join(r for r in raw_parts if r is not None)
-                out_t = '\n'.join(o for o in out_t_parts if o is not None)
-
-                isp.push(raw)
-                out, out_raw = isp.source_raw_reset()
-                # Match ignoring trailing whitespace
-                self.assertEqual(out.rstrip(), out_t.rstrip())
-                self.assertEqual(out_raw.rstrip(), raw.rstrip())
 
     def test_syntax_multiline_cell(self):
         isp = self.isp
