@@ -538,39 +538,35 @@ class CellMagicsCommon(object):
         out = sp.source_reset()
         ref = u"get_ipython().run_cell_magic({u}'cellm', {u}'line', {u}'body')\n"
         nt.assert_equal(out, py3compat.u_format(ref))
+    
+    def test_cellmagic_help(self):
+        self.sp.push('%%cellm?')
+        nt.assert_false(self.sp.push_accepts_more())
 
     def tearDown(self):
         self.sp.reset()
 
 
 class CellModeCellMagics(CellMagicsCommon, unittest.TestCase):
-    sp = isp.IPythonInputSplitter(input_mode='cell')
+    sp = isp.IPythonInputSplitter(line_input_checker=False)
 
     def test_incremental(self):
         sp = self.sp
-        src = '%%cellm line2\n'
-        sp.push(src)
+        sp.push('%%cellm firstline\n')
         nt.assert_true(sp.push_accepts_more()) #1
-        src += '\n'
-        sp.push(src)
-        # Note: if we ever change the logic to allow full blank lines (see
-        # _handle_cell_magic), then the following test should change to true
-        nt.assert_false(sp.push_accepts_more()) #2
-        # By now, even with full blanks allowed, a second blank should signal
-        # the end.  For now this test is only a redundancy safety, but don't
-        # delete it in case we change our mind and the previous one goes to
-        # true.
-        src += '\n'
-        sp.push(src)
-        nt.assert_false(sp.push_accepts_more()) #3
-
+        sp.push('line2\n')
+        nt.assert_true(sp.push_accepts_more()) #2
+        sp.push('\n')
+        # This should accept a blank line and carry on until the cell is reset
+        nt.assert_true(sp.push_accepts_more()) #3
 
 class LineModeCellMagics(CellMagicsCommon, unittest.TestCase):
-    sp = isp.IPythonInputSplitter(input_mode='line')
+    sp = isp.IPythonInputSplitter(line_input_checker=True)
 
     def test_incremental(self):
         sp = self.sp
         sp.push('%%cellm line2\n')
         nt.assert_true(sp.push_accepts_more()) #1
         sp.push('\n')
+        # In this case, a blank line should end the cell magic
         nt.assert_false(sp.push_accepts_more()) #2

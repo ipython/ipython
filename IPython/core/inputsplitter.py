@@ -480,7 +480,7 @@ class IPythonInputSplitter(InputSplitter):
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
-    def __init__(self, physical_line_transforms=None,
+    def __init__(self, line_input_checker=False, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
         super(IPythonInputSplitter, self).__init__()
         self._buffer_raw = []
@@ -498,7 +498,7 @@ class IPythonInputSplitter(InputSplitter):
         if logical_line_transforms is not None:
             self.logical_line_transforms = logical_line_transforms
         else:
-            self.logical_line_transforms = [cellmagic(),
+            self.logical_line_transforms = [cellmagic(end_on_blank_line=line_input_checker),
                                             help_end(),
                                             escaped_commands(),
                                             assign_from_magic(),
