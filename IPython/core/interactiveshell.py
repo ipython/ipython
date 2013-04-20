@@ -283,10 +283,16 @@ class InteractiveShell(SingletonConfigurable):
     filename = Unicode("<ipython console>")
     ipython_dir= Unicode('', config=True) # Set to get_ipython_dir() in __init__
 
-    # Input splitter, to split entire cells of input into either individual
-    # interactive statements or whole blocks.
+    # Input splitter, to transform input line by line and detect when a block
+    # is ready to be executed.
     input_splitter = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
-                              (), {})
+                              (), {'line_input_checker': True})
+    
+    # This InputSplitter instance is used to transform completed cells before
+    # running them. It allows cell magics to contain blank lines.
+    input_transformer_manager = Instance('IPython.core.inputsplitter.IPythonInputSplitter',
+                                         (), {'line_input_checker': False})
+    
     logstart = CBool(False, config=True, help=
         """
         Start logging to the default log file.
@@ -2581,10 +2587,9 @@ class InteractiveShell(SingletonConfigurable):
         if silent:
             store_history = False
 
-        self.input_splitter.push(raw_cell)
+        self.input_transformer_manager.push(raw_cell)
+        cell = self.input_transformer_manager.source_reset()
 
-        cell = self.input_splitter.source_reset()
-        
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
         # compiler

@@ -35,6 +35,14 @@ in attributes of :class:`~IPython.core.inputsplitter.IPythonInputSplitter`:
   passed to these, but note that function and class *definitions* are still a
   series of separate statements. IPython does not use any of these by default.
 
+An InteractiveShell instance actually has two
+:class:`~IPython.core.inputsplitter.IPythonInputSplitter` instances, as the
+attributes :attr:`~IPython.core.interactiveshell.InteractiveShell.input_splitter`,
+to tell when a block of input is complete, and
+:attr:`~IPython.core.interactiveshell.InteractiveShell.input_transformer_manager`,
+to transform complete cells. If you add a transformer, you should make sure that
+it gets added to both.
+
 Stateless transformations
 -------------------------
 
