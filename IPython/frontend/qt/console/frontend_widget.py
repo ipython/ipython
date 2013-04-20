@@ -146,7 +146,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._copy_raw_action = QtGui.QAction('Copy (Raw Text)', None)
         self._hidden = False
         self._highlighter = FrontendHighlighter(self)
-        self._input_splitter = self._input_splitter_class(input_mode='cell')
+        self._input_splitter = self._input_splitter_class()
         self._kernel_manager = None
         self._request_info = {}
         self._request_info['execute'] = {};
@@ -204,6 +204,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             prompt created. When triggered by an Enter/Return key press,
             'interactive' is True; otherwise, it is False.
         """
+        self._input_splitter.reset()
         complete = self._input_splitter.push(source)
         if interactive:
             complete = not self._input_splitter.push_accepts_more()

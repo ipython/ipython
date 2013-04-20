@@ -82,7 +82,7 @@ def get_pasted_lines(sentinel, l_input=py3compat.input):
 class TerminalMagics(Magics):
     def __init__(self, shell):
         super(TerminalMagics, self).__init__(shell)
-        self.input_splitter = IPythonInputSplitter(input_mode='line')
+        self.input_splitter = IPythonInputSplitter()
 
     def cleanup_input(self, block):
         """Apply all possible IPython cleanups to an input block.

@@ -19,9 +19,9 @@ def transform_and_reset(transformer):
     return transform
 
 # Transformer tests
-def transform_checker(tests, transformer):
+def transform_checker(tests, transformer, **kwargs):
     """Utility to loop over test inputs"""
-    transformer = transformer()
+    transformer = transformer(**kwargs)
     try:
         for inp, tr in tests:
             if inp is None:
@@ -223,7 +223,7 @@ syntax_ml = \
           ],
          [(u'%%bar 123', None),
           (u'hello', None),
-          (u'', u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
+          (None , u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
           ],
        ],
        
@@ -348,6 +348,12 @@ def test_escaped_paren():
 def test_cellmagic():
     for example in syntax_ml['cellmagic']:
         transform_checker(example, ipt.cellmagic)
+    
+    line_example = [(u'%%bar 123', None),
+                    (u'hello', None),
+                    (u'' , u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
+                   ]
+    transform_checker(line_example, ipt.cellmagic, end_on_blank_line=True)
 
 def test_has_comment():
     tests = [('text', False),
