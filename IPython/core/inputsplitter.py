@@ -340,20 +340,14 @@ class InputSplitter(object):
         This method is meant to be used by line-oriented frontends, who need to
         guess whether a block is complete or not based solely on prior and
         current input lines.  The InputSplitter considers it has a complete
-        interactive block and will not accept more input only when either a
-        SyntaxError is raised, or *all* of the following are true:
+        interactive block and will not accept more input when either:
+        
+        * A SyntaxError is raised
 
-        1. The input compiles to a complete statement.
+        * The code is complete and consists of a single line or a single
+          non-compound statement
 
-        2. The indentation level is flush-left (because if we are indented,
-           like inside a function definition or for loop, we need to keep
-           reading new input).
-
-        3. There is one extra line consisting only of whitespace.
-
-        Because of condition #3, this method should be used only by
-        *line-oriented* frontends, since it means that intermediate blank lines
-        are not allowed in function definitions (or any other indented block).
+        * The code is complete and has a blank line at the end
 
         If the current input produces a syntax error, this method immediately
         returns False but does *not* raise the syntax error exception, as
@@ -374,10 +368,13 @@ class InputSplitter(object):
             #print("Blank line")  # debug
             return False
         
-        # If there's just a single AST node, and we're flush left, as is the 
-        # case after a simple statement such as 'a=1', we want to execute it
+        # If there's just a single line or AST node, and we're flush left, as is
+        # the case after a simple statement such as 'a=1', we want to execute it
         # straight away.
         if self.indent_spaces==0:
+            if len(self.source.splitlines()) <= 1:
+                return False
+            
             try:
                 code_ast = ast.parse(u''.join(self._buffer))
             except Exception:
