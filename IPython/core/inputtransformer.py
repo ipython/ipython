@@ -60,8 +60,8 @@ class InputTransformer(object):
         will allow instantiation with the decorated object.
         """
         @functools.wraps(func)
-        def transformer_factory():
-            return cls(func)
+        def transformer_factory(**kwargs):
+            return cls(func, **kwargs)
         
         return transformer_factory
 
@@ -84,9 +84,9 @@ class StatelessInputTransformer(InputTransformer):
 
 class CoroutineInputTransformer(InputTransformer):
     """Wrapper for an input transformer implemented as a coroutine."""
-    def __init__(self, coro):
+    def __init__(self, coro, **kwargs):
         # Prime it
-        self.coro = coro()
+        self.coro = coro(**kwargs)
         next(self.coro)
     
     def __repr__(self):
@@ -316,7 +316,7 @@ def help_end(line):
 
 
 @CoroutineInputTransformer.wrap
-def cellmagic():
+def cellmagic(end_on_blank_line=False):
     """Captures & transforms cell magics.
     
     After a cell magic is started, this stores up any lines it gets until it is
@@ -337,7 +337,8 @@ def cellmagic():
         first = line
         body = []
         line = (yield None)
-        while (line is not None) and (line.strip() != ''):
+        while (line is not None) and \
+                                ((line.strip() != '') or not end_on_blank_line):
             body.append(line)
             line = (yield None)
         

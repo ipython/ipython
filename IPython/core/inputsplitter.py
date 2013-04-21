@@ -247,8 +247,6 @@ class InputSplitter(object):
     # synced to the source, so it can be queried at any time to obtain the code
     # object; it will be None if the source doesn't compile to valid Python.
     code = None
-    # Input mode
-    input_mode = 'line'
 
     # Private attributes
 
@@ -261,32 +259,12 @@ class InputSplitter(object):
     # Boolean indicating whether the current block is complete
     _is_complete = None
 
-    def __init__(self, input_mode=None):
+    def __init__(self):
         """Create a new InputSplitter instance.
-
-        Parameters
-        ----------
-        input_mode : str
-
-          One of ['line', 'cell']; default is 'line'.
-
-       The input_mode parameter controls how new inputs are used when fed via
-       the :meth:`push` method:
-
-       - 'line': meant for line-oriented clients, inputs are appended one at a
-         time to the internal buffer and the whole buffer is compiled.
-
-       - 'cell': meant for clients that can edit multi-line 'cells' of text at
-          a time.  A cell can contain one or more blocks that can be compile in
-          'single' mode by Python.  In this mode, each new input new input
-          completely replaces all prior inputs.  Cell mode is thus equivalent
-          to prepending a full reset() to every push() call.
         """
         self._buffer = []
         self._compile = codeop.CommandCompiler()
         self.encoding = get_input_encoding()
-        self.input_mode = InputSplitter.input_mode if input_mode is None \
-                          else input_mode
 
     def reset(self):
         """Reset the input buffer and associated state."""
@@ -326,9 +304,6 @@ class InputSplitter(object):
           this value is also stored as a private attribute (``_is_complete``), so it
           can be queried at any time.
         """
-        if self.input_mode == 'cell':
-            self.reset()
-
         self._store(lines)
         source = self.source
 
@@ -365,20 +340,14 @@ class InputSplitter(object):
         This method is meant to be used by line-oriented frontends, who need to
         guess whether a block is complete or not based solely on prior and
         current input lines.  The InputSplitter considers it has a complete
-        interactive block and will not accept more input only when either a
-        SyntaxError is raised, or *all* of the following are true:
+        interactive block and will not accept more input when either:
+        
+        * A SyntaxError is raised
 
-        1. The input compiles to a complete statement.
+        * The code is complete and consists of a single line or a single
+          non-compound statement
 
-        2. The indentation level is flush-left (because if we are indented,
-           like inside a function definition or for loop, we need to keep
-           reading new input).
-
-        3. There is one extra line consisting only of whitespace.
-
-        Because of condition #3, this method should be used only by
-        *line-oriented* frontends, since it means that intermediate blank lines
-        are not allowed in function definitions (or any other indented block).
+        * The code is complete and has a blank line at the end
 
         If the current input produces a syntax error, this method immediately
         returns False but does *not* raise the syntax error exception, as
@@ -388,39 +357,37 @@ class InputSplitter(object):
         """
 
         # With incomplete input, unconditionally accept more
+        # A syntax error also sets _is_complete to True - see push()
         if not self._is_complete:
+            #print("Not complete")  # debug
             return True
-
-        # If we already have complete input and we're flush left, the answer
-        # depends.  In line mode, if there hasn't been any indentation,
-        # that's it. If we've come back from some indentation, we need
-        # the blank final line to finish.
-        # In cell mode, we need to check how many blocks the input so far
-        # compiles into, because if there's already more than one full
-        # independent block of input, then the client has entered full
-        # 'cell' mode and is feeding lines that each is complete.  In this
-        # case we should then keep accepting. The Qt terminal-like console
-        # does precisely this, to provide the convenience of terminal-like
-        # input of single expressions, but allowing the user (with a
-        # separate keystroke) to switch to 'cell' mode and type multiple
-        # expressions in one shot.
-        if self.indent_spaces==0:
-            if self.input_mode=='line':
-                if not self._full_dedent:
-                    return False
-            else:
-                try:
-                    code_ast = ast.parse(u''.join(self._buffer))
-                except Exception:
-                    return False
-                else:
-                    if len(code_ast.body) == 1:
-                        return False
-
-        # When input is complete, then termination is marked by an extra blank
-        # line at the end.
+        
+        # The user can make any (complete) input execute by leaving a blank line
         last_line = self.source.splitlines()[-1]
-        return bool(last_line and not last_line.isspace())
+        if (not last_line) or last_line.isspace():
+            #print("Blank line")  # debug
+            return False
+        
+        # If there's just a single line or AST node, and we're flush left, as is
+        # the case after a simple statement such as 'a=1', we want to execute it
+        # straight away.
+        if self.indent_spaces==0:
+            if len(self.source.splitlines()) <= 1:
+                return False
+            
+            try:
+                code_ast = ast.parse(u''.join(self._buffer))
+            except Exception:
+                #print("Can't parse AST")  # debug
+                return False
+            else:
+                if len(code_ast.body) == 1 and \
+                                    not hasattr(code_ast.body[0], 'body'):
+                    #print("Simple statement")  # debug
+                    return False
+
+        # General fallback - accept more code
+        return True
 
     #------------------------------------------------------------------------
     # Private interface
@@ -510,9 +477,9 @@ class IPythonInputSplitter(InputSplitter):
     # List with lines of raw input accumulated so far.
     _buffer_raw = None
 
-    def __init__(self, input_mode=None, physical_line_transforms=None,
+    def __init__(self, line_input_checker=False, physical_line_transforms=None,
                     logical_line_transforms=None, python_line_transforms=None):
-        super(IPythonInputSplitter, self).__init__(input_mode)
+        super(IPythonInputSplitter, self).__init__()
         self._buffer_raw = []
         self._validate = True
         
@@ -528,7 +495,7 @@ class IPythonInputSplitter(InputSplitter):
         if logical_line_transforms is not None:
             self.logical_line_transforms = logical_line_transforms
         else:
-            self.logical_line_transforms = [cellmagic(),
+            self.logical_line_transforms = [cellmagic(end_on_blank_line=line_input_checker),
                                             help_end(),
                                             escaped_commands(),
                                             assign_from_magic(),
@@ -641,44 +608,14 @@ class IPythonInputSplitter(InputSplitter):
         if not lines_list:
             lines_list = ['']
 
-        # Transform logic
-        #
-        # We only apply the line transformers to the input if we have either no
-        # input yet, or complete input, or if the last line of the buffer ends
-        # with ':' (opening an indented block).  This prevents the accidental
-        # transformation of escapes inside multiline expressions like
-        # triple-quoted strings or parenthesized expressions.
-        #
-        # The last heuristic, while ugly, ensures that the first line of an
-        # indented block is correctly transformed.
-        #
-        # FIXME: try to find a cleaner approach for this last bit.
-
-        # If we were in 'block' mode, since we're going to pump the parent
-        # class by hand line by line, we need to temporarily switch out to
-        # 'line' mode, do a single manual reset and then feed the lines one
-        # by one.  Note that this only matters if the input has more than one
-        # line.
-        changed_input_mode = False
-
-        if self.input_mode == 'cell':
-            self.reset()
-            changed_input_mode = True
-            saved_input_mode = 'cell'
-            self.input_mode = 'line'
-
         # Store raw source before applying any transformations to it.  Note
         # that this must be done *after* the reset() call that would otherwise
         # flush the buffer.
         self._store(lines, self._buffer_raw, 'source_raw')
 
-        try:
-            for line in lines_list:
-                out = self.push_line(line)
-        finally:
-            if changed_input_mode:
-                self.input_mode = saved_input_mode
-        
+        for line in lines_list:
+            out = self.push_line(line)
+
         return out
     
     def push_line(self, line):
