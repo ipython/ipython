@@ -14,7 +14,7 @@ Getting extensions
 
 A few important extensions are :ref:`bundled with IPython <bundled_extensions>`.
 Others can be found on the `extensions index
-<http://wiki.ipython.org/Extensions_Index>`_ on the wiki, and installed with
+<https://github.com/ipython/ipython/wiki/Extensions-Index>`_ on the wiki, and installed with
 the ``%install_ext`` magic function.
 
 Using extensions
@@ -68,7 +68,7 @@ write extensions, you can also put your extensions in
 ``sys.path`` automatically.
 
 When your extension is ready for general use, please add it to the `extensions
-index <http://wiki.ipython.org/Extensions_Index>`_.
+index <https://github.com/ipython/ipython/wiki/Extensions-Index>`_.
 
 .. _bundled_extensions:
 
