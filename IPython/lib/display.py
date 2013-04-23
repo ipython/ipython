@@ -54,16 +54,16 @@ class YouTubeVideo(IFrame):
     """
 
     iframe = """
-            <iframe
-                width="{width}"
-                height={height}"
-                src="http://www.youtube.com/embed/{id}{params}"
-                frameborder="0"
-                allowfullscreen
-            ></iframe>
+        <iframe
+            width="{width}"
+            height={height}"
+            src="http://www.youtube.com/embed/{id}{params}"
+            frameborder="0"
+            allowfullscreen
+        ></iframe>
         """
 
-class VimeoVideo(VideoIFrame):
+class VimeoVideo(IFrame):
     """
     Class for embedding a Vimeo video in an IPython session, based on its video id.
     """
