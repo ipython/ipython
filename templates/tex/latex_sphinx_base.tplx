@@ -74,19 +74,19 @@ Note: For best display, use latex syntax highlighting. =))
         \usetikzlibrary{calc,arrows,shadows}
     \usepackage[framemethod=tikz]{mdframed}
 
-
     \usepackage{alltt}
 
     % Used to load and display graphics
     \usepackage{graphicx}
     \graphicspath{ {figs/} }
-    \usepackage[export]{adjustbox} % To resize
+    \usepackage[Export]{adjustbox} % To resize
 
 
     % For formatting output while also word wrapping.
     \usepackage{listings}
     \lstset{breaklines=true}
     \lstset{basicstyle=\small\ttfamily}
+    \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
 
     %Pygments definitions
     ((( resources.sphinx.pygment_definitions )))
@@ -115,7 +115,8 @@ Note: For best display, use latex syntax highlighting. =))
             middlelinewidth=1pt, %
             middlelinecolor=nbframe-bg, %
             outerlinewidth=0.5pt, %
-            outerlinecolor=nbframe-border %
+            outerlinecolor=nbframe-border, %
+            needspace=0pt
         ]}
         {\end{mdframed}}
         
@@ -124,7 +125,7 @@ Note: For best display, use latex syntax highlighting. =))
         {\end{mdframed}}
 
         \renewenvironment{Verbatim}[1][\unskip]
-        {\begin{alltt}}
+        {\begin{alltt}\smaller}
         {\end{alltt}}
     ((* endif *))
 
@@ -264,13 +265,17 @@ Note: For best display, use latex syntax highlighting. =))
         ((( cell.input | highlight )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
-        \vspace{8pt}
-        \makebox[0.1\linewidth]{\hfill\tt\color{nbframe-in-prompt}In{[}((( cell.prompt_number ))){]}:}\\*
-        \vspace{-3pt}
-        \vspace{-2.55\baselineskip}
+        \vspace{6pt}
+        ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
+        \vspace{-2.65\baselineskip}
         \begin{ColorVerbatim}
-            \vspace{-0.6\baselineskip}
+            \vspace{-0.7\baselineskip}
             ((( cell.input | highlight )))
+            ((* if cell.input == None or cell.input == '' *))
+                \vspace{0.3\baselineskip}
+            ((* else *))
+                \vspace{-0.2\baselineskip}
+            ((* endif *))
         \end{ColorVerbatim}
     ((* endif *))
 ((* endblock input *))
@@ -283,11 +288,12 @@ Note: For best display, use latex syntax highlighting. =))
 %==============================================================================
 ((* block output_group *))
     ((* if cell.outputs.__len__() > 0 *))
-        ((* if resources.sphinx.outputstyle == 'simple' *))
 
-            % If the first block is an image, minipage the image.  Else
-            % request a certain amount of space for the input text.
-            ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        % If the first block is an image, minipage the image.  Else
+        % request a certain amount of space for the input text.
+        ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        
+        ((* if resources.sphinx.outputstyle == 'simple' *))
 
             % Add a horizantal break, along with break title.
             \vspace{10pt}
@@ -323,28 +329,33 @@ Note: For best display, use latex syntax highlighting. =))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( center_output(line | indent| rm_ansi) )))
+    ((( conditionally_center_output(line | indent| rm_ansi) )))
 ((* endblock traceback_line *))
 
 %==============================================================================
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( center_output(insert_graphics(output.key_png)) )))
+    ((( conditionally_center_output(insert_graphics(output.key_png)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( center_output(insert_graphics(output.key_svg)) )))
+    ((( conditionally_center_output(insert_graphics(output.key_svg)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))
-    \vspace{-1\baselineskip}
     ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
 ((*- endblock -*))
 
 %==============================================================================
 % Support Macros
 %==============================================================================
+
+% Name: write_prompt
+% Purpose: Renders an output/input prompt for notebook style pdfs
+((* macro write_prompt(prompt, number, color) -*))
+    \makebox[0.1\linewidth]{\smaller\hfill\tt\color{((( color )))}((( prompt )))\hspace{4pt}{[}((( number ))){]}:\hspace{4pt}}\\*
+((*- endmacro *))
 
 % Name: render_output
 % Purpose: Renders an output block appropriately.
@@ -357,7 +368,7 @@ Note: For best display, use latex syntax highlighting. =))
 
         ((* if resources.sphinx.outputstyle == 'notebook' *))
             ((*- if output.output_type == 'pyout' -*))
-                \makebox[0.1\linewidth]{\hfill\tt\color{nbframe-out-prompt}Out{[}((( prompt_number ))){]}:}\\*
+                ((( write_prompt("Out", prompt_number, "nbframe-out-prompt") )))
                 \vspace{-2.55\baselineskip}
             ((*- endif -*))
 
@@ -404,9 +415,9 @@ Note: For best display, use latex syntax highlighting. =))
     \end{alltt}
 ((*- endmacro *))
 
-% Name: center_output
+% Name: conditionally_center_output
 % Purpose: This macro centers the output if the output centering is enabled.
-((* macro center_output(text) -*))
+((* macro conditionally_center_output(text) -*))
     ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))((* if resources.sphinx.centeroutput *))}((* endif *))
 ((*- endmacro *))
 
@@ -414,7 +425,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Purpose: This macro will insert an image in the latex document given a path.
 ((* macro insert_graphics(path) -*))
     \begin{center}
-    \includegraphics[max width=1.0\textwidth]{(((path)))}
+    \includegraphics[max size={\textwidth}{\textheight}]{(((path)))}
     \par
     \end{center}
 ((*- endmacro *))

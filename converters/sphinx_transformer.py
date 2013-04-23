@@ -83,6 +83,8 @@ class SphinxTransformer(ActivatableTransformer):
     Whether not a header should be added to the document.
     """)
     
+    overridetitle = Unicode("", config=True, help="")
+    
     def __call__(self, nb, other):
         """
         Entry
@@ -148,6 +150,9 @@ class SphinxTransformer(ActivatableTransformer):
         
         # Generate Pygments definitions for Latex 
         other["sphinx"]["pygment_definitions"] = self._generate_pygments_latex_def()
+        
+        if not (self.overridetitle == None or len(self.overridetitle.strip()) == 0):
+            nb.metadata.name = self.overridetitle
         
         # End
         return nb, other 
