@@ -40,7 +40,9 @@ except ImportError:
 
 from docutils.nodes import Body, Element
 from docutils.parsers.rst import directives
-from sphinx.roles import xfileref_role
+from sphinx.roles import XRefRole
+
+xfileref_role = XRefRole()
 
 def my_import(name):
     """Module importer - taken from the python documentation.
