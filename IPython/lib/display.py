@@ -6,9 +6,9 @@ from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
 
 
-class VideoIFrame(object):
+class IFrame(object):
     """
-    Generic class to embed videos in a iframe
+    Generic class to embed an iframe in an IPython notebook
     """
 
     def __init__(self, id, width=400, height=300, **kwargs):
@@ -29,7 +29,7 @@ class VideoIFrame(object):
                                   id=self.id,
                                   params=params)
 
-class YouTubeVideo(VideoIFrame):
+class YouTubeVideo(IFrame):
     """Class for embedding a YouTube Video in an IPython session, based on its video id.
 
     e.g. to embed the video on this page:
@@ -80,6 +80,28 @@ class VimeoVideo(VideoIFrame):
         ></iframe>
         """
 
+class ScribdDocument(IFrame):
+    """
+    Class for embedding a Scribd document in an IPython session
+
+    Use the start_page params to specify a starting point in the document
+    Use the view_mode params to specify display type one off scroll | slideshow | book
+
+    e.g to Display Wes' foundational paper about PANDAS in book mode from page 3
+
+    ScribdDocument(71048089, width=800, height=400, start_page=3, view_mode="book")
+    """
+
+    iframe = """
+        <iframe
+            width = "{width}"
+            height = "{height}"
+            src="http://www.scribd.com/embeds/{id}/content{params}"
+            data-auto-height="false"
+            scrolling="no"
+            frameborder="0">
+        </iframe>
+    """
 
 class FileLink(object):
     """Class for embedding a local file link in an IPython session, based on path
