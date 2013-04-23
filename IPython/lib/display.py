@@ -11,22 +11,32 @@ class IFrame(object):
     Generic class to embed an iframe in an IPython notebook
     """
 
-    def __init__(self, id, width=400, height=300, **kwargs):
-        self.id = id
+    iframe = """
+        <iframe
+            width="{width}"
+            height={height}"
+            src="{src}{params}"
+            frameborder="0"
+            allowfullscreen
+        ></iframe>
+        """
+
+    def __init__(self, src, width, height, **kwargs):
+        self.src = src
         self.width = width
         self.height = height
         self.params = kwargs
 
     def _repr_html_(self):
-        """return the embed iframe for this video id"""
+        """return the embed iframe"""
         if self.params:
             from urllib import urlencode
             params = "?" + urlencode(self.params)
         else:
             params = ""
-        return self.iframe.format(width=self.width,
+        return self.iframe.format(src=self.src,
+                                  width=self.width,
                                   height=self.height,
-                                  id=self.id,
                                   params=params)
 
 class YouTubeVideo(IFrame):
@@ -53,32 +63,18 @@ class YouTubeVideo(IFrame):
     https://developers.google.com/youtube/player_parameters#parameter-subheader
     """
 
-    iframe = """
-        <iframe
-            width="{width}"
-            height={height}"
-            src="http://www.youtube.com/embed/{id}{params}"
-            frameborder="0"
-            allowfullscreen
-        ></iframe>
-        """
+    def __init__(self, id, width=400, height=300, **kwargs):
+        src = "http://www.youtube.com/embed/{0}".format(id)
+        super(YouTubeVideo, self).__init__(src, width, height, **kwargs)
 
 class VimeoVideo(IFrame):
     """
     Class for embedding a Vimeo video in an IPython session, based on its video id.
     """
 
-    iframe = """
-        <iframe
-            width = "{width}"
-            height = "{height}"
-            src="http://player.vimeo.com/video/{id}{params}"
-            frameborder="0"
-            webkitAllowFullScreen
-            mozallowfullscreen
-            allowFullScreen
-        ></iframe>
-        """
+    def __init__(self, id, width=400, height=300, **kwargs):
+        src="http://player.vimeo.com/video/{0}".format(id)
+        super(VimeoVideo, self).__init__(src, width, height, **kwargs)
 
 class ScribdDocument(IFrame):
     """
@@ -92,16 +88,9 @@ class ScribdDocument(IFrame):
     ScribdDocument(71048089, width=800, height=400, start_page=3, view_mode="book")
     """
 
-    iframe = """
-        <iframe
-            width = "{width}"
-            height = "{height}"
-            src="http://www.scribd.com/embeds/{id}/content{params}"
-            data-auto-height="false"
-            scrolling="no"
-            frameborder="0">
-        </iframe>
-    """
+    def __init__(self, id, width=400, height=300, **kwargs):
+        src="http://www.scribd.com/embeds/{0}/content".format(id)
+        super(ScribdDocument, self).__init__(src, width, height, **kwargs)
 
 class FileLink(object):
     """Class for embedding a local file link in an IPython session, based on path
