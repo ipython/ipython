@@ -188,7 +188,7 @@ class ArgSpec(Reference):
 
 
 class Status(Reference):
-    execution_state = Enum((u'busy', u'idle'))
+    execution_state = Enum((u'busy', u'idle', u'starting'))
 
 
 class CompleteReply(Reference):
