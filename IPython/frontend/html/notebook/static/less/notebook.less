@@ -171,6 +171,7 @@ div.ui-widget-content {
 
 .cell {
     border: 1px solid transparent;
+    .vbox();
 
     &.selected {
         .corner-all;
@@ -207,6 +208,7 @@ div.prompt {
 
 div.input {
     page-break-inside: avoid;
+    .hbox();
 }
 
 /* input_area and input_prompt must match in top border and margin for alignment */
@@ -272,6 +274,7 @@ div.output_prompt {
 div.output_area {
     padding: 0px;
     page-break-inside: avoid;
+    .hbox();
 }
 
 	
@@ -291,6 +294,7 @@ div.output_area pre {
    the prompt div. */
 div.output_subarea {
     padding: 0.44em 0.4em 0.4em 1px;
+    .box-flex1();
 }
 
 /* The rest of the output_* classes are for special styling of the different
