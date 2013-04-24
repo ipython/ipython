@@ -81,7 +81,12 @@ class FileNotebookManager(NotebookManager):
         names = [os.path.splitext(os.path.basename(name))[0]
                  for name in names]
         return names
-
+        
+    def get_file_names(self):
+        dir_names = glob.glob(self.notebook_dir + '/')
+        file_names = glob.glob(self.notebook_dir + '/*.*')
+        return dir_names, file_names
+        
     def list_notebooks(self):
         """List all notebooks in the notebook dir."""
         names = self.get_notebook_names()
@@ -90,12 +95,22 @@ class FileNotebookManager(NotebookManager):
         for name in names:
             if name not in self.rev_mapping:
                 notebook_id = self.new_notebook_id(name)
+                path = self.get_path_by_name(name)
             else:
                 notebook_id = self.rev_mapping[name]
-            data.append(dict(notebook_id=notebook_id,name=name))
+                path = self.get_path_by_name(name)
+            data.append(dict(notebook_id=notebook_id,name=name,path=path, URL=self.notebook_dir))
         data = sorted(data, key=lambda item: item['name'])
         return data
-
+    
+    def list_directory_info(self):
+        notebooks = self.list_notebooks()
+        path = self.notebook_dir
+        directories, files = self.get_file_names()
+        data = []
+        data.append(dict(path=path,notebooks=notebooks,directories=directories,files=files))
+        return data
+        
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
         notebook_id = super(FileNotebookManager, self).new_notebook_id(name)

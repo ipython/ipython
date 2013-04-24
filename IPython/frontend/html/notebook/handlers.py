@@ -626,9 +626,10 @@ class NotebookRootHandler(IPythonHandler):
     def get(self):
         nbm = self.notebook_manager
         km = self.kernel_manager
-        files = nbm.list_notebooks()
-        for f in files :
-            f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])
+        files = nbm.list_directory_info()
+        notebooks = files['notebooks']
+        for nb in notebooks:
+            nb['kernel_id'] = km.kernel_for_notebook(nb['notebook_id'])
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated
@@ -644,6 +645,11 @@ class NotebookRootHandler(IPythonHandler):
         self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
 
+#class DirectoryRootHandler(AuthenticatedHandler):
+    
+#    @authenticate_unless_readonly
+#    def get(self):
+        
 
 class NotebookHandler(IPythonHandler):
 
