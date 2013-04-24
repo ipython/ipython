@@ -85,7 +85,7 @@ ws.cells.append(new_code_cell(
         output_javascript=u'var i=0;'
     ),new_output(
         output_type=u'pyerr',
-        etype=u'NameError',
+        ename=u'NameError',
         evalue=u'NameError was here',
         traceback=[u'frame 0', u'frame 1', u'frame 2']
     ),new_output(
