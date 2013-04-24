@@ -100,8 +100,8 @@ class StoreMagics(Magics):
         * ``%store -z``       - Remove all variables from storage
         * ``%store -r``       - Refresh all variables from store (delete
                                 current vals)
-        * ``%store -r spam``  - Refresh specified variable from store (delete
-                                current val)
+        * ``%store -r spam bar`` - Refresh specified variables from store
+                                   (delete current val)
         * ``%store foo >a.txt``  - Store value of foo to new file a.txt
         * ``%store foo >>a.txt`` - Append value of foo to file a.txt
 
@@ -136,13 +136,13 @@ class StoreMagics(Magics):
 
         elif 'r' in opts:
             if args:
-                try:
-                    obj = db['autorestore/' + args[0]]
-                except KeyError:
-                    print "Unable to restore variable '%s', (use %%store -d to forget!)" % args[0]
-                    print "The error was:", sys.exc_info()[0]
-                else:
-                    ip.user_ns[args[0]] = obj
+                for arg in args:
+                    try:
+                        obj = db['autorestore/' + arg]
+                    except KeyError:
+                        print "no stored variable %s" % arg
+                    else:
+                        ip.user_ns[arg] = obj
             else:
                 refresh_variables(ip)
 
