@@ -29,11 +29,11 @@ class TestCell(TestCase):
         self.assertEqual(cc.collapsed, True)
 
     def test_pyerr(self):
-        o = new_output(output_type=u'pyerr', etype=u'NameError',
+        o = new_output(output_type=u'pyerr', ename=u'NameError',
             evalue=u'Name not found', traceback=[u'frame 0', u'frame 1', u'frame 2']
         )
         self.assertEqual(o.output_type, u'pyerr')
-        self.assertEqual(o.etype, u'NameError')
+        self.assertEqual(o.ename, u'NameError')
         self.assertEqual(o.evalue, u'Name not found')
         self.assertEqual(o.traceback, [u'frame 0', u'frame 1', u'frame 2'])
 

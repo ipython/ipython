@@ -949,7 +949,7 @@ Message type: ``crash``::
 
     content = {
        # Similarly to the 'error' case for execute_reply messages, this will
-       # contain ename, etype and traceback fields.
+       # contain ename, evalue and traceback fields.
 
        # An additional field with supplementary information such as where to
        # send the crash message
