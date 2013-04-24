@@ -116,8 +116,22 @@ def create_inputhook_qt4(mgr, app=None):
         except KeyboardInterrupt:
             ignore_CTRL_C()
             got_kbdint[0] = True
-            print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
             mgr.clear_inputhook()
+            import os, signal, time, threading
+            if(os.name == 'posix'):
+                pid = os.getpid()
+                print("^C")
+                thread = threading.Thread(
+                            target = lambda:
+                                ( time.sleep(.1),
+                                  os.kill(pid, signal.SIGINT) )
+                        )
+
+                thread.start()
+            else:
+                print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
+
+
         except: # NO exceptions are allowed to escape from a ctypes callback
             ignore_CTRL_C()
             from traceback import print_exc
