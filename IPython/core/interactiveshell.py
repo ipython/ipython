@@ -3015,6 +3015,8 @@ class InteractiveShell(SingletonConfigurable):
                         with io_open(tgt,'r', encoding='latin1') as f :
                             return f.read()
                     raise ValueError(("'%s' seem to be unreadable.") % target)
+            elif os.path.isdir(os.path.expanduser(tgt)):
+                raise ValueError("'%s' is a directory, not a regular file." % target)
 
         try:                                              # User namespace
             codeobj = eval(target, self.user_ns)
