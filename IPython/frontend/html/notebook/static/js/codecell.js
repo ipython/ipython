@@ -62,7 +62,6 @@ var IPython = (function (IPython) {
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
     var CodeCell = function (kernel, options) {
-        var options = options || {}
         this.kernel = kernel || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
@@ -71,15 +70,10 @@ var IPython = (function (IPython) {
 
 
         var cm_overwrite_options  = {
-            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         };
 
-        var arg_cm_options = options.cm_options || {};
-        var cm_config = $.extend({},CodeCell.cm_default, arg_cm_options, cm_overwrite_options);
-
-        var options = {};
-        options.cm_config = cm_config;
+        options = this.mergeopt(CodeCell, options, {cm_config:cm_overwrite_options});
 
         IPython.Cell.apply(this,[options]);
 
@@ -89,10 +83,13 @@ var IPython = (function (IPython) {
         );
     };
 
-    CodeCell.cm_default = {
+    CodeCell.options_default = {
+        cm_config : {
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
             mode: 'python',
             theme: 'ipython',
             matchBrackets: true
+        }
     };
 
 
