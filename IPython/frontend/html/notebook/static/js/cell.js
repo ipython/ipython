@@ -32,29 +32,40 @@ var IPython = (function (IPython) {
      */
     var Cell = function (options) {
 
-        options = options || {};
+        options = this.mergeopt(Cell, options)
         // superclass default overwrite our default
-        this.cm_config = $.extend({},Cell.cm_default,options.cm_config);
 
-        this.placeholder = this.placeholder || '';
-        this.read_only = false;
+        this.placeholder = options.placeholder || '';
+        this.read_only = options.cm_config.readOnly;
         this.selected = false;
         this.element = null;
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
+        this.cm_config = options.cm_config;
         this.create_element();
         if (this.element !== null) {
             this.element.data("cell", this);
             this.bind_events();
         }
         this.cell_id = utils.uuid();
+        this._options = options;
     };
 
-    Cell.cm_default = {
+    Cell.options_default = {
+        cm_config : {
             indentUnit : 4,
-            readOnly: this.read_only,
+            readOnly: false,
+            theme: "default"
+        }
     };
+
+    Cell.prototype.mergeopt = function(_class, options, overwrite){
+        overwrite = overwrite || {};
+        return $.extend(true, {}, _class.options_default, options, overwrite)
+
+    }
+
 
 
     /**
@@ -95,7 +106,7 @@ var IPython = (function (IPython) {
     Cell.prototype.typeset = function () {
         if (window.MathJax){
             var cell_math = this.element.get(0);
-            MathJax.Hub.Queue(["Typeset",MathJax.Hub,cell_math]);
+            MathJax.Hub.Queue(["Typeset", MathJax.Hub, cell_math]);
         }
     };
 
@@ -196,7 +207,7 @@ var IPython = (function (IPython) {
      **/
     Cell.prototype.get_pre_cursor = function () {
         var cursor = this.code_mirror.getCursor();
-        var text = this.code_mirror.getRange({line:0,ch:0}, cursor);
+        var text = this.code_mirror.getRange({line:0, ch:0}, cursor);
         text = text.replace(/^\n+/, '').replace(/\n+$/, '');
         return text;
     }
@@ -293,7 +304,7 @@ var IPython = (function (IPython) {
                 // here we handle non magic_modes
                 if(first_line.match(regs[reg]) != null) {
                     if (mode.search('magic_') != 0) {
-                        this.code_mirror.setOption('mode',mode);
+                        this.code_mirror.setOption('mode', mode);
                         CodeMirror.autoLoadMode(this.code_mirror, mode);
                         return;
                     }

@@ -9,6 +9,8 @@
 // TextCell
 //============================================================================
 
+
+
 /**
     A module that allow to create different type of Text Cell
     @module IPython
@@ -28,37 +30,39 @@ var IPython = (function (IPython) {
      * @extend Ipython.Cell
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
+     *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
      */
     var TextCell = function (options) {
-        this.code_mirror_mode = this.code_mirror_mode || 'htmlmixed';
-        var options = options || {};
+        // in all TextCell/Cell subclasses
+        // do not assign most of members here, just pass it down
+        // in the options dict potentially overwriting what you wish.
+        // they will be assigned in the base class.
 
+        // we cannot put this as a class key as it has handle to "this".
         var cm_overwrite_options  = {
-            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
             onKeyEvent: $.proxy(this.handle_codemirror_keyevent,this)
         };
 
-        var arg_cm_options = options.cm_options || {};
-        var cm_config = $.extend({},TextCell.cm_default, arg_cm_options, cm_overwrite_options);
-
-        var options = {};
-        options.cm_config = cm_config;
-
+        options = this.mergeopt(TextCell,options,{cm_config:cm_overwrite_options});
 
         IPython.Cell.apply(this, [options]);
+
+
         this.rendered = false;
         this.cell_type = this.cell_type || 'text';
     };
 
-    TextCell.cm_default = {
-            mode: this.code_mirror_mode,
-            theme: 'default',
-            value: this.placeholder,
+    TextCell.prototype = new IPython.Cell();
+
+    TextCell.options_default = {
+        cm_config : {
+            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess"},
+            mode: 'htmlmixed',
             lineWrapping : true,
         }
+    };
 
 
-    TextCell.prototype = new IPython.Cell();
 
     /**
      * Create the DOM element of the TextCell
@@ -75,6 +79,7 @@ var IPython = (function (IPython) {
 
         var input_area = $('<div/>').addClass('text_cell_input border-box-sizing');
         this.code_mirror = CodeMirror(input_area.get(0), this.cm_config);
+
         // The tabindex=-1 makes this div focusable.
         var render_area = $('<div/>').addClass('text_cell_render border-box-sizing').
             addClass('rendered_html').attr('tabindex','-1');
@@ -282,10 +287,19 @@ var IPython = (function (IPython) {
      * @class HtmlCell
      * @extends Ipython.TextCell
      */
-    var HTMLCell = function () {
-        this.placeholder = "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$";
-        IPython.TextCell.apply(this, arguments);
+    var HTMLCell = function (options) {
+
+        options = this.mergeopt(HTMLCell,options);
+        TextCell.apply(this, [options]);
+
         this.cell_type = 'html';
+    };
+
+    HTMLCell.options_default = {
+        cm_config : {
+            mode: 'htmlmixed',
+        },
+        placeholder: "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$"
     };
 
 
@@ -312,11 +326,23 @@ var IPython = (function (IPython) {
      * @constructor MarkdownCell
      * @extends Ipython.HtmlCell
      */
-    var MarkdownCell = function () {
-        this.placeholder = "Type *Markdown* and LaTeX: $\\alpha^2$";
-        IPython.TextCell.apply(this, arguments);
+    var MarkdownCell = function (options) {
+        var options = options || {};
+
+        options = this.mergeopt(MarkdownCell,options);
+        TextCell.apply(this, [options]);
+
         this.cell_type = 'markdown';
     };
+
+    MarkdownCell.options_default = {
+        cm_config: {
+            mode: 'markdown'
+        },
+        placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
+    }
+
+
 
 
     MarkdownCell.prototype = new TextCell();
@@ -367,17 +393,23 @@ var IPython = (function (IPython) {
      * @constructor RawCell
      * @extends Ipython.TextCell
      */
-    var RawCell = function () {
-        this.placeholder = "Type plain text and LaTeX: $\\alpha^2$";
-        this.code_mirror_mode = 'rst';
-        IPython.TextCell.apply(this, arguments);
-        this.cell_type = 'raw';
-        var that = this
+    var RawCell = function (options) {
 
+        options = this.mergeopt(RawCell,options)
+        TextCell.apply(this, [options]);
+
+        this.cell_type = 'raw';
+
+        var that = this
         this.element.focusout(
                 function() { that.auto_highlight(); }
             );
     };
+
+    RawCell.options_default = {
+        placeholder : "Type plain text and LaTeX: $\\alpha^2$"
+    };
+
 
 
     RawCell.prototype = new TextCell();
@@ -461,9 +493,11 @@ var IPython = (function (IPython) {
      * @constructor HeadingCell
      * @extends Ipython.TextCell
      */
-    var HeadingCell = function () {
-        this.placeholder = "Type Heading Here";
-        IPython.TextCell.apply(this, arguments);
+    var HeadingCell = function (options) {
+
+        options = this.mergeopt(HeadingCell,options)
+        TextCell.apply(this, [options]);
+
         /**
          * heading level of the cell, use getter and setter to access
          * @property level
@@ -472,6 +506,9 @@ var IPython = (function (IPython) {
         this.cell_type = 'heading';
     };
 
+    HeadingCell.options_default = {
+        placeholder: "Type Heading Here"
+    };
 
     HeadingCell.prototype = new TextCell();
 
@@ -480,13 +517,13 @@ var IPython = (function (IPython) {
         if (data.level != undefined){
             this.level = data.level;
         }
-        IPython.TextCell.prototype.fromJSON.apply(this, arguments);
+        TextCell.prototype.fromJSON.apply(this, arguments);
     };
 
 
     /** @method toJSON */
     HeadingCell.prototype.toJSON = function () {
-        var data = IPython.TextCell.prototype.toJSON.apply(this);
+        var data = TextCell.prototype.toJSON.apply(this);
         data.level = this.get_level();
         return data;
     };
