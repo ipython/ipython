@@ -432,6 +432,10 @@ class KernelActionHandler(IPythonHandler):
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
 
+    def clear_cookie(self, *args, **kwargs):
+        """meaningless for websockets"""
+        pass
+
     def _reserialize_reply(self, msg_list):
         """Reserialize a reply message using JSON.
 
