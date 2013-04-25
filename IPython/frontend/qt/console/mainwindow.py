@@ -177,6 +177,7 @@ class MainWindow(QtGui.QMainWindow):
                     return
 
         kernel_client = closing_widget.kernel_client
+        kernel_manager = closing_widget.kernel_manager
 
         if keepkernel is None and not closing_widget._confirm_exit:
             # don't prompt, just terminate the kernel if we own it
@@ -238,7 +239,8 @@ class MainWindow(QtGui.QMainWindow):
                 for slave in slave_tabs:
                     background(slave.kernel_client.stop_channels)
                     self.tab_widget.removeTab(self.tab_widget.indexOf(slave))
-                kernel_manager.shutdown_kernel()
+                if kernel_manager:
+                    kernel_manager.shutdown_kernel()
                 background(kernel_client.stop_channels)
         
         self.update_tab_bar_visibility()
