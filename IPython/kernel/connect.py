@@ -17,6 +17,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+from __future__ import absolute_import
+
 import glob
 import json
 import os
@@ -26,14 +28,21 @@ from getpass import getpass
 from subprocess import Popen, PIPE
 import tempfile
 
+import zmq
+
 # external imports
 from IPython.external.ssh import tunnel
 
 # IPython imports
+# from IPython.config import Configurable
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils.path import filefind, get_ipython_dir
 from IPython.utils.py3compat import str_to_bytes, bytes_to_str
+from IPython.utils.traitlets import (
+    Bool, Integer, Unicode, CaselessStrEnum,
+    HasTraits,
+)
 
 
 #-----------------------------------------------------------------------------
@@ -41,7 +50,7 @@ from IPython.utils.py3compat import str_to_bytes, bytes_to_str
 #-----------------------------------------------------------------------------
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         ip=LOCALHOST, key=b'', transport='tcp'):
+                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp'):
     """Generates a JSON config file, including the selection of random ports.
     
     Parameters
@@ -51,16 +60,19 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The path to the file to write
 
     shell_port : int, optional
-        The port to use for ROUTER channel.
+        The port to use for ROUTER (shell) channel.
 
     iopub_port : int, optional
         The port to use for the SUB channel.
 
     stdin_port : int, optional
-        The port to use for the REQ (raw input) channel.
+        The port to use for the ROUTER (raw input) channel.
+
+    control_port : int, optional
+        The port to use for the ROUTER (control) channel.
 
     hb_port : int, optional
-        The port to use for the hearbeat REP channel.
+        The port to use for the heartbeat REP channel.
 
     ip  : str, optional
         The ip address the kernel will bind to.
@@ -76,8 +88,11 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     # Find open ports as necessary.
     
     ports = []
-    ports_needed = int(shell_port <= 0) + int(iopub_port <= 0) + \
-                   int(stdin_port <= 0) + int(hb_port <= 0)
+    ports_needed = int(shell_port <= 0) + \
+                   int(iopub_port <= 0) + \
+                   int(stdin_port <= 0) + \
+                   int(control_port <= 0) + \
+                   int(hb_port <= 0)
     if transport == 'tcp':
         for i in range(ports_needed):
             sock = socket.socket()
@@ -100,12 +115,15 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         iopub_port = ports.pop(0)
     if stdin_port <= 0:
         stdin_port = ports.pop(0)
+    if control_port <= 0:
+        control_port = ports.pop(0)
     if hb_port <= 0:
         hb_port = ports.pop(0)
     
     cfg = dict( shell_port=shell_port,
                 iopub_port=iopub_port,
                 stdin_port=stdin_port,
+                control_port=control_port,
                 hb_port=hb_port,
               )
     cfg['ip'] = ip
@@ -286,7 +304,9 @@ def connect_qtconsole(connection_file=None, argv=None, profile=None):
         "qtconsoleapp.main()"
     ])
     
-    return Popen([sys.executable, '-c', cmd, '--existing', cf] + argv, stdout=PIPE, stderr=PIPE)
+    return Popen([sys.executable, '-c', cmd, '--existing', cf] + argv,
+        stdout=PIPE, stderr=PIPE, close_fds=True,
+    )
 
 
 def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
@@ -336,6 +356,179 @@ def tunnel_to_kernel(connection_info, sshserver, sshkey=None):
         tunnel.ssh_tunnel(lp, rp, sshserver, remote_ip, sshkey, password)
     
     return tuple(lports)
+
+
+#-----------------------------------------------------------------------------
+# Mixin for classes that work with connection files
+#-----------------------------------------------------------------------------
+
+channel_socket_types = {
+    'hb' : zmq.REQ,
+    'shell' : zmq.DEALER,
+    'iopub' : zmq.SUB,
+    'stdin' : zmq.DEALER,
+    'control': zmq.DEALER,
+}
+
+port_names = [ "%s_port" % channel for channel in ('shell', 'stdin', 'iopub', 'hb', 'control')]
+
+class ConnectionFileMixin(HasTraits):
+    """Mixin for configurable classes that work with connection files"""
+
+    # The addresses for the communication channels
+    connection_file = Unicode('')
+    _connection_file_written = Bool(False)
+
+    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
+
+    ip = Unicode(LOCALHOST, config=True,
+        help="""Set the kernel\'s IP address [default localhost].
+        If the IP address is something other than localhost, then
+        Consoles on other machines will be able to connect
+        to the Kernel, so be careful!"""
+    )
+
+    def _ip_default(self):
+        if self.transport == 'ipc':
+            if self.connection_file:
+                return os.path.splitext(self.connection_file)[0] + '-ipc'
+            else:
+                return 'kernel-ipc'
+        else:
+            return LOCALHOST
+
+    def _ip_changed(self, name, old, new):
+        if new == '*':
+            self.ip = '0.0.0.0'
+
+    # protected traits
+
+    shell_port = Integer(0)
+    iopub_port = Integer(0)
+    stdin_port = Integer(0)
+    control_port = Integer(0)
+    hb_port = Integer(0)
+
+    @property
+    def ports(self):
+        return [ getattr(self, name) for name in port_names ]
+
+    #--------------------------------------------------------------------------
+    # Connection and ipc file management
+    #--------------------------------------------------------------------------
+
+    def get_connection_info(self):
+        """return the connection info as a dict"""
+        return dict(
+            transport=self.transport,
+            ip=self.ip,
+            shell_port=self.shell_port,
+            iopub_port=self.iopub_port,
+            stdin_port=self.stdin_port,
+            hb_port=self.hb_port,
+            control_port=self.control_port,
+        )
+
+    def cleanup_connection_file(self):
+        """Cleanup connection file *if we wrote it*
+
+        Will not raise if the connection file was already removed somehow.
+        """
+        if self._connection_file_written:
+            # cleanup connection files on full shutdown of kernel we started
+            self._connection_file_written = False
+            try:
+                os.remove(self.connection_file)
+            except (IOError, OSError, AttributeError):
+                pass
+
+    def cleanup_ipc_files(self):
+        """Cleanup ipc files if we wrote them."""
+        if self.transport != 'ipc':
+            return
+        for port in self.ports:
+            ipcfile = "%s-%i" % (self.ip, port)
+            try:
+                os.remove(ipcfile)
+            except (IOError, OSError):
+                pass
+
+    def write_connection_file(self):
+        """Write connection info to JSON dict in self.connection_file."""
+        if self._connection_file_written:
+            return
+
+        self.connection_file, cfg = write_connection_file(self.connection_file,
+            transport=self.transport, ip=self.ip, key=self.session.key,
+            stdin_port=self.stdin_port, iopub_port=self.iopub_port,
+            shell_port=self.shell_port, hb_port=self.hb_port,
+            control_port=self.control_port,
+        )
+        # write_connection_file also sets default ports:
+        for name in port_names:
+            setattr(self, name, cfg[name])
+
+        self._connection_file_written = True
+
+    def load_connection_file(self):
+        """Load connection info from JSON dict in self.connection_file."""
+        with open(self.connection_file) as f:
+            cfg = json.loads(f.read())
+
+        self.transport = cfg.get('transport', 'tcp')
+        self.ip = cfg['ip']
+        for name in port_names:
+            setattr(self, name, cfg[name])
+        self.session.key = str_to_bytes(cfg['key'])
+
+    #--------------------------------------------------------------------------
+    # Creating connected sockets
+    #--------------------------------------------------------------------------
+
+    def _make_url(self, channel):
+        """Make a ZeroMQ URL for a given channel."""
+        transport = self.transport
+        ip = self.ip
+        port = getattr(self, '%s_port' % channel)
+
+        if transport == 'tcp':
+            return "tcp://%s:%i" % (ip, port)
+        else:
+            return "%s://%s-%s" % (transport, ip, port)
+
+    def _create_connected_socket(self, channel, identity=None):
+        """Create a zmq Socket and connect it to the kernel."""
+        url = self._make_url(channel)
+        socket_type = channel_socket_types[channel]
+        self.log.info("Connecting to: %s" % url)
+        sock = self.context.socket(socket_type)
+        if identity:
+            sock.identity = identity
+        sock.connect(url)
+        return sock
+
+    def connect_iopub(self, identity=None):
+        """return zmq Socket connected to the IOPub channel"""
+        sock = self._create_connected_socket('iopub', identity=identity)
+        sock.setsockopt(zmq.SUBSCRIBE, b'')
+        return sock
+
+    def connect_shell(self, identity=None):
+        """return zmq Socket connected to the Shell channel"""
+        return self._create_connected_socket('shell', identity=identity)
+
+    def connect_stdin(self, identity=None):
+        """return zmq Socket connected to the StdIn channel"""
+        return self._create_connected_socket('stdin', identity=identity)
+
+    def connect_hb(self, identity=None):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('hb', identity=identity)
+
+    def connect_control(self, identity=None):
+        """return zmq Socket connected to the Heartbeat channel"""
+        return self._create_connected_socket('control', identity=identity)
+
 
 __all__ = [
     'write_connection_file',

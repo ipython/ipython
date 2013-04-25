@@ -10,7 +10,7 @@ import sys
 import unittest
 import base64
 
-from IPython.kernel.kernelmanager import KernelManager
+from IPython.kernel import KernelClient
 from IPython.frontend.terminal.console.interactiveshell \
     import ZMQTerminalInteractiveShell
 from IPython.utils.tempdir import TemporaryDirectory
@@ -26,8 +26,8 @@ SCRIPT_PATH = os.path.join(
 class ZMQTerminalInteractiveShellTestCase(unittest.TestCase):
 
     def setUp(self):
-        km = KernelManager()
-        self.shell = ZMQTerminalInteractiveShell(kernel_manager=km)
+        client = KernelClient()
+        self.shell = ZMQTerminalInteractiveShell(kernel_client=client)
         self.raw = b'dummy data'
         self.mime = 'image/png'
         self.data = {self.mime: base64.encodestring(self.raw).decode('ascii')}

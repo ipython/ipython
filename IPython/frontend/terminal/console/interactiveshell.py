@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Frontend of ipython working with python-zmq
+"""terminal client to the IPython kernel
 
-Ipython's frontend, is a ipython interface that send request to kernel and proccess the kernel's outputs.
-
-For more details, see the ipython-zmq design
 """
 #-----------------------------------------------------------------------------
-# Copyright (C) 2011 The IPython Development Team
+# Copyright (C) 2013 The IPython Development Team
 #
 # Distributed under the terms of the BSD License. The full license is in
 # the file COPYING, distributed as part of this software.
@@ -37,7 +34,7 @@ from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
 from IPython.utils.warn import warn, error, fatal
 from IPython.utils import io
-from IPython.utils.traitlets import List, Enum, Any
+from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
 from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
@@ -105,11 +102,12 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         """
     )
 
-    def __init__(self, *args, **kwargs):
-        self.km = kwargs.pop('kernel_manager')
-        self.session_id = self.km.session.session
-        super(ZMQTerminalInteractiveShell, self).__init__(*args, **kwargs)
-        
+    manager = Instance('IPython.kernel.KernelManager')
+    client = Instance('IPython.kernel.KernelClient')
+    def _client_changed(self, name, old, new):
+        self.session_id = new.session.session
+    session_id = Unicode()
+
     def init_completer(self):
         """Initialize the completion machinery.
 
@@ -121,7 +119,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         from IPython.core.completerlib import (module_completer,
                                                magic_run_completer, cd_completer)
         
-        self.Completer = ZMQCompleter(self, self.km)
+        self.Completer = ZMQCompleter(self, self.client)
         
 
         self.set_hook('complete_command', module_completer, str_key = 'import')
@@ -156,18 +154,18 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
 
         self._executing = True
         # flush stale replies, which could have been ignored, due to missed heartbeats
-        while self.km.shell_channel.msg_ready():
-            self.km.shell_channel.get_msg()
+        while self.client.shell_channel.msg_ready():
+            self.client.shell_channel.get_msg()
         # shell_channel.execute takes 'hidden', which is the inverse of store_hist
-        msg_id = self.km.shell_channel.execute(cell, not store_history)
-        while not self.km.shell_channel.msg_ready() and self.km.is_alive:
+        msg_id = self.client.shell_channel.execute(cell, not store_history)
+        while not self.client.shell_channel.msg_ready() and self.client.is_alive():
             try:
                 self.handle_stdin_request(timeout=0.05)
             except Empty:
                 # display intermediate print statements, etc.
                 self.handle_iopub()
                 pass
-        if self.km.shell_channel.msg_ready():
+        if self.client.shell_channel.msg_ready():
             self.handle_execute_reply(msg_id)
         self._executing = False
 
@@ -176,7 +174,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     #-----------------
 
     def handle_execute_reply(self, msg_id):
-        msg = self.km.shell_channel.get_msg()
+        msg = self.client.shell_channel.get_msg()
         if msg["parent_header"].get("msg_id", None) == msg_id:
             
             self.handle_iopub()
@@ -211,8 +209,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
            sub_msg:  message receive from kernel in the sub socket channel
                      capture by kernel manager.
         """
-        while self.km.iopub_channel.msg_ready():
-            sub_msg = self.km.iopub_channel.get_msg()
+        while self.client.iopub_channel.msg_ready():
+            sub_msg = self.client.iopub_channel.get_msg()
             msg_type = sub_msg['header']['msg_type']
             parent = sub_msg["parent_header"]
             if (not parent) or self.session_id == parent['session']:
@@ -298,7 +296,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def handle_stdin_request(self, timeout=0.1):
         """ Method to capture raw_input
         """
-        msg_rep = self.km.stdin_channel.get_msg(timeout=timeout)
+        msg_rep = self.client.stdin_channel.get_msg(timeout=timeout)
         # in case any iopub came while we were waiting:
         self.handle_iopub()
         if self.session_id == msg_rep["parent_header"].get("session"):
@@ -325,8 +323,8 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             
             # only send stdin reply if there *was not* another request
             # or execution finished while we were reading.
-            if not (self.km.stdin_channel.msg_ready() or self.km.shell_channel.msg_ready()):
-                self.km.stdin_channel.input(raw_data)
+            if not (self.client.stdin_channel.msg_ready() or self.client.shell_channel.msg_ready()):
+                self.client.stdin_channel.input(raw_data)
 
     def mainloop(self, display_banner=False):
         while True:
@@ -344,10 +342,10 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     def wait_for_kernel(self, timeout=None):
         """method to wait for a kernel to be ready"""
         tic = time.time()
-        self.km.hb_channel.unpause()
+        self.client.hb_channel.unpause()
         while True:
             self.run_cell('1', False)
-            if self.km.hb_channel.is_beating():
+            if self.client.hb_channel.is_beating():
                 # heart failure was not the reason this returned
                 break
             else:
@@ -389,13 +387,14 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # ask_exit callback.
 
         while not self.exit_now:
-            if not self.km.is_alive:
+            if not self.client.is_alive():
                 # kernel died, prompt for action or exit
-                action = "restart" if self.km.has_kernel else "wait for restart"
+
+                action = "restart" if self.manager else "wait for restart"
                 ans = self.ask_yes_no("kernel died, %s ([y]/n)?" % action, default='y')
                 if ans:
-                    if self.km.has_kernel:
-                        self.km.restart_kernel(True)
+                    if self.manager:
+                        self.manager.restart_kernel(True)
                     self.wait_for_kernel(3)
                 else:
                     self.exit_now = True

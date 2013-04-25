@@ -1,9 +1,9 @@
-""" Implements a fully blocking kernel manager.
+"""Blocking channels
 
 Useful for test suites and blocking terminal interfaces.
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2010-2012  The IPython Development Team
+#  Copyright (C) 2013 The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING.txt, distributed as part of this software.
@@ -15,8 +15,7 @@ Useful for test suites and blocking terminal interfaces.
 
 import Queue
 
-from IPython.utils.traitlets import Type
-from .kernelmanager import KernelManager, IOPubChannel, HBChannel, \
+from IPython.kernel.channels import IOPubChannel, HBChannel, \
     ShellChannel, StdInChannel
 
 #-----------------------------------------------------------------------------
@@ -25,14 +24,14 @@ from .kernelmanager import KernelManager, IOPubChannel, HBChannel, \
 
 
 class BlockingChannelMixin(object):
-    
+
     def __init__(self, *args, **kwds):
         super(BlockingChannelMixin, self).__init__(*args, **kwds)
         self._in_queue = Queue.Queue()
-        
+
     def call_handlers(self, msg):
         self._in_queue.put(msg)
-        
+
     def get_msg(self, block=True, timeout=None):
         """ Gets a message if there is one that is ready. """
         if timeout is None:
@@ -40,7 +39,7 @@ class BlockingChannelMixin(object):
             # behavior, so wait for a week instead
             timeout = 604800
         return self._in_queue.get(block, timeout)
-        
+
     def get_msgs(self):
         """ Get all messages that are currently ready. """
         msgs = []
@@ -50,7 +49,7 @@ class BlockingChannelMixin(object):
             except Queue.Empty:
                 break
         return msgs
-    
+
     def msg_ready(self):
         """ Is there a message that has been received? """
         return not self._in_queue.empty()
@@ -69,7 +68,7 @@ class BlockingStdInChannel(BlockingChannelMixin, StdInChannel):
 
 
 class BlockingHBChannel(HBChannel):
-    
+
     # This kernel needs quicker monitoring, shorten to 1 sec.
     # less than 0.5s is unreliable, and will get occasional
     # false reports of missed beats.
@@ -78,13 +77,3 @@ class BlockingHBChannel(HBChannel):
     def call_handlers(self, since_last_heartbeat):
         """ Pause beating on missed heartbeat. """
         pass
-
-
-class BlockingKernelManager(KernelManager):
-    
-    # The classes to use for the various channels.
-    shell_channel_class = Type(BlockingShellChannel)
-    iopub_channel_class = Type(BlockingIOPubChannel)
-    stdin_channel_class = Type(BlockingStdInChannel)
-    hb_channel_class = Type(BlockingHBChannel)
-

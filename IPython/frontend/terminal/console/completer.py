@@ -9,9 +9,9 @@ class ZMQCompleter(object):
     state=0,1,2,... When state=0 it should compute ALL the completion matches,
     and then return them for each value of state."""
     
-    def __init__(self, shell, km):
+    def __init__(self, shell, client):
         self.shell = shell
-        self.km =  km
+        self.client =  client
         self.matches = []
         
     def complete_request(self,text):
@@ -20,10 +20,10 @@ class ZMQCompleter(object):
         
         # send completion request to kernel
         # Give the kernel up to 0.5s to respond
-        msg_id = self.km.shell_channel.complete(text=text, line=line,
+        msg_id = self.client.shell_channel.complete(text=text, line=line,
                                                         cursor_pos=cursor_pos)
         
-        msg = self.km.shell_channel.get_msg(timeout=0.5)
+        msg = self.client.shell_channel.get_msg(timeout=0.5)
         if msg['parent_header']['msg_id'] == msg_id:
             return msg["content"]["matches"]
         return []

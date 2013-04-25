@@ -2,12 +2,17 @@
 """
 
 # Local imports.
-from IPython.kernel.inprocess.kernelmanager import \
-    InProcessShellChannel, InProcessIOPubChannel, InProcessStdInChannel, \
-    InProcessHBChannel, InProcessKernelManager
+from IPython.kernel.inprocess import (
+    InProcessShellChannel, InProcessIOPubChannel, InProcessStdInChannel,
+    InProcessHBChannel, InProcessKernelClient, InProcessKernelManager,
+)
+
 from IPython.utils.traitlets import Type
-from base_kernelmanager import QtShellChannelMixin, QtIOPubChannelMixin, \
-    QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin
+from .kernel_mixins import (
+    QtShellChannelMixin, QtIOPubChannelMixin,
+    QtStdInChannelMixin, QtHBChannelMixin, QtKernelClientMixin,
+    QtKernelManagerMixin,
+)
 
 
 class QtInProcessShellChannel(QtShellChannelMixin, InProcessShellChannel):
@@ -22,8 +27,7 @@ class QtInProcessStdInChannel(QtStdInChannelMixin, InProcessStdInChannel):
 class QtInProcessHBChannel(QtHBChannelMixin, InProcessHBChannel):
     pass
 
-
-class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
+class QtInProcessKernelClient(QtKernelClientMixin, InProcessKernelClient):
     """ An in-process KernelManager with signals and slots.
     """
 
@@ -31,3 +35,6 @@ class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
     shell_channel_class = Type(QtInProcessShellChannel)
     stdin_channel_class = Type(QtInProcessStdInChannel)
     hb_channel_class = Type(QtInProcessHBChannel)
+
+class QtInProcessKernelManager(QtKernelManagerMixin, InProcessKernelManager):
+    client_class = __module__ + '.QtInProcessKernelClient'

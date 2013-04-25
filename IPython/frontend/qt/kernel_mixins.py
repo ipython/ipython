@@ -54,19 +54,11 @@ class QtShellChannelMixin(ChannelQObject):
     # Emitted when any message is received.
     message_received = QtCore.Signal(object)
 
-    # Emitted when a reply has been received for the corresponding request
-    # type.
+    # Emitted when a reply has been received for the corresponding request type.
     execute_reply = QtCore.Signal(object)
     complete_reply = QtCore.Signal(object)
     object_info_reply = QtCore.Signal(object)
     history_reply = QtCore.Signal(object)
-
-    # Emitted when the first reply comes back.
-    first_reply = QtCore.Signal()
-
-    # Used by the first_reply signal logic to determine if a reply is the
-    # first.
-    _handlers_called = False
 
     #---------------------------------------------------------------------------
     # 'ShellChannel' interface
@@ -83,19 +75,6 @@ class QtShellChannelMixin(ChannelQObject):
         signal = getattr(self, msg_type, None)
         if signal:
             signal.emit(msg)
-
-        if not self._handlers_called:
-            self.first_reply.emit()
-            self._handlers_called = True
-
-    #---------------------------------------------------------------------------
-    # 'QtShellChannelMixin' interface
-    #---------------------------------------------------------------------------
-
-    def reset_first_reply(self):
-        """ Reset the first_reply signal to fire again on the next reply.
-        """
-        self._handlers_called = False
 
 
 class QtIOPubChannelMixin(ChannelQObject):
@@ -189,19 +168,31 @@ class QtHBChannelMixin(ChannelQObject):
         self.kernel_died.emit(since_last_heartbeat)
 
 
+class QtKernelRestarterMixin(HasTraits, SuperQObject):
+
+    __metaclass__ = MetaQObjectHasTraits
+    _timer = None
+
+
 class QtKernelManagerMixin(HasTraits, SuperQObject):
-    """ A KernelManager that provides signals and slots.
+    """ A KernelClient that provides signals and slots.
     """
 
     __metaclass__ = MetaQObjectHasTraits
 
-    # Emitted when the kernel manager has started listening.
-    started_kernel = QtCore.Signal()
+    kernel_restarted = QtCore.Signal()
 
-    # Emitted when the kernel manager has started listening.
+
+class QtKernelClientMixin(HasTraits, SuperQObject):
+    """ A KernelClient that provides signals and slots.
+    """
+
+    __metaclass__ = MetaQObjectHasTraits
+
+    # Emitted when the kernel client has started listening.
     started_channels = QtCore.Signal()
 
-    # Emitted when the kernel manager has stopped listening.
+    # Emitted when the kernel client has stopped listening.
     stopped_channels = QtCore.Signal()
 
     # Use Qt-specific channel classes that emit signals.
@@ -211,50 +202,19 @@ class QtKernelManagerMixin(HasTraits, SuperQObject):
     hb_channel_class = Type(QtHBChannelMixin)
 
     #---------------------------------------------------------------------------
-    # 'KernelManager' interface
+    # 'KernelClient' interface
     #---------------------------------------------------------------------------
-
-    #------ Kernel process management ------------------------------------------
-
-    def start_kernel(self, *args, **kw):
-        """ Reimplemented for proper heartbeat management.
-        """
-        if self._shell_channel is not None:
-            self._shell_channel.reset_first_reply()
-        super(QtKernelManagerMixin, self).start_kernel(*args, **kw)
-        self.started_kernel.emit()
 
     #------ Channel management -------------------------------------------------
 
     def start_channels(self, *args, **kw):
         """ Reimplemented to emit signal.
         """
-        super(QtKernelManagerMixin, self).start_channels(*args, **kw)
+        super(QtKernelClientMixin, self).start_channels(*args, **kw)
         self.started_channels.emit()
 
     def stop_channels(self):
         """ Reimplemented to emit signal.
         """
-        super(QtKernelManagerMixin, self).stop_channels()
+        super(QtKernelClientMixin, self).stop_channels()
         self.stopped_channels.emit()
-
-    @property
-    def shell_channel(self):
-        """ Reimplemented for proper heartbeat management.
-        """
-        if self._shell_channel is None:
-            self._shell_channel = super(QtKernelManagerMixin,self).shell_channel
-            self._shell_channel.first_reply.connect(self._first_reply)
-        return self._shell_channel
-
-    #---------------------------------------------------------------------------
-    # Protected interface
-    #---------------------------------------------------------------------------
-
-    def _first_reply(self):
-        """ Unpauses the heartbeat channel when the first reply is received on
-            the execute channel. Note that this will *not* start the heartbeat
-            channel if it is not already running!
-        """
-        if self._hb_channel is not None:
-            self._hb_channel.unpause()

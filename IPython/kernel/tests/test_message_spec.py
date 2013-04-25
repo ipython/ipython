@@ -15,7 +15,7 @@ from Queue import Empty
 
 import nose.tools as nt
 
-from ..blockingkernelmanager import BlockingKernelManager
+from IPython.kernel import KernelManager, BlockingKernelClient
 
 
 from IPython.testing import decorators as dec
@@ -29,28 +29,29 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 def setup():
-    global KM
-    KM = BlockingKernelManager()
-
+    global KM, KC
+    KM = KernelManager()
+    KM.client_factory = BlockingKernelClient
     KM.start_kernel(stdout=PIPE, stderr=PIPE)
-    KM.start_channels()
+    KC = KM.client()
+    KC.start_channels()
     
     # wait for kernel to be ready
-    KM.shell_channel.execute("pass")
-    KM.shell_channel.get_msg(block=True, timeout=5)
+    KC.execute("pass")
+    KC.get_shell_msg(block=True, timeout=5)
     flush_channels()
 
 
 def teardown():
-    KM.stop_channels()
+    KC.stop_channels()
     KM.shutdown_kernel()
 
 
-def flush_channels(km=None):
-    if km is None:
-        km = KM
+def flush_channels(kc=None):
     """flush any messages waiting on the queue"""
-    for channel in (km.shell_channel, km.iopub_channel):
+    if kc is None:
+        kc = KC
+    for channel in (kc.shell_channel, kc.iopub_channel):
         while True:
             try:
                 msg = channel.get_msg(block=True, timeout=0.1)
@@ -60,22 +61,17 @@ def flush_channels(km=None):
                 list(validate_message(msg))
 
 
-def execute(code='', km=None, **kwargs):
+def execute(code='', kc=None, **kwargs):
     """wrapper for doing common steps for validating an execution request"""
-    if km is None:
-        km = KM
-    shell = km.shell_channel
-    sub = km.iopub_channel
-    
-    msg_id = shell.execute(code=code, **kwargs)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.execute(code=code, **kwargs)
+    reply = KC.get_shell_msg(timeout=2)
     list(validate_message(reply, 'execute_reply', msg_id))
-    busy = sub.get_msg(timeout=2)
+    busy = KC.get_iopub_msg(timeout=2)
     list(validate_message(busy, 'status', msg_id))
     nt.assert_equal(busy['content']['execution_state'], 'busy')
     
     if not kwargs.get('silent'):
-        pyin = sub.get_msg(timeout=2)
+        pyin = KC.get_iopub_msg(timeout=2)
         list(validate_message(pyin, 'pyin', msg_id))
         nt.assert_equal(pyin['content']['code'], code)
     
@@ -192,7 +188,7 @@ class ArgSpec(Reference):
 
 
 class Status(Reference):
-    execution_state = Enum((u'busy', u'idle'))
+    execution_state = Enum((u'busy', u'idle', u'starting'))
 
 
 class CompleteReply(Reference):
@@ -301,9 +297,8 @@ def validate_message(msg, msg_type=None, parent=None):
 def test_execute():
     flush_channels()
     
-    shell = KM.shell_channel
-    msg_id = shell.execute(code='x=1')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.execute(code='x=1')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'execute_reply', msg_id):
         yield tst
 
@@ -314,23 +309,23 @@ def test_execute_silent():
     msg_id, reply = execute(code='x=1', silent=True)
     
     # flush status=idle
-    status = KM.iopub_channel.get_msg(timeout=2)
+    status = KC.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
     nt.assert_equal(status['content']['execution_state'], 'idle')
 
-    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
+    yield nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count = reply['execution_count']
     
     msg_id, reply = execute(code='x=2', silent=True)
     
     # flush status=idle
-    status = KM.iopub_channel.get_msg(timeout=2)
+    status = KC.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(status, 'status', msg_id):
         yield tst
     yield nt.assert_equal(status['content']['execution_state'], 'idle')
     
-    yield nt.assert_raises(Empty, KM.iopub_channel.get_msg, timeout=0.1)
+    yield nt.assert_raises(Empty, KC.iopub_channel.get_msg, timeout=0.1)
     count_2 = reply['execution_count']
     yield nt.assert_equal(count_2, count)
 
@@ -343,7 +338,7 @@ def test_execute_error():
     yield nt.assert_equal(reply['status'], 'error')
     yield nt.assert_equal(reply['ename'], 'ZeroDivisionError')
     
-    pyerr = KM.iopub_channel.get_msg(timeout=2)
+    pyerr = KC.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(pyerr, 'pyerr', msg_id):
         yield tst
 
@@ -382,10 +377,8 @@ def test_user_expressions():
 def test_oinfo():
     flush_channels()
 
-    shell = KM.shell_channel
-    
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
 
@@ -394,12 +387,10 @@ def test_oinfo():
 def test_oinfo_found():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code='a=5')
     
-    msg_id = shell.object_info('a')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('a')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -412,12 +403,10 @@ def test_oinfo_found():
 def test_oinfo_detail():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code='ip=get_ipython()')
     
-    msg_id = shell.object_info('ip.object_inspect', detail_level=2)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('ip.object_inspect', detail_level=2)
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -431,10 +420,8 @@ def test_oinfo_detail():
 def test_oinfo_not_found():
     flush_channels()
 
-    shell = KM.shell_channel
-    
-    msg_id = shell.object_info('dne')
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.object_info('dne')
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'object_info_reply', msg_id):
         yield tst
     content = reply['content']
@@ -445,12 +432,10 @@ def test_oinfo_not_found():
 def test_complete():
     flush_channels()
 
-    shell = KM.shell_channel
-    
     msg_id, reply = execute(code="alpha = albert = 5")
     
-    msg_id = shell.complete('al', 'al', 2)
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.complete('al', 'al', 2)
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'complete_reply', msg_id):
         yield tst
     matches = reply['content']['matches']
@@ -462,10 +447,8 @@ def test_complete():
 def test_kernel_info_request():
     flush_channels()
 
-    shell = KM.shell_channel
-
-    msg_id = shell.kernel_info()
-    reply = shell.get_msg(timeout=2)
+    msg_id = KC.kernel_info()
+    reply = KC.get_shell_msg(timeout=2)
     for tst in validate_message(reply, 'kernel_info_reply', msg_id):
         yield tst
 
@@ -479,7 +462,7 @@ def test_stream():
 
     msg_id, reply = execute("print('hi')")
 
-    stdout = KM.iopub_channel.get_msg(timeout=2)
+    stdout = KC.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(stdout, 'stream', msg_id):
         yield tst
     content = stdout['content']
@@ -493,7 +476,7 @@ def test_display_data():
 
     msg_id, reply = execute("from IPython.core.display import display; display(1)")
     
-    display = KM.iopub_channel.get_msg(timeout=2)
+    display = KC.iopub_channel.get_msg(timeout=2)
     for tst in validate_message(display, 'display_data', parent=msg_id):
         yield tst
     data = display['content']['data']

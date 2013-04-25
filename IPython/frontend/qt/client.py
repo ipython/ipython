@@ -1,13 +1,18 @@
-""" Defines a KernelManager that provides signals and slots.
+""" Defines a KernelClient that provides signals and slots.
 """
 
-# Local imports.
+# Local imports
 from IPython.utils.traitlets import Type
-from IPython.kernel.kernelmanager import ShellChannel, IOPubChannel, \
-    StdInChannel, HBChannel, KernelManager
-from base_kernelmanager import QtShellChannelMixin, QtIOPubChannelMixin, \
-    QtStdInChannelMixin, QtHBChannelMixin, QtKernelManagerMixin
+from IPython.kernel.channels import (
+    ShellChannel, IOPubChannel, StdInChannel, HBChannel
+)
+from IPython.kernel import KernelClient
 
+from .kernel_mixins import (
+    QtShellChannelMixin, QtIOPubChannelMixin,
+    QtStdInChannelMixin, QtHBChannelMixin,
+    QtKernelClientMixin
+)
 
 class QtShellChannel(QtShellChannelMixin, ShellChannel):
     pass
@@ -22,8 +27,8 @@ class QtHBChannel(QtHBChannelMixin, HBChannel):
     pass
 
 
-class QtKernelManager(QtKernelManagerMixin, KernelManager):
-    """ A KernelManager that provides signals and slots.
+class QtKernelClient(QtKernelClientMixin, KernelClient):
+    """ A KernelClient that provides signals and slots.
     """
 
     iopub_channel_class = Type(QtIOPubChannel)

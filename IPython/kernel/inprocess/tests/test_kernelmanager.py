@@ -14,9 +14,9 @@ from __future__ import print_function
 import unittest
 
 # Local imports
-from IPython.kernel.inprocess.blockingkernelmanager import \
-    BlockingInProcessKernelManager
+from IPython.kernel.inprocess.blocking import BlockingInProcessKernelClient
 from IPython.kernel.inprocess.ipkernel import InProcessKernel
+from IPython.kernel.inprocess.manager import InProcessKernelManager
 
 #-----------------------------------------------------------------------------
 # Test case
@@ -24,19 +24,21 @@ from IPython.kernel.inprocess.ipkernel import InProcessKernel
 
 class InProcessKernelManagerTestCase(unittest.TestCase):
 
-    def test_inteface(self):
+    def test_interface(self):
         """ Does the in-process kernel manager implement the basic KM interface?
         """
-        km = BlockingInProcessKernelManager()
-        self.assert_(not km.channels_running)
+        km = InProcessKernelManager()
         self.assert_(not km.has_kernel)
-
-        km.start_channels()
-        self.assert_(km.channels_running)
 
         km.start_kernel()
         self.assert_(km.has_kernel)
         self.assert_(km.kernel is not None)
+
+        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        self.assert_(not kc.channels_running)
+
+        kc.start_channels()
+        self.assert_(kc.channels_running)
 
         old_kernel = km.kernel
         km.restart_kernel()
@@ -49,37 +51,43 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
         self.assertRaises(NotImplementedError, km.interrupt_kernel)
         self.assertRaises(NotImplementedError, km.signal_kernel, 9)
 
-        km.stop_channels()
-        self.assert_(not km.channels_running)
+        kc.stop_channels()
+        self.assert_(not kc.channels_running)
 
     def test_execute(self):
         """ Does executing code in an in-process kernel work?
         """
-        km = BlockingInProcessKernelManager()
+        km = InProcessKernelManager()
         km.start_kernel()
-        km.shell_channel.execute('foo = 1')
+        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc.start_channels()
+        kc.execute('foo = 1')
         self.assertEquals(km.kernel.shell.user_ns['foo'], 1)
 
     def test_complete(self):
         """ Does requesting completion from an in-process kernel work?
         """
-        km = BlockingInProcessKernelManager()
+        km = InProcessKernelManager()
         km.start_kernel()
+        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc.start_channels()
         km.kernel.shell.push({'my_bar': 0, 'my_baz': 1})
-        km.shell_channel.complete('my_ba', 'my_ba', 5)
-        msg = km.shell_channel.get_msg()
-        self.assertEquals(msg['header']['msg_type'], 'complete_reply')
-        self.assertEquals(sorted(msg['content']['matches']),
+        kc.complete('my_ba', 'my_ba', 5)
+        msg = kc.get_shell_msg()
+        self.assertEqual(msg['header']['msg_type'], 'complete_reply')
+        self.assertEqual(sorted(msg['content']['matches']),
                           ['my_bar', 'my_baz'])
 
     def test_object_info(self):
         """ Does requesting object information from an in-process kernel work?
         """
-        km = BlockingInProcessKernelManager()
+        km = InProcessKernelManager()
         km.start_kernel()
+        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc.start_channels()
         km.kernel.shell.user_ns['foo'] = 1
-        km.shell_channel.object_info('foo')
-        msg = km.shell_channel.get_msg()
+        kc.object_info('foo')
+        msg = kc.get_shell_msg()
         self.assertEquals(msg['header']['msg_type'], 'object_info_reply')
         self.assertEquals(msg['content']['name'], 'foo')
         self.assertEquals(msg['content']['type_name'], 'int')
@@ -87,11 +95,13 @@ class InProcessKernelManagerTestCase(unittest.TestCase):
     def test_history(self):
         """ Does requesting history from an in-process kernel work?
         """
-        km = BlockingInProcessKernelManager()
+        km = InProcessKernelManager()
         km.start_kernel()
-        km.shell_channel.execute('%who')
-        km.shell_channel.history(hist_access_type='tail', n=1)
-        msg = km.shell_channel.get_msgs()[-1]
+        kc = BlockingInProcessKernelClient(kernel=km.kernel)
+        kc.start_channels()
+        kc.execute('%who')
+        kc.history(hist_access_type='tail', n=1)
+        msg = kc.shell_channel.get_msgs()[-1]
         self.assertEquals(msg['header']['msg_type'], 'history_reply')
         history = msg['content']['history']
         self.assertEquals(len(history), 1)

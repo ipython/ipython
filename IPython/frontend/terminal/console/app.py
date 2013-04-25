@@ -114,7 +114,10 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         signal.signal(signal.SIGINT, self.handle_sigint)
         self.shell = ZMQTerminalInteractiveShell.instance(config=self.config,
                         display_banner=False, profile_dir=self.profile_dir,
-                        ipython_dir=self.ipython_dir, kernel_manager=self.kernel_manager)
+                        ipython_dir=self.ipython_dir,
+                        manager=self.kernel_manager,
+                        client=self.kernel_client,
+        )
 
     def init_gui_pylab(self):
         # no-op, because we don't want to import matplotlib in the frontend.
@@ -122,7 +125,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
 
     def handle_sigint(self, *args):
         if self.shell._executing:
-            if self.kernel_manager.has_kernel:
+            if self.kernel_manager:
                 # interrupt already gets passed to subprocess by signal handler.
                 # Only if we prevent that should we need to explicitly call
                 # interrupt_kernel, until which time, this would result in a 
