@@ -87,22 +87,55 @@ class ProfileDir(LoggingConfigurable):
 
     def _log_dir_changed(self, name, old, new):
         self.check_log_dir()
+    
+    def _mkdir(self, path, mode=None):
+        """ensure a directory exists at a given path
+        
+        This is a version of os.mkdir, with the following differences:
+        
+        - returns True if it created the directory, False otherwise
+        - ignores EEXIST, protecting against race conditions where
+          the dir may have been created in between the check and
+          the creation
+        - sets permissions if requested and the dir already exists
+        """
+        if os.path.exists(path):
+            if mode and os.stat(path).st_mode != mode:
+                try:
+                    os.chmod(path, mode)
+                except OSError:
+                    self.log.warn(
+                        "Could not set permissions on %s",
+                        path
+                    )
+            return False
+        try:
+            if mode:
+                os.mkdir(path, mode)
+            else:
+                os.mkdir(path)
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                return False
+            else:
+                raise
+        
+        return True
 
     def check_log_dir(self):
-        if not os.path.isdir(self.log_dir):
-            os.mkdir(self.log_dir)
+        self._mkdir(self.log_dir)
 
     def _startup_dir_changed(self, name, old, new):
         self.check_startup_dir()
 
     def check_startup_dir(self):
-        if not os.path.isdir(self.startup_dir):
-            os.mkdir(self.startup_dir)
+        self._mkdir(self.startup_dir)
+
         readme = os.path.join(self.startup_dir, 'README')
         src = os.path.join(get_ipython_package_dir(), u'config', u'profile', u'README_STARTUP')
 
         if not os.path.exists(src):
-            self.log.warn("Could not copy README_STARTUP to startup dir. Source file %s does not exist." % src)
+            self.log.warn("Could not copy README_STARTUP to startup dir. Source file %s does not exist.", src)
 
         if os.path.exists(src) and not os.path.exists(readme):
             shutil.copy(src, readme)
@@ -111,25 +144,13 @@ class ProfileDir(LoggingConfigurable):
         self.check_security_dir()
 
     def check_security_dir(self):
-        if not os.path.isdir(self.security_dir):
-            os.mkdir(self.security_dir, 0o700)
-        else:
-            try:
-                os.chmod(self.security_dir, 0o700)
-            except OSError:
-                self.log.warn("Could not set security dir permissions to private.")
+        self._mkdir(self.security_dir, 0o40700)
 
     def _pid_dir_changed(self, name, old, new):
         self.check_pid_dir()
 
     def check_pid_dir(self):
-        if not os.path.isdir(self.pid_dir):
-            os.mkdir(self.pid_dir, 0o700)
-        else:
-            try:
-                os.chmod(self.pid_dir, 0o700)
-            except OSError:
-                self.log.warn("Could not set pid dir permissions to private.")
+        self._mkdir(self.pid_dir, 0o40700)
 
     def check_dirs(self):
         self.check_security_dir()
