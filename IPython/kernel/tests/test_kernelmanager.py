@@ -7,12 +7,14 @@ from unittest import TestCase
 from IPython.testing import decorators as dec
 
 from IPython.config.loader import Config
-from IPython.kernel.kernelmanager import KernelManager
+from IPython.kernel import KernelManager
 
 class TestKernelManager(TestCase):
 
     def _get_tcp_km(self):
-        return KernelManager()
+        c = Config()
+        km = KernelManager(config=c)
+        return km
 
     def _get_ipc_km(self):
         c = Config()
@@ -23,8 +25,9 @@ class TestKernelManager(TestCase):
 
     def _run_lifecycle(self, km):
         km.start_kernel(stdout=PIPE, stderr=PIPE)
-        km.start_channels(shell=True, iopub=False, stdin=False, hb=False)
+        self.assertTrue(km.is_alive())
         km.restart_kernel()
+        self.assertTrue(km.is_alive())
         # We need a delay here to give the restarting kernel a chance to
         # restart. Otherwise, the interrupt will kill it, causing the test
         # suite to hang. The reason it *hangs* is that the shutdown
@@ -35,7 +38,6 @@ class TestKernelManager(TestCase):
         km.interrupt_kernel()
         self.assertTrue(isinstance(km, KernelManager))
         km.shutdown_kernel()
-        km.shell_channel.stop()
 
     def test_tcp_lifecycle(self):
         km = self._get_tcp_km()

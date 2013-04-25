@@ -16,8 +16,8 @@ import sys
 import unittest
 
 # Local imports
-from IPython.kernel.inprocess.blockingkernelmanager import \
-    BlockingInProcessKernelManager
+from IPython.kernel.inprocess.blocking import BlockingInProcessKernelClient
+from IPython.kernel.inprocess.manager import InProcessKernelManager
 from IPython.kernel.inprocess.ipkernel import InProcessKernel
 from IPython.testing.decorators import skipif_not_matplotlib
 from IPython.utils.io import capture_output
@@ -29,33 +29,35 @@ from IPython.utils import py3compat
 
 class InProcessKernelTestCase(unittest.TestCase):
 
+    def setUp(self):
+        self.km = InProcessKernelManager()
+        self.km.start_kernel()
+        self.kc = BlockingInProcessKernelClient(kernel=self.km.kernel)
+        self.kc.start_channels()
+
     @skipif_not_matplotlib
     def test_pylab(self):
         """ Does pylab work in the in-process kernel?
         """
-        km = BlockingInProcessKernelManager()
-        km.start_kernel()
-        km.shell_channel.execute('%pylab')
-        msg = get_stream_message(km)
+        kc = self.kc
+        kc.execute('%pylab')
+        msg = get_stream_message(kc)
         self.assert_('Welcome to pylab' in msg['content']['data'])
 
     def test_raw_input(self):
         """ Does the in-process kernel handle raw_input correctly?
         """
-        km = BlockingInProcessKernelManager()
-        km.start_kernel()
-
         io = StringIO('foobar\n')
         sys_stdin = sys.stdin
         sys.stdin = io
         try:
             if py3compat.PY3:
-                km.shell_channel.execute('x = input()')
+                self.kc.execute('x = input()')
             else:
-                km.shell_channel.execute('x = raw_input()')
+                self.kc.execute('x = raw_input()')
         finally:
             sys.stdin = sys_stdin
-        self.assertEqual(km.kernel.shell.user_ns.get('x'), 'foobar')
+        self.assertEqual(self.km.kernel.shell.user_ns.get('x'), 'foobar')
 
     def test_stdout(self):
         """ Does the in-process kernel correctly capture IO?
@@ -66,21 +68,21 @@ class InProcessKernelTestCase(unittest.TestCase):
             kernel.shell.run_cell('print("foo")')
         self.assertEqual(io.stdout, 'foo\n')
 
-        km = BlockingInProcessKernelManager(kernel=kernel)
-        kernel.frontends.append(km)
-        km.shell_channel.execute('print("bar")')
-        msg = get_stream_message(km)
+        kc = BlockingInProcessKernelClient(kernel=kernel)
+        kernel.frontends.append(kc)
+        kc.shell_channel.execute('print("bar")')
+        msg = get_stream_message(kc)
         self.assertEqual(msg['content']['data'], 'bar\n')
 
 #-----------------------------------------------------------------------------
 # Utility functions
 #-----------------------------------------------------------------------------
 
-def get_stream_message(kernel_manager, timeout=5):
+def get_stream_message(kernel_client, timeout=5):
     """ Gets a single stream message synchronously from the sub channel.
     """
     while True:
-        msg = kernel_manager.iopub_channel.get_msg(timeout=timeout)
+        msg = kernel_client.get_iopub_msg(timeout=timeout)
         if msg['header']['msg_type'] == 'stream':
             return msg
 

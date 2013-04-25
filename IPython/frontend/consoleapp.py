@@ -34,8 +34,8 @@ import uuid
 from IPython.config.application import boolean_flag
 from IPython.config.configurable import Configurable
 from IPython.core.profiledir import ProfileDir
-from IPython.kernel.blockingkernelmanager import BlockingKernelManager
-from IPython.kernel.kernelmanager import KernelManager
+from IPython.kernel.blocking import BlockingKernelClient
+from IPython.kernel import KernelManager
 from IPython.kernel import tunnel_to_kernel, find_connection_file, swallow_argv
 from IPython.utils.path import filefind
 from IPython.utils.py3compat import str_to_bytes
@@ -144,7 +144,8 @@ class IPythonConsoleApp(Configurable):
     classes = classes
     flags = Dict(flags)
     aliases = Dict(aliases)
-    kernel_manager_class = BlockingKernelManager
+    kernel_manager_class = KernelManager
+    kernel_client_class = BlockingKernelClient
 
     kernel_argv = List(Unicode)
     # frontend flags&aliases to be stripped when building kernel_argv
@@ -328,6 +329,9 @@ class IPythonConsoleApp(Configurable):
 
     def init_kernel_manager(self):
         # Don't let Qt or ZMQ swallow KeyboardInterupts.
+        if self.existing:
+            self.kernel_manager = None
+            return
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         # Create a KernelManager and start a kernel.
@@ -339,15 +343,39 @@ class IPythonConsoleApp(Configurable):
                                 connection_file=self.connection_file,
                                 config=self.config,
         )
-        # start the kernel
-        if not self.existing:
-            self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
-            atexit.register(self.kernel_manager.cleanup_ipc_files)
-        elif self.sshserver:
+        self.kernel_manager.client_factory = self.kernel_client_class
+        self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
+        atexit.register(self.kernel_manager.cleanup_ipc_files)
+
+        if self.sshserver:
             # ssh, write new connection file
             self.kernel_manager.write_connection_file()
+
+        # in case KM defaults / ssh writing changes things:
+        km = self.kernel_manager
+        self.shell_port=km.shell_port
+        self.iopub_port=km.iopub_port
+        self.stdin_port=km.stdin_port
+        self.hb_port=km.hb_port
+        self.connection_file = km.connection_file
+
         atexit.register(self.kernel_manager.cleanup_connection_file)
-        self.kernel_manager.start_channels()
+
+    def init_kernel_client(self):
+        if self.kernel_manager is not None:
+            self.kernel_client = self.kernel_manager.client()
+        else:
+            self.kernel_client = self.kernel_client_class(
+                                shell_port=self.shell_port,
+                                iopub_port=self.iopub_port,
+                                stdin_port=self.stdin_port,
+                                hb_port=self.hb_port,
+                                connection_file=self.connection_file,
+                                config=self.config,
+            )
+
+        self.kernel_client.start_channels()
+
 
 
     def initialize(self, argv=None):
@@ -359,4 +387,5 @@ class IPythonConsoleApp(Configurable):
         default_secure(self.config)
         self.init_ssh()
         self.init_kernel_manager()
+        self.init_kernel_client()
 

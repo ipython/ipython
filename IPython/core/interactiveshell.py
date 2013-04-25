@@ -421,11 +421,11 @@ class InteractiveShell(SingletonConfigurable):
 
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
-                 custom_exceptions=((), None)):
+                 custom_exceptions=((), None), **kwargs):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(config=config)
+        super(InteractiveShell, self).__init__(config=config, **kwargs)
         self.configurables = [self]
 
         # These are relatively independent and stateless

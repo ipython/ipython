@@ -1,11 +1,8 @@
-"""Base classes to manage the interaction with a running kernel.
-
-TODO
-* Create logger to handle debugging and console messages.
+"""Base classes to manage a Client's interaction with a running kernel
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -20,15 +17,9 @@ from __future__ import absolute_import
 # Standard library imports
 import atexit
 import errno
-import json
-from subprocess import Popen
-import os
-import signal
-import sys
 from threading import Thread
 import time
 
-# System library imports
 import zmq
 # import ZMQError in top-level namespace, to avoid ugly attribute-error messages
 # during garbage collection of threads at exit:
@@ -36,24 +27,10 @@ from zmq import ZMQError
 from zmq.eventloop import ioloop, zmqstream
 
 # Local imports
-from IPython.config.configurable import Configurable
-from IPython.utils.localinterfaces import LOCALHOST, LOCAL_IPS
-from IPython.utils.traitlets import (
-    Any, Instance, Type, Unicode, List, Integer, Bool, CaselessStrEnum
-)
-from IPython.utils.py3compat import str_to_bytes
-from IPython.kernel import (
-    write_connection_file,
-    make_ipkernel_cmd,
-    launch_kernel,
-)
-from .zmq.session import Session
-from .kernelmanagerabc import (
+from .channelsabc import (
     ShellChannelABC, IOPubChannelABC,
     HBChannelABC, StdInChannelABC,
-    KernelManagerABC
 )
-
 
 #-----------------------------------------------------------------------------
 # Constants and exceptions
@@ -104,6 +81,7 @@ class ZMQSocketChannel(Thread):
     stream = None
     _address = None
     _exiting = False
+    proxy_methods = []
 
     def __init__(self, context, session, address):
         """Create a channel.
@@ -129,7 +107,7 @@ class ZMQSocketChannel(Thread):
             address = "tcp://%s:%i" % address
         self._address = address
         atexit.register(self._notice_exit)
-    
+
     def _notice_exit(self):
         self._exiting = True
 
@@ -170,11 +148,11 @@ class ZMQSocketChannel(Thread):
 
     def _queue_send(self, msg):
         """Queue a message to be sent from the IOLoop's thread.
-        
+
         Parameters
         ----------
         msg : message to send
-        
+
         This is threadsafe, as it uses IOLoop.add_callback to give the loop's
         thread control of the action.
         """
@@ -189,7 +167,7 @@ class ZMQSocketChannel(Thread):
         """
         ident,smsg = self.session.feed_identities(msg)
         self.call_handlers(self.session.unserialize(smsg))
-    
+
 
 
 class ShellChannel(ZMQSocketChannel):
@@ -198,6 +176,14 @@ class ShellChannel(ZMQSocketChannel):
     command_queue = None
     # flag for whether execute requests should be allowed to call raw_input:
     allow_stdin = True
+    proxy_methods = [
+        'execute',
+        'complete',
+        'object_info',
+        'history',
+        'kernel_info',
+        'shutdown',
+    ]
 
     def __init__(self, context, session, address):
         super(ShellChannel, self).__init__(context, session, address)
@@ -226,7 +212,7 @@ class ShellChannel(ZMQSocketChannel):
 
         Subclasses should override this method to handle incoming messages.
         It is important to remember that this method is called in the thread
-        so that some logic must be done to ensure that the application leve
+        so that some logic must be done to ensure that the application level
         handlers are called in the application thread.
         """
         raise NotImplementedError('call_handlers must be defined in a subclass.')
@@ -261,7 +247,7 @@ class ShellChannel(ZMQSocketChannel):
         allow_stdin : bool, optional (default self.allow_stdin)
             Flag for whether the kernel can send stdin requests to frontends.
 
-            Some frontends (e.g. the Notebook) do not support stdin requests. 
+            Some frontends (e.g. the Notebook) do not support stdin requests.
             If raw_input is called from code executed from such a frontend, a
             StdinNotImplementedError will be raised.
 
@@ -275,8 +261,8 @@ class ShellChannel(ZMQSocketChannel):
             user_expressions = {}
         if allow_stdin is None:
             allow_stdin = self.allow_stdin
-        
-        
+
+
         # Don't waste network traffic if inputs are invalid
         if not isinstance(code, basestring):
             raise ValueError('code %r must be a string' % code)
@@ -474,6 +460,7 @@ class StdInChannel(ZMQSocketChannel):
     """The stdin channel to handle raw_input requests that the kernel makes."""
 
     msg_queue = None
+    proxy_methods = ['input']
 
     def __init__(self, context, session, address):
         super(StdInChannel, self).__init__(context, session, address)
@@ -543,17 +530,17 @@ class HBChannel(ZMQSocketChannel):
         self.socket = self.context.socket(zmq.REQ)
         self.socket.setsockopt(zmq.LINGER, 0)
         self.socket.connect(self.address)
-        
+
         self.poller.register(self.socket, zmq.POLLIN)
-    
+
     def _poll(self, start_time):
         """poll for heartbeat replies until we reach self.time_to_dead.
-        
+
         Ignores interrupts, and returns the result of poll(), which
         will be an empty list if no messages arrived before the timeout,
         or the event tuple if there is a message to receive.
         """
-        
+
         until_dead = self.time_to_dead - (time.time() - start_time)
         # ensure poll at least once
         until_dead = max(until_dead, 1e-3)
@@ -584,13 +571,13 @@ class HBChannel(ZMQSocketChannel):
         self._create_socket()
         self._running = True
         self._beating = True
-        
+
         while self._running:
             if self._pause:
                 # just sleep, and skip the rest of the loop
                 time.sleep(self.time_to_dead)
                 continue
-            
+
             since_last_heartbeat = 0.0
             # io.rprint('Ping from HB channel') # dbg
             # no need to catch EFSM here, because the previous event was
@@ -651,474 +638,7 @@ class HBChannel(ZMQSocketChannel):
         raise NotImplementedError('call_handlers must be defined in a subclass.')
 
 
-#-----------------------------------------------------------------------------
-# Main kernel manager class
-#-----------------------------------------------------------------------------
-
-class KernelManager(Configurable):
-    """Manages a single kernel on this host along with its channels.
-
-    There are four channels associated with each kernel:
-
-    * shell: for request/reply calls to the kernel.
-    * iopub: for the kernel to publish results to frontends.
-    * hb: for monitoring the kernel's heartbeat.
-    * stdin: for frontends to reply to raw_input calls in the kernel.
-
-    The usage of the channels that this class manages is optional. It is
-    entirely possible to connect to the kernels directly using ZeroMQ
-    sockets. These channels are useful primarily for talking to a kernel
-    whose :class:`KernelManager` is in the same process.
-
-    This version manages kernels started using Popen.
-    """
-    # The PyZMQ Context to use for communication with the kernel.
-    context = Instance(zmq.Context)
-    def _context_default(self):
-        return zmq.Context.instance()
-
-    # The Session to use for communication with the kernel.
-    session = Instance(Session)
-    def _session_default(self):
-        return Session(config=self.config)
-
-    # The kernel process with which the KernelManager is communicating.
-    # generally a Popen instance
-    kernel = Any() 
-    
-    kernel_cmd = List(Unicode, config=True,
-        help="""The Popen Command to launch the kernel.
-        Override this if you have a custom 
-        """
-    )
-    def _kernel_cmd_changed(self, name, old, new):
-        self.ipython_kernel = False
-
-    ipython_kernel = Bool(True)
-    
-
-    # The addresses for the communication channels.
-    connection_file = Unicode('')
-    
-    transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
-
-    ip = Unicode(LOCALHOST, config=True,
-        help="""Set the kernel\'s IP address [default localhost].
-        If the IP address is something other than localhost, then
-        Consoles on other machines will be able to connect
-        to the Kernel, so be careful!"""
-    )
-    def _ip_default(self):
-        if self.transport == 'ipc':
-            if self.connection_file:
-                return os.path.splitext(self.connection_file)[0] + '-ipc'
-            else:
-                return 'kernel-ipc'
-        else:
-            return LOCALHOST
-    def _ip_changed(self, name, old, new):
-        if new == '*':
-            self.ip = '0.0.0.0'
-    shell_port = Integer(0)
-    iopub_port = Integer(0)
-    stdin_port = Integer(0)
-    hb_port = Integer(0)
-
-    # The classes to use for the various channels.
-    shell_channel_class = Type(ShellChannel)
-    iopub_channel_class = Type(IOPubChannel)
-    stdin_channel_class = Type(StdInChannel)
-    hb_channel_class = Type(HBChannel)
-
-    # Protected traits.
-    _launch_args = Any
-    _shell_channel = Any
-    _iopub_channel = Any
-    _stdin_channel = Any
-    _hb_channel = Any
-    _connection_file_written=Bool(False)
-
-    def __del__(self):
-        self.cleanup_connection_file()
-
-    #--------------------------------------------------------------------------
-    # Channel management methods:
-    #--------------------------------------------------------------------------
-
-    def start_channels(self, shell=True, iopub=True, stdin=True, hb=True):
-        """Starts the channels for this kernel.
-
-        This will create the channels if they do not exist and then start
-        them (their activity runs in a thread). If port numbers of 0 are
-        being used (random ports) then you must first call 
-        :method:`start_kernel`. If the channels have been stopped and you
-        call this, :class:`RuntimeError` will be raised.
-        """
-        if shell:
-            self.shell_channel.start()
-        if iopub:
-            self.iopub_channel.start()
-        if stdin:
-            self.stdin_channel.start()
-            self.shell_channel.allow_stdin = True
-        else:
-            self.shell_channel.allow_stdin = False
-        if hb:
-            self.hb_channel.start()
-
-    def stop_channels(self):
-        """Stops all the running channels for this kernel.
-
-        This stops their event loops and joins their threads.
-        """
-        if self.shell_channel.is_alive():
-            self.shell_channel.stop()
-        if self.iopub_channel.is_alive():
-            self.iopub_channel.stop()
-        if self.stdin_channel.is_alive():
-            self.stdin_channel.stop()
-        if self.hb_channel.is_alive():
-            self.hb_channel.stop()
-
-    @property
-    def channels_running(self):
-        """Are any of the channels created and running?"""
-        return (self.shell_channel.is_alive() or self.iopub_channel.is_alive() or
-                self.stdin_channel.is_alive() or self.hb_channel.is_alive())
-
-    def _make_url(self, port):
-        """Make a zmq url with a port.
-
-        There are two cases that this handles:
-
-        * tcp: tcp://ip:port
-        * ipc: ipc://ip-port
-        """
-        if self.transport == 'tcp':
-            return "tcp://%s:%i" % (self.ip, port)
-        else:
-            return "%s://%s-%s" % (self.transport, self.ip, port)
-
-    @property
-    def shell_channel(self):
-        """Get the shell channel object for this kernel."""
-        if self._shell_channel is None:
-            self._shell_channel = self.shell_channel_class(
-                self.context, self.session, self._make_url(self.shell_port)
-            )
-        return self._shell_channel
-
-    @property
-    def iopub_channel(self):
-        """Get the iopub channel object for this kernel."""
-        if self._iopub_channel is None:
-            self._iopub_channel = self.iopub_channel_class(
-                self.context, self.session, self._make_url(self.iopub_port)
-            )
-        return self._iopub_channel
-
-    @property
-    def stdin_channel(self):
-        """Get the stdin channel object for this kernel."""
-        if self._stdin_channel is None:
-            self._stdin_channel = self.stdin_channel_class(
-                self.context, self.session, self._make_url(self.stdin_port)
-            )
-        return self._stdin_channel
-
-    @property
-    def hb_channel(self):
-        """Get the hb channel object for this kernel."""
-        if self._hb_channel is None:
-            self._hb_channel = self.hb_channel_class(
-                self.context, self.session, self._make_url(self.hb_port)
-            )
-        return self._hb_channel
-
-    #--------------------------------------------------------------------------
-    # Connection and ipc file management
-    #--------------------------------------------------------------------------
-    
-    def cleanup_connection_file(self):
-        """Cleanup connection file *if we wrote it*
-        
-        Will not raise if the connection file was already removed somehow.
-        """
-        if self._connection_file_written:
-            # cleanup connection files on full shutdown of kernel we started
-            self._connection_file_written = False
-            try:
-                os.remove(self.connection_file)
-            except (IOError, OSError, AttributeError):
-                pass
-    
-    def cleanup_ipc_files(self):
-        """Cleanup ipc files if we wrote them."""
-        if self.transport != 'ipc':
-            return
-        for port in (self.shell_port, self.iopub_port, self.stdin_port, self.hb_port):
-            ipcfile = "%s-%i" % (self.ip, port)
-            try:
-                os.remove(ipcfile)
-            except (IOError, OSError):
-                pass
-
-    def load_connection_file(self):
-        """Load connection info from JSON dict in self.connection_file."""
-        with open(self.connection_file) as f:
-            cfg = json.loads(f.read())
-
-        from pprint import pprint
-        pprint(cfg)
-        self.transport = cfg.get('transport', 'tcp')
-        self.ip = cfg['ip']
-        self.shell_port = cfg['shell_port']
-        self.stdin_port = cfg['stdin_port']
-        self.iopub_port = cfg['iopub_port']
-        self.hb_port = cfg['hb_port']
-        self.session.key = str_to_bytes(cfg['key'])
-    
-    def write_connection_file(self):
-        """Write connection info to JSON dict in self.connection_file."""
-        if self._connection_file_written:
-            return
-        self.connection_file,cfg = write_connection_file(self.connection_file,
-            transport=self.transport, ip=self.ip, key=self.session.key,
-            stdin_port=self.stdin_port, iopub_port=self.iopub_port,
-            shell_port=self.shell_port, hb_port=self.hb_port)
-        # write_connection_file also sets default ports:
-        self.shell_port = cfg['shell_port']
-        self.stdin_port = cfg['stdin_port']
-        self.iopub_port = cfg['iopub_port']
-        self.hb_port = cfg['hb_port']
-        
-        self._connection_file_written = True
-
-    #--------------------------------------------------------------------------
-    # Kernel management
-    #--------------------------------------------------------------------------
-    
-    def format_kernel_cmd(self, **kw):
-        """format templated args (e.g. {connection_file})"""
-        if self.kernel_cmd:
-            cmd = self.kernel_cmd
-        else:
-            cmd = make_ipkernel_cmd(
-                'from IPython.kernel.zmq.kernelapp import main; main()',
-                **kw
-            )
-        ns = dict(connection_file=self.connection_file)
-        ns.update(self._launch_args)
-        return [ c.format(**ns) for c in cmd ]
-    
-    def _launch_kernel(self, kernel_cmd, **kw):
-        """actually launch the kernel
-        
-        override in a subclass to launch kernel subprocesses differently
-        """
-        return launch_kernel(kernel_cmd, **kw)
-    
-    def start_kernel(self, **kw):
-        """Starts a kernel on this host in a separate process.
-
-        If random ports (port=0) are being used, this method must be called
-        before the channels are created.
-
-        Parameters:
-        -----------
-        **kw : optional
-             keyword arguments that are passed down to build the kernel_cmd
-             and launching the kernel (e.g. Popen kwargs).
-        """
-        if self.transport == 'tcp' and self.ip not in LOCAL_IPS:
-            raise RuntimeError("Can only launch a kernel on a local interface. "
-                               "Make sure that the '*_address' attributes are "
-                               "configured properly. "
-                               "Currently valid addresses are: %s"%LOCAL_IPS
-                               )
-        
-        # write connection file / get default ports
-        self.write_connection_file()
-
-        # save kwargs for use in restart
-        self._launch_args = kw.copy()
-        # build the Popen cmd
-        kernel_cmd = self.format_kernel_cmd(**kw)
-        # launch the kernel subprocess
-        self.kernel = self._launch_kernel(kernel_cmd,
-                                    ipython_kernel=self.ipython_kernel,
-                                    **kw)
-
-    def shutdown_kernel(self, now=False, restart=False):
-        """Attempts to the stop the kernel process cleanly. 
-
-        This attempts to shutdown the kernels cleanly by:
-
-        1. Sending it a shutdown message over the shell channel.
-        2. If that fails, the kernel is shutdown forcibly by sending it
-           a signal.
-
-        Parameters:
-        -----------
-        now : bool
-            Should the kernel be forcible killed *now*. This skips the
-            first, nice shutdown attempt.
-        restart: bool
-            Will this kernel be restarted after it is shutdown. When this
-            is True, connection files will not be cleaned up.
-        """
-        # FIXME: Shutdown does not work on Windows due to ZMQ errors!
-        if sys.platform == 'win32':
-            self._kill_kernel()
-            return
-
-        # Pause the heart beat channel if it exists.
-        if self._hb_channel is not None:
-            self._hb_channel.pause()
-
-        if now:
-            if self.has_kernel:
-                self._kill_kernel()
-        else:
-            # Don't send any additional kernel kill messages immediately, to give
-            # the kernel a chance to properly execute shutdown actions. Wait for at
-            # most 1s, checking every 0.1s.
-            self.shell_channel.shutdown(restart=restart)
-            for i in range(10):
-                if self.is_alive:
-                    time.sleep(0.1)
-                else:
-                    break
-            else:
-                # OK, we've waited long enough.
-                if self.has_kernel:
-                    self._kill_kernel()
-
-        if not restart:
-            self.cleanup_connection_file()
-            self.cleanup_ipc_files()
-        else:
-            self.cleanup_ipc_files()
-
-    def restart_kernel(self, now=False, **kw):
-        """Restarts a kernel with the arguments that were used to launch it.
-
-        If the old kernel was launched with random ports, the same ports will be
-        used for the new kernel. The same connection file is used again.
-
-        Parameters
-        ----------
-        now : bool, optional
-            If True, the kernel is forcefully restarted *immediately*, without
-            having a chance to do any cleanup action.  Otherwise the kernel is
-            given 1s to clean up before a forceful restart is issued.
-
-            In all cases the kernel is restarted, the only difference is whether
-            it is given a chance to perform a clean shutdown or not.
-
-        **kw : optional
-            Any options specified here will overwrite those used to launch the
-            kernel.
-        """
-        if self._launch_args is None:
-            raise RuntimeError("Cannot restart the kernel. "
-                               "No previous call to 'start_kernel'.")
-        else:
-            # Stop currently running kernel.
-            self.shutdown_kernel(now=now, restart=True)
-
-            # Start new kernel.
-            self._launch_args.update(kw)
-            self.start_kernel(**self._launch_args)
-
-            # FIXME: Messages get dropped in Windows due to probable ZMQ bug
-            # unless there is some delay here.
-            if sys.platform == 'win32':
-                time.sleep(0.2)
-
-    @property
-    def has_kernel(self):
-        """Has a kernel been started that we are managing."""
-        return self.kernel is not None
-
-    def _kill_kernel(self):
-        """Kill the running kernel.
-
-        This is a private method, callers should use shutdown_kernel(now=True).
-        """
-        if self.has_kernel:
-            # Pause the heart beat channel if it exists.
-            if self._hb_channel is not None:
-                self._hb_channel.pause()
-
-            # Signal the kernel to terminate (sends SIGKILL on Unix and calls
-            # TerminateProcess() on Win32).
-            try:
-                self.kernel.kill()
-            except OSError as e:
-                # In Windows, we will get an Access Denied error if the process
-                # has already terminated. Ignore it.
-                if sys.platform == 'win32':
-                    if e.winerror != 5:
-                        raise
-                # On Unix, we may get an ESRCH error if the process has already
-                # terminated. Ignore it.
-                else:
-                    from errno import ESRCH
-                    if e.errno != ESRCH:
-                        raise
-
-            # Block until the kernel terminates.
-            self.kernel.wait()
-            self.kernel = None
-        else:
-            raise RuntimeError("Cannot kill kernel. No kernel is running!")
-
-    def interrupt_kernel(self):
-        """Interrupts the kernel by sending it a signal.
-
-        Unlike ``signal_kernel``, this operation is well supported on all
-        platforms.
-        """
-        if self.has_kernel:
-            if sys.platform == 'win32':
-                from .zmq.parentpoller import ParentPollerWindows as Poller
-                Poller.send_interrupt(self.kernel.win32_interrupt_event)
-            else:
-                self.kernel.send_signal(signal.SIGINT)
-        else:
-            raise RuntimeError("Cannot interrupt kernel. No kernel is running!")
-
-    def signal_kernel(self, signum):
-        """Sends a signal to the kernel.
-
-        Note that since only SIGTERM is supported on Windows, this function is
-        only useful on Unix systems.
-        """
-        if self.has_kernel:
-            self.kernel.send_signal(signum)
-        else:
-            raise RuntimeError("Cannot signal kernel. No kernel is running!")
-
-    @property
-    def is_alive(self):
-        """Is the kernel process still running?"""
-        if self.has_kernel:
-            if self.kernel.poll() is None:
-                return True
-            else:
-                return False
-        elif self._hb_channel is not None:
-            # We didn't start the kernel with this KernelManager so we
-            # use the heartbeat.
-            return self._hb_channel.is_beating()
-        else:
-            # no heartbeat and not local, we can't tell if it's running,
-            # so naively return True
-            return True
-
-
-#-----------------------------------------------------------------------------
+#---------------------------------------------------------------------#-----------------------------------------------------------------------------
 # ABC Registration
 #-----------------------------------------------------------------------------
 
@@ -1126,5 +646,3 @@ ShellChannelABC.register(ShellChannel)
 IOPubChannelABC.register(IOPubChannel)
 HBChannelABC.register(HBChannel)
 StdInChannelABC.register(StdInChannel)
-KernelManagerABC.register(KernelManager)
-

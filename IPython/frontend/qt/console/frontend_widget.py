@@ -148,6 +148,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._highlighter = FrontendHighlighter(self)
         self._input_splitter = self._input_splitter_class()
         self._kernel_manager = None
+        self._kernel_client = None
         self._request_info = {}
         self._request_info['execute'] = {};
         self._callback_dict = {}
@@ -215,7 +216,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         See parent class :meth:`execute` docstring for full details.
         """
-        msg_id = self.kernel_manager.shell_channel.execute(source, hidden)
+        msg_id = self.kernel_client.execute(source, hidden)
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'user')
         self._hidden = hidden
         if not hidden:
@@ -357,7 +358,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         # generate uuid, which would be used as an indication of whether or
         # not the unique request originated from here (can use msg id ?)
         local_uuid = str(uuid.uuid1())
-        msg_id = self.kernel_manager.shell_channel.execute('',
+        msg_id = self.kernel_client.execute('',
             silent=True, user_expressions={ local_uuid:expr })
         self._callback_dict[local_uuid] = callback
         self._request_info['execute'][msg_id] = self._ExecutionRequest(msg_id, 'silent_exec_callback')
@@ -400,7 +401,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if info and info.kind == 'user' and not self._hidden:
             # Make sure that all output from the SUB channel has been processed
             # before writing a new prompt.
-            self.kernel_manager.iopub_channel.flush()
+            self.kernel_client.iopub_channel.flush()
 
             # Reset the ANSI style information to prevent bad text in stdout
             # from messing up our colors. We're not a true terminal so we're
@@ -435,27 +436,39 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Make sure that all output from the SUB channel has been processed
         # before entering readline mode.
-        self.kernel_manager.iopub_channel.flush()
+        self.kernel_client.iopub_channel.flush()
 
         def callback(line):
-            self.kernel_manager.stdin_channel.input(line)
+            self.kernel_client.stdin_channel.input(line)
         if self._reading:
             self.log.debug("Got second input request, assuming first was interrupted.")
             self._reading = False
         self._readline(msg['content']['prompt'], callback=callback)
 
+    def _kernel_restarted_message(self, died=True):
+        msg = "Kernel died, restarting" if died else "Kernel restarting"
+        self._append_html("<br>%s<hr><br>" % msg,
+            before_prompt=False
+        )
+
     def _handle_kernel_died(self, since_last_heartbeat):
-        """ Handle the kernel's death by asking if the user wants to restart.
+        """Handle the kernel's death (if we do not own the kernel).
         """
-        self.log.debug("kernel died: %s", since_last_heartbeat)
+        self.log.warn("kernel died: %s", since_last_heartbeat)
         if self.custom_restart:
             self.custom_restart_kernel_died.emit(since_last_heartbeat)
         else:
-            message = 'The kernel heartbeat has been inactive for %.2f ' \
-                'seconds. Do you want to restart the kernel? You may ' \
-                'first want to check the network connection.' % \
-                since_last_heartbeat
-            self.restart_kernel(message, now=True)
+            self._kernel_restarted_message(died=True)
+            self.reset()
+
+    def _handle_kernel_restarted(self, died=True):
+        """Notice that the autorestarter restarted the kernel.
+
+        There's nothing to do but show a message.
+        """
+        self.log.warn("kernel restarted")
+        self._kernel_restarted_message(died=died)
+        self.reset()
 
     def _handle_object_info_reply(self, rep):
         """ Handle replies for call tips.
@@ -505,37 +518,42 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
     def _handle_shutdown_reply(self, msg):
         """ Handle shutdown signal, only if from other console.
         """
-        self.log.debug("shutdown: %s", msg.get('content', ''))
+        self.log.warn("shutdown: %s", msg.get('content', ''))
+        restart = msg.get('content', {}).get('restart', False)
         if not self._hidden and not self._is_from_this_session(msg):
-            if self._local_kernel:
-                if not msg['content']['restart']:
+            # got shutdown reply, request came from session other than ours
+            if restart:
+                # someone restarted the kernel, handle it
+                self._handle_kernel_restarted(died=False)
+            else:
+                # kernel was shutdown permanently
+                # this triggers exit_requested if the kernel was local,
+                # and a dialog if the kernel was remote,
+                # so we don't suddenly clear the qtconsole without asking.
+                if self._local_kernel:
                     self.exit_requested.emit(self)
                 else:
-                    # we just got notified of a restart!
-                    time.sleep(0.25) # wait 1/4 sec to reset
-                                     # lest the request for a new prompt
-                                     # goes to the old kernel
-                    self.reset()
-            else: # remote kernel, prompt on Kernel shutdown/reset
-                title = self.window().windowTitle()
-                if not msg['content']['restart']:
+                    title = self.window().windowTitle()
                     reply = QtGui.QMessageBox.question(self, title,
                         "Kernel has been shutdown permanently. "
                         "Close the Console?",
                         QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         self.exit_requested.emit(self)
-                else:
-                    # XXX: remove message box in favor of using the
-                    # clear_on_kernel_restart setting?
-                    reply = QtGui.QMessageBox.question(self, title,
-                        "Kernel has been reset. Clear the Console?",
-                        QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
-                    if reply == QtGui.QMessageBox.Yes:
-                        time.sleep(0.25) # wait 1/4 sec to reset
-                                         # lest the request for a new prompt
-                                         # goes to the old kernel
-                        self.reset()
+
+    def _handle_status(self, msg):
+        """Handle status message"""
+        # This is where a busy/idle indicator would be triggered,
+        # when we make one.
+        state = msg['content'].get('execution_state', '')
+        if state == 'starting':
+            # kernel started while we were running
+            if self._executing:
+                self._handle_kernel_restarted(died=True)
+        elif state == 'idle':
+            pass
+        elif state == 'busy':
+            pass
 
     def _started_channels(self):
         """ Called when the KernelManager channels have started listening or
@@ -568,16 +586,15 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         if self.custom_interrupt:
             self._reading = False
             self.custom_interrupt_requested.emit()
-        elif self.kernel_manager.has_kernel:
+        elif self.kernel_manager:
             self._reading = False
             self.kernel_manager.interrupt_kernel()
         else:
-            self._append_plain_text('Kernel process is either remote or '
-                                    'unspecified. Cannot interrupt.\n')
+            self._append_plain_text('Cannot interrupt a kernel I did not start.\n')
 
     def reset(self, clear=False):
-        """ Resets the widget to its initial state if ``clear`` parameter or
-        ``clear_on_kernel_restart`` configuration setting is True, otherwise
+        """ Resets the widget to its initial state if ``clear`` parameter
+        is True, otherwise
         prints a visual indication of the fact that the kernel restarted, but
         does not clear the traces from previous usage of the kernel before it
         was restarted.  With ``clear=True``, it is similar to ``%clear``, but
@@ -589,15 +606,9 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         self._reading = False
         self._highlighter.highlighting_on = False
 
-        if self.clear_on_kernel_restart or clear:
+        if clear:
             self._control.clear()
             self._append_plain_text(self.banner)
-        else:
-            self._append_plain_text("# restarting kernel...")
-            self._append_html("<hr><br>")
-            # XXX: Reprinting the full banner may be too much, but once #1680 is
-            # addressed, that will mitigate it.
-            #self._append_plain_text(self.banner)
         # update output marker for stdout/stderr, so that startup
         # messages appear after banner:
         self._append_before_prompt_pos = self._get_cursor().position()
@@ -614,10 +625,11 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         if self.custom_restart:
             self.custom_restart_requested.emit()
+            return
 
-        elif self.kernel_manager.has_kernel:
+        if self.kernel_manager:
             # Pause the heart beat channel to prevent further warnings.
-            self.kernel_manager.hb_channel.pause()
+            self.kernel_client.hb_channel.pause()
 
             # Prompt the user to restart the kernel. Un-pause the heartbeat if
             # they decline. (If they accept, the heartbeat will be un-paused
@@ -634,21 +646,23 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
             if do_restart:
                 try:
                     self.kernel_manager.restart_kernel(now=now)
-                except RuntimeError:
-                    self._append_plain_text('Kernel started externally. '
-                                            'Cannot restart.\n',
-                                            before_prompt=True
-                                            )
+                except RuntimeError as e:
+                    self._append_plain_text(
+                        'Error restarting kernel: %s\n' % e,
+                        before_prompt=True
+                    )
                 else:
-                    self.reset()
+                    self._append_html("<br>Restarting kernel...\n<hr><br>",
+                        before_prompt=True,
+                    )
             else:
-                self.kernel_manager.hb_channel.unpause()
+                self.kernel_client.hb_channel.unpause()
 
         else:
-            self._append_plain_text('Kernel process is either remote or '
-                                    'unspecified. Cannot restart.\n',
-                                    before_prompt=True
-                                    )
+            self._append_plain_text(
+                'Cannot restart a Kernel I did not start\n',
+                before_prompt=True
+            )
 
     #---------------------------------------------------------------------------
     # 'FrontendWidget' protected interface
@@ -670,7 +684,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
 
         # Send the metadata request to the kernel
         name = '.'.join(context)
-        msg_id = self.kernel_manager.shell_channel.object_info(name)
+        msg_id = self.kernel_client.object_info(name)
         pos = self._get_cursor().position()
         self._request_info['call_tip'] = self._CallTipRequest(msg_id, pos)
         return True
@@ -681,7 +695,7 @@ class FrontendWidget(HistoryConsoleWidget, BaseFrontendMixin):
         context = self._get_context()
         if context:
             # Send the completion request to the kernel
-            msg_id = self.kernel_manager.shell_channel.complete(
+            msg_id = self.kernel_client.complete(
                 '.'.join(context),                       # text
                 self._get_input_buffer_cursor_line(),    # line
                 self._get_input_buffer_cursor_column(),  # cursor_pos

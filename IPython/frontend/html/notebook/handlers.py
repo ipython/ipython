@@ -407,6 +407,9 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         return jsonapi.dumps(msg, default=date_default)
 
     def _on_zmq_reply(self, msg_list):
+        # Sometimes this gets triggered when the on_close method is scheduled in the
+        # eventloop but hasn't been called.
+        if self.stream.closed(): return
         try:
             msg = self._reserialize_reply(msg_list)
         except Exception:
@@ -466,10 +469,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler):
 class IOPubHandler(AuthenticatedZMQStreamHandler):
 
     def initialize(self, *args, **kwargs):
-        self._kernel_alive = True
-        self._beating = False
         self.iopub_stream = None
-        self.hb_stream = None
 
     def on_first_message(self, msg):
         try:
@@ -478,12 +478,11 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self.close()
             return
         km = self.application.kernel_manager
-        self.time_to_dead = km.time_to_dead
-        self.first_beat = km.first_beat
         kernel_id = self.kernel_id
+        km.add_restart_callback(kernel_id, self.on_kernel_restarted)
+        km.add_restart_callback(kernel_id, self.on_restart_failed, 'dead')
         try:
-            self.iopub_stream = km.create_iopub_stream(kernel_id)
-            self.hb_stream = km.create_hb_stream(kernel_id)
+            self.iopub_stream = km.connect_iopub(kernel_id)
         except web.HTTPError:
             # WebSockets don't response to traditional error codes so we
             # close the connection.
@@ -492,81 +491,39 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
             self.close()
         else:
             self.iopub_stream.on_recv(self._on_zmq_reply)
-            self.start_hb(self.kernel_died)
 
     def on_message(self, msg):
         pass
+
+    def _send_status_message(self, status):
+        msg = self.session.msg("status",
+            {'execution_state': status}
+        )
+        self.write_message(jsonapi.dumps(msg, default=date_default))
+
+    def on_kernel_restarted(self):
+        logging.warn("kernel %s restarted", self.kernel_id)
+        self._send_status_message('restarting')
+
+    def on_restart_failed(self):
+        logging.error("kernel %s restarted failed!", self.kernel_id)
+        self._send_status_message('dead')
 
     def on_close(self):
         # This method can be called twice, once by self.kernel_died and once
         # from the WebSocket close event. If the WebSocket connection is
         # closed before the ZMQ streams are setup, they could be None.
-        self.stop_hb()
+        km = self.application.kernel_manager
+        if self.kernel_id in km:
+            km.remove_restart_callback(
+                self.kernel_id, self.on_kernel_restarted,
+            )
+            km.remove_restart_callback(
+                self.kernel_id, self.on_restart_failed, 'dead',
+            )
         if self.iopub_stream is not None and not self.iopub_stream.closed():
             self.iopub_stream.on_recv(None)
             self.iopub_stream.close()
-        if self.hb_stream is not None and not self.hb_stream.closed():
-            self.hb_stream.close()
-
-    def start_hb(self, callback):
-        """Start the heartbeating and call the callback if the kernel dies."""
-        if not self._beating:
-            self._kernel_alive = True
-
-            def ping_or_dead():
-                self.hb_stream.flush()
-                if self._kernel_alive:
-                    self._kernel_alive = False
-                    self.hb_stream.send(b'ping')
-                    # flush stream to force immediate socket send
-                    self.hb_stream.flush()
-                else:
-                    try:
-                        callback()
-                    except:
-                        pass
-                    finally:
-                        self.stop_hb()
-
-            def beat_received(msg):
-                self._kernel_alive = True
-
-            self.hb_stream.on_recv(beat_received)
-            loop = ioloop.IOLoop.instance()
-            self._hb_periodic_callback = ioloop.PeriodicCallback(ping_or_dead, self.time_to_dead*1000, loop)
-            loop.add_timeout(time.time()+self.first_beat, self._really_start_hb)
-            self._beating= True
-    
-    def _really_start_hb(self):
-        """callback for delayed heartbeat start
-        
-        Only start the hb loop if we haven't been closed during the wait.
-        """
-        if self._beating and not self.hb_stream.closed():
-            self._hb_periodic_callback.start()
-
-    def stop_hb(self):
-        """Stop the heartbeating and cancel all related callbacks."""
-        if self._beating:
-            self._beating = False
-            self._hb_periodic_callback.stop()
-            if not self.hb_stream.closed():
-                self.hb_stream.on_recv(None)
-
-    def _delete_kernel_data(self):
-        """Remove the kernel data and notebook mapping."""
-        self.application.kernel_manager.delete_mapping_for_kernel(self.kernel_id)
-
-    def kernel_died(self):
-        self._delete_kernel_data()
-        self.application.log.error("Kernel died: %s" % self.kernel_id)
-        self.write_message(
-            {'header': {'msg_type': 'status'},
-             'parent_header': {},
-             'content': {'execution_state':'dead'}
-            }
-        )
-        self.on_close()
 
 
 class ShellHandler(AuthenticatedZMQStreamHandler):
@@ -584,7 +541,7 @@ class ShellHandler(AuthenticatedZMQStreamHandler):
         self.max_msg_size = km.max_msg_size
         kernel_id = self.kernel_id
         try:
-            self.shell_stream = km.create_shell_stream(kernel_id)
+            self.shell_stream = km.connect_shell(kernel_id)
         except web.HTTPError:
             # WebSockets don't response to traditional error codes so we
             # close the connection.

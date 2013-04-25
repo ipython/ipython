@@ -104,8 +104,6 @@ var IPython = (function (IPython) {
         this.ws_url = json.ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
-        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
-        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
         $([IPython.events]).trigger('status_started.Kernel', {kernel: this});
     };
 
@@ -165,6 +163,8 @@ var IPython = (function (IPython) {
                 that.iopub_channel.onclose = ws_closed_late;
             }
         }, 1000);
+        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
+        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
     };
 
     /**
@@ -418,6 +418,8 @@ var IPython = (function (IPython) {
                 $([IPython.events]).trigger('status_busy.Kernel', {kernel: this});
             } else if (content.execution_state === 'idle') {
                 $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
+            } else if (content.execution_state === 'restarting') {
+                $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
             } else if (content.execution_state === 'dead') {
                 this.stop_channels();
                 $([IPython.events]).trigger('status_dead.Kernel', {kernel: this});
