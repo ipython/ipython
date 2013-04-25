@@ -29,18 +29,13 @@ from IPython.utils.traitlets import (
 
 
 class MappingKernelManager(MultiKernelManager):
-    """A KernelManager that handles notebok mapping and HTTP error handling"""
+    """A KernelManager that handles notebook mapping and HTTP error handling"""
 
     def _kernel_manager_class_default(self):
         return "IPython.kernel.ioloop.IOLoopKernelManager"
 
     kernel_argv = List(Unicode)
     
-    max_msg_size = Integer(65536, config=True, help="""
-        The max raw message size accepted from the browser
-        over a WebSocket connection.
-    """)
-
     _notebook_mapping = Dict()
 
     #-------------------------------------------------------------------------
