@@ -604,6 +604,10 @@ class IOPubHandler(ZMQChannelHandler):
         logging.error("kernel %s restarted failed!", self.kernel_id)
         self._send_status_message('dead')
     
+    def on_message(self, msg):
+        """IOPub messages make no sense"""
+        pass
+
 class ShellHandler(ZMQChannelHandler):
     channel = 'shell'
 
