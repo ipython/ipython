@@ -32,9 +32,15 @@ from tornado.escape import url_escape
 from tornado import web
 from tornado import websocket
 
+try:
+    from tornado.log import app_log
+except ImportError:
+    app_log = logging.getLogger()
+
 from zmq.eventloop import ioloop
 from zmq.utils import jsonapi
 
+from IPython.config import Application
 from IPython.external.decorator import decorator
 from IPython.kernel.zmq.session import Session
 from IPython.lib.security import passwd_check
@@ -96,7 +102,7 @@ if tornado.version_info <= (2,1,1):
 
     websocket.WebSocketHandler._execute = _execute
     del _execute
-    
+
 #-----------------------------------------------------------------------------
 # Decorator for disabling read-only handlers
 #-----------------------------------------------------------------------------
@@ -206,6 +212,14 @@ class IPythonHandler(AuthenticatedHandler):
     @property
     def config(self):
         return self.settings.get('config', None)
+    
+    @property
+    def log(self):
+        """use the IPython log by default, falling back on tornado's logger"""
+        if Application.initialized():
+            return Application.instance().log
+        else:
+            return app_log
     
     @property
     def use_less(self):
@@ -431,7 +445,7 @@ class KernelActionHandler(IPythonHandler):
 
 
 class ZMQStreamHandler(websocket.WebSocketHandler):
-
+    
     def clear_cookie(self, *args, **kwargs):
         """meaningless for websockets"""
         pass
@@ -464,7 +478,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
         try:
             msg = self._reserialize_reply(msg_list)
         except Exception:
-            logging.critical("Malformed message: %r" % msg_list, exc_info=True)
+            self.log.critical("Malformed message: %r" % msg_list, exc_info=True)
         else:
             self.write_message(msg)
 
@@ -495,12 +509,12 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
         try:
             self.request._cookies = Cookie.SimpleCookie(msg)
         except:
-            logging.warn("couldn't parse cookie string: %s",msg, exc_info=True)
+            self.log.warn("couldn't parse cookie string: %s",msg, exc_info=True)
 
     def on_first_message(self, msg):
         self._inject_cookie_message(msg)
         if self.get_current_user() is None:
-            logging.warn("Couldn't authenticate WebSocket connection")
+            self.log.warn("Couldn't authenticate WebSocket connection")
             raise web.HTTPError(403)
         self.on_message = self.save_on_message
 
@@ -541,11 +555,11 @@ class IOPubHandler(AuthenticatedZMQStreamHandler):
         self.write_message(jsonapi.dumps(msg, default=date_default))
 
     def on_kernel_restarted(self):
-        logging.warn("kernel %s restarted", self.kernel_id)
+        self.log.warn("kernel %s restarted", self.kernel_id)
         self._send_status_message('restarting')
 
     def on_restart_failed(self):
-        logging.error("kernel %s restarted failed!", self.kernel_id)
+        self.log.error("kernel %s restarted failed!", self.kernel_id)
         self._send_status_message('dead')
 
     def on_close(self):
@@ -878,7 +892,7 @@ class FileFindHandler(web.StaticFileHandler):
         try:
             abs_path = filefind(path, roots)
         except IOError:
-            logging.error("Could not find static file %r", path)
+            app_log.error("Could not find static file %r", path)
             return None
         
         # end subclass override
@@ -891,7 +905,7 @@ class FileFindHandler(web.StaticFileHandler):
                     hashes[abs_path] = hashlib.md5(f.read()).hexdigest()
                     f.close()
                 except Exception:
-                    logging.error("Could not open static file %r", path)
+                    app_log.error("Could not open static file %r", path)
                     hashes[abs_path] = None
             hsh = hashes.get(abs_path)
             if hsh:
