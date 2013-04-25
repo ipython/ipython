@@ -316,6 +316,10 @@ class NotebookApp(BaseIPythonApplication):
     def _log_level_default(self):
         return logging.INFO
 
+    def _log_format_default(self):
+        """override default log format to include time"""
+        return u"%(asctime)s.%(msecs).03d [%(name)s] %(message)s"
+
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
 
@@ -527,6 +531,14 @@ class NotebookApp(BaseIPythonApplication):
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
+        
+        # set the date format
+        formatter = logging.Formatter(self.log_format, datefmt="%Y-%m-%d %H:%M:%S")
+        self.log.handlers[0].setFormatter(formatter)
+        
+        # hook up tornado 3's loggers to our app handlers
+        for name in ('access', 'application', 'general'):
+            logging.getLogger('tornado.%s' % name).handlers = self.log.handlers
     
     def init_webapp(self):
         """initialize tornado webapp and httpserver"""
@@ -679,7 +691,7 @@ class NotebookApp(BaseIPythonApplication):
         return mgr_info +"The IPython Notebook is running at: %s" % self._url
 
     def start(self):
-        """ Start the IPython Notebok server app, after initialization
+        """ Start the IPython Notebook server app, after initialization
         
         This method takes no arguments so all configuration and initialization
         must be done prior to calling this method."""
