@@ -27,6 +27,8 @@ import stat
 import threading
 import time
 import uuid
+import urlparse
+import json
 
 from tornado.escape import url_escape
 from tornado import web
@@ -287,28 +289,55 @@ class NewHandler(AuthenticatedHandler):
         notebook_id = nbm.new_notebook()
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
+def slug_json(slug_path):
+    path = os.path.join(slug_path, 'slug.json')
+    with open(path) as f:
+        return json.load(f)
+    return os.path.join(os.path.dirname(__file__))
+
+def django_slug_libs(static_root, static_url, libs, slug_path):
+    targets = [os.path.join(slug_path, os.path.normpath(x)) for x in libs]
+    targets = [os.path.relpath(x, static_root) for x in targets]
+    targets = [urlparse.urljoin(static_url, x) for x in targets]
+    return targets
+
+def make_hem_scripts(asset_url, compress_assets):
+    #desired functionality - logging, homedirs, unixusername, database
+    #basedir is the directory of the current file
+    _basedir = os.path.abspath(os.path.dirname(__file__))
+    if compress_assets:
+        return [asset_url + "js/ipynb_application.js"]
+    else:
+        js_files = slug_json(_basedir)['libs']
+        #hack "static/" off the beginning of each js file the static/
+        #is needed for hem to find the file, but it messes up
+        #urls up for integration
+        corrected = [j[7:] for j in js_files]
+        static_js = django_slug_libs(_basedir, asset_url, corrected, _basedir)
+        return static_js
+
 class NamedNotebookHandler(AuthenticatedHandler):
 
     @authenticate_unless_readonly
     def get(self, notebook_id):
+        app = self.application.ipython_app
+        template = self.application.jinja2_env.get_template('notebook.html')
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
         if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
-        template = self.application.jinja2_env.get_template('notebook.html')
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         self.write( template.render(
             project=project,
             notebook_id=notebook_id,
-            base_project_url=self.application.ipython_app.base_project_url,
-            base_kernel_url=self.application.ipython_app.base_kernel_url,
+            base_project_url=app.base_project_url,
+            base_kernel_url=app.base_kernel_url,
             kill_kernel=False,
             read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available,
-            mathjax_url=self.application.ipython_app.mathjax_url,
-            use_less=self.use_less
-            )
-        )
+            mathjax_url=app.mathjax_url,
+            use_less=self.use_less,
+            js_scripts = make_hem_scripts(app.assets_url, app.compress_assets)))
 
 
 class PrintNotebookHandler(AuthenticatedHandler):

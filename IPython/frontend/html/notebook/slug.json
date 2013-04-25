@@ -1,0 +1,66 @@
+{
+    "libs": ["static/jquery/js/jquery-1.7.1.min.js",
+             "static/jquery/js/jquery-ui.min.js",
+             "static/js/namespace.js", 
+             "static/js/page.js",
+             "static/js/loginwidget.js",
+             
+             
+             "static/codemirror/lib/codemirror.js",
+             "static/codemirror/lib/util/loadmode.js",
+             "static/codemirror/lib/util/multiplex.js",
+             "static/codemirror/mode/python/python.js",
+             "static/codemirror/mode/htmlmixed/htmlmixed.js",
+             "static/codemirror/mode/xml/xml.js",
+             "static/codemirror/mode/javascript/javascript.js",
+             "static/codemirror/mode/css/css.js",
+             "static/codemirror/mode/rst/rst.js",
+             "static/codemirror/mode/markdown/markdown.js",
+             
+             "static/pagedown/Markdown.Converter.js",
+             
+             "static/prettify/prettify.js",
+             "static/dateformat/date.format.js",
+             
+             "static/js/events.js",
+             "static/js/utils.js",
+             "static/js/layoutmanager.js",
+             "static/js/mathjaxutils.js",
+             "static/js/outputarea.js",
+             "static/js/cell.js",
+             "static/js/celltoolbar.js",
+             "static/js/codecell.js",
+             "static/js/completer.js",
+             "static/js/textcell.js",
+             "static/js/kernel.js",
+             "static/js/savewidget.js",
+             "static/js/quickhelp.js",
+             "static/js/pager.js",
+             "static/js/menubar.js",
+             "static/js/toolbar.js",
+             "static/js/maintoolbar.js",
+             "static/js/notebook.js",
+             "static/js/notificationwidget.js",
+             "static/js/notificationarea.js",
+             "static/js/tooltip.js",
+             "static/js/config.js",
+             "static/js/notebookmain.js",
+             
+             "static/js/contexthint.js",
+             
+             "static/js/celltoolbarpresets/default.js",
+             "static/js/celltoolbarpresets/slideshow.js"
+             
+             
+             
+            ],
+    "paths" : [],
+    "identifier" : "rrequire",
+    "public" : "./static//",
+    "jsPath" : "/js/ipynb_application.js",
+    "css" : "./static/css/index.less",
+    "cssPath" : "/css/application.css",
+    "specs" : false
+}
+
+

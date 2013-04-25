@@ -255,7 +255,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script', 'assets-url']
 
 aliases = dict(kernel_aliases)
 
@@ -268,6 +268,8 @@ aliases.update({
     'certfile': 'NotebookApp.certfile',
     'notebook-dir': 'NotebookManager.notebook_dir',
     'browser': 'NotebookApp.browser',
+    'assets-url': 'NotebookApp.assets_url',
+    'compress-assets': 'NotebookApp.compress_assets',
 })
 
 # remove ipkernel flags that are singletons, and don't make sense in
@@ -275,7 +277,7 @@ aliases.update({
 aliases.pop('f', None)
 
 notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
-                    u'notebook-dir']
+                    u'notebook-dir', 'assets-url', 'compress-assets']
 
 #-----------------------------------------------------------------------------
 # NotebookApp
@@ -393,10 +395,19 @@ class NotebookApp(BaseIPythonApplication):
         When disabled, equations etc. will appear as their untransformed TeX source.
         """
     )
+
     def _enable_mathjax_changed(self, name, old, new):
         """set mathjax url to empty if mathjax is disabled"""
         if not new:
             self.mathjax_url = u''
+
+    assets_url = Unicode(u'/static/', config=True,
+        help="""The url of the IPython static directory.
+        """)
+
+    compress_assets = Bool(False, config=True,
+        help="""Should assets be compressed and minimized into single files.
+        """)
 
     base_project_url = Unicode('/', config=True,
                                help='''The base URL for the notebook server.
