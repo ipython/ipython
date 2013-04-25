@@ -83,8 +83,15 @@ class FileNotebookManager(NotebookManager):
         return names
         
     def get_file_names(self):
-        dir_names = glob.glob(self.notebook_dir + '/')
-        file_names = glob.glob(self.notebook_dir + '/*.*')
+        names = glob.glob(self.notebook_dir + '/*')
+        
+        file_names = []
+        dir_names = []
+        for name in names:
+            if os.path.isdir(name) == True:
+                dir_names.append(os.path.split(name)[1])
+            elif os.path.splitext(os.path.basename(name))[1] != '.ipynb':
+                file_names.append(os.path.split(name)[1])        
         return dir_names, file_names
         
     def list_notebooks(self):
@@ -95,11 +102,9 @@ class FileNotebookManager(NotebookManager):
         for name in names:
             if name not in self.rev_mapping:
                 notebook_id = self.new_notebook_id(name)
-                path = self.get_path_by_name(name)
             else:
                 notebook_id = self.rev_mapping[name]
-                path = self.get_path_by_name(name)
-            data.append(dict(notebook_id=notebook_id,name=name,path=path, URL=self.notebook_dir))
+            data.append(dict(notebook_id=notebook_id,name=name))
         data = sorted(data, key=lambda item: item['name'])
         return data
     
@@ -107,8 +112,7 @@ class FileNotebookManager(NotebookManager):
         notebooks = self.list_notebooks()
         path = self.notebook_dir
         directories, files = self.get_file_names()
-        data = []
-        data.append(dict(path=path,notebooks=notebooks,directories=directories,files=files))
+        data = (dict(path=path,directories=directories,files=files,notebooks=notebooks))
         return data
         
     def new_notebook_id(self, name):

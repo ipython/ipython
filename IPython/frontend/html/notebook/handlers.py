@@ -644,11 +644,6 @@ class NotebookRootHandler(IPythonHandler):
             notebook_id = nbm.new_notebook()
         self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
-
-#class DirectoryRootHandler(AuthenticatedHandler):
-    
-#    @authenticate_unless_readonly
-#    def get(self):
         
 
 class NotebookHandler(IPythonHandler):
