@@ -279,6 +279,75 @@ IPython.utils = (function (IPython) {
         return M;
     })();
 
+    var notebook_name_blacklist_re= /[\/\\:]/;
+
+    /**
+     * Check that a notebook's name is valid.
+     * 
+     * @function test_notebook_name
+     * @param {String} nbname A name for a notebook
+     * @return {Boolean} True if the name is valid, false if invalid
+     */
+    var test_notebook_name = function (nbname) {
+        nbname = nbname || '';
+        if (notebook_name_blacklist_re.test(nbname) == false && nbname.length>0) {
+            return true;
+        } else {
+            return false;
+        };
+    };
+
+    
+    var notebook_name_dialog = function(title, prompt, initial_value, action) {
+        // a dialog for entering a notebook name
+        // used in rename, new notebook, duplicate
+        var dialog = $('<div/>');
+        dialog.append(
+            $('<h3/>').html(prompt)
+            .css({'margin-bottom': '10px'})
+        );
+        dialog.append(
+            $('<input/>').attr('type','text').attr('size','25')
+            .addClass('ui-widget ui-widget-content')
+            .attr('value', initial_value)
+        );
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: title,
+            closeText: "",
+            close: function(event, ui) {$(this).dialog('destroy').remove();},
+            buttons : {
+                "OK": function () {
+                    var new_name = $(this).find('input').attr('value');
+                    if (!test_notebook_name(new_name)) {
+                        $(this).find('h3').html(
+                            "Invalid notebook name. Notebook names must "+
+                            "have 1 or more characters and can contain any characters " +
+                            "except :/\\. Please enter a new notebook name:"
+                        );
+                    } else {
+                        action(new_name);
+                        $(this).dialog('close');
+                    }
+                },
+                "Cancel": function () {
+                    $(this).dialog('close');
+                }
+            },
+            open : function (event, ui) {
+                var that = $(this);
+                // Upon ENTER, click the OK button.
+                that.find('input[type="text"]').keydown(function (event, ui) {
+                    if (event.which === keycodes.ENTER) {
+                        that.parent().find('button').first().click();
+                    }
+                });
+            }
+        });
+        
+    }
+
 
     return {
         regex_split : regex_split,
@@ -289,7 +358,9 @@ IPython.utils = (function (IPython) {
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
-        browser : browser    
+        browser : browser,
+        test_notebook_name : test_notebook_name,
+        notebook_name_dialog : notebook_name_dialog
     };
 
 }(IPython));

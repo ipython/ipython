@@ -176,20 +176,18 @@ class FileNotebookManager(NotebookManager):
         self.delete_notebook_id(notebook_id)
 
     def increment_filename(self, basename):
-        """Return a non-used filename of the form basename<int>.
+        """Return a non-used filename of the form basename[int].
         
-        This searches through the filenames (basename0, basename1, ...)
+        This searches through the filenames (basename, basename0, basename1, ...)
         until is find one that is not already being used. It is used to
         create Untitled and Copy names that are unique.
         """
+        name = basename
+        path = self.get_path_by_name(name)
         i = 0
-        while True:
-            name = u'%s%i' % (basename,i)
-            path = self.get_path_by_name(name)
-            if not os.path.isfile(path):
-                break
-            else:
-                i = i+1
+        while os.path.exists(self.get_path_by_name(name)):
+            name = u'%s%i' % (basename, i)
+            i += 1
         return name
         
     def info_string(self):

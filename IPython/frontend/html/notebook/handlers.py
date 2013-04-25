@@ -284,7 +284,8 @@ class NewHandler(AuthenticatedHandler):
     def get(self):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
-        notebook_id = nbm.new_notebook()
+        name = self.get_argument('name', None)
+        notebook_id = nbm.new_notebook(name)
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
 class NamedNotebookHandler(AuthenticatedHandler):
@@ -647,7 +648,8 @@ class NotebookCopyHandler(AuthenticatedHandler):
     def get(self, notebook_id):
         nbm = self.application.notebook_manager
         project = nbm.notebook_dir
-        notebook_id = nbm.copy_notebook(notebook_id)
+        name = self.get_argument('name', None)
+        notebook_id = nbm.copy_notebook(notebook_id, name)
         self.redirect('/'+urljoin(self.application.ipython_app.base_project_url, notebook_id))
 
 

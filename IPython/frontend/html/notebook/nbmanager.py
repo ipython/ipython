@@ -23,6 +23,7 @@ from tornado import web
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
+from IPython.utils import py3compat
 from IPython.utils.traitlets import List, Dict, Unicode, TraitError
 
 #-----------------------------------------------------------------------------
@@ -86,16 +87,23 @@ class NotebookManager(LoggingConfigurable):
 
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mapping."""
-        # TODO: the following will give stable urls for notebooks, but unless
-        # the notebooks are immediately redirected to their new urls when their
-        # filemname changes, nasty inconsistencies result.  So for now it's
-        # disabled and instead we use a random uuid4() call.  But we leave the
-        # logic here so that we can later reactivate it, whhen the necessary
-        # url redirection code is written.
-        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
-        #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
-        
-        notebook_id = unicode(uuid.uuid4())
+        # Notebook IDs are persistent for a given notebook for the lifetime
+        # of the notebook server. They are based on the initial name of the notebook,
+        # so UUID urls are only persistent across server sessions
+        # for notebooks that have not been renamed.
+        # Since it's possible for multiple notebooks to have the same initial name,
+        # from which their UUID is derived, collisions are prevented
+        # by forcing a random UUID in that case.
+        url = u'file://%s:%s' % (self.notebook_dir, name)
+        notebook_id = unicode(uuid.uuid5(
+                        uuid.NAMESPACE_URL,
+                        py3compat.unicode_to_str(url)
+        ))
+        # avoid collisions, which can occur if multiple notebooks start with
+        # the same name
+        while notebook_id in self.mapping:
+            self.log.info("Notebook id collision: %s (%s)", notebook_id, name)
+            notebook_id = unicode(uuid.uuid4())
         self.mapping[notebook_id] = name
         return notebook_id
 
@@ -189,18 +197,21 @@ class NotebookManager(LoggingConfigurable):
         """
         return name
 
-    def new_notebook(self):
+    def new_notebook(self, name=None):
         """Create a new notebook and return its notebook_id."""
-        name = self.increment_filename('Untitled')
+        if name is None:
+            name = 'Untitled'
+        name = self.increment_filename(name)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
         notebook_id = self.write_notebook_object(nb)
         return notebook_id
 
-    def copy_notebook(self, notebook_id):
+    def copy_notebook(self, notebook_id, name=None):
         """Copy an existing notebook and return its notebook_id."""
         last_mod, nb = self.read_notebook_object(notebook_id)
-        name = nb.metadata.name + '-Copy'
+        if name is None:
+            name = nb.metadata.name + '-Copy'
         name = self.increment_filename(name)
         nb.metadata.name = name
         notebook_id = self.write_notebook_object(nb)

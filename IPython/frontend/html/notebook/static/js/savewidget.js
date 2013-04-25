@@ -59,52 +59,14 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.rename_notebook = function () {
         var that = this;
-        var dialog = $('<div/>');
-        dialog.append(
-            $('<h3/>').html('Enter a new notebook name:')
-            .css({'margin-bottom': '10px'})
-        );
-        dialog.append(
-            $('<input/>').attr('type','text').attr('size','25')
-            .addClass('ui-widget ui-widget-content')
-            .attr('value',IPython.notebook.get_notebook_name())
-        );
-        // $(document).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Rename Notebook",
-            closeText: "",
-            close: function(event, ui) {$(this).dialog('destroy').remove();},
-            buttons : {
-                "OK": function () {
-                    var new_name = $(this).find('input').attr('value');
-                    if (!IPython.notebook.test_notebook_name(new_name)) {
-                        $(this).find('h3').html(
-                            "Invalid notebook name. Notebook names must "+
-                            "have 1 or more characters and can contain any characters " +
-                            "except :/\\. Please enter a new notebook name:"
-                        );
-                    } else {
-                        IPython.notebook.set_notebook_name(new_name);
-                        IPython.notebook.save_notebook();
-                        $(this).dialog('close');
-                    }
-                },
-                "Cancel": function () {
-                    $(this).dialog('close');
-                }
-            },
-            open : function (event, ui) {
-                var that = $(this);
-                // Upon ENTER, click the OK button.
-                that.find('input[type="text"]').keydown(function (event, ui) {
-                    if (event.which === utils.keycodes.ENTER) {
-                        that.parent().find('button').first().click();
-                    }
-                });
+        IPython.utils.notebook_name_dialog(
+            "Rename Notebook",
+            "Enter a new notebook name:",
+            function (new_name) {
+                IPython.notebook.set_notebook_name(new_name);
+                IPython.notebook.save_notebook();
             }
-        });
+        );
     }
 
 
