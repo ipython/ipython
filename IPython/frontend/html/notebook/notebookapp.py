@@ -106,7 +106,7 @@ _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 _notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
-_path_regex = r"(?P<path>)"
+_path_regex = r"(?P<path>[^\/]+)"
 _profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
 
@@ -153,7 +153,7 @@ class NotebookWebApplication(web.Application):
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
-            (r"/%s" % (_notebook_id_regex), NamedNotebookHandler),
+            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
             (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
             (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/kernels", MainKernelHandler),
@@ -162,8 +162,8 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
             (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
-            (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+            (r"/notebooks/%s" % _path_regex, NotebookRootHandler),
+            (r"/notebooks/%s/%s" % (_path_regex, _notebook_id_regex) , NotebookHandler),
             (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
             (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
                 ModifyNotebookCheckpointsHandler
