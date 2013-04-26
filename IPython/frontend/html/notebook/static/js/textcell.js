@@ -283,45 +283,6 @@ var IPython = (function (IPython) {
 
 
     /**
-     * @constructor HtmlCell
-     * @class HtmlCell
-     * @extends Ipython.TextCell
-     */
-    var HTMLCell = function (options) {
-
-        options = this.mergeopt(HTMLCell,options);
-        TextCell.apply(this, [options]);
-
-        this.cell_type = 'html';
-    };
-
-    HTMLCell.options_default = {
-        cm_config : {
-            mode: 'htmlmixed',
-        },
-        placeholder: "Type <strong>HTML</strong> and LaTeX: $\\alpha^2$"
-    };
-
-
-    HTMLCell.prototype = new TextCell();
-
-    /**
-     * @method render
-     */
-    HTMLCell.prototype.render = function () {
-        if (this.rendered === false) {
-            var text = this.get_text();
-            if (text === "") { text = this.placeholder; }
-            this.set_rendered(text);
-            this.typeset();
-            this.element.find('div.text_cell_input').hide();
-            this.element.find("div.text_cell_render").show();
-            this.rendered = true;
-        }
-    };
-
-
-    /**
      * @class MarkdownCell
      * @constructor MarkdownCell
      * @extends Ipython.HtmlCell
@@ -586,7 +547,6 @@ var IPython = (function (IPython) {
     };
 
     IPython.TextCell = TextCell;
-    IPython.HTMLCell = HTMLCell;
     IPython.MarkdownCell = MarkdownCell;
     IPython.RawCell = RawCell;
     IPython.HeadingCell = HeadingCell;
