@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
         this.add_buttons_group([
                 {
                     id : 'save_b',
-                    label : 'Save Checkpoint',
+                    label : 'Save and Checkpoint',
                     icon : 'ui-icon-disk',
                     callback : function () {
                         IPython.notebook.save_checkpoint();

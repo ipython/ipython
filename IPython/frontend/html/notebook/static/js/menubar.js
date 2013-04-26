@@ -81,9 +81,6 @@ var IPython = (function (IPython) {
             window.open(url,'_blank');
             return false;
         });
-        this.element.find('#save_notebook').click(function () {
-            IPython.notebook.save_notebook();
-        });
         this.element.find('#save_checkpoint').click(function () {
             IPython.notebook.save_checkpoint();
         });
