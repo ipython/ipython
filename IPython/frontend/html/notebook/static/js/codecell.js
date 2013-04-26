@@ -245,7 +245,8 @@ var IPython = (function (IPython) {
             'execute_reply': $.proxy(this._handle_execute_reply, this),
             'output': $.proxy(this.output_area.handle_output, this.output_area),
             'clear_output': $.proxy(this.output_area.handle_clear_output, this.output_area),
-            'set_next_input': $.proxy(this._handle_set_next_input, this)
+            'set_next_input': $.proxy(this._handle_set_next_input, this),
+            'input_request': $.proxy(this._handle_input_request, this)
         };
         var msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false});
     };
@@ -260,10 +261,23 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('set_dirty.Notebook', {'value': true});
     }
 
+    /**
+     * @method _handle_set_next_input
+     * @private
+     */
     CodeCell.prototype._handle_set_next_input = function (text) {
         var data = {'cell': this, 'text': text}
         $([IPython.events]).trigger('set_next_input.Notebook', data);
     }
+    
+    /**
+     * @method _handle_input_request
+     * @private
+     */
+    CodeCell.prototype._handle_input_request = function (content) {
+        this.output_area.append_raw_input(content);
+    }
+
 
     // Basic cell manipulation.
 
