@@ -507,11 +507,11 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             # under Python 2.x for some reason
             msg = msg.encode('utf8', 'replace')
         try:
-            bsession, msg = msg.split(':', 1)
-            self.session.session = bsession.decode('ascii')
+            identity, msg = msg.split(':', 1)
+            self.session.session = identity.decode('ascii')
         except Exception:
-            logging.error("No bsession!", exc_info=True)
-            pass
+            logging.error("First ws message didn't have the form 'identity:[cookie]' - %r", msg)
+        
         try:
             self.request._cookies = Cookie.SimpleCookie(msg)
         except:
