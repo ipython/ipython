@@ -145,11 +145,14 @@ class DisplayHook(Configurable):
 
         Returns
         -------
-        format_data : dict
-            A :class:`dict` whose keys are valid MIME types and values are
+        (format_dict, md_dict) : dict
+            format_dict is a :class:`dict` whose keys are valid MIME types and values are
             JSON'able raw data for that MIME type. It is recommended that
             all return values of this should always include the "text/plain"
             MIME type representation of the object.
+            md_dict is a :class:`dict` with the same MIME type keys
+            of metadata associated with each output.
+            
         """
         return self.shell.display_formatter.format(result)
 
@@ -165,6 +168,8 @@ class DisplayHook(Configurable):
         ----------
         format_dict : dict
             The format dict for the object passed to `sys.displayhook`.
+        md_dict : dict (optional)
+            The metadata dict to be associated with the display data.
         """
         # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the

@@ -127,12 +127,16 @@ class DisplayFormatter(Configurable):
 
         Returns
         -------
-        format_dict : dict
-            A dictionary of key/value pairs, one or each format that was
+        (format_dict, metadata_dict) : tuple of two dicts
+        
+            format_dict is a dictionary of key/value pairs, one of each format that was
             generated for the object. The keys are the format types, which
             will usually be MIME type strings and the values and JSON'able
             data structure containing the raw data for the representation in
             that format.
+            
+            metadata_dict is a dictionary of metadata about each mime-type output.
+            Its keys will be a strict subset of the keys in format_dict.
         """
         format_dict = {}
         md_dict = {}

@@ -98,7 +98,9 @@ class DisplayPublisher(Configurable):
         metadata : dict
             A dictionary for metadata related to the data. This can contain
             arbitrary key, value pairs that frontends can use to interpret
-            the data.
+            the data.  Metadata specific to each mime-type can be specified
+            in the metadata dict with the same mime-type keys as
+            the data itself.
         """
 
         # The default is to simply write the plain text data using io.stdout.
@@ -149,8 +151,9 @@ def publish_display_data(source, data, metadata=None):
     metadata : dict
         A dictionary for metadata related to the data. This can contain
         arbitrary key, value pairs that frontends can use to interpret
-        the data.
-    """
+        the data. mime-type keys matching those in data can be used
+        to specify metadata about particular representations.
+        """
     from IPython.core.interactiveshell import InteractiveShell
     InteractiveShell.instance().display_pub.publish(
         source,
