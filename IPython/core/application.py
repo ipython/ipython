@@ -144,6 +144,7 @@ class BaseIPythonApplication(Application):
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
 
+    @catch_config_error
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
         # ensure current working directory exists
