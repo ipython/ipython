@@ -125,13 +125,13 @@ def create_inputhook_qt4(mgr, app=None):
             if(os.name == 'posix'):
                 pid = os.getpid()
                 print("^C")
-                thread = threading.Thread(
-                            target = lambda:
-                                ( time.sleep(.01),
-                                  os.kill(pid, signal.SIGINT) )
-                        )
 
-                thread.start()
+                timer = threading.Timer( .01,
+                                         os.kill,
+                                         args=[pid, signal.SIGINT] 
+                                       )
+
+                timer.start()
             else:
                 print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
 
