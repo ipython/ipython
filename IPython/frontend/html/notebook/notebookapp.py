@@ -66,7 +66,7 @@ from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
-    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler,
+    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     RSTHandler, AuthenticatedFileHandler, PrintNotebookHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
@@ -160,6 +160,7 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
             (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
             (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
+            (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
             (r"/rstservice/render", RSTHandler),

@@ -448,6 +448,55 @@ var IPython = (function (IPython) {
         toinsert.append(latex);
         element.append(toinsert);
     };
+    
+    OutputArea.prototype.append_raw_input = function (content) {
+        var that = this;
+        this.expand();
+        this.flush_clear_timeout();
+        var area = this.create_output_area();
+
+        area.append(
+            $("<div/>")
+            .addClass("box-flex1 output_subarea raw_input")
+            .append(
+                $("<span/>")
+                .addClass("input_prompt")
+                .text(content.prompt)
+            )
+            .append(
+                $("<input/>")
+                .addClass("raw_input")
+                .attr('type', 'text')
+                .attr("size", 80)
+                .keydown(function (event, ui) {
+                    // make sure we submit on enter,
+                    // and don't re-execute the *cell* on shift-enter
+                    if (event.which === utils.keycodes.ENTER) {
+                        that._submit_raw_input();
+                        return false;
+                    }
+                })
+            )
+        );
+        this.element.append(area);
+        area.find("input.raw_input").focus();
+    }
+    OutputArea.prototype._submit_raw_input = function (evt) {
+        var container = this.element.find("div.raw_input");
+        var theprompt = container.find("span.input_prompt");
+        var theinput = container.find("input.raw_input");
+        var value = theinput.attr("value");
+        var content = {
+            output_type : 'stream',
+            name : 'stdout',
+            text : theprompt.text() + value + '\n'
+        }
+        // remove form container
+        container.parent().remove();
+        // replace with plaintext version in stdout
+        this.append_output(content, false);
+        $([IPython.events]).trigger('send_input_reply.Kernel', value);
+    }
 
 
     OutputArea.prototype.handle_clear_output = function (content) {

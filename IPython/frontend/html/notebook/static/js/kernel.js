@@ -28,6 +28,7 @@ var IPython = (function (IPython) {
         this.kernel_id = null;
         this.shell_channel = null;
         this.iopub_channel = null;
+        this.stdin_channel = null;
         this.base_url = base_url;
         this.running = false;
         this.username = "username";
@@ -127,9 +128,12 @@ var IPython = (function (IPython) {
         var ws_url = this.ws_url + this.kernel_url;
         console.log("Starting WebSockets:", ws_url);
         this.shell_channel = new this.WebSocket(ws_url + "/shell");
+        this.stdin_channel = new this.WebSocket(ws_url + "/stdin");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
-            this.send(document.cookie);
+            // send the session id so the Session object Python-side
+            // has the same identity
+            this.send(that.session_id + ':' + document.cookie);
         };
         var already_called_onclose = false; // only alert once
         var ws_closed_early = function(evt){
@@ -150,21 +154,26 @@ var IPython = (function (IPython) {
                 that._websocket_closed(ws_url, false);
             }
         };
-        this.shell_channel.onopen = send_cookie;
-        this.shell_channel.onclose = ws_closed_early;
-        this.iopub_channel.onopen = send_cookie;
-        this.iopub_channel.onclose = ws_closed_early;
+        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
+        for (var i=0; i < channels.length; i++) {
+            channels[i].onopen = send_cookie;
+            channels[i].onclose = ws_closed_early;
+        }
         // switch from early-close to late-close message after 1s
         setTimeout(function() {
-            if (that.shell_channel !== null) {
-                that.shell_channel.onclose = ws_closed_late;
-            }
-            if (that.iopub_channel !== null) {
-                that.iopub_channel.onclose = ws_closed_late;
+            for (var i=0; i < channels.length; i++) {
+                if (channels[i] !== null) {
+                    channels[i].onclose = ws_closed_late;
+                }
             }
         }, 1000);
-        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply,this);
-        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply,this);
+        this.shell_channel.onmessage = $.proxy(this._handle_shell_reply, this);
+        this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply, this);
+        this.stdin_channel.onmessage = $.proxy(this._handle_input_request, this);
+
+        $([IPython.events]).on('send_input_reply.Kernel', function(evt, data) { 
+            that.send_input_reply(data);
+        });
     };
 
     /**
@@ -172,16 +181,14 @@ var IPython = (function (IPython) {
      * @method stop_channels
      */
     Kernel.prototype.stop_channels = function () {
-        if (this.shell_channel !== null) {
-            this.shell_channel.onclose = function (evt) {};
-            this.shell_channel.close();
-            this.shell_channel = null;
+        var channels = [this.shell_channel, this.iopub_channel, this.stdin_channel];
+        for (var i=0; i < channels.length; i++) {
+            if ( channels[i] !== null ) {
+                channels[i].onclose = function (evt) {};
+                channels[i].close();
+            }
         };
-        if (this.iopub_channel !== null) {
-            this.iopub_channel.onclose = function (evt) {};
-            this.iopub_channel.close();
-            this.iopub_channel = null;
-        };
+        this.shell_channel = this.iopub_channel = this.stdin_channel = null;
     };
 
     // Main public methods.
@@ -284,6 +291,9 @@ var IPython = (function (IPython) {
             user_expressions : {},
             allow_stdin : false
         };
+        if (callbacks.input_request !== undefined) {
+            content.allow_stdin = true;
+        }
         $.extend(true, content, options)
         $([IPython.events]).trigger('execution_request.Kernel', {kernel: this, content:content});
         var msg = this._get_msg("execute_request", content);
@@ -343,8 +353,18 @@ var IPython = (function (IPython) {
         };
     };
 
+    Kernel.prototype.send_input_reply = function (input) {
+        var content = {
+            value : input,
+        };
+        $([IPython.events]).trigger('input_reply.Kernel', {kernel: this, content:content});
+        var msg = this._get_msg("input_reply", content);
+        this.stdin_channel.send(JSON.stringify(msg));
+        return msg.header.msg_id;
+    };
 
-    // Reply handlers.
+
+    // Reply handlers
 
     Kernel.prototype.get_callbacks_for_msg = function (msg_id) {
         var callbacks = this._msg_callbacks[msg_id];
@@ -426,6 +446,26 @@ var IPython = (function (IPython) {
             };
         } else if (msg_type === 'clear_output') {
             var cb = callbacks['clear_output'];
+            if (cb !== undefined) {
+                cb(content, metadata);
+            }
+        };
+    };
+
+
+    Kernel.prototype._handle_input_request = function (e) {
+        var request = $.parseJSON(e.data);
+        var header = request.header;
+        var content = request.content;
+        var metadata = request.metadata;
+        var msg_type = header.msg_type;
+        if (msg_type !== 'input_request') {
+            console.log("Invalid input request!", request);
+            return;
+        }
+        var callbacks = this.get_callbacks_for_msg(request.parent_header.msg_id);
+        if (callbacks !== undefined) {
+            var cb = callbacks[msg_type];
             if (cb !== undefined) {
                 cb(content, metadata);
             }
