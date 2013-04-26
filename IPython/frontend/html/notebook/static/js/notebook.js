@@ -705,7 +705,7 @@ var IPython = (function (IPython) {
      * Index will be brought back into the accissible range [0,n]
      *
      * @method insert_cell_at_index
-     * @param type {string} in ['code','html','markdown','heading']
+     * @param type {string} in ['code','markdown','heading']
      * @param [index] {int} a valid index where to inser cell
      *
      * @return cell {cell|null} created cell or null
@@ -723,8 +723,6 @@ var IPython = (function (IPython) {
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new IPython.MarkdownCell();
-            } else if (type === 'html') {
-                cell = new IPython.HTMLCell();
             } else if (type === 'raw') {
                 cell = new IPython.RawCell();
             } else if (type === 'heading') {
@@ -867,37 +865,6 @@ var IPython = (function (IPython) {
             var source_cell = source_element.data("cell");
             if (!(source_cell instanceof IPython.MarkdownCell)) {
                 var target_cell = this.insert_cell_below('markdown',i);
-                var text = source_cell.get_text();
-                if (text === source_cell.placeholder) {
-                    text = '';
-                };
-                // The edit must come before the set_text.
-                target_cell.edit();
-                target_cell.set_text(text);
-                // make this value the starting point, so that we can only undo
-                // to this state, instead of a blank cell
-                target_cell.code_mirror.clearHistory();
-                source_element.remove();
-                this.dirty = true;
-            };
-        };
-    };
-
-    /**
-     * Turn a cell into an HTML cell.
-     * 
-     * @method to_html
-     * @param {Number} [index] A cell's index
-     */
-    Notebook.prototype.to_html = function (index) {
-        // TODO: remove? This is never called
-        var i = this.index_or_selected(index);
-        if (this.is_valid_cell_index(i)) {
-            var source_element = this.get_cell_element(i);
-            var source_cell = source_element.data("cell");
-            var target_cell = null;
-            if (!(source_cell instanceof IPython.HTMLCell)) {
-                target_cell = this.insert_cell_below('html',i);
                 var text = source_cell.get_text();
                 if (text === source_cell.placeholder) {
                     text = '';
@@ -1138,14 +1105,7 @@ var IPython = (function (IPython) {
                 new_cell.edit(); // editor must be visible to call set_text
                 new_cell.set_text(textb);
                 new_cell.render();
-            } else if (cell instanceof IPython.HTMLCell) {
-                cell.set_text(texta);
-                cell.render();
-                var new_cell = this.insert_cell_below('html');
-                new_cell.edit(); // editor must be visible to call set_text
-                new_cell.set_text(textb);
-                new_cell.render();
-            };
+            }
         };
     };
 
@@ -1163,7 +1123,7 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
-            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+            } else if (cell instanceof IPython.MarkdownCell) {
                 cell.edit();
                 cell.set_text(upper_text+'\n'+text);
                 cell.render();
@@ -1187,7 +1147,7 @@ var IPython = (function (IPython) {
             var text = cell.get_text();
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
-            } else if (cell instanceof IPython.MarkdownCell || cell instanceof IPython.HTMLCell) {
+            } else if (cell instanceof IPython.MarkdownCell) {
                 cell.edit();
                 cell.set_text(text+'\n'+lower_text);
                 cell.render();
@@ -1396,8 +1356,6 @@ var IPython = (function (IPython) {
         var cell_index = that.find_cell_index(cell);
         if (cell instanceof IPython.CodeCell) {
             cell.execute();
-        } else if (cell instanceof IPython.HTMLCell) {
-            cell.render();
         }
         if (default_options.terminal) {
             cell.select_all();
