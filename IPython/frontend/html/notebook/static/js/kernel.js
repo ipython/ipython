@@ -131,6 +131,8 @@ var IPython = (function (IPython) {
         this.stdin_channel = new this.WebSocket(ws_url + "/stdin");
         this.iopub_channel = new this.WebSocket(ws_url + "/iopub");
         send_cookie = function(){
+            // send the session id so the Session object Python-side
+            // has the same identity
             this.send(that.session_id + ':' + document.cookie);
         };
         var already_called_onclose = false; // only alert once
