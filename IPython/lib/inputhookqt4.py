@@ -71,6 +71,8 @@ def create_inputhook_qt4(mgr, app=None):
 
     got_kbdint = [False]
 
+    sigint_timer = [None]
+
     def inputhook_qt4():
         """PyOS_InputHook python hook for Qt4.
 
@@ -126,12 +128,13 @@ def create_inputhook_qt4(mgr, app=None):
                 pid = os.getpid()
                 print("^C")
 
-                timer = threading.Timer( .01,
-                                         os.kill,
-                                         args=[pid, signal.SIGINT] 
-                                       )
+                if(not sigint_timer[0]):
+                    sigint_timer[0] = threading.Timer(.01,
+                                             os.kill,
+                                             args=[pid, signal.SIGINT] 
+                                           )
 
-                timer.start()
+                    sigint_timer[0].start()
             else:
                 print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
 
@@ -152,6 +155,10 @@ def create_inputhook_qt4(mgr, app=None):
         (in case the latter was temporarily deactivated after a
         CTRL+C)
         """
+        if(sigint_timer[0]):
+            sigint_timer[0].cancel()
+            sigint_timer[0] = None
+
         if got_kbdint[0]:
             mgr.set_inputhook(inputhook_qt4)
         got_kbdint[0] = False
