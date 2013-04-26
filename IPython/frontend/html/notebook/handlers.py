@@ -680,14 +680,14 @@ class NotebookHandler(IPythonHandler):
         self.finish()
 
 
-class NotebookCheckpointsHandler(AuthenticatedHandler):
+class NotebookCheckpointsHandler(IPythonHandler):
     
     SUPPORTED_METHODS = ('GET', 'POST')
     
     @web.authenticated
     def get(self, notebook_id):
         """get lists checkpoints for a notebook"""
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         checkpoints = nbm.list_checkpoints(notebook_id)
         data = jsonapi.dumps(checkpoints, default=date_default)
         self.finish(data)
@@ -695,20 +695,21 @@ class NotebookCheckpointsHandler(AuthenticatedHandler):
     @web.authenticated
     def post(self, notebook_id):
         """post creates a new checkpoint"""
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         checkpoint = nbm.create_checkpoint(notebook_id)
         data = jsonapi.dumps(checkpoint, default=date_default)
+        
         self.finish(data)
 
 
-class ModifyNotebookCheckpointsHandler(AuthenticatedHandler):
+class ModifyNotebookCheckpointsHandler(IPythonHandler):
     
     SUPPORTED_METHODS = ('POST', 'DELETE')
     
     @web.authenticated
     def post(self, notebook_id, checkpoint_id):
         """post restores a notebook from a checkpoint"""
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         nbm.restore_checkpoint(notebook_id, checkpoint_id)
         self.set_status(204)
         self.finish()
@@ -716,11 +717,10 @@ class ModifyNotebookCheckpointsHandler(AuthenticatedHandler):
     @web.authenticated
     def delete(self, notebook_id, checkpoint_id):
         """delete clears a checkpoint for a given notebook"""
-        nbm = self.application.notebook_manager
+        nbm = self.notebook_manager
         nbm.delte_checkpoint(notebook_id, checkpoint_id)
         self.set_status(204)
         self.finish()
-
 
 
 class NotebookCopyHandler(IPythonHandler):
