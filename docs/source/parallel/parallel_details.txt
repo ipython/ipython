@@ -113,7 +113,7 @@ An example of a function that uses a closure:
         def inner():
             # inner will have a closure
             return a
-        return echo
+        return inner
     
     f1 = f(1)
     f2 = f(2)
@@ -135,7 +135,7 @@ outer function, then there will not be a closure, and the generated function wil
         def inner():
             # this inner will *not* have a closure
             return a
-        return echo
+        return inner
     g1 = g(1)
     g2 = g(2)
     g1() # raises NameError on 'a'
