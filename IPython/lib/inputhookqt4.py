@@ -124,16 +124,21 @@ def create_inputhook_qt4(mgr, app=None):
             ignore_CTRL_C()
             got_kbdint[0] = True
             mgr.clear_inputhook()
+
+            # This generates a second SIGINT so the user doesn't have to
+            # press CTRL+C twice to get a clean prompt.
+            #
+            # Since we can't catch the resulting KeyboardInterrupt here
+            # (because this is a ctypes callback), we use a timer to
+            # generate the SIGINT after we leave this callback.
+            #
+            # Unfortunately this doesn't work on Windows (SIGINT kills
+            # Python and CTRL_C_EVENT doesn't work).
             if(os.name == 'posix'):
                 pid = os.getpid()
-                print("^C")
-
                 if(not sigint_timer[0]):
-                    sigint_timer[0] = threading.Timer(.01,
-                                             os.kill,
-                                             args=[pid, signal.SIGINT] 
-                                           )
-
+                    sigint_timer[0] = threading.Timer(.01, os.kill,
+                                         args=[pid, signal.SIGINT] )
                     sigint_timer[0].start()
             else:
                 print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
