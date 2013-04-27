@@ -61,7 +61,7 @@ var IPython = (function (IPython) {
         var that = this;
         var dialog = $('<div/>');
         dialog.append(
-            $('<h3/>').html('Enter a new notebook name:')
+            $('<p/>').html('Enter a new notebook name:')
             .css({'margin-bottom': '10px'})
         );
         dialog.append(
