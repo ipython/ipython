@@ -737,34 +737,8 @@ class ClusterActionHandler(IPythonHandler):
 
 
 #-----------------------------------------------------------------------------
-# RST web service handlers
+# File handler
 #-----------------------------------------------------------------------------
-
-
-class RSTHandler(IPythonHandler):
-
-    @web.authenticated
-    def post(self):
-        if publish_string is None:
-            raise web.HTTPError(503, u'docutils not available')
-        body = self.request.body.strip()
-        source = body
-        # template_path=os.path.join(os.path.dirname(__file__), u'templates', u'rst_template.html')
-        defaults = {'file_insertion_enabled': 0,
-                    'raw_enabled': 0,
-                    '_disable_config': 1,
-                    'stylesheet_path': 0
-                    # 'template': template_path
-        }
-        try:
-            html = publish_string(source, writer_name='html',
-                                  settings_overrides=defaults
-            )
-        except:
-            raise web.HTTPError(400, u'Invalid RST')
-        print html
-        self.set_header('Content-Type', 'text/html')
-        self.finish(html)
 
 # to minimize subclass changes:
 HTTPError = web.HTTPError
