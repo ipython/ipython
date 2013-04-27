@@ -23,6 +23,8 @@ import os
 
 from IPython.utils.py3compat import string_types
 
+from .displaypub import publish_display_data
+
 #-----------------------------------------------------------------------------
 # utility functions
 #-----------------------------------------------------------------------------
@@ -33,13 +35,6 @@ def _safe_exists(path):
         return os.path.exists(path)
     except Exception:
         return False
-
-def _publish(data, metadata):
-    """publish a display message"""
-    from IPython.core.interactiveshell import InteractiveShell
-    return InteractiveShell.instance().display_pub.publish(
-        "display", data, metadata
-    )
 
 def _merge(d1, d2):
     """Like update, but merges sub-dicts instead of clobbering at the top level.
@@ -53,6 +48,28 @@ def _merge(d1, d2):
         d1[key] = _merge(d1.get(key), value)
     return d1
 
+def _display_mimetype(mimetype, objs, raw=False, metadata=None):
+    """internal implementation of all display_foo methods
+
+    Parameters
+    ----------
+    mimetype : str
+        The mimetype to be published (e.g. 'image/png')
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw text data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the output.
+    """
+    if raw:
+        for obj in objs:
+            publish_display_data('display', {mimetype : obj}, metadata)
+    else:
+        display(*objs, metadata=metadata, include=[mimetype])
+    
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
@@ -92,30 +109,8 @@ def display(*objs, **kwargs):
         if metadata:
             # kwarg-specified metadata gets precedence
             _merge(md_dict, metadata)
-        _publish(format_dict, md_dict)
+        publish_display_data('display', format_dict, md_dict)
 
-def _display_mimetype(mimetype, objs, raw=False, metadata=None):
-    """internal implementation of all display_foo methods
-
-    Parameters
-    ----------
-    mimetype : str
-        The mimetype to be published (e.g. 'image/png')
-    objs : tuple of objects
-        The Python objects to display, or if raw=True raw text data to
-        display.
-    raw : bool
-        Are the data objects raw data or Python objects that need to be
-        formatted before display? [default: False]
-    metadata : dict (optional)
-        Metadata to be associated with the output.
-    """
-    if raw:
-        for obj in objs:
-            _publish({mimetype : obj}, metadata)
-    else:
-        display(*objs, metadata=metadata, include=[mimetype])
-    
 
 def display_pretty(*objs, **kwargs):
     """Display the pretty (default) representation of an object.
