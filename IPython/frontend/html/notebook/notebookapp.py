@@ -202,6 +202,7 @@ class NotebookWebApplication(web.Application):
             cluster_manager=cluster_manager,
             
             # IPython stuff
+            mathjax_url=ipython_app.mathjax_url,
             max_msg_size=ipython_app.max_msg_size,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
