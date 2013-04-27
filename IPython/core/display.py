@@ -21,13 +21,6 @@ from __future__ import print_function
 
 import os
 
-from .displaypub import (
-    publish_pretty, publish_html,
-    publish_latex, publish_svg,
-    publish_png, publish_json,
-    publish_javascript, publish_jpeg
-)
-
 from IPython.utils.py3compat import string_types
 
 #-----------------------------------------------------------------------------
