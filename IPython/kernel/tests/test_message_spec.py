@@ -15,7 +15,7 @@ from Queue import Empty
 
 import nose.tools as nt
 
-from IPython.kernel import KernelManager, BlockingKernelClient
+from IPython.kernel import KernelManager
 
 
 from IPython.testing import decorators as dec
@@ -31,7 +31,6 @@ from IPython.utils.traitlets import (
 def setup():
     global KM, KC
     KM = KernelManager()
-    KM.client_factory = BlockingKernelClient
     KM.start_kernel(stdout=PIPE, stderr=PIPE)
     KC = KM.client()
     KC.start_channels()
