@@ -59,7 +59,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         return Session(config=self.config)
 
     # the class to create with our `client` method
-    client_class = DottedObjectName('IPython.kernel.client.KernelClient')
+    client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
     client_factory = Type()
     def _client_class_changed(self, name, old, new):
         self.client_factory = import_item(str(new))
