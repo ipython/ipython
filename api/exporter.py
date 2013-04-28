@@ -1,13 +1,11 @@
-"""Base classes for the notebook conversion pipeline.
+"""Exporter for the notebook conversion pipeline.
 
-This module defines ConverterTemplate, a highly configurable converter
-that uses Jinja2 to convert notebook files into different format.
+This module defines Exporter, a highly configurable converter
+that uses Jinja2 to export notebook files into different format.
 
 You can register both pre-transformers that will act on the notebook format
 befor conversion and jinja filter that would then be availlable in the templates
 """
-
-from __future__ import absolute_import
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -20,33 +18,29 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
-from __future__ import print_function
-from __future__ import absolute_import
+from __future__ import print_function, absolute_import
 
 # Stdlib imports
 import io
 import os
 
 # IPython imports
-from IPython.utils.traitlets import MetaHasTraits
-from IPython.utils.traitlets import (Unicode, List, Bool)
 from IPython.config.configurable import Configurable
 from IPython.nbformat import current as nbformat
-
+from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
 
-
 # local import (pre-transformers)
-from  . import transformers as trans
+from . import transformers as trans #TODO
+
 try:
-    from .sphinx_transformer import (SphinxTransformer)
+    from .sphinx_transformer import (SphinxTransformer) #TODO
 except ImportError:
     SphinxTransformer = None
 
-from .latex_transformer import (LatexTransformer)
+from .latex_transformer import (LatexTransformer) #TODO
 
 # some jinja filters
 from .jinja_filters import (python_comment, indent,
@@ -55,9 +49,9 @@ from .jinja_filters import (python_comment, indent,
         rm_dollars, rm_math_space
         )
 
-from .utils import  markdown2rst
+from .utils import  markdown2rst #TODO
 
-import textwrap
+import textwrap #TODO
 
 def wrap(text, width=100):
     """ try to detect and wrap paragraph"""
@@ -106,7 +100,7 @@ texenv.filters['escape_tex'] = escape_tex
 class ConversionException(Exception):
     pass
 
-class ConverterTemplate(Configurable):
+class Exporter(Configurable):
     """ A Jinja2 base converter templates
 
     Preprocess the ipynb files, feed it throug jinja templates,
