@@ -23,28 +23,37 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
+import re
 
 # IPython imports
 from IPython.config.configurable import Configurable
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
+from IPython.utils.text import indent
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
+from markdown import markdown
 
 # local import (pre-transformers)
 from exceptions import ConversionException
 from . import transformers as trans #TODO
 from .latex_transformer import (LatexTransformer) #TODO
 from .utils import  markdown2rst #TODO
+from .utils import markdown2latex #TODO
+from .utils import highlight2latex #TODO
+from .utils import get_lines #TODO
+from .utils import remove_ansi #TODO
+from .utils import highlight, ansi2html #TODO
+from .latex_transformer import rm_math_space #TODO
 
 import textwrap #TODO
 
 #Jinja2 filters
-from .jinja_filters import (python_comment, indent,
-    rm_fake, remove_ansi, markdown, highlight, highlight2latex,
-    ansi2html, markdown2latex, get_lines, escape_tex, FilterDataType,
-    rm_dollars, rm_math_space
+from .jinja_filters import (python_comment,
+    rm_fake,   
+     escape_tex, FilterDataType,
+    rm_dollars
     )
 
 #Try to import the Sphinx exporter.  If the user doesn't have Sphinx isntalled 
@@ -75,6 +84,16 @@ LATEX_JINJA_LOGIC_BLOCK = ["((*", "*))"]
 
 #Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
+
+#Latex substitutions for escaping latex.
+LATEX_SUBS = (
+    (re.compile(r'\\'), r'\\textbackslash'),
+    (re.compile(r'([{}_#%&$])'), r'\\\1'),
+    (re.compile(r'~'), r'\~{}'),
+    (re.compile(r'\^'), r'\^{}'),
+    (re.compile(r'"'), r"''"),
+    (re.compile(r'\.\.\.+'), r'\\ldots'),
+)
 
 #-----------------------------------------------------------------------------
 # Local utilities
@@ -134,7 +153,6 @@ class Exporter(Configurable):
                        transformers registerd by this key will take precedence on
                        default one.
 
-
         jinja_filters: dict of supplementary jinja filter that should be made
                        availlable in template. If those are of Configurable Class type,
                        they will be instanciated with the config object as argument.
@@ -193,9 +211,9 @@ class Exporter(Configurable):
 
         #Add filters to the Jinja2 environment
         self.env.filters['filter_data_type'] = FilterDataType(config=config)
-        self.env.filters['pycomment'] = python_comment
+        self.env.filters['pycomment'] = _python_comment
         self.env.filters['indent'] = indent
-        self.env.filters['rm_fake'] = rm_fake
+        self.env.filters['rm_fake'] = _rm_fake
         self.env.filters['rm_ansi'] = remove_ansi
         self.env.filters['markdown'] = markdown
         self.env.filters['ansi2html'] = ansi2html
@@ -203,14 +221,14 @@ class Exporter(Configurable):
         self.env.filters['markdown2rst'] = markdown2rst
         self.env.filters['get_lines'] = get_lines
         self.env.filters['wrap'] = wrap
-        self.env.filters['rm_dollars'] = rm_dollars
+        self.env.filters['rm_dollars'] = _rm_dollars
         self.env.filters['rm_math_space'] = rm_math_space
         self.env.filters['highlight2html'] = highlight 
         self.env.filters['highlight2latex'] = highlight2latex
 
         #Latex specific filters
         if self.tex_environement:
-            self.env.filters['escape_tex'] = escape_tex 
+            self.env.filters['escape_tex'] = _escape_tex 
             self.env.filters['highlight'] = highlight2latex 
         else:
             self.env.filters['highlight'] = highlight 
@@ -224,23 +242,6 @@ class Exporter(Configurable):
 
         #Load the template file.
         self.template = self.env.get_template(self.template_file+self.ext)
-
-
-    def _preprocess(self, nb):
-        """ Preprocess the notebook using the transformers specific
-        for the current export format.
-
-        nb: Notebook to preprocess
-        """
-
-        #Dict of 'resources' that can be filled by the preprocessors.
-        resources = {}
-
-        #Run each transformer on the notebook.  Carry the output along
-        #to each transformer
-        for transformer in self.preprocessors:
-            nb, resources = transformer(nb, resources)
-        return nb, resources
 
 
     def export(self, nb):
@@ -269,6 +270,7 @@ class Exporter(Configurable):
         with io.open(filename) as f:
             return self.export(nbformat.read(f, 'json'))
 
+
     def from_file(self, file_stream):
         """Read and export a notebook from a filename
 
@@ -280,3 +282,39 @@ class Exporter(Configurable):
         """
 
         return self.export(nbformat.read(file_stream, 'json'))
+
+
+    def _preprocess(self, nb):
+        """ Preprocess the notebook using the transformers specific
+        for the current export format.
+
+        nb: Notebook to preprocess
+        """
+
+        #Dict of 'resources' that can be filled by the preprocessors.
+        resources = {}
+
+        #Run each transformer on the notebook.  Carry the output along
+        #to each transformer
+        for transformer in self.preprocessors:
+            nb, resources = transformer(nb, resources)
+        return nb, resources
+
+
+    def _rm_fake(strng):
+        return strng.replace('/files/', '')
+
+
+    def _rm_dollars(strng):
+        return strng.strip('$')
+
+
+    def _python_comment(string):
+        return '# '+'\n# '.join(string.split('\n'))
+
+
+    def _escape_tex(value):
+        newval = value
+        for pattern, replacement in LATEX_SUBS:
+            newval = pattern.sub(replacement, newval)
+        return newval
