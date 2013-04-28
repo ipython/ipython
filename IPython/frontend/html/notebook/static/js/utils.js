@@ -225,22 +225,6 @@ IPython.utils = (function (IPython) {
             "$1<a target=\"_blank\" href=\"$2$3\">$2$3</a>");
     }
 
-    grow = function(element) {
-        // Grow the cell by hand. This is used upon reloading from JSON, when the
-        // autogrow handler is not called.
-        var dom = element.get(0);
-        var lines_count = 0;
-        // modified split rule from
-        // http://stackoverflow.com/questions/2035910/how-to-get-the-number-of-lines-in-a-textarea/2036424#2036424
-        var lines = dom.value.split(/\r|\r\n|\n/);
-        lines_count = lines.length;
-        if (lines_count >= 1) {
-            dom.rows = lines_count;
-        } else {
-            dom.rows = 1;
-        }
-    };
-
     // some keycodes that seem to be platform/browser independant
     var keycodes ={
                 BACKSPACE:  8,
@@ -297,7 +281,6 @@ IPython.utils = (function (IPython) {
         uuid : uuid,
         fixConsole : fixConsole,
         keycodes : keycodes,
-        grow : grow,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
         points_to_pixels : points_to_pixels,
