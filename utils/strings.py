@@ -21,9 +21,15 @@ import textwrap #TODO
 # Functions
 #-----------------------------------------------------------------------------
 def wrap(text, width=100):
-    """ Try to detect and wrap paragraph"""
+    """ Intelligently wrap text"""
 
     splitt = text.split('\n')
     wrp = map(lambda x:textwrap.wrap(x,width),splitt)
     wrpd = map('\n'.join, wrp)
     return '\n'.join(wrpd)
+
+
+def strip_dollars(text):
+    """Remove all dollar symbols from text"""
+
+    return text.strip('$')

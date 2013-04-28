@@ -46,7 +46,7 @@ from .utils import get_lines #TODO
 from .utils import remove_ansi #TODO
 from .utils import highlight, ansi2html #TODO
 from .latex_transformer import rm_math_space #TODO
-from .utils.strings import wrap as _wrap
+import .utils.strings as strings
 
 #Jinja2 filters
 from .jinja_filters import (python_comment,
@@ -208,8 +208,8 @@ class Exporter(Configurable):
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
         self.env.filters['get_lines'] = get_lines
-        self.env.filters['wrap'] = _wrap
-        self.env.filters['rm_dollars'] = _rm_dollars
+        self.env.filters['wrap'] = strings.wrap
+        self.env.filters['rm_dollars'] = strings.strip_dollars
         self.env.filters['rm_math_space'] = rm_math_space
         self.env.filters['highlight2html'] = highlight 
         self.env.filters['highlight2latex'] = highlight2latex
@@ -292,12 +292,6 @@ class Exporter(Configurable):
     #TODO: Comment me.
     def _rm_fake(strng):
         return strng.replace('/files/', '')
-
-
-    #TODO: Comment me.
-    def _rm_dollars(strng):
-        return strng.strip('$')
-
 
     #TODO: Comment me.
     def _python_comment(string):
