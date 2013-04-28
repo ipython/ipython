@@ -122,11 +122,28 @@ class Exporter(Configurable):
             '', config=True,
             help="Name of the template file to use")
 
+    fileext = Unicode(
+        'txt', config=True, 
+        help="Extension of the file that should be written to disk"
+        )
+
+    stdout = Bool(
+        True, config=True,
+        help="""Whether to print the converted ipynb file to stdout
+        "use full do diff files without actually writing a new file"""
+        )
+
+    write = Bool(
+        False, config=True,
+        help="""Should the converted notebook file be written to disk
+        along with potential extracted resources."""
+        )
+
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
     preprocessors = [] 
 
-    def __init__(self, preprocessors={}, jinja_filters={}, config=None, **kw):
+    def __init__(self, preprocessors={}, jinja_filters={}, config=None, export_format, **kw):
         """ Init a new converter.
 
         config: the Configurable config object to pass around.
@@ -147,7 +164,15 @@ class Exporter(Configurable):
 
                        user defined filter will overwrite the one availlable by default.
         """
-        super(ConverterTemplate, self).__init__(config=config, **kw)
+
+        #Merge default config options with user specific override options.
+        default_config = self._get_default_options()
+        if not config == None:
+            default_config._merge(config)
+        config = default_config
+
+        #Call the base class constructor
+        super(Exporter, self).__init__(config=config, **kw)
 
         #Create a Latex environment if the user is exporting latex.
         if self.tex_environement:
@@ -289,9 +314,65 @@ class Exporter(Configurable):
         return nb, resources
 
 
+    def _get_default_options(self, export_format):
+        """ Load the default options for built in formats.
+
+        export_format: Format being exported to.
+        """
+
+        c = get_config()
+        
+        #Set default data extraction priorities.
+        c.GlobalConfigurable.display_data_priority =['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+        c.ExtractFigureTransformer.display_data_priority=['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+        c.ConverterTemplate.display_data_priority= ['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+
+        #For most (or all cases), the template file name matches the format name.
+        c.ConverterTemplate.template_file = export_format
+
+        if export_format == "basichtml" or "fullhtml" or "reveal":
+            c.CSSHtmlHeaderTransformer.enabled=True
+            if export_format == 'reveal'
+                c.NbconvertApp.fileext='reveal.html'
+            else:
+                c.NbconvertApp.fileext='html'
+
+        elif export_format == "latex_sphinx_howto" or export_format == "latex_sphinx_manual":
+
+            #Turn on latex environment 
+            c.ConverterTemplate.tex_environement=True
+
+            #Standard latex extension
+            c.NbconvertApp.fileext='tex'
+
+            #Prioritize latex extraction for latex exports.
+            c.GlobalConfigurable.display_data_priority =['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
+            c.ExtractFigureTransformer.display_data_priority=['latex', 'svg', 'png', 'jpg', 'jpeg']
+            c.ExtractFigureTransformer.extra_ext_map={'svg':'pdf'}
+            c.ExtractFigureTransformer.enabled=True
+            
+            # Enable latex transformers (make markdown2latex work with math $.)
+            c.LatexTransformer.enabled=True
+            c.SphinxTransformer.enabled = True
+
+        elif export_format == 'markdown':
+            c.NbconvertApp.fileext='md'
+            c.ExtractFigureTransformer.enabled=True
+            
+        elif export_format == 'python':
+            c.NbconvertApp.fileext='py'
+
+
+        elif export_format == 'rst':
+            c.NbconvertApp.fileext='rst'
+            c.ExtractFigureTransformer.enabled=True
+        return c
+
+
     #TODO: Comment me.
     def _rm_fake(strng):
         return strng.replace('/files/', '')
+
 
     #TODO: Comment me.
     def _python_comment(string):

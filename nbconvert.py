@@ -58,23 +58,6 @@ ERROR_CONFIG_NOT_FOUND = "Config file for profile '%s' not found, giving up."
 class NbconvertApp(Application):
     """A basic application to convert ipynb files"""
 
-    stdout = Bool(
-        True, config=True,
-        help="""Whether to print the converted ipynb file to stdout
-        "use full do diff files without actually writing a new file"""
-        )
-
-    write = Bool(
-        False, config=True,
-        help="""Should the converted notebook file be written to disk
-        along with potential extracted resources."""
-        )
-
-    fileext = Unicode(
-        'txt', config=True, 
-        help="Extension of the file that should be written to disk"
-        )
-
     aliases = {
         'stdout':'NbconvertApp.stdout',
         'write':'NbconvertApp.write'
@@ -99,41 +82,11 @@ class NbconvertApp(Application):
         self.classes.insert(0, GlobalConfigurable)
 
 
-    def load_config_file(self, profile_name):
-        """Load a config file from the config file dir
-
-        profile_name : {string} name of the profile file to load without file 
-        extension.
-        """
-
-        #Try to load the config file.  If the file isn't found, catch the 
-        #exception.
-        try:
-            Application.load_config_file(
-                self,
-                profile_name + '.py',
-                path=[os.path.join(NBCONVERT_DIR, 'profile')]
-                )
-            return True
-
-        except ConfigFileNotFound:
-            self.log.warn(ERROR_CONFIG_NOT_FOUND, profile_name)
-            return False
-
-
     def start(self, argv=None):
         """Convert a notebook in one step"""
 
         #Parse the commandline options.
         self.parse_command_line(argv)
-
-        #Load an addition config file if specified by the user via the 
-        #commandline.
-        cl_config = self.config
-        profile_file = argv[1]
-        if not self.load_config_file(profile_file):
-            exit(1)
-        self.update_config(cl_config)
 
         #Call base
         super(NbconvertApp, self).start()
@@ -147,11 +100,11 @@ class NbconvertApp(Application):
 
         #Create the Jinja template exporter.  TODO: Add ability to 
         #import in IPYNB aswell
-        exporter = Exporter(config=self.config, preprocessors=userpreprocessors)
+        exporter = Exporter(config=self.config, preprocessors=userpreprocessors,export_format=export_format)
 
         #Export
         output, resources = exporter.from_filename(ipynb_file)
-        if self.stdout :
+        if exporter.stdout :
             print(output.encode('utf-8'))
 
         #Get the file name without the '.ipynb' (6 chars) extension and then
@@ -161,15 +114,15 @@ class NbconvertApp(Application):
         out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
 
         #Write file output from conversion.
-        if self.write :
-            with io.open(os.path.join(out_root+'.'+self.fileext), 'w') as f:
+        if exporter.write :
+            with io.open(os.path.join(out_root+'.'+exporter.fileext), 'w') as f:
                 f.write(output)
 
         #Output any associate figures into the same "root" directory.
         binkeys = resources.get('figures', {}).get('binary',{}).keys()
         textkeys = resources.get('figures', {}).get('text',{}).keys()
         if binkeys or textkeys :
-            if self.write:
+            if exporter.write:
                 files_dir = out_root+'_files'
                 if not os.path.exists(out_root+'_files'):
                     os.mkdir(files_dir)
@@ -182,7 +135,7 @@ class NbconvertApp(Application):
 
             #Figures that weren't exported which will need to be created by the
             #user.  Tell the user what figures these are.
-            elif self.stdout:
+            elif exporter.stdout:
                 print(KEYS_PROMPT_HEAD)
                 print(resources['figures'].keys())
                 print(KEYS_PROMPT_BODY)
