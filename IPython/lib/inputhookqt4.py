@@ -26,6 +26,13 @@ from IPython.external.qt_for_kernel import QtCore, QtGui
 from IPython.lib.inputhook import allow_CTRL_C, ignore_CTRL_C, stdin_ready
 
 #-----------------------------------------------------------------------------
+# Module Globals
+#-----------------------------------------------------------------------------
+
+got_kbdint = False
+sigint_timer = None
+
+#-----------------------------------------------------------------------------
 # Code
 #-----------------------------------------------------------------------------
 
@@ -68,10 +75,6 @@ def create_inputhook_qt4(mgr, app=None):
 
     # Otherwise create the inputhook_qt4/preprompthook_qt4 pair of
     # hooks (they both share the got_kbdint flag)
-
-    got_kbdint = [False]
-
-    sigint_timer = [None]
 
     def inputhook_qt4():
         """PyOS_InputHook python hook for Qt4.
@@ -121,8 +124,10 @@ def create_inputhook_qt4(mgr, app=None):
                     event_loop.exec_()
                     timer.stop()
         except KeyboardInterrupt:
+            global got_kbdint, sigint_timer
+
             ignore_CTRL_C()
-            got_kbdint[0] = True
+            got_kbdint = True
             mgr.clear_inputhook()
 
             # This generates a second SIGINT so the user doesn't have to
@@ -136,10 +141,10 @@ def create_inputhook_qt4(mgr, app=None):
             # Python and CTRL_C_EVENT doesn't work).
             if(os.name == 'posix'):
                 pid = os.getpid()
-                if(not sigint_timer[0]):
-                    sigint_timer[0] = threading.Timer(.01, os.kill,
+                if(not sigint_timer):
+                    sigint_timer = threading.Timer(.01, os.kill,
                                          args=[pid, signal.SIGINT] )
-                    sigint_timer[0].start()
+                    sigint_timer.start()
             else:
                 print("\nKeyboardInterrupt - Ctrl-C again for new prompt")
 
@@ -160,13 +165,15 @@ def create_inputhook_qt4(mgr, app=None):
         (in case the latter was temporarily deactivated after a
         CTRL+C)
         """
-        if(sigint_timer[0]):
-            sigint_timer[0].cancel()
-            sigint_timer[0] = None
+        global got_kbdint, sigint_timer
 
-        if got_kbdint[0]:
+        if(sigint_timer):
+            sigint_timer.cancel()
+            sigint_timer = None
+
+        if got_kbdint:
             mgr.set_inputhook(inputhook_qt4)
-        got_kbdint[0] = False
+        got_kbdint = False
 
     ip._inputhook_qt4 = inputhook_qt4
     ip.set_hook('pre_prompt_hook', preprompthook_qt4)
