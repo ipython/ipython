@@ -293,9 +293,9 @@ var IPython = (function (IPython) {
         var anchor = this.code_mirror.cursorCoords(false);
         var head  = this.code_mirror.cursorCoords(true);
         var pos = {};
-        pos.y = head.y
-        pos.yBot = head.yBot
-        pos.x = (head.x+anchor.x)/2;
+        pos.y = head.top
+        pos.yBot = head.bottom
+        pos.x = (head.left+anchor.left)/2;
 
         var xinit = pos.x;
         var xinter = o.left + (xinit - o.left) / w * (w - 450);
