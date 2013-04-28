@@ -1,0 +1,8 @@
+{
+  "name": "CodeMirror",
+  "version": "3.12.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ipython/CodeMirror.git"
+  }
+}

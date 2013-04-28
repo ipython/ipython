@@ -1,0 +1,21 @@
+{
+  "name": "jquery",
+  "version": "1.8.3",
+  "description": "jQuery component",
+  "keywords": [
+    "jquery",
+    "component"
+  ],
+  "scripts": [
+    "jquery.js"
+  ],
+  "license": "MIT",
+  "gitHead": "a94bf4baa9955613937d4f4c083c9d95ad0564fb",
+  "readme": "jQuery Component\n================\n\nShim repository for jQuery.\n",
+  "readmeFilename": "README.md",
+  "_id": "jquery@1.8.3",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/components/jquery.git"
+  }
+}
