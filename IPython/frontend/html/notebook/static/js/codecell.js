@@ -66,7 +66,7 @@ var IPython = (function (IPython) {
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
-        this.default_mode = 'python';
+        this.default_mode = 'ipython';
 
 
         var cm_overwrite_options  = {
@@ -86,7 +86,7 @@ var IPython = (function (IPython) {
     CodeCell.options_default = {
         cm_config : {
             extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
-            mode: 'python',
+            mode: 'ipython',
             theme: 'ipython',
             matchBrackets: true
         }
