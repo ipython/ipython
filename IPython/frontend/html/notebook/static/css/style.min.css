@@ -916,6 +916,8 @@ div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;bac
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 .CodeMirror{line-height:1.231;height:auto;background:none;}
 .CodeMirror-scroll{overflow-y:hidden;overflow-x:auto;}
+.CodeMirror-lines{padding:0.4em;}
+.CodeMirror pre{padding:0;}
 .ansiblack{color:#000000;}
 .ansired{color:darkred;}
 .ansigreen{color:darkgreen;}
