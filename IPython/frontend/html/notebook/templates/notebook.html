@@ -11,7 +11,7 @@
 window.mathjax_url = "{{mathjax_url}}";
 </script>
 
-<link rel="stylesheet" href="{{ static_url("components/codemirror/lib/components/codemirror.css") }}">
+<link rel="stylesheet" href="{{ static_url("components/codemirror/lib/codemirror.css") }}">
 <link rel="stylesheet" href="{{ static_url("css/codemirror-ipython.css") }}">
 
 <link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
@@ -184,9 +184,9 @@ class="notebook_app"
 
 {{super()}}
 
-<script src="{{ static_url("components/codemirror/lib/components/codemirror.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/lib/util/loadmode.js") }}" charset="utf-8"></script>
-<script src="{{ static_url("components/codemirror/lib/util/multiplex.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/mode/loadmode.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/mode/multiplex.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("js/codemirror-ipython.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
