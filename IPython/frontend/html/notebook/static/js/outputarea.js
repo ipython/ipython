@@ -325,7 +325,7 @@ var IPython = (function (IPython) {
         }
     };
 
-    OutputArea.display_order = ['javascript','latex','svg','png','jpeg','text'];
+    OutputArea.display_order = ['javascript','html','latex','svg','png','jpeg','text'];
 
     OutputArea.prototype.append_mime_type = function (json, element, dynamic) {
         for(var type_i in OutputArea.display_order){
