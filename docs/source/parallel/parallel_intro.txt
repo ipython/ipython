@@ -213,7 +213,7 @@ need to use ssh tunnels to connect clients from your laptop to it.  You will als
 probably need to instruct the controller to listen for engines coming from other work nodes
 on the cluster.  An example of ipcontroller-client.json, as created by::
 
-    $> ipcontroller --ip=0.0.0.0 --ssh=login.mycluster.com
+    $> ipcontroller --ip=* --ssh=login.mycluster.com
 
 
 .. sourcecode:: python
