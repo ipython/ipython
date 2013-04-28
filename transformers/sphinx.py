@@ -1,9 +1,20 @@
-"""
-Module that allows custom Sphinx parameters to be set on the notebook and
+"""Module that allows custom Sphinx parameters to be set on the notebook and
 on the 'other' object passed into Jinja.
 """
-from __future__ import absolute_import
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function, absolute_import
+
+# Stdlib imports
 # Used to find Sphinx package location
 import sphinx
 import os.path
@@ -14,15 +25,20 @@ import sys
 # Used to set the default date to today's date 
 from datetime import date 
 
-# Configurable traitlets
-from IPython.utils.traitlets import Unicode, Bool
-
+# Third-party imports
 # Needed for Pygments latex definitions.
 from pygments.formatters import LatexFormatter
 
-# Needed to override transformer
-from .transformers import (ActivatableTransformer)
+# Our own imports
+# Configurable traitlets
+from IPython.utils.traitlets import Unicode, Bool
 
+# Needed to override transformer
+from .transformers import (ActivatableTransformer) #TODO
+
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
 class SphinxTransformer(ActivatableTransformer):
     """
     Sphinx utility transformer.

@@ -38,22 +38,16 @@ from markdown import markdown
 # local import (pre-transformers)
 from exceptions import ConversionException
 from . import transformers as trans #TODO
-from .latex_transformer import (LatexTransformer) #TODO
-from .utils import  markdown2rst #TODO
-from .utils import markdown2latex #TODO
 from .utils import highlight2latex #TODO
 from .utils import get_lines #TODO
 from .utils import remove_ansi #TODO
 from .utils import highlight, ansi2html #TODO
-from .latex_transformer import rm_math_space #TODO
-import .utils.strings as strings
 
-#Jinja2 filters
-from .jinja_filters import (python_comment,
-    rm_fake,   
-     escape_tex, FilterDataType,
-    rm_dollars
-    )
+from .transformers.latex import LatexTransformer, rm_math_space
+
+import .utils.strings as strings
+import .utils.markdown as markdown_utils
+import .utils.datatypefilter.DataTypeFilter as DataTypeFilter
 
 #Try to import the Sphinx exporter.  If the user doesn't have Sphinx isntalled 
 #on his/her machine, fail silently.
@@ -223,15 +217,15 @@ class Exporter(Configurable):
             self.preprocessors.append(SphinxTransformer(config=config))
 
         #Add filters to the Jinja2 environment
-        self.env.filters['filter_data_type'] = FilterDataType(config=config)
+        self.env.filters['filter_data_type'] = DataTypeFilter(config=config)
         self.env.filters['pycomment'] = _python_comment
         self.env.filters['indent'] = indent
         self.env.filters['rm_fake'] = _rm_fake
         self.env.filters['rm_ansi'] = remove_ansi
         self.env.filters['markdown'] = markdown
         self.env.filters['ansi2html'] = ansi2html
-        self.env.filters['markdown2latex'] = markdown2latex
-        self.env.filters['markdown2rst'] = markdown2rst
+        self.env.filters['markdown2latex'] = markdown_utils.markdown2latex
+        self.env.filters['markdown2rst'] = markdown_utils.markdown2rst
         self.env.filters['get_lines'] = get_lines
         self.env.filters['wrap'] = strings.wrap
         self.env.filters['rm_dollars'] = strings.strip_dollars

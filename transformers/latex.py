@@ -1,14 +1,28 @@
-"""
+"""Latex transformer.
+
 Module that allows latex output notebooks to be conditioned before
 they are converted.
 """
-from __future__ import absolute_import
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
-# Configurable traitlets
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+from __future__ import print_function, absolute_import
 
+# Our own imports
 # Needed to override transformer
-from .transformers import (ActivatableTransformer)
+from .transformers import (ActivatableTransformer) #TODO
 
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
 class LatexTransformer(ActivatableTransformer):
     """
     Converter for latex destined documents.
@@ -26,6 +40,9 @@ class LatexTransformer(ActivatableTransformer):
             cell.source = rm_math_space(cell.source)
         return cell, other
 
+#-----------------------------------------------------------------------------
+# Functions
+#-----------------------------------------------------------------------------
 def rm_math_space(text):
     """
     Remove the space between latex math commands and enclosing $ symbols.
