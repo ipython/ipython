@@ -46,8 +46,7 @@ from .utils import get_lines #TODO
 from .utils import remove_ansi #TODO
 from .utils import highlight, ansi2html #TODO
 from .latex_transformer import rm_math_space #TODO
-
-import textwrap #TODO
+from .utils.strings import wrap as _wrap
 
 #Jinja2 filters
 from .jinja_filters import (python_comment,
@@ -94,17 +93,6 @@ LATEX_SUBS = (
     (re.compile(r'"'), r"''"),
     (re.compile(r'\.\.\.+'), r'\\ldots'),
 )
-
-#-----------------------------------------------------------------------------
-# Local utilities
-#-----------------------------------------------------------------------------
-#TODO: Move to utils.strings
-def wrap(text, width=100):
-    """ Try to detect and wrap paragraph"""
-    splitt = text.split('\n')
-    wrp = map(lambda x:textwrap.wrap(x,width),splitt)
-    wrpd = map('\n'.join, wrp)
-    return '\n'.join(wrpd)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -220,7 +208,7 @@ class Exporter(Configurable):
         self.env.filters['markdown2latex'] = markdown2latex
         self.env.filters['markdown2rst'] = markdown2rst
         self.env.filters['get_lines'] = get_lines
-        self.env.filters['wrap'] = wrap
+        self.env.filters['wrap'] = _wrap
         self.env.filters['rm_dollars'] = _rm_dollars
         self.env.filters['rm_math_space'] = rm_math_space
         self.env.filters['highlight2html'] = highlight 
@@ -301,18 +289,22 @@ class Exporter(Configurable):
         return nb, resources
 
 
+    #TODO: Comment me.
     def _rm_fake(strng):
         return strng.replace('/files/', '')
 
 
+    #TODO: Comment me.
     def _rm_dollars(strng):
         return strng.strip('$')
 
 
+    #TODO: Comment me.
     def _python_comment(string):
         return '# '+'\n# '.join(string.split('\n'))
 
 
+    #TODO: Comment me.
     def _escape_tex(value):
         newval = value
         for pattern, replacement in LATEX_SUBS:
