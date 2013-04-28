@@ -1,3 +1,6 @@
+// This is an ipython mode for CodeMirror. We started from the CM Python mode and renamed
+// it to ipython. We have then marked all other changes we have made to the file.
+
 CodeMirror.defineMode("ipython", function(conf, parserConf) {
     var ERRORCLASS = 'error';
 
@@ -5,7 +8,9 @@ CodeMirror.defineMode("ipython", function(conf, parserConf) {
         return new RegExp("^((" + words.join(")|(") + "))\\b");
     }
 
-    var singleOperators = parserConf.singleOperators || new RegExp("^[\\+\\-\\*/%&|\\^~<>!]");
+	// IPython-specific changes: add '?' as recognized character using \\?
+    var singleOperators = parserConf.singleOperators || new RegExp("^[\\+\\-\\*/%&|\\^~<>!\\?]");
+	// End IPython changes.
     var singleDelimiters = parserConf.singleDelimiters || new RegExp('^[\\(\\)\\[\\]\\{\\}@,:`=;\\.]');
     var doubleOperators = parserConf.doubleOperators || new RegExp("^((==)|(!=)|(<=)|(>=)|(<>)|(<<)|(>>)|(//)|(\\*\\*))");
     var doubleDelimiters = parserConf.doubleDelimiters || new RegExp("^((\\+=)|(\\-=)|(\\*=)|(%=)|(/=)|(&=)|(\\|=)|(\\^=))");
@@ -337,4 +342,4 @@ CodeMirror.defineMode("ipython", function(conf, parserConf) {
     return external;
 });
 
-CodeMirror.defineMIME("text/x-python", "python");
+CodeMirror.defineMIME("text/x-ipython", "ipython");
