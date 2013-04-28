@@ -48,3 +48,10 @@ Backwards incompatible changes
   :func:`IPython.utils.doctestreload.doctest_reload` to make doctests run 
   correctly inside IPython. Python releases since those versions are unaffected.
   For details, see :ghpull:`3068` and `Python issue 8048 <http://bugs.python.org/issue8048>`_.
+
+
+Library Update
+--------------
+
+* CodeMirror has been updated to 3.11 which in incompatible with <3.0 versions.
+  Codemirror should now be installed in the static/component directory
