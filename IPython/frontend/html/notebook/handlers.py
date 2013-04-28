@@ -399,7 +399,7 @@ class MainKernelHandler(IPythonHandler):
         notebook_id = self.get_argument('notebook', default=None)
         kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
         data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
-        self.set_header('Location', '/'+kernel_id)
+        self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
         self.finish(jsonapi.dumps(data))
 
 
@@ -426,7 +426,7 @@ class KernelActionHandler(IPythonHandler):
         if action == 'restart':
             km.restart_kernel(kernel_id)
             data = {'ws_url':self.ws_url, 'kernel_id':kernel_id}
-            self.set_header('Location', '/'+kernel_id)
+            self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
             self.write(jsonapi.dumps(data))
         self.finish()
 
@@ -641,7 +641,7 @@ class NotebookRootHandler(IPythonHandler):
             notebook_id = nbm.save_new_notebook(body, name=name, format=format)
         else:
             notebook_id = nbm.new_notebook()
-        self.set_header('Location', '/'+notebook_id)
+        self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
 
 
@@ -698,6 +698,9 @@ class NotebookCheckpointsHandler(IPythonHandler):
         nbm = self.notebook_manager
         checkpoint = nbm.create_checkpoint(notebook_id)
         data = jsonapi.dumps(checkpoint, default=date_default)
+        self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
+            self.base_project_url, notebook_id, checkpoint['checkpoint_id']
+        ))
         
         self.finish(data)
 
