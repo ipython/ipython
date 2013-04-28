@@ -61,6 +61,8 @@ def swallow_argv(argv, aliases=None, flags=None):
     swallow_next = False
     was_flag = False
     for a in argv:
+        if a == '--':
+            break
         if swallow_next:
             swallow_next = False
             # last arg was an alias, remove the next one
@@ -71,16 +73,16 @@ def swallow_argv(argv, aliases=None, flags=None):
                 continue
         if a.startswith('-'):
             split = a.lstrip('-').split('=')
-            alias = split[0]
-            if alias in aliases:
+            name = split[0]
+            if any(alias.startswith(name) for alias in aliases):
                 stripped.remove(a)
                 if len(split) == 1:
                     # alias passed with arg via space
                     swallow_next = True
                     # could have been a flag that matches an alias, e.g. `existing`
                     # in which case, we might not swallow the next arg
-                    was_flag = alias in flags
-            elif alias in flags and len(split) == 1:
+                    was_flag = name in flags
+            elif len(split) == 1 and any(flag.startswith(name) for flag in flags):
                 # strip flag, but don't swallow next, as flags don't take args
                 stripped.remove(a)
     
