@@ -36,7 +36,11 @@ except socket.gaierror:
 
 PUBLIC_IPS = []
 try:
-    PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname())[2]
+    hostname = socket.gethostname()
+    PUBLIC_IPS = socket.gethostbyname_ex(hostname)[2]
+    # try hostname.local, in case hostname has been short-circuited to loopback
+    if not hostname.endswith('.local') and all(ip.startswith('127') for ip in PUBLIC_IPS):
+        PUBLIC_IPS = socket.gethostbyname_ex(socket.gethostname() + '.local')[2]
 except socket.gaierror:
     pass
 else:
