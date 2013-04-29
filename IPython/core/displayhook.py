@@ -145,15 +145,18 @@ class DisplayHook(Configurable):
 
         Returns
         -------
-        format_data : dict
-            A :class:`dict` whose keys are valid MIME types and values are
+        (format_dict, md_dict) : dict
+            format_dict is a :class:`dict` whose keys are valid MIME types and values are
             JSON'able raw data for that MIME type. It is recommended that
             all return values of this should always include the "text/plain"
             MIME type representation of the object.
+            md_dict is a :class:`dict` with the same MIME type keys
+            of metadata associated with each output.
+            
         """
         return self.shell.display_formatter.format(result)
 
-    def write_format_data(self, format_dict):
+    def write_format_data(self, format_dict, md_dict=None):
         """Write the format data dict to the frontend.
 
         This default version of this method simply writes the plain text
@@ -165,6 +168,8 @@ class DisplayHook(Configurable):
         ----------
         format_dict : dict
             The format dict for the object passed to `sys.displayhook`.
+        md_dict : dict (optional)
+            The metadata dict to be associated with the display data.
         """
         # We want to print because we want to always make sure we have a
         # newline, even if all the prompt separators are ''. This is the
@@ -239,8 +244,8 @@ class DisplayHook(Configurable):
         if result is not None and not self.quiet():
             self.start_displayhook()
             self.write_output_prompt()
-            format_dict = self.compute_format_data(result)
-            self.write_format_data(format_dict)
+            format_dict, md_dict = self.compute_format_data(result)
+            self.write_format_data(format_dict, md_dict)
             self.update_user_ns(result)
             self.log_output(format_dict)
             self.finish_displayhook()
