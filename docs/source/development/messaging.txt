@@ -808,12 +808,29 @@ Message type: ``display_data``::
 
         # The data dict contains key/value pairs, where the kids are MIME
         # types and the values are the raw data of the representation in that
-        # format. The data dict must minimally contain the ``text/plain``
-        # MIME type which is used as a backup representation.
+        # format.
         'data' : dict,
 
         # Any metadata that describes the data
         'metadata' : dict
+    }
+
+
+The ``metadata`` contains any metadata that describes the output.
+Global keys are assumed to apply to the output as a whole.
+The ``metadata`` dict can also contain mime-type keys, which will be sub-dictionaries,
+which are interpreted as applying only to output of that type.
+Third parties should put any data they write into a single dict
+with a reasonably unique name to avoid conflicts.
+
+The only metadata keys currently defined in IPython are the width and height
+of images::
+
+    'metadata' : {
+      'image/png' : {
+        'width': 640,
+        'height': 480
+      }
     }
 
 
