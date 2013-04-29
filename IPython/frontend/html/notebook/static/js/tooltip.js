@@ -292,27 +292,21 @@ var IPython = (function (IPython) {
         // whatever anchor/head order but arrow at mid x selection
         var anchor = this.code_mirror.cursorCoords(false);
         var head  = this.code_mirror.cursorCoords(true);
-        var pos = {};
-        pos.y = head.y
-        pos.yBot = head.yBot
-        pos.x = (head.x+anchor.x)/2;
-
-        var xinit = pos.x;
+        var xinit = (head.left+anchor.left)/2;
         var xinter = o.left + (xinit - o.left) / w * (w - 450);
         var posarrowleft = xinit - xinter;
-
 
         if (this._hidden == false) {
             this.tooltip.animate({
                 'left': xinter - 30 + 'px',
-                'top': (pos.yBot + 10) + 'px'
+                'top': (head.bottom + 10) + 'px'
             });
         } else {
             this.tooltip.css({
                 'left': xinter - 30 + 'px'
             });
             this.tooltip.css({
-                'top': (pos.yBot + 10) + 'px'
+                'top': (head.bottom + 10) + 'px'
             });
         }
         this.arrow.animate({

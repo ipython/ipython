@@ -7,9 +7,6 @@ import os
 static_dir = 'static'
 components_dir = os.path.join(static_dir,'components')
 
-def test_component(name):
-    if not os.path.exists(os.path.join(components_dir,name)):
-        components()
 
 def components():
     """install components with bower"""
@@ -18,8 +15,6 @@ def components():
 
 def css(minify=True):
     """generate the css from less files"""
-    test_component('bootstrap')
-    test_component('less.js')
     if minify not in ['True', 'False', True, False]:
         abort('minify must be Boolean')
     minify = (minify in ['True',True])

@@ -198,8 +198,8 @@ var IPython = (function (IPython) {
 
         // TODO: I propose to remove enough horizontal pixel
         // to align the text later
-        this.complete.css('left', pos.x + 'px');
-        this.complete.css('top', pos.yBot + 'px');
+        this.complete.css('left', pos.left + 'px');
+        this.complete.css('top', pos.bottom + 'px');
         this.complete.append(this.sel);
 
         $('body').append(this.complete);
