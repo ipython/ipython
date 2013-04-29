@@ -62,14 +62,15 @@ def _display_mimetype(mimetype, objs, raw=False, metadata=None):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
+    if metadata:
+        metadata = {mimetype: metadata}
     if raw:
-        for obj in objs:
-            publish_display_data('display', {mimetype : obj}, metadata)
-    else:
-        display(*objs, metadata=metadata, include=[mimetype])
-    
+        # turn list of pngdata into list of { 'image/png': pngdata }
+        objs = [ {mimetype: obj} for obj in objs ]
+    display(*objs, raw=raw, metadata=metadata, include=[mimetype])
+
 #-----------------------------------------------------------------------------
 # Main functions
 #-----------------------------------------------------------------------------
@@ -84,6 +85,9 @@ def display(*objs, **kwargs):
     ----------
     objs : tuple of objects
         The Python objects to display.
+    raw : bool, optional
+        Are the objects to be displayed already mimetype-keyed dicts of raw display data,
+        or Python objects that need to be formatted before display? [default: False]
     include : list or tuple, optional
         A list of format type strings (MIME types) to include in the
         format data dict. If this is set *only* the format types included
@@ -97,19 +101,24 @@ def display(*objs, **kwargs):
         mime-type keys in this dictionary will be associated with the individual
         representation formats, if they exist.
     """
+    raw = kwargs.get('raw', False)
     include = kwargs.get('include')
     exclude = kwargs.get('exclude')
     metadata = kwargs.get('metadata')
 
     from IPython.core.interactiveshell import InteractiveShell
-    format = InteractiveShell.instance().display_formatter.format
-
-    for obj in objs:
-        format_dict, md_dict = format(obj, include=include, exclude=exclude)
-        if metadata:
-            # kwarg-specified metadata gets precedence
-            _merge(md_dict, metadata)
-        publish_display_data('display', format_dict, md_dict)
+    
+    if raw:
+        for obj in objs:
+            publish_display_data('display', obj, metadata)
+    else:
+        format = InteractiveShell.instance().display_formatter.format
+        for obj in objs:
+            format_dict, md_dict = format(obj, include=include, exclude=exclude)
+            if metadata:
+                # kwarg-specified metadata gets precedence
+                _merge(md_dict, metadata)
+            publish_display_data('display', format_dict, md_dict)
 
 
 def display_pretty(*objs, **kwargs):
@@ -124,7 +133,7 @@ def display_pretty(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('text/plain', objs, **kwargs)
 
@@ -141,7 +150,7 @@ def display_html(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('text/html', objs, **kwargs)
 
@@ -158,7 +167,7 @@ def display_svg(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/svg+xml', objs, **kwargs)
 
@@ -175,7 +184,7 @@ def display_png(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/png', objs, **kwargs)
 
@@ -192,7 +201,7 @@ def display_jpeg(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('image/jpeg', objs, **kwargs)
 
@@ -209,7 +218,7 @@ def display_latex(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('text/latex', objs, **kwargs)
 
@@ -228,7 +237,7 @@ def display_json(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('application/json', objs, **kwargs)
 
@@ -245,7 +254,7 @@ def display_javascript(*objs, **kwargs):
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
     metadata : dict (optional)
-        Metadata to be associated with the output.
+        Metadata to be associated with the specific mimetype output.
     """
     _display_mimetype('application/javascript', objs, **kwargs)
 
