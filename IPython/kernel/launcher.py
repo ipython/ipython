@@ -74,6 +74,9 @@ def swallow_argv(argv, aliases=None, flags=None):
         if a.startswith('-'):
             split = a.lstrip('-').split('=')
             name = split[0]
+            # we use startswith because argparse accepts any arg to be specified
+            # by any leading section, as long as it is unique,
+            # so `--no-br` means `--no-browser` in the notebook, etc.
             if any(alias.startswith(name) for alias in aliases):
                 stripped.remove(a)
                 if len(split) == 1:
