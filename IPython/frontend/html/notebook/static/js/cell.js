@@ -227,29 +227,6 @@ var IPython = (function (IPython) {
         return text;
     };
 
-
-    /** Grow the cell by hand. This is used upon reloading from JSON, when the
-     *  autogrow handler is not called.
-     *
-     *  could be made static
-     *
-     *  @param {Dom element} - element
-     *  @method grow
-     **/
-    Cell.prototype.grow = function(element) {
-        var dom = element.get(0);
-        var lines_count = 0;
-        // modified split rule from
-        // http://stackoverflow.com/questions/2035910/how-to-get-the-number-of-lines-in-a-textarea/2036424#2036424
-        var lines = dom.value.split(/\r|\r\n|\n/);
-        lines_count = lines.length;
-        if (lines_count >= 1) {
-            dom.rows = lines_count;
-        } else {
-            dom.rows = 1;
-        }
-    };
-
     /**
      * Show/Hide CodeMirror LineNumber
      * @method show_line_numbers
