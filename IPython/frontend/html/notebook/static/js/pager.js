@@ -58,7 +58,7 @@ var IPython = (function (IPython) {
         )
         this.pager_button_area.append(
             $('<a>').attr('role', "button")
-                    .attr('title',"Collapse the pager")
+                    .attr('title',"Close the pager")
                     .addClass('ui-button')
                     .click(function(){that.collapse()})
                     .attr('style','position: absolute; right: 5px;')
