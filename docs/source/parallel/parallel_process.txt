@@ -33,15 +33,28 @@ the ``ip`` argument on the command-line, or the ``HubFactory.ip`` configurable i
 :file:`ipcontroller_config.py`.
 
 If your machines are on a trusted network, you can safely instruct the controller to listen
-on all public interfaces with::
+on all interfaces with::
 
     $> ipcontroller --ip=*
+
 
 Or you can set the same behavior as the default by adding the following line to your :file:`ipcontroller_config.py`:
 
 .. sourcecode:: python
 
     c.HubFactory.ip = '*'
+    # c.HubFactory.location = '10.0.1.1'
+
+
+.. note::
+
+    ``--ip=*`` instructs ZeroMQ to listen on all interfaces,
+    but it does not contain the IP needed for engines / clients
+    to know where the controller actually is.
+    This can be specified with ``--location=10.0.0.1``,
+    the specific IP address of the controller, as seen from engines and/or clients.
+    IPython tries to guess this value by default, but it will not always guess correctly.
+    Check the ``location`` field in your connection files if you are having connection trouble.
 
 .. note::
 
@@ -718,7 +731,11 @@ through the login node, an example :file:`ipcontroller_config.py` might contain:
     c.HubFactory.location = '10.0.1.5'
     # or to get an automatic value, try this:
     import socket
-    ex_ip = socket.gethostbyname_ex(socket.gethostname())[-1][0]
+    hostname = socket.gethostname()
+    # alternate choices for hostname include `socket.getfqdn()`
+    # or `socket.gethostname() + '.local'`
+    
+    ex_ip = socket.gethostbyname_ex(hostname)[-1][-1]
     c.HubFactory.location = ex_ip
     
     # now instruct clients to use the login node for SSH tunnels:
