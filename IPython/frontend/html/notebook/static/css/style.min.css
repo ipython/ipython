@@ -927,12 +927,9 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 .ansicyan{color:steelblue;}
 .ansigrey{color:grey;}
 .ansibold{font-weight:bold;}
-.completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;}
-.completions select{background:white;outline:none;border:none;padding:0px;margin:0px;overflow:auto;font-family:monospace;}
+.completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);-moz-box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);box-shadow:0 5px 10px rgba(0, 0, 0, 0.2);}
+.completions select{background:white;outline:none;border:none;padding:0px;margin:0px;overflow:auto;font-family:monospace;font-size:110%;color:#000000;}
 option.context{background-color:#DEF7FF;}
-option.introspection{background-color:#EBF4EB;}
-.completions p b{font-weight:bold;}
-.completions p{background:#DDF;border-bottom:black solid 1px;padding:1px;font-family:monospace;}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:0.4em;padding-left:2em;}
 p.dialog{padding:0.2em;}
 .shortcut_key{display:inline-block;width:15ex;text-align:right;font-family:monospace;}
