@@ -9,7 +9,7 @@ components_dir = os.path.join(static_dir,'components')
 
 
 def components():
-   """install components with bower"""
+    """install components with bower"""
     with lcd(static_dir):
         local('bower install')
 
