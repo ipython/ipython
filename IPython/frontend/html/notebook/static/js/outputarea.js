@@ -178,9 +178,11 @@ var IPython = (function (IPython) {
             json.stream = content.name;
         } else if (msg_type === "display_data") {
             json = this.convert_mime_types(json, content.data);
+            json.metadata = this.convert_mime_types({}, content.metadata);
         } else if (msg_type === "pyout") {
             json.prompt_number = content.execution_count;
             json = this.convert_mime_types(json, content.data);
+            json.metadata = this.convert_mime_types({}, content.metadata);
         } else if (msg_type === "pyerr") {
             json.ename = content.ename;
             json.evalue = content.evalue;
@@ -273,7 +275,7 @@ var IPython = (function (IPython) {
             }
             s = s + '\n';
             var toinsert = this.create_output_area();
-            this.append_text(s, toinsert);
+            this.append_text(s, {}, toinsert);
             this.element.append(toinsert);
         }
     };
@@ -310,7 +312,7 @@ var IPython = (function (IPython) {
 
         // If we got here, attach a new div
         var toinsert = this.create_output_area();
-        this.append_text(text, toinsert, "output_stream "+subclass);
+        this.append_text(text, {}, toinsert, "output_stream "+subclass);
         this.element.append(toinsert);
     };
 
@@ -331,12 +333,16 @@ var IPython = (function (IPython) {
         for(var type_i in OutputArea.display_order){
             var type = OutputArea.display_order[type_i];
             if(json[type] != undefined ){
+                var md = {};
+                if (json.metadata && json.metadata[type]) {
+                    md = json.metadata[type];
+                };
                 if(type == 'javascript'){
                     if (dynamic) {
-                        this.append_javascript(json.javascript, element, dynamic);
+                        this.append_javascript(json.javascript, md, element, dynamic);
                     }
                 } else {
-                    this['append_'+type](json[type], element);
+                    this['append_'+type](json[type], md, element);
                 }
                 return;
             }
@@ -344,14 +350,14 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_html = function (html, element) {
+    OutputArea.prototype.append_html = function (html, md, element) {
         var toinsert = $("<div/>").addClass("output_subarea output_html rendered_html");
         toinsert.append(html);
         element.append(toinsert);
     };
 
 
-    OutputArea.prototype.append_javascript = function (js, container) {
+    OutputArea.prototype.append_javascript = function (js, md, container) {
         // We just eval the JS code, element appears in the local scope.
         var element = $("<div/>").addClass("output_subarea");
         container.append(element);
@@ -375,7 +381,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_text = function (data, element, extra_class) {
+    OutputArea.prototype.append_text = function (data, md, element, extra_class) {
         var toinsert = $("<div/>").addClass("output_subarea output_text");
         // escape ANSI & HTML specials in plaintext:
         data = utils.fixConsole(data);
@@ -389,7 +395,7 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_svg = function (svg, element) {
+    OutputArea.prototype.append_svg = function (svg, md, element) {
         var toinsert = $("<div/>").addClass("output_subarea output_svg");
         toinsert.append(svg);
         element.append(toinsert);
@@ -423,25 +429,37 @@ var IPython = (function (IPython) {
     };
 
 
-    OutputArea.prototype.append_png = function (png, element) {
+    OutputArea.prototype.append_png = function (png, md, element) {
         var toinsert = $("<div/>").addClass("output_subarea output_png");
         var img = $("<img/>").attr('src','data:image/png;base64,'+png);
+        if (md['height']) {
+            img.attr('height', md['height']);
+        }
+        if (md['width']) {
+            img.attr('width', md['width']);
+        }
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
     };
 
 
-    OutputArea.prototype.append_jpeg = function (jpeg, element) {
+    OutputArea.prototype.append_jpeg = function (jpeg, md, element) {
         var toinsert = $("<div/>").addClass("output_subarea output_jpeg");
         var img = $("<img/>").attr('src','data:image/jpeg;base64,'+jpeg);
+        if (md['height']) {
+            img.attr('height', md['height']);
+        }
+        if (md['width']) {
+            img.attr('width', md['width']);
+        }
         this._dblclick_to_reset_size(img);
         toinsert.append(img);
         element.append(toinsert);
     };
 
 
-    OutputArea.prototype.append_latex = function (latex, element) {
+    OutputArea.prototype.append_latex = function (latex, md, element) {
         // This method cannot do the typesetting because the latex first has to
         // be on the page.
         var toinsert = $("<div/>").addClass("output_subarea output_latex");

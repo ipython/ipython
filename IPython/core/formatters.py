@@ -127,28 +127,43 @@ class DisplayFormatter(Configurable):
 
         Returns
         -------
-        format_dict : dict
-            A dictionary of key/value pairs, one or each format that was
+        (format_dict, metadata_dict) : tuple of two dicts
+        
+            format_dict is a dictionary of key/value pairs, one of each format that was
             generated for the object. The keys are the format types, which
             will usually be MIME type strings and the values and JSON'able
             data structure containing the raw data for the representation in
             that format.
+            
+            metadata_dict is a dictionary of metadata about each mime-type output.
+            Its keys will be a strict subset of the keys in format_dict.
         """
         format_dict = {}
+        md_dict = {}
 
         for format_type, formatter in self.formatters.items():
             if include and format_type not in include:
                 continue
             if exclude and format_type in exclude:
                 continue
+            
+            md = None
             try:
                 data = formatter(obj)
             except:
                 # FIXME: log the exception
                 raise
+            
+            # formatters can return raw data or (data, metadata)
+            if isinstance(data, tuple) and len(data) == 2:
+                data, md = data
+            
             if data is not None:
                 format_dict[format_type] = data
-        return format_dict
+            if md is not None:
+                md_dict[format_type] = md
+            
+        return format_dict, md_dict
 
     @property
     def format_types(self):

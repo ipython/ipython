@@ -21,14 +21,9 @@ from __future__ import print_function
 
 import os
 
-from .displaypub import (
-    publish_pretty, publish_html,
-    publish_latex, publish_svg,
-    publish_png, publish_json,
-    publish_javascript, publish_jpeg
-)
-
 from IPython.utils.py3compat import string_types
+
+from .displaypub import publish_display_data
 
 #-----------------------------------------------------------------------------
 # utility functions
@@ -40,6 +35,41 @@ def _safe_exists(path):
         return os.path.exists(path)
     except Exception:
         return False
+
+def _merge(d1, d2):
+    """Like update, but merges sub-dicts instead of clobbering at the top level.
+    
+    Updates d1 in-place
+    """
+    
+    if not isinstance(d2, dict) or not isinstance(d1, dict):
+        return d2
+    for key, value in d2.items():
+        d1[key] = _merge(d1.get(key), value)
+    return d1
+
+def _display_mimetype(mimetype, objs, raw=False, metadata=None):
+    """internal implementation of all display_foo methods
+
+    Parameters
+    ----------
+    mimetype : str
+        The mimetype to be published (e.g. 'image/png')
+    objs : tuple of objects
+        The Python objects to display, or if raw=True raw text data to
+        display.
+    raw : bool
+        Are the data objects raw data or Python objects that need to be
+        formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
+    """
+    if metadata:
+        metadata = {mimetype: metadata}
+    if raw:
+        # turn list of pngdata into list of { 'image/png': pngdata }
+        objs = [ {mimetype: obj} for obj in objs ]
+    display(*objs, raw=raw, metadata=metadata, include=[mimetype])
 
 #-----------------------------------------------------------------------------
 # Main functions
@@ -55,6 +85,9 @@ def display(*objs, **kwargs):
     ----------
     objs : tuple of objects
         The Python objects to display.
+    raw : bool, optional
+        Are the objects to be displayed already mimetype-keyed dicts of raw display data,
+        or Python objects that need to be formatted before display? [default: False]
     include : list or tuple, optional
         A list of format type strings (MIME types) to include in the
         format data dict. If this is set *only* the format types included
@@ -63,18 +96,29 @@ def display(*objs, **kwargs):
         A list of format type strings (MIME types) to exclude in the format
         data dict. If this is set all format types will be computed,
         except for those included in this argument.
+    metadata : dict, optional
+        A dictionary of metadata to associate with the output.
+        mime-type keys in this dictionary will be associated with the individual
+        representation formats, if they exist.
     """
+    raw = kwargs.get('raw', False)
     include = kwargs.get('include')
     exclude = kwargs.get('exclude')
+    metadata = kwargs.get('metadata')
 
     from IPython.core.interactiveshell import InteractiveShell
-    inst = InteractiveShell.instance()
-    format = inst.display_formatter.format
-    publish = inst.display_pub.publish
-
-    for obj in objs:
-        format_dict = format(obj, include=include, exclude=exclude)
-        publish('IPython.core.display.display', format_dict)
+    
+    if raw:
+        for obj in objs:
+            publish_display_data('display', obj, metadata)
+    else:
+        format = InteractiveShell.instance().display_formatter.format
+        for obj in objs:
+            format_dict, md_dict = format(obj, include=include, exclude=exclude)
+            if metadata:
+                # kwarg-specified metadata gets precedence
+                _merge(md_dict, metadata)
+            publish_display_data('display', format_dict, md_dict)
 
 
 def display_pretty(*objs, **kwargs):
@@ -88,13 +132,10 @@ def display_pretty(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_pretty(obj)
-    else:
-        display(*objs, include=['text/plain'])
+    _display_mimetype('text/plain', objs, **kwargs)
 
 
 def display_html(*objs, **kwargs):
@@ -108,13 +149,10 @@ def display_html(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_html(obj)
-    else:
-        display(*objs, include=['text/plain','text/html'])
+    _display_mimetype('text/html', objs, **kwargs)
 
 
 def display_svg(*objs, **kwargs):
@@ -128,13 +166,10 @@ def display_svg(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_svg(obj)
-    else:
-        display(*objs, include=['text/plain','image/svg+xml'])
+    _display_mimetype('image/svg+xml', objs, **kwargs)
 
 
 def display_png(*objs, **kwargs):
@@ -148,13 +183,10 @@ def display_png(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_png(obj)
-    else:
-        display(*objs, include=['text/plain','image/png'])
+    _display_mimetype('image/png', objs, **kwargs)
 
 
 def display_jpeg(*objs, **kwargs):
@@ -168,13 +200,10 @@ def display_jpeg(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_jpeg(obj)
-    else:
-        display(*objs, include=['text/plain','image/jpeg'])
+    _display_mimetype('image/jpeg', objs, **kwargs)
 
 
 def display_latex(*objs, **kwargs):
@@ -188,13 +217,10 @@ def display_latex(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_latex(obj)
-    else:
-        display(*objs, include=['text/plain','text/latex'])
+    _display_mimetype('text/latex', objs, **kwargs)
 
 
 def display_json(*objs, **kwargs):
@@ -210,13 +236,10 @@ def display_json(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_json(obj)
-    else:
-        display(*objs, include=['text/plain','application/json'])
+    _display_mimetype('application/json', objs, **kwargs)
 
 
 def display_javascript(*objs, **kwargs):
@@ -230,13 +253,10 @@ def display_javascript(*objs, **kwargs):
     raw : bool
         Are the data objects raw data or Python objects that need to be
         formatted before display? [default: False]
+    metadata : dict (optional)
+        Metadata to be associated with the specific mimetype output.
     """
-    raw = kwargs.pop('raw',False)
-    if raw:
-        for obj in objs:
-            publish_javascript(obj)
-    else:
-        display(*objs, include=['text/plain','application/javascript'])
+    _display_mimetype('application/javascript', objs, **kwargs)
 
 #-----------------------------------------------------------------------------
 # Smart classes
@@ -539,14 +559,26 @@ class Image(DisplayObject):
             if self.height:
                 height = ' height="%d"' % self.height
             return u'<img src="%s"%s%s/>' % (self.url, width, height)
+    
+    def _data_and_metadata(self):
+        """shortcut for returning metadata with shape information, if defined"""
+        md = {}
+        if self.width:
+            md['width'] = self.width
+        if self.height:
+            md['height'] = self.height
+        if md:
+            return self.data, md
+        else:
+            return self.data
 
     def _repr_png_(self):
         if self.embed and self.format == u'png':
-            return self.data
+            return self._data_and_metadata()
 
     def _repr_jpeg_(self):
         if self.embed and (self.format == u'jpeg' or self.format == u'jpg'):
-            return self.data
+            return self._data_and_metadata()
 
     def _find_ext(self, s):
         return unicode(s.split('.')[-1].lower())
