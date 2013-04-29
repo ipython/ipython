@@ -1,7 +1,0 @@
-node_modules
-.emacs*
-*.flymake
-*~
-.#*
-test/browser/less.js
-test/browser/test-runner-*.htm
