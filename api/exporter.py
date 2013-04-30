@@ -344,7 +344,7 @@ class Exporter(Configurable):
             c.ExtractFigureTransformer.display_data_priority=['latex', 'svg', 'png', 'jpg', 'jpeg']
             c.ExtractFigureTransformer.extra_ext_map={'svg':'pdf'}
             c.ExtractFigureTransformer.enabled=True
-            
+
             # Enable latex transformers (make markdown2latex work with math $.)
             c.LatexTransformer.enabled=True
             c.SphinxTransformer.enabled = True
@@ -352,7 +352,7 @@ class Exporter(Configurable):
         elif export_format == 'markdown':
             c.NbconvertApp.fileext='md'
             c.ExtractFigureTransformer.enabled=True
-            
+
         elif export_format == 'python':
             c.NbconvertApp.fileext='py'
 
