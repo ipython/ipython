@@ -28,6 +28,7 @@ try:
 except:
     from ConfigParser import ConfigParser
 from distutils.command.build_py import build_py
+from distutils.cmd import Command
 from glob import glob
 
 from setupext import install_data_ext
@@ -368,17 +369,79 @@ def check_for_dependencies():
     check_for_pyzmq()
     check_for_readline()
 
-def record_commit_info(pkg_dir, build_cmd=build_py):
-    """ Return extended build or sdist command class for recording commit
+#---------------------------------------------------------------------------
+# VCS related
+#---------------------------------------------------------------------------
+
+def check_for_submodules():
+    """return False if there are any submodules that need to be checked out,
+    True otherwise.
+    
+    This doesn't check if they are up to date, only existence.
+    """
+    here = os.path.dirname(__file__)
+    submodules = [
+        os.path.join(here, 'IPython', 'frontend', 'html', 'notebook', 'static', 'external')
+    ]
+    for submodule in submodules:
+        if not os.path.exists(submodule):
+            return False
+    return True
+
+def update_submodules():
+    """update git submodules"""
+    import subprocess
+    print("updating git submodules")
+    subprocess.check_call('git submodule init'.split())
+    subprocess.check_call('git submodule update --recursive'.split())
+
+class UpdateSubmodules(Command):
+    """Update git submodules
+    
+    IPython's external javascript dependencies live in a separate repo.
+    """
+    description = "Update git submodules"
+    user_options = []
+    
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+    
+    def run(self):
+        failure = False
+        try:
+            self.spawn('git submodule init'.split())
+            self.spawn('git submodule update --recursive'.split())
+        except Exception as e:
+            failure = e
+            print(e)
+        
+        if not check_for_submodules():
+            print("submodules could not be checked out")
+            sys.exit(1)
+        
+        # re-scan package data after update
+        self.distribution.package_data = find_package_data()
+
+def git_prebuild(pkg_dir, build_cmd=build_py):
+    """Return extended build or sdist command class for recording commit
     
     records git commit in IPython.utils._sysinfo.commit
     
     for use in IPython.utils.sysinfo.sys_info() calls after installation.
+    
+    Also ensures that submodules exist prior to running
     """
     
     class MyBuildPy(build_cmd):
         ''' Subclass to write commit data into installation tree '''
         def run(self):
+            if not check_for_submodules():
+                print("submodules missing! Run `setup.py submodule` and try again")
+                sys.exit(1)
+            
             build_cmd.run(self)
             # this one will only fire for build commands
             if hasattr(self, 'build_lib'):
@@ -416,3 +479,14 @@ def record_commit_info(pkg_dir, build_cmd=build_py):
                     'commit = "%s"\n' % repo_commit,
                 ])
     return MyBuildPy
+
+
+def require_submodules(command):
+    """decorator for instructing a command to check for submodules before running"""
+    class DecoratedCommand(command):
+        def run(self):
+            if not check_for_submodules():
+                print("submodules missing! Run `setup.py submodule` and try again")
+                sys.exit(1)
+            command.run(self)
+    return DecoratedCommand
