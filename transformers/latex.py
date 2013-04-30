@@ -36,6 +36,7 @@ class LatexTransformer(ActivatableTransformer):
 
         Returns modified cell and resource dict.
         """
+        
         if hasattr(cell, "source") and cell.cell_type == "markdown":
             cell.source = rm_math_space(cell.source)
         return cell, other
@@ -60,8 +61,10 @@ def rm_math_space(text):
     last_character = ""
     skip = False
     for index, char in enumerate(text):
+
         #Make sure the character isn't preceeded by a backslash
         if (char == "$" and last_character != "\\"):
+
             # Close the math region if this is an ending $
             if within_math:
                 within_math = False
@@ -69,10 +72,12 @@ def rm_math_space(text):
                 ptext = ptext+'$'+text[math_start_index+1:index].strip()+'$'
                 math_regions.append([math_start_index, index+1])
             else:
+
                 # Start a new math region
                 within_math = True
                 math_start_index = index
                 math_lines = 0
+
         # If we are in a math region, count the number of lines parsed.
         # Cancel the math region if we find two line breaks!
         elif char == "\n":
