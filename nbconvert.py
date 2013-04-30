@@ -77,7 +77,7 @@ class NbconvertApp(Application):
         super(NbconvertApp, self).__init__(**kwargs)
 
         #Register class here to have help with help all
-        self.classes.insert(0, ConverterTemplate)
+        self.classes.insert(0, Exporter)
         self.classes.insert(0, ExtractFigureTransformer)
         self.classes.insert(0, GlobalConfigurable)
 
