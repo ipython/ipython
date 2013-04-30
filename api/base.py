@@ -38,23 +38,13 @@ from markdown import markdown
 # local import (pre-transformers)
 from exceptions import ConversionException
 from . import transformers as trans #TODO
-from .utils import highlight2latex #TODO
 from .utils import get_lines #TODO
 from .utils import remove_ansi #TODO
 from .utils import highlight, ansi2html #TODO
 
-from .transformers.latex import LatexTransformer, rm_math_space
-
 import .utils.strings as strings
 import .utils.markdown as markdown_utils
 import .utils.datatypefilter.DataTypeFilter as DataTypeFilter
-
-#Try to import the Sphinx exporter.  If the user doesn't have Sphinx isntalled 
-#on his/her machine, fail silently.
-try:
-    from .sphinx_transformer import (SphinxTransformer) #TODO
-except ImportError:
-    SphinxTransformer = None
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -65,28 +55,8 @@ TEMPLATE_PATH = "/../templates/"
 TEMPLATE_SKELETON_PATH = "/../templates/skeleton/"
 TEMPLATE_EXTENSION = ".tpl"
 
-#Latex Jinja2 constants
-LATEX_TEMPLATE_PATH = "/../templates/tex/"
-LATEX_TEMPLATE_SKELETON_PATH = "/../templates/tex/skeleton/"
-LATEX_TEMPLATE_EXTENSION = ".tplx"
-
-#Special Jinja2 syntax that will not conflict when exporting latex.
-LATEX_JINJA_COMMENT_BLOCK = ["((=", "=))"]
-LATEX_JINJA_VARIABLE_BLOCK = ["(((", ")))"]
-LATEX_JINJA_LOGIC_BLOCK = ["((*", "*))"]
-
 #Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
-
-#Latex substitutions for escaping latex.
-LATEX_SUBS = (
-    (re.compile(r'\\'), r'\\textbackslash'),
-    (re.compile(r'([{}_#%&$])'), r'\\\1'),
-    (re.compile(r'~'), r'\~{}'),
-    (re.compile(r'\^'), r'\^{}'),
-    (re.compile(r'"'), r"''"),
-    (re.compile(r'\.\.\.+'), r'\\ldots'),
-)
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -107,6 +77,7 @@ class Exporter(Configurable):
             """
         )
 
+#TODO: Flagged for removal.
     tex_environement = Bool(
         False,
         config=True,
@@ -168,34 +139,15 @@ class Exporter(Configurable):
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
 
-        #Create a Latex environment if the user is exporting latex.
-        if self.tex_environement:
-            self.ext = LATEX_TEMPLATE_EXTENSION
-            self.env = Environment(
-                loader=FileSystemLoader([
-                    os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,
-                    os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_SKELETON_PATH,
-                    ]),
-                extensions=JINJA_EXTENSIONS
-                )
-
-            #Set special Jinja2 syntax that will not conflict with latex.
-            self.env.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
-            self.env.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
-            self.env.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
-            self.env.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
-            self.env.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
-            self.env.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]
-
-        else: #Standard environment
-            self.ext = TEMPLATE_EXTENSION
-            self.env = Environment(
-                loader=FileSystemLoader([
-                    os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
-                    os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
-                    ]),
-                extensions=JINJA_EXTENSIONS
-                )
+        #Standard environment
+        self.ext = TEMPLATE_EXTENSION
+        self.env = Environment(
+            loader=FileSystemLoader([
+                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
+                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
+                ]),
+            extensions=JINJA_EXTENSIONS
+            )
 
         for name in self.pre_transformer_order:
             # get the user-defined transformer first
