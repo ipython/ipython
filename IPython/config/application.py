@@ -136,6 +136,12 @@ class Application(SingletonConfigurable):
     log_format = Unicode("[%(name)s] %(message)s", config=True,
         help="The Logging format template",
     )
+    def _log_format_changed(self, name, old, new):
+        """Change the log formatter when log_format is set."""
+        _log_handler = self.log.handlers[0]
+        _log_formatter = logging.Formatter(new)
+        _log_handler.setFormatter(_log_formatter)
+
     log = Instance(logging.Logger)
     def _log_default(self):
         """Start logging for this application.
