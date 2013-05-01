@@ -194,12 +194,12 @@ var IPython = (function (IPython) {
         this.complete.attr('id', 'complete');
 
         this.sel = $('<select style="width: auto"/>').attr('multiple', 'true').attr('size', Math.min(10, this.raw_result.length));
-        var pos = this.editor.cursorCoords();
-
-        // TODO: I propose to remove enough horizontal pixel
-        // to align the text later
-        this.complete.css('left', pos.left + 'px');
-        this.complete.css('top', pos.bottom + 'px');
+        //var pos = this.editor.cursorCoords();
+		var cur = this.editor.getCursor();
+		cur.ch = cur.ch-matched_text.length;
+		var pos = this.editor.cursorCoords(cur);
+        this.complete.css('left', pos.left-3 + 'px');
+        this.complete.css('top', pos.bottom+1 + 'px');
         this.complete.append(this.sel);
 
         $('body').append(this.complete);
