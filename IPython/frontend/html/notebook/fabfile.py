@@ -5,13 +5,8 @@ from fabric.utils import abort
 import os
 
 static_dir = 'static'
-components_dir = os.path.join(static_dir,'components')
+components_dir = os.path.join(static_dir, 'components')
 
-
-def components():
-    """install components with bower"""
-    with lcd(static_dir):
-        local('bower install')
 
 def css(minify=True):
     """generate the css from less files"""
