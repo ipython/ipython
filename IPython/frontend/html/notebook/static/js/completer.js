@@ -208,7 +208,7 @@ var IPython = (function (IPython) {
         this.sel.dblclick(function () {
             that.pick();
         });
-        //this.sel.blur(this.close);
+        this.sel.blur(this.close);
         this.sel.keydown(function (event) {
             that.keydown(event);
         });

@@ -929,7 +929,7 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 .ansibold{font-weight:bold;}
 .completions{position:absolute;z-index:10;overflow:hidden;border:1px solid #ababab;border-radius:4px;-webkit-box-shadow:0px 6px 10px -1px #adadad;-moz-box-shadow:0px 6px 10px -1px #adadad;box-shadow:0px 6px 10px -1px #adadad;}
 .completions select{background:white;outline:none;border:none;padding:0px;margin:0px;overflow:auto;font-family:monospace;font-size:110%;color:#000000;}
-option.context{background-color:#DEF7FF;}
+.completions select option.context{color:#0064cd;}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:0.4em;padding-left:2em;}
 p.dialog{padding:0.2em;}
 .shortcut_key{display:inline-block;width:15ex;text-align:right;font-family:monospace;}
