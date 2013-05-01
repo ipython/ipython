@@ -96,9 +96,6 @@ var IPython = (function (IPython) {
                       notebook_id + '?format=py';
             window.location.assign(url);
         });
-        this.element.find('button#print_notebook').click(function () {
-            IPython.print_widget.print_notebook();
-        });
         this.element.find('#kill_and_exit').click(function () {
             IPython.notebook.kernel.kill();
             setTimeout(function(){window.close();}, 200);

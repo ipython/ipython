@@ -380,19 +380,6 @@ class NamedNotebookHandler(IPythonHandler):
         )
 
 
-class PrintNotebookHandler(IPythonHandler):
-
-    @authenticate_unless_readonly
-    def get(self, notebook_id):
-        if not self.notebook_manager.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)        
-        self.write( self.render_template('printnotebook.html',
-            project=self.project,
-            notebook_id=notebook_id,
-            kill_kernel=False,
-            mathjax_url=self.mathjax_url,
-        ))
-
 #-----------------------------------------------------------------------------
 # Kernel handlers
 #-----------------------------------------------------------------------------
