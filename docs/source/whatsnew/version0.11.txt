@@ -218,11 +218,11 @@ but is in fact a rich GUI that runs an IPython client but supports inline
 figures, saving sessions to PDF and HTML, multiline editing with syntax
 highlighting, graphical calltips and much more:
 
-.. figure:: ../_static/qtconsole.png
+.. figure:: ../_images/qtconsole.png
     :width: 400px
     :alt: IPython Qt console with embedded plots
     :align: center
-    :target: ../_static/qtconsole.png
+    :target: ../_images/qtconsole.png
 
     The Qt console for IPython, using inline matplotlib plots.
 
@@ -346,11 +346,11 @@ Integration with Microsoft Visual Studio
 IPython can be used as the interactive shell in the `Python plugin for
 Microsoft Visual Studio`__, as seen here:
 
-.. figure:: ../_static/ms_visual_studio.png
+.. figure:: ../_images/ms_visual_studio.png
     :width: 500px
     :alt: IPython console embedded in Microsoft Visual Studio.
     :align: center
-    :target: ../_static/ms_visual_studio.png
+    :target: ../_images/ms_visual_studio.png
 
     IPython console embedded in Microsoft Visual Studio.
 

@@ -32,11 +32,11 @@ An interactive browser-based Notebook with rich media support
 A powerful new interface puts IPython in your browser. You can start it with
 the command ``ipython notebook``:
 
-.. figure:: ../_static/notebook_specgram.png
+.. figure:: ../_images/notebook_specgram.png
     :width: 400px
     :alt: The IPython notebook with embedded text, code, math and figures.
     :align: center
-    :target: ../_static/notebook_specgram.png
+    :target: ../_images/notebook_specgram.png
 
     The new IPython notebook showing text, mathematical expressions in LaTeX,
     code, results and embedded figures created with Matplotlib.
@@ -126,11 +126,11 @@ The QtConsole now supports starting multiple kernels in tabs, and has a
 menubar, so it looks and behaves more like a real application.  Keyboard
 enthusiasts can disable the menubar with ctrl-shift-M (:ghpull:`887`).
 
-.. figure:: ../_static/qtconsole_tabbed.png
+.. figure:: ../_images/qtconsole_tabbed.png
     :width: 400px
     :alt: Tabbed IPython Qt console with embedded plots and menus.
     :align: center
-    :target: ../_static/qtconsole_tabbed.png
+    :target: ../_images/qtconsole_tabbed.png
 
     The improved Qt console for IPython, now with tabs to control multiple
     kernels and full menu support.

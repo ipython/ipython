@@ -34,11 +34,11 @@ left panel has been removed and was replaced by a real menu system and a
 toolbar with icons.  Both the toolbar and the header above the menu can be
 collapsed to leave an unobstructed working area:
 
-.. image:: ../_static/ipy_013_notebook_spectrogram.png
+.. image:: ../_images/ipy_013_notebook_spectrogram.png
     :width: 460px
     :alt: New user interface for Notebook
     :align: center
-    :target: ../_static/ipy_013_notebook_spectrogram.png
+    :target: ../_images/ipy_013_notebook_spectrogram.png
 
 The notebook handles very long outputs much better than before (this was a
 serious usability issue when running processes that generated massive amounts
@@ -48,11 +48,11 @@ part of this area controls the display: one click in this area will expand the
 output region completely, and a double-click will hide it completely.  This
 figure shows both the scrolled and hidden modes:
 
-.. image:: ../_static/ipy_013_notebook_long_out.png
+.. image:: ../_images/ipy_013_notebook_long_out.png
     :width: 460px
     :alt: Scrolling and hiding of long output in the notebook.
     :align: center
-    :target: ../_static/ipy_013_notebook_long_out.png
+    :target: ../_images/ipy_013_notebook_long_out.png
 
 .. note::
 
@@ -65,11 +65,11 @@ use a regular file dialog box to select notebooks to upload. Furthermore, the
 notebook dashboard now auto-refreshes its contents and offers buttons to shut
 down any running kernels (:ghpull:`1739`):
 
-.. image:: ../_static/ipy_013_dashboard.png
+.. image:: ../_images/ipy_013_dashboard.png
     :width: 460px
     :alt: Improved dashboard
     :align: center
-    :target: ../_static/ipy_013_dashboard.png
+    :target: ../_images/ipy_013_dashboard.png
 
 
 Cluster management
@@ -78,11 +78,11 @@ Cluster management
 The notebook dashboard can now also start and stop clusters, thansk to a new
 tab in the dashboard user interface:
 
-.. image:: ../_static/ipy_013_dashboard_cluster.png
+.. image:: ../_images/ipy_013_dashboard_cluster.png
     :width: 460px
     :alt: Cluster management from the notebook dashboard
     :align: center
-    :target: ../_static/ipy_013_dashboard_cluster.png
+    :target: ../_images/ipy_013_dashboard_cluster.png
 
 This interface allows, for each profile you have configured, to start and stop
 a cluster (and optionally override the default number of engines corresponding
@@ -141,11 +141,11 @@ fill in a function's parameters, or transfer the information to the pager at the
 bottom of the screen. For the details, look at the example notebook
 :file:`01_notebook_introduction.ipynb`.
 
-.. figure:: ../_static/ipy_013_notebook_tooltip.png
+.. figure:: ../_images/ipy_013_notebook_tooltip.png
     :width: 460px
     :alt: Improved tooltips in the notebook.
     :align: center
-    :target: ../_static/ipy_013_notebook_tooltip.png
+    :target: ../_images/ipy_013_notebook_tooltip.png
 
     The new notebook tooltips.
 
@@ -272,11 +272,11 @@ interpreter installed:
 
 This is what some of the script-related magics look like in action:
 
-.. image:: ../_static/ipy_013_notebook_script_cells.png
+.. image:: ../_images/ipy_013_notebook_script_cells.png
     :width: 460px
     :alt: Cluster management from the notebook dashboard
     :align: center
-    :target: ../_static/ipy_013_notebook_script_cells.png
+    :target: ../_images/ipy_013_notebook_script_cells.png
   
 In addition, we have also a number of :ref:`extensions <extensions_overview>`
 that provide specialized magics.  These typically require additional software
@@ -290,11 +290,11 @@ extremely useful.  The following extensions are provided:
     directory in the source distribution ships with a full notebook
     demonstrating these capabilities:
 
-.. image:: ../_static/ipy_013_notebook_cythonmagic.png
+.. image:: ../_images/ipy_013_notebook_cythonmagic.png
     :width: 460px
     :alt: Cython magic
     :align: center
-    :target: ../_static/ipy_013_notebook_cythonmagic.png
+    :target: ../_images/ipy_013_notebook_cythonmagic.png
 
 .. _cython: http://cython.org
 
@@ -308,11 +308,11 @@ extremely useful.  The following extensions are provided:
     directory in the source distribution ships with a full notebook
     demonstrating these capabilities:
 
-.. image:: ../_static/ipy_013_notebook_octavemagic.png
+.. image:: ../_images/ipy_013_notebook_octavemagic.png
     :width: 460px
     :alt: Octave magic
     :align: center
-    :target: ../_static/ipy_013_notebook_octavemagic.png
+    :target: ../_images/ipy_013_notebook_octavemagic.png
 
 .. _octave: http://www.gnu.org/software/octave
 .. _oct2py: http://pypi.python.org/pypi/oct2py
@@ -327,11 +327,11 @@ extremely useful.  The following extensions are provided:
     examples directory in the source distribution ships with a full notebook
     demonstrating these capabilities:
 
-.. image:: ../_static/ipy_013_notebook_rmagic.png
+.. image:: ../_images/ipy_013_notebook_rmagic.png
     :width: 460px
     :alt: R magic
     :align: center
-    :target: ../_static/ipy_013_notebook_rmagic.png
+    :target: ../_images/ipy_013_notebook_rmagic.png
 
 .. _R: http://www.r-project.org
 .. _rpy2: http://rpy.sourceforge.net/rpy2.html
@@ -348,11 +348,11 @@ The Qt console comes with a new ncurses-like tab completer, activated by
 default, which lets you cycle through the available completions by pressing tab,
 or select a completion with the arrow keys (:ghpull:`1851`).
 
-.. figure:: ../_static/ipy_013_qtconsole_completer.png
+.. figure:: ../_images/ipy_013_qtconsole_completer.png
     :width: 460px
     :alt: ncurses-like completer, with highlighted selection.
     :align: center
-    :target: ../_static/ipy_013_qtconsole_completer.png
+    :target: ../_images/ipy_013_qtconsole_completer.png
 
     The new improved Qt console's ncurses-like completer allows to easily
     navigate thought long list of completions.
@@ -416,11 +416,11 @@ The exception reporting in parallel contexts has been improved to be easier to
 read.  Now, IPython directly reports the remote exceptions without showing any
 of the internal execution parts:
 
-.. image::  ../_static/ipy_013_par_tb.png
+.. image::  ../_images/ipy_013_par_tb.png
     :width: 460px
     :alt: Improved parallel exceptions.
     :align: center
-    :target: ../_static/ipy_013_par_tb.png
+    :target: ../_images/ipy_013_par_tb.png
 
 The parallel tools now default to using ``NoDB`` as the storage backend for
 intermediate results.  This means that the default usage case will have a
