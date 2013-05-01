@@ -38,10 +38,10 @@ def _safe_exists(path):
 
 def _merge(d1, d2):
     """Like update, but merges sub-dicts instead of clobbering at the top level.
-    
+
     Updates d1 in-place
     """
-    
+
     if not isinstance(d2, dict) or not isinstance(d1, dict):
         return d2
     for key, value in d2.items():
@@ -107,7 +107,7 @@ def display(*objs, **kwargs):
     metadata = kwargs.get('metadata')
 
     from IPython.core.interactiveshell import InteractiveShell
-    
+
     if raw:
         for obj in objs:
             publish_display_data('display', obj, metadata)
@@ -337,6 +337,14 @@ class HTML(DisplayObject):
     def _repr_html_(self):
         return self.data
 
+    def __html__(self):
+        """
+        This method exists to inform other HTML-using modules (e.g. Markupsafe,
+        htmltag, etc) that this object is HTML and does not need things like
+        special characters (<>&) escaped.
+        """
+        return self._repr_html_()
+
 
 class Math(DisplayObject):
 
@@ -559,7 +567,7 @@ class Image(DisplayObject):
             if self.height:
                 height = ' height="%d"' % self.height
             return u'<img src="%s"%s%s/>' % (self.url, width, height)
-    
+
     def _data_and_metadata(self):
         """shortcut for returning metadata with shape information, if defined"""
         md = {}
