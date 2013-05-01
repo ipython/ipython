@@ -96,7 +96,7 @@ var IPython = (function (IPython) {
                         );
                     } else {
                         IPython.notebook.set_notebook_name(new_name);
-                        IPython.notebook.save_checkpoint();
+                        IPython.notebook.save_notebook();
                         $(this).dialog('close');
                     }
                 },
