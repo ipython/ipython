@@ -23,7 +23,6 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
-import re
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -35,16 +34,19 @@ from IPython.utils.text import indent
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 
-# local import (pre-transformers)
-from exceptions import ConversionException
-from . import transformers as trans #TODO
-from .utils import get_lines #TODO
-from .utils import remove_ansi #TODO
-from .utils import highlight, ansi2html #TODO
+# local import
+import filters.strings
+import filters.markdown
+import filters.latex
+import filters.datatypefilter
+import filters.pygments
+import filters.ansi
 
-import .utils.strings as strings
-import .utils.markdown as markdown_utils
-import .utils.datatypefilter.DataTypeFilter as DataTypeFilter
+import transformers.extractfigure
+import transformers.csshtmlheader
+import transformers.revealhelp
+import transformers.coalescestreams
+
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -64,7 +66,7 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 class Exporter(Configurable):
     """ A Jinja2 base converter templates
 
-    Preprocess the ipynb files, feed it throug jinja templates,
+    Pre-process the IPYNB files, feed it through Jinja2 templates,
     and spit an converted files and a data object with other data
     should be mostly configurable
     """
@@ -72,16 +74,10 @@ class Exporter(Configurable):
     pre_transformer_order = List(['haspyout_transformer'],
         config=True,
         help= """
-            An ordered list of pre transformer to apply to the ipynb
+            An ordered list of pre-transformer to apply to the IPYNB
             file before running through templates
             """
         )
-
-#TODO: Flagged for removal.
-    tex_environement = Bool(
-        False,
-        config=True,
-        help=" Whether or not the user is exporting to latex.")
 
     template_file = Unicode(
             '', config=True,
@@ -94,7 +90,7 @@ class Exporter(Configurable):
 
     stdout = Bool(
         True, config=True,
-        help="""Whether to print the converted ipynb file to stdout
+        help="""Whether to print the converted IPYNB file to stdout
         "use full do diff files without actually writing a new file"""
         )
 
@@ -130,67 +126,46 @@ class Exporter(Configurable):
                        user defined filter will overwrite the one availlable by default.
         """
 
-        #Merge default config options with user specific override options.
-        default_config = self._get_default_options()
+        #Set the default options for the exporter.
+        default_config = self.config
+            
+        #Set properties that must be set in the config class in order to 
+        #propagate to other classes.
+        default_config.GlobalConfigurable.display_data_priority =['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+        default_config.ExtractFigureTransformer.display_data_priority=['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+
+        #Set default properties of the exporter.
+        #For most (or all cases), the template file name matches the format name.
+        self.display_data_priority= ['svg', 'png', 'latex', 'jpg', 'jpeg','text']
+        self.template_file = export_format
+
         if not config == None:
             default_config._merge(config)
-        config = default_config
-
+        config = default_config    
+    
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
 
         #Standard environment
         self.ext = TEMPLATE_EXTENSION
-        self.env = Environment(
-            loader=FileSystemLoader([
-                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
-                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
-                ]),
-            extensions=JINJA_EXTENSIONS
-            )
+        self._init_environment()
 
-        for name in self.pre_transformer_order:
-            # get the user-defined transformer first
-            transformer = preprocessors.get(name, getattr(trans, name, None))
-            if isinstance(transformer, MetaHasTraits):
-                transformer = transformer(config=config)
-            self.preprocessors.append(transformer)
+        #TODO: Implement reflection style methods to get user transformers.        
+        #for name in self.pre_transformer_order:
+        #    # get the user-defined transformer first
+        #    transformer = preprocessors.get(name, getattr(trans, name, None))
+        #    if isinstance(transformer, MetaHasTraits):
+        #        transformer = transformer(config=config)
+        #    self.preprocessors.append(transformer)
 
         #For compatibility, TODO: remove later.
-        self.preprocessors.append(trans.coalesce_streams)
-        self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
-        self.preprocessors.append(trans.RevealHelpTransformer(config=config))
-        self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
-        self.preprocessors.append(LatexTransformer(config=config))
-
-        #Only load the sphinx transformer if the file reference worked 
-        #(Sphinx dependencies exist on the user's machine.)
-        if SphinxTransformer:
-            self.preprocessors.append(SphinxTransformer(config=config))
+        self.preprocessors.append(transformers.coalescestreams.coalesce_streams)
+        self.preprocessors.append(transformers.extractfigure.ExtractFigureTransformer(config=config))
+        self.preprocessors.append(transformers.revealhelp.RevealHelpTransformer(config=config))
+        self.preprocessors.append(transformers.csshtmlheader.CSSHtmlHeaderTransformer(config=config))
 
         #Add filters to the Jinja2 environment
-        self.env.filters['filter_data_type'] = DataTypeFilter(config=config)
-        self.env.filters['pycomment'] = _python_comment
-        self.env.filters['indent'] = indent
-        self.env.filters['rm_fake'] = _rm_fake
-        self.env.filters['rm_ansi'] = remove_ansi
-        self.env.filters['markdown'] = markdown
-        self.env.filters['ansi2html'] = ansi2html
-        self.env.filters['markdown2latex'] = markdown_utils.markdown2latex
-        self.env.filters['markdown2rst'] = markdown_utils.markdown2rst
-        self.env.filters['get_lines'] = get_lines
-        self.env.filters['wrap'] = strings.wrap
-        self.env.filters['rm_dollars'] = strings.strip_dollars
-        self.env.filters['rm_math_space'] = rm_math_space
-        self.env.filters['highlight2html'] = highlight 
-        self.env.filters['highlight2latex'] = highlight2latex
-
-        #Latex specific filters
-        if self.tex_environement:
-            self.env.filters['escape_tex'] = _escape_tex 
-            self.env.filters['highlight'] = highlight2latex 
-        else:
-            self.env.filters['highlight'] = highlight 
+        self._register_filters(config)
 
         #Load user filters.  Overwrite existing filters if need be.
         for key, user_filter in jinja_filters.iteritems():
@@ -243,6 +218,36 @@ class Exporter(Configurable):
         return self.export(nbformat.read(file_stream, 'json'))
 
 
+    def _init_environment(self):
+        self.env = Environment(
+            loader=FileSystemLoader([
+                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
+                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
+                ]),
+            extensions=JINJA_EXTENSIONS
+            )
+
+
+    def _register_filters(self, config):
+        self.env.filters['indent'] = indent
+        self.env.filters['markdown'] = markdown
+        
+        self.env.filters['ansi2html'] = filters.ansi.ansi2html
+        self.env.filters['filter_data_type'] = filters.datatypefilter.DataTypeFilter(config=config)
+        self.env.filters['get_lines'] = filters.strings.get_lines 
+        self.env.filters['highlight'] = filters.pygments.highlight
+        self.env.filters['highlight2html'] = filters.pygments.highlight 
+        self.env.filters['highlight2latex'] = filters.pygments.highlight2latex
+        self.env.filters['markdown2latex'] = filters.markdown.markdown2latex
+        self.env.filters['markdown2rst'] = filters.markdown.markdown2rst
+        self.env.filters['pycomment'] = filters.strings.python_comment
+        self.env.filters['rm_ansi'] = filters.ansi.remove_ansi
+        self.env.filters['rm_dollars'] = filters.strings.strip_dollars
+        self.env.filters['rm_fake'] = filters.strings.rm_fake
+        self.env.filters['rm_math_space'] = filters.latex.rm_math_space
+        self.env.filters['wrap'] = filters.strings.wrap
+    
+
     def _preprocess(self, nb):
         """ Preprocess the notebook using the transformers specific
         for the current export format.
@@ -259,75 +264,3 @@ class Exporter(Configurable):
             nb, resources = transformer(nb, resources)
         return nb, resources
 
-
-    def _get_default_options(self, export_format):
-        """ Load the default options for built in formats.
-
-        export_format: Format being exported to.
-        """
-
-        c = get_config()
-        
-        #Set default data extraction priorities.
-        c.GlobalConfigurable.display_data_priority =['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-        c.ExtractFigureTransformer.display_data_priority=['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-        c.ConverterTemplate.display_data_priority= ['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-
-        #For most (or all cases), the template file name matches the format name.
-        c.ConverterTemplate.template_file = export_format
-
-        if export_format == "basichtml" or "fullhtml" or "reveal":
-            c.CSSHtmlHeaderTransformer.enabled=True
-            if export_format == 'reveal'
-                c.NbconvertApp.fileext='reveal.html'
-            else:
-                c.NbconvertApp.fileext='html'
-
-        elif export_format == "latex_sphinx_howto" or export_format == "latex_sphinx_manual":
-
-            #Turn on latex environment 
-            c.ConverterTemplate.tex_environement=True
-
-            #Standard latex extension
-            c.NbconvertApp.fileext='tex'
-
-            #Prioritize latex extraction for latex exports.
-            c.GlobalConfigurable.display_data_priority =['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
-            c.ExtractFigureTransformer.display_data_priority=['latex', 'svg', 'png', 'jpg', 'jpeg']
-            c.ExtractFigureTransformer.extra_ext_map={'svg':'pdf'}
-            c.ExtractFigureTransformer.enabled=True
-
-            # Enable latex transformers (make markdown2latex work with math $.)
-            c.LatexTransformer.enabled=True
-            c.SphinxTransformer.enabled = True
-
-        elif export_format == 'markdown':
-            c.NbconvertApp.fileext='md'
-            c.ExtractFigureTransformer.enabled=True
-
-        elif export_format == 'python':
-            c.NbconvertApp.fileext='py'
-
-
-        elif export_format == 'rst':
-            c.NbconvertApp.fileext='rst'
-            c.ExtractFigureTransformer.enabled=True
-        return c
-
-
-    #TODO: Comment me.
-    def _rm_fake(strng):
-        return strng.replace('/files/', '')
-
-
-    #TODO: Comment me.
-    def _python_comment(string):
-        return '# '+'\n# '.join(string.split('\n'))
-
-
-    #TODO: Comment me.
-    def _escape_tex(value):
-        newval = value
-        for pattern, replacement in LATEX_SUBS:
-            newval = pattern.sub(replacement, newval)
-        return newval

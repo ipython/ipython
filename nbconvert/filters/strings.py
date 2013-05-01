@@ -1,4 +1,4 @@
- """String utilities.
+"""String utilities.
 
 Contains a collection of usefull string manipulations functions.
 """
@@ -33,3 +33,25 @@ def strip_dollars(text):
     """Remove all dollar symbols from text"""
 
     return text.strip('$')
+
+
+#TODO: Comment me.
+def rm_fake(strng):
+    return strng.replace('/files/', '')
+
+
+#TODO: Comment me.
+def python_comment(string):
+    return '# '+'\n# '.join(string.split('\n'))
+
+def get_lines(src, start=None,end=None):
+    """
+    Split the input text into separate lines and then return the 
+    lines that the caller is interested in.
+    """
+    
+    # Split the input into lines.
+    lines = src.split("\n")
+    
+    # Return the right lines.
+    return "\n".join(lines[start:end]) #re-join

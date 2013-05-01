@@ -20,7 +20,7 @@ class DataTypeFilter(GlobalConfigurable):
     """ Returns the prefered display format """
 
     def __init__(self, config=None, **kw):
-        super(FilterDataType, self).__init__(config=config, **kw)
+        super(DataTypeFilter, self).__init__(config=config, **kw)
 
     def __call__(self, output):
         """ Return the first available format in the priority """

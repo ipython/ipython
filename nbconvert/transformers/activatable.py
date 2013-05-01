@@ -1,4 +1,6 @@
- 
+from transformers.base import ConfigurableTransformers
+
+
 class ActivatableTransformer(ConfigurableTransformers):
     """A simple ConfigurableTransformers that have an enabled flag
 
@@ -15,4 +17,3 @@ class ActivatableTransformer(ConfigurableTransformers):
             return nb, other
         else :
             return super(ActivatableTransformer, self).__call__(nb, other)
-

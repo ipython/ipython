@@ -57,6 +57,7 @@ class ConfigurableTransformers(GlobalConfigurable):
 
         You should return modified cell and resource dict.
         """
+
         raise NotImplementedError('should be implemented by subclass')
         return cell, other
 

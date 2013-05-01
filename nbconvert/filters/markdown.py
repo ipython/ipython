@@ -17,11 +17,13 @@ markdown.
 from __future__ import print_function
 
 # Stdlib imports
+import sys
 import subprocess
 
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
 # Pandoc-dependent code
 def markdown2latex(src):
     """Convert a markdown string to LaTeX via pandoc.
