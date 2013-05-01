@@ -448,10 +448,13 @@ class KernelMagics(Magics):
     
     @line_magic
     def autosave(self, arg_s):
-        """Set the lower-limit for the autosave frequency in the notebook (in seconds).
+        """Set the autosave interval in the notebook (in seconds).
         
         The default value is 120, or two minutes.
         ``%autosave 0`` will disable autosave.
+        
+        This magic only has an effect when called from the notebook interface.
+        It has no effect when called in a startup file.
         """
         
         try:
