@@ -49,7 +49,7 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
-    'inheritance_diagram',
+    'sphinx.ext.inheritance_diagram',
     'ipython_console_highlighting',
     'ipython_directive',
     'numpydoc',  # to preprocess docstrings
