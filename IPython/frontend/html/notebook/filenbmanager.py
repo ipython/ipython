@@ -176,11 +176,11 @@ class FileNotebookManager(NotebookManager):
         
         path = self.get_path_by_name(new_name)
         try:
-            self.log.debug("Writing notebook %s", path)
+            self.log.debug("Autosaving notebook %s", path)
             with open(path,'w') as f:
                 current.write(nb, f, u'json')
         except Exception as e:
-            raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
+            raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s' % e)
 
         # save .py script as well
         if self.save_script:
@@ -202,41 +202,44 @@ class FileNotebookManager(NotebookManager):
             # remove renamed original, if it exists
             old_path = self.get_path_by_name(old_name)
             if os.path.isfile(old_path):
-                self.log.debug("unlinking %s", old_path)
+                self.log.debug("unlinking notebook %s", old_path)
                 os.unlink(old_path)
             
             # cleanup old script, if it exists
             if self.save_script:
                 old_pypath = os.path.splitext(old_path)[0] + '.py'
                 if os.path.isfile(old_pypath):
-                    self.log.debug("unlinking %s", old_pypath)
+                    self.log.debug("unlinking script %s", old_pypath)
                     os.unlink(old_pypath)
             
             # rename checkpoints to follow file
-            self.log.debug("%s", old_checkpoints)
             for cp in old_checkpoints:
-                old_cp_path = self.get_checkpoint_path_by_name(old_name, cp)
-                new_cp_path = self.get_checkpoint_path_by_name(new_name, cp)
+                checkpoint_id = cp['checkpoint_id']
+                old_cp_path = self.get_checkpoint_path_by_name(old_name, checkpoint_id)
+                new_cp_path = self.get_checkpoint_path_by_name(new_name, checkpoint_id)
                 if os.path.isfile(old_cp_path):
-                    self.log.debug("renaming %s -> %s", old_cp_path, new_cp_path)
+                    self.log.debug("renaming checkpoint %s -> %s", old_cp_path, new_cp_path)
                     os.rename(old_cp_path, new_cp_path)
             
         return notebook_id
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
-        path = self.get_path(notebook_id)
-        if not os.path.isfile(path):
+        nb_path = self.get_path(notebook_id)
+        if not os.path.isfile(nb_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
-        self.log.debug("unlinking %s", path)
-        os.unlink(path)
         
         # clear checkpoints
-        for checkpoint_id in self.list_checkpoints(notebook_id):
+        for checkpoint in self.list_checkpoints(notebook_id):
+            checkpoint_id = checkpoint['checkpoint_id']
             path = self.get_checkpoint_path(notebook_id, checkpoint_id)
+            self.log.debug(path)
             if os.path.isfile(path):
-                self.log.debug("unlinking %s", path)
+                self.log.debug("unlinking checkpoint %s", path)
                 os.unlink(path)
+        
+        self.log.debug("unlinking notebook %s", nb_path)
+        os.unlink(nb_path)
         self.delete_notebook_id(notebook_id)
 
     def increment_filename(self, basename):
