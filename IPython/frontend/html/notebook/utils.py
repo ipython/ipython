@@ -28,4 +28,5 @@ def url_path_join(*pieces):
     result = '/'.join(s for s in striped if s)
     if initial: result = '/' + result
     if final: result = result + '/'
+    if result == '//': result = '/'
     return result

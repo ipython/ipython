@@ -33,7 +33,7 @@ class NewHandler(IPythonHandler):
     @web.authenticated
     def get(self):
         notebook_id = self.notebook_manager.new_notebook()
-        self.redirect('/' + url_path_join(self.base_project_url, notebook_id))
+        self.redirect(url_path_join(self.base_project_url, notebook_id))
 
 
 class NamedNotebookHandler(IPythonHandler):
@@ -60,7 +60,7 @@ class NotebookRedirectHandler(IPythonHandler):
         notebook_name = os.path.splitext(notebook_name)[0]
         notebook_id = self.notebook_manager.rev_mapping.get(notebook_name, '')
         if notebook_id:
-            url = self.settings.get('base_project_url', '/') + notebook_id
+            url = url_path_join(self.settings.get('base_project_url', '/'), notebook_id)
             return self.redirect(url)
         else:
             raise HTTPError(404)
@@ -71,5 +71,5 @@ class NotebookCopyHandler(IPythonHandler):
     @web.authenticated
     def get(self, notebook_id):
         notebook_id = self.notebook_manager.copy_notebook(notebook_id)
-        self.redirect('/'+url_path_join(self.base_project_url, notebook_id))
+        self.redirect(url_path_join(self.base_project_url, notebook_id))
 
