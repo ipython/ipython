@@ -100,7 +100,6 @@ $(document).ready(function () {
             tables: true,
             langPrefix: "language-",
             highlight: function(code, lang) {
-                console.log(lang, code);
                 var highlighted;
                 if (lang) {
                     highlighted = hljs.highlight(lang, code, false);
