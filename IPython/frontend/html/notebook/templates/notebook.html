@@ -12,9 +12,9 @@ window.mathjax_url = "{{mathjax_url}}";
 </script>
 
 <link rel="stylesheet" href="{{ static_url("components/codemirror/lib/codemirror.css") }}">
+<link rel="stylesheet" href="{{ static_url("components/highlight.js/src/styles/github.css") }}"/>
 <link rel="stylesheet" href="{{ static_url("css/codemirror-ipython.css") }}">
 
-<link rel="stylesheet" href="{{ static_url("prettify/prettify.css") }}"/>
 
 <link rel="stylesheet" href="{{ static_url("css/celltoolbar.css") }}" type="text/css" />
 
@@ -198,6 +198,7 @@ class="notebook_app"
 <script src="{{ static_url("components/codemirror/lib/codemirror.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/mode/loadmode.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/addon/mode/multiplex.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/addon/mode/overlay.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("js/codemirror-ipython.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/htmlmixed/htmlmixed.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/xml/xml.js") }}" charset="utf-8"></script>
@@ -205,8 +206,10 @@ class="notebook_app"
 <script src="{{ static_url("components/codemirror/mode/css/css.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/rst/rst.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("components/codemirror/mode/markdown/markdown.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/codemirror/mode/gfm/gfm.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("components/marked/lib/marked.js") }}" charset="utf-8"></script>
+<script src="{{ static_url("components/highlight.js/build/highlight.pack.js") }}" charset="utf-8"></script>
 
 <script src="{{ static_url("prettify/prettify.js") }}" charset="utf-8"></script>
 <script src="{{ static_url("dateformat/date.format.js") }}" charset="utf-8"></script>

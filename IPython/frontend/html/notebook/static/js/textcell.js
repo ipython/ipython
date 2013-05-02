@@ -298,7 +298,7 @@ var IPython = (function (IPython) {
 
     MarkdownCell.options_default = {
         cm_config: {
-            mode: 'markdown'
+            mode: 'gfm'
         },
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     }
@@ -329,18 +329,6 @@ var IPython = (function (IPython) {
             }
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-            var code_snippets = this.element.find("pre > code");
-            code_snippets.replaceWith(function () {
-                var code = $(this).html();
-                /* Substitute br for newlines and &nbsp; for spaces
-                   before highlighting, since prettify doesn't
-                   preserve those on all browsers */
-                code = code.replace(/(\r\n|\n|\r)/gm, "<br/>");
-                code = code.replace(/ /gm, '&nbsp;');
-                code = prettyPrintOne(code);
-
-                return '<code class="prettyprint">' + code + '</code>';
-            });
             this.typeset()
             this.rendered = true;
         }

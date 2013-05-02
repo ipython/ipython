@@ -93,6 +93,24 @@ $(document).ready(function () {
     
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     IPython.notebook.load_notebook($('body').data('notebookId'));
+    
+    if (marked) {
+        marked.setOptions({
+            gfm : true,
+            tables: true,
+            langPrefix: "language-",
+            highlight: function(code, lang) {
+                console.log(lang, code);
+                var highlighted;
+                if (lang) {
+                    highlighted = hljs.highlight(lang, code, false);
+                } else {
+                    highlighted = hljs.highlightAuto(code);
+                }
+                return highlighted.value;
+            }
+        })
+    }
 
 });
 
