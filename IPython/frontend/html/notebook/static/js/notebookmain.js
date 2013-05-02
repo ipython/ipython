@@ -42,7 +42,6 @@ $(document).ready(function () {
     var baseProjectUrl = $('body').data('baseProjectUrl')
 
     IPython.page = new IPython.Page();
-    IPython.markdown_converter = new Markdown.Converter();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
@@ -94,6 +93,23 @@ $(document).ready(function () {
     
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     IPython.notebook.load_notebook($('body').data('notebookId'));
+    
+    if (marked) {
+        marked.setOptions({
+            gfm : true,
+            tables: true,
+            langPrefix: "language-",
+            highlight: function(code, lang) {
+                var highlighted;
+                if (lang) {
+                    highlighted = hljs.highlight(lang, code, false);
+                } else {
+                    highlighted = hljs.highlightAuto(code);
+                }
+                return highlighted.value;
+            }
+        })
+    }
 
 });
 
