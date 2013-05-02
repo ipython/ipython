@@ -68,8 +68,9 @@ from .handlers import (LoginHandler, LogoutHandler,
     ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
-    AuthenticatedFileHandler, MainClusterHandler, ClusterProfileHandler, 
-    ClusterActionHandler, FileFindHandler, NotebookRedirectHandler,
+    NotebookRedirectHandler, NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler,
+    AuthenticatedFileHandler, FileFindHandler,
+    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler, 
 )
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
@@ -104,6 +105,7 @@ _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 _notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
 _notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
+_checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 _profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
 _cluster_action_regex = r"(?P<action>start|stop)"
 
@@ -161,6 +163,10 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
             (r"/notebooks", NotebookRootHandler),
             (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+            (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
+            (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
+                ModifyNotebookCheckpointsHandler
+            ),
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
             (r"/clusters", MainClusterHandler),
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),

@@ -12,4 +12,5 @@ build
 *.egg-info
 *~
 *.bak
+.ipynb_checkpoints
 .tox

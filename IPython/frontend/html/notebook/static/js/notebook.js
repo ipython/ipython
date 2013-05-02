@@ -39,6 +39,12 @@ var IPython = (function (IPython) {
         this.paste_enabled = false;
         this.dirty = false;
         this.metadata = {};
+        this._checkpoint_after_save = false;
+        this.last_checkpoint = null;
+        this.autosave_interval = 0;
+        this.autosave_timer = null;
+        // autosave *at most* every two minutes
+        this.minimum_autosave_interval = 120000;
         // single worksheet for now
         this.worksheet_metadata = {};
         this.control_key_active = false;
@@ -124,7 +130,7 @@ var IPython = (function (IPython) {
             // Save (CTRL+S) or (AppleKey+S)
             //metaKey = applekey on mac
             if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
-                that.save_notebook();
+                that.save_checkpoint();
                 event.preventDefault();
                 return false;
             } else if (event.which === key.ESC) {
@@ -250,7 +256,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 83 && that.control_key_active) {
                 // Save notebook = s
-                that.save_notebook();
+                that.save_checkpoint();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 74 && that.control_key_active) {
@@ -336,8 +342,9 @@ var IPython = (function (IPython) {
             if (kill_kernel) {
                 that.kernel.kill();
             }
-            if (that.dirty && ! that.read_only) {
-                return "You have unsaved changes that will be lost if you leave this page.";
+            // if we are autosaving, trigger an autosave on nav-away
+            if (that.dirty && that.autosave_interval && ! that.read_only) {
+                that.save_notebook();
             };
             // Null is the *only* return value that will make the browser not
             // pop up the "don't leave" dialog.
@@ -1550,6 +1557,33 @@ var IPython = (function (IPython) {
     };
 
     /**
+     * Start an autosave timer, for periodically saving the notebook.
+     * 
+     * @method set_autosave_interval
+     * @param {Integer} interval the autosave interval in milliseconds
+     */
+    Notebook.prototype.set_autosave_interval = function (interval) {
+        var that = this;
+        // clear previous interval, so we don't get simultaneous timers
+        if (this.autosave_timer) {
+            clearInterval(this.autosave_timer);
+        }
+        
+        this.autosave_interval = this.minimum_autosave_interval = interval;
+        if (interval) {
+            this.autosave_timer = setInterval(function() {
+                if (that.dirty) {
+                    that.save_notebook();
+                }
+            }, interval);
+            $([IPython.events]).trigger("autosave_enabled.Notebook", interval);
+        } else {
+            this.autosave_timer = null;
+            $([IPython.events]).trigger("autosave_disabled.Notebook");
+        };
+    };
+    
+    /**
      * Save this notebook on the server.
      * 
      * @method save_notebook
@@ -1560,6 +1594,10 @@ var IPython = (function (IPython) {
         data.metadata.name = this.notebook_name;
         data.nbformat = this.nbformat;
         data.nbformat_minor = this.nbformat_minor;
+        
+        // time the ajax call for autosave tuning purposes.
+        var start =  new Date().getTime();
+
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1567,27 +1605,53 @@ var IPython = (function (IPython) {
             type : "PUT",
             data : JSON.stringify(data),
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(this.save_notebook_success,this),
-            error : $.proxy(this.save_notebook_error,this)
+            success : $.proxy(this.save_notebook_success, this, start),
+            error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
         var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
         $.ajax(url, settings);
     };
-
+    
     /**
      * Success callback for saving a notebook.
      * 
      * @method save_notebook_success
+     * @param {Integer} start the time when the save request started
      * @param {Object} data JSON representation of a notebook
      * @param {String} status Description of response status
      * @param {jqXHR} xhr jQuery Ajax object
      */
-    Notebook.prototype.save_notebook_success = function (data, status, xhr) {
+    Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
         this.dirty = false;
         $([IPython.events]).trigger('notebook_saved.Notebook');
+        this._update_autosave_interval(start);
+        if (this._checkpoint_after_save) {
+            this.create_checkpoint();
+            this._checkpoint_after_save = false;
+        };
     };
-
+    
+    /**
+     * update the autosave interval based on how long the last save took
+     * 
+     * @method _update_autosave_interval
+     * @param {Integer} timestamp when the save request started
+     */
+    Notebook.prototype._update_autosave_interval = function (start) {
+        var duration = (new Date().getTime() - start);
+        if (this.autosave_interval) {
+            // new save interval: higher of 10x save duration or parameter (default 30 seconds)
+            var interval = Math.max(10 * duration, this.minimum_autosave_interval);
+            // round to 10 seconds, otherwise we will be setting a new interval too often
+            interval = 10000 * Math.round(interval / 10000);
+            // set new interval, if it's changed
+            if (interval != this.autosave_interval) {
+                this.set_autosave_interval(interval);
+            }
+        }
+    };
+    
     /**
      * Failure callback for saving a notebook.
      * 
@@ -1599,7 +1663,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook');
     };
-
+    
     /**
      * Request a notebook's data from the server.
      * 
@@ -1690,10 +1754,13 @@ var IPython = (function (IPython) {
             });
 
         }
+        
         // Create the kernel after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
         if (! this.read_only) {
             this.start_kernel();
+            // load our checkpoint list
+            IPython.notebook.list_checkpoints();
         }
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
@@ -1730,6 +1797,229 @@ var IPython = (function (IPython) {
             });
         }
     }
+
+    /*********************  checkpoint-related  *********************/
+    
+    /**
+     * Save the notebook then immediately create a checkpoint.
+     * 
+     * @method save_checkpoint
+     */
+    Notebook.prototype.save_checkpoint = function () {
+        this._checkpoint_after_save = true;
+        this.save_notebook();
+    };
+    
+    /**
+     * List checkpoints for this notebook.
+     * 
+     * @method list_checkpoint
+     */
+    Notebook.prototype.list_checkpoints = function () {
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints';
+        $.get(url).done(
+            $.proxy(this.list_checkpoints_success, this)
+        ).fail(
+            $.proxy(this.list_checkpoints_error, this)
+        );
+    };
+
+    /**
+     * Success callback for listing checkpoints.
+     * 
+     * @method list_checkpoint_success
+     * @param {Object} data JSON representation of a checkpoint
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
+    Notebook.prototype.list_checkpoints_success = function (data, status, xhr) {
+        var data = $.parseJSON(data);
+        if (data.length) {
+            this.last_checkpoint = data[0];
+        } else {
+            this.last_checkpoint = null;
+        }
+        $([IPython.events]).trigger('checkpoints_listed.Notebook', [data]);
+    };
+
+    /**
+     * Failure callback for listing a checkpoint.
+     * 
+     * @method list_checkpoint_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} status Description of response status
+     * @param {String} error_msg HTTP error message
+     */
+    Notebook.prototype.list_checkpoints_error = function (xhr, status, error_msg) {
+        $([IPython.events]).trigger('list_checkpoints_failed.Notebook');
+    };
+    
+    /**
+     * Create a checkpoint of this notebook on the server from the most recent save.
+     * 
+     * @method create_checkpoint
+     */
+    Notebook.prototype.create_checkpoint = function () {
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints';
+        $.post(url).done(
+            $.proxy(this.create_checkpoint_success, this)
+        ).fail(
+            $.proxy(this.create_checkpoint_error, this)
+        );
+    };
+
+    /**
+     * Success callback for creating a checkpoint.
+     * 
+     * @method create_checkpoint_success
+     * @param {Object} data JSON representation of a checkpoint
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
+    Notebook.prototype.create_checkpoint_success = function (data, status, xhr) {
+        var data = $.parseJSON(data);
+        this.last_checkpoint = data;
+        $([IPython.events]).trigger('checkpoint_created.Notebook', data);
+    };
+
+    /**
+     * Failure callback for creating a checkpoint.
+     * 
+     * @method create_checkpoint_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} status Description of response status
+     * @param {String} error_msg HTTP error message
+     */
+    Notebook.prototype.create_checkpoint_error = function (xhr, status, error_msg) {
+        $([IPython.events]).trigger('checkpoint_failed.Notebook');
+    };
+    
+    Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
+        var that = this;
+        var checkpoint = checkpoint || this.last_checkpoint;
+        if ( ! checkpoint ) {
+            console.log("restore dialog, but no checkpoint to restore to!");
+            return;
+        }
+        var dialog = $('<div/>').append(
+            $('<p/>').addClass("p-space").text(
+                "Are you sure you want to revert the notebook to " +
+                "the latest checkpoint?"
+            ).append(
+                $("<strong/>").text(
+                    " This cannot be undone."
+                )
+            )
+        ).append(
+            $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
+        ).append(
+            $('<p/>').addClass("p-space").text(
+                Date(checkpoint.last_modified)
+            ).css("text-align", "center")
+        );
+        
+        $(document).append(dialog);
+        
+        dialog.dialog({
+            resizable: false,
+            modal: true,
+            title: "Revert notebook to checkpoint",
+            closeText: '',
+            buttons : {
+                "Revert": function () {
+                    that.restore_checkpoint(checkpoint.checkpoint_id);
+                    $(this).dialog('close');
+                },
+                "Cancel": function () {
+                    $(this).dialog('close');
+                }
+            },
+            width: 400
+        });
+    }
+    
+    /**
+     * Restore the notebook to a checkpoint state.
+     * 
+     * @method restore_checkpoint
+     * @param {String} checkpoint ID
+     */
+    Notebook.prototype.restore_checkpoint = function (checkpoint) {
+        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
+        $.post(url).done(
+            $.proxy(this.restore_checkpoint_success, this)
+        ).fail(
+            $.proxy(this.restore_checkpoint_error, this)
+        );
+    };
+    
+    /**
+     * Success callback for restoring a notebook to a checkpoint.
+     * 
+     * @method restore_checkpoint_success
+     * @param {Object} data (ignored, should be empty)
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
+    Notebook.prototype.restore_checkpoint_success = function (data, status, xhr) {
+        $([IPython.events]).trigger('checkpoint_restored.Notebook');
+        this.load_notebook(this.notebook_id);
+    };
+
+    /**
+     * Failure callback for restoring a notebook to a checkpoint.
+     * 
+     * @method restore_checkpoint_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} status Description of response status
+     * @param {String} error_msg HTTP error message
+     */
+    Notebook.prototype.restore_checkpoint_error = function (xhr, status, error_msg) {
+        $([IPython.events]).trigger('checkpoint_restore_failed.Notebook');
+    };
+    
+    /**
+     * Delete a notebook checkpoint.
+     * 
+     * @method delete_checkpoint
+     * @param {String} checkpoint ID
+     */
+    Notebook.prototype.delete_checkpoint = function (checkpoint) {
+        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
+        $.ajax(url, {
+            type: 'DELETE',
+            success: $.proxy(this.delete_checkpoint_success, this),
+            error: $.proxy(this.delete_notebook_error,this)
+        });
+    };
+    
+    /**
+     * Success callback for deleting a notebook checkpoint
+     * 
+     * @method delete_checkpoint_success
+     * @param {Object} data (ignored, should be empty)
+     * @param {String} status Description of response status
+     * @param {jqXHR} xhr jQuery Ajax object
+     */
+    Notebook.prototype.delete_checkpoint_success = function (data, status, xhr) {
+        $([IPython.events]).trigger('checkpoint_deleted.Notebook', data);
+        this.load_notebook(this.notebook_id);
+    };
+
+    /**
+     * Failure callback for deleting a notebook checkpoint.
+     * 
+     * @method delete_checkpoint_error
+     * @param {jqXHR} xhr jQuery Ajax object
+     * @param {String} status Description of response status
+     * @param {String} error_msg HTTP error message
+     */
+    Notebook.prototype.delete_checkpoint_error = function (xhr, status, error_msg) {
+        $([IPython.events]).trigger('checkpoint_delete_failed.Notebook');
+    };
+
 
     IPython.Notebook = Notebook;
 

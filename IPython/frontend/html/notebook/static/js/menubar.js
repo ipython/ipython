@@ -60,6 +60,7 @@ var IPython = (function (IPython) {
                 IPython.notebook.select(i);
             }
         });
+        this.element.find("#restore_checkpoint").find("ul").find("li").hide();
     };
 
 
@@ -81,8 +82,10 @@ var IPython = (function (IPython) {
             window.open(url,'_blank');
             return false;
         });
-        this.element.find('#save_notebook').click(function () {
-            IPython.notebook.save_notebook();
+        this.element.find('#save_checkpoint').click(function () {
+            IPython.notebook.save_checkpoint();
+        });
+        this.element.find('#restore_checkpoint').click(function () {
         });
         this.element.find('#download_ipynb').click(function () {
             var notebook_id = IPython.notebook.get_notebook_id();
@@ -218,8 +221,41 @@ var IPython = (function (IPython) {
         this.element.find('#keyboard_shortcuts').click(function () {
             IPython.quick_help.show_keyboard_shortcuts();
         });
+        
+        this.update_restore_checkpoint(null);
+        
+        $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
+            that.update_restore_checkpoint(data);
+        });
+        
+        $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
+            that.update_restore_checkpoint([data]);
+        });
     };
 
+    MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
+        if (! checkpoints) {
+            checkpoints = [];
+        };
+        this.element.find("#restore_checkpoint").find("ul").find("li").each(function(i) {
+            var li = $(this);
+            var a = li.find("a");
+            a.off("click");
+            if (checkpoints.length <= i) {
+                li.hide();
+                return;
+            } else {
+                li.show();
+            };
+            var checkpoint = checkpoints[i];
+            var d = new Date(checkpoint.last_modified);
+            li.find('a').text(
+                d.format("mmm dd HH:MM:ss")
+            ).click(function () {
+                IPython.notebook.restore_checkpoint_dialog(checkpoint);
+            });
+        });
+    };
 
     IPython.MenuBar = MenuBar;
 

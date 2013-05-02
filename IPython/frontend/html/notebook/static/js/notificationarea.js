@@ -177,6 +177,39 @@ var IPython = (function (IPython) {
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
             nnw.set_message("Notebook save failed");
         });
+        
+        // Checkpoint events
+        $([IPython.events]).on('checkpoint_created.Notebook', function (evt, data) {
+            var msg = "Checkpoint created";
+            if (data.last_modified) {
+                var d = new Date(data.last_modified);
+                msg = msg + ": " + d.format("HH:MM:ss");
+            }
+            nnw.set_message(msg, 2000);
+        });
+        $([IPython.events]).on('checkpoint_failed.Notebook', function () {
+            nnw.set_message("Checkpoint failed");
+        });
+        $([IPython.events]).on('checkpoint_deleted.Notebook', function () {
+            nnw.set_message("Checkpoint deleted", 500);
+        });
+        $([IPython.events]).on('checkpoint_delete_failed.Notebook', function () {
+            nnw.set_message("Checkpoint delete failed");
+        });
+        $([IPython.events]).on('checkpoint_restoring.Notebook', function () {
+            nnw.set_message("Restoring to checkpoint...", 500);
+        });
+        $([IPython.events]).on('checkpoint_restore_failed.Notebook', function () {
+            nnw.set_message("Checkpoint restore failed");
+        });
+
+        // Autosave events
+        $([IPython.events]).on('autosave_disabled.Notebook', function () {
+            nnw.set_message("Autosave disabled", 2000);
+        });
+        $([IPython.events]).on('autosave_enabled.Notebook', function (evt, interval) {
+            nnw.set_message("Saving every " + interval / 1000 + "s", 1000);
+        });
 
     };
 

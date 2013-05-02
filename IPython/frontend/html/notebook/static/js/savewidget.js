@@ -26,7 +26,9 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.style = function () {
         this.element.find('span#save_widget').addClass('ui-widget');
         this.element.find('span#notebook_name').addClass('ui-widget');
-        this.element.find('span#save_status').addClass('ui-widget')
+        this.element.find('span#autosave_status').addClass('ui-widget')
+            .css({border: 'none'});
+        this.element.find('span#checkpoint_status').addClass('ui-widget')
             .css({border: 'none', 'margin-left': '20px'});
     };
 
@@ -53,6 +55,13 @@ var IPython = (function (IPython) {
         });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
             that.set_save_status('Last Save Failed!');
+        });
+        $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
+            that.set_last_checkpoint(data[0]);
+        });
+        
+        $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
+            that.set_last_checkpoint(data);
         });
     };
 
@@ -121,13 +130,23 @@ var IPython = (function (IPython) {
 
 
     SaveWidget.prototype.set_save_status = function (msg) {
-        this.element.find('span#save_status').html(msg);
+        this.element.find('span#autosave_status').html(msg);
     }
 
+    SaveWidget.prototype.set_checkpoint_status = function (msg) {
+        this.element.find('span#checkpoint_status').html(msg);
+    }
+
+    SaveWidget.prototype.set_last_checkpoint = function (checkpoint) {
+        var d = new Date(checkpoint.last_modified);
+        this.set_checkpoint_status(
+            "Last Checkpoint: " + d.format('mmm dd HH:MM')
+        );
+    }
 
     SaveWidget.prototype.set_last_saved = function () {
         var d = new Date();
-        this.set_save_status('Last saved: '+d.format('mmm dd HH:MM'));
+        this.set_save_status('(autosaved: '+d.format('mmm dd HH:MM') + ')');
     };
 
 

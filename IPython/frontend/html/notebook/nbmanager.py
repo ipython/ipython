@@ -36,7 +36,7 @@ class NotebookManager(LoggingConfigurable):
     # 1. Where the notebooks are stored if FileNotebookManager is used.
     # 2. The cwd of the kernel for a project.
     # Right now we use this attribute in a number of different places and
-    # we are going to have to disentagle all of this. 
+    # we are going to have to disentangle all of this.
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
         The directory to use for notebooks.
     """)
@@ -205,7 +205,28 @@ class NotebookManager(LoggingConfigurable):
         nb.metadata.name = name
         notebook_id = self.write_notebook_object(nb)
         return notebook_id
+    
+    # Checkpoint-related
+    
+    def create_checkpoint(self, notebook_id):
+        """Create a checkpoint of the current state of a notebook
+        
+        Returns a checkpoint_id for the new checkpoint.
+        """
+        raise NotImplementedError("must be implemented in a subclass")
+    
+    def list_checkpoints(self, notebook_id):
+        """Return a list of checkpoints for a given notebook"""
+        return []
+    
+    def restore_checkpoint(self, notebook_id, checkpoint_id):
+        """Restore a notebook from one of its checkpoints"""
+        raise NotImplementedError("must be implemented in a subclass")
 
+    def delete_checkpoint(self, notebook_id, checkpoint_id):
+        """delete a checkpoint for a notebook"""
+        raise NotImplementedError("must be implemented in a subclass")
+    
     def log_info(self):
         self.log.info(self.info_string())
     
