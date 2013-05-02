@@ -315,9 +315,9 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            text = IPython.mathjaxutils.remove_math(text)
-            var html = IPython.markdown_converter.makeHtml(text);
-            html = IPython.mathjaxutils.replace_math(html)
+            text = IPython.mathjaxutils.remove_math(text);
+            var html = marked.parser(marked.lexer(text));
+            html = IPython.mathjaxutils.replace_math(html);
             try {
                 this.set_rendered(html);
             } catch (e) {

@@ -42,7 +42,6 @@ $(document).ready(function () {
     var baseProjectUrl = $('body').data('baseProjectUrl')
 
     IPython.page = new IPython.Page();
-    IPython.markdown_converter = new Markdown.Converter();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
