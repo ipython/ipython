@@ -15,6 +15,7 @@ def css(minify=True):
     minify = (minify in ['True',True])
 
     min_flag= '-x' if minify is True else ''
+    lessc = os.path.join('components', 'less.js', 'bin', 'lessc')
     with lcd(static_dir):
-        local('lessc {min_flag} less/style.less css/style.min.css'.format(min_flag=min_flag))
+        local('{lessc} {min_flag} less/style.less css/style.min.css'.format(**locals()))
 
