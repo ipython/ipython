@@ -80,14 +80,19 @@ $(document).ready(function () {
     IPython.page.show();
 
     IPython.layout_manager.do_resize();
-    $([IPython.events]).on('notebook_loaded.Notebook', function () {
+    var first_load = function () {
         IPython.layout_manager.do_resize();
         var hash = document.location.hash;
         if (hash) {
             document.location.hash = '';
             document.location.hash = hash;
         }
-    });
+        IPython.notebook.set_autosave_interval(IPython.notebook.minimum_autosave_interval);
+        // only do this once
+        $([IPython.events]).off('notebook_loaded.Notebook', first_load);
+    };
+    
+    $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     IPython.notebook.load_notebook($('body').data('notebookId'));
 
 });

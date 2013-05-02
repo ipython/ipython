@@ -399,7 +399,7 @@ class MainKernelHandler(IPythonHandler):
         notebook_id = self.get_argument('notebook', default=None)
         kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
         data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
-        self.set_header('Location', '/'+kernel_id)
+        self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
         self.finish(jsonapi.dumps(data))
 
 
@@ -426,7 +426,7 @@ class KernelActionHandler(IPythonHandler):
         if action == 'restart':
             km.restart_kernel(kernel_id)
             data = {'ws_url':self.ws_url, 'kernel_id':kernel_id}
-            self.set_header('Location', '/'+kernel_id)
+            self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
             self.write(jsonapi.dumps(data))
         self.finish()
 
@@ -641,7 +641,7 @@ class NotebookRootHandler(IPythonHandler):
             notebook_id = nbm.save_new_notebook(body, name=name, format=format)
         else:
             notebook_id = nbm.new_notebook()
-        self.set_header('Location', '/'+notebook_id)
+        self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
 
 
@@ -676,6 +676,52 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     def delete(self, notebook_id):
         self.notebook_manager.delete_notebook(notebook_id)
+        self.set_status(204)
+        self.finish()
+
+
+class NotebookCheckpointsHandler(IPythonHandler):
+    
+    SUPPORTED_METHODS = ('GET', 'POST')
+    
+    @web.authenticated
+    def get(self, notebook_id):
+        """get lists checkpoints for a notebook"""
+        nbm = self.notebook_manager
+        checkpoints = nbm.list_checkpoints(notebook_id)
+        data = jsonapi.dumps(checkpoints, default=date_default)
+        self.finish(data)
+    
+    @web.authenticated
+    def post(self, notebook_id):
+        """post creates a new checkpoint"""
+        nbm = self.notebook_manager
+        checkpoint = nbm.create_checkpoint(notebook_id)
+        data = jsonapi.dumps(checkpoint, default=date_default)
+        self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
+            self.base_project_url, notebook_id, checkpoint['checkpoint_id']
+        ))
+        
+        self.finish(data)
+
+
+class ModifyNotebookCheckpointsHandler(IPythonHandler):
+    
+    SUPPORTED_METHODS = ('POST', 'DELETE')
+    
+    @web.authenticated
+    def post(self, notebook_id, checkpoint_id):
+        """post restores a notebook from a checkpoint"""
+        nbm = self.notebook_manager
+        nbm.restore_checkpoint(notebook_id, checkpoint_id)
+        self.set_status(204)
+        self.finish()
+    
+    @web.authenticated
+    def delete(self, notebook_id, checkpoint_id):
+        """delete clears a checkpoint for a given notebook"""
+        nbm = self.notebook_manager
+        nbm.delte_checkpoint(notebook_id, checkpoint_id)
         self.set_status(204)
         self.finish()
 

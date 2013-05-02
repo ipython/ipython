@@ -38,7 +38,8 @@ class="notebook_app"
 
 <span id="save_widget">
     <span id="notebook_name"></span>
-    <span id="save_status"></span>
+    <span id="checkpoint_status"></span>
+    <span id="autosave_status"></span>
 </span>
 
 {% endblock %}
@@ -56,7 +57,17 @@ class="notebook_app"
                 <hr/>
                 <li id="copy_notebook"><a href="#">Make a Copy...</a></li>
                 <li id="rename_notebook"><a href="#">Rename...</a></li>
-                <li id="save_notebook"><a href="#">Save</a></li>
+                <li id="save_checkpoint"><a href="#">Save and Checkpoint</a></li>
+                <hr/>
+                <li id="restore_checkpoint"><a href="#">Revert to Checkpoint</a>
+                  <ul>
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                  </ul>
+                </li>
                 <hr/>
                 <li><a href="#">Download as</a>
                     <ul>

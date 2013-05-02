@@ -870,6 +870,7 @@ body{background-color:#ffffff;}
 body.notebook_app{overflow:hidden;}
 blockquote{border-left:4px solid #DDD;padding:0 15px;color:#777;}
 span#save_widget{padding:5px;margin:0px 0px 0px 300px;display:inline-block;}
+span#checkpoint_status span#autosave_status{font-size:small;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
 .ui-menubar-item .ui-button .ui-button-text{padding:0.4em 1.0em;font-size:100%;}
 .ui-menu{-webkit-box-shadow:0px 6px 10px -1px #adadad;-moz-box-shadow:0px 6px 10px -1px #adadad;box-shadow:0px 6px 10px -1px #adadad;}
@@ -942,6 +943,7 @@ a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;color:inheri
 div.raw_input{padding-top:0px;padding-bottom:0px;height:1em;line-height:1em;font-family:monospace;}
 span.input_prompt{font-family:inherit;}
 input.raw_input{font-family:inherit;font-size:inherit;color:inherit;width:auto;margin:-2px 0px 0px 1px;padding-left:1px;padding-top:2px;height:1em;}
+p.p-space{margin-bottom:10px;}
 .rendered_html{color:black;}.rendered_html em{font-style:italic;}
 .rendered_html strong{font-weight:bold;}
 .rendered_html u{text-decoration:underline;}
