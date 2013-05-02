@@ -230,6 +230,7 @@ class NotebookWebApplication(web.Application):
             new_handler = tuple([pattern] + list(handler[1:]))
             new_handlers.append(new_handler)
 
+        log.debug(new_handlers)
         super(NotebookWebApplication, self).__init__(new_handlers, **settings)
 
 
