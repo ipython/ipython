@@ -1,0 +1,3 @@
+[submodule "components"]
+	path = IPython/frontend/html/notebook/static/components
+	url = git://github.com/ipython/ipython-components.git
