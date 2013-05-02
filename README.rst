@@ -114,7 +114,7 @@ Using nbconvert
 You will need to either put the source repository in your ``$PATH`` or symlink
 the ``nbconvert2.py`` script to a directory in your ``$PATH``, e.g.::
 
-    $ ln -s /usr/local/bin/nbconvert "$PWD/nbconvert2.py"
+    $ ln -s "$PWD/nbconvert2.py" /usr/local/bin/nbconvert
 
 Once this is done, you can call it as::
 
