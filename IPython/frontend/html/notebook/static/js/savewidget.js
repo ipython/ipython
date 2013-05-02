@@ -57,7 +57,7 @@ var IPython = (function (IPython) {
             that.set_save_status('Last Save Failed!');
         });
         $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
-            that.set_last_checkpoint(data);
+            that.set_last_checkpoint(data[0]);
         });
         
         $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {

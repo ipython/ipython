@@ -60,6 +60,7 @@ var IPython = (function (IPython) {
                 IPython.notebook.select(i);
             }
         });
+        this.element.find("#restore_checkpoint").find("ul").find("li").hide();
     };
 
 
@@ -228,26 +229,33 @@ var IPython = (function (IPython) {
         });
         
         $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
-            that.update_restore_checkpoint(data);
+            that.update_restore_checkpoint([data]);
         });
     };
 
-    MenuBar.prototype.update_restore_checkpoint = function(checkpoint) {
-        if (!checkpoint) {
-            this.element.find("#restore_checkpoint")
-                .addClass('ui-state-disabled')
-                .off('click')
-                .find('a').text("Revert");
-            return;
+    MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
+        if (! checkpoints) {
+            checkpoints = [];
         };
-        var d = new Date(checkpoint.last_modified);
-        this.element.find("#restore_checkpoint")
-            .removeClass('ui-state-disabled')
-            .off('click')
-            .click(function () {
-                IPython.notebook.restore_checkpoint_dialog();
-            }).find('a').html("Revert to: <br/>" + d.format("mmm dd HH:MM:ss"));
-    }
+        this.element.find("#restore_checkpoint").find("ul").find("li").each(function(i) {
+            var li = $(this);
+            var a = li.find("a");
+            a.off("click");
+            if (checkpoints.length <= i) {
+                li.hide();
+                return;
+            } else {
+                li.show();
+            };
+            var checkpoint = checkpoints[i];
+            var d = new Date(checkpoint.last_modified);
+            li.find('a').text(
+                d.format("mmm dd HH:MM:ss")
+            ).click(function () {
+                IPython.notebook.restore_checkpoint_dialog(checkpoint);
+            });
+        });
+    };
 
     IPython.MenuBar = MenuBar;
 

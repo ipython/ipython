@@ -1839,7 +1839,7 @@ var IPython = (function (IPython) {
         } else {
             this.last_checkpoint = null;
         }
-        $([IPython.events]).trigger('checkpoints_listed.Notebook', data);
+        $([IPython.events]).trigger('checkpoints_listed.Notebook', [data]);
     };
 
     /**
@@ -1894,15 +1894,16 @@ var IPython = (function (IPython) {
         $([IPython.events]).trigger('checkpoint_failed.Notebook');
     };
     
-    Notebook.prototype.restore_checkpoint_dialog = function () {
+    Notebook.prototype.restore_checkpoint_dialog = function (checkpoint) {
         var that = this;
-        var checkpoint = this.last_checkpoint;
+        var checkpoint = checkpoint || this.last_checkpoint;
         if ( ! checkpoint ) {
             console.log("restore dialog, but no checkpoint to restore to!");
             return;
         }
         var dialog = $('<div/>').append(
-            $('<p/>').text("Are you sure you want to revert the notebook to " +
+            $('<p/>').addClass("p-space").text(
+                "Are you sure you want to revert the notebook to " +
                 "the latest checkpoint?"
             ).append(
                 $("<strong/>").text(
@@ -1910,9 +1911,11 @@ var IPython = (function (IPython) {
                 )
             )
         ).append(
-            $('<p/>').text("The checkpoint was last updated at")
+            $('<p/>').addClass("p-space").text("The checkpoint was last updated at:")
         ).append(
-            $('<p/>').text(Date(checkpoint.last_modified))
+            $('<p/>').addClass("p-space").text(
+                Date(checkpoint.last_modified)
+            ).css("text-align", "center")
         );
         
         $(document).append(dialog);
