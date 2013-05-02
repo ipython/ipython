@@ -381,7 +381,7 @@ def check_for_submodules():
     """
     here = os.path.dirname(__file__)
     submodules = [
-        os.path.join(here, 'IPython', 'frontend', 'html', 'notebook', 'static', 'external')
+        os.path.join(here, 'IPython', 'frontend', 'html', 'notebook', 'static', 'components')
     ]
     for submodule in submodules:
         if not os.path.exists(submodule):
