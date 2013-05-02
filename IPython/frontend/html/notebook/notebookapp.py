@@ -21,7 +21,6 @@ import errno
 import logging
 import os
 import random
-import re
 import select
 import signal
 import socket
@@ -64,39 +63,53 @@ from tornado import web
 # Our own libraries
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
-from .handlers import (LoginHandler, LogoutHandler,
-    ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
-    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
-    NotebookRedirectHandler, NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler,
-    AuthenticatedFileHandler, FileFindHandler,
-    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler, 
+
+from .handlers.clustersapi import (
+    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler
 )
+from .handlers.kernelsapi import (
+    MainKernelHandler, KernelHandler, KernelActionHandler,
+    IOPubHandler, StdinHandler, ShellHandler
+)
+from .handlers.notebooksapi import (
+    NotebookRootHandler, NotebookHandler,
+    NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler
+)
+from .handlers.tree import ProjectDashboardHandler
+from .handlers.login import LoginHandler
+from .handlers.logout import LogoutHandler
+from .handlers.notebooks import (
+    NewHandler, NamedNotebookHandler, 
+    NotebookCopyHandler, NotebookRedirectHandler
+)
+
+from .handlers.base import AuthenticatedFileHandler
+from .handlers.files import FileFindHandler
+
 from .nbmanager import NotebookManager
 from .filenbmanager import FileNotebookManager
 from .clustermanager import ClusterManager
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
-from IPython.core.profiledir import ProfileDir
 from IPython.frontend.consoleapp import IPythonConsoleApp
 from IPython.kernel import swallow_argv
-from IPython.kernel.zmq.session import Session, default_secure
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.session import default_secure
 from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
-    IPKernelApp
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
-    Dict, Unicode, Integer, List, Enum, Bool,
+    Dict, Unicode, Integer, List, Bool,
     DottedObjectName
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind
+
+from .utils import url_path_join
 
 #-----------------------------------------------------------------------------
 # Module globals
@@ -121,12 +134,6 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 #-----------------------------------------------------------------------------
 # Helper functions
 #-----------------------------------------------------------------------------
-
-def url_path_join(a,b):
-    if a.endswith('/') and b.startswith('/'):
-        return a[:-1]+b
-    else:
-        return a+b
 
 def random_ports(port, n):
     """Generate a list of n random ports near the given port.

@@ -1,4 +1,4 @@
-"""Tornado handlers for the tree view.
+"""Notebook related utilities
 
 Authors:
 
@@ -16,18 +16,16 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import IPythonHandler, authenticate_unless_readonly
+def url_path_join(*pieces):
+    """Join components of url into a relative url
 
-#-----------------------------------------------------------------------------
-# Handlers
-#-----------------------------------------------------------------------------
-
-
-class ProjectDashboardHandler(IPythonHandler):
-
-    @authenticate_unless_readonly
-    def get(self):
-        self.write(self.render_template('projectdashboard.html',
-            project=self.project,
-            project_component=self.project.split('/'),
-        ))
+    Use to prevent double slash when joining subpath. This will leave the
+    initial and final / in place
+    """
+    initial = pieces[0].startswith('/')
+    final = pieces[-1].endswith('/')
+    striped = [s.strip('/') for s in pieces]
+    result = '/'.join(s for s in striped if s)
+    if initial: result = '/' + result
+    if final: result = result + '/'
+    return result
