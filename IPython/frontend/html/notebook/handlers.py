@@ -315,7 +315,36 @@ class ProjectDashboardHandler(IPythonHandler):
         self.write(self.render_template('projectdashboard.html',
             project=self.project,
             project_component=self.project.split('/'),
+            project_path_url= "0"
         ))
+
+
+class ProjectPathDashboardHandler(AuthenticatedHandler):
+
+    @authenticate_unless_readonly
+    def get(self, path):
+        nbm = self.application.notebook_manager
+        project = nbm.notebook_dir + '/' + path
+        self.application.log.info(project)
+        template = self.application.jinja2_env.get_template('projectdashboard.html')
+        self.write( template.render(
+            project=project,
+            project_component=project.split('/'),
+            base_project_url=self.application.ipython_app.base_project_url,
+            project_path_url=path,
+            base_kernel_url=self.application.ipython_app.base_kernel_url,
+            read_only=self.read_only,
+            logged_in=self.logged_in,
+            use_less=self.use_less,
+            login_available=self.login_available))       
+
+
+class ProjectRedirectHandler(IPythonHandler):
+    
+    @authenticate_unless_readonly
+    def get(self):
+        url = self.base_project_url + 'tree'
+        self.redirect(url)
 
 
 class LoginHandler(IPythonHandler):
@@ -367,13 +396,14 @@ class NewHandler(IPythonHandler):
 class NamedNotebookHandler(IPythonHandler):
 
     @authenticate_unless_readonly
-    def get(self, notebook_id):
+    def get(self, notebook_id_path):
         nbm = self.notebook_manager
-        if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
+        project = self.project + '/' + notebook_id_path
+        if not nbm.notebook_exists(notebook_id_path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id_path)       
         self.write(self.render_template('notebook.html',
-            project=self.project,
-            notebook_id=notebook_id,
+            project=project,
+            notebook_id=notebook_id_path,
             kill_kernel=False,
             mathjax_url=self.mathjax_url,
             )
@@ -626,10 +656,10 @@ class NotebookRootHandler(IPythonHandler):
     def get(self):
         nbm = self.notebook_manager
         km = self.kernel_manager
-        files = nbm.list_directory_info()
-        notebooks = files['notebooks']
-        for nb in notebooks:
-            nb['kernel_id'] = km.kernel_for_notebook(nb['notebook_id'])
+        notebooks = nbm.list_notebooks("")
+        for f in notebooks :
+           f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])  
+        files = nbm.list_directory_info("", notebooks)
         self.finish(jsonapi.dumps(files))
 
     @web.authenticated
@@ -645,13 +675,38 @@ class NotebookRootHandler(IPythonHandler):
         self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
         
+class NotebookPathHandler(AuthenticatedHandler):
+
+    @authenticate_unless_readonly
+    def get(self, path):
+        nbm = self.application.notebook_manager
+        km = self.application.kernel_manager
+        notebooks = nbm.list_notebooks(path)
+        for f in notebooks :
+          f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])  
+        files = nbm.list_directory_info(path, notebooks)
+        self.finish(jsonapi.dumps(files))
+
+"""    @web.authenticated
+    def post(self, path):
+        nbm = self.application.notebook_manager
+        body = self.request.body.strip()
+        format = self.get_argument('format', default='json')
+        name = self.get_argument('name', default=None)
+        if body:
+            notebook_id = nbm.save_new_notebook(body, name=name, format=format)
+        else:
+            notebook_id = nbm.new_notebook()
+        self.set_header('Location', nbm.notebook_dir + '/'+ notebook_id)
+        self.finish(jsonapi.dumps(notebook_id))
+"""
 
 class NotebookHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
     @authenticate_unless_readonly
-    def get(self, notebook_id):
+    def get(self, path, notebook_id):
         nbm = self.notebook_manager
         format = self.get_argument('format', default='json')
         last_mod, name, data = nbm.get_notebook(notebook_id, format)
@@ -785,6 +840,8 @@ class FileFindHandler(web.StaticFileHandler):
     _lock = threading.Lock()  # protects _static_hashes
     
     def initialize(self, path, default_filename=None):
+        self.application.log.debug(path)
+        
         if isinstance(path, basestring):
             path = [path]
         self.roots = tuple(

@@ -74,16 +74,16 @@ class FileNotebookManager(NotebookManager):
     # Map notebook names to notebook_ids
     rev_mapping = Dict()
     
-    def get_notebook_names(self):
+    def get_notebook_names(self, path):
         """List all notebook names in the notebook dir."""
-        names = glob.glob(os.path.join(self.notebook_dir,
+        names = glob.glob(os.path.join(self.notebook_dir, path,
                                        '*' + self.filename_ext))
         names = [os.path.splitext(os.path.basename(name))[0]
                  for name in names]
         return names
         
-    def get_file_names(self):
-        names = glob.glob(self.notebook_dir + '/*')
+    def get_file_names(self, path):
+        names = glob.glob(os.path.join(self.notebook_dir, path,'*'))
         
         file_names = []
         dir_names = []
@@ -94,9 +94,9 @@ class FileNotebookManager(NotebookManager):
                 file_names.append(os.path.split(name)[1])        
         return dir_names, file_names
         
-    def list_notebooks(self):
+    def list_notebooks(self, path):
         """List all notebooks in the notebook dir."""
-        names = self.get_notebook_names()
+        names = self.get_notebook_names(path)
 
         data = []
         for name in names:
@@ -108,10 +108,9 @@ class FileNotebookManager(NotebookManager):
         data = sorted(data, key=lambda item: item['name'])
         return data
     
-    def list_directory_info(self):
-        notebooks = self.list_notebooks()
-        path = self.notebook_dir
-        directories, files = self.get_file_names()
+    def list_directory_info(self, path, notebooks):
+        #notebooks = self.list_notebooks(path)
+        directories, files = self.get_file_names(path)
         data = (dict(path=path,directories=directories,files=files,notebooks=notebooks))
         return data
         

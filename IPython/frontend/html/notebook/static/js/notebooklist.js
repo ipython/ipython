@@ -21,9 +21,24 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.baseProjectUrl = function () {
-        return $('body').data('baseProjectUrl')
+        return $('body').data('baseProjectUrl');
     };
-
+    
+    NotebookList.prototype.projectPathUrl = function() {
+        var path = $('body').data('projectPathUrl');
+        if (path != "0") {
+            if (path[0] != '/') {
+                path = "/" + path;
+            }
+            if (path[path.length-1] != '/') {
+                path = path.substring(0,path.length);
+            };
+            return path;
+        } else {
+            return "";
+        }
+    };
+    
     NotebookList.prototype.style = function () {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
@@ -104,7 +119,7 @@ var IPython = (function (IPython) {
                              },this)
         };
 
-        var url = this.baseProjectUrl() + 'notebooks';
+        var url = this.baseProjectUrl() + 'notebooks' + this.projectPathUrl();
         $.ajax(url, settings);
     };
 
@@ -114,9 +129,9 @@ var IPython = (function (IPython) {
         if (param !== undefined && param.msg) {
             var message = param.msg;
         }
-        var len = data.length;
+        var len = data['notebooks'].length;
         this.clear_list();
-
+        console.log(len);
         if(len == 0)
         {
             $(this.new_notebook_item(0))
@@ -125,11 +140,11 @@ var IPython = (function (IPython) {
                     .text(message)
                     )
         }
-
+        
         for (var i=0; i<len; i++) {
-            var notebook_id = data[i].notebook_id;
-            var nbname = data[i].name;
-            var kernel = data[i].kernel_id;
+            var notebook_id = data['notebooks'][i].notebook_id;
+            var nbname = data['notebooks'][i].name;
+            var kernel = data['notebooks'][i].kernel_id;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
             if (!IPython.read_only){
@@ -258,7 +273,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
+                            var url = notebooklist.baseProjectUrl() + 'notebooks' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
