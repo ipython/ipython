@@ -67,7 +67,11 @@ from setupbase import (
     find_scripts,
     find_data_files,
     check_for_dependencies,
-    record_commit_info,
+    git_prebuild,
+    check_for_submodules,
+    update_submodules,
+    require_submodules,
+    UpdateSubmodules,
 )
 from setupext import setupext
 
@@ -104,6 +108,25 @@ else:
 if os_name == 'windows' and 'sdist' in sys.argv:
     print('The sdist command is not available under Windows.  Exiting.')
     sys.exit(1)
+
+#-------------------------------------------------------------------------------
+# Make sure we aren't trying to run without submodules
+#-------------------------------------------------------------------------------
+
+def ensure_submodules_exist():
+    """Check out git submodules before distutils can do anything
+    
+    Because distutils cannot be trusted to update the tree
+    after everything has been set in motion.
+    """
+    # don't do anything if nothing is actually supposed to happen
+    for do_nothing in ('-h', '--help', '--help-commands', 'clean'):
+        if do_nothing in sys.argv:
+            return
+    if not check_for_submodules():
+        update_submodules()
+
+ensure_submodules_exist()
 
 #-------------------------------------------------------------------------------
 # Things related to the IPython documentation
@@ -193,9 +216,10 @@ class UploadWindowsInstallers(upload):
             self.upload_file('bdist_wininst', 'any', dist_file)
 
 setup_args['cmdclass'] = {
-    'build_py': record_commit_info('IPython'),
-    'sdist' : record_commit_info('IPython', sdist),
+    'build_py': git_prebuild('IPython'),
+    'sdist' : git_prebuild('IPython', sdist),
     'upload_wininst' : UploadWindowsInstallers,
+    'submodule' : UpdateSubmodules,
 }
 
 #---------------------------------------------------------------------------
@@ -223,6 +247,10 @@ if len(needs_setuptools.intersection(sys.argv)) > 0:
 setuptools_extra_args = {}
 
 if 'setuptools' in sys.modules:
+    # setup.py develop should check for submodules
+    from setuptools.command.develop import develop
+    setup_args['cmdclass']['develop'] = require_submodules(develop)
+    
     setuptools_extra_args['zip_safe'] = False
     setuptools_extra_args['entry_points'] = find_scripts(True)
     setup_args['extras_require'] = dict(
@@ -277,7 +305,7 @@ if 'setuptools' in sys.modules:
                 'lib2to3.fixes.fix_tuple_params',
                 ]
         from setuptools.command.build_py import build_py
-        setup_args['cmdclass'] = {'build_py': record_commit_info('IPython', build_cmd=build_py)}
+        setup_args['cmdclass'] = {'build_py': git_prebuild('IPython', build_cmd=build_py)}
         setuptools_extra_args['entry_points'] = find_scripts(True, suffix='3')
         setuptools._dont_write_bytecode = True
 else:
