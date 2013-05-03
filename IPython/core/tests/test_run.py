@@ -13,9 +13,13 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
+import functools
 import os
+import random
 import sys
 import tempfile
+import textwrap
+import unittest
 
 import nose.tools as nt
 from nose import SkipTest
@@ -23,6 +27,8 @@ from nose import SkipTest
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+from IPython.utils.tempdir import TemporaryDirectory
+from IPython.core import debugger
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -337,3 +343,74 @@ tclass.py: deleting object: C-third
         self.mktmp(src)
         _ip.magic('run -t -N 1 %s' % self.fname)
         _ip.magic('run -t -N 10 %s' % self.fname)
+
+
+class TestMagicRunWithPackage(unittest.TestCase):
+
+    def writefile(self, name, content):
+        path = os.path.join(self.tempdir.name, name)
+        d = os.path.dirname(path)
+        if not os.path.isdir(d):
+            os.makedirs(d)
+        with open(path, 'w') as f:
+            f.write(textwrap.dedent(content))
+
+    def setUp(self):
+        self.package = package = 'tmp{0}'.format(repr(random.random())[2:])
+        """Temporary valid python package name."""
+
+        self.value = int(random.random() * 10000)
+
+        self.tempdir = TemporaryDirectory()
+        self.__orig_cwd = os.getcwdu()
+        sys.path.insert(0, self.tempdir.name)
+
+        self.writefile(os.path.join(package, '__init__.py'), '')
+        self.writefile(os.path.join(package, 'sub.py'), """
+        x = {0!r}
+        """.format(self.value))
+        self.writefile(os.path.join(package, 'relative.py'), """
+        from .sub import x
+        """)
+        self.writefile(os.path.join(package, 'absolute.py'), """
+        from {0}.sub import x
+        """.format(package))
+
+    def tearDown(self):
+        os.chdir(self.__orig_cwd)
+        sys.path[:] = [p for p in sys.path if p != self.tempdir.name]
+        self.tempdir.cleanup()
+
+    def check_run_submodule(self, submodule, opts=''):
+        _ip.magic('run {2} -m {0}.{1}'.format(self.package, submodule, opts))
+        self.assertEqual(_ip.user_ns['x'], self.value,
+                         'Variable `x` is not loaded from module `{0}`.'
+                         .format(submodule))
+
+    def test_run_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute')
+
+    def test_run_submodule_with_relative_import(self):
+        """Run submodule that has a relative import statement (#2727)."""
+        self.check_run_submodule('relative')
+
+    def test_prun_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute', '-p')
+
+    def test_prun_submodule_with_relative_import(self):
+        self.check_run_submodule('relative', '-p')
+
+    def with_fake_debugger(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwds):
+            with tt.monkeypatch(debugger.Pdb, 'run', staticmethod(eval)):
+                return func(*args, **kwds)
+        return wrapper
+
+    @with_fake_debugger
+    def test_debug_run_submodule_with_absolute_import(self):
+        self.check_run_submodule('absolute', '-d')
+
+    @with_fake_debugger
+    def test_debug_run_submodule_with_relative_import(self):
+        self.check_run_submodule('relative', '-d')
