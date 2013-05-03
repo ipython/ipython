@@ -6,7 +6,7 @@ Authors:
 * Brian Granger
 """
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -90,6 +90,7 @@ from IPython.kernel.zmq.kernelapp import (
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
+from IPython.utils import submodule
 from IPython.utils.traitlets import (
     Dict, Unicode, Integer, List, Enum, Bool,
     DottedObjectName
@@ -673,11 +674,23 @@ class NotebookApp(BaseIPythonApplication):
     def _signal_info(self, sig, frame):
         print self.notebook_info()
     
+    def init_components(self):
+        """Check the components submodule, and warn if it's unclean"""
+        status = submodule.check_submodule_status()
+        if status == 'missing':
+            self.log.warn("components submodule missing, running `git submodule update`")
+            submodule.update_submodules(submodule.ipython_parent())
+        elif status == 'unclean':
+            self.log.warn("components submodule unclean, you may see 404s on static/components")
+            self.log.warn("run `setup.py submodule` or `git submodule update` to update")
+            
+    
     @catch_config_error
     def initialize(self, argv=None):
         self.init_logging()
         super(NotebookApp, self).initialize(argv)
         self.init_configurables()
+        self.init_components()
         self.init_webapp()
         self.init_signal()
 
