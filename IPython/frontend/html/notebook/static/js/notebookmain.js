@@ -93,7 +93,7 @@ $(document).ready(function () {
     };
     
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
-    IPython.notebook.load_notebook($('body').data('notebookId'));
+    IPython.notebook.load_notebook($('body').data('notebookPath'));
 
 });
 

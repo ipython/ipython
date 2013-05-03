@@ -40,7 +40,16 @@ class NotebookManager(LoggingConfigurable):
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
             The directory to use for notebooks.
             """)
-         
+            
+    def named_notebook_path(self, notebook_path):
+        
+        l = len(notebook_path)
+        if notebook_path[l-6:l] == '.ipynb':
+            names = notebook_path.split('/')
+            name = names[len(names)-1]
+            path = notebook_path[0:l-len(name)-1]
+        return name, path
+             
     def _notebook_dir_changed(self, new):
         """do a bit of validation of the notebook dir"""
         if not os.path.isabs(new):

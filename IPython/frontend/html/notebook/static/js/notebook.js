@@ -1609,7 +1609,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' +this.notebook_name;
         $.ajax(url, settings);
     };
     
@@ -1670,9 +1670,9 @@ var IPython = (function (IPython) {
      * @method load_notebook
      * @param {String} notebook_id A notebook to load
      */
-    Notebook.prototype.load_notebook = function (notebook_id) {
+    Notebook.prototype.load_notebook = function (notebook_name) {
         var that = this;
-        this.notebook_id = notebook_id;
+        this.notebook_name = notebook_name;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1683,7 +1683,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name;
         $.ajax(url, settings);
     };
 

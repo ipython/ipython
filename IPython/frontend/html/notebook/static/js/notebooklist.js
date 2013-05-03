@@ -131,7 +131,6 @@ var IPython = (function (IPython) {
         }
         var len = data['notebooks'].length;
         this.clear_list();
-        console.log(len);
         if(len == 0)
         {
             $(this.new_notebook_item(0))
@@ -146,7 +145,7 @@ var IPython = (function (IPython) {
             var nbname = data['notebooks'][i].name;
             var kernel = data['notebooks'][i].kernel_id;
             var item = this.new_notebook_item(i);
-            this.add_link(notebook_id, nbname, item);
+            this.add_link(this.projectPathUrl, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
                 if(kernel == null){
@@ -175,13 +174,13 @@ var IPython = (function (IPython) {
     };
 
 
-    NotebookList.prototype.add_link = function (notebook_id, nbname, item) {
+    NotebookList.prototype.add_link = function (path, nbname, item) {
         item.data('nbname', nbname);
-        item.data('notebook_id', notebook_id);
+        item.data('path', path);
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href', this.baseProjectUrl()+notebook_id).
+            attr('href', this.baseProjectUrl()+path+nbname).
             attr('target','_blank').
             text(nbname)
         );

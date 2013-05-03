@@ -65,10 +65,10 @@ from tornado import web
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
-    ProjectRootDashboardHandler, ProjectRedirectHandler, ProjectPathDashboardHandler, NewHandler, NamedNotebookHandler,
+    ProjectDashboardHandler, ProjectRedirectHandler, ProjectPathDashboardHandler, NewHandler, NamedNotebookHandler,
     MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
     ShellHandler, NotebookRootHandler, NotebookPathHandler, NotebookHandler, NotebookCopyHandler,
-    AuthenticatedFileHandler,
+    AuthenticatedFileHandler, NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
     FileFindHandler, NotebookRedirectHandler,
 )
@@ -103,7 +103,7 @@ from IPython.utils.path import filefind
 
 _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
-_notebook_id_path_regex = r"(?P<notebook_id_path>\w+-\w+-\w+-\w+-\w+)"
+#_notebook_id_path_regex = r"(?P<notebook_id_path>\w+-\w+-\w+-\w+-\w+)"
 _notebook_path_regex = r"(?P<notebook_path>.+\.ipynb)"
 _checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
 _path_regex = r"(?P<path>[^:\\\0]+)"
@@ -150,12 +150,12 @@ class NotebookWebApplication(web.Application):
                  base_project_url, settings_overrides):
         handlers = [
             (r"/tree/%s" % _path_regex, ProjectPathDashboardHandler),
-            (r"/tree", ProjectRootDashboardHandler),
+            (r"/tree", ProjectDashboardHandler),
             (r"/", ProjectRedirectHandler),
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
             (r"/new", NewHandler),
-            (r"/%s" % _notebook_id_path_regex, NamedNotebookHandler),
+            (r"/%s" % _notebook_path_regex, NamedNotebookHandler),
             #(r"/%s/%s" % (_path_regex, _notebook_name_regex), NotebookRedirectHandler),
             #(r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/kernels", MainKernelHandler),
@@ -167,10 +167,10 @@ class NotebookWebApplication(web.Application):
             (r"/notebooks/%s" % _path_regex, NotebookPathHandler),
             #(r"/notebooks/%s/%s" % (_path_regex, _notebook_id_regex), NotebookHandler),
             (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
-            (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
-                ModifyNotebookCheckpointsHandler
-            ),
+            #(r"/notebooks/%s/checkpoints" % _notebook_id_path_regex, NotebookCheckpointsHandler),
+            #(r"/notebooks/%s/checkpoints/%s" % (_notebook_id_path_regex, _checkpoint_id_regex),
+            #    ModifyNotebookCheckpointsHandler
+            #),
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
             (r"/clusters", MainClusterHandler),
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
