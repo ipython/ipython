@@ -140,6 +140,7 @@ var IPython = (function (IPython) {
     SaveWidget.prototype.set_last_checkpoint = function (checkpoint) {
         if (!checkpoint) {
             this.set_checkpoint_status("");
+            return;
         }
         var d = new Date(checkpoint.last_modified);
         this.set_checkpoint_status(
