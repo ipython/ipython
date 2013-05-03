@@ -398,7 +398,7 @@ def update_submodules(allow_raise=True, quiet=False):
     
     if not quiet:
         print("updating git submodules")
-    cwd = os.getcwdu()
+    cwd = os.getcwd()
     os.chdir(here)
     try:
         # we are in a git repo
