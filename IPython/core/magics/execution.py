@@ -630,6 +630,30 @@ python-profiler package from non-free.""")
         return stats
 
     def _run_with_debugger(self, code, code_ns, break_point, filename):
+        """
+        Run `code` in debugger with a break point.
+
+        Parameters
+        ----------
+        code : str
+            Code to execute.
+        code_ns : dict
+            A namespace in which `code` is executed.
+        break_point : str
+            Line number in the file specified by `filename` argument
+            or a string in the format ``file:line``.  In the latter
+            case, `filename` is ignored.
+            See also :func:`.parse_breakpoint`.
+        filename : str
+            Path to the file in which break point is specified.
+
+        Raises
+        ------
+        UsageError
+            If no meaningful break point is given by `break_point` and
+            `filename`.
+
+        """
         deb = debugger.Pdb(self.shell.colors)
         # reset Breakpoint state, which is moronically kept
         # in a class
@@ -675,6 +699,17 @@ python-profiler package from non-free.""")
 
     @staticmethod
     def _run_with_timing(run, nruns):
+        """
+        Run function `run` and print timing information.
+
+        Parameters
+        ----------
+        run : callable
+            Any callable object which takes no argument.
+        nruns : int
+            Number of times to execute `run`.
+
+        """
         twall0 = time.time()
         if nruns == 1:
             t0 = clock2()
