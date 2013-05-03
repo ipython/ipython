@@ -38,14 +38,15 @@ class NotebookManager(LoggingConfigurable):
     # Right now we use this attribute in a number of different places and
     # we are going to have to disentangle all of this.
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
-        The directory to use for notebooks.
-    """)
-    def _notebook_dir_changed(self, name, old, new):
+            The directory to use for notebooks.
+            """)
+         
+    def _notebook_dir_changed(self, new):
         """do a bit of validation of the notebook dir"""
         if not os.path.isabs(new):
             # If we receive a non-absolute path, make it absolute.
             abs_new = os.path.abspath(new)
-            self.notebook_dir = abs_new
+            #self.notebook_dir = os.path.dirname(abs_new)
             return
         if os.path.exists(new) and not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
@@ -55,20 +56,20 @@ class NotebookManager(LoggingConfigurable):
                 os.mkdir(new)
             except:
                 raise TraitError("Couldn't create notebook dir %r" % new)
-
+                
     allowed_formats = List([u'json',u'py'])
 
     # Map notebook_ids to notebook names
     mapping = Dict()
 
-    def load_notebook_names(self):
+    def load_notebook_names(self, path):
         """Load the notebook names into memory.
 
         This should be called once immediately after the notebook manager
         is created to load the existing notebooks into the mapping in
         memory.
         """
-        self.list_notebooks()
+        self.list_notebooks(path)
 
     def list_notebooks(self):
         """List all notebooks.

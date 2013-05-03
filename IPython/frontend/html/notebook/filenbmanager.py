@@ -74,17 +74,29 @@ class FileNotebookManager(NotebookManager):
     # Map notebook names to notebook_ids
     rev_mapping = Dict()
     
-    def get_notebook_names(self):
+    def get_notebook_names(self, path):
         """List all notebook names in the notebook dir."""
-        names = glob.glob(os.path.join(self.notebook_dir,
+        names = glob.glob(os.path.join(self.notebook_dir, path,
                                        '*' + self.filename_ext))
         names = [os.path.splitext(os.path.basename(name))[0]
                  for name in names]
         return names
-
-    def list_notebooks(self):
+        
+    def get_file_names(self, path):
+        names = glob.glob(os.path.join(self.notebook_dir, path,'*'))
+        
+        file_names = []
+        dir_names = []
+        for name in names:
+            if os.path.isdir(name) == True:
+                dir_names.append(os.path.split(name)[1])
+            elif os.path.splitext(os.path.basename(name))[1] != '.ipynb':
+                file_names.append(os.path.split(name)[1])        
+        return dir_names, file_names
+        
+    def list_notebooks(self, path):
         """List all notebooks in the notebook dir."""
-        names = self.get_notebook_names()
+        names = self.get_notebook_names(path)
 
         data = []
         for name in names:
@@ -95,7 +107,13 @@ class FileNotebookManager(NotebookManager):
             data.append(dict(notebook_id=notebook_id,name=name))
         data = sorted(data, key=lambda item: item['name'])
         return data
-
+    
+    def list_directory_info(self, path, notebooks):
+        #notebooks = self.list_notebooks(path)
+        directories, files = self.get_file_names(path)
+        data = (dict(path=path,directories=directories,files=files,notebooks=notebooks))
+        return data
+        
     def new_notebook_id(self, name):
         """Generate a new notebook_id for a name and store its mappings."""
         notebook_id = super(FileNotebookManager, self).new_notebook_id(name)
