@@ -13,13 +13,13 @@ from __future__ import absolute_import
 # Imports
 #-----------------------------------------------------------------------------
 
+import functools
 import os
+import random
 import sys
 import tempfile
-import unittest
 import textwrap
-import random
-import functools
+import unittest
 
 import nose.tools as nt
 from nose import SkipTest
