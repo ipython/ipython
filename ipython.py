@@ -18,11 +18,9 @@ import os, sys
 this_dir = os.path.dirname(sys.argv[0])
 sys.path.insert(0, this_dir)
 
-from setupbase import check_for_submodules, update_submodules
+from setupbase import update_submodules
 
-if not check_for_submodules():
-    update_submodules()
-
+update_submodules(allow_raise=False, quiet=True)
 
 # Now proceed with execution
 execfile(os.path.join(

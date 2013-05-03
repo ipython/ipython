@@ -388,12 +388,30 @@ def check_for_submodules():
             return False
     return True
 
-def update_submodules():
+def update_submodules(allow_raise=True, quiet=False):
     """update git submodules"""
     import subprocess
-    print("updating git submodules")
-    subprocess.check_call('git submodule init'.split())
-    subprocess.check_call('git submodule update --recursive'.split())
+    here = os.path.dirname(__file__)
+    # do nothing if we are not in a git repo
+    if not os.path.exists(pjoin(here, '.git')):
+        return
+    
+    if not quiet:
+        print("updating git submodules")
+    cwd = os.getcwdu()
+    os.chdir(here)
+    try:
+        # we are in a git repo
+        subprocess.check_call('git submodule init'.split())
+        subprocess.check_call('git submodule update --recursive'.split())
+    except Exception:
+        if not quiet:
+            print("WARNING: Failed to update git submodules!")
+        if allow_raise:
+            raise
+    finally:
+        os.chdir(cwd)
+    
 
 class UpdateSubmodules(Command):
     """Update git submodules

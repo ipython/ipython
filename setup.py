@@ -68,7 +68,6 @@ from setupbase import (
     find_data_files,
     check_for_dependencies,
     git_prebuild,
-    check_for_submodules,
     update_submodules,
     require_submodules,
     UpdateSubmodules,
@@ -113,7 +112,7 @@ if os_name == 'windows' and 'sdist' in sys.argv:
 # Make sure we aren't trying to run without submodules
 #-------------------------------------------------------------------------------
 
-def ensure_submodules_exist():
+def probably_update_submodules():
     """Check out git submodules before distutils can do anything
     
     Because distutils cannot be trusted to update the tree
@@ -123,10 +122,9 @@ def ensure_submodules_exist():
     for do_nothing in ('-h', '--help', '--help-commands', 'clean'):
         if do_nothing in sys.argv:
             return
-    if not check_for_submodules():
-        update_submodules()
+    update_submodules(allow_raise=False)
 
-ensure_submodules_exist()
+probably_update_submodules()
 
 #-------------------------------------------------------------------------------
 # Things related to the IPython documentation
