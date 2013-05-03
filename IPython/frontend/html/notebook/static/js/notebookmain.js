@@ -101,9 +101,9 @@ $(document).ready(function () {
             langPrefix: "language-",
             highlight: function(code, lang) {
                 var highlighted;
-                if (lang) {
+                try {
                     highlighted = hljs.highlight(lang, code, false);
-                } else {
+                } catch(err) {
                     highlighted = hljs.highlightAuto(code);
                 }
                 return highlighted.value;
