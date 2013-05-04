@@ -324,7 +324,7 @@ class NotebookApp(BaseIPythonApplication):
 
     def _log_format_default(self):
         """override default log format to include time"""
-        return u"%(asctime)s.%(msecs).03d [%(name)s] %(message)s"
+        return u"%(asctime)s.%(msecs).03d [%(name)s]%(highlevel)s %(message)s"
 
     # create requested profiles by default, if they don't exist:
     auto_create = Bool(True)
@@ -537,10 +537,6 @@ class NotebookApp(BaseIPythonApplication):
         # self.log is a child of. The logging module dipatches log messages to a log
         # and all of its ancenstors until propagate is set to False.
         self.log.propagate = False
-        
-        # set the date format
-        formatter = logging.Formatter(self.log_format, datefmt="%Y-%m-%d %H:%M:%S")
-        self.log.handlers[0].setFormatter(formatter)
         
         # hook up tornado 3's loggers to our app handlers
         for name in ('access', 'application', 'general'):
