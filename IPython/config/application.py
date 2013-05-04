@@ -105,7 +105,7 @@ class LevelFormatter(logging.Formatter):
     without adding 'INFO' to info, etc.
     """
     highlevel_limit = logging.WARN
-    highlevel_format = " - %(levelname)s - "
+    highlevel_format = " %(levelname)s |"
     
     def format(self, record):
         if record.levelno >= self.highlevel_limit:
