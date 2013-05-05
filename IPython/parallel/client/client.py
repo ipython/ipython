@@ -853,6 +853,7 @@ class Client(HasTraits):
             # ignore IOPub messages with no parent.
             # Caused by print statements or warnings from before the first execution.
             if not parent:
+                idents,msg = self.session.recv(sock, mode=zmq.NOBLOCK)
                 continue
             msg_id = parent['msg_id']
             content = msg['content']
