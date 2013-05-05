@@ -190,6 +190,9 @@ class ParallelFunction(RemoteFunction):
                 n = len(seq)
             except Exception:
                 seq = list(seq)
+                if isinstance(sequences, tuple):
+                    # can't alter a tuple
+                    sequences = list(sequences)
                 sequences[i] = seq
                 n = len(seq)
             if n > maxlen:
