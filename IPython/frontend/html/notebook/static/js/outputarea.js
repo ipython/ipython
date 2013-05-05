@@ -428,7 +428,7 @@ var IPython = (function (IPython) {
         }, 250);
     };
 
-    OutputArea.notbase64re = /[^A-Za-z0-9+/=]/;
+    OutputArea.notbase64re = /[^A-Za-z0-9+/=\n]/;
 
     OutputArea.prototype.append_png = function (png, md, element) {
         if( OutputArea.notbase64re.test(png) == true ){
