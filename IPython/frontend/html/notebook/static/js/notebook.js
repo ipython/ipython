@@ -1478,6 +1478,7 @@ var IPython = (function (IPython) {
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
+        console.log(data)
         var ncells = this.ncells();
         var i;
         for (i=0; i<ncells; i++) {

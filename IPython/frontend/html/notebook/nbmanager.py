@@ -42,12 +42,10 @@ class NotebookManager(LoggingConfigurable):
             """)
             
     def named_notebook_path(self, notebook_path):
-        
         l = len(notebook_path)
-        if notebook_path[l-6:l] == '.ipynb':
-            names = notebook_path.split('/')
-            name = names[len(names)-1]
-            path = notebook_path[0:l-len(name)-1]
+        names = notebook_path.split('/')
+        name = names[len(names)-1]
+        path = notebook_path[0:l-len(name)-1]
         return name, path
              
     def _notebook_dir_changed(self, new):
