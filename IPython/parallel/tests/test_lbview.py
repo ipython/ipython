@@ -59,6 +59,32 @@ class TestLoadBalancedView(ClusterTestCase):
         r = self.view.map_sync(f, data)
         self.assertEqual(r, map(f, data))
 
+    def test_map_short_first(self):
+        def f(x,y):
+            if y is None:
+                return y
+            if x is None:
+                return x
+            return x*y
+        data = range(10)
+        data2 = range(4)
+        
+        r = self.view.map_sync(f, data, data2)
+        self.assertEqual(r, map(f, data, data2))
+
+    def test_map_short_last(self):
+        def f(x,y):
+            if y is None:
+                return y
+            if x is None:
+                return x
+            return x*y
+        data = range(4)
+        data2 = range(10)
+        
+        r = self.view.map_sync(f, data, data2)
+        self.assertEqual(r, map(f, data, data2))
+
     def test_map_unordered(self):
         def f(x):
             return x**2
