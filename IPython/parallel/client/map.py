@@ -59,17 +59,19 @@ else:
 class Map(object):
     """A class for partitioning a sequence using a map."""
     
-    def getPartition(self, seq, p, q):
-        """Returns the pth partition of q partitions of seq."""
+    def getPartition(self, seq, p, q, n=None):
+        """Returns the pth partition of q partitions of seq.
         
+        The length can be specified as `n`,
+        otherwise it is the value of `len(seq)`
+        """
+        n = len(seq) if n is None else n
         # Test for error conditions here
         if p<0 or p>=q:
-          print "No partition exists."
-          return
+          raise ValueError("must have 0 <= p <= q, but have p=%s,q=%s" % (p, q))
         
-        N = len(seq)
-        remainder = N % q
-        basesize = N // q
+        remainder = n % q
+        basesize = n // q
         
         if p < remainder:
             low = p * (basesize + 1)
@@ -104,19 +106,14 @@ class Map(object):
         return listOfPartitions
 
 class RoundRobinMap(Map):
-    """Partitions a sequence in a roun robin fashion.
+    """Partitions a sequence in a round robin fashion.
     
     This currently does not work!
     """
 
-    def getPartition(self, seq, p, q):
-        # if not isinstance(seq,(list,tuple)):
-        #     raise NotImplementedError("cannot RR partition type %s"%type(seq))
-        return seq[p:len(seq):q]
-        #result = []
-        #for i in range(p,len(seq),q):
-        #    result.append(seq[i])
-        #return result
+    def getPartition(self, seq, p, q, n=None):
+        n = len(seq) if n is None else n
+        return seq[p:n:q]
 
     def joinPartitions(self, listOfPartitions):
         testObject = listOfPartitions[0]
