@@ -144,8 +144,17 @@ class BaseIPythonApplication(Application):
     # The class to use as the crash handler.
     crash_handler_class = Type(crashhandler.CrashHandler)
 
+    @catch_config_error
     def __init__(self, **kwargs):
         super(BaseIPythonApplication, self).__init__(**kwargs)
+        # ensure current working directory exists
+        try:
+            directory = os.getcwdu()
+        except:
+            # raise exception
+            self.log.error("Current working directory doesn't exist.")
+            raise
+
         # ensure even default IPYTHONDIR exists
         if not os.path.exists(self.ipython_dir):
             self._ipython_dir_changed('ipython_dir', self.ipython_dir, self.ipython_dir)
