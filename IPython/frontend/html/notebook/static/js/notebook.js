@@ -130,7 +130,7 @@ var IPython = (function (IPython) {
             } else if (event.which === key.ESC) {
                 // Intercept escape at highest level to avoid closing
                 // websocket connection with firefox
-                that.element.trigger('collapse_pager');
+                IPython.pager.collapse();
                 event.preventDefault();
             } else if (event.which === key.SHIFT) {
                 // ignore shift keydown
