@@ -34,7 +34,7 @@ import tempfile
 
 from io import UnsupportedOperation
 
-from IPython.core import ipapi
+from IPython import get_ipython
 from IPython.core.error import TryNext
 from IPython.utils.data import chop
 from IPython.utils import io
@@ -158,7 +158,7 @@ def page(strng, start=0, screen_lines=0, pager_cmd=None):
     start = max(0, start)
 
     # first, try the hook
-    ip = ipapi.get()
+    ip = get_ipython()
     if ip:
         try:
             ip.hooks.show_in_pager(strng)

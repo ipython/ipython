@@ -33,7 +33,6 @@ import sys
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
-from IPython.core import ipapi
 from IPython.utils import coloransi, io, py3compat
 from IPython.core.excolors import exception_colors
 
@@ -205,7 +204,7 @@ class Pdb(OldPdb):
         # IPython changes...
         self.is_pydb = has_pydb
 
-        self.shell = ipapi.get()
+        self.shell = get_ipython()
 
         if self.is_pydb:
 
