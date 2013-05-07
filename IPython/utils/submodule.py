@@ -87,6 +87,6 @@ def check_submodule_status(root=None):
 
 def update_submodules(repo_dir):
     """update submodules in a repo"""
-    subprocess.Popen("git submodule init", cwd=repo_dir, shell=True)
-    subprocess.Popen("git submodule update", cwd=repo_dir, shell=True)
+    subprocess.check_call("git submodule init", cwd=repo_dir, shell=True)
+    subprocess.check_call("git submodule update --recursive", cwd=repo_dir, shell=True)
 
