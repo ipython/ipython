@@ -5,7 +5,7 @@
 Overview
 ========
 
-Welcome to IPython.  Our full documentation is available on `our website
+Welcome to Greate IPython.  Our full documentation is available on `our website
 <http://ipython.org/documentation.html>`_; if you downloaded a built source
 distribution the ``docs/source`` directory contains the plaintext version of
 these manuals.  If you have Sphinx installed, you can build them by typing
