@@ -31,6 +31,7 @@ import functools
 import linecache
 import sys
 
+from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
 from IPython.core import ipapi
 from IPython.utils import coloransi, io, py3compat
@@ -113,9 +114,8 @@ class Tracer(object):
         from the Python standard library for usage details.
         """
 
-        try:
-            ip = get_ipython()
-        except NameError:
+        ip = get_ipython()
+        if ip is None:
             # Outside of ipython, we set our own exception hook manually
             sys.excepthook = functools.partial(BdbQuit_excepthook,
                                                excepthook=sys.excepthook)
