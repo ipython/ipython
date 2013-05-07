@@ -18,7 +18,24 @@ before conversion and jinja filter that would then be available in the templates
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+
+# Stdlib imports
+import io
+import os
+
+# IPython imports
+from IPython.config.configurable import Configurable
+from IPython.nbformat import current as nbformat
+from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
+from IPython.utils.text import indent
+
+# other libs/dependencies
+from jinja2 import Environment, FileSystemLoader
+from markdown import markdown
+
 import base.Exporter as Exporter
+import filters.latex
+import filters.pygments
 
 #Try to import the Sphinx exporter.  If the user doesn't have Sphinx isntalled 
 #on his/her machine, fail silently.
@@ -82,10 +99,6 @@ class LatexExporter(Exporter):
         super(Exporter, self).__init__(config=config, **kw)
 
         #For compatibility, TODO: remove later.
-        self.preprocessors.append(trans.coalesce_streams)
-        self.preprocessors.append(trans.ExtractFigureTransformer(config=config))
-        self.preprocessors.append(trans.RevealHelpTransformer(config=config))
-        self.preprocessors.append(trans.CSSHtmlHeaderTransformer(config=config))
         self.preprocessors.append(LatexTransformer(config=config))
 
         #Only load the sphinx transformer if the file reference worked 
@@ -94,8 +107,8 @@ class LatexExporter(Exporter):
             self.preprocessors.append(SphinxTransformer(config=config))
 
         #Add filters to the Jinja2 environment
-        self.env.filters['escape_tex'] = filters.latex.escape_tex 
-        self.env.filters['highlight'] = filters.pygments.highlight2latex 
+        self.register_filter('escape_tex', filters.latex.escape_tex) 
+        self.register_filter('highlight', filters.pygments.highlight2latex) 
             
         #Load user filters.  Overwrite existing filters if need be.
         for key, user_filter in jinja_filters.iteritems():
