@@ -4,7 +4,7 @@ This module defines Exporter, a highly configurable converter
 that uses Jinja2 to export notebook files into different format.
 
 You can register both pre-transformers that will act on the notebook format
-befor conversion and jinja filter that would then be availlable in the templates
+before conversion and jinja filter that would then be available in the templates
 """
 
 #-----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ class LatexExporter(Exporter):
 
         config: the Configurable config object to pass around.
 
-        preprocessors: dict of **availlable** key/value function to run on
+        preprocessors: dict of **available** key/value function to run on
                        ipynb json data before conversion to extract/inline file.
                        See `transformer.py` and `ConfigurableTransformers`
 
@@ -72,56 +72,14 @@ class LatexExporter(Exporter):
                        default one.
 
         jinja_filters: dict of supplementary jinja filter that should be made
-                       availlable in template. If those are of Configurable Class type,
+                       available in template. If those are of Configurable Class type,
                        they will be instanciated with the config object as argument.
 
-                       user defined filter will overwrite the one availlable by default.
+                       user defined filter will overwrite the one available by default.
         """
-
-        #Merge default config options with user specific override options.
-        default_config = self._get_default_options()
-        if not config == None:
-            default_config._merge(config)
-        config = default_config
 
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
-
-        #Create a Latex environment if the user is exporting latex.
-        if self.tex_environement:
-            self.ext = LATEX_TEMPLATE_EXTENSION
-            self.env = Environment(
-                loader=FileSystemLoader([
-                    os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,
-                    os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_SKELETON_PATH,
-                    ]),
-                extensions=JINJA_EXTENSIONS
-                )
-
-            #Set special Jinja2 syntax that will not conflict with latex.
-            self.env.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
-            self.env.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
-            self.env.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
-            self.env.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
-            self.env.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
-            self.env.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]
-
-        else: #Standard environment
-            self.ext = TEMPLATE_EXTENSION
-            self.env = Environment(
-                loader=FileSystemLoader([
-                    os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
-                    os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
-                    ]),
-                extensions=JINJA_EXTENSIONS
-                )
-
-        for name in self.pre_transformer_order:
-            # get the user-defined transformer first
-            transformer = preprocessors.get(name, getattr(trans, name, None))
-            if isinstance(transformer, MetaHasTraits):
-                transformer = transformer(config=config)
-            self.preprocessors.append(transformer)
 
         #For compatibility, TODO: remove later.
         self.preprocessors.append(trans.coalesce_streams)
@@ -148,3 +106,22 @@ class LatexExporter(Exporter):
 
         #Load the template file.
         self.template = self.env.get_template(self.template_file+self.ext)
+
+
+    def _init_environment(self):
+        self.ext = LATEX_TEMPLATE_EXTENSION
+        self.env = Environment(
+            loader=FileSystemLoader([
+                os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,
+                os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_SKELETON_PATH,
+                ]),
+            extensions=JINJA_EXTENSIONS
+            )
+
+        #Set special Jinja2 syntax that will not conflict with latex.
+        self.env.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
+        self.env.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
+        self.env.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
+        self.env.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
+        self.env.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
+        self.env.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]

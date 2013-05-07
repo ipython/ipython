@@ -104,7 +104,7 @@ class Exporter(Configurable):
     #constructor for this class.
     preprocessors = [] 
 
-    def __init__(self, preprocessors={}, jinja_filters={}, config=None, export_format, **kw):
+    def __init__(self, preprocessors=None, jinja_filters=None, config=None, export_format, **kw):
         """ Init a new converter.
 
         config: the Configurable config object to pass around.
@@ -150,13 +150,14 @@ class Exporter(Configurable):
         self.ext = TEMPLATE_EXTENSION
         self._init_environment()
 
-        #TODO: Implement reflection style methods to get user transformers.        
-        #for name in self.pre_transformer_order:
-        #    # get the user-defined transformer first
-        #    transformer = preprocessors.get(name, getattr(trans, name, None))
-        #    if isinstance(transformer, MetaHasTraits):
-        #        transformer = transformer(config=config)
-        #    self.preprocessors.append(transformer)
+        #TODO: Implement reflection style methods to get user transformers.
+        #if not preprocessors is None:        
+        #    for name in self.pre_transformer_order:
+        #        # get the user-defined transformer first
+        #        transformer = preprocessors.get(name, getattr(trans, name, None))
+        #        if isinstance(transformer, MetaHasTraits):
+        #            transformer = transformer(config=config)
+        #        self.preprocessors.append(transformer)
 
         #For compatibility, TODO: remove later.
         self.preprocessors.append(transformers.coalescestreams.coalesce_streams)
@@ -165,23 +166,24 @@ class Exporter(Configurable):
         self.preprocessors.append(transformers.csshtmlheader.CSSHtmlHeaderTransformer(config=config))
 
         #Add filters to the Jinja2 environment
-        self._register_filters(config)
+        self._register_filters()
 
         #Load user filters.  Overwrite existing filters if need be.
-        for key, user_filter in jinja_filters.iteritems():
-            if isinstance(user_filter, MetaHasTraits):
-                self.env.filters[key] = user_filter(config=config)
-            else:
-                self.env.filters[key] = user_filter
+        if not jinja_filters is None:
+            for key, user_filter in jinja_filters.iteritems():
+                if isinstance(user_filter, MetaHasTraits):
+                    self.env.filters[key] = user_filter(config=config)
+                else:
+                    self.env.filters[key] = user_filter
 
         #Load the template file.
         self.template = self.env.get_template(self.template_file+self.ext)
 
 
-    def export(self, nb):
-        """Export notebook object
+    def from_notebook_node(self, nb):
+        """Export NotebookNode instance
 
-        nb: Notebook object to export.
+        nb: NotebookNode to export.
 
         Returns both the converted ipynb file and a dict containing the
         resources created along the way via the transformers and Jinja2
@@ -202,11 +204,11 @@ class Exporter(Configurable):
         processing.
         """
         with io.open(filename) as f:
-            return self.export(nbformat.read(f, 'json'))
+            return self.from_notebook_node(nbformat.read(f, 'json'))
 
 
     def from_file(self, file_stream):
-        """Read and export a notebook from a filename
+        """Read and export a notebook from a file stream
 
         file_stream: File handle of file that contains notebook data.
 
@@ -215,9 +217,35 @@ class Exporter(Configurable):
         processing.
         """
 
-        return self.export(nbformat.read(file_stream, 'json'))
+        return self.from_notebook_node(nbformat.read(file_stream, 'json'))
 
 
+    def register_filter(self, name, filter):
+        if MetaHasTraits(filter):
+            self.env.filters[name] = filter(config=self.config)
+        else:
+            self.env.filters[name] = filter
+
+
+    def _register_filters(self):
+        self.register_filter('indent', indent)
+        self.register_filter('markdown', markdown)
+        self.register_filter('ansi2html', filters.ansi.ansi2html)
+        self.register_filter('filter_data_type', filters.datatypefilter.DataTypeFilter)
+        self.register_filter('get_lines', filters.strings.get_lines)
+        self.register_filter('highlight', filters.pygments.highlight)
+        self.register_filter('highlight2html', filters.pygments.highlight) 
+        self.register_filter('highlight2latex', filters.pygments.highlight2latex)
+        self.register_filter('markdown2latex', filters.markdown.markdown2latex)
+        self.register_filter('markdown2rst', filters.markdown.markdown2rst)
+        self.register_filter('pycomment', filters.strings.python_comment)
+        self.register_filter('rm_ansi', filters.ansi.remove_ansi)
+        self.register_filter('rm_dollars', filters.strings.strip_dollars)
+        self.register_filter('rm_fake', filters.strings.rm_fake)
+        self.register_filter('rm_math_space', filters.latex.rm_math_space)
+        self.register_filter('wrap', filters.strings.wrap)
+
+        
     def _init_environment(self):
         self.env = Environment(
             loader=FileSystemLoader([
@@ -227,26 +255,6 @@ class Exporter(Configurable):
             extensions=JINJA_EXTENSIONS
             )
 
-
-    def _register_filters(self, config):
-        self.env.filters['indent'] = indent
-        self.env.filters['markdown'] = markdown
-        
-        self.env.filters['ansi2html'] = filters.ansi.ansi2html
-        self.env.filters['filter_data_type'] = filters.datatypefilter.DataTypeFilter(config=config)
-        self.env.filters['get_lines'] = filters.strings.get_lines 
-        self.env.filters['highlight'] = filters.pygments.highlight
-        self.env.filters['highlight2html'] = filters.pygments.highlight 
-        self.env.filters['highlight2latex'] = filters.pygments.highlight2latex
-        self.env.filters['markdown2latex'] = filters.markdown.markdown2latex
-        self.env.filters['markdown2rst'] = filters.markdown.markdown2rst
-        self.env.filters['pycomment'] = filters.strings.python_comment
-        self.env.filters['rm_ansi'] = filters.ansi.remove_ansi
-        self.env.filters['rm_dollars'] = filters.strings.strip_dollars
-        self.env.filters['rm_fake'] = filters.strings.rm_fake
-        self.env.filters['rm_math_space'] = filters.latex.rm_math_space
-        self.env.filters['wrap'] = filters.strings.wrap
-    
 
     def _preprocess(self, nb):
         """ Preprocess the notebook using the transformers specific
