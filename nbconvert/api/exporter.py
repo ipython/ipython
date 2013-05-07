@@ -4,7 +4,7 @@ This module defines Exporter, a highly configurable converter
 that uses Jinja2 to export notebook files into different format.
 
 You can register both pre-transformers that will act on the notebook format
-befor conversion and jinja filter that would then be availlable in the templates
+before conversion and jinja filter that would then be available in the templates
 """
 
 #-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ class Exporter(Configurable):
             '', config=True,
             help="Name of the template file to use")
 
-    fileext = Unicode(
+    file_extension = Unicode(
         'txt', config=True, 
         help="Extension of the file that should be written to disk"
         )
@@ -142,11 +142,8 @@ class Exporter(Configurable):
         #            transformer = transformer(config=config)
         #        self.preprocessors.append(transformer)
 
-        #For compatibility, TODO: remove later.
-        self.preprocessors.append(transformers.coalescestreams.coalesce_streams)
-        self.preprocessors.append(transformers.extractfigure.ExtractFigureTransformer(config=config))
-        self.preprocessors.append(transformers.revealhelp.RevealHelpTransformer(config=config))
-        self.preprocessors.append(transformers.csshtmlheader.CSSHtmlHeaderTransformer(config=config))
+        #Add transformers
+        self._register_transformers()
 
         #Add filters to the Jinja2 environment
         self._register_filters()
@@ -155,12 +152,12 @@ class Exporter(Configurable):
         if not jinja_filters is None:
             for key, user_filter in jinja_filters.iteritems():
                 if isinstance(user_filter, MetaHasTraits):
-                    self.env.filters[key] = user_filter(config=config)
+                    self.environment.filters[key] = user_filter(config=config)
                 else:
-                    self.env.filters[key] = user_filter
+                    self.environment.filters[key] = user_filter
 
         #Load the template file.
-        self.template = self.env.get_template(self.template_file+self.ext)
+        self.template = self.environment.get_template(self.template_file+self.ext)
 
 
     def from_notebook_node(self, nb):
@@ -203,13 +200,27 @@ class Exporter(Configurable):
         return self.from_notebook_node(nbformat.read(file_stream, 'json'))
 
 
+    def register_transformer(self, transformer):
+        if MetaHasTraits(transformer):
+            self.preprocessors.append(transformer(config=self.config))
+        else:
+            self.preprocessors.append(transformer)
+
+
     def register_filter(self, name, filter):
         if MetaHasTraits(filter):
-            self.env.filters[name] = filter(config=self.config)
+            self.environment.filters[name] = filter(config=self.config)
         else:
-            self.env.filters[name] = filter
+            self.environment.filters[name] = filter
 
 
+    def _register_transformers(self):
+        self.register_transformer(transformers.coalescestreams.coalesce_streams)
+        self.register_transformer(transformers.extractfigure.ExtractFigureTransformer)
+        self.register_transformer(transformers.revealhelp.RevealHelpTransformer)
+        self.register_transformer(transformers.csshtmlheader.CSSHtmlHeaderTransformer)
+        
+        
     def _register_filters(self):
         self.register_filter('indent', indent)
         self.register_filter('markdown', markdown)
@@ -230,7 +241,7 @@ class Exporter(Configurable):
 
         
     def _init_environment(self):
-        self.env = Environment(
+        self.environment = Environment(
             loader=FileSystemLoader([
                 os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
                 os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,

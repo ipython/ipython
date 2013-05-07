@@ -33,17 +33,11 @@ from IPython.utils.text import indent
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 
-import base.Exporter as Exporter
+# local import
+import exporter
 import filters.latex
 import filters.pygments
-
-#Try to import the Sphinx exporter.  If the user doesn't have Sphinx isntalled 
-#on his/her machine, fail silently.
-try:
-    from .sphinx_transformer import (SphinxTransformer) #TODO
-except ImportError:
-    SphinxTransformer = None
-
+from transformers.latex import LatexTransformer
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
@@ -61,19 +55,15 @@ LATEX_JINJA_LOGIC_BLOCK = ["((*", "*))"]
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-class LatexExporter(Exporter):
-    """ A Jinja2 base converter templates
+class LatexExporter(exporter.Exporter):
+    """ A Jinja2 latex exporter
 
-    Preprocess the ipynb files, feed it throug jinja templates,
+    Preprocess the ipynb files, feed it through jinja templates,
     and spit an converted files and a data object with other data
     should be mostly configurable
     """
 
-    #Processors that process the input data prior to the export, set in the 
-    #constructor for this class.
-    preprocessors = [] 
-
-    def __init__(self, preprocessors={}, jinja_filters={}, config=None, export_format, **kw):
+    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
         """ Init a new converter.
 
         config: the Configurable config object to pass around.
@@ -96,45 +86,42 @@ class LatexExporter(Exporter):
         """
 
         #Call the base class constructor
-        super(Exporter, self).__init__(config=config, **kw)
-
-        #For compatibility, TODO: remove later.
-        self.preprocessors.append(LatexTransformer(config=config))
-
-        #Only load the sphinx transformer if the file reference worked 
-        #(Sphinx dependencies exist on the user's machine.)
-        if SphinxTransformer:
-            self.preprocessors.append(SphinxTransformer(config=config))
-
-        #Add filters to the Jinja2 environment
-        self.register_filter('escape_tex', filters.latex.escape_tex) 
-        self.register_filter('highlight', filters.pygments.highlight2latex) 
-            
-        #Load user filters.  Overwrite existing filters if need be.
-        for key, user_filter in jinja_filters.iteritems():
-            if isinstance(user_filter, MetaHasTraits):
-                self.env.filters[key] = user_filter(config=config)
-            else:
-                self.env.filters[key] = user_filter
-
-        #Load the template file.
-        self.template = self.env.get_template(self.template_file+self.ext)
+        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
 
 
     def _init_environment(self):
         self.ext = LATEX_TEMPLATE_EXTENSION
-        self.env = Environment(
+        self.environment = Environment(
             loader=FileSystemLoader([
                 os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,
                 os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_SKELETON_PATH,
                 ]),
-            extensions=JINJA_EXTENSIONS
+            extensions=exporter.JINJA_EXTENSIONS
             )
 
         #Set special Jinja2 syntax that will not conflict with latex.
-        self.env.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
-        self.env.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
-        self.env.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
-        self.env.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
-        self.env.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
-        self.env.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]
+        self.environment.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
+        self.environment.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
+        self.environment.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
+        self.environment.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
+        self.environment.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
+        self.environment.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]
+        
+        
+    def _register_filters(self):
+        
+        #Register the filters of the base class.
+        super(exporter.Exporter, self)._register_filters()
+
+        #Add latex filters to the Jinja2 environment
+        self.register_filter('escape_tex', filters.latex.escape_tex) 
+        self.register_filter('highlight', filters.pygments.highlight2latex) 
+    
+    def _register_transformers(self):
+        
+        #Register the transformers of the base class.
+        super(exporter.Exporter, self)._register_transformers()
+        
+        #Register latex transformer
+        self.register_transformer(LatexTransformer)
+                    
