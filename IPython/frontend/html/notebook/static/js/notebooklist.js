@@ -145,7 +145,7 @@ var IPython = (function (IPython) {
             var nbname = data['notebooks'][i].name;
             var kernel = data['notebooks'][i].kernel_id;
             var item = this.new_notebook_item(i);
-            this.add_link(this.projectPathUrl, nbname, item);
+            this.add_link('', nbname+".ipynb", item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
                 if(kernel == null){

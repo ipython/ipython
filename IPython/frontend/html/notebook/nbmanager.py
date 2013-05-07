@@ -107,23 +107,23 @@ class NotebookManager(LoggingConfigurable):
         self.mapping[notebook_id] = name
         return notebook_id
 
-    def delete_notebook_id(self, notebook_id):
+    def delete_notebook_id(self, notebook_name):
         """Delete a notebook's id in the mapping.
 
         This doesn't delete the actual notebook, only its entry in the mapping.
         """
         del self.mapping[notebook_id]
 
-    def notebook_exists(self, notebook_id):
+    def notebook_exists(self, notebook_name):
         """Does a notebook exist?"""
-        return notebook_id in self.mapping
+        return notebook_name in self.mapping
 
-    def get_notebook(self, notebook_id, format=u'json'):
+    def get_notebook(self, notebook_name, format=u'json'):
         """Get the representation of a notebook in format by notebook_id."""
         format = unicode(format)
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-        last_modified, nb = self.read_notebook_object(notebook_id)
+        last_modified, nb = self.read_notebook_object(notebook_name)
         kwargs = {}
         if format == 'json':
             # don't split lines for sending over the wire, because it
@@ -133,7 +133,7 @@ class NotebookManager(LoggingConfigurable):
         name = nb.metadata.get('name','notebook')
         return last_modified, name, data
 
-    def read_notebook_object(self, notebook_id):
+    def read_notebook_object(self, notebook_name):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -161,7 +161,7 @@ class NotebookManager(LoggingConfigurable):
         notebook_id = self.write_notebook_object(nb)
         return notebook_id
 
-    def save_notebook(self, notebook_id, data, name=None, format=u'json'):
+    def save_notebook(self, notebook_name, data, name=None, format=u'json'):
         """Save an existing notebook by notebook_id."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
@@ -173,9 +173,9 @@ class NotebookManager(LoggingConfigurable):
 
         if name is not None:
             nb.metadata.name = name
-        self.write_notebook_object(nb, notebook_id)
+        self.write_notebook_object(nb, notebook_name)
 
-    def write_notebook_object(self, nb, notebook_id=None):
+    def write_notebook_object(self, nb, notebook_name=None):
         """Write a notebook object and return its notebook_id.
 
         If notebook_id is None, this method should create a new notebook_id.
@@ -184,7 +184,7 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook(self, notebook_id):
+    def delete_notebook(self, notebook_name):
         """Delete notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -202,17 +202,17 @@ class NotebookManager(LoggingConfigurable):
         name = self.increment_filename('Untitled')
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb)
+        return notebook_name
 
-    def copy_notebook(self, notebook_id):
+    def copy_notebook(self, notebook_name):
         """Copy an existing notebook and return its notebook_id."""
-        last_mod, nb = self.read_notebook_object(notebook_id)
+        last_mod, nb = self.read_notebook_object(notebook_name)
         name = nb.metadata.name + '-Copy'
         name = self.increment_filename(name)
         nb.metadata.name = name
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb)
+        return notebook_name
     
     # Checkpoint-related
     

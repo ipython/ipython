@@ -26,7 +26,8 @@ var IPython = (function (IPython) {
         var options = options || {};
         this._baseProjectUrl = options.baseProjectUrl;
         this.read_only = options.read_only || IPython.read_only;
-
+        
+        this.notebook_path = options.notebookPath;
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -1684,7 +1685,8 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' + notebook_path +'/' + this.notebook_name;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_path + '/'+this.notebook_name;
+        console.log(url)
         $.ajax(url, settings);
     };
 

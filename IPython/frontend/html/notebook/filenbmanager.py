@@ -126,12 +126,12 @@ class FileNotebookManager(NotebookManager):
         super(FileNotebookManager, self).delete_notebook_id(notebook_id)
         del self.rev_mapping[name]
 
-    def notebook_exists(self, notebook_id):
+    def notebook_exists(self, notebook_name):
         """Does a notebook exist?"""
-        exists = super(FileNotebookManager, self).notebook_exists(notebook_id)
+        exists = super(FileNotebookManager, self).notebook_exists(notebook_name)
         if not exists:
             return False
-        path = self.get_path_by_name(self.mapping[notebook_id])
+        path = self.get_path_by_name(self.mapping[notebook_name])
         return os.path.isfile(path)
     
     def get_name(self, notebook_id):
@@ -142,14 +142,14 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         return name
 
-    def get_path(self, notebook_id):
+    def get_path(self, notebook_name):
         """Return a full path to a notebook given its notebook_id."""
-        name = self.get_name(notebook_id)
-        return self.get_path_by_name(name)
+        #name = self.get_name(notebook_id)
+        return self.get_path_by_name(notebook_name)
 
     def get_path_by_name(self, name):
         """Return a full path to a notebook given its name."""
-        filename = name + self.filename_ext
+        filename = name #+ self.filename_ext
         path = os.path.join(self.notebook_dir, filename)
         return path
 
@@ -166,11 +166,12 @@ class FileNotebookManager(NotebookManager):
                 raise web.HTTPError(500, u'Unreadable JSON notebook: %s' % e)
         return last_modified, nb
     
-    def read_notebook_object(self, notebook_id):
+    def read_notebook_object(self, notebook_name):
         """Get the Notebook representation of a notebook by notebook_id."""
-        path = self.get_path(notebook_id)
+        path = self.get_path(notebook_name)
+        self.log.info(path)
         if not os.path.isfile(path):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)
         last_modified, nb = self.read_notebook_object_from_path(path)
         # Always use the filename as the notebook name.
         nb.metadata.name = os.path.splitext(os.path.basename(path))[0]

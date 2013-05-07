@@ -396,7 +396,7 @@ class NamedNotebookHandler(IPythonHandler):
          #   raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_path)       
         self.write(self.render_template('notebook.html',
             project=project,
-            notebook_path=notebook_path,
+            notebook_path=path,
             kill_kernel=False,
             mathjax_url=self.mathjax_url,
             )
@@ -699,10 +699,12 @@ class NotebookHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
     @authenticate_unless_readonly
-    def get(self, path, notebook_id):
+    def get(self, notebook_path):
         nbm = self.notebook_manager
+        self.log.info("HI")
+        name, path = nbm.named_notebook_path(notebook_path)
         format = self.get_argument('format', default='json')
-        last_mod, name, data = nbm.get_notebook(notebook_id, format)
+        last_mod, name, data = nbm.get_notebook(name, format)
         
         if format == u'json':
             self.set_header('Content-Type', 'application/json')
