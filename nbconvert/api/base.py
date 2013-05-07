@@ -104,44 +104,27 @@ class Exporter(Configurable):
     #constructor for this class.
     preprocessors = [] 
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, export_format, **kw):
+    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
         """ Init a new converter.
 
         config: the Configurable config object to pass around.
 
-        preprocessors: dict of **availlable** key/value function to run on
-                       ipynb json data before conversion to extract/inline file.
+        preprocessors: dict of **available** key/value function to run on
+                       ipynb json data before conversion to extract/in-line file.
                        See `transformer.py` and `ConfigurableTransformers`
 
                        set the order in which the transformers should apply
                        with the `pre_transformer_order` trait of this class
 
-                       transformers registerd by this key will take precedence on
+                       transformers registered by this key will take precedence on
                        default one.
 
         jinja_filters: dict of supplementary jinja filter that should be made
-                       availlable in template. If those are of Configurable Class type,
+                       available in template. If those are of Configurable Class type,
                        they will be instanciated with the config object as argument.
 
-                       user defined filter will overwrite the one availlable by default.
-        """
-
-        #Set the default options for the exporter.
-        default_config = self.config
-            
-        #Set properties that must be set in the config class in order to 
-        #propagate to other classes.
-        default_config.GlobalConfigurable.display_data_priority =['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-        default_config.ExtractFigureTransformer.display_data_priority=['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-
-        #Set default properties of the exporter.
-        #For most (or all cases), the template file name matches the format name.
-        self.display_data_priority= ['svg', 'png', 'latex', 'jpg', 'jpeg','text']
-        self.template_file = export_format
-
-        if not config == None:
-            default_config._merge(config)
-        config = default_config    
+                       user defined filter will overwrite the one available by default.
+        """ 
     
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
