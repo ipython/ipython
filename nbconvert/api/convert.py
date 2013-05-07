@@ -14,10 +14,8 @@ they are converted.
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
+
 def export_sphinx_report(nb, config=None):
-    pass
-def export_sphinx_report(nb, fileName, config=None):
     pass
 
 #TODO: Add basic export/import utility functions.
-__author__ = 'root'

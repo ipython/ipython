@@ -64,31 +64,18 @@ class LatexExporter(exporter.Exporter):
     """
 
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
-        """ Init a new converter.
-
-        config: the Configurable config object to pass around.
-
-        preprocessors: dict of **available** key/value function to run on
-                       ipynb json data before conversion to extract/inline file.
-                       See `transformer.py` and `ConfigurableTransformers`
-
-                       set the order in which the transformers should apply
-                       with the `pre_transformer_order` trait of this class
-
-                       transformers registerd by this key will take precedence on
-                       default one.
-
-        jinja_filters: dict of supplementary jinja filter that should be made
-                       available in template. If those are of Configurable Class type,
-                       they will be instanciated with the config object as argument.
-
-                       user defined filter will overwrite the one available by default.
-        """
-
-        #Call the base class constructor
+        
+        #Call base class constructor.
         super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
 
-
+        #Set defaults
+        self.file_extension = "tex"
+        self._set_datatype_priority(['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'])
+        self.extract_figure_transformer.enabled = True
+        self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
+        self.template_file = "latex_base"
+        
+        
     def _init_environment(self):
         self.ext = LATEX_TEMPLATE_EXTENSION
         self.environment = Environment(

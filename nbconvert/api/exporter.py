@@ -23,6 +23,7 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
+import copy
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -43,8 +44,6 @@ import filters.pygments
 import filters.ansi
 
 import transformers.extractfigure
-import transformers.csshtmlheader
-import transformers.revealhelp
 import transformers.coalescestreams
 
 
@@ -104,6 +103,8 @@ class Exporter(Configurable):
     #constructor for this class.
     preprocessors = [] 
 
+    # Public Constructor #####################################################
+    
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
         """ Init a new converter.
 
@@ -156,10 +157,13 @@ class Exporter(Configurable):
                 else:
                     self.environment.filters[key] = user_filter
 
-        #Load the template file.
-        self.template = self.environment.get_template(self.template_file+self.ext)
 
-
+        #Set the default datatype priority.
+        self._set_datatype_priority(['svg', 'png', 'latex', 'jpg', 'jpeg','text'])
+        
+    
+    # Public methods #########################################
+    
     def from_notebook_node(self, nb):
         """Export NotebookNode instance
 
@@ -171,6 +175,10 @@ class Exporter(Configurable):
         """
 
         nb, resources = self._preprocess(nb)
+        
+        #Load the template file.
+        self.template = self.environment.get_template(self.template_file+self.ext)
+        
         return self.template.render(nb=nb, resources=resources), resources
 
 
@@ -212,13 +220,17 @@ class Exporter(Configurable):
             self.environment.filters[name] = filter(config=self.config)
         else:
             self.environment.filters[name] = filter
+        return self.environment.filters[name]
 
-
+    # Protected and Private methods #########################################
+    
     def _register_transformers(self):
         self.register_transformer(transformers.coalescestreams.coalesce_streams)
-        self.register_transformer(transformers.extractfigure.ExtractFigureTransformer)
-        self.register_transformer(transformers.revealhelp.RevealHelpTransformer)
-        self.register_transformer(transformers.csshtmlheader.CSSHtmlHeaderTransformer)
+        
+        #Remember the figure extraction transformer so it can be enabled and
+        #disabled easily later.
+        self.extract_figure_transformer = self.register_transformer(transformers.extractfigure.ExtractFigureTransformer)
+        self.extract_figure_transformer.enabled = False
         
         
     def _register_filters(self):
@@ -239,6 +251,11 @@ class Exporter(Configurable):
         self.register_filter('rm_math_space', filters.latex.rm_math_space)
         self.register_filter('wrap', filters.strings.wrap)
 
+        
+    def _set_datatype_priority(self, priority):
+        self.extract_figure_transformer.display_data_priority=copy.copy(priority)
+        self.display_data_priority=copy.copy(priority)
+        
         
     def _init_environment(self):
         self.environment = Environment(
