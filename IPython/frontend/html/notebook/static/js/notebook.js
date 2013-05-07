@@ -1478,7 +1478,7 @@ var IPython = (function (IPython) {
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
-        console.log(data)
+        console.log(data.metadata)
         var ncells = this.ncells();
         var i;
         for (i=0; i<ncells; i++) {
@@ -1671,7 +1671,7 @@ var IPython = (function (IPython) {
      * @method load_notebook
      * @param {String} notebook_id A notebook to load
      */
-    Notebook.prototype.load_notebook = function (notebook_name) {
+    Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         var that = this;
         this.notebook_name = notebook_name;
         // We do the call with settings so we can set cache to false.
@@ -1684,7 +1684,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name;
+        var url = this.baseProjectUrl() + 'notebooks/' + notebook_path +'/' + this.notebook_name;
         $.ajax(url, settings);
     };
 
@@ -1699,6 +1699,7 @@ var IPython = (function (IPython) {
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
+        console.log(data)
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
