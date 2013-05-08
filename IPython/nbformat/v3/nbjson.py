@@ -51,12 +51,8 @@ class JSONReader(NotebookReader):
 
 def _remove_outputs(d):
     if isinstance(d, dict):
-        print("dict")
         res = {}
         for key, value in d.items():
-            print(key)
-            print(key == "outputs")
-            print(key == u"outputs")
             if key == u"outputs":
                 res["outputs"] = []
             elif key == u"prompt_number":
@@ -65,7 +61,6 @@ def _remove_outputs(d):
                 res[key] = _remove_outputs(value)
         return res
     elif isinstance(d, list):
-        print("list")
         return [_remove_outputs(i) for i in d]
     else:
         return d
