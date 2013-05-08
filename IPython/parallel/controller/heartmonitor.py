@@ -74,7 +74,7 @@ class HeartMonitor(LoggingConfigurable):
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
     )
-    max_heartmonitor_misses = Integer(2, config=True,
+    max_heartmonitor_misses = Integer(20, config=True,
         help='Allow misses from engine to controller heart monitor before shutting down.',
     )
 
