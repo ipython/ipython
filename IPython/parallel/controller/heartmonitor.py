@@ -74,8 +74,8 @@ class HeartMonitor(LoggingConfigurable):
         help='The frequency at which the Hub pings the engines for heartbeats '
         '(in ms)',
     )
-    max_heartmonitor_misses = Integer(20, config=True,
-        help='Allow consecutive misses from engine to controller heart monitor before shutting down.',
+    max_heartmonitor_misses = Integer(10, config=True,
+        help='Allowed consecutive missed pings from controller Hub to engine before unregistering.',
     )
 
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
