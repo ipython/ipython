@@ -43,6 +43,14 @@ class FileNotebookManager(NotebookManager):
         short `--script` flag.
         """
     )
+
+    skip_outputs = Bool(False, config=True,
+        help="""Don't save output cells and prompt numbers.
+        
+        This is useful when the notebook files are to be put under version
+        control and may also make them significantly smaller, with the obvious
+        drawback that all output needs to be regenerated at runtime."""
+    )
     
     checkpoint_dir = Unicode(config=True,
         help="""The location in which to keep notebook checkpoints
@@ -178,7 +186,7 @@ class FileNotebookManager(NotebookManager):
         try:
             self.log.debug("Autosaving notebook %s", path)
             with open(path,'w') as f:
-                current.write(nb, f, u'json')
+                current.write(nb, f, u'json', skip_outputs=self.skip_outputs)
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s' % e)
 
