@@ -75,7 +75,7 @@ class HeartMonitor(LoggingConfigurable):
         '(in ms)',
     )
     max_heartmonitor_misses = Integer(20, config=True,
-        help='Allow misses from engine to controller heart monitor before shutting down.',
+        help='Allow consecutive misses from engine to controller heart monitor before shutting down.',
     )
 
     pingstream=Instance('zmq.eventloop.zmqstream.ZMQStream')
@@ -144,6 +144,7 @@ class HeartMonitor(LoggingConfigurable):
         new_probation = {}
         for cur_heart in (b for b in missed_beats if b in hearts):
             miss_count = on_probation.get(cur_heart, 0) + 1
+            self.log.info("heartbeat::missed %s : %s" % (cur_heart, miss_count))
             if miss_count > self.max_heartmonitor_misses:
                 failures.append(cur_heart)
             else:
