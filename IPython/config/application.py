@@ -95,6 +95,26 @@ def catch_config_error(method, app, *args, **kwargs):
 class ApplicationError(Exception):
     pass
 
+class LevelFormatter(logging.Formatter):
+    """Formatter with additional `highlevel` record
+    
+    This field is empty if log level is less than highlevel_limit,
+    otherwise it is formatted with self.highlevel_format.
+    
+    Useful for adding 'WARNING' to warning messages,
+    without adding 'INFO' to info, etc.
+    """
+    highlevel_limit = logging.WARN
+    highlevel_format = " %(levelname)s |"
+    
+    def format(self, record):
+        if record.levelno >= self.highlevel_limit:
+            record.highlevel = self.highlevel_format % record.__dict__
+        else:
+            record.highlevel = ""
+        
+        return super(LevelFormatter, self).format(record)
+            
 
 class Application(SingletonConfigurable):
     """A singleton application with full configuration support."""
@@ -133,13 +153,19 @@ class Application(SingletonConfigurable):
             self.log_level = new
         self.log.setLevel(new)
     
-    log_format = Unicode("[%(name)s] %(message)s", config=True,
+    log_datefmt = Unicode("%Y-%m-%d %H:%M:%S", config=True,
+        help="The date format used by logging formatters for %(asctime)s"
+    )
+    def _log_datefmt_changed(self, name, old, new):
+        self._log_format_changed()
+    
+    log_format = Unicode("[%(name)s]%(highlevel)s %(message)s", config=True,
         help="The Logging format template",
     )
     def _log_format_changed(self, name, old, new):
         """Change the log formatter when log_format is set."""
         _log_handler = self.log.handlers[0]
-        _log_formatter = logging.Formatter(new)
+        _log_formatter = LevelFormatter(new, datefmt=self._log_datefmt)
         _log_handler.setFormatter(_log_formatter)
 
     log = Instance(logging.Logger)
@@ -167,7 +193,7 @@ class Application(SingletonConfigurable):
             _log_handler = logging.StreamHandler(open(os.devnull, 'w'))
         else:
             _log_handler = logging.StreamHandler()
-        _log_formatter = logging.Formatter(self.log_format)
+        _log_formatter = LevelFormatter(self.log_format, datefmt=self.log_datefmt)
         _log_handler.setFormatter(_log_formatter)
         log.addHandler(_log_handler)
         return log
