@@ -48,12 +48,22 @@ var IPython = (function (IPython) {
         var that = this;
         this.pager_button_area.append(
             $('<a>').attr('role', "button")
-                    .attr('title',"open the pager in an external window")
+                    .attr('title',"Open the pager in an external window")
                     .addClass('ui-button')
                     .click(function(){that.detach()})
-                    .attr('style','position: absolute; right: 10px;')
+                    .attr('style','position: absolute; right: 20px;')
                     .append(
                         $('<span>').addClass("ui-icon ui-icon-extlink")
+                    )
+        )
+        this.pager_button_area.append(
+            $('<a>').attr('role', "button")
+                    .attr('title',"Close the pager")
+                    .addClass('ui-button')
+                    .click(function(){that.collapse()})
+                    .attr('style','position: absolute; right: 5px;')
+                    .append(
+                        $('<span>').addClass("ui-icon ui-icon-close")
                     )
         )
     };
