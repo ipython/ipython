@@ -77,7 +77,7 @@ from docutils.parsers.rst import directives
 from docutils import nodes
 from sphinx.util.compat import Directive
 
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 # Our own
 from IPython import Config, InteractiveShell
