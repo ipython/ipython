@@ -496,6 +496,12 @@ class EmbeddedSphinxShell(object):
             else: # still on a multiline
                 modified = u'%s %s' % (continuation, line)
                 output.append(modified)
+
+                # if the next line is indented, it should be part of multiline
+                if len(content) > lineno + 1:
+                    nextline = content[lineno + 1]
+                    if len(nextline) - len(nextline.lstrip()) > 3:
+                        continue
                 try:
                     mod = ast.parse(
                             '\n'.join(content[multiline_start:lineno+1]))
