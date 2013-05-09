@@ -11,8 +11,6 @@
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
-
-
 from IPython.parallel.apps.ipclusterapp import launch_new_instance
 
 launch_new_instance()

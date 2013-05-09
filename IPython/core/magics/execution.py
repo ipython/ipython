@@ -77,8 +77,7 @@ python-profiler package from non-free.""")
 
     @skip_doctest
     @line_cell_magic
-    def prun(self, parameter_s='', cell=None, user_mode=True,
-                   opts=None,arg_lst=None,prog_ns=None):
+    def prun(self, parameter_s='', cell=None):
 
         """Run a statement through the python code profiler.
 
@@ -178,38 +177,33 @@ python-profiler package from non-free.""")
 
           In [1]: import profile; profile.help()
         """
+        opts, arg_str = self.parse_options(parameter_s, 'D:l:rs:T:q',
+                                           list_all=True, posix=False)
+        if cell is not None:
+            arg_str += '\n' + cell
+        return self._run_with_profiler(arg_str, opts, self.shell.user_ns)
 
-        opts_def = Struct(D=[''],l=[],s=['time'],T=[''])
+    def _run_with_profiler(self, code, opts, namespace):
+        """
+        Run `code` with profiler.  Used by ``%prun`` and ``%run -p``.
 
-        if user_mode:  # regular user call
-            opts,arg_str = self.parse_options(parameter_s,'D:l:rs:T:q',
-                                              list_all=True, posix=False)
-            namespace = self.shell.user_ns
-            if cell is not None:
-                arg_str += '\n' + cell
-        else:  # called to run a program by %run -p
-            try:
-                filename = get_py_filename(arg_lst[0])
-            except IOError as e:
-                try:
-                    msg = str(e)
-                except UnicodeError:
-                    msg = e.message
-                error(msg)
-                return
+        Parameters
+        ----------
+        code : str
+            Code to be executed.
+        opts : Struct
+            Options parsed by `self.parse_options`.
+        namespace : dict
+            A dictionary for Python namespace (e.g., `self.shell.user_ns`).
 
-            arg_str = 'execfile(filename,prog_ns)'
-            namespace = {
-                'execfile': self.shell.safe_execfile,
-                'prog_ns': prog_ns,
-                'filename': filename
-                }
+        """
 
-        opts.merge(opts_def)
+        # Fill default values for unspecified options:
+        opts.merge(Struct(D=[''], l=[], s=['time'], T=['']))
 
         prof = profile.Profile()
         try:
-            prof = prof.runctx(arg_str,namespace,namespace)
+            prof = prof.runctx(code, namespace, namespace)
             sys_exit = ''
         except SystemExit:
             sys_exit = """*** SystemExit exception caught in code being profiled."""
@@ -327,8 +321,10 @@ python-profiler package from non-free.""")
                   file_finder=get_py_filename):
         """Run the named file inside IPython as a program.
 
-        Usage:\\
-          %run [-n -i -t [-N<N>] -d [-b<N>] -p [profile options] -G] file [args]
+        Usage:
+          %run [-n -i -e -G]
+               [( -t [-N<N>] | -d [-b<N>] | -p [profile options] )]
+               ( -m mod | file ) [args]
 
         Parameters after the filename are passed as command-line arguments to
         the program (put in sys.argv). Then, control returns to IPython's
@@ -541,62 +537,45 @@ python-profiler package from non-free.""")
         # every single object ever created.
         sys.modules[main_mod_name] = main_mod
 
+        if 'p' in opts or 'd' in opts:
+            if 'm' in opts:
+                code = 'run_module(modulename, prog_ns)'
+                code_ns = {
+                    'run_module': self.shell.safe_run_module,
+                    'prog_ns': prog_ns,
+                    'modulename': modulename,
+                }
+            else:
+                code = 'execfile(filename, prog_ns)'
+                code_ns = {
+                    'execfile': self.shell.safe_execfile,
+                    'prog_ns': prog_ns,
+                    'filename': get_py_filename(filename),
+                }
+
         try:
             stats = None
             with self.shell.readline_no_record:
                 if 'p' in opts:
-                    stats = self.prun('', None, False, opts, arg_lst, prog_ns)
+                    stats = self._run_with_profiler(code, opts, code_ns)
                 else:
                     if 'd' in opts:
-                        deb = debugger.Pdb(self.shell.colors)
-                        # reset Breakpoint state, which is moronically kept
-                        # in a class
-                        bdb.Breakpoint.next = 1
-                        bdb.Breakpoint.bplist = {}
-                        bdb.Breakpoint.bpbynumber = [None]
-                        # Set an initial breakpoint to stop execution
-                        maxtries = 10
-                        bp_file, bp_line = parse_breakpoint(opts.get('b', ['1'])[0], filename)
-                        checkline = deb.checkline(bp_file, bp_line)
-                        if not checkline:
-                            for bp in range(bp_line + 1, bp_line + maxtries + 1):
-                                if deb.checkline(bp_file, bp):
-                                    break
-                            else:
-                                msg = ("\nI failed to find a valid line to set "
-                                       "a breakpoint\n"
-                                       "after trying up to line: %s.\n"
-                                       "Please set a valid breakpoint manually "
-                                       "with the -b option." % bp)
-                                error(msg)
-                                return
-                        # if we find a good linenumber, set the breakpoint
-                        deb.do_break('%s:%s' % (bp_file, bp_line))
-
-                        # Mimic Pdb._runscript(...)
-                        deb._wait_for_mainpyfile = True
-                        deb.mainpyfile = deb.canonic(filename)
-
-                        # Start file run
-                        print "NOTE: Enter 'c' at the",
-                        print "%s prompt to start your script." % deb.prompt
-                        ns = {'execfile': py3compat.execfile, 'prog_ns': prog_ns}
-                        try:
-                            #save filename so it can be used by methods on the deb object
-                            deb._exec_filename = filename
-                            deb.run('execfile("%s", prog_ns)' % filename, ns)
-
-                        except:
-                            etype, value, tb = sys.exc_info()
-                            # Skip three frames in the traceback: the %run one,
-                            # one inside bdb.py, and the command-line typed by the
-                            # user (run by exec in pdb itself).
-                            self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
+                        self._run_with_debugger(
+                            code, code_ns, opts.get('b', ['1'])[0], filename)
                     else:
-                        if runner is None:
-                            runner = self.default_runner
-                        if runner is None:
-                            runner = self.shell.safe_execfile
+                        if 'm' in opts:
+                            def run():
+                                self.shell.safe_run_module(modulename, prog_ns)
+                        else:
+                            if runner is None:
+                                runner = self.default_runner
+                            if runner is None:
+                                runner = self.shell.safe_execfile
+
+                            def run():
+                                runner(filename, prog_ns, prog_ns,
+                                       exit_ignore=exit_ignore)
+
                         if 't' in opts:
                             # timed execution
                             try:
@@ -606,37 +585,10 @@ python-profiler package from non-free.""")
                                     return
                             except (KeyError):
                                 nruns = 1
-                            twall0 = time.time()
-                            if nruns == 1:
-                                t0 = clock2()
-                                runner(filename, prog_ns, prog_ns,
-                                       exit_ignore=exit_ignore)
-                                t1 = clock2()
-                                t_usr = t1[0] - t0[0]
-                                t_sys = t1[1] - t0[1]
-                                print "\nIPython CPU timings (estimated):"
-                                print "  User   : %10.2f s." % t_usr
-                                print "  System : %10.2f s." % t_sys
-                            else:
-                                runs = range(nruns)
-                                t0 = clock2()
-                                for nr in runs:
-                                    runner(filename, prog_ns, prog_ns,
-                                           exit_ignore=exit_ignore)
-                                t1 = clock2()
-                                t_usr = t1[0] - t0[0]
-                                t_sys = t1[1] - t0[1]
-                                print "\nIPython CPU timings (estimated):"
-                                print "Total runs performed:", nruns
-                                print "  Times  : %10s   %10s" % ('Total', 'Per run')
-                                print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
-                                print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
-                            twall1 = time.time()
-                            print "Wall time: %10.2f s." % (twall1 - twall0)
-
+                            self._run_with_timing(run, nruns)
                         else:
                             # regular execution
-                            runner(filename, prog_ns, prog_ns, exit_ignore=exit_ignore)
+                            run()
 
                 if 'i' in opts:
                     self.shell.user_ns['__name__'] = __name__save
@@ -676,7 +628,114 @@ python-profiler package from non-free.""")
                 del sys.modules[main_mod_name]
 
         return stats
-    
+
+    def _run_with_debugger(self, code, code_ns, break_point, filename):
+        """
+        Run `code` in debugger with a break point.
+
+        Parameters
+        ----------
+        code : str
+            Code to execute.
+        code_ns : dict
+            A namespace in which `code` is executed.
+        break_point : str
+            Line number in the file specified by `filename` argument
+            or a string in the format ``file:line``.  In the latter
+            case, `filename` is ignored.
+            See also :func:`.parse_breakpoint`.
+        filename : str
+            Path to the file in which break point is specified.
+
+        Raises
+        ------
+        UsageError
+            If no meaningful break point is given by `break_point` and
+            `filename`.
+
+        """
+        deb = debugger.Pdb(self.shell.colors)
+        # reset Breakpoint state, which is moronically kept
+        # in a class
+        bdb.Breakpoint.next = 1
+        bdb.Breakpoint.bplist = {}
+        bdb.Breakpoint.bpbynumber = [None]
+        # Set an initial breakpoint to stop execution
+        maxtries = 10
+        bp_file, bp_line = parse_breakpoint(break_point, filename)
+        checkline = deb.checkline(bp_file, bp_line)
+        if not checkline:
+            for bp in range(bp_line + 1, bp_line + maxtries + 1):
+                if deb.checkline(bp_file, bp):
+                    break
+            else:
+                msg = ("\nI failed to find a valid line to set "
+                       "a breakpoint\n"
+                       "after trying up to line: %s.\n"
+                       "Please set a valid breakpoint manually "
+                       "with the -b option." % bp)
+                raise UsageError(msg)
+        # if we find a good linenumber, set the breakpoint
+        deb.do_break('%s:%s' % (bp_file, bp_line))
+
+        # Mimic Pdb._runscript(...)
+        deb._wait_for_mainpyfile = True
+        deb.mainpyfile = deb.canonic(filename)
+
+        # Start file run
+        print "NOTE: Enter 'c' at the",
+        print "%s prompt to start your script." % deb.prompt
+        try:
+            #save filename so it can be used by methods on the deb object
+            deb._exec_filename = filename
+            deb.run(code, code_ns)
+
+        except:
+            etype, value, tb = sys.exc_info()
+            # Skip three frames in the traceback: the %run one,
+            # one inside bdb.py, and the command-line typed by the
+            # user (run by exec in pdb itself).
+            self.shell.InteractiveTB(etype, value, tb, tb_offset=3)
+
+    @staticmethod
+    def _run_with_timing(run, nruns):
+        """
+        Run function `run` and print timing information.
+
+        Parameters
+        ----------
+        run : callable
+            Any callable object which takes no argument.
+        nruns : int
+            Number of times to execute `run`.
+
+        """
+        twall0 = time.time()
+        if nruns == 1:
+            t0 = clock2()
+            run()
+            t1 = clock2()
+            t_usr = t1[0] - t0[0]
+            t_sys = t1[1] - t0[1]
+            print "\nIPython CPU timings (estimated):"
+            print "  User   : %10.2f s." % t_usr
+            print "  System : %10.2f s." % t_sys
+        else:
+            runs = range(nruns)
+            t0 = clock2()
+            for nr in runs:
+                run()
+            t1 = clock2()
+            t_usr = t1[0] - t0[0]
+            t_sys = t1[1] - t0[1]
+            print "\nIPython CPU timings (estimated):"
+            print "Total runs performed:", nruns
+            print "  Times  : %10s   %10s" % ('Total', 'Per run')
+            print "  User   : %10.2f s, %10.2f s." % (t_usr, t_usr / nruns)
+            print "  System : %10.2f s, %10.2f s." % (t_sys, t_sys / nruns)
+        twall1 = time.time()
+        print "Wall time: %10.2f s." % (twall1 - twall0)
+
     @skip_doctest
     @line_cell_magic
     def timeit(self, line='', cell=None):
