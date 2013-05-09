@@ -156,14 +156,30 @@ class PyWriter(NotebookWriter):
             u'# <nbformat>%i.%i</nbformat>' % (nbformat, nbformat_minor),
             u'',
         ])
+        use_hints = kwargs.pop('use_export_hints', False)
         for ws in nb.worksheets:
             for cell in ws.cells:
                 if cell.cell_type == u'code':
+                    if use_hints:
+                        _export = cell.get(u'metadata').get(u'auto_export_hint',{}).get(u'export_type', u'as_is')
+                        if not _export in [u'as_is', u'omit', u'commented']:
+                            _export = u'as_is'
+                    else:
+                        _export = u'as_is'
                     input = cell.get(u'input')
                     if input is not None:
-                        lines.extend([u'# <codecell>',u''])
-                        lines.extend(input.splitlines())
-                        lines.append(u'')
+                        if _export == u'as_is':
+                            lines.extend([u'# <codecell>',u''])
+                            lines.extend(input.splitlines())
+                            lines.append(u'')
+                        elif _export == u'commented':
+                            lines.extend([u'# <codecell>',u''])
+                            lines.extend([u'# automatically commented',u''])
+                            lines.extend([u'# ' + line for line in input.splitlines()])
+                            lines.append(u'')
+                        else:
+                            lines.extend([u'# <codecell>',u''])
+                            lines.extend([u'# automatically omited',u''])
                 elif cell.cell_type == u'html':
                     input = cell.get(u'source')
                     if input is not None:
