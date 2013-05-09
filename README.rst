@@ -28,7 +28,7 @@ Instant running
 You can run IPython from this directory without even installing it system-wide
 by typing at the terminal::
 
-   $ python ipython.py
+   $ python -m IPython
 
 
 Development installation
