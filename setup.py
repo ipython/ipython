@@ -68,7 +68,7 @@ from setupbase import (
     find_data_files,
     check_for_dependencies,
     git_prebuild,
-    check_for_submodules,
+    check_submodule_status,
     update_submodules,
     require_submodules,
     UpdateSubmodules,
@@ -112,21 +112,37 @@ if os_name == 'windows' and 'sdist' in sys.argv:
 #-------------------------------------------------------------------------------
 # Make sure we aren't trying to run without submodules
 #-------------------------------------------------------------------------------
+here = os.path.abspath(os.path.dirname(__file__))
 
-def ensure_submodules_exist():
-    """Check out git submodules before distutils can do anything
-    
-    Because distutils cannot be trusted to update the tree
-    after everything has been set in motion.
+def require_clean_submodules():
+    """Check on git submodules before distutils can do anything
+
+    Since distutils cannot be trusted to update the tree
+    after everything has been set in motion,
+    this is not a distutils command.
     """
     # don't do anything if nothing is actually supposed to happen
-    for do_nothing in ('-h', '--help', '--help-commands', 'clean'):
+    for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
             return
-    if not check_for_submodules():
-        update_submodules()
 
-ensure_submodules_exist()
+    status = check_submodule_status(here)
+
+    if status == "missing":
+        print("checking out submodules for the first time")
+        update_submodules(here)
+    elif status == "unclean":
+        print('\n'.join([
+            "Cannot build / install IPython with unclean submodules",
+            "Please update submodules with",
+            "    python setup.py submodule",
+            "or",
+            "    git submodule update",
+            "or commit any submodule changes you have made."
+        ]))
+        sys.exit(1)
+
+require_clean_submodules()
 
 #-------------------------------------------------------------------------------
 # Things related to the IPython documentation

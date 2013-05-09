@@ -307,10 +307,6 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         self.hb_port = self.heartbeat.port
         self.log.debug("Heartbeat REP Channel on port: %i" % self.hb_port)
         self.heartbeat.start()
-
-        # Helper to make it easier to connect to an existing kernel.
-        # set log-level to critical, to make sure it is output
-        self.log.critical("To connect another client to this kernel, use:")
     
     def log_connection_info(self):
         """display connection info, and store ports"""
@@ -323,8 +319,20 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
                 tail += " --profile %s" % self.profile
         else:
             tail = self.connection_file
-        self.log.critical("--existing %s", tail)
-
+        lines = [
+            "To connect another client to this kernel, use:",
+            "    --existing %s" % tail,
+        ]
+        # log connection info
+        # info-level, so often not shown.
+        # frontends should use the %connect_info magic
+        # to see the connection info
+        for line in lines:
+            self.log.info(line)
+        # also raw print to the terminal if no parent (`ipython kernel`)
+        if not self.parent:
+            for line in lines:
+                io.rprint(line)
 
         self.ports = dict(shell=self.shell_port, iopub=self.iopub_port,
                                 stdin=self.stdin_port, hb=self.hb_port,

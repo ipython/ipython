@@ -47,3 +47,18 @@ environment so that you can work on your local repo copy and run it from anywher
 
 The same process applies for other parts, such as the qtconsole (the
 ``extras_require`` attribute in the setup.py file lists all the possibilities).
+
+Git Hooks and Submodules
+************************
+
+IPython now uses git submodules to ship its javascript dependencies.
+If you run IPython from git master, you may need to update submodules once in a while with::
+
+    $ git submodule update
+
+or::
+
+    $ python setup.py submodule
+
+We have some git hooks for helping keep your submodules always in sync,
+see our ``git-hooks`` directory for more info.
