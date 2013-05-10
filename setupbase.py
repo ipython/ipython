@@ -40,6 +40,7 @@ from setupext import install_data_ext
 # A few handy globals
 isfile = os.path.isfile
 pjoin = os.path.join
+repo_root = os.path.dirname(os.path.abspath(__file__))
 
 def oscmd(s):
     print(">", s)
@@ -72,7 +73,7 @@ def file_doesnt_endwith(test,endings):
 #---------------------------------------------------------------------------
 
 # release.py contains version, authors, license, url, keywords, etc.
-execfile(pjoin('IPython','core','release.py'), globals())
+execfile(pjoin(repo_root, 'IPython','core','release.py'), globals())
 
 # Create a dict with the basic information
 # This dict is eventually passed to setup after additional keys are added.
@@ -373,8 +374,6 @@ def check_for_dependencies():
 # VCS related
 #---------------------------------------------------------------------------
 
-here = os.path.abspath(os.path.dirname(__file__))
-
 # utils.submodule has checks for submodule status
 execfile(pjoin('IPython','utils','submodule.py'), globals())
 
@@ -401,7 +400,7 @@ class UpdateSubmodules(Command):
             failure = e
             print(e)
         
-        if not check_submodule_status(here) == 'clean':
+        if not check_submodule_status(repo_root) == 'clean':
             print("submodules could not be checked out")
             sys.exit(1)
 
@@ -462,7 +461,7 @@ def require_submodules(command):
     """decorator for instructing a command to check for submodules before running"""
     class DecoratedCommand(command):
         def run(self):
-            if not check_submodule_status(here) == 'clean':
+            if not check_submodule_status(repo_root) == 'clean':
                 print("submodules missing! Run `setup.py submodule` and try again")
                 sys.exit(1)
             command.run(self)
