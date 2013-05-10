@@ -111,7 +111,11 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
 
     def test_getoutput(self):
         out = getoutput('python "%s"' % self.fname)
-        self.assertEqual(out, 'on stdout')
+        # we can't rely on the order the line buffered streams are flushed
+        try:
+            self.assertEqual(out, 'on stderron stdout')
+        except AssertionError:
+            self.assertEqual(out, 'on stdouton stderr')
 
     def test_getoutput_quoted(self):
         out = getoutput('python -c "print (1)"')
@@ -125,7 +129,7 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         out = getoutput("python -c 'print (\"1\")'")
         self.assertEqual(out.strip(), '1')
 
-    def test_getoutput(self):
+    def test_getoutput_error(self):
         out, err = getoutputerror('python "%s"' % self.fname)
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
