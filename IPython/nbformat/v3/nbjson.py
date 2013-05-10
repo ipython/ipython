@@ -49,6 +49,23 @@ class JSONReader(NotebookReader):
         return restore_bytes(rejoin_lines(from_dict(d)))
 
 
+def _remove_outputs(d):
+    if isinstance(d, dict):
+        res = {}
+        for key, value in d.items():
+            if key == u"outputs":
+                res["outputs"] = []
+            elif key == u"prompt_number":
+                pass
+            else:
+                res[key] = _remove_outputs(value)
+        return res
+    elif isinstance(d, list):
+        return [_remove_outputs(i) for i in d]
+    else:
+        return d
+
+
 class JSONWriter(NotebookWriter):
 
     def writes(self, nb, **kwargs):
@@ -58,6 +75,9 @@ class JSONWriter(NotebookWriter):
         kwargs['separators'] = (',',': ')
         if kwargs.pop('split_lines', True):
             nb = split_lines(copy.deepcopy(nb))
+        if kwargs.pop('skip_outputs', False):
+            nb = _remove_outputs(nb)
+
         return py3compat.str_to_unicode(json.dumps(nb, **kwargs), 'utf-8')
     
 
