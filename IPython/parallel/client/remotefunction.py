@@ -264,9 +264,12 @@ class ParallelFunction(RemoteFunction):
             return r
 
     def map(self, *sequences):
-        """call a function on each element of a sequence remotely.
+        """call a function on each element of one or more sequence(s) remotely.
         This should behave very much like the builtin map, but return an AsyncMapResult
         if self.block is False.
+        
+        That means it can take generators (will be cast to lists locally),
+        and mismatched sequence lengths will be padded with None.
         """
         # set _mapping as a flag for use inside self.__call__
         self._mapping = True
