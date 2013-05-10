@@ -15,6 +15,7 @@ Tests for platutils.py
 #-----------------------------------------------------------------------------
 
 import sys
+import os
 from unittest import TestCase
 
 import nose.tools as nt
@@ -24,13 +25,15 @@ from IPython.utils.process import (find_cmd, FindCmdError, arg_split,
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 
+python = os.path.basename(sys.executable)
+
 #-----------------------------------------------------------------------------
 # Tests
 #-----------------------------------------------------------------------------
 
 def test_find_cmd_python():
     """Make sure we find sys.exectable for python."""
-    nt.assert_equal(find_cmd('python'), sys.executable)
+    nt.assert_equal(find_cmd(python), sys.executable)
 
     
 @dec.skip_win32
@@ -102,15 +105,15 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
         self.mktmp('\n'.join(lines))
 
     def test_system(self):
-        status = system('python "%s"' % self.fname)
+        status = system('%s "%s"' % (python, self.fname))
         self.assertEqual(status, 0)
 
     def test_system_quotes(self):
-        status = system('python -c "import sys"')
+        status = system('%s -c "import sys"' % python)
         self.assertEqual(status, 0)
 
     def test_getoutput(self):
-        out = getoutput('python "%s"' % self.fname)
+        out = getoutput('%s "%s"' % (python, self.fname))
         # we can't rely on the order the line buffered streams are flushed
         try:
             self.assertEqual(out, 'on stderron stdout')
@@ -118,18 +121,18 @@ class SubProcessTestCase(TestCase, tt.TempFileMixin):
             self.assertEqual(out, 'on stdouton stderr')
 
     def test_getoutput_quoted(self):
-        out = getoutput('python -c "print (1)"')
+        out = getoutput('%s -c "print (1)"' % python)
         self.assertEqual(out.strip(), '1')
 
     #Invalid quoting on windows
     @dec.skip_win32
     def test_getoutput_quoted2(self):
-        out = getoutput("python -c 'print (1)'")
+        out = getoutput("%s -c 'print (1)'" % python)
         self.assertEqual(out.strip(), '1')
-        out = getoutput("python -c 'print (\"1\")'")
+        out = getoutput("%s -c 'print (\"1\")'" % python)
         self.assertEqual(out.strip(), '1')
 
     def test_getoutput_error(self):
-        out, err = getoutputerror('python "%s"' % self.fname)
+        out, err = getoutputerror('%s "%s"' % (python, self.fname))
         self.assertEqual(out, 'on stdout')
         self.assertEqual(err, 'on stderr')
