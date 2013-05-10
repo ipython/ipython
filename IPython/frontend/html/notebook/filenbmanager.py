@@ -44,6 +44,18 @@ class FileNotebookManager(NotebookManager):
         """
     )
     
+    use_export_hints = Bool(False, config=True,
+        help="""Use metadata to specify which *code* cells should be exported automatically.
+        
+        The metadata for each cell can be one of: 
+        * '"auto_export": "omit"' -> do not export this cell
+        * '"auto_export": "as_is"' -> export as is (default)
+        * '"auto_export": "commented"' -> export commented out
+        
+        if a cell has no auto_export metadata, it will be exported as_is
+        """
+    )
+    
     checkpoint_dir = Unicode(config=True,
         help="""The location in which to keep notebook checkpoints
         
@@ -188,7 +200,7 @@ class FileNotebookManager(NotebookManager):
             self.log.debug("Writing script %s", pypath)
             try:
                 with io.open(pypath,'w', encoding='utf-8') as f:
-                    current.write(nb, f, u'py')
+                    current.write(nb, f, u'py', use_export_hints=self.use_export_hints)
             except Exception as e:
                 raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
         
