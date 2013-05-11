@@ -237,8 +237,11 @@ class IPythonHandler(AuthenticatedHandler):
         turns http[s]://host[:port] into
                 ws[s]://host[:port]
         """
-        proto = self.request.protocol.replace('http', 'ws')
-        host = self.settings.get('websocket_host', '')
+        # default to config value
+        proto = self.config.get('NotebookApp', {}).get('websocket_proto', '')
+        if proto == '':
+            proto = self.request.protocol.replace('http', 'ws')
+        host = self.config.get('NotebookApp', {}).get('websocket_host', '')
         # default to config value
         if host == '':
             host = self.request.host # get from request
@@ -246,15 +249,15 @@ class IPythonHandler(AuthenticatedHandler):
     
     @property
     def mathjax_url(self):
-        return self.settings.get('mathjax_url', '')
+        return self.config.get('NotebookApp', {}).get('mathjax_url', '')
     
     @property
     def base_project_url(self):
-        return self.settings.get('base_project_url', '/')
+        return self.config.get('NotebookApp', {}).get('base_project_url', '/')
     
     @property
     def base_kernel_url(self):
-        return self.settings.get('base_kernel_url', '/')
+        return self.config.get('NotebookApp', {}).get('base_kernel_url', '/')
     
     #---------------------------------------------------------------
     # Manager objects
