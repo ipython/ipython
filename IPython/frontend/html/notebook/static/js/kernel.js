@@ -236,7 +236,7 @@ var IPython = (function (IPython) {
      * @async
      * @method execute
      * @param {string} code
-     * @param [callbacks] {Object} With the optionnal following keys
+     * @param [callbacks] {Object} With the optional following keys
      *      @param callbacks.'execute_reply' {function}
      *      @param callbacks.'output' {function}
      *      @param callbacks.'clear_output' {function}
