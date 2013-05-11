@@ -28,10 +28,3 @@ def get_ipython():
     from IPython.core.interactiveshell import InteractiveShell
     if InteractiveShell.initialized():
         return InteractiveShell.instance()
-
-def get():
-    warnings.warn("ipapi.get has been deprecated since IPython 0.11",
-        DeprecationWarning
-    )
-    return get_ipython()
-
