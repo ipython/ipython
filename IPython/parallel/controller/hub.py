@@ -285,6 +285,7 @@ class HubFactory(RegistrationFactory):
         
         # Registrar socket
         q = ZMQStream(ctx.socket(zmq.ROUTER), loop)
+        util.set_hwm(q, 0)
         q.bind(self.client_url('registration'))
         self.log.info("Hub listening on %s for registration.", self.client_url('registration'))
         if self.client_ip != self.engine_ip:
@@ -297,6 +298,7 @@ class HubFactory(RegistrationFactory):
         hpub = ctx.socket(zmq.PUB)
         hpub.bind(self.engine_url('hb_ping'))
         hrep = ctx.socket(zmq.ROUTER)
+        util.set_hwm(hrep, 0)
         hrep.bind(self.engine_url('hb_pong'))
         self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
