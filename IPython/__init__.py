@@ -41,7 +41,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "extensions"))
 #-----------------------------------------------------------------------------
 
 from .config.loader import Config
-from .core.ipapi import get_ipython
+from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
 from .frontend.terminal.embed import embed

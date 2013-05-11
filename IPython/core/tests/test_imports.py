@@ -21,8 +21,8 @@ def test_import_history():
 def test_import_hooks():
     from IPython.core import hooks
 
-def test_import_ipapi():
-    from IPython.core import ipapi
+def test_import_getipython():
+    from IPython.core import getipython
 
 def test_import_interactiveshell():
     from IPython.core import interactiveshell
