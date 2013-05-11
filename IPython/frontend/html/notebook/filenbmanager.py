@@ -17,32 +17,23 @@ Authors:
 #-----------------------------------------------------------------------------
 
 import datetime
-import io
 import os
 import glob
 import shutil
+import sys
 
 from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
+from IPython.core.interactiveshell import InteractiveShell
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
 class FileNotebookManager(NotebookManager):
-    
-    save_script = Bool(False, config=True,
-        help="""Automatically create a Python script when saving the notebook.
-        
-        For easier use of import, %run and %load across notebooks, a
-        <notebook-name>.py script will be created next to any
-        <notebook-name>.ipynb on each save.  This can also be set with the
-        short `--script` flag.
-        """
-    )
     
     checkpoint_dir = Unicode(config=True,
         help="""The location in which to keep notebook checkpoints
@@ -73,7 +64,7 @@ class FileNotebookManager(NotebookManager):
 
     # Map notebook names to notebook_ids
     rev_mapping = Dict()
-    
+
     def get_notebook_names(self):
         """List all notebook names in the notebook dir."""
         names = glob.glob(os.path.join(self.notebook_dir,
@@ -182,15 +173,19 @@ class FileNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while autosaving notebook: %s' % e)
 
-        # save .py script as well
-        if self.save_script:
-            pypath = os.path.splitext(path)[0] + '.py'
-            self.log.debug("Writing script %s", pypath)
+        # call the post save hook
+        hooks = nb.metadata.get("postsavehooks", [])
+        message = ""
+        had_errors = False
+        for hook_name in hooks:
             try:
-                with io.open(pypath,'w', encoding='utf-8') as f:
-                    current.write(nb, f, u'py')
+                self._load_postsavehook(hook_name).notebook_post_save_hook(nb, new_name, old_name, path, notebook_id, self)
             except Exception as e:
-                raise web.HTTPError(400, u'Unexpected error while saving notebook as script: %s' % e)
+                self.log.error(u'Unexpected error in post_save_hook %s: %s' % (hook_name, str(e)))
+                had_errors = True
+                message += hook_name + ": " + str(e) + ";"
+        if had_errors:
+            raise web.HTTPError(400, u'Unexpected error(s) in post_save_hook while saving notebook: %s' % message)
         
         # remove old files if the name changed
         if old_name != new_name:
@@ -204,14 +199,7 @@ class FileNotebookManager(NotebookManager):
             if os.path.isfile(old_path):
                 self.log.debug("unlinking notebook %s", old_path)
                 os.unlink(old_path)
-            
-            # cleanup old script, if it exists
-            if self.save_script:
-                old_pypath = os.path.splitext(old_path)[0] + '.py'
-                if os.path.isfile(old_pypath):
-                    self.log.debug("unlinking script %s", old_pypath)
-                    os.unlink(old_pypath)
-            
+                        
             # rename checkpoints to follow file
             for cp in old_checkpoints:
                 checkpoint_id = cp['checkpoint_id']
@@ -344,3 +332,23 @@ class FileNotebookManager(NotebookManager):
     
     def info_string(self):
         return "Serving notebooks from local directory: %s" % self.notebook_dir
+
+    _loaded_postsavehooks = {}
+    
+    def _load_postsavehook(self, module_str):
+        # Stolen from IPython.core.extensions.ExtensionManager.load_extension()
+        if module_str in self._loaded_postsavehooks:
+            return self._loaded_postsavehooks[module_str]
+        
+        from IPython.utils.syspathcontext import prepended_to_syspath
+        from IPython.utils.path import get_ipython_dir
+        
+        if module_str not in sys.modules:
+            with prepended_to_syspath(os.path.join(get_ipython_dir(), u'extensions')):
+                __import__(module_str)
+        mod = sys.modules[module_str]
+        if hasattr(mod, 'notebook_post_save_hook'):
+            self._loaded_postsavehooks[module_str] = mod
+            return self._loaded_postsavehooks[module_str]
+        else:
+            raise Exception("no notebook_post_save_hook function found")
