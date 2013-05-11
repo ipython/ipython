@@ -102,7 +102,11 @@ var IPython = (function (IPython) {
         console.log("Kernel started: ", json.kernel_id);
         this.running = true;
         this.kernel_id = json.kernel_id;
-        this.ws_url = json.ws_url;
+        var ws_url = json.ws_url;
+        if (ws_url.match(/wss?:\/\//) == null) {
+            ws_url = "ws" + location.origin.substr(4) + ws_url;
+        };
+        this.ws_url = ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
         this.start_channels();
         $([IPython.events]).trigger('status_started.Kernel', {kernel: this});

@@ -211,15 +211,10 @@ class IPythonHandler(AuthenticatedHandler):
     def ws_url(self):
         """websocket url matching the current request
 
-        turns http[s]://host[:port] into
-                ws[s]://host[:port]
+        By default, this is just `''`, indicating that it should match
+        the same host, protocol, port, etc.
         """
-        proto = self.request.protocol.replace('http', 'ws')
-        host = self.settings.get('websocket_host', '')
-        # default to config value
-        if host == '':
-            host = self.request.host # get from request
-        return "%s://%s" % (proto, host)
+        return self.settings.get('websocket_url', '')
     
     @property
     def mathjax_url(self):
