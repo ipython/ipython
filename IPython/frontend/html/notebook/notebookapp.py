@@ -442,6 +442,10 @@ class NotebookApp(BaseIPythonApplication):
         elif not new.endswith('/'):
             self.base_kernel_url = new+'/'
 
+    websocket_proto = Enum(("ws", "wss"), config=True,
+        help="""The scheme for the websocket server."""
+    )
+
     websocket_host = Unicode("", config=True,
         help="""The hostname for the websocket server."""
     )
