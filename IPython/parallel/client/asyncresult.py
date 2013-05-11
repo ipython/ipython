@@ -452,14 +452,14 @@ class AsyncResult(object):
             timeout = -1
         
         tic = time.time()
-        self._client._flush_iopub(self._client._iopub_socket)
-        self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
-        while not self._outputs_ready:
-            time.sleep(0.01)
+        while True:
             self._client._flush_iopub(self._client._iopub_socket)
-            self._outputs_ready = all(md['outputs_ready'] for md in self._metadata)
-            if timeout >= 0 and time.time() > tic + timeout:
+            self._outputs_ready = all(md['outputs_ready']
+                                      for md in self._metadata)
+            if self._outputs_ready or \
+               (timeout >= 0 and time.time() > tic + timeout):
                 break
+            time.sleep(0.01)
     
     @check_ready
     def display_outputs(self, groupby="type"):
