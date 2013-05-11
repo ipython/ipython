@@ -231,14 +231,16 @@ var IPython = (function (IPython) {
     /**
      * Execute given code into kernel, and pass result to callback.
      *
+     * TODO: document input_request in callbacks
+     *
      * @async
      * @method execute
      * @param {string} code
-     * @param callback {Object} With the following keys
-     *      @param callback.'execute_reply' {function}
-     *      @param callback.'output' {function}
-     *      @param callback.'clear_output' {function}
-     *      @param callback.'set_next_input' {function}
+     * @param [callbacks] {Object} With the optional following keys
+     *      @param callbacks.'execute_reply' {function}
+     *      @param callbacks.'output' {function}
+     *      @param callbacks.'clear_output' {function}
+     *      @param callbacks.'set_next_input' {function}
      * @param {object} [options]
      *      @param [options.silent=false] {Boolean}
      *      @param [options.user_expressions=empty_dict] {Dict}
@@ -291,6 +293,7 @@ var IPython = (function (IPython) {
             user_expressions : {},
             allow_stdin : false
         };
+        callbacks = callbacks || {};
         if (callbacks.input_request !== undefined) {
             content.allow_stdin = true;
         }
