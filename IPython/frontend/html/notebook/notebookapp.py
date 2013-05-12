@@ -260,15 +260,11 @@ flags['read-only'] = (
     """
 )
 
-# Add notebook manager flags
-flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
-               'Auto-save a .py script everytime the .ipynb notebook is saved',
-               'Do not auto-save .py scripts for every notebook'))
 
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
+notebook_flags = ['no-browser', 'no-mathjax', 'read-only']
 
 aliases = dict(kernel_aliases)
 
