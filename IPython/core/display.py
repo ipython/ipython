@@ -488,11 +488,14 @@ class Image(DisplayObject):
         Parameters
         ----------
         data : unicode, str or bytes
-            The raw data or a URL to download the data from.
+            The raw image data or a URL or filename to load the data from.
+            This always results in embedded image data.
         url : unicode
-            A URL to download the data from.
+            A URL to download the data from. If you specify `url=`,
+            the image data will not be embedded unless you also specify `embed=True`.
         filename : unicode
             Path to a local file to load the data from.
+            Images from a file are always embedded.
         format : unicode
             The format of the image data (png/jpeg/jpg). If a filename or URL is given
             for format will be inferred from the filename extension.
@@ -512,11 +515,17 @@ class Image(DisplayObject):
 
         Examples
         --------
-        # embed implicitly True, works in qtconsole and notebook
+        # embedded image data, works in qtconsole and notebook
+        # when passed positionally, the first arg can be any of raw image data,
+        # a URL, or a filename from which to load image data.
+        # The result is always embedding image data for inline images.
         Image('http://www.google.fr/images/srpr/logo3w.png')
+        Image('/path/to/image.jpg')
+        Image(b'RAW_PNG_DATA...')
 
-        # embed implicitly False, does not works in qtconsole but works in notebook if
-        # internet connection available
+        # Specifying Image(url=...) does not embed the image data,
+        # it only generates `<img>` tag with a link to the source.
+        # This will not work in the qtconsole or offline.
         Image(url='http://www.google.fr/images/srpr/logo3w.png')
 
         """
