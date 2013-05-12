@@ -19,6 +19,12 @@ def load_ipython_extension(ip):
     print("Running ext2 load")
 """
 
+ext3_content = """
+def load_ipython_extension(ip):
+    ip2 = get_ipython()
+    print(ip is ip2)
+"""
+
 def test_extension_loading():
     em = get_ipython().extension_manager
     with TemporaryDirectory() as td:
@@ -67,6 +73,23 @@ def test_extension_loading():
             # But can reload it
             with tt.AssertPrints("Running ext2 load"):
                 em.reload_extension('ext2')
+
+
+def test_extension_builtins():
+    em = get_ipython().extension_manager
+    with TemporaryDirectory() as td:
+        ext3 = os.path.join(td, 'ext3.py')
+        with open(ext3, 'w') as f:
+            f.write(ext3_content)
+        
+        assert 'ext3' not in em.loaded
+        
+        with prepended_to_syspath(td):
+            # Load extension
+            with tt.AssertPrints("True"):
+                assert em.load_extension('ext3') is None
+            assert 'ext3' in em.loaded
+
 
 def test_non_extension():
     em = get_ipython().extension_manager
