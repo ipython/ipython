@@ -26,8 +26,7 @@ from tornado import web
 
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
-from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
-from IPython.core.interactiveshell import InteractiveShell
+from IPython.utils.traitlets import Unicode, Dict, TraitError
 
 #-----------------------------------------------------------------------------
 # Classes
