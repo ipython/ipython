@@ -715,7 +715,7 @@ class OSMagics(Magics):
         """Write the contents of the cell to a file.
         
         If the file already exists, you will be prompted for overwrite
-        unless the -a (--append) flag is specified.
+        unless the -a (--append) or -f (--force) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.file, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
