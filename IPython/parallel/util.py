@@ -349,3 +349,20 @@ def local_logger(logname, loglevel=logging.DEBUG):
     logger.setLevel(loglevel)
     return logger
 
+def set_hwm(sock, hwm=0):
+    """set zmq High Water Mark on a socket
+    
+    in a way that always works for various pyzmq / libzmq versions.
+    """
+    import zmq
+    
+    for key in ('HWM', 'SNDHWM', 'RCVHWM'):
+        opt = getattr(zmq, key, None)
+        if opt is None:
+            continue
+        try:
+            sock.setsockopt(opt, hwm)
+        except zmq.ZMQError:
+            pass
+
+        
