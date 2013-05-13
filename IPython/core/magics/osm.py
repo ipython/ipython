@@ -698,8 +698,8 @@ class OSMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
-        '-f', '--force', action='store_true', default=False,
-        help='Force overwriting of the file if it exists (avoids prompt).'
+        '-o', '--overwrite', action='store_true', default=False,
+        help='Overwrite the file if it exists (avoids prompt).'
     )
     @magic_arguments.argument(
         '-a', '--append', action='store_true', default=False,
@@ -715,7 +715,7 @@ class OSMagics(Magics):
         """Write the contents of the cell to a file.
         
         If the file already exists, you will be prompted for overwrite
-        unless the -a (--append) or -f (--force) flag is specified.
+        unless the -a (--append) or -o (--overwrite) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.file, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
@@ -723,11 +723,11 @@ class OSMagics(Magics):
         if os.path.exists(filename):
             if args.append:
                 print "Appending to %s" % filename
-            elif not args.force:
+            elif not args.overwrite:
                 try:
                     ans = self.shell.ask_yes_no("Overwrite %s (y/[n])? " % filename, default='n')
                 except StdinNotImplementedError:
-                    print "stdin not supported, use `-f` to force overwrite"
+                    print "stdin not supported, use `--overwrite` to force overwrite"
                     return
                 
                 if ans:
@@ -735,6 +735,8 @@ class OSMagics(Magics):
                 else:
                     print "Nothing to do"
                     return
+            else:
+                print "Overwriting %s" % filename
         else:
             print "Writing %s" % filename
         
