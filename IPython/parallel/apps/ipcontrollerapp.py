@@ -56,7 +56,7 @@ from IPython.parallel.controller.hub import HubFactory
 from IPython.parallel.controller.scheduler import TaskScheduler,launch_scheduler
 from IPython.parallel.controller.dictdb import DictDB
 
-from IPython.parallel.util import split_url, disambiguate_url
+from IPython.parallel.util import split_url, disambiguate_url, set_hwm
 
 # conditional import of SQLiteDB / MongoDB backend class
 real_dbs = []
@@ -385,6 +385,7 @@ class IPControllerApp(BaseParallelApplication):
 
         # Multiplexer Queue (in a Process)
         q = mq(zmq.ROUTER, zmq.ROUTER, zmq.PUB, b'in', b'out')
+        
         q.bind_in(f.client_url('mux'))
         q.setsockopt_in(zmq.IDENTITY, b'mux_in')
         q.bind_out(f.engine_url('mux'))
@@ -438,6 +439,22 @@ class IPControllerApp(BaseParallelApplication):
                 # single-threaded Controller
                 kwargs['in_thread'] = True
                 launch_scheduler(*sargs, **kwargs)
+        
+        # set unlimited HWM for all relay devices
+        if hasattr(zmq, 'SNDHWM'):
+            q = children[0]
+            q.setsockopt_in(zmq.RCVHWM, 0)
+            q.setsockopt_out(zmq.SNDHWM, 0)
+            
+            for q in children[1:]:
+                if not hasattr(q, 'setsockopt_in'):
+                    continue
+                q.setsockopt_in(zmq.SNDHWM, 0)
+                q.setsockopt_in(zmq.RCVHWM, 0)
+                q.setsockopt_out(zmq.SNDHWM, 0)
+                q.setsockopt_out(zmq.RCVHWM, 0)
+                q.setsockopt_mon(zmq.SNDHWM, 0)
+            
 
     def terminate_children(self):
         child_procs = []
