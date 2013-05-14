@@ -24,9 +24,9 @@ var IPython = (function (IPython) {
         return $('body').data('baseProjectUrl');
     };
     
-    NotebookList.prototype.projectPathUrl = function() {
-        var path = $('body').data('projectPathUrl');
-        if (path != "0") {
+    NotebookList.prototype.notebookPath = function() {
+        var path = $('body').data('notebookPath');
+        if (path != "/") {
             if (path[0] != '/') {
                 path = "/" + path;
             }
@@ -118,8 +118,7 @@ var IPython = (function (IPython) {
                 that.list_loaded([], null, null, {msg:"Error connecting to server."});
                              },this)
         };
-
-        var url = this.baseProjectUrl() + 'notebooks' + this.projectPathUrl();
+        var url = this.baseProjectUrl() + 'api/notebooks' + this.notebookPath();
         $.ajax(url, settings);
     };
 
@@ -144,8 +143,12 @@ var IPython = (function (IPython) {
             var notebook_id = data['notebooks'][i].notebook_id;
             var nbname = data['notebooks'][i].name;
             var kernel = data['notebooks'][i].kernel_id;
+            var path = data.path;
+            if (path == '/'){
+                path = "notebooks/";
+            }
             var item = this.new_notebook_item(i);
-            this.add_link('', nbname+".ipynb", item);
+            this.add_link(path, nbname, item);
             if (!IPython.read_only){
                 // hide delete buttons when readonly
                 if(kernel == null){
@@ -180,7 +183,7 @@ var IPython = (function (IPython) {
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href', this.baseProjectUrl()+path+nbname).
+            attr('href', path + nbname + ".ipynb").
             attr('target','_blank').
             text(nbname)
         );
@@ -272,7 +275,7 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = notebooklist.baseProjectUrl() + 'notebooks' + notebook_id;
+                            var url = notebooklist.baseProjectUrl() + 'api/notebooks' + notebook_id;
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },

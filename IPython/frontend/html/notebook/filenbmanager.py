@@ -111,7 +111,7 @@ class FileNotebookManager(NotebookManager):
     def list_directory_info(self, path, notebooks):
         #notebooks = self.list_notebooks(path)
         directories, files = self.get_file_names(path)
-        data = (dict(path=path,directories=directories,files=files,notebooks=notebooks))
+        data = (dict(path=path+'/',directories=directories,files=files,notebooks=notebooks))
         return data
         
     def new_notebook_id(self, name):
@@ -142,15 +142,15 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         return name
 
-    def get_path(self, notebook_name):
+    def get_path(self, notebook_name, notebook_path):
         """Return a full path to a notebook given its notebook_id."""
         #name = self.get_name(notebook_id)
-        return self.get_path_by_name(notebook_name)
+        return self.get_path_by_name(notebook_name, notebook_path)
 
-    def get_path_by_name(self, name):
+    def get_path_by_name(self, name, notebook_path):
         """Return a full path to a notebook given its name."""
         filename = name #+ self.filename_ext
-        path = os.path.join(self.notebook_dir, filename)
+        path = os.path.join(self.notebook_dir, notebook_path, filename)
         return path
 
     def read_notebook_object_from_path(self, path):
@@ -166,9 +166,9 @@ class FileNotebookManager(NotebookManager):
                 raise web.HTTPError(500, u'Unreadable JSON notebook: %s' % e)
         return last_modified, nb
     
-    def read_notebook_object(self, notebook_name):
+    def read_notebook_object(self, notebook_name, notebook_path):
         """Get the Notebook representation of a notebook by notebook_id."""
-        path = self.get_path(notebook_name)
+        path = self.get_path(notebook_name, notebook_path)
         self.log.info(path)
         if not os.path.isfile(path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_name)

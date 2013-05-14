@@ -26,8 +26,9 @@ var IPython = (function (IPython) {
         var options = options || {};
         this._baseProjectUrl = options.baseProjectUrl;
         this.read_only = options.read_only || IPython.read_only;
-        
         this.notebook_path = options.notebookPath;
+        this.notebook_name = options.notebookName;
+        
         this.element = $(selector);
         this.element.scroll();
         this.element.data("notebook", this);
@@ -1479,7 +1480,6 @@ var IPython = (function (IPython) {
      * @param {Object} data JSON representation of a notebook
      */
     Notebook.prototype.fromJSON = function (data) {
-        console.log(data.metadata)
         var ncells = this.ncells();
         var i;
         for (i=0; i<ncells; i++) {
@@ -1611,7 +1611,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' +this.notebook_name;
+        var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name;
         $.ajax(url, settings);
     };
     
@@ -1675,6 +1675,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.load_notebook = function (notebook_name, notebook_path) {
         var that = this;
         this.notebook_name = notebook_name;
+        this.notebook_path = notebook_path;
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1685,8 +1686,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.load_notebook_error,this),
         };
         $([IPython.events]).trigger('notebook_loading.Notebook');
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_path + '/'+this.notebook_name;
-        console.log(url)
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path +'/' +this.notebook_name;
         $.ajax(url, settings);
     };
 
@@ -1701,7 +1701,6 @@ var IPython = (function (IPython) {
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.load_notebook_success = function (data, status, xhr) {
-        console.log(data)
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
@@ -1820,7 +1819,7 @@ var IPython = (function (IPython) {
      * @method list_checkpoint
      */
     Notebook.prototype.list_checkpoints = function () {
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints';
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_id + '/checkpoints';
         $.get(url).done(
             $.proxy(this.list_checkpoints_success, this)
         ).fail(
@@ -1864,7 +1863,7 @@ var IPython = (function (IPython) {
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints';
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_id + '/checkpoints';
         $.post(url).done(
             $.proxy(this.create_checkpoint_success, this)
         ).fail(
@@ -1950,7 +1949,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -1991,7 +1990,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),

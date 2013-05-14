@@ -42,10 +42,25 @@ class NotebookManager(LoggingConfigurable):
             """)
             
     def named_notebook_path(self, notebook_path):
+        
         l = len(notebook_path)
         names = notebook_path.split('/')
-        name = names[len(names)-1]
-        path = notebook_path[0:l-len(name)-1]
+        if len(names) > 1:     
+            name = names[len(names)-1]
+            if name[(len(name)-6):(len(name))] == ".ipynb":
+                name = name
+                path = notebook_path[0:l-len(name)-1]
+            else:
+                name = None
+                path = notebook_path
+        else:
+            name = names[0]
+            if name[(len(name)-6):(len(name))] == ".ipynb":
+                name = name
+                path = None
+            else:
+                name = None
+                path = notebook_path
         return name, path
              
     def _notebook_dir_changed(self, new):
@@ -118,12 +133,12 @@ class NotebookManager(LoggingConfigurable):
         """Does a notebook exist?"""
         return notebook_name in self.mapping
 
-    def get_notebook(self, notebook_name, format=u'json'):
+    def get_notebook(self, notebook_name, notebook_path, format=u'json'):
         """Get the representation of a notebook in format by notebook_id."""
         format = unicode(format)
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-        last_modified, nb = self.read_notebook_object(notebook_name)
+        last_modified, nb = self.read_notebook_object(notebook_name, notebook_path)
         kwargs = {}
         if format == 'json':
             # don't split lines for sending over the wire, because it
@@ -133,7 +148,7 @@ class NotebookManager(LoggingConfigurable):
         name = nb.metadata.get('name','notebook')
         return last_modified, name, data
 
-    def read_notebook_object(self, notebook_name):
+    def read_notebook_object(self, notebook_name, notebook_path):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 

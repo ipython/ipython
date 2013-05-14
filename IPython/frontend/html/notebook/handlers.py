@@ -315,20 +315,27 @@ class ProjectDashboardHandler(IPythonHandler):
         self.write(self.render_template('projectdashboard.html',
             project=self.project,
             project_component=self.project.split('/'),
-            project_path_url= "0"
+            notebook_path= "/"
         ))
 
 
 class ProjectPathDashboardHandler(IPythonHandler):
 
     @authenticate_unless_readonly
-    def get(self, path):
-        # nbm = self.application.notebook_manager
-        project = self.project + '/' + path
-        self.write(self.render_template('projectdashboard.html',
-            project=project,
-            project_component=project.split('/'),
-            project_path_url=path))    
+    def get(self, notebook_path):
+        nbm = self.notebook_manager
+        name, path = nbm.named_notebook_path(notebook_path)
+        if name != None:
+            if path == None:
+                self.redirect(self.base_project_url + 'notebooks/' + name)
+            else:
+                self.redirect(self.base_project_url + 'notebooks/' + path + '/' + name)
+        else:
+            project = self.project + '/' + path
+            self.write(self.render_template('projectdashboard.html',
+                project=project,
+                project_component=project.split('/'),
+                notebook_path=path))    
 
 
 class ProjectRedirectHandler(IPythonHandler):
@@ -391,12 +398,16 @@ class NamedNotebookHandler(IPythonHandler):
     def get(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
-        project = self.project + '/' + path + name
+        if path == None:
+            project = self.project + '/' + name
+        else:
+            project = self.project + '/' + path +'/'+ name
         #if not nbm.notebook_exists(notebook_path):
          #   raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_path)       
         self.write(self.render_template('notebook.html',
             project=project,
             notebook_path=path,
+            notebook_name=name,
             kill_kernel=False,
             mathjax_url=self.mathjax_url,
             )
@@ -667,7 +678,7 @@ class NotebookRootHandler(IPythonHandler):
             notebook_id = nbm.new_notebook()
         self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
         self.finish(jsonapi.dumps(notebook_id))
-        
+"""        
 class NotebookPathHandler(IPythonHandler):
 
     @authenticate_unless_readonly
@@ -680,7 +691,7 @@ class NotebookPathHandler(IPythonHandler):
         files = nbm.list_directory_info(path, notebooks)
         self.finish(jsonapi.dumps(files))
 
-"""    @web.authenticated
+    @web.authenticated
     def post(self, path):
         nbm = self.application.notebook_manager
         body = self.request.body.strip()
@@ -701,19 +712,27 @@ class NotebookHandler(IPythonHandler):
     @authenticate_unless_readonly
     def get(self, notebook_path):
         nbm = self.notebook_manager
-        self.log.info("HI")
         name, path = nbm.named_notebook_path(notebook_path)
-        format = self.get_argument('format', default='json')
-        last_mod, name, data = nbm.get_notebook(name, format)
         
-        if format == u'json':
-            self.set_header('Content-Type', 'application/json')
-            self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
-        elif format == u'py':
-            self.set_header('Content-Type', 'application/x-python')
-            self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
-        self.set_header('Last-Modified', last_mod)
-        self.finish(data)
+        if name == None:
+            km = self.kernel_manager
+            notebooks = nbm.list_notebooks(path)
+            for f in notebooks :
+                f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])  
+            files = nbm.list_directory_info(path, notebooks)
+            self.finish(jsonapi.dumps(files))
+        else:
+            format = self.get_argument('format', default='json')
+            last_mod, name, data = nbm.get_notebook(name, path, format)
+        
+            if format == u'json':
+                self.set_header('Content-Type', 'application/json')
+                self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
+            elif format == u'py':
+                self.set_header('Content-Type', 'application/x-python')
+                self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
+            self.set_header('Last-Modified', last_mod)
+            self.finish(data)
 
     @web.authenticated
     def put(self, notebook_id):
