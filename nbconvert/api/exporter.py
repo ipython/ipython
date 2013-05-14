@@ -23,7 +23,6 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
-import copy
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -54,7 +53,6 @@ import transformers.coalescestreams
 #Standard Jinja2 environment constants
 TEMPLATE_PATH = "/../templates/"
 TEMPLATE_SKELETON_PATH = "/../templates/skeleton/"
-TEMPLATE_EXTENSION = ".tpl"
 
 #Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
@@ -63,13 +61,6 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 # Classes and functions
 #-----------------------------------------------------------------------------
 class Exporter(Configurable):
-    """ A Jinja2 base converter templates
-
-    Pre-process the IPYNB files, feed it through Jinja2 templates,
-    and spit an converted files and a data object with other data
-    should be mostly configurable
-    """
-
     pre_transformer_order = List(['haspyout_transformer'],
         config=True,
         help= """
@@ -99,6 +90,9 @@ class Exporter(Configurable):
         along with potential extracted resources."""
         )
 
+    #Extension that the template files use.    
+    template_extension = ".tpl"
+
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
     preprocessors = [] 
@@ -106,32 +100,11 @@ class Exporter(Configurable):
     # Public Constructor #####################################################
     
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
-        """ Init a new converter.
-
-        config: the Configurable config object to pass around.
-
-        preprocessors: dict of **available** key/value function to run on
-                       ipynb json data before conversion to extract/in-line file.
-                       See `transformer.py` and `ConfigurableTransformers`
-
-                       set the order in which the transformers should apply
-                       with the `pre_transformer_order` trait of this class
-
-                       transformers registered by this key will take precedence on
-                       default one.
-
-        jinja_filters: dict of supplementary jinja filter that should be made
-                       available in template. If those are of Configurable Class type,
-                       they will be instanciated with the config object as argument.
-
-                       user defined filter will overwrite the one available by default.
-        """ 
     
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
 
         #Standard environment
-        self.ext = TEMPLATE_EXTENSION
         self._init_environment()
 
         #TODO: Implement reflection style methods to get user transformers.
@@ -156,63 +129,35 @@ class Exporter(Configurable):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
                     self.environment.filters[key] = user_filter
-
-
-        #Set the default datatype priority.
-        self._set_datatype_priority(['svg', 'png', 'latex', 'jpg', 'jpeg','text'])
-        
     
     # Public methods #########################################
     
     def from_notebook_node(self, nb):
-        """Export NotebookNode instance
-
-        nb: NotebookNode to export.
-
-        Returns both the converted ipynb file and a dict containing the
-        resources created along the way via the transformers and Jinja2
-        processing.
-        """
-
         nb, resources = self._preprocess(nb)
         
         #Load the template file.
-        self.template = self.environment.get_template(self.template_file+self.ext)
+        self.template = self.environment.get_template(self.template_file+self.template_extension)
         
         return self.template.render(nb=nb, resources=resources), resources
 
 
     def from_filename(self, filename):
-        """Read and export a notebook from a filename
-
-        filename: Filename of the notebook file to export.
-
-        Returns both the converted ipynb file and a dict containing the
-        resources created along the way via the transformers and Jinja2
-        processing.
-        """
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'))
 
 
     def from_file(self, file_stream):
-        """Read and export a notebook from a file stream
-
-        file_stream: File handle of file that contains notebook data.
-
-        Returns both the converted ipynb file and a dict containing the
-        resources created along the way via the transformers and Jinja2
-        processing.
-        """
-
         return self.from_notebook_node(nbformat.read(file_stream, 'json'))
 
 
     def register_transformer(self, transformer):
         if MetaHasTraits(transformer):
-            self.preprocessors.append(transformer(config=self.config))
+            transformer_instance = transformer(config=self.config)
+            self.preprocessors.append(transformer_instance)
+            return transformer_instance
         else:
             self.preprocessors.append(transformer)
+            return transformer
 
 
     def register_filter(self, name, filter):
@@ -222,6 +167,7 @@ class Exporter(Configurable):
             self.environment.filters[name] = filter
         return self.environment.filters[name]
 
+
     # Protected and Private methods #########################################
     
     def _register_transformers(self):
@@ -230,7 +176,6 @@ class Exporter(Configurable):
         #Remember the figure extraction transformer so it can be enabled and
         #disabled easily later.
         self.extract_figure_transformer = self.register_transformer(transformers.extractfigure.ExtractFigureTransformer)
-        self.extract_figure_transformer.enabled = False
         
         
     def _register_filters(self):
@@ -250,11 +195,6 @@ class Exporter(Configurable):
         self.register_filter('rm_fake', filters.strings.rm_fake)
         self.register_filter('rm_math_space', filters.latex.rm_math_space)
         self.register_filter('wrap', filters.strings.wrap)
-
-        
-    def _set_datatype_priority(self, priority):
-        self.extract_figure_transformer.display_data_priority=copy.copy(priority)
-        self.display_data_priority=copy.copy(priority)
         
         
     def _init_environment(self):
@@ -268,11 +208,6 @@ class Exporter(Configurable):
 
 
     def _preprocess(self, nb):
-        """ Preprocess the notebook using the transformers specific
-        for the current export format.
-
-        nb: Notebook to preprocess
-        """
 
         #Dict of 'resources' that can be filled by the preprocessors.
         resources = {}
@@ -282,4 +217,3 @@ class Exporter(Configurable):
         for transformer in self.preprocessors:
             nb, resources = transformer(nb, resources)
         return nb, resources
-

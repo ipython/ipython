@@ -1,6 +1,6 @@
 """String utilities.
 
-Contains a collection of usefull string manipulations functions.
+Contains a collection of useful string manipulations functions.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.

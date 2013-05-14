@@ -26,13 +26,10 @@ import os
 #From IPython
 #All the stuff needed for the configurable things
 from IPython.config.application import Application
-from IPython.config.loader import ConfigFileNotFound
-from IPython.utils.traitlets import Unicode, Bool
 
 #Local imports
-from api.exporter import Exporter
-from converters.config import GlobalConfigurable #TODO
-from converters.transformers import (ExtractFigureTransformer) #TODO
+from nbconvert.api.convert import export_by_name
+from nbconvert.api.exporter import Exporter
 
 #-----------------------------------------------------------------------------
 #Globals and constants
@@ -78,8 +75,6 @@ class NbconvertApp(Application):
 
         #Register class here to have help with help all
         self.classes.insert(0, Exporter)
-        self.classes.insert(0, ExtractFigureTransformer)
-        self.classes.insert(0, GlobalConfigurable)
 
 
     def start(self, argv=None):
@@ -91,51 +86,57 @@ class NbconvertApp(Application):
         #Call base
         super(NbconvertApp, self).start()
 
-        #The last arguments in chain of arguments will be used as conversion
-        ipynb_file = (self.extra_args or [None])[2]
-
-        #If you are writting a custom transformer, append it to the dictionary
-        #below.
-        userpreprocessors = {}
-
-        #Create the Jinja template exporter.  TODO: Add ability to 
-        #import in IPYNB aswell
-        exporter = Exporter(config=self.config, preprocessors=userpreprocessors,export_format=export_format)
+        #The last arguments in chain of arguments will be used as conversion type
+        ipynb_file = (self.extra_args)[2]
+        export_type = (self.extra_args)[1]
 
         #Export
-        output, resources = exporter.from_filename(ipynb_file)
-        if exporter.stdout :
+        output, resources, exporter = export_by_name(ipynb_file, export_type)
+
+        destination_filename = None
+        destination_directory = None
+        if exporter.write:
+                
+            #Get the file name without the '.ipynb' (6 chars) extension and then
+            #remove any addition periods and spaces. The resulting name will
+            #be used to create the directory that the files will be exported
+            #into.
+            out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
+            destination_filename = os.path.join(out_root+'.'+exporter.fileext)
+            
+            destination_directory = out_root+'_files'
+            if not os.path.exists(destination_directory):
+                os.mkdir(destination_directory)
+                
+        #Write the results
+        if exporter.stdout or exporter.write:
+            self._write_results(exporter.stdout, destination_filename, destination_directory, output, resources)
+
+
+    def _write_results(self, stdout, destination_filename, destination_directory, output, resources):
+        if stdout:
             print(output.encode('utf-8'))
 
-        #Get the file name without the '.ipynb' (6 chars) extension and then
-        #remove any addition periods and spaces. The resulting name will
-        #be used to create the directory that the files will be exported
-        #into.
-        out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
-
         #Write file output from conversion.
-        if exporter.write :
-            with io.open(os.path.join(out_root+'.'+exporter.fileext), 'w') as f:
+        if not destination_filename is None:
+            with io.open(destination_filename, 'w') as f:
                 f.write(output)
 
         #Output any associate figures into the same "root" directory.
         binkeys = resources.get('figures', {}).get('binary',{}).keys()
         textkeys = resources.get('figures', {}).get('text',{}).keys()
         if binkeys or textkeys :
-            if exporter.write:
-                files_dir = out_root+'_files'
-                if not os.path.exists(out_root+'_files'):
-                    os.mkdir(files_dir)
+            if not destination_directory is None:
                 for key in binkeys:
-                    with io.open(os.path.join(files_dir, key), 'wb') as f:
+                    with io.open(os.path.join(destination_directory, key), 'wb') as f:
                         f.write(resources['figures']['binary'][key])
                 for key in textkeys:
-                    with io.open(os.path.join(files_dir, key), 'w') as f:
+                    with io.open(os.path.join(destination_directory, key), 'w') as f:
                         f.write(resources['figures']['text'][key])
 
             #Figures that weren't exported which will need to be created by the
             #user.  Tell the user what figures these are.
-            elif exporter.stdout:
+            if stdout:
                 print(KEYS_PROMPT_HEAD)
                 print(resources['figures'].keys())
                 print(KEYS_PROMPT_BODY)

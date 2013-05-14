@@ -1,4 +1,4 @@
-"""Filter used to select the first prefered output format available.
+"""Filter used to select the first preferred output format available.
 
 The filter contained in the file allows the converter templates to select
 the output format that is most valuable to the active export format.  The
@@ -16,11 +16,20 @@ GlobalConfigurable.display_data_priority
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
-class DataTypeFilter(GlobalConfigurable):
-    """ Returns the prefered display format """
+class DataTypeFilter(object):
+    """ Returns the preferred display format """
 
-    def __init__(self, config=None, **kw):
-        super(DataTypeFilter, self).__init__(config=config, **kw)
+    display_data_priority = None
+
+    def __init__(self, display_data_priority):
+        super(object, self).__init__()
+        
+        #Make sure that the display data priority variably is not None.
+        if self.display_data_priority is None:
+            raise TypeError
+        else:
+            self.display_data_priority = display_data_priority
+        
 
     def __call__(self, output):
         """ Return the first available format in the priority """

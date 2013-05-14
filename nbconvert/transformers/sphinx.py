@@ -34,7 +34,7 @@ from pygments.formatters import LatexFormatter
 from IPython.utils.traitlets import Unicode, Bool
 
 # Needed to override transformer
-from .transformers import (ActivatableTransformer) #TODO
+from .activatable import (ActivatableTransformer) #TODO
 
 #-----------------------------------------------------------------------------
 # Classes and functions

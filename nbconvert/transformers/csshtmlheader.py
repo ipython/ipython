@@ -1,4 +1,4 @@
- 
+from .activatable import ActivatableTransformer
 
 class CSSHtmlHeaderTransformer(ActivatableTransformer):
 
@@ -31,7 +31,6 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
         static = os.path.join(path.get_ipython_package_dir(),
             'frontend', 'html', 'notebook', 'static',
         )
-        here = os.path.split(os.path.realpath(__file__))[0]
         css = os.path.join(static, 'css')
         for sheet in [
             # do we need jquery and prettify?

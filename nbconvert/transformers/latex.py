@@ -18,7 +18,8 @@ from __future__ import print_function, absolute_import
 
 # Our own imports
 # Needed to override transformer
-from .transformers import (ActivatableTransformer) #TODO
+from .activatable import (ActivatableTransformer)
+from filters import latex
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -38,5 +39,5 @@ class LatexTransformer(ActivatableTransformer):
         """
         
         if hasattr(cell, "source") and cell.cell_type == "markdown":
-            cell.source = rm_math_space(cell.source)
+            cell.source = latex.rm_math_space(cell.source)
         return cell, other

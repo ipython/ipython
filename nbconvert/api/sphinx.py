@@ -1,5 +1,3 @@
- """TODO: Docstring
-"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -14,35 +12,23 @@
 #-----------------------------------------------------------------------------
 
 # local import
-import latex_exporter
-
+import latex
+from IPython.utils.traitlets import Unicode
+from transformers.sphinx import SphinxTransformer
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class SphinxExporter(latex_exporter.LatexExporter):
+class SphinxExporter(latex.LatexExporter):
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, sphinx_type="howto", **kw):
-        
-        #Call base class constructor.
-        super(latex_exporter.LatexExporter, self).__init__(preprocessors, jinja_filters, config, **kw)
-
-        #Defaults
-        self.template_file = "latex_sphinx_" + sphinx_type
-
-    def _register_filters(self):
-        
-        #Register the filters of the base class.
-        super(latex_exporter.LatexExporter, self)._register_filters()
-
-        #Add latex filters to the Jinja2 environment
-        #self.register_filter('escape_tex', filters.latex.escape_tex)  
-
+    template_file = Unicode(
+            'sphinxhowto', config=True,
+            help="Name of the template file to use")
     
     def _register_transformers(self):
         
         #Register the transformers of the base class.
-        super(latex_exporter.LatexExporter, self)._register_transformers()
+        super(latex.LatexExporter, self)._register_transformers()
         
-        #Register latex transformer
-        #self.register_transformer(LatexTransformer)
+        #Register sphinx latex transformer
+        self.register_transformer(SphinxTransformer) 
                     

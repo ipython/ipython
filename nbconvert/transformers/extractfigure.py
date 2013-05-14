@@ -1,4 +1,5 @@
- 
+from IPython.utils.traitlets import (Dict, List, Unicode)
+from .activatable import ActivatableTransformer
 
 class ExtractFigureTransformer(ActivatableTransformer):
 
@@ -18,6 +19,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
             config=True,
             )
 
+    display_data_priority = List(['svg', 'png', 'latex', 'jpg', 'jpeg','text'])
 
     #to do change this to .format {} syntax
     default_key_tpl = Unicode('_fig_{count:02d}.{ext}', config=True)

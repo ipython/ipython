@@ -33,8 +33,6 @@ LATEX_SUBS = (
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
-
-#TODO: Comment me.
 def escape_tex(value):
     newval = value
     for pattern, replacement in LATEX_SUBS:

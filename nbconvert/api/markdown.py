@@ -1,5 +1,3 @@
-"""TODO: Docstring
-"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -15,18 +13,17 @@
 
 # local import
 import exporter
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class MarkdownExporter(exporter.Exporter):
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
-        
-        #Call base class constructor.
-        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+    file_extension = Unicode(
+        'md', config=True, 
+        help="Extension of the file that should be written to disk")
 
-        #Set defaults
-        self.file_extension = "md"  
-        self.extract_figure_transformer.enabled = True
-        self.template_file = "markdown"
+    template_file = Unicode(
+            'markdown', config=True,
+            help="Name of the template file to use")

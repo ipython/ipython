@@ -1,7 +1,7 @@
-from transformers.base import ConfigurableTransformers
+from .base import ConfigurableTransformer
+from IPython.utils.traitlets import (Bool)
 
-
-class ActivatableTransformer(ConfigurableTransformers):
+class ActivatableTransformer(ConfigurableTransformer):
     """A simple ConfigurableTransformers that have an enabled flag
 
     Inherit from that if you just want to have a transformer which is

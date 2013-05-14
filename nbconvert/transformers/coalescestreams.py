@@ -26,7 +26,6 @@ TODO: handle \r deletion
     outputs = cell.get('outputs', [])
     if not outputs:
         return cell, other
-    new_outputs = []
     last = outputs[0]
     new_outputs = [last]
     for output in outputs[1:]:

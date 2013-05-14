@@ -1,4 +1,4 @@
- """TODO: Docstring
+"""TODO: Docstring
 """
 
 #-----------------------------------------------------------------------------
@@ -16,21 +16,21 @@
 # local import
 import html_exporter
 import transformers.revealhelp
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class RevealExporter(html_exporter.HtmlExporter):
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
-        
-        #Call base class constructor.
-        super(html_exporter.HtmlExporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+    file_extension = Unicode(
+        'reveal.html', config=True, 
+        help="Extension of the file that should be written to disk")
 
-        #Set defaults
-        self.file_extension = "reveal.html"
-        self.template_file = "reveal"
-
+    template_file = Unicode(
+            'reveal', config=True,
+            help="Name of the template file to use")
+    
     def _register_transformers(self):
         
         #Register the transformers of the base class.

@@ -1,4 +1,4 @@
- """TODO: Docstring
+"""TODO: Docstring
 """
 
 #-----------------------------------------------------------------------------
@@ -15,23 +15,21 @@
 
 # local import
 import exporter
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class RstExporter(exporter.Exporter):
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
-        
-        #Call base class constructor.
-        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+    file_extension = Unicode(
+        'rst', config=True, 
+        help="Extension of the file that should be written to disk")
 
-        #Set defaults
-        self.file_extension = "rst"
-        self.template_file = "rst"
-        self.extract_figure_transformer.enabled = True
-
-
+    template_file = Unicode(
+            'rst', config=True,
+            help="Name of the template file to use")
+    
     def _register_filters(self):
         
         #Register the filters of the base class.

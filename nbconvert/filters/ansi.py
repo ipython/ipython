@@ -1,33 +1,10 @@
-# ANSI color functions:
 import re
+
 def remove_ansi(src):
-    """Strip all ANSI color escape sequences from input string.
-
-    Parameters
-    ----------
-    src : string
-
-    Returns
-    -------
-    string
-    """
     return re.sub(r'\033\[(0|\d;\d\d)m', '', src)
 
 
 def ansi2html(txt):
-    """Render ANSI colors as HTML colors
-
-    This is equivalent to util.fixConsole in utils.js
-
-    Parameters
-    ----------
-    txt : string
-
-    Returns
-    -------
-    string
-    """
-
     ansi_colormap = {
         '30': 'ansiblack',
         '31': 'ansired',
@@ -49,6 +26,7 @@ def ansi2html(txt):
         '"': '&quot;',
         '`': '&#96;',
     }
+    
     for c, escape in html_escapes.iteritems():
         txt = txt.replace(c, escape)
 
@@ -61,6 +39,7 @@ def ansi2html(txt):
     while m:
         cmds = m.groups()[0].split(';')
         closer = '</span>' if opened else ''
+        
         # True if there is there more than one element in cmds, *or*
         # if there is only one but it is not equal to a string of zeroes.
         opened = len(cmds) > 1 or cmds[0] != '0' * len(cmds[0])

@@ -1,12 +1,3 @@
- """Latex exporter for the notebook conversion pipeline.
-
-This module defines Exporter, a highly configurable converter
-that uses Jinja2 to export notebook files into different format.
-
-You can register both pre-transformers that will act on the notebook format
-before conversion and jinja filter that would then be available in the templates
-"""
-
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -20,18 +11,13 @@ before conversion and jinja filter that would then be available in the templates
 #-----------------------------------------------------------------------------
 
 # Stdlib imports
-import io
 import os
 
 # IPython imports
-from IPython.config.configurable import Configurable
-from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
-from IPython.utils.text import indent
+from IPython.utils.traitlets import Unicode
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
-from markdown import markdown
 
 # local import
 import exporter
@@ -45,7 +31,6 @@ from transformers.latex import LatexTransformer
 #Latex Jinja2 constants
 LATEX_TEMPLATE_PATH = "/../templates/tex/"
 LATEX_TEMPLATE_SKELETON_PATH = "/../templates/tex/skeleton/"
-LATEX_TEMPLATE_EXTENSION = ".tplx"
 
 #Special Jinja2 syntax that will not conflict when exporting latex.
 LATEX_JINJA_COMMENT_BLOCK = ["((=", "=))"]
@@ -56,28 +41,28 @@ LATEX_JINJA_LOGIC_BLOCK = ["((*", "*))"]
 # Classes and functions
 #-----------------------------------------------------------------------------
 class LatexExporter(exporter.Exporter):
-    """ A Jinja2 latex exporter
 
-    Preprocess the ipynb files, feed it through jinja templates,
-    and spit an converted files and a data object with other data
-    should be mostly configurable
-    """
+    #Extension that the template files use.    
+    template_extension = ".tplx"
+    
+    file_extension = Unicode(
+        'tex', config=True, 
+        help="Extension of the file that should be written to disk")
 
+    template_file = Unicode(
+            'latex_base', config=True,
+            help="Name of the template file to use")
+    
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
         
         #Call base class constructor.
         super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
-
-        #Set defaults
-        self.file_extension = "tex"
-        self._set_datatype_priority(['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'])
-        self.extract_figure_transformer.enabled = True
+        
+        self.extract_figure_transformer.display_data_priority = ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
         self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
-        self.template_file = "latex_base"
         
         
     def _init_environment(self):
-        self.ext = LATEX_TEMPLATE_EXTENSION
         self.environment = Environment(
             loader=FileSystemLoader([
                 os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,

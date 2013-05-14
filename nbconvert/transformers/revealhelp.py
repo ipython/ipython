@@ -1,6 +1,6 @@
- 
+from .base import ConfigurableTransformer
 
-class RevealHelpTransformer(ConfigurableTransformers):
+class RevealHelpTransformer(ConfigurableTransformer):
 
     def __call__(self, nb, other):
         for worksheet in nb.worksheets :

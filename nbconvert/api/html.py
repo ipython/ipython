@@ -1,4 +1,4 @@
- """TODO: Docstring
+"""TODO: Docstring
 """
 
 #-----------------------------------------------------------------------------
@@ -16,27 +16,22 @@
 # local import
 import exporter
 import transformers.csshtmlheader
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 class HtmlExporter(exporter.Exporter):
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, full_html=True, **kw):
-        
-        #Call base class constructor.
-        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+    file_extension = Unicode(
+        'html', config=True, 
+        help="Extension of the file that should be written to disk"
+        )
 
-        #Set defaults
-        self.file_extension = "html"  
-        self.extract_figure_transformer.enabled = True
-        
-        #Load the correct template
-        if full_html:
-            self.template_file = "fullhtml"
-        else:
-            self.template_file = "basichtml"
-    
+    template_file = Unicode(
+            'fullhtml', config=True,
+            help="Name of the template file to use")
+
     def _register_transformers(self):
         
         #Register the transformers of the base class.
