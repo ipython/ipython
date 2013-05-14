@@ -10,7 +10,7 @@ class ActivatableTransformer(ConfigurableTransformer):
     c.YourTransformerName.enabled = True
     """
 
-    enabled = Bool(False, config=True)
+    enabled = Bool(True, config=True)
 
     def __call__(self, nb, other):
         if not self.enabled :

@@ -92,7 +92,7 @@ class NbconvertApp(Application):
 
         #Export
         output, resources, exporter = export_by_name(ipynb_file, export_type)
-
+        
         destination_filename = None
         destination_directory = None
         if exporter.write:
@@ -149,7 +149,7 @@ def main():
 
     app = NbconvertApp.instance()
     app.description = __doc__
-    app.run(argv=sys.argv)
+    app.start(argv=sys.argv)
 
 if __name__ == '__main__':
     main()

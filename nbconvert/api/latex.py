@@ -22,15 +22,15 @@ from jinja2 import Environment, FileSystemLoader
 # local import
 import exporter
 import nbconvert.filters.latex
-import nbconvert.filters.pygments
+import nbconvert.filters.highlight
 from nbconvert.transformers.latex import LatexTransformer
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
 
 #Latex Jinja2 constants
-LATEX_TEMPLATE_PATH = "/../templates/tex/"
-LATEX_TEMPLATE_SKELETON_PATH = "/../templates/tex/skeleton/"
+LATEX_TEMPLATE_PATH = "/../templates/latex/"
+LATEX_TEMPLATE_SKELETON_PATH = "/../templates/latex/skeleton/"
 
 #Special Jinja2 syntax that will not conflict when exporting latex.
 LATEX_JINJA_COMMENT_BLOCK = ["((=", "=))"]
@@ -50,13 +50,13 @@ class LatexExporter(exporter.Exporter):
         help="Extension of the file that should be written to disk")
 
     template_file = Unicode(
-            'latex_base', config=True,
+            'base', config=True,
             help="Name of the template file to use")
     
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
         
         #Call base class constructor.
-        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+        super(LatexExporter, self).__init__(preprocessors, jinja_filters, config, **kw)
         
         self.extract_figure_transformer.display_data_priority = ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
         self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
@@ -83,16 +83,16 @@ class LatexExporter(exporter.Exporter):
     def _register_filters(self):
         
         #Register the filters of the base class.
-        super(exporter.Exporter, self)._register_filters()
+        super(LatexExporter, self)._register_filters()
 
         #Add latex filters to the Jinja2 environment
-        self.register_filter('escape_tex', filters.latex.escape_tex) 
-        self.register_filter('highlight', filters.pygments.highlight2latex) 
+        self.register_filter('escape_tex', nbconvert.filters.latex.escape_tex) 
+        self.register_filter('highlight', nbconvert.filters.highlight.highlight2latex) 
     
     def _register_transformers(self):
         
         #Register the transformers of the base class.
-        super(exporter.Exporter, self)._register_transformers()
+        super(LatexExporter, self)._register_transformers()
         
         #Register latex transformer
         self.register_transformer(LatexTransformer)

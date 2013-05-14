@@ -1,3 +1,9 @@
+
+from  pygments import highlight as pygements_highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import HtmlFormatter
+from pygments.formatters import LatexFormatter
+
 # Our own imports
 from nbconvert.utils.lexers import IPythonLexer
 
@@ -14,26 +20,22 @@ def highlight(src, lang='ipython'):
     """
     Return a syntax-highlighted version of the input source as html output.
     """
-    from pygments.formatters import HtmlFormatter
-    return pygment_highlight(src, HtmlFormatter(), lang)
+    
+    return _pygment_highlight(src, HtmlFormatter(), lang)
 
 def highlight2latex(src, lang='ipython'):
     """
     Return a syntax-highlighted version of the input source as latex output.
     """
-    from pygments.formatters import LatexFormatter
-    return pygment_highlight(src, LatexFormatter(), lang)
+    return _pygment_highlight(src, LatexFormatter(), lang)
 
-def pygment_highlight(src, output_formatter, lang='ipython'):
+def _pygment_highlight(src, output_formatter, lang='ipython'):
     """
     Return a syntax-highlighted version of the input source
     """
-    from pygments import highlight
-    from pygments.lexers import get_lexer_by_name
-
     if lang == 'ipython':
         lexer = IPythonLexer()
     else:
         lexer = get_lexer_by_name(lang, stripall=True)
 
-    return highlight(src, lexer, output_formatter) 
+    return pygements_highlight(src, lexer, output_formatter) 

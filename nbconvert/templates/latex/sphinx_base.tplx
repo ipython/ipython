@@ -3,7 +3,7 @@
 Purpose: Allow export of PDF friendly Latex inspired by Sphinx.  Most of the
        template is derived directly from Sphinx source.
 
-Inheritance: null>display_priority>latex_base 
+Inheritance: null>display_priority 
 
 Note: For best display, use latex syntax highlighting. =))
 

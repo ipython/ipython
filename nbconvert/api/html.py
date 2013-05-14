@@ -35,7 +35,7 @@ class HtmlExporter(exporter.Exporter):
     def _register_transformers(self):
         
         #Register the transformers of the base class.
-        super(exporter.Exporter, self)._register_transformers()
+        super(HtmlExporter, self)._register_transformers()
         
         #Register latex transformer
         self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)

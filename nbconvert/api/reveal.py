@@ -34,8 +34,8 @@ class RevealExporter(html.HtmlExporter):
     def _register_transformers(self):
         
         #Register the transformers of the base class.
-        super(html_exporter.HtmlExporter, self)._register_transformers()
+        super(RevealExporter, self)._register_transformers()
         
         #Register reveal help transformer
-        self.register_transformer(transformers.revealhelp.RevealHelpTransformer)
+        self.register_transformer(nbconvert.transformers.revealhelp.RevealHelpTransformer)
         

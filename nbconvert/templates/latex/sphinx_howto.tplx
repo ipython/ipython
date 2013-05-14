@@ -8,7 +8,7 @@
 
   ==========================================================================))
 
-((*- extends 'latex_sphinx_base.tplx' -*))
+((*- extends 'sphinx_base.tplx' -*))
 
 ((* set parentdocumentclass = 'article' *))
 ((* set documentclass = 'howto' *))

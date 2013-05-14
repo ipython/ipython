@@ -39,7 +39,7 @@ import nbconvert.filters.strings
 import nbconvert.filters.markdown
 import nbconvert.filters.latex
 import nbconvert.filters.datatypefilter
-import nbconvert.filters.pygments
+import nbconvert.filters.highlight
 import nbconvert.filters.ansi
 
 import nbconvert.transformers.extractfigure
@@ -184,9 +184,9 @@ class Exporter(Configurable):
         self.register_filter('ansi2html', nbconvert.filters.ansi.ansi2html)
         self.register_filter('filter_data_type', nbconvert.filters.datatypefilter.DataTypeFilter)
         self.register_filter('get_lines', nbconvert.filters.strings.get_lines)
-        self.register_filter('highlight', nbconvert.filters.pygments.highlight)
-        self.register_filter('highlight2html', nbconvert.filters.pygments.highlight) 
-        self.register_filter('highlight2latex', nbconvert.filters.pygments.highlight2latex)
+        self.register_filter('highlight', nbconvert.filters.highlight.highlight)
+        self.register_filter('highlight2html', nbconvert.filters.highlight.highlight) 
+        self.register_filter('highlight2latex', nbconvert.filters.highlight.highlight2latex)
         self.register_filter('markdown2latex', nbconvert.filters.markdown.markdown2latex)
         self.register_filter('markdown2rst', nbconvert.filters.markdown.markdown2rst)
         self.register_filter('pycomment', nbconvert.filters.strings.python_comment)

@@ -33,7 +33,7 @@ class PythonExporter(exporter.Exporter):
     def __init__(self, preprocessors=None, jinja_filters=None, config=None, armor=False, **kw):
         
         #Call base class constructor.
-        super(exporter.Exporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+        super(PythonExporter, self).__init__(preprocessors, jinja_filters, config, **kw)
 
         #Set defaults
         self.extract_figure_transformer.enabled = False

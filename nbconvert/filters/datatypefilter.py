@@ -22,10 +22,9 @@ class DataTypeFilter(object):
     display_data_priority = None
 
     def __init__(self, display_data_priority):
-        super(object, self).__init__()
         
         #Make sure that the display data priority variably is not None.
-        if self.display_data_priority is None:
+        if display_data_priority is None:
             raise TypeError
         else:
             self.display_data_priority = display_data_priority
