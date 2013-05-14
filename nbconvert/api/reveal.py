@@ -14,14 +14,14 @@
 #-----------------------------------------------------------------------------
 
 # local import
-import html_exporter
-import transformers.revealhelp
+import html
+import nbconvert.transformers.revealhelp
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class RevealExporter(html_exporter.HtmlExporter):
+class RevealExporter(html.HtmlExporter):
 
     file_extension = Unicode(
         'reveal.html', config=True, 

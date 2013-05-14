@@ -29,21 +29,4 @@ class RstExporter(exporter.Exporter):
     template_file = Unicode(
             'rst', config=True,
             help="Name of the template file to use")
-    
-    def _register_filters(self):
-        
-        #Register the filters of the base class.
-        super(exporter.Exporter, self)._register_filters()
-
-        #Add latex filters to the Jinja2 environment
-        #self.register_filter('escape_tex', filters.latex.escape_tex)  
-
-    
-    def _register_transformers(self):
-        
-        #Register the transformers of the base class.
-        super(exporter.Exporter, self)._register_transformers()
-        
-        #Register latex transformer
-        #self.register_transformer(LatexTransformer)
                     

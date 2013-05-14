@@ -19,7 +19,7 @@ from __future__ import print_function, absolute_import
 # Our own imports
 # Needed to override transformer
 from .activatable import (ActivatableTransformer)
-from filters import latex
+from nbconvert.filters import latex
 
 #-----------------------------------------------------------------------------
 # Classes

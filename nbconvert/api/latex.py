@@ -21,9 +21,9 @@ from jinja2 import Environment, FileSystemLoader
 
 # local import
 import exporter
-import filters.latex
-import filters.pygments
-from transformers.latex import LatexTransformer
+import nbconvert.filters.latex
+import nbconvert.filters.pygments
+from nbconvert.transformers.latex import LatexTransformer
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------

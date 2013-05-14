@@ -32,22 +32,23 @@ def export(nb, config=None, transformers=None, filters=None, exporter_type=Expor
     #Check arguments
     if exporter_type is None:
         raise TypeError("Exporter is None")
-    elif not isinstance(exporter_type, Exporter):
+    elif not issubclass(exporter_type, Exporter):
         raise TypeError("Exporter type does not inherit from Exporter (base)")
     
     if nb is None:
         raise TypeError("nb is None")
     
     #Create the exporter
-    exporter_instance = exporter_type(transformers, filters, config)
+    exporter_instance = exporter_type(preprocessors=transformers, jinja_filters=filters, config=config)
 
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
-        return exporter_instance.from_notebook_node(nb), exporter_instance
-    elif isinstance(nb, str):
-        return exporter_instance.from_filename(nb), exporter_instance
+        output, resources = exporter_instance.from_notebook_node(nb)
+    elif isinstance(nb, basestring):
+        output, resources = exporter_instance.from_filename(nb)
     else:
-        return exporter_instance.from_file(nb), exporter_instance
+        output, resources = exporter_instance.from_file(nb)
+    return output, resources, exporter_instance
 
 
 def export_sphinx(nb, config=None, transformers=None, filters=None):

@@ -35,15 +35,15 @@ from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 
 # local import
-import filters.strings
-import filters.markdown
-import filters.latex
-import filters.datatypefilter
-import filters.pygments
-import filters.ansi
+import nbconvert.filters.strings
+import nbconvert.filters.markdown
+import nbconvert.filters.latex
+import nbconvert.filters.datatypefilter
+import nbconvert.filters.pygments
+import nbconvert.filters.ansi
 
-import transformers.extractfigure
-import transformers.coalescestreams
+import nbconvert.transformers.extractfigure
+import nbconvert.transformers.coalescestreams
 
 
 #-----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ class Exporter(Configurable):
         #Load user filters.  Overwrite existing filters if need be.
         if not jinja_filters is None:
             for key, user_filter in jinja_filters.iteritems():
-                if isinstance(user_filter, MetaHasTraits):
+                if issubclass(user_filter, MetaHasTraits):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
                     self.environment.filters[key] = user_filter
@@ -151,7 +151,7 @@ class Exporter(Configurable):
 
 
     def register_transformer(self, transformer):
-        if MetaHasTraits(transformer):
+        if isinstance(transformer, MetaHasTraits):
             transformer_instance = transformer(config=self.config)
             self.preprocessors.append(transformer_instance)
             return transformer_instance
@@ -161,7 +161,7 @@ class Exporter(Configurable):
 
 
     def register_filter(self, name, filter):
-        if MetaHasTraits(filter):
+        if isinstance(filter, MetaHasTraits):
             self.environment.filters[name] = filter(config=self.config)
         else:
             self.environment.filters[name] = filter
@@ -171,30 +171,30 @@ class Exporter(Configurable):
     # Protected and Private methods #########################################
     
     def _register_transformers(self):
-        self.register_transformer(transformers.coalescestreams.coalesce_streams)
+        self.register_transformer(nbconvert.transformers.coalescestreams.coalesce_streams)
         
         #Remember the figure extraction transformer so it can be enabled and
         #disabled easily later.
-        self.extract_figure_transformer = self.register_transformer(transformers.extractfigure.ExtractFigureTransformer)
+        self.extract_figure_transformer = self.register_transformer(nbconvert.transformers.extractfigure.ExtractFigureTransformer)
         
         
     def _register_filters(self):
         self.register_filter('indent', indent)
         self.register_filter('markdown', markdown)
-        self.register_filter('ansi2html', filters.ansi.ansi2html)
-        self.register_filter('filter_data_type', filters.datatypefilter.DataTypeFilter)
-        self.register_filter('get_lines', filters.strings.get_lines)
-        self.register_filter('highlight', filters.pygments.highlight)
-        self.register_filter('highlight2html', filters.pygments.highlight) 
-        self.register_filter('highlight2latex', filters.pygments.highlight2latex)
-        self.register_filter('markdown2latex', filters.markdown.markdown2latex)
-        self.register_filter('markdown2rst', filters.markdown.markdown2rst)
-        self.register_filter('pycomment', filters.strings.python_comment)
-        self.register_filter('rm_ansi', filters.ansi.remove_ansi)
-        self.register_filter('rm_dollars', filters.strings.strip_dollars)
-        self.register_filter('rm_fake', filters.strings.rm_fake)
-        self.register_filter('rm_math_space', filters.latex.rm_math_space)
-        self.register_filter('wrap', filters.strings.wrap)
+        self.register_filter('ansi2html', nbconvert.filters.ansi.ansi2html)
+        self.register_filter('filter_data_type', nbconvert.filters.datatypefilter.DataTypeFilter)
+        self.register_filter('get_lines', nbconvert.filters.strings.get_lines)
+        self.register_filter('highlight', nbconvert.filters.pygments.highlight)
+        self.register_filter('highlight2html', nbconvert.filters.pygments.highlight) 
+        self.register_filter('highlight2latex', nbconvert.filters.pygments.highlight2latex)
+        self.register_filter('markdown2latex', nbconvert.filters.markdown.markdown2latex)
+        self.register_filter('markdown2rst', nbconvert.filters.markdown.markdown2rst)
+        self.register_filter('pycomment', nbconvert.filters.strings.python_comment)
+        self.register_filter('rm_ansi', nbconvert.filters.ansi.remove_ansi)
+        self.register_filter('rm_dollars', nbconvert.filters.strings.strip_dollars)
+        self.register_filter('rm_fake', nbconvert.filters.strings.rm_fake)
+        self.register_filter('rm_math_space', nbconvert.filters.latex.rm_math_space)
+        self.register_filter('wrap', nbconvert.filters.strings.wrap)
         
         
     def _init_environment(self):

@@ -14,7 +14,7 @@
 # local import
 import latex
 from IPython.utils.traitlets import Unicode
-from transformers.sphinx import SphinxTransformer
+from nbconvert.transformers.sphinx import SphinxTransformer
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------

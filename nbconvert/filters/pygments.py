@@ -1,5 +1,5 @@
 # Our own imports
-from utils.lexers import IPythonLexer
+from nbconvert.utils.lexers import IPythonLexer
 
 #-----------------------------------------------------------------------------
 # Globals and constants

@@ -15,7 +15,7 @@
 
 # local import
 import exporter
-import transformers.csshtmlheader
+import nbconvert.transformers.csshtmlheader
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
@@ -38,5 +38,5 @@ class HtmlExporter(exporter.Exporter):
         super(exporter.Exporter, self)._register_transformers()
         
         #Register latex transformer
-        self.register_transformer(transformers.csshtmlheader.CSSHtmlHeaderTransformer)
+        self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)
                     
