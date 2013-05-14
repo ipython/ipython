@@ -81,7 +81,7 @@ class Exporter(Configurable):
     stdout = Bool(
         True, config=True,
         help="""Whether to print the converted IPYNB file to stdout
-        "use full do diff files without actually writing a new file"""
+        use full do diff files without actually writing a new file"""
         )
 
     write = Bool(
