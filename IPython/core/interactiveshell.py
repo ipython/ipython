@@ -2060,6 +2060,7 @@ class InteractiveShell(SingletonConfigurable):
         mman.register_alias('rep', 'recall')
         mman.register_alias('SVG', 'svg', 'cell')
         mman.register_alias('HTML', 'html', 'cell')
+        mman.register_alias('file', 'fwrite', 'cell')
 
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably
