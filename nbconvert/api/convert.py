@@ -13,14 +13,6 @@ they are converted.
 
 from .exporter import Exporter
 
-from .html import HtmlExporter
-from .latex import LatexExporter
-from .markdown import MarkdownExporter
-from .python import PythonExporter
-from .reveal import RevealExporter
-from .rst import RstExporter
-from .sphinx import SphinxExporter
-
 from IPython.nbformat.v3.nbbase import NotebookNode
 
 #-----------------------------------------------------------------------------
@@ -50,35 +42,10 @@ def export(nb, config=None, transformers=None, filters=None, exporter_type=Expor
         output, resources = exporter_instance.from_file(nb)
     return output, resources, exporter_instance
 
-
-def export_sphinx(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, SphinxExporter)
-
-def export_html(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, HtmlExporter)
-
-def export_latex(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, LatexExporter)
-
-def export_markdown(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, MarkdownExporter)
-
-def export_python(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, PythonExporter)
-
-def export_reveal(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, RevealExporter)
-
-def export_rst(nb, config=None, transformers=None, filters=None):
-    return export(nb, config, transformers, filters, RstExporter)
-
-EXPORT_FUNCTIONS = {"sphinx": export_sphinx,
-                    "html": export_html,
-                    "latex": export_latex,
-                    "markdown": export_markdown,
-                    "python": export_python,
-                    "reveal": export_reveal,
-                    "rst": export_rst}
+def load_class(template_name):
+    class_name = template_name[0].upper() + template_name[1:] + "Exporter"
+    module = __import__('nbconvert.api.' + template_name, fromlist=[class_name])                                       
+    return getattr(module, class_name)
 
 def export_by_name(nb, template_name, config=None, transformers=None, filters=None):
-    return EXPORT_FUNCTIONS[template_name](nb, config, transformers, filters)
+    return export(nb, config, transformers, filters, load_class(template_name))
