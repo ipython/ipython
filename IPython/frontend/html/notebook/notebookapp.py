@@ -65,8 +65,8 @@ from tornado import web
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 from .kernelmanager import MappingKernelManager
 from .handlers import (LoginHandler, LogoutHandler,
-    ProjectDashboardHandler, ProjectRedirectHandler, ProjectPathDashboardHandler, NewHandler, NamedNotebookHandler,
-    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
+    ProjectDashboardHandler, ProjectRedirectHandler, ProjectPathDashboardHandler, NewHandler, NewPathHandler,
+    NamedNotebookHandler, MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
     ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
     AuthenticatedFileHandler, NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler,
     MainClusterHandler, ClusterProfileHandler, ClusterActionHandler,
@@ -154,8 +154,9 @@ class NotebookWebApplication(web.Application):
             (r"/", ProjectRedirectHandler),
             (r"/login", LoginHandler),
             (r"/logout", LogoutHandler),
-            (r"/new", NewHandler),
+            (r"/notebooks/%s/new" % _notebook_path_regex, NewPathHandler),
             (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
+            (r"/notebooks/new", NewHandler),
             #(r"/%s/%s" % (_path_regex, _notebook_name_regex), NotebookRedirectHandler),
             #(r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
             (r"/kernels", MainKernelHandler),

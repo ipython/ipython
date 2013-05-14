@@ -385,12 +385,20 @@ class LogoutHandler(IPythonHandler):
                     message=message))
 
 
+class NewPathHandler(IPythonHandler):
+    
+    @web.authenticated
+    def get(self):
+        return None
+
+
 class NewHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
         notebook_id = self.notebook_manager.new_notebook()
         self.redirect('/' + urljoin(self.base_project_url, notebook_id))
+
 
 class NamedNotebookHandler(IPythonHandler):
 
