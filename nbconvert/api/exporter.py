@@ -23,6 +23,7 @@ from __future__ import print_function, absolute_import
 # Stdlib imports
 import io
 import os
+import inspect
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -151,20 +152,26 @@ class Exporter(Configurable):
 
 
     def register_transformer(self, transformer):
-        if isinstance(transformer, MetaHasTraits):
+        if inspect.isfunction(transformer):
+            self.preprocessors.append(transformer)
+            return transformer
+        elif isinstance(transformer, MetaHasTraits):
             transformer_instance = transformer(config=self.config)
             self.preprocessors.append(transformer_instance)
             return transformer_instance
         else:
-            self.preprocessors.append(transformer)
-            return transformer
+            transformer_instance = transformer()
+            self.preprocessors.append(transformer_instance)
+            return transformer_instance
 
 
     def register_filter(self, name, filter):
-        if isinstance(filter, MetaHasTraits):
+        if inspect.isfunction(filter):
+            self.environment.filters[name] = filter
+        elif isinstance(filter, MetaHasTraits):
             self.environment.filters[name] = filter(config=self.config)
         else:
-            self.environment.filters[name] = filter
+            self.environment.filters[name] = filter()
         return self.environment.filters[name]
 
 

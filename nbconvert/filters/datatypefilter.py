@@ -19,16 +19,7 @@ GlobalConfigurable.display_data_priority
 class DataTypeFilter(object):
     """ Returns the preferred display format """
 
-    display_data_priority = None
-
-    def __init__(self, display_data_priority):
-        
-        #Make sure that the display data priority variably is not None.
-        if display_data_priority is None:
-            raise TypeError
-        else:
-            self.display_data_priority = display_data_priority
-        
+    display_data_priority = ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']
 
     def __call__(self, output):
         """ Return the first available format in the priority """
