@@ -2055,7 +2055,8 @@ class InteractiveShell(SingletonConfigurable):
 
         # Register Magic Aliases
         mman = self.magics_manager
-        # surely, this can't be were magics aliases should be defined?
+        # FIXME: magic aliases should be defined by the Magics classes
+        # or in MagicsManager, not here
         mman.register_alias('ed', 'edit')
         mman.register_alias('hist', 'history')
         mman.register_alias('rep', 'recall')
