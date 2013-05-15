@@ -27,7 +27,7 @@ class ProjectDashboardHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        self.write(self.render_template('projectdashboard.html',
+        self.write(self.render_template('tree.html',
             project=self.project,
             project_component=self.project.split('/'),
         ))
