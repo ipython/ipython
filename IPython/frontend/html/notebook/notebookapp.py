@@ -134,20 +134,16 @@ class NotebookWebApplication(web.Application):
                  cluster_manager, log,
                  base_project_url, settings_overrides):
 
-        # Load the (URL pattern, handler) tuples for each component.
-        handlers = []
-        handlers.extend(load_handlers('base.handlers'))
-        handlers.extend(load_handlers('tree.handlers'))
-        handlers.extend(load_handlers('auth.login'))
-        handlers.extend(load_handlers('auth.logout'))
-        handlers.extend(load_handlers('notebooks.handlers'))
-        handlers.extend(load_handlers('kernels.apihandlers'))
-        handlers.extend(load_handlers('notebooks.apihandlers'))
-        handlers.extend(load_handlers('clusters.apihandlers'))
-        handlers.extend([
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
-        ])
+        settings = self.init_settings(
+            ipython_app, kernel_manager, notebook_manager, cluster_manager,
+            log, base_project_url, settings_overrides)
+        handlers = self.init_handlers(settings)
 
+        super(NotebookWebApplication, self).__init__(handlers, **settings)
+
+    def init_settings(self, ipython_app, kernel_manager, notebook_manager,
+                      cluster_manager, log,
+                      base_project_url, settings_overrides):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
@@ -189,15 +185,29 @@ class NotebookWebApplication(web.Application):
 
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
+        return settings
 
+    def init_handlers(self, settings):
+        # Load the (URL pattern, handler) tuples for each component.
+        handlers = []
+        handlers.extend(load_handlers('base.handlers'))
+        handlers.extend(load_handlers('tree.handlers'))
+        handlers.extend(load_handlers('auth.login'))
+        handlers.extend(load_handlers('auth.logout'))
+        handlers.extend(load_handlers('notebooks.handlers'))
+        handlers.extend(load_handlers('kernels.apihandlers'))
+        handlers.extend(load_handlers('notebooks.apihandlers'))
+        handlers.extend(load_handlers('clusters.apihandlers'))
+        handlers.extend([
+            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
+        ])
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
-            pattern = url_path_join(base_project_url, handler[0])
+            pattern = url_path_join(settings['base_project_url'], handler[0])
             new_handler = tuple([pattern] + list(handler[1:]))
             new_handlers.append(new_handler)
-
-        super(NotebookWebApplication, self).__init__(new_handlers, **settings)
+        return new_handlers
 
 
 
