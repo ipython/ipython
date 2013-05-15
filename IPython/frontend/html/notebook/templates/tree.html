@@ -1,13 +1,15 @@
-{% extends "base.html" %}
+{% extends "page.html" %}
 
 {% block title %}IPython Dashboard{% endblock %}
 
-{% block stylesheet %}
-    {{super()}}
-    <link rel="stylesheet" href="{{static_url("css/alternateuploadform.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/style.min.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/projectdashboard.css") }}" type="text/css" />
-{% endblock %}
+{% block lesscss %}
+    {% if use_less %}
+        <link rel="stylesheet/less" href="{{ static_url("tree/less/style.less") }}" type="text/css" />
+    {% else %}
+        <link rel="stylesheet" href="{{ static_url("tree/css/style.min.css") }}" type="text/css"/>
+    {% endif %}
+{% endblock lesscss%}
+
 
 
 {% block params %}
@@ -84,7 +86,7 @@ data-read-only={{read_only}}
 
 {% block script %}
     {{super()}}
-    <script src="{{static_url("js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{static_url("js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
-    <script src="{{static_url("js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("tree/js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("tree/js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script src="{{static_url("tree/js/projectdashboardmain.js") }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}

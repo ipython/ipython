@@ -12,7 +12,7 @@
     <title>{% block title %}IPython Notebook{% endblock %}</title>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("ipython/base/css/boilerplate.css") }}" type="text/css" />
+    <link rel="stylesheet" href="{{static_url("base/css/boilerplate.css") }}" type="text/css" />
     {% block stylesheet %}
     {% block lesscss %}
     {% endblock lesscss%}
@@ -28,7 +28,7 @@
 <body {% block params %}{% endblock %}>
 
 <div id="header">
-    <span id="ipython_notebook"><div><a href="{{base_project_url}}" alt='dashboard'><img src='{{static_url("ipynblogo.png") }}' alt='IPython Notebook'/></a></div></span>
+    <span id="ipython_notebook"><div><a href="{{base_project_url}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div></span>
 
     {% block login_widget %}
 
@@ -53,9 +53,9 @@
 
 <script src="{{static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("ipython/base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("ipython/base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("ipython/auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% block script %}
     {% if use_less %}

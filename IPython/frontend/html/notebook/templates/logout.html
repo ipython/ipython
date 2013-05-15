@@ -1,10 +1,13 @@
-{% extends "base.html" %}
+{% extends "page.html" %}
 
-{% block stylesheet %}
+{% block lesscss %}
+    {% if use_less %}
+        <link rel="stylesheet/less" href="{{ static_url("auth/less/style.less") }}" type="text/css" />
+    {% else %}
+        <link rel="stylesheet" href="{{ static_url("auth/css/style.min.css") }}" type="text/css"/>
+    {% endif %}
+{% endblock lesscss%}
 
-<link rel="stylesheet" href="{{static_url("css/logout.css") }}" type="text/css"/>
-
-{% endblock %}
 
 
 {% block login_widget %}
@@ -35,6 +38,6 @@
 
 {% block script %}
 
-<script src="{{static_url("js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("auth/js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
