@@ -348,22 +348,31 @@ def cellmagic(end_on_blank_line=False):
         line = tpl % (magic_name, first, u'\n'.join(body))
 
 
-def _strip_prompts(prompt1_re, prompt2_re):
+def _strip_prompts(prompt_re):
     """Remove matching input prompts from a block of input."""
     line = ''
     while True:
         line = (yield line)
         
+        # First line of cell
         if line is None:
             continue
+        out, n1 = prompt_re.subn('', line, count=1)
+        line = (yield out)
         
-        m = prompt1_re.match(line)
-        if m:
-            while m:
-                line = (yield line[len(m.group(0)):])
-                if line is None:
-                    break
-                m = prompt2_re.match(line)
+        # Second line of cell, because people often copy from just after the
+        # first prompt, so we might not see it in the first line.
+        if line is None:
+            continue
+        out, n2 = prompt_re.subn('', line, count=1)
+        line = (yield out)
+        
+        if n1 or n2:
+            # Found the input prompt in the first two lines - check for it in
+            # the rest of the cell as well.
+            while line is not None:
+                line = (yield prompt_re.sub('', line, count=1))
+        
         else:
             # Prompts not in input - wait for reset
             while line is not None:
@@ -372,16 +381,14 @@ def _strip_prompts(prompt1_re, prompt2_re):
 @CoroutineInputTransformer.wrap
 def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
-    prompt1_re = re.compile(r'^(>>> )')
-    prompt2_re = re.compile(r'^(>>> |^\.\.\. )')
-    return _strip_prompts(prompt1_re, prompt2_re)
+    prompt_re = re.compile(r'^(>>> |^\.\.\. )')
+    return _strip_prompts(prompt_re)
 
 @CoroutineInputTransformer.wrap
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
-    prompt1_re = re.compile(r'^In \[\d+\]: ')
-    prompt2_re = re.compile(r'^(In \[\d+\]: |^\ \ \ \.\.\.+: )')
-    return _strip_prompts(prompt1_re, prompt2_re)
+    prompt_re = re.compile(r'^(In \[\d+\]: |^\ \ \ \.\.\.+: )')
+    return _strip_prompts(prompt_re)
 
 
 @CoroutineInputTransformer.wrap
