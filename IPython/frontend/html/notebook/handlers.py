@@ -795,12 +795,12 @@ class NotebookCheckpointsHandler(IPythonHandler):
         """post creates a new checkpoint"""
         nbm = self.notebook_manager
         self.log.info(notebook_path)
-        name = nbm.named_notebook_path(notebook_path)
+        name, path = nbm.named_notebook_path(notebook_path)
         self.log.info("HI " + name)
         checkpoint = nbm.create_checkpoint(name)
         data = jsonapi.dumps(checkpoint, default=date_default)
         self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
-            self.base_project_url, notebook_name, checkpoint['checkpoint_id']
+            self.base_project_url, name, checkpoint['checkpoint_id']
         ))
         
         self.finish(data)

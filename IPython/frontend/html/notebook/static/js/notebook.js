@@ -1819,7 +1819,7 @@ var IPython = (function (IPython) {
      * @method list_checkpoint
      */
     Notebook.prototype.list_checkpoints = function () {
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints';
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints';
         $.get(url).done(
             $.proxy(this.list_checkpoints_success, this)
         ).fail(
@@ -1863,7 +1863,7 @@ var IPython = (function (IPython) {
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints';
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints';
         $.post(url).done(
             $.proxy(this.create_checkpoint_success, this)
         ).fail(
@@ -1949,7 +1949,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints/' + checkpoint;
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -1990,7 +1990,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints/' + checkpoint;
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),
