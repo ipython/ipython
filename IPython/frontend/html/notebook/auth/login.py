@@ -22,7 +22,7 @@ from tornado.escape import url_escape
 
 from IPython.lib.security import passwd_check
 
-from .base import IPythonHandler
+from ..base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Handler

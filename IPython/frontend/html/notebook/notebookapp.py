@@ -62,33 +62,14 @@ from tornado import web
 
 # Our own libraries
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
-from .kernelmanager import MappingKernelManager
 
-from .handlers.clustersapi import (
-    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler
-)
-from .handlers.kernelsapi import (
-    MainKernelHandler, KernelHandler, KernelActionHandler,
-    IOPubHandler, StdinHandler, ShellHandler
-)
-from .handlers.notebooksapi import (
-    NotebookRootHandler, NotebookHandler,
-    NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler
-)
-from .handlers.tree import ProjectDashboardHandler
-from .handlers.login import LoginHandler
-from .handlers.logout import LogoutHandler
-from .handlers.notebooks import (
-    NewHandler, NamedNotebookHandler, 
-    NotebookCopyHandler, NotebookRedirectHandler
-)
+from .kernels.kernelmanager import MappingKernelManager
+from .notebooks.nbmanager import NotebookManager
+from .notebooks.filenbmanager import FileNotebookManager
+from .clusters.clustermanager import ClusterManager
 
-from .handlers.base import AuthenticatedFileHandler
-from .handlers.files import FileFindHandler
-
-from .nbmanager import NotebookManager
-from .filenbmanager import FileNotebookManager
-from .clustermanager import ClusterManager
+from .base.handlers import AuthenticatedFileHandler
+from .base.files import FileFindHandler
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
@@ -140,7 +121,7 @@ def random_ports(port, n):
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
-    name = 'IPython.frontend.html.notebook.handlers.' + name
+    name = 'IPython.frontend.html.notebook.' + name
     mod = __import__(name, fromlist=['default_handlers'])
     return mod.default_handlers
 
@@ -156,14 +137,14 @@ class NotebookWebApplication(web.Application):
 
         # Load the (URL pattern, handler) tuples for each component.
         handlers = []
-        handlers.extend(load_handlers('base'))
-        handlers.extend(load_handlers('tree'))
-        handlers.extend(load_handlers('login'))
-        handlers.extend(load_handlers('logout'))
-        handlers.extend(load_handlers('notebooks'))
-        handlers.extend(load_handlers('kernelsapi'))
-        handlers.extend(load_handlers('notebooksapi'))
-        handlers.extend(load_handlers('clustersapi'))
+        handlers.extend(load_handlers('base.handlers'))
+        handlers.extend(load_handlers('tree.handlers'))
+        handlers.extend(load_handlers('auth.login'))
+        handlers.extend(load_handlers('auth.logout'))
+        handlers.extend(load_handlers('notebooks.handlers'))
+        handlers.extend(load_handlers('kernels.handlers'))
+        handlers.extend(load_handlers('notebooks.apihandlers'))
+        handlers.extend(load_handlers('clusters.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
         ])
@@ -485,7 +466,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.filenbmanager.FileNotebookManager',
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.notebooks.filenbmanager.FileNotebookManager',
         config=True,
         help='The notebook manager class to use.')
 

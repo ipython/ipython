@@ -16,7 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import IPythonHandler
+from ..base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Handler

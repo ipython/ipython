@@ -27,7 +27,7 @@ from IPython.kernel.zmq.session import Session
 from IPython.utils.jsonutil import date_default
 from IPython.utils.py3compat import PY3
 
-from .base import IPythonHandler
+from ..base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Kernel handlers

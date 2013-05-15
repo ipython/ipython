@@ -16,7 +16,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import IPythonHandler, authenticate_unless_readonly
+from ..base.handlers import IPythonHandler, authenticate_unless_readonly
 
 #-----------------------------------------------------------------------------
 # Handlers

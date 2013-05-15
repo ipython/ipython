@@ -20,7 +20,7 @@ from tornado import web
 
 from zmq.utils import jsonapi
 
-from .base import IPythonHandler
+from ..base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Cluster handlers

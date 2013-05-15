@@ -20,7 +20,7 @@ import os
 from tornado import web
 HTTPError = web.HTTPError
 
-from .base import IPythonHandler, authenticate_unless_readonly
+from ..base.handlers import IPythonHandler, authenticate_unless_readonly
 from ..utils import url_path_join
 
 #-----------------------------------------------------------------------------
