@@ -26,7 +26,7 @@ from pprint import pformat
 from IPython.core import magic_arguments
 from IPython.core import oinspect
 from IPython.core import page
-from IPython.core.error import UsageError
+from IPython.core.error import UsageError, StdinNotImplementedError
 from IPython.core.magic import  (
     Magics, compress_dhist, magics_class, line_magic, cell_magic, line_cell_magic
 )
@@ -698,6 +698,10 @@ class OSMagics(Magics):
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument(
+        '-o', '--overwrite', action='store_true', default=False,
+        help='Overwrite the file if it exists (avoids prompt).'
+    )
+    @magic_arguments.argument(
         '-a', '--append', action='store_true', default=False,
         help='Append contents of the cell to an existing file. '
              'The file will be created if it does not exist.'
@@ -710,7 +714,8 @@ class OSMagics(Magics):
     def writefile(self, line, cell):
         """Write the contents of the cell to a file.
         
-        The file will be overwritten unless the -a (--append) flag is specified.
+        If the file already exists, you will be prompted for overwrite
+        unless the -a (--append) or -o (--overwrite) flag is specified.
         """
         args = magic_arguments.parse_argstring(self.writefile, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
@@ -718,6 +723,18 @@ class OSMagics(Magics):
         if os.path.exists(filename):
             if args.append:
                 print "Appending to %s" % filename
+            elif not args.overwrite:
+                try:
+                    ans = self.shell.ask_yes_no("Overwrite %s (y/[n])? " % filename, default='n')
+                except StdinNotImplementedError:
+                    print "stdin not supported, use `--overwrite` to force overwrite"
+                    return
+                
+                if ans:
+                    print "Overwriting %s" % filename
+                else:
+                    print "Nothing to do"
+                    return
             else:
                 print "Overwriting %s" % filename
         else:
