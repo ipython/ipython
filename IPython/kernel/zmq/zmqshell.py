@@ -472,27 +472,6 @@ class KernelMagics(Magics):
         else:
             print("Autosave disabled")
 
-def safe_unicode(e):
-    """unicode(e) with various fallbacks. Used for exceptions, which may not be
-    safe to call unicode() on.
-    """
-    try:
-        return unicode(e)
-    except UnicodeError:
-        pass
-
-    try:
-        return py3compat.str_to_unicode(str(e))
-    except UnicodeError:
-        pass
-
-    try:
-        return py3compat.str_to_unicode(repr(e))
-    except UnicodeError:
-        pass
-
-    return u'Unrecoverably corrupt evalue'
-
 
 class ZMQInteractiveShell(InteractiveShell):
     """A subclass of InteractiveShell for ZMQ."""
@@ -572,7 +551,7 @@ class ZMQInteractiveShell(InteractiveShell):
         exc_content = {
             u'traceback' : stb,
             u'ename' : unicode(etype.__name__),
-            u'evalue' : safe_unicode(evalue)
+            u'evalue' : py3compat.safe_unicode(evalue),
         }
 
         dh = self.displayhook
