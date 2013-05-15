@@ -68,8 +68,7 @@ from .notebooks.nbmanager import NotebookManager
 from .notebooks.filenbmanager import FileNotebookManager
 from .clusters.clustermanager import ClusterManager
 
-from .base.handlers import AuthenticatedFileHandler
-from .base.files import FileFindHandler
+from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
@@ -142,9 +141,9 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('auth.login'))
         handlers.extend(load_handlers('auth.logout'))
         handlers.extend(load_handlers('notebooks.handlers'))
-        handlers.extend(load_handlers('kernels.handlers'))
+        handlers.extend(load_handlers('kernels.apihandlers'))
         handlers.extend(load_handlers('notebooks.apihandlers'))
-        handlers.extend(load_handlers('clusters.handlers'))
+        handlers.extend(load_handlers('clusters.apihandlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
         ])
