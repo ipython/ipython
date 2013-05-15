@@ -26,8 +26,6 @@ import os
 import stat
 import threading
 
-import logging
-
 from tornado import web
 from tornado import websocket
 
