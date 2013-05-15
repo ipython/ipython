@@ -12,18 +12,12 @@
     <title>{% block title %}IPython Notebook{% endblock %}</title>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("jquery/css/themes/base/jquery-ui.min.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/boilerplate.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("css/page.css") }}" type="text/css"/>
+    <link rel="stylesheet" href="{{static_url("ipython/base/css/boilerplate.css") }}" type="text/css" />
     {% block stylesheet %}
     {% block lesscss %}
-        {% if use_less %}
-            <link rel="stylesheet/less" href="{{ static_url("less/style.less") }}" type="text/css" />
-        {% else %}
-            <link rel="stylesheet" href="{{ static_url("css/style.min.css") }}" type="text/css"/>
-        {% endif %}
     {% endblock lesscss%}
     {% endblock %}
-    <link rel="stylesheet" href="{{ static_url("css/custom.css") }}" type="text/css" />
+    <!-- <link rel="stylesheet" href="{{ static_url("css/custom.css") }}" type="text/css" /> -->
 
 
     {% block meta %}
@@ -59,9 +53,9 @@
 
 <script src="{{static_url("jquery/js/jquery-1.7.1.min.js") }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{static_url("jquery/js/jquery-ui.min.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("js/page.js") }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{static_url("js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("ipython/base/js/namespace.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("ipython/base/js/page.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("ipython/auth/js/loginwidget.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% block script %}
     {% if use_less %}
@@ -69,7 +63,7 @@
     {% endif %}
 {% endblock %}
 
-<script src="{{static_url("js/custom.js") }}" type="text/javascript" charset="utf-8"></script>
+<!-- <script src="{{static_url("js/custom.js") }}" type="text/javascript" charset="utf-8"></script> -->
 
 </body>
 
