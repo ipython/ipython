@@ -2055,11 +2055,14 @@ class InteractiveShell(SingletonConfigurable):
 
         # Register Magic Aliases
         mman = self.magics_manager
+        # FIXME: magic aliases should be defined by the Magics classes
+        # or in MagicsManager, not here
         mman.register_alias('ed', 'edit')
         mman.register_alias('hist', 'history')
         mman.register_alias('rep', 'recall')
         mman.register_alias('SVG', 'svg', 'cell')
         mman.register_alias('HTML', 'html', 'cell')
+        mman.register_alias('file', 'writefile', 'cell')
 
         # FIXME: Move the color initialization to the DisplayHook, which
         # should be split into a prompt manager and displayhook. We probably

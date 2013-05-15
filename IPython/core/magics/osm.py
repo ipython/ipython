@@ -707,12 +707,12 @@ class OSMagics(Magics):
         help='file to write'
     )
     @cell_magic
-    def file(self, line, cell):
+    def writefile(self, line, cell):
         """Write the contents of the cell to a file.
         
         The file will be overwritten unless the -a (--append) flag is specified.
         """
-        args = magic_arguments.parse_argstring(self.file, line)
+        args = magic_arguments.parse_argstring(self.writefile, line)
         filename = os.path.expanduser(unquote_filename(args.filename))
         
         if os.path.exists(filename):
