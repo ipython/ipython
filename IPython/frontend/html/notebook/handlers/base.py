@@ -274,3 +274,11 @@ class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     @authenticate_unless_readonly
     def get(self, path):
         return web.StaticFileHandler.get(self, path)
+
+
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+default_handlers = []

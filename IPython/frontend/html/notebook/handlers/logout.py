@@ -34,3 +34,11 @@ class LogoutHandler(IPythonHandler):
                        'is disabled.'}
         self.write(self.render_template('logout.html',
                     message=message))
+
+
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+default_handlers = [(r"/logout", LogoutHandler)]

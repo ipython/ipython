@@ -28,7 +28,6 @@ from .base import IPythonHandler
 # Handler
 #-----------------------------------------------------------------------------
 
-
 class LoginHandler(IPythonHandler):
 
     def _render(self, message=None):
@@ -55,3 +54,9 @@ class LoginHandler(IPythonHandler):
         self.redirect(self.get_argument('next', default=self.base_project_url))
 
 
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+default_handlers = [(r"/login", LoginHandler)]

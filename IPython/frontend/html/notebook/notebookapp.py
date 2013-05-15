@@ -115,14 +115,6 @@ from .utils import url_path_join
 # Module globals
 #-----------------------------------------------------------------------------
 
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
-_kernel_action_regex = r"(?P<action>restart|interrupt)"
-_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
-_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
-_checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
-_profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
-_cluster_action_regex = r"(?P<action>start|stop)"
-
 _examples = """
 ipython notebook                       # start the notebook
 ipython notebook --profile=sympy       # use the sympy profile
@@ -146,6 +138,12 @@ def random_ports(port, n):
     for i in range(n-5):
         yield port + random.randint(-2*n, 2*n)
 
+def load_handlers(name):
+    """Load the (URL pattern, handler) tuples for each component."""
+    name = 'IPython.frontend.html.notebook.handlers.' + name
+    mod = __import__(name, fromlist=['default_handlers'])
+    return mod.default_handlers
+
 #-----------------------------------------------------------------------------
 # The Tornado web application
 #-----------------------------------------------------------------------------
@@ -155,31 +153,20 @@ class NotebookWebApplication(web.Application):
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
                  cluster_manager, log,
                  base_project_url, settings_overrides):
-        handlers = [
-            (r"/", ProjectDashboardHandler),
-            (r"/login", LoginHandler),
-            (r"/logout", LogoutHandler),
-            (r"/new", NewHandler),
-            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
-            (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
-            (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
-            (r"/kernels", MainKernelHandler),
-            (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
-            (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
-            (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
-            (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
-            (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
-            (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
-            (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
-            (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
-                ModifyNotebookCheckpointsHandler
-            ),
+
+        # Load the (URL pattern, handler) tuples for each component.
+        handlers = []
+        handlers.extend(load_handlers('base'))
+        handlers.extend(load_handlers('tree'))
+        handlers.extend(load_handlers('login'))
+        handlers.extend(load_handlers('logout'))
+        handlers.extend(load_handlers('notebooks'))
+        handlers.extend(load_handlers('kernelsapi'))
+        handlers.extend(load_handlers('notebooksapi'))
+        handlers.extend(load_handlers('clustersapi'))
+        handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
-            (r"/clusters", MainClusterHandler),
-            (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
-            (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
-        ]
+        ])
 
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn

@@ -134,5 +134,23 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
         self.finish()
 
 
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
+_checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
+
+default_handlers = [
+    (r"/notebooks", NotebookRootHandler),
+    (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
+    (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
+    (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
+        ModifyNotebookCheckpointsHandler
+    ),
+]
+
+
 
 

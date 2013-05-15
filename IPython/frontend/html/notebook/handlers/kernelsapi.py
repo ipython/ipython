@@ -244,8 +244,28 @@ class IOPubHandler(ZMQChannelHandler):
         """IOPub messages make no sense"""
         pass
 
+
 class ShellHandler(ZMQChannelHandler):
     channel = 'shell'
 
+
 class StdinHandler(ZMQChannelHandler):
     channel = 'stdin'
+
+
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
+_kernel_action_regex = r"(?P<action>restart|interrupt)"
+
+default_handlers = [
+    (r"/kernels", MainKernelHandler),
+    (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
+    (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
+    (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
+    (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
+    (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler)
+]

@@ -73,3 +73,19 @@ class NotebookCopyHandler(IPythonHandler):
         notebook_id = self.notebook_manager.copy_notebook(notebook_id)
         self.redirect(url_path_join(self.base_project_url, notebook_id))
 
+
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
+_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
+
+default_handlers = [
+    (r"/new", NewHandler),
+    (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
+    (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
+    (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
+
+]

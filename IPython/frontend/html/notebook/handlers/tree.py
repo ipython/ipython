@@ -31,3 +31,11 @@ class ProjectDashboardHandler(IPythonHandler):
             project=self.project,
             project_component=self.project.split('/'),
         ))
+
+
+#-----------------------------------------------------------------------------
+# URL to handler mappings
+#-----------------------------------------------------------------------------
+
+
+default_handlers = [(r"/", ProjectDashboardHandler)]
