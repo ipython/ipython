@@ -152,13 +152,15 @@ class NotebookWebApplication(web.Application):
             (r"/tree/%s" % _notebook_path_regex, ProjectPathDashboardHandler),
             (r"/tree", ProjectDashboardHandler),
             (r"/", ProjectRedirectHandler),
-            (r"/login", LoginHandler),
-            (r"/logout", LogoutHandler),
+            (r"/tree/login", LoginHandler),
+            (r"/tree/logout", LogoutHandler),
             (r"/notebooks/%s/new" % _notebook_path_regex, NewPathHandler),
-            (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
             (r"/notebooks/new", NewHandler),
-            #(r"/%s/%s" % (_path_regex, _notebook_name_regex), NotebookRedirectHandler),
-            #(r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
+            (r"/notebooks/%s/copy" % _notebook_path_regex, NotebookCopyHandler),
+            (r"/notebooks/%s/checkpoints" % _notebook_path_regex, NotebookCheckpointsHandler),
+            (r"/notebooks/%s/checkpoints/%s" % (_notebook_path_regex, _checkpoint_id_regex),
+                ModifyNotebookCheckpointsHandler),
+            (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
             (r"/kernels", MainKernelHandler),
             (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
             (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
@@ -167,14 +169,13 @@ class NotebookWebApplication(web.Application):
             (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
             (r"/api/notebooks/%s" % _notebook_path_regex, NotebookHandler),
             (r"/api/notebooks", NotebookRootHandler),
-            #(r"/notebooks/%s/checkpoints" % _notebook_id_path_regex, NotebookCheckpointsHandler),
-            #(r"/notebooks/%s/checkpoints/%s" % (_notebook_id_path_regex, _checkpoint_id_regex),
-            #    ModifyNotebookCheckpointsHandler
-            #),
+
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
             (r"/clusters", MainClusterHandler),
             (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
             (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
+            #(r"/%s/%s" % (_path_regex, _notebook_name_regex), NotebookRedirectHandler),
+            
         ]
 
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and

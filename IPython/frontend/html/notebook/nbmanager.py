@@ -152,7 +152,7 @@ class NotebookManager(LoggingConfigurable):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_new_notebook(self, data, name=None, format=u'json'):
+    def save_new_notebook(self, data, notebook_path = None, name=None, format=u'json'):
         """Save a new notebook and return its notebook_id.
 
         If a name is passed in, it overrides any values in the notebook data
@@ -173,10 +173,10 @@ class NotebookManager(LoggingConfigurable):
                 raise web.HTTPError(400, u'Missing notebook name')
         nb.metadata.name = name
 
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
+        return notebook_name
 
-    def save_notebook(self, notebook_name, data, name=None, format=u'json'):
+    def save_notebook(self, data, notebook_path=None, name=None, format=u'json'):
         """Save an existing notebook by notebook_id."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
@@ -188,13 +188,13 @@ class NotebookManager(LoggingConfigurable):
 
         if name is not None:
             nb.metadata.name = name
-        self.write_notebook_object(nb, notebook_name)
+        self.write_notebook_object(nb, name, notebook_path)
 
-    def write_notebook_object(self, nb, notebook_name=None):
-        """Write a notebook object and return its notebook_id.
+    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None):
+        """Write a notebook object and return its notebook_name.
 
-        If notebook_id is None, this method should create a new notebook_id.
-        If notebook_id is not None, this method should check to make sure it
+        If notebook_name is None, this method should create a new notebook_name.
+        If notebook_name is not None, this method should check to make sure it
         exists and is valid.
         """
         raise NotImplementedError('must be implemented in a subclass')
@@ -212,21 +212,21 @@ class NotebookManager(LoggingConfigurable):
         """
         return name
 
-    def new_notebook(self):
+    def new_notebook(self, notebook_path=None):
         """Create a new notebook and return its notebook_id."""
-        name = self.increment_filename('Untitled')
+        name = self.increment_filename('Untitled', notebook_path)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
-        notebook_name = self.write_notebook_object(nb)
+        notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def copy_notebook(self, notebook_name):
+    def copy_notebook(self, name, path):
         """Copy an existing notebook and return its notebook_id."""
-        last_mod, nb = self.read_notebook_object(notebook_name)
+        last_mod, nb = self.read_notebook_object(name, path)
         name = nb.metadata.name + '-Copy'
-        name = self.increment_filename(name)
+        name = self.increment_filename(name, path)
         nb.metadata.name = name
-        notebook_name = self.write_notebook_object(nb)
+        notebook_name = self.write_notebook_object(nb, notebook_path = path)
         return notebook_name
     
     # Checkpoint-related

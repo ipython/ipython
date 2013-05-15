@@ -388,16 +388,18 @@ class LogoutHandler(IPythonHandler):
 class NewPathHandler(IPythonHandler):
     
     @web.authenticated
-    def get(self):
-        return None
-
+    def get(self, notebook_path):
+        notebook_name = self.notebook_manager.new_notebook(notebook_path)
+        #self.log.info(path + " What's up!")
+        self.redirect('/' + urljoin(self.base_project_url,"notebooks", notebook_path, notebook_name))
+        
 
 class NewHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        notebook_id = self.notebook_manager.new_notebook()
-        self.redirect('/' + urljoin(self.base_project_url, notebook_id))
+        notebook_name = self.notebook_manager.new_notebook()
+        self.redirect('/' + urljoin(self.base_project_url, "notebooks", notebook_name))
 
 
 class NamedNotebookHandler(IPythonHandler):
@@ -681,11 +683,11 @@ class NotebookRootHandler(IPythonHandler):
         format = self.get_argument('format', default='json')
         name = self.get_argument('name', default=None)
         if body:
-            notebook_id = nbm.save_new_notebook(body, name=name, format=format)
+            notebook_name = nbm.save_new_notebook(body, name=name, format=format)
         else:
-            notebook_id = nbm.new_notebook()
-        self.set_header('Location', '{0}notebooks/{1}'.format(self.base_project_url, notebook_id))
-        self.finish(jsonapi.dumps(notebook_id))
+            notebook_name = nbm.new_notebook()
+        self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
+        self.finish(jsonapi.dumps(notebook_name))
 """        
 class NotebookPathHandler(IPythonHandler):
 
@@ -743,13 +745,30 @@ class NotebookHandler(IPythonHandler):
             self.finish(data)
 
     @web.authenticated
-    def put(self, notebook_id):
+    def put(self, notebook_path):
         nbm = self.notebook_manager
-        format = self.get_argument('format', default='json')
-        name = self.get_argument('name', default=None)
-        nbm.save_notebook(notebook_id, self.request.body, name=name, format=format)
-        self.set_status(204)
-        self.finish()
+        name, path = nbm.named_notebook_path(notebook_path)
+        self.log.info(name)
+        
+        if name == None:
+            body = self.request.body.strip()
+            format = self.get_argument('format', default='json')
+            name = self.get_argument('name', default=None)
+            if body:
+                notebook_name = nbm.save_new_notebook(body, notebook_path=path, name=name, format=format)
+            else:
+                notebook_name = nbm.new_notebook(notebook_path=path)
+            if path==None:
+                self.set_header('Location', nbm.notebook_dir + '/'+ notebook_name)
+            else:
+                self.set_header('Location', nbm.notebook_dir + '/'+ path + '/' + notebook_name)
+            self.finish(jsonapi.dumps(notebook_name))
+        else:            
+            format = self.get_argument('format', default='json')
+            name = self.get_argument('name', default=None)
+            nbm.save_notebook(self.request.body, notebook_path=path, name=name, format=format)
+            self.set_status(204)
+            self.finish()
 
     @web.authenticated
     def delete(self, notebook_id):
@@ -763,21 +782,25 @@ class NotebookCheckpointsHandler(IPythonHandler):
     SUPPORTED_METHODS = ('GET', 'POST')
     
     @web.authenticated
-    def get(self, notebook_id):
+    def get(self, notebook_path):
         """get lists checkpoints for a notebook"""
         nbm = self.notebook_manager
-        checkpoints = nbm.list_checkpoints(notebook_id)
+        name, path = nbm.named_notebook_path(notebook_path)
+        checkpoints = nbm.list_checkpoints(name)
         data = jsonapi.dumps(checkpoints, default=date_default)
         self.finish(data)
     
     @web.authenticated
-    def post(self, notebook_id):
+    def post(self, notebook_path):
         """post creates a new checkpoint"""
         nbm = self.notebook_manager
-        checkpoint = nbm.create_checkpoint(notebook_id)
+        self.log.info(notebook_path)
+        name = nbm.named_notebook_path(notebook_path)
+        self.log.info("HI " + name)
+        checkpoint = nbm.create_checkpoint(name)
         data = jsonapi.dumps(checkpoint, default=date_default)
         self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
-            self.base_project_url, notebook_id, checkpoint['checkpoint_id']
+            self.base_project_url, notebook_name, checkpoint['checkpoint_id']
         ))
         
         self.finish(data)
@@ -807,9 +830,14 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
 class NotebookCopyHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, notebook_id):
-        notebook_id = self.notebook_manager.copy_notebook(notebook_id)
-        self.redirect('/'+urljoin(self.base_project_url, notebook_id))
+    def get(self, notebook_path=None):
+        nbm = self.notebook_manager
+        name, path = nbm.named_notebook_path(notebook_path)
+        notebook_name = self.notebook_manager.copy_notebook(name, path)
+        if path==None:
+            self.redirect('/'+urljoin(self.base_project_url, "notebooks", notebook_name))
+        else:
+            self.redirect('/'+urljoin(self.base_project_url, "notebooks", path, notebook_name))
 
 
 #-----------------------------------------------------------------------------
