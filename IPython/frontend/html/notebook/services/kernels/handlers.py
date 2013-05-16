@@ -23,8 +23,8 @@ from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
 
-from ..base.handlers import IPythonHandler
-from ..base.zmqhandlers import AuthenticatedZMQStreamHandler
+from ...base.handlers import IPythonHandler
+from ...base.zmqhandlers import AuthenticatedZMQStreamHandler
 
 #-----------------------------------------------------------------------------
 # Kernel handlers

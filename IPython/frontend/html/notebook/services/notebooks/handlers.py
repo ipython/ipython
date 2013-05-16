@@ -22,7 +22,7 @@ from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
 
-from ..base.handlers import IPythonHandler, authenticate_unless_readonly
+from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 #-----------------------------------------------------------------------------
 # Notebook web service handlers

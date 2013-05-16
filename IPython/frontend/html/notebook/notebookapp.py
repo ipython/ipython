@@ -194,10 +194,10 @@ class NotebookWebApplication(web.Application):
         handlers.extend(load_handlers('tree.handlers'))
         handlers.extend(load_handlers('auth.login'))
         handlers.extend(load_handlers('auth.logout'))
-        handlers.extend(load_handlers('notebooks.handlers'))
-        handlers.extend(load_handlers('kernels.apihandlers'))
-        handlers.extend(load_handlers('notebooks.apihandlers'))
-        handlers.extend(load_handlers('clusters.apihandlers'))
+        handlers.extend(load_handlers('notebook.handlers'))
+        handlers.extend(load_handlers('services.kernels.handlers'))
+        handlers.extend(load_handlers('services.notebooks.handlers'))
+        handlers.extend(load_handlers('services.clusters.handlers'))
         handlers.extend([
             (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
         ])
