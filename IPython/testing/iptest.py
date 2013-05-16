@@ -303,7 +303,7 @@ def make_exclude():
         exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
 
     if not have['azure']:
-        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'azurenbmanager'))
+        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'notebooks', 'azurenbmanager'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
