@@ -302,6 +302,8 @@ def test_get_ipython_dir_8():
     try:
         path._writable_dir = lambda path: bool(path)
         path.get_xdg_dir = lambda: None
+        env.pop('IPYTHON_DIR', None)
+        env.pop('IPYTHONDIR', None)
         env['HOME'] = '/'
         nt.assert_equal(path.get_ipython_dir(), '/.ipython')
     finally:
