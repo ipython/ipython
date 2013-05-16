@@ -63,10 +63,10 @@ from tornado import web
 # Our own libraries
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
 
-from .kernels.kernelmanager import MappingKernelManager
-from .notebooks.nbmanager import NotebookManager
-from .notebooks.filenbmanager import FileNotebookManager
-from .clusters.clustermanager import ClusterManager
+from .services.kernels.kernelmanager import MappingKernelManager
+from .services.notebooks.nbmanager import NotebookManager
+from .services.notebooks.filenbmanager import FileNotebookManager
+from .services.clusters.clustermanager import ClusterManager
 
 from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
