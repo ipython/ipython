@@ -308,7 +308,7 @@ def get_ipython_dir():
                         " using a temp directory."%ipdir)
         ipdir = tempfile.mkdtemp()
     elif not os.path.exists(ipdir):
-        parent = ipdir.rsplit(os.path.sep, 1)[0]
+        parent, _ = os.path.split(ipdir)
         if not _writable_dir(parent):
             # ipdir does not exist and parent isn't writable
             warnings.warn("IPython parent '%s' is not a writable location,"
