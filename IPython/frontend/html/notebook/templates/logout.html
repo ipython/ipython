@@ -1,14 +1,5 @@
 {% extends "page.html" %}
 
-{% block lesscss %}
-    {% if use_less %}
-        <link rel="stylesheet/less" href="{{ static_url("auth/less/style.less") }}" type="text/css" />
-    {% else %}
-        <link rel="stylesheet" href="{{ static_url("auth/css/style.min.css") }}" type="text/css"/>
-    {% endif %}
-{% endblock lesscss%}
-
-
 
 {% block login_widget %}
 {% endblock %}

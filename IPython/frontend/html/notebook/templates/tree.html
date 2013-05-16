@@ -2,15 +2,6 @@
 
 {% block title %}IPython Dashboard{% endblock %}
 
-{% block lesscss %}
-    {% if use_less %}
-        <link rel="stylesheet/less" href="{{ static_url("tree/less/style.less") }}" type="text/css" />
-    {% else %}
-        <link rel="stylesheet" href="{{ static_url("tree/css/style.min.css") }}" type="text/css"/>
-    {% endif %}
-{% endblock lesscss%}
-
-
 
 {% block params %}
 

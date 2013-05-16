@@ -16,6 +16,11 @@
     <link rel="stylesheet" href="{{static_url("base/css/boilerplate.css") }}" type="text/css" />
     {% block stylesheet %}
     {% block lesscss %}
+	    {% if use_less %}
+	        <link rel="stylesheet/less" href="{{ static_url("style/style.less") }}" type="text/css" />
+	    {% else %}
+	        <link rel="stylesheet" href="{{ static_url("style/style.min.css") }}" type="text/css"/>
+	    {% endif %}
     {% endblock lesscss%}
     {% endblock %}
     <link rel="stylesheet" href="{{ static_url("user/css/custom.css") }}" type="text/css" />
