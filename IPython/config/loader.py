@@ -321,7 +321,11 @@ class PyFileConfigLoader(FileConfigLoader):
         def get_config():
             return self.config
 
-        namespace = dict(load_subconfig=load_subconfig, get_config=get_config)
+        namespace = dict(
+            load_subconfig=load_subconfig,
+            get_config=get_config,
+            __file__=self.full_filename,
+        )
         fs_encoding = sys.getfilesystemencoding() or 'ascii'
         conf_filename = self.full_filename.encode(fs_encoding)
         py3compat.execfile(conf_filename, namespace)
