@@ -17,14 +17,6 @@ window.mathjax_url = "{{mathjax_url}}";
 
 {% endblock %}
 
-{% block lesscss %}
-    {% if use_less %}
-        <link rel="stylesheet/less" href="{{ static_url("notebooks/less/style.less") }}" type="text/css" />
-    {% else %}
-        <link rel="stylesheet" href="{{ static_url("notebooks/css/style.min.css") }}" type="text/css"/>
-    {% endif %}
-{% endblock lesscss%}
-
 {% block params %}
 
 data-project={{project}}
