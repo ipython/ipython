@@ -1,10 +1,46 @@
+"""Filters for processing ANSI colors within Jinja templates.
+"""
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
+
 import re
 
-def remove_ansi(src):
-    return re.sub(r'\033\[(0|\d;\d\d)m', '', src)
+#-----------------------------------------------------------------------------
+# Classes and functions
+#-----------------------------------------------------------------------------
+
+def remove_ansi(source):
+    """
+    Remove ansi from text
+    
+    Parameters
+    ----------
+    source : str
+        Source to remove the ansi from
+    """
+    
+    return re.sub(r'\033\[(0|\d;\d\d)m', '', source)
 
 
-def ansi2html(txt):
+def ansi2html(text):
+    """
+    Conver ansi colors to html colors.
+    
+    Parameters
+    ----------
+    text : str
+        Text containing ansi colors to convert to html
+    """
+    
     ansi_colormap = {
         '30': 'ansiblack',
         '31': 'ansired',
@@ -18,7 +54,7 @@ def ansi2html(txt):
     }
 
     # do ampersand first
-    txt = txt.replace('&', '&amp;')
+    text = text.replace('&', '&amp;')
     html_escapes = {
         '<': '&lt;',
         '>': '&gt;',
@@ -28,10 +64,10 @@ def ansi2html(txt):
     }
     
     for c, escape in html_escapes.iteritems():
-        txt = txt.replace(c, escape)
+        text = text.replace(c, escape)
 
     ansi_re = re.compile('\x1b' + r'\[([\dA-Fa-f;]*?)m')
-    m = ansi_re.search(txt)
+    m = ansi_re.search(text)
     opened = False
     cmds = []
     opener = ''
@@ -52,10 +88,10 @@ def ansi2html(txt):
             opener = '<span class="%s">' % (' '.join(classes))
         else:
             opener = ''
-        txt = re.sub(ansi_re, closer + opener, txt, 1)
+        text = re.sub(ansi_re, closer + opener, text, 1)
 
-        m = ansi_re.search(txt)
+        m = ansi_re.search(text)
 
     if opened:
-        txt += '</span>'
-    return txt
+        text += '</span>'
+    return text

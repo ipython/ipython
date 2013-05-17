@@ -1,7 +1,6 @@
-"""Latex transformer.
+"""Latex filters.
 
-Module that allows latex output notebooks to be conditioned before
-they are converted.
+Module of useful filters for processing Latex within Jinja latex templates.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -33,16 +32,32 @@ LATEX_SUBS = (
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
-def escape_tex(value):
-    newval = value
+
+def escape_latex(text):
+    """
+    Escape characters that may conflict with latex.
+    
+    Parameters
+    ----------
+    text : str
+        Text containing characters that may conflict with Latex
+    """
+    return_text = text
     for pattern, replacement in LATEX_SUBS:
-        newval = pattern.sub(replacement, newval)
-    return newval
+        return_text = pattern.sub(replacement, return_text)
+    return return_text
     
     
 def rm_math_space(text):
     """
     Remove the space between latex math commands and enclosing $ symbols.
+    This filter is important because latex isn't as flexible as the notebook
+    front end when it comes to flagging math using ampersand symbols.
+    
+    Parameters
+    ----------
+    text : str
+        Text to filter.
     """
 
     # First, scan through the markdown looking for $.  If
