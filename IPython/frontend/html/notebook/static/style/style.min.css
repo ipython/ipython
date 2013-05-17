@@ -883,6 +883,27 @@ input.ui-button{padding:0.3em 0.9em;}
 span#login_widget{float:right;}
 #ipython-main-app{height:100px;width:350px;margin:50px auto;}
 #ipython-main-app{height:100px;width:200px;margin:50px auto;}
+.alternate_upload{background-color:none;display:inline;}
+.alternate_upload.form{padding:0;margin:0;}
+.alternate_upload input.fileinput{background-color:red;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;}
+#ipython-main-app{width:920px;margin:30px auto 0px auto;}
+#tabs{border-style:none;}
+#tab1,#tab2{padding:1em 0em;}
+.list_toolbar{padding:5px;height:25px;line-height:25px;}
+.toolbar_info{float:left;}
+.toolbar_buttons{float:right;}
+.list_header{height:25px;line-height:25px;padding:3px 5px;}
+.list_item{height:25px;line-height:25px;padding:3px 5px;}
+.notebook_item a{text-decoration:none;}
+.status_col{float:right;width:325px;}
+.engines_col{float:right;width:325px;}
+.action_col{float:right;}
+.item_buttons{float:right;}
+.item_buttons .upload_button{color:darkred;}
+.highlight_text{color:blue;}
+.ui-tabs .ui-tabs-nav li a{padding:.3em .5em;}
+#project_name>.breadcrumb{padding:0;background-color:transparent;}
+input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:90px;}
 pre code{display:block;padding:0.5em;}
 .highlight-base,pre code,pre .subst,pre .tag .title,pre .lisp .title,pre .clojure .built_in,pre .nginx .title{color:black;}
 .highlight-string,pre .string,pre .constant,pre .parent,pre .tag .value,pre .rules .value,pre .rules .value .number,pre .preprocessor,pre .ruby .symbol,pre .ruby .symbol .string,pre .aggregate,pre .template_tag,pre .django .variable,pre .smalltalk .class,pre .addition,pre .flow,pre .stream,pre .bash .variable,pre .apache .tag,pre .apache .cbracket,pre .tex .command,pre .tex .special,pre .erlang_repl .function_or_atom,pre .markdown .header{color:#BA2121;}
@@ -1052,24 +1073,3 @@ pre .coffeescript .javascript,pre .javascript .xml,pre .tex .formula,pre .xml .j
 .cm-s-ipython span.cm-error{color:#f00;}
 .cm-s-ipython span.cm-operator{color:#AA22FF;font-weight:bold;}
 .cm-s-ipython span.cm-meta{color:#AA22FF;}
-.alternate_upload{background-color:none;display:inline;}
-.alternate_upload.form{padding:0;margin:0;}
-.alternate_upload input.fileinput{background-color:red;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;}
-#ipython-main-app{width:920px;margin:30px auto 0px auto;}
-#tabs{border-style:none;}
-#tab1,#tab2{padding:1em 0em;}
-.list_toolbar{padding:5px;height:25px;line-height:25px;}
-.toolbar_info{float:left;}
-.toolbar_buttons{float:right;}
-.list_header{height:25px;line-height:25px;padding:3px 5px;}
-.list_item{height:25px;line-height:25px;padding:3px 5px;}
-.notebook_item a{text-decoration:none;}
-.status_col{float:right;width:325px;}
-.engines_col{float:right;width:325px;}
-.action_col{float:right;}
-.item_buttons{float:right;}
-.item_buttons .upload_button{color:darkred;}
-.highlight_text{color:blue;}
-.ui-tabs .ui-tabs-nav li a{padding:.3em .5em;}
-#project_name>.breadcrumb{padding:0;background-color:transparent;}
-input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:90px;}
