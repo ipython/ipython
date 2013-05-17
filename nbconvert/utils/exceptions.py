@@ -1,4 +1,4 @@
-"""Contains all of the exceptions used in NBConvert explicitly"""
+"""NbConvert specific exceptions"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -8,13 +8,9 @@
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-# Imports
-#-----------------------------------------------------------------------------
-from __future__ import print_function
-
-#-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
 class ConversionException(Exception):
     """An exception raised by the conversion process."""
 

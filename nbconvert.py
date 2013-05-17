@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """NBConvert is a utility for conversion of IPYNB files.
 
 Commandline interface for the NBConvert conversion utility.  Read the
@@ -26,15 +25,16 @@ import os
 #From IPython
 #All the stuff needed for the configurable things
 from IPython.config.application import Application
+from IPython.utils.traitlets import (Bool)
 
 #Local imports
 from nbconvert.api.convert import export_by_name
 from nbconvert.api.exporter import Exporter
+from nbconvert.transformers import extractfigure
 
 #-----------------------------------------------------------------------------
 #Globals and constants
 #-----------------------------------------------------------------------------
-NBCONVERT_DIR = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
 
 #'Keys in resources' user prompt.
 KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
@@ -46,56 +46,62 @@ the 'write' (boolean) flag of the converter.
 ===========================================================================
 """
 
-#Error Messages
-ERROR_CONFIG_NOT_FOUND = "Config file for profile '%s' not found, giving up."
-
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
-class NbconvertApp(Application):
-    """A basic application to convert ipynb files"""
 
-    aliases = {
-        'stdout':'NbconvertApp.stdout',
-        'write':'NbconvertApp.write'
-        }
+class NbConvertApp(Application):
+    """Application used to convert to and from notebook file type (*.ipynb)"""
 
-    flags = {}
-    flags['no-stdout'] = (
-        {'NbconvertApp' : {'stdout' : False}}, 
-        """Do not print converted file to stdout, equivalent to 
-        --stdout=False"""
+    stdout = Bool(
+        True, config=True,
+        help="""Whether to print the converted IPYNB file to stdout
+        use full do diff files without actually writing a new file"""
         )
+
+    write = Bool(
+        False, config=True,
+        help="""Should the converted notebook file be written to disk
+        along with potential extracted resources."""
+        )
+
 
     def __init__(self, **kwargs):
         """Public constructor"""
 
         #Call base class
-        super(NbconvertApp, self).__init__(**kwargs)
+        super(NbConvertApp, self).__init__(**kwargs)
 
         #Register class here to have help with help all
         self.classes.insert(0, Exporter)
 
 
     def start(self, argv=None):
-        """Convert a notebook in one step"""
-
+        """Entrypoint of NbConvert application.
+        
+        Parameters
+        ----------
+        argv : list
+            Commandline arguments
+        """
+        
         #Parse the commandline options.
         self.parse_command_line(argv)
 
         #Call base
-        super(NbconvertApp, self).start()
+        super(NbConvertApp, self).start()
 
-        #The last arguments in chain of arguments will be used as conversion type
-        ipynb_file = (self.extra_args)[2]
+        #The last arguments in list will be used by nbconvert
         export_type = (self.extra_args)[1]
+        ipynb_file = (self.extra_args)[2]
 
         #Export
         output, resources, exporter = export_by_name(ipynb_file, export_type)
         
+        #TODO: Allow user to set output directory and file. 
         destination_filename = None
         destination_directory = None
-        if exporter.write:
+        if self.write:
                 
             #Get the file name without the '.ipynb' (6 chars) extension and then
             #remove any addition periods and spaces. The resulting name will
@@ -109,11 +115,33 @@ class NbconvertApp(Application):
                 os.mkdir(destination_directory)
                 
         #Write the results
-        if exporter.stdout or exporter.write:
-            self._write_results(exporter.stdout, destination_filename, destination_directory, output, resources)
+        if self.stdout or not (destination_filename is None and destination_directory is None):
+            self._write_results(output, resources, self.stdout, destination_filename, destination_directory)
 
 
-    def _write_results(self, stdout, destination_filename, destination_directory, output, resources):
+    def _write_results(self, output, resources, stdout=False, destination_filename=None, destination_directory=None):
+        """Output the conversion results to the console and/or filesystem
+        
+        Parameters
+        ----------
+        output : str
+            Output of conversion
+        resources : dictionary
+            Additional input/output used by the transformers.  For
+            example, the ExtractFigure transformer outputs the
+            figures it extracts into this dictionary.  This method
+            relies on the figures being in this dictionary when
+            attempting to write the figures to the file system.
+        stdout : bool, Optional
+            Whether or not to echo output to console
+        destination_filename : str, Optional
+            Filename to write output into.  If None, output is not 
+            written to a file.
+        destination_directory : str, Optional 
+            Directory to write notebook data (i.e. figures) to.  If
+            None, figures are not written to the file system.
+        """
+        
         if stdout:
             print(output.encode('utf-8'))
 
@@ -122,34 +150,41 @@ class NbconvertApp(Application):
             with io.open(destination_filename, 'w') as f:
                 f.write(output)
 
+        #Get the key names used by the extract figure transformer
+        figures_key = extractfigure.FIGURES_KEY
+        binary_key = extractfigure.BINARY_KEY
+        text_key = extractfigure.TEXT_KEY
+        
         #Output any associate figures into the same "root" directory.
-        binkeys = resources.get('figures', {}).get('binary',{}).keys()
-        textkeys = resources.get('figures', {}).get('text',{}).keys()
+        binkeys = resources.get(figures_key, {}).get(binary_key,{}).keys()
+        textkeys = resources.get(figures_key, {}).get(text_key,{}).keys()
         if binkeys or textkeys :
             if not destination_directory is None:
                 for key in binkeys:
                     with io.open(os.path.join(destination_directory, key), 'wb') as f:
-                        f.write(resources['figures']['binary'][key])
+                        f.write(resources[figures_key][binary_key][key])
                 for key in textkeys:
                     with io.open(os.path.join(destination_directory, key), 'w') as f:
-                        f.write(resources['figures']['text'][key])
+                        f.write(resources[figures_key][text_key][key])
 
             #Figures that weren't exported which will need to be created by the
             #user.  Tell the user what figures these are.
             if stdout:
                 print(KEYS_PROMPT_HEAD)
-                print(resources['figures'].keys())
+                print(resources[figures_key].keys())
                 print(KEYS_PROMPT_BODY)
 
 #-----------------------------------------------------------------------------
 #Script main
 #-----------------------------------------------------------------------------
-def main():
-    """Convert a notebook in one step"""
 
-    app = NbconvertApp.instance()
+def main():
+    """Application entry point"""
+
+    app = NbConvertApp.instance()
     app.description = __doc__
     app.start(argv=sys.argv)
 
+#Check to see if python is calling this file directly.
 if __name__ == '__main__':
     main()
