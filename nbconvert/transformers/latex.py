@@ -1,6 +1,4 @@
-"""Latex transformer.
-
-Module that allows latex output notebooks to be conditioned before
+"""Module that allows latex output notebooks to be conditioned before
 they are converted.
 """
 #-----------------------------------------------------------------------------
@@ -14,6 +12,7 @@ they are converted.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+
 from __future__ import print_function, absolute_import
 
 # Our own imports
@@ -24,20 +23,31 @@ from nbconvert.filters import latex
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
 class LatexTransformer(ActivatableTransformer):
     """
     Converter for latex destined documents.
     """
 
-    def cell_transform(self, cell, other, index):
+    def cell_transform(self, cell, resources, index):
         """
         Apply a transformation on each cell,
-
-        receive the current cell, the resource dict and the index of current cell as parameter.
-
-        Returns modified cell and resource dict.
+        
+        Parameters
+        ----------
+        cell : NotebookNode cell
+            Notebook cell being processed
+        resources : dictionary
+            Additional resources used in the conversion process.  Allows
+            transformers to pass variables into the Jinja engine.
+        index : int
+            Modified index of the cell being processed (see base.py)
         """
         
+        #If the cell is a markdown cell, preprocess the ampersands used to
+        #remove the space between them and their contents.  Latex will complain
+        #if spaces exist between the ampersands and the math content.  
+        #See filters.latex.rm_math_space for more information.
         if hasattr(cell, "source") and cell.cell_type == "markdown":
             cell.source = latex.rm_math_space(cell.source)
-        return cell, other
+        return cell, resources

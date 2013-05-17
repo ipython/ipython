@@ -1,14 +1,28 @@
 """
-Module that regroups transformer that woudl be applied to ipynb files
+Module that re-groups transformer that would be applied to iPyNB files
 before going through the templating machinery.
 
-It exposes convenient classes to inherit from to access configurability
-as well as decorator to simplify tasks.
+It exposes a convenient class to inherit from to access configurability.
 """
+#-----------------------------------------------------------------------------
+# Copyright (c) 2013, the IPython Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Imports
+#-----------------------------------------------------------------------------
 
 from __future__ import print_function, absolute_import
 
 from IPython.config.configurable import Configurable
+
+#-----------------------------------------------------------------------------
+# Classes and Functions
+#-----------------------------------------------------------------------------
 
 class ConfigurableTransformer(Configurable):
     """ A configurable transformer
@@ -21,39 +35,65 @@ class ConfigurableTransformer(Configurable):
 
     you can overwrite cell_transform to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See orresponding docstring for informations.
-
-
     """
 
     def __init__(self, config=None, **kw):
+        """
+        Public constructor
+        
+        Parameters
+        ----------
+        config : Config
+            Configuration file structure
+        **kw : misc
+            Additional arguments
+        """
+        
         super(ConfigurableTransformer, self).__init__(config=config, **kw)
 
-    def __call__(self, nb, other):
-        """transformation to apply on each notebook.
 
-        received a handle to the current notebook as well as a dict of resources
-        which structure depends on the transformer.
-
-        You should return modified nb, other.
-
-        If you wish to apply on each cell, you might want to overwrite cell_transform method.
+    def __call__(self, nb, resources):
+        """
+        Transformation to apply on each notebook.
+        
+        You should return modified nb, resources.
+        If you wish to apply your transform on each cell, you might want to 
+        overwrite cell_transform method instead.
+        
+        Parameters
+        ----------
+        nb : NotebookNode
+            Notebook being converted
+        resources : dictionary
+            Additional resources used in the conversion process.  Allows
+            transformers to pass variables into the Jinja engine.
         """
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], other = self.cell_transform(cell, other, 100*index)
-            return nb, other
+                    
+                    #TODO: Why are we multiplying the index by 100 here???
+                    worksheet.cells[index], resources = self.cell_transform(cell, resources, 100*index)
+            return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
 
-    def cell_transform(self, cell, other, index):
+
+    def cell_transform(self, cell, resources, index):
         """
-        Overwrite if you want to apply a transformation on each cell,
-
-        receive the current cell, the resource dict and the index of current cell as parameter.
-
-        You should return modified cell and resource dict.
+        Overwrite if you want to apply a transformation on each cell.  You 
+        should return modified cell and resource dictionary.
+        
+        Parameters
+        ----------
+        cell : NotebookNode cell
+            Notebook cell being processed
+        resources : dictionary
+            Additional resources used in the conversion process.  Allows
+            transformers to pass variables into the Jinja engine.
+        index : int
+            Index of the cell being processed
         """
 
         raise NotImplementedError('should be implemented by subclass')
-        return cell, other
+        return cell, resources
