@@ -475,7 +475,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.notebooks.filenbmanager.FileNotebookManager',
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.services.notebooks.filenbmanager.FileNotebookManager',
         config=True,
         help='The notebook manager class to use.')
 
