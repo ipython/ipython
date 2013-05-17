@@ -79,18 +79,6 @@ class Exporter(Configurable):
         help="Extension of the file that should be written to disk"
         )
 
-    stdout = Bool(
-        True, config=True,
-        help="""Whether to print the converted IPYNB file to stdout
-        use full do diff files without actually writing a new file"""
-        )
-
-    write = Bool(
-        False, config=True,
-        help="""Should the converted notebook file be written to disk
-        along with potential extracted resources."""
-        )
-
     #Extension that the template files use.    
     template_extension = ".tpl"
 
