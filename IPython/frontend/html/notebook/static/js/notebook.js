@@ -1488,7 +1488,7 @@ var IPython = (function (IPython) {
         };
         // Save the metadata and name.
         this.metadata = data.metadata;
-        this.notebook_name = data.metadata.name;
+        this.notebook_name = data.metadata.name +'.ipynb';
         // Only handle 1 worksheet for now.
         var worksheet = data.worksheets[0];
         if (worksheet !== undefined) {
@@ -1611,7 +1611,7 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name+'.ipynb';
+        var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name;
         $.ajax(url, settings);
     };
     
@@ -1676,6 +1676,7 @@ var IPython = (function (IPython) {
         var that = this;
         this.notebook_name = notebook_name;
         this.notebook_path = notebook_path;
+        console.log("load notebook (1675): " + this.notebook_name);
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1819,7 +1820,8 @@ var IPython = (function (IPython) {
      * @method list_checkpoint
      */
     Notebook.prototype.list_checkpoints = function () {
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints';
+        console.log("list checkpoint (1822): " + this.notebook_name);
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints';
         $.get(url).done(
             $.proxy(this.list_checkpoints_success, this)
         ).fail(
@@ -1863,7 +1865,8 @@ var IPython = (function (IPython) {
      * @method create_checkpoint
      */
     Notebook.prototype.create_checkpoint = function () {
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints';
+        console.log("create checkpoint (1868): " + this.notebook_name);
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints';
         $.post(url).done(
             $.proxy(this.create_checkpoint_success, this)
         ).fail(
@@ -1948,8 +1951,9 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
+        console.log("restore checkpoint (1953): " + this.notebook_name);
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name + '.ipynb' + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints/' + checkpoint;
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -1967,7 +1971,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restore_checkpoint_success = function (data, status, xhr) {
         $([IPython.events]).trigger('checkpoint_restored.Notebook');
-        this.load_notebook(this.notebook_id);
+        this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
     /**
@@ -1990,7 +1994,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_name+'.ipynb' + '/checkpoints/' + checkpoint;
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints/' + checkpoint;
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),
@@ -2008,7 +2012,7 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint_success = function (data, status, xhr) {
         $([IPython.events]).trigger('checkpoint_deleted.Notebook', data);
-        this.load_notebook(this.notebook_id);
+        this.load_notebook(this.notebook_name, this.notebook_path);
     };
 
     /**

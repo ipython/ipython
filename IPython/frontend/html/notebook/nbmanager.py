@@ -199,7 +199,7 @@ class NotebookManager(LoggingConfigurable):
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook(self, notebook_name):
+    def delete_notebook(self, notebook_name, notebook_path):
         """Delete notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -231,22 +231,22 @@ class NotebookManager(LoggingConfigurable):
     
     # Checkpoint-related
     
-    def create_checkpoint(self, notebook_id):
+    def create_checkpoint(self, notebook_name):
         """Create a checkpoint of the current state of a notebook
         
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
     
-    def list_checkpoints(self, notebook_id):
+    def list_checkpoints(self, notebook_name):
         """Return a list of checkpoints for a given notebook"""
         return []
     
-    def restore_checkpoint(self, notebook_id, checkpoint_id):
+    def restore_checkpoint(self, notebook_name, checkpoint_id):
         """Restore a notebook from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def delete_checkpoint(self, notebook_id, checkpoint_id):
+    def delete_checkpoint(self, notebook_name, checkpoint_id):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
     

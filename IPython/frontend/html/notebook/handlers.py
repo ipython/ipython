@@ -747,9 +747,7 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     def put(self, notebook_path):
         nbm = self.notebook_manager
-        name, path = nbm.named_notebook_path(notebook_path)
-        self.log.info(name)
-        
+        name, path = nbm.named_notebook_path(notebook_path)        
         if name == None:
             body = self.request.body.strip()
             format = self.get_argument('format', default='json')
@@ -771,8 +769,10 @@ class NotebookHandler(IPythonHandler):
             self.finish()
 
     @web.authenticated
-    def delete(self, notebook_id):
-        self.notebook_manager.delete_notebook(notebook_id)
+    def delete(self, notebook_path):
+        nbm = self.notebook_manager
+        name, path = named_notebook_path(notebook_path)
+        self.notebook_manager.delete_notebook(name, bath)
         self.set_status(204)
         self.finish()
 
@@ -794,15 +794,12 @@ class NotebookCheckpointsHandler(IPythonHandler):
     def post(self, notebook_path):
         """post creates a new checkpoint"""
         nbm = self.notebook_manager
-        self.log.info(notebook_path)
         name, path = nbm.named_notebook_path(notebook_path)
-        self.log.info("HI " + name)
         checkpoint = nbm.create_checkpoint(name)
         data = jsonapi.dumps(checkpoint, default=date_default)
         self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
             self.base_project_url, name, checkpoint['checkpoint_id']
         ))
-        
         self.finish(data)
 
 
@@ -811,18 +808,18 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
     SUPPORTED_METHODS = ('POST', 'DELETE')
     
     @web.authenticated
-    def post(self, notebook_id, checkpoint_id):
+    def post(self, notebook_path, checkpoint_id):
         """post restores a notebook from a checkpoint"""
         nbm = self.notebook_manager
-        nbm.restore_checkpoint(notebook_id, checkpoint_id)
+        nbm.restore_checkpoint(notebook_path, checkpoint_id)
         self.set_status(204)
         self.finish()
     
     @web.authenticated
-    def delete(self, notebook_id, checkpoint_id):
+    def delete(self, notebook_path, checkpoint_id):
         """delete clears a checkpoint for a given notebook"""
         nbm = self.notebook_manager
-        nbm.delte_checkpoint(notebook_id, checkpoint_id)
+        nbm.delete_checkpoint(notebook_path, checkpoint_id)
         self.set_status(204)
         self.finish()
 
