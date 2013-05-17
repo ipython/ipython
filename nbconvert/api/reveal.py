@@ -1,6 +1,6 @@
-"""TODO: Docstring
 """
-
+Reveal slide show exporter.
+"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -13,16 +13,22 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-# local import
-import html
-import nbconvert.transformers.revealhelp
 from IPython.utils.traitlets import Unicode
+
+# local import
+import basichtml
+
+import nbconvert.transformers.revealhelp
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class RevealExporter(html.HtmlExporter):
 
+class RevealExporter(basichtml.BasicHtmlExporter):
+    """
+    Exports a Reveal slide show (.HTML) which may be rendered in a web browser.
+    """
+    
     file_extension = Unicode(
         'reveal.html', config=True, 
         help="Extension of the file that should be written to disk")

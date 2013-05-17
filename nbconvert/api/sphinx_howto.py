@@ -1,4 +1,7 @@
-
+"""
+Exporter for exporting notebooks to Sphinx 'HowTo' style latex.  Latex 
+formatted for use with PDFLatex.
+"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -11,15 +14,23 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import Unicode
+
 # local import
 import latex
-from IPython.utils.traitlets import Unicode
+
 from nbconvert.transformers.sphinx import SphinxTransformer
+
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class SphinxHowtoExporter(latex.LatexExporter):
 
+class SphinxHowtoExporter(latex.LatexExporter):
+    """
+    Exports Sphinx "HowTo" LaTeX documents.  The Sphinx "HowTo" exporter 
+    produces short document format latex for use with PDFLatex.
+    """
+    
     template_file = Unicode(
             'sphinx_howto', config=True,
             help="Name of the template file to use")

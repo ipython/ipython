@@ -1,4 +1,5 @@
-"""TODO: Docstring
+"""
+Exporter that exports Basic HTML.
 """
 
 #-----------------------------------------------------------------------------
@@ -13,16 +14,25 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import Unicode
+
+import nbconvert.transformers.csshtmlheader
+
 # local import
 import exporter
-import nbconvert.transformers.csshtmlheader
-from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class BasicHtmlExporter(exporter.Exporter):
 
+class BasicHtmlExporter(exporter.Exporter):
+    """
+    Exports a basic HTML document.  This exporter assists with the export of
+    HTML.  Inherit from it if you are writing your own HTML template and need
+    custom tranformers/filters.  If you don't need custom tranformers/
+    filters, just change the 'template_file' config option.  
+    """
+    
     file_extension = Unicode(
         'html', config=True, 
         help="Extension of the file that should be written to disk"

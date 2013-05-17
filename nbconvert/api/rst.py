@@ -1,6 +1,6 @@
-"""TODO: Docstring
 """
-
+Exporter for exporting notebooks to restructured text.
+"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -13,15 +13,20 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import Unicode
+
 # local import
 import exporter
-from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class RstExporter(exporter.Exporter):
 
+class RstExporter(exporter.Exporter):
+    """
+    Exports restructured text documents.
+    """
+    
     file_extension = Unicode(
         'rst', config=True, 
         help="Extension of the file that should be written to disk")

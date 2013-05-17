@@ -1,6 +1,6 @@
-"""TODO: Docstring
 """
-
+Python exporter which exports Notebook code into a PY file.
+"""
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -13,15 +13,20 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import Unicode
+
 # local import
 import exporter
-from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class PythonExporter(exporter.Exporter):
 
+class PythonExporter(exporter.Exporter):
+    """
+    Exports a Python code file.
+    """
+    
     file_extension = Unicode(
         'py', config=True, 
         help="Extension of the file that should be written to disk")
@@ -30,10 +35,10 @@ class PythonExporter(exporter.Exporter):
             'python', config=True,
             help="Name of the template file to use")
 
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, armor=False, **kw):
+    def __init__(self, transformers=None, filters=None, config=None, armor=False, **kw):
         
         #Call base class constructor.
-        super(PythonExporter, self).__init__(preprocessors, jinja_filters, config, **kw)
+        super(PythonExporter, self).__init__(transformers, filters, config, **kw)
 
         #Set defaults
         self.extract_figure_transformer.enabled = False

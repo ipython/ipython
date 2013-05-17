@@ -1,4 +1,5 @@
-"""TODO: Docstring
+"""
+Exporter that exports a Python-Armor code file (.py)
 """
 
 #-----------------------------------------------------------------------------
@@ -13,14 +14,19 @@
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import Unicode
+
 # local import
 import python.PythonExporter
-from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+
 class PythonArmorExporter(python.PythonExporter):
+    """
+    Exports a Python-Armor code file (.py)
+    """
 
     template_file = Unicode(
             'python_armor', config=True,

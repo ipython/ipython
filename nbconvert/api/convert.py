@@ -1,7 +1,5 @@
-"""Latex transformer.
-
-Module that allows latex output notebooks to be conditioned before
-they are converted.
+"""
+Module containing easy to use conversion functions.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -42,10 +40,12 @@ def export(nb, config=None, transformers=None, filters=None, exporter_type=Expor
         output, resources = exporter_instance.from_file(nb)
     return output, resources, exporter_instance
 
+
 def load_class(template_name):
     class_name = template_name[0].upper() + template_name[1:] + "Exporter"
     module = __import__('nbconvert.api.' + template_name, fromlist=[class_name])                                       
     return getattr(module, class_name)
+
 
 def export_by_name(nb, template_name, config=None, transformers=None, filters=None):
     return export(nb, config, transformers, filters, load_class(template_name))

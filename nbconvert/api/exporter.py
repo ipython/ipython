@@ -18,6 +18,7 @@ before conversion and jinja filter that would then be available in the templates
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+
 from __future__ import print_function, absolute_import
 
 # Stdlib imports
@@ -59,16 +60,10 @@ TEMPLATE_SKELETON_PATH = "/../templates/skeleton/"
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
 #-----------------------------------------------------------------------------
-# Classes and functions
+# Class
 #-----------------------------------------------------------------------------
+
 class Exporter(Configurable):
-    pre_transformer_order = List(['haspyout_transformer'],
-        config=True,
-        help= """
-            An ordered list of pre-transformer to apply to the IPYNB
-            file before running through templates
-            """
-        )
 
     template_file = Unicode(
             '', config=True,
@@ -88,7 +83,7 @@ class Exporter(Configurable):
 
     # Public Constructor #####################################################
     
-    def __init__(self, preprocessors=None, jinja_filters=None, config=None, **kw):
+    def __init__(self, transformers=None, filters=None, config=None, **kw):
     
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
@@ -96,24 +91,20 @@ class Exporter(Configurable):
         #Standard environment
         self._init_environment()
 
-        #TODO: Implement reflection style methods to get user transformers.
-        #if not preprocessors is None:        
-        #    for name in self.pre_transformer_order:
-        #        # get the user-defined transformer first
-        #        transformer = preprocessors.get(name, getattr(trans, name, None))
-        #        if isinstance(transformer, MetaHasTraits):
-        #            transformer = transformer(config=config)
-        #        self.preprocessors.append(transformer)
-
         #Add transformers
         self._register_transformers()
 
         #Add filters to the Jinja2 environment
         self._register_filters()
 
+        #Load user transformers.  Overwrite existing transformers if need be.
+        if not transformers is None:        
+            for transformer in transformers:
+                self.register_transformer(transformer)
+                
         #Load user filters.  Overwrite existing filters if need be.
-        if not jinja_filters is None:
-            for key, user_filter in jinja_filters.iteritems():
+        if not filters is None:
+            for key, user_filter in filters.iteritems():
                 if issubclass(user_filter, MetaHasTraits):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
