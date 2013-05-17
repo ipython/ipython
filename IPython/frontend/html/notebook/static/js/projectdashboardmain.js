@@ -20,10 +20,18 @@ $(document).ready(function () {
         window.history.replaceState({}, '', new_url);
     });
     $('#ipython-main-app').addClass('border-box-sizing ui-widget');
-    $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
-    $('#new_notebook').button().click(function (e) {
-        window.open($('body').data('baseProjectUrl')+'new');
-    });
+    $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');
+    
+    if ($('body').data('notebookPath') == "/") {
+        $('#new_notebook').button().click(function (e) {
+                window.open($('body').data('baseProjectUrl')+'notebooks/'+'new');
+        });
+    }
+    else {
+        $('#new_notebook').button().click(function (e) {
+                window.open($('body').data('baseProjectUrl')+'notebooks/'+$('body').data('notebookPath') + '/new');
+        });
+    }
 
     IPython.read_only = $('body').data('readOnly') === 'True';
     IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
