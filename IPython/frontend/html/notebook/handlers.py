@@ -335,7 +335,8 @@ class ProjectPathDashboardHandler(IPythonHandler):
             self.write(self.render_template('projectdashboard.html',
                 project=project,
                 project_component=project.split('/'),
-                notebook_path=path))    
+                notebook_path=path,
+                notebook_name=name))    
 
 
 class ProjectRedirectHandler(IPythonHandler):
@@ -688,32 +689,7 @@ class NotebookRootHandler(IPythonHandler):
             notebook_name = nbm.new_notebook()
         self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
         self.finish(jsonapi.dumps(notebook_name))
-"""        
-class NotebookPathHandler(IPythonHandler):
-
-    @authenticate_unless_readonly
-    def get(self, path):
-        nbm = self.notebook_manager
-        km = self.kernel_manager
-        notebooks = nbm.list_notebooks(path)
-        for f in notebooks :
-          f['kernel_id'] = km.kernel_for_notebook(f['notebook_id'])  
-        files = nbm.list_directory_info(path, notebooks)
-        self.finish(jsonapi.dumps(files))
-
-    @web.authenticated
-    def post(self, path):
-        nbm = self.application.notebook_manager
-        body = self.request.body.strip()
-        format = self.get_argument('format', default='json')
-        name = self.get_argument('name', default=None)
-        if body:
-            notebook_id = nbm.save_new_notebook(body, name=name, format=format)
-        else:
-            notebook_id = nbm.new_notebook()
-        self.set_header('Location', nbm.notebook_dir + '/'+ notebook_id)
-        self.finish(jsonapi.dumps(notebook_id))
-"""
+        
 
 class NotebookHandler(IPythonHandler):
 
@@ -771,8 +747,8 @@ class NotebookHandler(IPythonHandler):
     @web.authenticated
     def delete(self, notebook_path):
         nbm = self.notebook_manager
-        name, path = named_notebook_path(notebook_path)
-        self.notebook_manager.delete_notebook(name, bath)
+        name, path = nbm.named_notebook_path(notebook_path)
+        self.notebook_manager.delete_notebook(name, path)
         self.set_status(204)
         self.finish()
 
@@ -786,7 +762,7 @@ class NotebookCheckpointsHandler(IPythonHandler):
         """get lists checkpoints for a notebook"""
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
-        checkpoints = nbm.list_checkpoints(name)
+        checkpoints = nbm.list_checkpoints(name, path)
         data = jsonapi.dumps(checkpoints, default=date_default)
         self.finish(data)
     
@@ -795,11 +771,16 @@ class NotebookCheckpointsHandler(IPythonHandler):
         """post creates a new checkpoint"""
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
-        checkpoint = nbm.create_checkpoint(name)
+        checkpoint = nbm.create_checkpoint(name, path)
         data = jsonapi.dumps(checkpoint, default=date_default)
-        self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
-            self.base_project_url, name, checkpoint['checkpoint_id']
-        ))
+        if path == None:
+            self.set_header('Location', '{0}notebooks/{1}/checkpoints/{2}'.format(
+                self.base_project_url, name, checkpoint['checkpoint_id']
+                ))
+        else:
+            self.set_header('Location', '{0}notebooks/{1}/{2}/checkpoints/{3}'.format(
+                self.base_project_url, path, name, checkpoint['checkpoint_id']
+                ))
         self.finish(data)
 
 
@@ -811,7 +792,8 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
     def post(self, notebook_path, checkpoint_id):
         """post restores a notebook from a checkpoint"""
         nbm = self.notebook_manager
-        nbm.restore_checkpoint(notebook_path, checkpoint_id)
+        name, path = nbm.named_notebook_path(notebook_path)
+        nbm.restore_checkpoint(name, checkpoint_id, path)
         self.set_status(204)
         self.finish()
     
@@ -819,7 +801,8 @@ class ModifyNotebookCheckpointsHandler(IPythonHandler):
     def delete(self, notebook_path, checkpoint_id):
         """delete clears a checkpoint for a given notebook"""
         nbm = self.notebook_manager
-        nbm.delete_checkpoint(notebook_path, checkpoint_id)
+        name, path = nbm.named_notebook_path(notebook_path)
+        nbm.delete_checkpoint(name, checkpoint_id, path)
         self.set_status(204)
         self.finish()
 

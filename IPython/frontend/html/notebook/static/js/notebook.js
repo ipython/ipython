@@ -1611,7 +1611,12 @@ var IPython = (function (IPython) {
             error : $.proxy(this.save_notebook_error, this)
         };
         $([IPython.events]).trigger('notebook_saving.Notebook');
-        var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name;
+        if (this.notebook_path != "") {
+            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + "/" + this.notebook_name;
+        }
+        else {
+            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name;
+        }
         $.ajax(url, settings);
     };
     
@@ -1821,7 +1826,12 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.list_checkpoints = function () {
         console.log("list checkpoint (1822): " + this.notebook_name);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints';
+        if (this.notebook_path != "") {
+            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + "/" + this.notebook_name + '/checkpoints';
+        }
+        else {
+            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name + '/checkpoints';
+        }
         $.get(url).done(
             $.proxy(this.list_checkpoints_success, this)
         ).fail(
@@ -1866,7 +1876,12 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.create_checkpoint = function () {
         console.log("create checkpoint (1868): " + this.notebook_name);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints';
+        if (this.notebook_path != "") {
+            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + "/" + this.notebook_name + '/checkpoints';
+        }
+        else {
+            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name + '/checkpoints';
+        }
         $.post(url).done(
             $.proxy(this.create_checkpoint_success, this)
         ).fail(
@@ -1953,7 +1968,12 @@ var IPython = (function (IPython) {
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
         console.log("restore checkpoint (1953): " + this.notebook_name);
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints/' + checkpoint;
+        if (this.notebook_path != "") {
+            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + "/" + this.notebook_name + '/checkpoints/' + checkpoint;
+        }
+        else {
+            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name + '/checkpoints/' + checkpoint;
+        }
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
         ).fail(
@@ -1994,7 +2014,12 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
         $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
-        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_name + '/checkpoints/' + checkpoint;
+        if (this.notebook_path != "") {
+            var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebook_path + "/" + this.notebook_name + '/checkpoints/' + checkpoint;
+        }
+        else {
+            var url = this.baseProjectUrl() + 'api/notebooks/' +this.notebook_name + '/checkpoints/' + checkpoint;
+        }
         $.ajax(url, {
             type: 'DELETE',
             success: $.proxy(this.delete_checkpoint_success, this),

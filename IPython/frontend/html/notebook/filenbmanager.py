@@ -120,12 +120,6 @@ class FileNotebookManager(NotebookManager):
         self.rev_mapping[name] = notebook_id
         return notebook_id
 
-    def delete_notebook_name(self, notebook_name, notebook_path=None):
-        """Delete a notebook's id in the mapping."""
-        name = self.mapping[notebook_id]
-        super(FileNotebookManager, self).delete_notebook_name(notebook_name, notebook_path)
-        del self.rev_mapping[name]
-
     def notebook_exists(self, notebook_name):
         """Does a notebook exist?"""
         exists = super(FileNotebookManager, self).notebook_exists(notebook_name)
@@ -255,7 +249,6 @@ class FileNotebookManager(NotebookManager):
         
         self.log.debug("unlinking notebook %s", nb_path)
         os.unlink(nb_path)
-        self.delete_notebook_id(notebook_id)
 
     def increment_filename(self, basename, notebook_path=None):
         """Return a non-used filename of the form basename<int>.
@@ -276,24 +269,27 @@ class FileNotebookManager(NotebookManager):
     
     # Checkpoint-related utilities
     
-    def get_checkpoint_path_by_name(self, name, checkpoint_id):
+    def get_checkpoint_path_by_name(self, name, checkpoint_id, notebook_path=None):
         """Return a full path to a notebook checkpoint, given its name and checkpoint id."""
         filename = "{name}-{checkpoint_id}{ext}".format(
             name=name,
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
         )
-        path = os.path.join(self.checkpoint_dir, filename)
+        if notebook_path ==None:
+            path = os.path.join(self.checkpoint_dir, filename)
+        else:
+            path = os.path.join(notebook_path, self.checkpoint_dir, filename)
         return path
     
-    def get_checkpoint_path(self, notebook_name, checkpoint_id):
+    def get_checkpoint_path(self, notebook_name, checkpoint_id, notebook_path=None):
         """find the path to a checkpoint"""
         name = notebook_name
-        return self.get_checkpoint_path_by_name(name, checkpoint_id)
+        return self.get_checkpoint_path_by_name(name, checkpoint_id, notebook_path)
     
-    def get_checkpoint_info(self, notebook_name, checkpoint_id):
+    def get_checkpoint_info(self, notebook_name, checkpoint_id, notebook_path=None):
         """construct the info dict for a given checkpoint"""
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id)
+        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         stats = os.stat(path)
         last_modified = datetime.datetime.utcfromtimestamp(stats.st_mtime)
         info = dict(
@@ -305,38 +301,38 @@ class FileNotebookManager(NotebookManager):
         
     # public checkpoint API
     
-    def create_checkpoint(self, notebook_name):
+    def create_checkpoint(self, notebook_name, notebook_path=None):
         """Create a checkpoint from the current state of a notebook"""
-        nb_path = self.get_path(notebook_name)
+        nb_path = self.get_path(notebook_name, notebook_path)
         # only the one checkpoint ID:
         checkpoint_id = "checkpoint"
-        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id)
+        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         self.log.debug("creating checkpoint for notebook %s", notebook_name)
         if not os.path.exists(self.checkpoint_dir):
             os.mkdir(self.checkpoint_dir)
         shutil.copy2(nb_path, cp_path)
         
         # return the checkpoint info
-        return self.get_checkpoint_info(notebook_name, checkpoint_id)
+        return self.get_checkpoint_info(notebook_name, checkpoint_id, notebook_path)
     
-    def list_checkpoints(self, notebook_name):
+    def list_checkpoints(self, notebook_name, notebook_path=None):
         """list the checkpoints for a given notebook
         
         This notebook manager currently only supports one checkpoint per notebook.
         """
         checkpoint_id = "checkpoint"
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id)
+        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         if not os.path.exists(path):
             return []
         else:
-            return [self.get_checkpoint_info(notebook_name, checkpoint_id)]
+            return [self.get_checkpoint_info(notebook_name, checkpoint_id, notebook_path)]
         
     
-    def restore_checkpoint(self, notebook_name, checkpoint_id):
+    def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
         """restore a notebook to a checkpointed state"""
         self.log.info("restoring Notebook %s from checkpoint %s", notebook_name, checkpoint_id)
-        nb_path = self.get_path(notebook_name)
-        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id)
+        nb_path = self.get_path(notebook_name, notebook_path)
+        cp_path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         self.log.info(nb_path)
         self.log.info(cp_path)
         if not os.path.isfile(cp_path):
@@ -349,9 +345,9 @@ class FileNotebookManager(NotebookManager):
         shutil.copy2(cp_path, nb_path)
         self.log.debug("copying %s -> %s", cp_path, nb_path)
     
-    def delete_checkpoint(self, notebook_name, checkpoint_id):
+    def delete_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
         """delete a notebook's checkpoint"""
-        path = self.get_checkpoint_path(notebook_name, checkpoint_id)
+        path = self.get_checkpoint_path(notebook_name, checkpoint_id, notebook_path)
         if not os.path.isfile(path):
             raise web.HTTPError(404,
                 u'Notebook checkpoint does not exist: %s-%s' % (notebook_name, checkpoint_id)

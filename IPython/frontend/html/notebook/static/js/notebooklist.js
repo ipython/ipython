@@ -39,6 +39,10 @@ var IPython = (function (IPython) {
         }
     };
     
+    NotebookList.prototype.notebookName = function(){
+        return $('body').data('notebookName');
+    }
+    
     NotebookList.prototype.style = function () {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
@@ -179,11 +183,10 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_link = function (path, nbname, item) {
         item.data('nbname', nbname);
-        item.data('path', path);
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
             $('<a/>').
-            attr('href', path + nbname + ".ipynb").
+            attr('href', "/notebooks" + this.notebookPath()+ "/" + nbname + ".ipynb").
             attr('target','_blank').
             text(nbname)
         );
@@ -255,8 +258,8 @@ var IPython = (function (IPython) {
                 // We use the nbname and notebook_id from the parent notebook_item element's
                 // data because the outer scopes values change as we iterate through the loop.
                 var parent_item = that.parents('div.list_item');
-                var nbname = parent_item.data('nbname');
-                var notebook_id = parent_item.data('notebook_id');
+                var nbname = parent_item.data('nbname') + '.ipynb';
+            /*    var notebook_name = parent_item.data('notebook_name'); */
                 var dialog = $('<div/>');
                 dialog.html('Are you sure you want to permanently delete the notebook: ' + nbname + '?');
                 parent_item.append(dialog);
@@ -275,7 +278,12 @@ var IPython = (function (IPython) {
                                     parent_item.remove();
                                 }
                             };
-                            var url = notebooklist.baseProjectUrl() + 'api/notebooks' + notebook_id;
+                            if (notebooklist.notebookPath() == "") {
+                                var url = notebooklist.baseProjectUrl() + 'api/notebooks'+"/" + nbname; 
+                            }
+                            else {
+                                var url = notebooklist.baseProjectUrl() + 'api/notebooks' + notebooklist.notebookPath() + "/" + nbname;
+                            }
                             $.ajax(url, settings);
                             $(this).dialog('close');
                         },
