@@ -21,7 +21,6 @@ import errno
 import logging
 import os
 import random
-import re
 import select
 import signal
 import socket
@@ -63,52 +62,38 @@ from tornado import web
 
 # Our own libraries
 from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
-from .kernelmanager import MappingKernelManager
-from .handlers import (LoginHandler, LogoutHandler,
-    ProjectDashboardHandler, NewHandler, NamedNotebookHandler,
-    MainKernelHandler, KernelHandler, KernelActionHandler, IOPubHandler, StdinHandler,
-    ShellHandler, NotebookRootHandler, NotebookHandler, NotebookCopyHandler,
-    NotebookRedirectHandler, NotebookCheckpointsHandler, ModifyNotebookCheckpointsHandler,
-    AuthenticatedFileHandler, FileFindHandler,
-    MainClusterHandler, ClusterProfileHandler, ClusterActionHandler, 
-)
-from .nbmanager import NotebookManager
-from .filenbmanager import FileNotebookManager
-from .clustermanager import ClusterManager
+
+from .services.kernels.kernelmanager import MappingKernelManager
+from .services.notebooks.nbmanager import NotebookManager
+from .services.notebooks.filenbmanager import FileNotebookManager
+from .services.clusters.clustermanager import ClusterManager
+
+from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
-from IPython.core.profiledir import ProfileDir
 from IPython.frontend.consoleapp import IPythonConsoleApp
 from IPython.kernel import swallow_argv
-from IPython.kernel.zmq.session import Session, default_secure
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
+from IPython.kernel.zmq.session import default_secure
 from IPython.kernel.zmq.kernelapp import (
     kernel_flags,
     kernel_aliases,
-    IPKernelApp
 )
 from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
-    Dict, Unicode, Integer, List, Enum, Bool,
+    Dict, Unicode, Integer, List, Bool,
     DottedObjectName
 )
 from IPython.utils import py3compat
 from IPython.utils.path import filefind
 
+from .utils import url_path_join
+
 #-----------------------------------------------------------------------------
 # Module globals
 #-----------------------------------------------------------------------------
-
-_kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
-_kernel_action_regex = r"(?P<action>restart|interrupt)"
-_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
-_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
-_checkpoint_id_regex = r"(?P<checkpoint_id>[\w-]+)"
-_profile_regex = r"(?P<profile>[^\/]+)" # there is almost no text that is invalid
-_cluster_action_regex = r"(?P<action>start|stop)"
 
 _examples = """
 ipython notebook                       # start the notebook
@@ -122,12 +107,6 @@ ipython notebook --port=5555 --ip=*    # Listen on port 5555, all interfaces
 # Helper functions
 #-----------------------------------------------------------------------------
 
-def url_path_join(a,b):
-    if a.endswith('/') and b.startswith('/'):
-        return a[:-1]+b
-    else:
-        return a+b
-
 def random_ports(port, n):
     """Generate a list of n random ports near the given port.
 
@@ -139,6 +118,12 @@ def random_ports(port, n):
     for i in range(n-5):
         yield port + random.randint(-2*n, 2*n)
 
+def load_handlers(name):
+    """Load the (URL pattern, handler) tuples for each component."""
+    name = 'IPython.frontend.html.notebook.' + name
+    mod = __import__(name, fromlist=['default_handlers'])
+    return mod.default_handlers
+
 #-----------------------------------------------------------------------------
 # The Tornado web application
 #-----------------------------------------------------------------------------
@@ -148,32 +133,17 @@ class NotebookWebApplication(web.Application):
     def __init__(self, ipython_app, kernel_manager, notebook_manager,
                  cluster_manager, log,
                  base_project_url, settings_overrides):
-        handlers = [
-            (r"/", ProjectDashboardHandler),
-            (r"/login", LoginHandler),
-            (r"/logout", LogoutHandler),
-            (r"/new", NewHandler),
-            (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
-            (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
-            (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
-            (r"/kernels", MainKernelHandler),
-            (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
-            (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
-            (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
-            (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
-            (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler),
-            (r"/notebooks", NotebookRootHandler),
-            (r"/notebooks/%s" % _notebook_id_regex, NotebookHandler),
-            (r"/notebooks/%s/checkpoints" % _notebook_id_regex, NotebookCheckpointsHandler),
-            (r"/notebooks/%s/checkpoints/%s" % (_notebook_id_regex, _checkpoint_id_regex),
-                ModifyNotebookCheckpointsHandler
-            ),
-            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : notebook_manager.notebook_dir}),
-            (r"/clusters", MainClusterHandler),
-            (r"/clusters/%s/%s" % (_profile_regex, _cluster_action_regex), ClusterActionHandler),
-            (r"/clusters/%s" % _profile_regex, ClusterProfileHandler),
-        ]
 
+        settings = self.init_settings(
+            ipython_app, kernel_manager, notebook_manager, cluster_manager,
+            log, base_project_url, settings_overrides)
+        handlers = self.init_handlers(settings)
+
+        super(NotebookWebApplication, self).__init__(handlers, **settings)
+
+    def init_settings(self, ipython_app, kernel_manager, notebook_manager,
+                      cluster_manager, log,
+                      base_project_url, settings_overrides):
         # Python < 2.6.5 doesn't accept unicode keys in f(**kwargs), and
         # base_project_url will always be unicode, which will in turn
         # make the patterns unicode, and ultimately result in unicode
@@ -215,15 +185,29 @@ class NotebookWebApplication(web.Application):
 
         # allow custom overrides for the tornado web app.
         settings.update(settings_overrides)
+        return settings
 
+    def init_handlers(self, settings):
+        # Load the (URL pattern, handler) tuples for each component.
+        handlers = []
+        handlers.extend(load_handlers('base.handlers'))
+        handlers.extend(load_handlers('tree.handlers'))
+        handlers.extend(load_handlers('auth.login'))
+        handlers.extend(load_handlers('auth.logout'))
+        handlers.extend(load_handlers('notebook.handlers'))
+        handlers.extend(load_handlers('services.kernels.handlers'))
+        handlers.extend(load_handlers('services.notebooks.handlers'))
+        handlers.extend(load_handlers('services.clusters.handlers'))
+        handlers.extend([
+            (r"/files/(.*)", AuthenticatedFileHandler, {'path' : settings['notebook_manager'].notebook_dir}),
+        ])
         # prepend base_project_url onto the patterns that we match
         new_handlers = []
         for handler in handlers:
-            pattern = url_path_join(base_project_url, handler[0])
+            pattern = url_path_join(settings['base_project_url'], handler[0])
             new_handler = tuple([pattern] + list(handler[1:]))
             new_handlers.append(new_handler)
-
-        super(NotebookWebApplication, self).__init__(new_handlers, **settings)
+        return new_handlers
 
 
 
@@ -491,7 +475,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.filenbmanager.FileNotebookManager',
+    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.services.notebooks.filenbmanager.FileNotebookManager',
         config=True,
         help='The notebook manager class to use.')
 

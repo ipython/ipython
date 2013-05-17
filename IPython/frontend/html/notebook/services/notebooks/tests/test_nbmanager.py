@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.traitlets import TraitError
 
-from IPython.frontend.html.notebook.filenbmanager import FileNotebookManager
+from ..filenbmanager import FileNotebookManager
 
 class TestNotebookManager(TestCase):
 
