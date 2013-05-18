@@ -83,7 +83,7 @@ def _find_cmd(cmd):
         path = None
         for ext in extensions:
             try:
-                path = SearchPath(PATH, cmd + ext)[0]
+                path = SearchPath(PATH, cmd, ext)[0]
             except:
                 pass
         if path is None:
