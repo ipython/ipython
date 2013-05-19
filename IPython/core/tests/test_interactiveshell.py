@@ -596,12 +596,12 @@ def test_user_variables():
     ip.display_formatter.active_types = ip.display_formatter.format_types
     
     ip.user_ns['dummy'] = d = DummyRepr()
-    keys = ['dummy', 'doesnotexist']
+    keys = set(['dummy', 'doesnotexist'])
     r = ip.user_variables(keys)
 
-    nt.assert_equal(keys, list(r.keys()))
+    nt.assert_equal(keys, set(r.keys()))
     dummy = r['dummy']
-    nt.assert_equal(['status', 'data', 'metadata'], list(dummy.keys()))
+    nt.assert_equal(set(['status', 'data', 'metadata']), set(dummy.keys()))
     nt.assert_equal(dummy['status'], 'ok')
     data = dummy['data']
     metadata = dummy['metadata']
@@ -629,7 +629,7 @@ def test_user_expression():
     pprint.pprint(r)
     nt.assert_equal(r.keys(), query.keys())
     a = r['a']
-    nt.assert_equal(['status', 'data', 'metadata'], list(a.keys()))
+    nt.assert_equal(set(['status', 'data', 'metadata']), set(a.keys()))
     nt.assert_equal(a['status'], 'ok')
     data = a['data']
     metadata = a['metadata']
