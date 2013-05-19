@@ -20,10 +20,10 @@ Authors:
 #-----------------------------------------------------------------------------
 
 # stdlib imports
-import sys
+import json
 import re
+import sys
 import webbrowser
-import ast
 from threading import Thread
 
 # System library imports
@@ -615,25 +615,25 @@ class MainWindow(QtGui.QMainWindow):
         inner_dynamic_magic.__name__ = "dynamics_magic_s"
         return inner_dynamic_magic
 
-    def populate_all_magic_menu(self, listofmagic=None):
-        """Clean "All Magics..." menu and repopulate it with `listofmagic`
+    def populate_all_magic_menu(self, display_data=None):
+        """Clean "All Magics..." menu and repopulate it with `display_data`
 
         Parameters
         ----------
-        listofmagic : string,
-            repr() of a list of strings, send back by the kernel
+        display_data : dict,
+            dict of display_data for the magics list.
+            Expects json data, as the result of MagicsManager.lsmagic_json()
 
-        Notes
-        -----
-        `listofmagic`is a repr() of list because it is fed with the result of
-        a 'user_expression'
         """
         for k,v in self._magic_menu_dict.items():
             v.clear()
         self.all_magic_menu.clear()
+        
+        if not display_data:
+            return
 
+        mlist = json.loads(display_data['data'].get('application/json', []))
 
-        mlist=ast.literal_eval(listofmagic)
         for magic in mlist:
             cell = (magic['type'] == 'cell')
             name = magic['name']
@@ -660,7 +660,7 @@ class MainWindow(QtGui.QMainWindow):
         menu with the list received back
 
         """
-        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic_info()',
+        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic_json()',
                 self.populate_all_magic_menu)
 
     def _get_magic_menu(self,menuidentifier, menulabel=None):
