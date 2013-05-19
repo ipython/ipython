@@ -32,8 +32,9 @@ def ipython_parent():
 
 def ipython_submodules(root):
     """return IPython submodules relative to root"""
+    from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
     return [
-        pjoin(root, 'IPython', 'frontend', 'html', 'notebook', 'static', 'components'),
+        pjoin(DEFAULT_STATIC_FILES_PATH, 'components')
     ]
 
 def is_repo(d):
