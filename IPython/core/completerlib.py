@@ -33,7 +33,7 @@ from IPython.core.error import TryNext
 from IPython.utils._process_common import arg_split
 
 # FIXME: this should be pulled in with the right call via the component system
-from IPython.core.ipapi import get as get_ipython
+from IPython import get_ipython
 
 #-----------------------------------------------------------------------------
 # Globals and constants

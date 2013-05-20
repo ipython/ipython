@@ -8,6 +8,8 @@ Contributions are *very* welcome.
 import os
 import pipes
 import subprocess
+
+from IPython import get_ipython
 from IPython.core.error import TryNext
 
 
