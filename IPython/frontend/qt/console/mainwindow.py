@@ -29,6 +29,8 @@ from threading import Thread
 # System library imports
 from IPython.external.qt import QtGui,QtCore
 
+from IPython.core.magic import magic_escapes
+
 def background(f):
     """call a function in a simple thread, to prevent blocking"""
     t = Thread(target=f)
@@ -621,8 +623,8 @@ class MainWindow(QtGui.QMainWindow):
         Parameters
         ----------
         display_data : dict,
-            dict of display_data for the magics list.
-            Expects json data, as the result of MagicsManager.lsmagic_json()
+            dict of display_data for the magics dict of a MagicsManager.
+            Expects json data, as the result of %lsmagic
 
         """
         for k,v in self._magic_menu_dict.items():
@@ -631,27 +633,26 @@ class MainWindow(QtGui.QMainWindow):
         
         if not display_data:
             return
-
-        mlist = json.loads(display_data['data'].get('application/json', []))
-
-        for magic in mlist:
-            cell = (magic['type'] == 'cell')
-            name = magic['name']
-            mclass = magic['class']
-            if cell :
-                prefix='%%'
-            else :
-                prefix='%'
-            magic_menu = self._get_magic_menu(mclass)
-
-            pmagic = '%s%s'%(prefix,name)
-
-            xaction = QtGui.QAction(pmagic,
-                self,
-                triggered=self._make_dynamic_magic(pmagic)
-                )
-            magic_menu.addAction(xaction)
-            self.all_magic_menu.addAction(xaction)
+        
+        if display_data['status'] != 'ok':
+            self.log.warn("%%lsmagic user-expression failed: %s" % display_data)
+            return
+        
+        mdict = json.loads(display_data['data'].get('application/json', {}))
+        
+        for mtype in sorted(mdict):
+            subdict = mdict[mtype]
+            prefix = magic_escapes[mtype]
+            for name in sorted(subdict):
+                mclass = subdict[name]
+                magic_menu = self._get_magic_menu(mclass)
+                pmagic = prefix + name
+                xaction = QtGui.QAction(pmagic,
+                    self,
+                    triggered=self._make_dynamic_magic(pmagic)
+                    )
+                magic_menu.addAction(xaction)
+                self.all_magic_menu.addAction(xaction)
 
     def update_all_magic_menu(self):
         """ Update the list of magics in the "All Magics..." Menu
@@ -660,7 +661,7 @@ class MainWindow(QtGui.QMainWindow):
         menu with the list received back
 
         """
-        self.active_frontend._silent_exec_callback('get_ipython().magics_manager.lsmagic_json()',
+        self.active_frontend._silent_exec_callback('get_ipython().magic("lsmagic")',
                 self.populate_all_magic_menu)
 
     def _get_magic_menu(self,menuidentifier, menulabel=None):
