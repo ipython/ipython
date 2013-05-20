@@ -59,7 +59,7 @@ def find_cmd(cmd):
     cmd : str
         The command line program to look for.
     """
-    if cmd == 'python':
+    if cmd in ('python', os.path.basename(sys.executable)):
         return os.path.abspath(sys.executable)
     try:
         path = _find_cmd(cmd).rstrip()
