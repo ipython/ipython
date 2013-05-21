@@ -8,7 +8,7 @@
 @import "highlight.less";
 
 body {
-    background-color:@notebook_background;
+    background-color:	@bodyBackground;
 }
     
 body.notebook_app {
@@ -220,7 +220,6 @@ div.input {
 
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_area {
-    /*color: @base_font_color;*/
     border: 1px solid @light_border_color;
     .corner-all;
     background: @cell_background;
@@ -313,7 +312,7 @@ div.output_subarea {
 /* all text output has this class: */
 div.output_text {
     text-align: left;
-    color: @base_font_color;
+    color: @textColor;
     font-family: monospace;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: @baseLineHeight;
@@ -348,7 +347,7 @@ div.text_cell {
 }
 
 div.text_cell_input {
-    color: @base_font_color;
+    color: @textColor;
     border: 1px solid @light_border_color;
     .corner-all;
     background: @cell_background;
@@ -361,7 +360,7 @@ div.text_cell_render {
     width:  inherit;
     border-style: none;
     padding: 5px;
-    color: @base_font_color;
+    color: @textColor;
 }
 
 /* The following gets added to the <head> if it is detected that the user has a
@@ -405,7 +404,7 @@ div.text_cell_render {
 /* CSS font colors for translated ANSI colors. */
 
 
-.ansiblack {color: @base_font_color;}
+.ansiblack {color: @textColor;}
 .ansired {color: darkred;}
 .ansigreen {color: darkgreen;}
 .ansiyellow {color: brown;}
@@ -433,7 +432,7 @@ div.text_cell_render {
     overflow: auto;
     font-family: monospace;
 	font-size: 110%;
-    color: @base_font_color;
+    color: @textColor;
 }
 
 .completions select option.context {
