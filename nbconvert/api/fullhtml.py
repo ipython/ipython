@@ -17,7 +17,7 @@ Exporter for exporting full HTML documents.
 from IPython.utils.traitlets import Unicode
 
 # local import
-import basichtml.BasicHtmlExporter
+import basichtml
 
 #-----------------------------------------------------------------------------
 # Classes

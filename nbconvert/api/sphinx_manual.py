@@ -17,7 +17,7 @@ formatted for use with PDFLatex.
 from IPython.utils.traitlets import Unicode
 
 # local import
-import sphinx_howto.SphinxHowtoExporter
+import sphinx_howto
 
 #-----------------------------------------------------------------------------
 # Classes

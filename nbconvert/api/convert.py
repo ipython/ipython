@@ -16,12 +16,11 @@ Module containing single call export functions.
 import sys
 import inspect
 
-from .exporter import Exporter
-
 from IPython.nbformat.v3.nbbase import NotebookNode
 
-from .fullhtml import FullHtmlExporter
+from .exporter import Exporter
 from .basichtml import BasicHtmlExporter
+from .fullhtml import FullHtmlExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
@@ -460,7 +459,9 @@ def export_by_name(nb, template_name, config=None, transformers=None, filters=No
         
     Returns
     ----------
-    tuple- output, resources, exporter_instance
+    tuple- (output, resources, exporter_instance)
+    None- if template not found
+    
     output : str
         Jinja 2 output.  This is the resulting converted notebook.
     resources : dictionary
@@ -476,8 +477,10 @@ def export_by_name(nb, template_name, config=None, transformers=None, filters=No
     cls_functions = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
     
     #Check if the characters following "export_" (7 char) equals the template name.
-    for function in cls_functions:
-        function_name = function.__name__.lower() 
+    for (function_name, function_handle) in cls_functions:
+        function_name = function_name.lower() 
         if (len(function_name) > 7 and function_name[7:] == template_name.lower()):
-            return function(nb, config, transformers, filters)
+            return function_handle(nb, config, transformers, filters)
+        
+    return None
             
