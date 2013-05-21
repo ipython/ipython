@@ -196,6 +196,8 @@ class Exporter(Configurable):
         ----------
         transformer : transformer
         """
+        if self.transformers is None:
+            self.transformers = []
         
         if inspect.isfunction(transformer):
             self.transformers.append(transformer)
