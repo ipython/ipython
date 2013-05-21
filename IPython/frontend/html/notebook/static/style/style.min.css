@@ -945,7 +945,7 @@ div#notebook_panel{margin:0px 0px 0px 0px;padding:0px;}
 div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5px;margin:0px;}
 div#pager_splitter{height:8px;}
 #pager_container{position:relative;}
-div#pager{padding:15px;overflow:auto;display:none;}
+div#pager{padding:15px;overflow:auto;display:none;}div#pager pre{font-size:13px;line-height:1.231;color:#000000;background-color:#f7f7f7;padding:0.4em;}
 div.ui-widget-content{border:1px solid #ababab;outline:none;}
 .cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}.cell.selected{border-radius:4px;border:thin #ababab solid;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 0px;outline:none;}
