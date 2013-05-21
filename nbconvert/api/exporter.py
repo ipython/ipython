@@ -81,12 +81,12 @@ class Exporter(Configurable):
         help="Path where the template skeleton files are located.") 
 
     #Jinja block definitions
-    jinja_comment_block_start = Unicode(None, config=True)
-    jinja_comment_block_end = Unicode(None, config=True)
-    jinja_variable_block_start = Unicode(None, config=True)
-    jinja_variable_block_end = Unicode(None, config=True)
-    jinja_logic_block_start = Unicode(None, config=True)
-    jinja_logic_block_end = Unicode(None, config=True)
+    jinja_comment_block_start = Unicode("", config=True)
+    jinja_comment_block_end = Unicode("", config=True)
+    jinja_variable_block_start = Unicode("", config=True)
+    jinja_variable_block_end = Unicode("", config=True)
+    jinja_logic_block_start = Unicode("", config=True)
+    jinja_logic_block_end = Unicode("", config=True)
     
     #Extension that the template files use.    
     template_extension = Unicode(".tpl", config=True)
@@ -281,17 +281,17 @@ class Exporter(Configurable):
             )
         
         #Set special Jinja2 syntax that will not conflict with latex.
-        if not self.jinja_logic_block_start == None:
+        if self.jinja_logic_block_start:
             self.environment.block_start_string = self.jinja_logic_block_start
-        if not self.jinja_logic_block_end == None:
+        if self.jinja_logic_block_end:
             self.environment.block_end_string = self.jinja_logic_block_end
-        if not self.jinja_variable_block_start == None:
+        if self.jinja_variable_block_start:
             self.environment.variable_start_string = self.jinja_variable_block_start
-        if not self.jinja_variable_block_end == None:
+        if self.jinja_variable_block_end:
             self.environment.variable_end_string = self.jinja_variable_block_end
-        if not self.jinja_comment_block_start == None:
+        if self.jinja_comment_block_start:
             self.environment.comment_start_string = self.jinja_comment_block_start
-        if not self.jinja_comment_block_end == None:
+        if self.jinja_comment_block_end:
             self.environment.comment_end_string = self.jinja_comment_block_end
 
 
