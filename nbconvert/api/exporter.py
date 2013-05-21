@@ -93,7 +93,7 @@ class Exporter(Configurable):
 
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
-    preprocessors = [] 
+    transformers = [] 
 
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -198,15 +198,15 @@ class Exporter(Configurable):
         """
         
         if inspect.isfunction(transformer):
-            self.preprocessors.append(transformer)
+            self.transformers.append(transformer)
             return transformer
         elif isinstance(transformer, MetaHasTraits):
             transformer_instance = transformer(config=self.config)
-            self.preprocessors.append(transformer_instance)
+            self.transformers.append(transformer_instance)
             return transformer_instance
         else:
             transformer_instance = transformer()
-            self.preprocessors.append(transformer_instance)
+            self.transformers.append(transformer_instance)
             return transformer_instance
 
 
@@ -222,7 +222,6 @@ class Exporter(Configurable):
             name to give the filter in the Jinja engine
         filter : filter
         """
-        
         if inspect.isfunction(filter):
             self.environment.filters[name] = filter
         elif isinstance(filter, MetaHasTraits):
@@ -236,7 +235,7 @@ class Exporter(Configurable):
         """
         Register all of the transformers needed for this exporter.
         """
-        
+         
         self.register_transformer(nbconvert.transformers.coalescestreams.coalesce_streams)
         
         #Remember the figure extraction transformer so it can be enabled and
@@ -306,11 +305,11 @@ class Exporter(Configurable):
             notebook that is being exported.
         """
         
-        #Dict of 'resources' that can be filled by the preprocessors.
+        #Dict of 'resources' that can be filled by the transformers.
         resources = {}
 
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
-        for transformer in self.preprocessors:
+        for transformer in self.transformers:
             nb, resources = transformer(nb, resources)
         return nb, resources
