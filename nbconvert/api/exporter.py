@@ -1,10 +1,5 @@
-"""Exporter for the notebook conversion pipeline.
-
-This module defines Exporter, a highly configurable converter
-that uses Jinja2 to export notebook files into different format.
-
-You can register both pre-transformers that will act on the notebook format
-before conversion and jinja filter that would then be available in the templates
+"""This module defines Exporter, a highly configurable converter
+that uses Jinja2 to export notebook files into different formats.
 """
 
 #-----------------------------------------------------------------------------
@@ -47,14 +42,9 @@ import nbconvert.filters.ansi
 import nbconvert.transformers.extractfigure
 import nbconvert.transformers.coalescestreams
 
-
 #-----------------------------------------------------------------------------
 # Globals and constants
 #-----------------------------------------------------------------------------
-
-#Standard Jinja2 environment constants
-TEMPLATE_PATH = "/../templates/"
-TEMPLATE_SKELETON_PATH = "/../templates/skeleton/"
 
 #Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
@@ -64,7 +54,15 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 #-----------------------------------------------------------------------------
 
 class Exporter(Configurable):
-
+    """
+    Exports notebooks into other file formats.  Uses Jinja 2 templating engine
+    to output new formats.  Inherit from this class if you are creating a new
+    template type along with new filters/transformers.  If the filters/
+    transformers provided by default suffice, there is no need to inherit from
+    this class.  Instead, override the template_file and file_extension
+    traits via a config file.
+    """
+    
     template_file = Unicode(
             '', config=True,
             help="Name of the template file to use")
@@ -74,17 +72,49 @@ class Exporter(Configurable):
         help="Extension of the file that should be written to disk"
         )
 
+    template_path = Unicode(
+        "/../templates/", config=True,
+        help="Path where the template files are located.")
+
+    template_skeleton_path = Unicode(
+        "/../templates/skeleton/", config=True,
+        help="Path where the template skeleton files are located.") 
+
+    #Jinja block definitions
+    jinja_comment_block_start = Unicode(None, config=True)
+    jinja_comment_block_end = Unicode(None, config=True)
+    jinja_variable_block_start = Unicode(None, config=True)
+    jinja_variable_block_end = Unicode(None, config=True)
+    jinja_logic_block_start = Unicode(None, config=True)
+    jinja_logic_block_end = Unicode(None, config=True)
+    
     #Extension that the template files use.    
-    template_extension = ".tpl"
+    template_extension = Unicode(".tpl", config=True)
 
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
     preprocessors = [] 
 
-    # Public Constructor #####################################################
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
+        """
+        Public constructor
     
+        Parameters
+        ----------
+        transformers : list[of transformer]
+            Custom transformers to apply to the notebook prior to engaging
+            the Jinja template engine.  Any transformers specified here 
+            will override existing transformers if a naming conflict
+            occurs.
+        filters : list[of filter]
+            Custom filters to make accessible to the Jinja templates.  Any
+            filters specified here will override existing filters if a
+            naming conflict occurs.
+        config : config
+            User configuration instance.
+        """
+        
         #Call the base class constructor
         super(Exporter, self).__init__(config=config, **kw)
 
@@ -110,9 +140,16 @@ class Exporter(Configurable):
                 else:
                     self.environment.filters[key] = user_filter
     
-    # Public methods #########################################
     
     def from_notebook_node(self, nb):
+        """
+        Convert a notebook from a notebook node instance.
+    
+        Parameters
+        ----------
+        nb : Notebook node
+        """
+        
         nb, resources = self._preprocess(nb)
         
         #Load the template file.
@@ -122,15 +159,44 @@ class Exporter(Configurable):
 
 
     def from_filename(self, filename):
+        """
+        Convert a notebook from a notebook file.
+    
+        Parameters
+        ----------
+        filename : str
+            Full filename of the notebook file to open and convert.
+        """
+        
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'))
 
 
     def from_file(self, file_stream):
+        """
+        Convert a notebook from a notebook file.
+    
+        Parameters
+        ----------
+        file_stream : file-like object
+            Notebook file-like object to convert.
+        """
         return self.from_notebook_node(nbformat.read(file_stream, 'json'))
 
 
     def register_transformer(self, transformer):
+        """
+        Register a transformer.
+        Transformers are classes that act upon the notebook before it is
+        passed into the Jinja templating engine.  Transformers are also
+        capable of passing additional information to the Jinja
+        templating engine.
+    
+        Parameters
+        ----------
+        transformer : transformer
+        """
+        
         if inspect.isfunction(transformer):
             self.preprocessors.append(transformer)
             return transformer
@@ -145,6 +211,18 @@ class Exporter(Configurable):
 
 
     def register_filter(self, name, filter):
+        """
+        Register a filter.
+        A filter is a function that accepts and acts on one string.  
+        The filters are accesible within the Jinja templating engine.
+    
+        Parameters
+        ----------
+        name : str
+            name to give the filter in the Jinja engine
+        filter : filter
+        """
+        
         if inspect.isfunction(filter):
             self.environment.filters[name] = filter
         elif isinstance(filter, MetaHasTraits):
@@ -153,10 +231,12 @@ class Exporter(Configurable):
             self.environment.filters[name] = filter()
         return self.environment.filters[name]
 
-
-    # Protected and Private methods #########################################
     
     def _register_transformers(self):
+        """
+        Register all of the transformers needed for this exporter.
+        """
+        
         self.register_transformer(nbconvert.transformers.coalescestreams.coalesce_streams)
         
         #Remember the figure extraction transformer so it can be enabled and
@@ -165,6 +245,10 @@ class Exporter(Configurable):
         
         
     def _register_filters(self):
+        """
+        Register all of the filters required for the exporter.
+        """
+        
         self.register_filter('indent', indent)
         self.register_filter('markdown', markdown)
         self.register_filter('ansi2html', nbconvert.filters.ansi.ansi2html)
@@ -184,17 +268,44 @@ class Exporter(Configurable):
         
         
     def _init_environment(self):
+        """
+        Create the Jinja templating environment.
+        """
+        
         self.environment = Environment(
             loader=FileSystemLoader([
-                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_PATH,
-                os.path.dirname(os.path.realpath(__file__)) + TEMPLATE_SKELETON_PATH,
+                os.path.dirname(os.path.realpath(__file__)) + self.template_path,
+                os.path.dirname(os.path.realpath(__file__)) + self.template_skeleton_path,
                 ]),
             extensions=JINJA_EXTENSIONS
             )
+        
+        #Set special Jinja2 syntax that will not conflict with latex.
+        if not self.jinja_logic_block_start == None:
+            self.environment.block_start_string = self.jinja_logic_block_start
+        if not self.jinja_logic_block_end == None:
+            self.environment.block_end_string = self.jinja_logic_block_end
+        if not self.jinja_variable_block_start == None:
+            self.environment.variable_start_string = self.jinja_variable_block_start
+        if not self.jinja_variable_block_end == None:
+            self.environment.variable_end_string = self.jinja_variable_block_end
+        if not self.jinja_comment_block_start == None:
+            self.environment.comment_start_string = self.jinja_comment_block_start
+        if not self.jinja_comment_block_end == None:
+            self.environment.comment_end_string = self.jinja_comment_block_end
 
 
     def _preprocess(self, nb):
-
+        """
+        Preprocess the notebook before passing it into the Jinja engine.
+        To preprocess the notebook is to apply all of the 
+    
+        Parameters
+        ----------
+        nb : notebook node
+            notebook that is being exported.
+        """
+        
         #Dict of 'resources' that can be filled by the preprocessors.
         resources = {}
 

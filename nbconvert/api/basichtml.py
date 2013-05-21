@@ -43,6 +43,9 @@ class BasicHtmlExporter(exporter.Exporter):
             help="Name of the template file to use")
 
     def _register_transformers(self):
+        """
+        Register all of the transformers needed for this exporter.
+        """
         
         #Register the transformers of the base class.
         super(BasicHtmlExporter, self)._register_transformers()

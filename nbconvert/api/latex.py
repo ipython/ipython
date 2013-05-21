@@ -33,19 +33,6 @@ from nbconvert.transformers.latex import LatexTransformer
 import exporter
 
 #-----------------------------------------------------------------------------
-# Globals and constants
-#-----------------------------------------------------------------------------
-
-#Latex Jinja2 constants
-LATEX_TEMPLATE_PATH = "/../templates/latex/"
-LATEX_TEMPLATE_SKELETON_PATH = "/../templates/latex/skeleton/"
-
-#Special Jinja2 syntax that will not conflict when exporting latex.
-LATEX_JINJA_COMMENT_BLOCK = ["((=", "=))"]
-LATEX_JINJA_VARIABLE_BLOCK = ["(((", ")))"]
-LATEX_JINJA_LOGIC_BLOCK = ["((*", "*))"]
-
-#-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
@@ -59,45 +46,64 @@ class LatexExporter(exporter.Exporter):
     subfolder of the "../templates" folder.
     """
     
-    #Extension that the template files use.    
-    template_extension = ".tplx"
-    
     file_extension = Unicode(
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
 
     template_file = Unicode(
-            'base', config=True,
-            help="Name of the template file to use")
+        'base', config=True,
+        help="Name of the template file to use")
+
+    #Latex constants
+    template_path = Unicode(
+        "/../templates/latex/", config=True,
+        help="Path where the template files are located.")
+
+    template_skeleton_path = Unicode(
+        "/../templates/latex/skeleton/", config=True,
+        help="Path where the template skeleton files are located.") 
+
+    #Special Jinja2 syntax that will not conflict when exporting latex.
+    jinja_comment_block_start = Unicode("((=", config=True)
+    jinja_comment_block_end = Unicode("=))", config=True)
+    jinja_variable_block_start = Unicode("(((", config=True)
+    jinja_variable_block_end = Unicode(")))", config=True)
+    jinja_logic_block_start = Unicode("((*", config=True)
+    jinja_logic_block_end = Unicode("*))", config=True)
+    
+    #Extension that the template files use.    
+    template_extension = Unicode(".tplx", config=True)
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
+        """
+        Public constructor
+    
+        Parameters
+        ----------
+        transformers : list[of transformer]
+            Custom transformers to apply to the notebook prior to engaging
+            the Jinja template engine.  Any transformers specified here 
+            will override existing transformers if a naming conflict
+            occurs.
+        filters : list[of filter]
+            Custom filters to make accessible to the Jinja templates.  Any
+            filters specified here will override existing filters if a
+            naming conflict occurs.
+        config : config
+            User configuration instance.
+        """
         
         #Call base class constructor.
         super(LatexExporter, self).__init__(transformers, filters, config, **kw)
         
         self.extract_figure_transformer.display_data_priority = ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
         self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
-        
-        
-    def _init_environment(self):
-        self.environment = Environment(
-            loader=FileSystemLoader([
-                os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_PATH,
-                os.path.dirname(os.path.realpath(__file__)) + LATEX_TEMPLATE_SKELETON_PATH,
-                ]),
-            extensions=exporter.JINJA_EXTENSIONS
-            )
 
-        #Set special Jinja2 syntax that will not conflict with latex.
-        self.environment.block_start_string = LATEX_JINJA_LOGIC_BLOCK[0]
-        self.environment.block_end_string = LATEX_JINJA_LOGIC_BLOCK[1]
-        self.environment.variable_start_string = LATEX_JINJA_VARIABLE_BLOCK[0]
-        self.environment.variable_end_string = LATEX_JINJA_VARIABLE_BLOCK[1]
-        self.environment.comment_start_string = LATEX_JINJA_COMMENT_BLOCK[0]
-        self.environment.comment_end_string = LATEX_JINJA_COMMENT_BLOCK[1]
-        
         
     def _register_filters(self):
+        """
+        Register all of the filters required for the exporter.
+        """
         
         #Register the filters of the base class.
         super(LatexExporter, self)._register_filters()
@@ -108,6 +114,9 @@ class LatexExporter(exporter.Exporter):
     
     
     def _register_transformers(self):
+        """
+        Register all of the transformers needed for this exporter.
+        """
         
         #Register the transformers of the base class.
         super(LatexExporter, self)._register_transformers()
