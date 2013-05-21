@@ -287,6 +287,9 @@ div.output_area pre {
     font-size: 100%;
     vertical-align: baseline;
     color: black;
+	background-color: white;
+	.border-radius(0);
+	line-height: inherit;
 }
 
 /* This class is for the output subarea inside the output_area and after
@@ -387,6 +390,8 @@ div.text_cell_render {
 	/* In CM3 this went to 4px from 0 in CM2. We need the 0 value because of how we size */
 	/* .CodeMirror-lines */
 	padding: 0;
+	border: 0;
+	.border-radius(0)
 }
 
 /* CSS font colors for translated ANSI colors. */
