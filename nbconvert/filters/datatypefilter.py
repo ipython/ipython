@@ -16,6 +16,7 @@ GlobalConfigurable.display_data_priority
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
 class DataTypeFilter(object):
     """ Returns the preferred display format """
 
