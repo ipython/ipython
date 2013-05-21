@@ -1,9 +1,13 @@
 {% extends "page.html" %}
 
 
-{% block login_widget %}
+{% block stylesheet %}
+{{super()}}
+<link rel="stylesheet" href="{{ static_url("auth/css/override.css") }}" type="text/css" />
 {% endblock %}
 
+{% block login_widget %}
+{% endblock %}
 
 {% block site %}
 

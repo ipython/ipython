@@ -881,12 +881,9 @@ span#ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,G
 .ui-button .ui-button-text{padding:0.2em 0.8em;font-size:77%;}
 input.ui-button{padding:0.3em 0.9em;}
 span#login_widget{float:right;}
-#ipython-main-app{height:100px;width:350px;margin:50px auto;}
-#ipython-main-app{height:100px;width:200px;margin:50px auto;}
 .alternate_upload{background-color:none;display:inline;}
 .alternate_upload.form{padding:0;margin:0;}
 .alternate_upload input.fileinput{background-color:red;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;}
-#ipython-main-app{width:920px;margin:30px auto 0px auto;}
 #tabs{border-style:none;}
 #tab1,#tab2{padding:1em 0em;}
 .list_toolbar{padding:5px;height:25px;line-height:25px;}
@@ -941,7 +938,6 @@ span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:
 .toolbar{padding:3px 15px;border-bottom:1px #ababab solid;}.toolbar button{margin-top:2px;margin-bottom:2px;}
 .toolbar select,.toolbar label{height:19px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;}
 .toolbar select{width:auto;}
-#ipython-main-app{width:100%;position:relative;font-size:110%;}
 span#quick_help_area{position:static;padding:5px 0px;margin:0px 0px 0px 0px;}
 .help_string{float:right;width:170px;padding:0px 5px;text-align:left;font-size:85%;}
 .help_string_label{float:right;font-size:85%;}

@@ -3,6 +3,11 @@
 {% block title %}IPython Dashboard{% endblock %}
 
 
+{% block stylesheet %}
+{{super()}}
+<link rel="stylesheet" href="{{ static_url("tree/css/override.css") }}" type="text/css" />
+{% endblock %}
+
 {% block params %}
 
 data-project={{project}}
