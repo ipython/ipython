@@ -47,8 +47,8 @@ class ClusterActionHandler(IPythonHandler):
     def post(self, profile, action):
         cm = self.cluster_manager
         if action == 'start':
-            n = self.get_argument('n',default=None)
-            if n is None:
+            n = self.get_argument('n', default=None)
+            if not n:
                 data = cm.start_cluster(profile)
             else:
                 data = cm.start_cluster(profile, int(n))
