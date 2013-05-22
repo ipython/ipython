@@ -207,7 +207,7 @@ div.prompt {
     /* This 0.4em is tuned to match the padding on the CodeMirror editor. */
     padding: 0.4em;
     margin: 0px;
-    font-family: monospace;
+    font-family: @monoFontFamily;
     text-align: right;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: @baseLineHeight;
@@ -287,7 +287,7 @@ div.output_area {
 /* This is needed to protect the pre formating from global settings such
    as that of bootstrap */
 div.output_area pre {	
-    font-family: monospace;	
+    font-family: @monoFontFamily;	
     margin: 0;
     padding: 0;
     border: 0;
@@ -313,7 +313,7 @@ div.output_subarea {
 div.output_text {
     text-align: left;
     color: @textColor;
-    font-family: monospace;
+    font-family: @monoFontFamily;
     /* This has to match that of the the CodeMirror class line-height below */	
     line-height: @baseLineHeight;
 }
@@ -430,7 +430,7 @@ div.text_cell_render {
     padding: 0px;
     margin: 0px;
     overflow: auto;
-    font-family: monospace;
+    font-family: @monoFontFamily;
 	font-size: 110%;
     color: @textColor;
 }
@@ -455,7 +455,7 @@ p.dialog {
     display: inline-block;
     width: 15ex;
     text-align: right;
-    font-family: monospace;
+    font-family: @monoFontFamily;
 }
 
 .shortcut_descr {
@@ -467,7 +467,7 @@ p.dialog {
 pre, code, kbd, samp { white-space: pre-wrap; }
 
 #fonttest {
-    font-family: monospace;
+    font-family: @monoFontFamily;
 }
 
 .js-error {
@@ -496,7 +496,7 @@ div.raw_input {
   padding-bottom: 0px;
   height: 1em;
   line-height: 1em;
-  font-family: monospace;
+  font-family: @monoFontFamily;
 }
 span.input_prompt {
   font-family: inherit;

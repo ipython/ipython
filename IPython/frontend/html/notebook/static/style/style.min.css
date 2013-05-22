@@ -157,7 +157,7 @@ blockquote.pull-right small:before{content:'';}
 blockquote.pull-right small:after{content:'\00A0 \2014';}
 q:before,q:after,blockquote:before,blockquote:after{content:"";}
 address{display:block;margin-bottom:1.231;font-style:normal;line-height:1.231;}
-code,pre{padding:0 3px 2px;font-family:Monaco,Menlo,Consolas,"Courier New",monospace;font-size:11px;color:#333333;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}
+code,pre{padding:0 3px 2px;font-family:monospace;font-size:11px;color:#333333;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;}
 code{padding:2px 4px;color:#d14;background-color:#f7f7f9;border:1px solid #e1e1e8;white-space:nowrap;}
 pre{display:block;padding:0.11550000000000005;margin:0 0 0.6155;font-size:12px;line-height:1.231;word-break:break-all;word-wrap:break-word;white-space:pre;white-space:pre-wrap;background-color:#f5f5f5;border:1px solid #ccc;border:1px solid rgba(0, 0, 0, 0.15);-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;}pre.prettyprint{margin-bottom:1.231;}
 pre code{padding:0;color:inherit;white-space:pre;white-space:pre-wrap;background-color:transparent;border:0;}
@@ -1030,7 +1030,7 @@ p.p-space{margin-bottom:10px;}
 .tooltipbuttons{position:absolute;padding-right:15px;top:0px;right:0px;}
 .tooltiptext{padding-right:30px;}
 .ipython_tooltip{max-width:700px;-webkit-animation:fadeOut 400ms;-moz-animation:fadeOut 400ms;animation:fadeOut 400ms;-webkit-animation:fadeIn 400ms;-moz-animation:fadeIn 400ms;animation:fadeIn 400ms;vertical-align:middle;background-color:#f7f7f7;overflow:visible;border:#ababab 1px solid;outline:none;padding:3px;margin:0px;padding-left:7px;font-family:monospace;min-height:50px;-moz-box-shadow:0px 6px 10px -1px #adadad;-webkit-box-shadow:0px 6px 10px -1px #adadad;box-shadow:0px 6px 10px -1px #adadad;border-radius:4px;position:absolute;z-index:2;}.ipython_tooltip a{float:right;}
-.ipython_tooltip .tooltiptext pre{border:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;font-size:110%;background-color:#f7f7f7;}
+.ipython_tooltip .tooltiptext pre{border:0;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;font-size:100%;background-color:#f7f7f7;}
 .pretooltiparrow{left:0px;margin:0px;top:-16px;width:40px;height:16px;overflow:hidden;position:absolute;}
 .pretooltiparrow:before{background-color:#f7f7f7;border:1px #ababab solid;z-index:11;content:"";position:absolute;left:15px;top:10px;width:25px;height:25px;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);-o-transform:rotate(45deg);}
 .celltoolbar{border:thin solid #CFCFCF;border-bottom:none;background:#EEE;border-top-right-radius:3px;border-top-left-radius:3px;width:100%;-webkit-box-pack:end;height:20px;}
