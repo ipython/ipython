@@ -44,7 +44,7 @@ $(document).ready(function () {
     IPython.page = new IPython.Page();
     IPython.layout_manager = new IPython.LayoutManager();
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
-    IPython.quick_help = new IPython.QuickHelp('span#quick_help_area');
+    IPython.quick_help = new IPython.QuickHelp();
     IPython.login_widget = new IPython.LoginWidget('span#login_widget',{baseProjectUrl:baseProjectUrl});
     IPython.notebook = new IPython.Notebook('div#notebook',{baseProjectUrl:baseProjectUrl, read_only:IPython.read_only});
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');

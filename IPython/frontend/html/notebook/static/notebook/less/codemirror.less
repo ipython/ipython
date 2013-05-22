@@ -1,0 +1,37 @@
+/* The following gets added to the <head> if it is detected that the user has a
+ * monospace font with inconsistent normal/bold/italic height.  See
+ * notebookmain.js.  Such fonts will have keywords vertically offset with
+ * respect to the rest of the text.  The user should select a better font.
+ * See: https://github.com/ipython/ipython/issues/1503
+ *
+ * .CodeMirror span {
+ *      vertical-align: bottom;
+ * }
+ */
+
+.CodeMirror {
+    line-height: @baseLineHeight;  /* Changed from 1em to our global default */
+	height: auto;     /* Changed to auto to autogrow */
+	background: none;  /* Changed from white to allow our bg to show through */
+}
+
+.CodeMirror-scroll {
+    /*  The CodeMirror docs are a bit fuzzy on if overflow-y should be hidden or visible.*/
+    /*  We have found that if it is visible, vertical scrollbars appear with font size changes.*/
+    overflow-y: hidden;
+    overflow-x: auto; /* Changed from auto to remove scrollbar */
+}
+
+.CodeMirror-lines {
+	/* In CM2, this used to be 0.4em, but in CM3 it went to 4px. We need the em value because */
+	/* we have set a different line-height and want this to scale with that. */
+	padding: 0.4em;
+}
+
+.CodeMirror pre {
+	/* In CM3 this went to 4px from 0 in CM2. We need the 0 value because of how we size */
+	/* .CodeMirror-lines */
+	padding: 0;
+	border: 0;
+	.border-radius(0)
+}

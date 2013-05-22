@@ -1,0 +1,96 @@
+/* This class is the outer container of all output sections. */
+div.output_area {
+    padding: 0px;
+    page-break-inside: avoid;
+    .hbox();
+}
+
+	
+/* This is needed to protect the pre formating from global settings such
+   as that of bootstrap */
+div.output_area pre {	
+    font-family: @monoFontFamily;	
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    vertical-align: baseline;
+    color: black;
+	background-color: white;
+	.border-radius(0);
+	line-height: inherit;
+}
+
+/* This class is for the output subarea inside the output_area and after
+   the prompt div. */
+div.output_subarea {
+    padding: 0.44em 0.4em 0.4em 1px;
+    .box-flex1();
+}
+
+/* The rest of the output_* classes are for special styling of the different
+   output types */
+
+/* all text output has this class: */
+div.output_text {
+    text-align: left;
+    color: @textColor;
+    font-family: @monoFontFamily;
+    /* This has to match that of the the CodeMirror class line-height below */	
+    line-height: @baseLineHeight;
+}
+
+/* stdout/stderr are 'text' as well as 'stream', but pyout/pyerr are *not* streams */
+div.output_stream {
+    padding-top: 0.0em;
+    padding-bottom: 0.0em;
+}
+div.output_stdout {
+}
+div.output_stderr {
+    background: #fdd; /* very light red background for stderr */
+}
+
+div.output_latex {
+    text-align: left;
+}
+
+div.output_html {
+}
+
+div.output_png {
+}
+
+div.output_jpeg {
+}
+
+.js-error {
+    color: darkred;
+}
+
+/* raw_input styles */
+
+div.raw_input {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  height: 1em;
+  line-height: 1em;
+  font-family: @monoFontFamily;
+}
+span.input_prompt {
+  font-family: inherit;
+}
+input.raw_input {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  width: auto;
+  margin: -2px 0px 0px 1px;
+  padding-left: 1px;
+  padding-top: 2px;
+  height: 1em;
+}
+
+p.p-space {
+  margin-bottom: 10px;
+}
