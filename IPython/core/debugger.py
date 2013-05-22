@@ -30,6 +30,7 @@ import bdb
 import functools
 import linecache
 import sys
+import inspect
 
 from IPython import get_ipython
 from IPython.utils import PyColorize, ulinecache
@@ -483,6 +484,31 @@ class Pdb(OldPdb):
         # vds: <<
 
     do_l = do_list
+
+    def do_longlist(self, arg):
+        """Overrides `pdb.Pdb.do_longlist` overall just a modified copy and
+        paste"""
+        filename = self.curframe.f_code.co_filename
+        curframe = self.curframe
+
+        try:
+            lines, lineno = inspect.findsource(self.curframe)
+            last = len(lines) - 1
+
+            if inspect.isframe(curframe) and \
+               curframe.f_globals is curframe.f_locals:
+                # must be a module frame: do not try to cut a block out of it
+                first = 1
+            elif inspect.ismodule(curframe):
+                first = 1
+            else:
+                first = lineno + 1
+        except IOError as err:
+            self.error(err)
+            return
+        self.print_list_lines(filename, first, last)
+
+    do_ll = do_longlist
 
     def do_pdef(self, arg):
         """Print the call signature for any callable object.
