@@ -28,6 +28,18 @@
 	padding: 0.4em;
 }
 
+.CodeMirror-linenumber {
+	// This is needed to fine tune the position of the line numbers because we use the 0.4em
+	// spacing in various places. Fine tuned to look right.
+  	padding: 0 8px 0 4px;
+}
+
+.CodeMirror-gutters {
+	// This is needed because our cell has rounded corners, otherwise the gutter area square
+	// corner cuts into the rounded cell border.
+	.corner-all;
+}
+
 .CodeMirror pre {
 	/* In CM3 this went to 4px from 0 in CM2. We need the 0 value because of how we size */
 	/* .CodeMirror-lines */
