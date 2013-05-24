@@ -31,11 +31,7 @@ python = os.path.basename(sys.executable)
 # Tests
 #-----------------------------------------------------------------------------
 
-def test_find_cmd_python():
-    """Make sure we find sys.exectable for python."""
-    nt.assert_equal(find_cmd(python), sys.executable)
 
-    
 @dec.skip_win32
 def test_find_cmd_ls():
     """Make sure we can find the full path to ls."""
