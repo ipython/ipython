@@ -986,7 +986,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 #fonttest{font-family:monospace;}
 a{text-decoration:underline;}
 p{margin-bottom:0;}
-a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;color:inherit;}
+a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;outline:none;color:inherit;}
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
