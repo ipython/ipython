@@ -43,8 +43,7 @@ def find_cmd(cmd):
 
     This function tries to determine the full path to a command line program
     using `which` on Unix/Linux/OS X and `win32api` on Windows.  Most of the
-    time it will use the version that is first on the users `PATH`.  If
-    cmd is `python` return `sys.executable`.
+    time it will use the version that is first on the users `PATH`.
 
     Warning, don't use this to find IPython command line programs as there
     is a risk you will find the wrong one.  Instead find those using the
@@ -59,8 +58,6 @@ def find_cmd(cmd):
     cmd : str
         The command line program to look for.
     """
-    if cmd == 'python':
-        return os.path.abspath(sys.executable)
     try:
         path = _find_cmd(cmd).rstrip()
     except OSError:
