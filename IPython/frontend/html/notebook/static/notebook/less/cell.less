@@ -1,0 +1,29 @@
+.cell {
+    border: 1px solid transparent;
+    .vbox();
+
+    &.selected {
+        .corner-all;
+        border : thin @border_color solid;
+    }
+}
+
+div.cell {
+    width: 100%;
+    padding: 5px 5px 5px 0px;
+    /* This acts as a spacer between cells, that is outside the border */
+    margin: 2px 0px 2px 0px;
+    outline: none;
+}
+
+div.prompt {
+    /* This needs to be wide enough for 3 digit prompt numbers: In[100]: */
+    width: 11ex;
+    /* This 0.4em is tuned to match the padding on the CodeMirror editor. */
+    padding: 0.4em;
+    margin: 0px;
+    font-family: @monoFontFamily;
+    text-align: right;
+    /* This has to match that of the the CodeMirror class line-height below */	
+    line-height: @baseLineHeight;
+}
