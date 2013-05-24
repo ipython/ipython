@@ -1026,6 +1026,7 @@ div#pager{padding:15px;overflow:auto;display:none;}div#pager pre{font-size:13px;
 .rendered_html ol ol ol ol ol{list-style:decimal;margin:0em 2em;}
 .rendered_html hr{color:black;background-color:black;}
 .rendered_html pre{margin:1em 2em;}
+.rendered_html pre,.rendered_html code{border:0;background-color:#ffffff;color:#000000;font-size:100%;padding:0px;}
 .rendered_html blockquote{margin:1em 2em;}
 .rendered_html table,.rendered_html tr,.rendered_html th,.rendered_html td{border:1px solid black;border-collapse:collapse;margin:1em 2em;}
 .rendered_html td,.rendered_html th{text-align:left;vertical-align:middle;padding:4px;}
