@@ -984,9 +984,7 @@ pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padd
 p.dialog{padding:0.2em;}
 pre,code,kbd,samp{white-space:pre-wrap;}
 #fonttest{font-family:monospace;}
-a{text-decoration:underline;}
 p{margin-bottom:0;}
-a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;outline:none;color:inherit;}
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
@@ -1038,6 +1036,8 @@ span#checkpoint_status span#autosave_status{font-size:small;}
 div.text_cell{padding:5px 5px 5px 5px;}
 div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
+a.heading-anchor{text-decoration:none;color:inherit;}
+a.anchor-link:link{text-decoration:none;padding:0px 20px;}
 .toolbar{padding:3px 15px;border-bottom:1px #ababab solid;}.toolbar button{margin-top:2px;margin-bottom:2px;}
 .toolbar select,.toolbar label{height:19px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;}
 .toolbar select{width:auto;}

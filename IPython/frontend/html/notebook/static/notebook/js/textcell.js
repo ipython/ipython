@@ -508,11 +508,21 @@ var IPython = (function (IPython) {
             .append(
             $('<a/>')
                 .addClass('heading-anchor')
-                .attr('href', '#' + link)
                 .attr('id', link)
                 .html(text)
+            ).append(
+            $('<a/>')
+                .addClass('anchor-link')
+                .attr('href', '#' + link)
+                .html('¶')
+                .hide()
             )
         );
+        r.hover(function() {
+            r.find("a.anchor-link").show();
+        }, function() {
+            r.find("a.anchor-link").hide();
+        });
     };
 
 
