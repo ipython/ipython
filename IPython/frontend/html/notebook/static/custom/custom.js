@@ -3,10 +3,10 @@
  *
  *
  * Placeholder for custom user javascript
- * mainly to be overridden in profile/static/user/js/custom.js
+ * mainly to be overridden in profile/static/custom/custom.js
  * This will always be an empty file in IPython
  *
- * User could add any javascript in the `profile/static/user/js/custom.js` file
+ * User could add any javascript in the `profile/static/custom/custom.js` file
  * (and should create it if it does not exist).
  * It will be executed by the ipython notebook at load time.
  *
@@ -34,10 +34,10 @@
  *  to load custom script into the notebook.
  *
  *    // to load the metadata ui extension example.
- *    $.getScript('/static/notebooks/js/celltoolbarpresets/example.js');
+ *    $.getScript('/static/notebook/js/celltoolbarpresets/example.js');
  *    // or
  *    // to load the metadata ui extension to control slideshow mode / reveal js for nbconvert
- *    $.getScript('/static/notebooks/js/celltoolbarpresets/slideshow.js');
+ *    $.getScript('/static/notebook/js/celltoolbarpresets/slideshow.js');
  *
  *
  * @module IPython
