@@ -43,7 +43,7 @@ class NamedNotebookHandler(IPythonHandler):
         nbm = self.notebook_manager
         if not nbm.notebook_exists(notebook_id):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
-        self.write(self.render_template('notebooks.html',
+        self.write(self.render_template('notebook.html',
             project=self.project,
             notebook_id=notebook_id,
             kill_kernel=False,

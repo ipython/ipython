@@ -1,11 +1,9 @@
-{% extends "base.html" %}
+{% extends "page.html" %}
 
 {% block stylesheet %}
-
-<link rel="stylesheet" href="{{static_url("css/logout.css") }}" type="text/css"/>
-
+{{super()}}
+<link rel="stylesheet" href="{{ static_url("auth/css/override.css") }}" type="text/css" />
 {% endblock %}
-
 
 {% block login_widget %}
 {% endblock %}
@@ -35,6 +33,6 @@
 
 {% block script %}
 
-<script src="{{static_url("js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{static_url("auth/js/logoutmain.js") }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}

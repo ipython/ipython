@@ -1,0 +1,71 @@
+
+body {
+    background-color:	@bodyBackground;
+}
+    
+body.notebook_app {
+    overflow: hidden;
+}
+
+span#notebook_name {
+    height: 1em;
+    line-height: 1em;
+    padding: 3px;
+    border: none;
+    font-size: 146.5%;
+}
+
+div#notebook_panel {
+    margin: 0px 0px 0px 0px;
+    padding: 0px;
+}
+
+div#notebook {
+    overflow-y: scroll;
+    overflow-x: auto;
+    width: 100%;
+    /* This spaces the cell away from the edge of the notebook area */
+    padding: 5px 5px 15px 5px;
+    margin: 0px;
+}
+
+div.ui-widget-content {
+    border: 1px solid @border_color;
+    outline: none;
+}
+
+pre.dialog {
+    background-color: @cell_background;
+    border: 1px solid #ddd;
+    .corner-all;
+    padding: 0.4em;
+    padding-left: 2em;
+}
+
+p.dialog {
+    padding : 0.2em;
+}
+
+/* Word-wrap output correctly.  This is the CSS3 spelling, though Firefox seems
+   to not honor it correctly.  Webkit browsers (Chrome, rekonq, Safari) do.
+ */
+pre, code, kbd, samp { white-space: pre-wrap; }
+
+#fonttest {
+    font-family: @monoFontFamily;
+}
+
+a {
+	text-decoration: underline;
+}
+
+p {
+	margin-bottom:0;
+}
+
+a.heading-anchor:link, a.heading-anchor:visited {
+  text-decoration: none;
+  outline: none;
+  color: inherit;
+}
+
