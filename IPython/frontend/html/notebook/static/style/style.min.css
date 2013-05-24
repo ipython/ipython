@@ -990,7 +990,7 @@ a.heading-anchor:link,a.heading-anchor:visited{text-decoration:none;color:inheri
 #notification_area{position:absolute;right:0px;top:0px;height:25px;padding:3px 0px;padding-right:3px;z-index:10;}
 .notification_widget{float:right;right:0px;top:1px;height:25px;padding:3px 6px;z-index:10;}
 div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
-div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:black;background-color:white;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;line-height:inherit;}
+div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:black;background-color:transparent;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;line-height:inherit;}
 div.output_subarea{padding:0.44em 0.4em 0.4em 1px;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
 div.output_text{text-align:left;color:#000000;font-family:monospace;line-height:1.231;}
 div.output_stream{padding-top:0.0em;padding-bottom:0.0em;}
