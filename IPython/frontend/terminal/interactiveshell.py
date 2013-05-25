@@ -150,14 +150,13 @@ class TerminalMagics(Magics):
     def store_or_execute(self, block, name):
         """ Execute a block, or store it in a variable, per the user's request.
         """
-
-        b = self.cleanup_input(block)
         if name:
             # If storing it for further editing
-            self.shell.user_ns[name] = SList(b.splitlines())
+            self.shell.user_ns[name] = SList(block.splitlines())
             print("Block assigned to '%s'" % name)
         else:
-            self.shell.user_ns['pasted_block'] = b
+            self.shell.user_ns['pasted_block'] = block
+            b = self.shell.input_transformer_manager.transform_cell(block)
             self.shell.using_paste_magics = True
             try:
                 self.shell.run_cell(b)
