@@ -308,8 +308,16 @@ python-profiler package from non-free.""")
     )
     @line_cell_magic
     def debug(self, line='', cell=None):
-        """Activate the interactive debugger in post-mortem mode.
+        """Activate the interactive debugger.
 
+        This magic command support two ways of activating debugger.
+        One is to activate debugger before executing code.  This way, you
+        can set a break point, to step through the code from the point.
+        You can use this mode by giving statements to execute and optionally
+        a breakpoint.
+
+        The other one is to activate debugger in post-mortem mode.  You can
+        activate this mode simply running %debug without any argument.
         If an exception has just occurred, this lets you inspect its stack
         frames interactively.  Note that this will always work only on the last
         traceback that occurred, so you must call this quickly after an
