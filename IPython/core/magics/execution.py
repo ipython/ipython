@@ -959,9 +959,9 @@ python-profiler package from non-free.""")
             raise UsageError("Can't use statement directly after '%%time'!")
         
         if cell:
-            expr = self.shell.prefilter(cell,False)
+            expr = self.shell.input_transformer_manager.transform_cell(cell)
         else:
-            expr = self.shell.prefilter(line,False)
+            expr = self.shell.input_transformer_manager.transform_cell(line)
 
         # Minimum time above which parse time will be reported
         tp_min = 0.1

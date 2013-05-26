@@ -301,6 +301,16 @@ def test_time2():
     with tt.AssertPrints("CPU times: user "):
         ip.run_cell("%time None")
 
+def test_time3():
+    """Erroneous magic function calls, issue gh-3334"""
+    ip = get_ipython()
+    ip.user_ns.pop('run', None)
+    
+    with tt.AssertNotPrints("not found", channel='stderr'):
+        ip.run_cell("%%time\n"
+                    "run = 0\n"
+                    "run += 1")
+
 def test_doctest_mode():
     "Toggle doctest_mode twice, it should be a no-op and run without error"
     _ip.magic('doctest_mode')
