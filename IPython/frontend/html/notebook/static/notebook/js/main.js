@@ -8,17 +8,30 @@
 //============================================================================
 // On document ready
 //============================================================================
+"use strict";
 
+// for the time beeing, we have to pass marked as a parameter here,
+// as injecting require.js make marked not to put itself in the globals,
+// which make both this file fail at setting marked configuration, and textcell.js
+// which search marked into global.
+require(['static/components/marked/lib/marked.js',
+        'static/notebook/js/config.js'],
 
-$(document).ready(function () {
+function (marked, config) {
 
+    IPython.config = config;
+    console.log('config is',config);
+
+    window.marked = marked
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
     // see https://github.com/marijnh/CodeMirror2/issues/670
     if(CodeMirror.getMode(1,'text/plain').indent == undefined ){
         console.log('patching CM for undefined indent');
-        CodeMirror.modes.null = function() { return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0}}}
+        CodeMirror.modes.null = function() {
+            return {token: function(stream) {stream.skipToEnd();},indent : function(){return 0}}
         }
+    }
 
     CodeMirror.patchedGetMode = function(config, mode){
             var cmmode = CodeMirror.getMode(config, mode);
@@ -90,10 +103,11 @@ $(document).ready(function () {
         // only do this once
         $([IPython.events]).off('notebook_loaded.Notebook', first_load);
     };
-    
+
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     IPython.notebook.load_notebook($('body').data('notebookId'));
-    
+
+    var marked;
     if (marked) {
         marked.setOptions({
             gfm : true,
@@ -110,6 +124,6 @@ $(document).ready(function () {
             }
         })
     }
+}
 
-});
-
+);
