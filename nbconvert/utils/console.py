@@ -18,7 +18,7 @@ import sys
 # Classes and functions
 #-----------------------------------------------------------------------------
             
-def input(self, prompt_text):
+def input(prompt_text):
     """
     Prompt the user for input.
     
@@ -48,7 +48,7 @@ def input(self, prompt_text):
         return raw_input(prompt_text)
 
     
-def prompt_boolean(self, prompt, default=False):
+def prompt_boolean(prompt, default=False):
     """
     Prompt the user for a boolean response.
     
@@ -60,7 +60,7 @@ def prompt_boolean(self, prompt, default=False):
         response to return if none is given by the user
     """
     
-    response = self._input(prompt)
+    response = input(prompt)
     response = response.strip().lower()
     
     #Catch 1, true, yes as True
@@ -75,7 +75,7 @@ def prompt_boolean(self, prompt, default=False):
         return default
 
 
-def prompt_dictionary(self, choices, default_style=1, menu_comments={}):
+def prompt_dictionary(choices, default_style=1, menu_comments={}):
     """
     Prompt the user to chose one of many selections from a menu.
     
@@ -108,7 +108,7 @@ def prompt_dictionary(self, choices, default_style=1, menu_comments={}):
     response = -1
     while (not response in choices):
         try:
-            text_response = self._input(prompt)
+            text_response = input(prompt)
             
             # Use default option if no input.
             if len(text_response.strip()) == 0:
