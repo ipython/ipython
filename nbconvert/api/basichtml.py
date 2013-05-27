@@ -29,7 +29,7 @@ class BasicHtmlExporter(exporter.Exporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
-    custom tranformers/filters.  If you don't need custom tranformers/
+    custom transformers/filters.  If you don't need custom transformers/
     filters, just change the 'template_file' config option.  
     """
     

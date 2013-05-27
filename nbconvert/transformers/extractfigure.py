@@ -46,7 +46,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
     display_data_priority = List(['svg', 'png', 'latex', 'jpg', 'jpeg','text'])
 
     #TODO: Change this to .format {} syntax
-    default_key_template = Unicode('_fig_{count:02d}.{ext}', config=True)
+    default_key_template = Unicode('_fig_{index:02d}.{ext}', config=True)
 
     def cell_transform(self, cell, resources, index):
         """
@@ -104,9 +104,8 @@ class ExtractFigureTransformer(ActivatableTransformer):
         ----------
         data : str
             Cell data (from Notebook node cell)
-        resources : dictionary
-            Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
+        format : str
+            Figure format
         index : int
             Modified index of the cell being processed (see base.py)
         """

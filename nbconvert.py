@@ -96,7 +96,12 @@ class NbConvertApp(Application):
         ipynb_file = (self.extra_args)[2]
 
         #Export
-        output, resources, exporter = export_by_name(ipynb_file, export_type)
+        return_value = export_by_name(ipynb_file, export_type)
+        if return_value is None:
+            print("Error: '%s' template not found." % export_type)
+            return
+        else:
+            (output, resources, exporter) = return_value 
         
         #TODO: Allow user to set output directory and file. 
         destination_filename = None
@@ -108,7 +113,7 @@ class NbConvertApp(Application):
             #be used to create the directory that the files will be exported
             #into.
             out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
-            destination_filename = os.path.join(out_root+'.'+exporter.fileext)
+            destination_filename = os.path.join(out_root+'.'+exporter.file_extension)
             
             destination_directory = out_root+'_files'
             if not os.path.exists(destination_directory):
