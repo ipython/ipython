@@ -50,6 +50,6 @@ class BasicHtmlExporter(exporter.Exporter):
         #Register the transformers of the base class.
         super(BasicHtmlExporter, self)._register_transformers()
         
-        #Register latex transformer
+        #Register CSSHtmlHeaderTransformer transformer
         self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)
                     
