@@ -486,8 +486,9 @@ class Pdb(OldPdb):
     do_l = do_list
 
     def do_longlist(self, arg):
-        """Overrides `pdb.Pdb.do_longlist` overall just a modified copy and
-        paste"""
+        """longlist | ll
+        List the whole source code for the current function or frame.
+        """
         filename = self.curframe.f_code.co_filename
         curframe = self.curframe
 
