@@ -169,7 +169,7 @@ var IPython = (function (IPython) {
      * typically when new outputs are added.
      *
      * Behavior is undefined if autoscroll is lower than scroll_threshold,
-     * unless it is < 0 then autoscroll will never be triggerd
+     * unless it is < 0, in which case autoscroll will never be triggered
      *
      * @property auto_scroll_threshold
      * @type Number
@@ -180,8 +180,8 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Defautl value for minimal length for output are to be able to switch to
-     * scroll mode
+     * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
+     * shorter than this are never scrolled.
      *
      * @property scroll_threshold
      * @type Number
@@ -192,14 +192,17 @@ var IPython = (function (IPython) {
 
 
     /**
-     * Scroll OutputArea if height supperior than a threshold.
      *
-     * Treshold is exprimed as a number of lines, fallback to a (configurable) default.
+     * Scroll OutputArea if height supperior than a threshold (in lines).
      *
-     * Negative or null (0) threshold will prevent the OutputArea ever to scroll.
+     * Threshold is a maximum number of lines. If unspecified, defaults to
+     * OutputArea.scroll_threshold.
+     *
+     * Negative or null (0) threshold will prevent the OutputArea from ever
+     * scrolling
      *
      * @method scroll_if_long
-     * @param [lines=20,configurable]{Number}
+     * @param [lines=OutputArea.scroll_threshold]{Number} Default to `OutputArea.scroll_threshold`
      *
      **/
     OutputArea.prototype.scroll_if_long = function (lines) {
