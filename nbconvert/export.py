@@ -474,14 +474,10 @@ def export_by_name(nb, template_name, config=None, transformers=None, filters=No
         specifies what extension the output should be saved as.
     """
     
-    #Use reflection to get functions defined in this module.
-    cls_functions = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
+    function_name = "export_" + template_name.lower()
     
-    #Check if the characters following "export_" (7 char) equals the template name.
-    for (function_name, function_handle) in cls_functions:
-        function_name = function_name.lower() 
-        if (len(function_name) > 7 and function_name[7:] == template_name.lower()):
-            return function_handle(nb, config, transformers, filters)
-        
-    return None
+    if function_name in globals():
+        return globals()[function_name](nb, config, transformers, filters)
+    else:
+        return None
             
