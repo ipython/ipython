@@ -36,7 +36,7 @@ class ConfigurableTransformer(Configurable):
     you can overwrite cell_transform to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See orresponding docstring for informations.
     """
-
+    
     def __init__(self, config=None, **kw):
         """
         Public constructor
@@ -51,7 +51,7 @@ class ConfigurableTransformer(Configurable):
         
         super(ConfigurableTransformer, self).__init__(config=config, **kw)
 
-
+       
     def __call__(self, nb, resources):
         """
         Transformation to apply on each notebook.
@@ -71,9 +71,7 @@ class ConfigurableTransformer(Configurable):
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    
-                    #TODO: Why are we multiplying the index by 100 here???
-                    worksheet.cells[index], resources = self.cell_transform(cell, resources, 100*index)
+                    worksheet.cells[index], resources = self.cell_transform(cell, resources, index)
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
@@ -97,3 +95,4 @@ class ConfigurableTransformer(Configurable):
 
         raise NotImplementedError('should be implemented by subclass')
         return cell, resources
+    

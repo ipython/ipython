@@ -47,7 +47,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
     #TODO: Change this to .format {} syntax
     default_key_template = Unicode('_fig_{index:02d}.{ext}', config=True)
-
+        
     def cell_transform(self, cell, resources, index):
         """
         Apply a transformation on each cell,
@@ -60,7 +60,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Additional resources used in the conversion process.  Allows
             transformers to pass variables into the Jinja engine.
         index : int
-            Modified index of the cell being processed (see base.py)
+            Index of the cell being processed (see base.py)
         """
         
         if resources.get(FIGURES_KEY, None) is None :
@@ -70,7 +70,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
             for out_type in self.display_data_priority:
                 
                 if out.hasattr(out_type):
-                    figname, key, data, binary = self._new_figure(out[out_type], out_type, index)
+                    figname, key, data, binary = self._new_figure(out[out_type], out_type)
                     out['key_'+out_type] = figname
                     
                     if binary :
@@ -97,7 +97,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
         return extension
 
 
-    def _new_figure(self, data, format, index):
+    def _new_figure(self, data, format):
         """Create a new figure file in the given format.
 
         Parameters
@@ -107,13 +107,18 @@ class ExtractFigureTransformer(ActivatableTransformer):
         format : str
             Figure format
         index : int
-            Modified index of the cell being processed (see base.py)
+            Index of the figure being extracted
         """
         
         figure_name_template = self.figure_name_format_map.get(format, self.default_key_template)
         key_template = self.key_format_map.get(format, self.default_key_template)
-
+        
+        #Make sure the figure counter has been initiated 
+        if self.index_generator is None:
+            self.index_generator = self._index_generator()
+            
         #TODO: option to pass the hash as data?
+        index = self.index_generator.next()
         figure_name = figure_name_template.format(index=index, ext=self._get_override_extension(format))
         key = key_template.format(index=index, ext=self._get_override_extension(format))
 
@@ -124,3 +129,14 @@ class ExtractFigureTransformer(ActivatableTransformer):
             binary = True
 
         return figure_name, key, data, binary
+
+    
+    def _index_generator(self):
+        """
+        Generates a unique index for association with extracted figures.
+        """
+        index = 0
+        while True:
+            yield index
+            index+=1
+    
