@@ -166,7 +166,6 @@ class NotebookWebApplication(web.Application):
             # authentication
             cookie_secret=os.urandom(1024),
             login_url=url_path_join(base_project_url,'/login'),
-            cookie_name='username-%s' % uuid.uuid4(),
             read_only=ipython_app.read_only,
             password=ipython_app.password,
             
