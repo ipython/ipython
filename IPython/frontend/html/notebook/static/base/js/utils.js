@@ -253,36 +253,10 @@ IPython.utils = (function (IPython) {
                 DOWN_ARROW: 40,
                 DOWNARROW: 40,
                 DOWN     : 40,
+                // all three of these keys may be COMMAND on OS X:
                 LEFT_SUPER : 91,
                 RIGHT_SUPER : 92,
                 COMMAND  : 93,
-    };
-
-
-    var is_typing = function (event) {
-        // return whether a key event is probably typing (used for setting the dirty flag)
-        var key = event.which;
-        if ( key < 46 ) {
-            if (
-                ( key == keycodes.BACKSPACE ) ||
-                ( key == keycodes.TAB ) ||
-                ( key == keycodes.ENTER )
-            ) { 
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            if (
-                ( key == keycodes.LEFT_SUPER ) ||
-                ( key == keycodes.RIGHT_SUPER ) ||
-                ( key == keycodes.COMMAND )
-            ) {
-                return false;
-            } else {
-                return true;
-            }
-        }
     };
 
 
@@ -312,7 +286,6 @@ IPython.utils = (function (IPython) {
         keycodes : keycodes,
         fixCarriageReturn : fixCarriageReturn,
         autoLinkUrls : autoLinkUrls,
-        is_typing : is_typing,
         points_to_pixels : points_to_pixels,
         browser : browser    
     };

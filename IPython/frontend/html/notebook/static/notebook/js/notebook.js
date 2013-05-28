@@ -308,9 +308,6 @@ var IPython = (function (IPython) {
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
-            } else if ( utils.is_typing(event) ) {
-                that.set_dirty(true);
-                return true;
             }
             return true;
         });
