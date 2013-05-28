@@ -18,17 +18,18 @@ import inspect
 
 from IPython.nbformat.v3.nbbase import NotebookNode
 
-from .exporter import Exporter
-from .basichtml import BasicHtmlExporter
-from .fullhtml import FullHtmlExporter
-from .latex import LatexExporter
-from .markdown import MarkdownExporter
-from .python import PythonExporter
-from .python_armor import PythonArmorExporter
-from .reveal import RevealExporter
-from .rst import RstExporter
-from .sphinx_howto import SphinxHowtoExporter
-from .sphinx_manual import SphinxManualExporter
+from .exporters.exporter import Exporter
+from .exporters.basichtml import BasicHtmlExporter
+from .exporters.fullhtml import FullHtmlExporter
+from .exporters.latex import LatexExporter
+from .exporters.markdown import MarkdownExporter
+from .exporters.python import PythonExporter
+from .exporters.python_armor import PythonArmorExporter
+from .exporters.reveal import RevealExporter
+from .exporters.rst import RstExporter
+from .exporters.sphinx_howto import SphinxHowtoExporter
+from .exporters.sphinx_manual import SphinxManualExporter
+
 
 #-----------------------------------------------------------------------------
 # Functions
