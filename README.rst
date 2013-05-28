@@ -1,28 +1,33 @@
 ================================================================
- nbconvert: conversion utilities for the IPython notebook format
+ NbConvert: Conversion utilities for the IPython notebook format
 ================================================================
+
+
 
 Overview
 ========
 
-nbconvert provides command line utilities to convert to and from IPython
+NbConvert provides a command line interface to convert to and from IPython
 notebooks and standard formats.
 
--   ReST
--   Markdown
--   HTML
--   Python script
--   LaTeX (through Sphinx)
+ - ReST
+ - Markdown
+ - HTML
+ - Python script
+ - Reveal
+ - LaTeX
+ - Sphinx
 
-As these tools mature, these utilities will be merged into IPython.
+As these functions mature, they will be merged into IPython.
+
+
 
 Requirements
 ============
 
 Jinja2
 ~~~~~~
-
-Most of the converters should rely on the Jinja2 templating language.
+All of the exporters rely on the Jinja2 templating language.
 
 
 Markdown
@@ -33,52 +38,29 @@ You will need the `python markdown module
 
     $ pip install markdown
 
+
 Docutils
 ~~~~~~~~
-
 nbconvert requires the latest development version of docutils. This can be installed
 via ::
 
     $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz
     $ pip install -U docutils.tgz
 
+
 Sphinx-Latex
 ~~~~~~~~~~~~
-
 We are trying to require as little as possible, but for now, compiling the generated Tex file requires texlive-full.
 ::
 
   sudo apt-get install texlive-full
 
 
-See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html
+*See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html for more information*
 
-
-Testing for Sphinx Latex
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-To test, I place a Test1.ipynb file in my nbconvert directory.
-Then I run this shell script
-
-::
-
-  mkdir Test1_files
-  rm Test1_files/*
-
-  python nbconvert2.py latex_sphinx_howto Test1.ipynb
-  mv Test1.tex Test1_files/Test1.tex
-  cd Test1_files
-  pdflatex Test1.tex
-
-This script will build a Sphinx-howto out of the Test1 IPython notebook.
-Replace "howto" with "manual" to build a manual.
-
-Tested against
-https://github.com/unpingco/Python-for-Signal-Processing
 
 Pandoc
 ~~~~~~
-
 Nbconvert also needs the `pandoc multiformat converter
 <http://johnmacfarlane.net/pandoc>`_ to do the actual text conversions.  Pandoc
 is included in most Linux distribution's package managers, and the author's
@@ -88,6 +70,7 @@ Pandoc, to convert markdown into latex
 ::
 
   sudo apt-get install pandoc
+
 
 Pygment
 ~~~~~~~
@@ -108,17 +91,18 @@ Please try to run the tests to avoid regression when committing a patch, and cre
     $ nosetests
 
 
+
 Using nbconvert
 ===============
 
 You will need to either put the source repository in your ``$PATH`` or symlink
-the ``nbconvert2.py`` script to a directory in your ``$PATH``, e.g.::
+the ``nbconvert.py`` script to a directory in your ``$PATH``, e.g.::
 
-    $ ln -s /usr/local/bin/nbconvert "$PWD/nbconvert2.py"
+    $ ln -s /usr/local/bin/nbconvert "$PWD/nbconvert.py"
 
 Once this is done, you can call it as::
 
-    $ nbconvert <FORMAT> notebook.ipynb > converted.fmt
+    $ nbconvert <FORMAT> notebook.ipynb
 
 Use ``nbconvert -h`` for up to date help on the available formats.
 
