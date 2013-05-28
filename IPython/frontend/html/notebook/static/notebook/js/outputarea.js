@@ -168,7 +168,7 @@ var IPython = (function (IPython) {
      * Threshold to trigger autoscroll when the OutputArea is resized,
      * typically when new outputs are added.
      *
-     * Behavior is undefined if autoscroll is lower than scroll_threshold,
+     * Behavior is undefined if autoscroll is lower than minimum_scroll_threshold,
      * unless it is < 0, in which case autoscroll will never be triggered
      *
      * @property auto_scroll_threshold
@@ -183,12 +183,12 @@ var IPython = (function (IPython) {
      * Lower limit (in lines) for OutputArea to be made scrollable. OutputAreas
      * shorter than this are never scrolled.
      *
-     * @property scroll_threshold
+     * @property minimum_scroll_threshold
      * @type Number
      * @default 20
      *
      **/
-    OutputArea.scroll_threshold = 20;
+    OutputArea.minimum_scroll_threshold = 20;
 
 
     /**
@@ -196,17 +196,17 @@ var IPython = (function (IPython) {
      * Scroll OutputArea if height supperior than a threshold (in lines).
      *
      * Threshold is a maximum number of lines. If unspecified, defaults to
-     * OutputArea.scroll_threshold.
+     * OutputArea.minimum_scroll_threshold.
      *
      * Negative or null (0) threshold will prevent the OutputArea from ever
      * scrolling
      *
      * @method scroll_if_long
-     * @param [lines=OutputArea.scroll_threshold]{Number} Default to `OutputArea.scroll_threshold`
+     * @param [lines=OutputArea.minimum_scroll_threshold]{Number} Default to `OutputArea.minimum_scroll_threshold`
      *
      **/
     OutputArea.prototype.scroll_if_long = function (lines) {
-        var n = lines | OutputArea.scroll_threshold;
+        var n = lines | OutputArea.minimum_scroll_threshold;
         if(n <= 0){
             return
         }
