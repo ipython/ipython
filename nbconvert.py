@@ -94,9 +94,9 @@ class NbConvertApp(Application):
         #The last arguments in list will be used by nbconvert
         export_type = (self.extra_args)[1]
         ipynb_file = (self.extra_args)[2]
-
+        
         #Export
-        return_value = export_by_name(ipynb_file, export_type)
+        return_value = export_by_name(export_type, ipynb_file)
         if return_value is None:
             print("Error: '%s' template not found." % export_type)
             return
