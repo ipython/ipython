@@ -83,34 +83,18 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
         header = []
         
         #Construct path to iPy CSS
-        static_path = os.path.join(path.get_ipython_package_dir(), 'frontend', 
-            'html', 'notebook', 'static')
-        base_path = os.path.join(static_path, 'base', 'css')
-        style_path = os.path.join(static_path, 'style')
-        less_path = os.path.join(static_path, 'notebook', 'less')
+        sheet_filename = os.path.join(path.get_ipython_package_dir(), 'frontend', 
+            'html', 'notebook', 'static', 'style', 'style.min.css')
         
-        #Load each known CSS file.
-        for sheet in [
-            # TODO: do we need jquery and prettify?
-            # os.path.join(static, 'jquery', 'css', 'themes', 'base',
-            # 'jquery-ui.min.css'),
-            # os.path.join(static, 'prettify', 'prettify.css'),
+        #Load style CSS file.
+        try:
+            with io.open(sheet_filename, encoding='utf-8') as file:
+                file_text = file.read()
+                header.append(file_text)
+        except IOError:
             
-            os.path.join(base_path, 'boilerplate.css'),
-            os.path.join(style_path, 'style.min.css'),
-            os.path.join(less_path, 'notebook.less'),
-            os.path.join(less_path, 'renderedhtml.less'),
-            #os.path.join(css, 'fbm.css'),
-            ]:
-            
-            try:
-                with io.open(sheet, encoding='utf-8') as file:
-                    file_text = file.read()
-                    header.append(file_text)
-            except IOError:
-                
-                # New version of iPython with style.min.css, pass
-                pass
+            # New version of iPython with style.min.css, pass
+            pass
 
         #Add pygments CSS
         pygments_css = HtmlFormatter().get_style_defs('.highlight')
