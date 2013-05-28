@@ -1,5 +1,5 @@
 //----------------------------------------------------------------------------
-//  Copyright (C) 2008-2011  The IPython Development Team
+//  Copyright (C) 2008 The IPython Development Team
 //
 //  Distributed under the terms of the BSD License.  The full license is in
 //  the file COPYING, distributed as part of this software.
@@ -9,10 +9,21 @@
 // OutputArea
 //============================================================================
 
+/**
+ * @module IPython
+ * @namespace IPython
+ * @submodule OutputArea
+ */
 var IPython = (function (IPython) {
     "use strict";
 
     var utils = IPython.utils;
+
+    /**
+     * @class OutputArea
+     *
+     * @constructor
+     */
 
     var OutputArea = function (selector, prompt_area) {
         this.selector = selector;
@@ -59,8 +70,18 @@ var IPython = (function (IPython) {
         this.collapse();
     };
 
-
+    /**
+     * Should the OutputArea scroll?
+     * Returns whether the height (in lines) exceeds a threshold.
+     *
+     * @private
+     * @method _should_scroll
+     * @param [lines=100]{Integer}
+     * @return {Bool}
+     *
+     */
     OutputArea.prototype._should_scroll = function (lines) {
+        if (lines <=0 ){ return }
         if (!lines) {
             lines = 100;
         }
@@ -84,7 +105,7 @@ var IPython = (function (IPython) {
             }
             // maybe scroll output,
             // if it's grown large enough and hasn't already been scrolled.
-            if ( !that.scrolled && that._should_scroll()) {
+            if ( !that.scrolled && that._should_scroll(OutputArea.auto_scroll_threshold)) {
                 that.scroll_area();
             }
         });
@@ -143,9 +164,51 @@ var IPython = (function (IPython) {
         this.scrolled = false;
     };
 
+    /**
+     * Threshold to trigger autoscroll when the OutputArea is resized,
+     * typically when new outputs are added.
+     *
+     * Behavior is undefined if autoscroll is lower than scroll_threshold,
+     * unless it is < 0 then autoscroll will never be triggerd
+     *
+     * @property auto_scroll_threshold
+     * @type Number
+     * @default 20
+     *
+     **/
+    OutputArea.auto_scroll_threshold = 20;
 
+
+    /**
+     * Defautl value for minimal length for output are to be able to switch to
+     * scroll mode
+     *
+     * @property scroll_threshold
+     * @type Number
+     * @default 20
+     *
+     **/
+    OutputArea.scroll_threshold = 20;
+
+
+    /**
+     * Scroll OutputArea if height supperior than a threshold.
+     *
+     * Treshold is exprimed as a number of lines, fallback to a (configurable) default.
+     *
+     * Negative or null (0) threshold will prevent the OutputArea ever to scroll.
+     *
+     * @method scroll_if_long
+     * @param [lines=20,configurable]{Number}
+     *
+     **/
     OutputArea.prototype.scroll_if_long = function (lines) {
-        if (this._should_scroll(lines)) {
+        var n = lines | OutputArea.scroll_threshold;
+        if(n <= 0){
+            return
+        }
+
+        if (this._should_scroll(n)) {
             // only allow scrolling long-enough output
             this.scroll_area();
         }
@@ -157,7 +220,7 @@ var IPython = (function (IPython) {
             this.unscroll_area();
         } else {
             // only allow scrolling long-enough output
-            this.scroll_if_long(20);
+            this.scroll_if_long();
         }
     };
 
@@ -466,7 +529,7 @@ var IPython = (function (IPython) {
         toinsert.append(latex);
         element.append(toinsert);
     };
-    
+
     OutputArea.prototype.append_raw_input = function (content) {
         var that = this;
         this.expand();
