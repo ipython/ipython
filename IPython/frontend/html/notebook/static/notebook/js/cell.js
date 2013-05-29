@@ -59,9 +59,17 @@ var IPython = (function (IPython) {
             theme: "default"
         }
     };
+    
+    // FIXME: Workaround CM Bug #332 (Safari segfault on drag)
+    // by disabling drag/drop altogether on Safari
+    // https://github.com/marijnh/CodeMirror/issues/332
+    
+    if (utils.browser[0] == "Safari") {
+        Cell.options_default.cm_config.dragDrop = false;
+    }
 
     Cell.prototype.mergeopt = function(_class, options, overwrite){
-        overwrite = overwrite || {};
+        overwrite = overwrite || {};
         return $.extend(true, {}, _class.options_default, options, overwrite)
 
     }
