@@ -9,7 +9,7 @@ Authors
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2009-2011  The IPython Development Team
+#  Copyright (C) 2009  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -19,10 +19,10 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-import struct
 import sys
 from io import BytesIO
 
+from IPython.core.display import _pngxy
 from IPython.utils.decorators import flag_calls
 
 # If user specifies a GUI, that dictates the backend, otherwise we read the
@@ -103,22 +103,16 @@ def print_figure(fig, fmt='png'):
     dpi = rcParams['savefig.dpi']
     if fmt == 'retina':
         dpi = dpi * 2
+        fmt = 'png'
     fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
                             facecolor=fc, edgecolor=ec, dpi=dpi)
     data = bytes_io.getvalue()
     return data
     
-def pngxy(data):
-    """read the width/height from a PNG header"""
-    ihdr = data.index(b'IHDR')
-    # next 8 bytes are width/height
-    w4h4 = data[ihdr+4:ihdr+12]
-    return struct.unpack('>ii', w4h4)
-
 def retina_figure(fig):
     """format a figure as a pixel-doubled (retina) PNG"""
     pngdata = print_figure(fig, fmt='retina')
-    w, h = pngxy(pngdata)
+    w, h = _pngxy(pngdata)
     metadata = dict(width=w//2, height=h//2)
     return pngdata, metadata
 
