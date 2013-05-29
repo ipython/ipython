@@ -19,6 +19,7 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
+import struct
 import sys
 from io import BytesIO
 
@@ -90,6 +91,7 @@ def figsize(sizex, sizey):
 
 def print_figure(fig, fmt='png'):
     """Convert a figure to svg or png for inline display."""
+    from matplotlib import rcParams
     # When there's an empty figure, we shouldn't return anything, otherwise we
     # get big blank areas in the qt console.
     if not fig.axes and not fig.lines:
@@ -98,11 +100,27 @@ def print_figure(fig, fmt='png'):
     fc = fig.get_facecolor()
     ec = fig.get_edgecolor()
     bytes_io = BytesIO()
+    dpi = rcParams['savefig.dpi']
+    if fmt == 'retina':
+        dpi = dpi * 2
     fig.canvas.print_figure(bytes_io, format=fmt, bbox_inches='tight',
-                            facecolor=fc, edgecolor=ec)
+                            facecolor=fc, edgecolor=ec, dpi=dpi)
     data = bytes_io.getvalue()
     return data
+    
+def pngxy(data):
+    """read the width/height from a PNG header"""
+    ihdr = data.index(b'IHDR')
+    # next 8 bytes are width/height
+    w4h4 = data[ihdr+4:ihdr+12]
+    return struct.unpack('>ii', w4h4)
 
+def retina_figure(fig):
+    """format a figure as a pixel-doubled (retina) PNG"""
+    pngdata = print_figure(fig, fmt='retina')
+    w, h = pngxy(pngdata)
+    metadata = dict(width=w//2, height=h//2)
+    return pngdata, metadata
 
 # We need a little factory function here to create the closure where
 # safe_execfile can live.
@@ -147,7 +165,7 @@ def mpl_runner(safe_execfile):
 
 
 def select_figure_format(shell, fmt):
-    """Select figure format for inline backend, either 'png' or 'svg'.
+    """Select figure format for inline backend, can be 'png', 'retina', or 'svg'.
 
     Using this method ensures only one figure format is active at a time.
     """
@@ -157,14 +175,17 @@ def select_figure_format(shell, fmt):
     svg_formatter = shell.display_formatter.formatters['image/svg+xml']
     png_formatter = shell.display_formatter.formatters['image/png']
 
-    if fmt=='png':
+    if fmt == 'png':
         svg_formatter.type_printers.pop(Figure, None)
         png_formatter.for_type(Figure, lambda fig: print_figure(fig, 'png'))
-    elif fmt=='svg':
+    elif fmt in ('png2x', 'retina'):
+        svg_formatter.type_printers.pop(Figure, None)
+        png_formatter.for_type(Figure, retina_figure)
+    elif fmt == 'svg':
         png_formatter.type_printers.pop(Figure, None)
         svg_formatter.for_type(Figure, lambda fig: print_figure(fig, 'svg'))
     else:
-        raise ValueError("supported formats are: 'png', 'svg', not %r"%fmt)
+        raise ValueError("supported formats are: 'png', 'retina', 'svg', not %r" % fmt)
 
     # set the format to be used in the backend()
     backend_inline._figure_format = fmt
