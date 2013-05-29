@@ -1,127 +1,195 @@
 #!/usr/bin/env python
-"""Convert IPython notebooks to other formats, such as ReST, and HTML.
+"""NBConvert is a utility for conversion of IPYNB files.
 
-Example:
-  ./nbconvert.py --format rst file.ipynb
-
-Produces 'file.rst', along with auto-generated figure files
-called nb_figure_NN.png.
+Commandline interface for the NBConvert conversion utility.  Read the
+readme.rst for usage information
 """
 #-----------------------------------------------------------------------------
-# Imports
+#Copyright (c) 2013, the IPython Development Team.
+#
+#Distributed under the terms of the Modified BSD License.
+#
+#The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+#Imports
+#-----------------------------------------------------------------------------
+
+#Stdlib imports
 from __future__ import print_function
+import sys
+import io
+import os
 
-# From IPython
-from IPython.external import argparse
+#From IPython
+#All the stuff needed for the configurable things
+from IPython.config.application import Application
+from IPython.utils.traitlets import (Bool)
 
-# All the stuff needed for the configurable things
-from IPython.config.application import Application, catch_config_error
-from IPython.config.configurable import Configurable, SingletonConfigurable
-from IPython.config.loader import Config, ConfigFileNotFound
-from IPython.utils.traitlets import List, Unicode, Type, Bool, Dict, CaselessStrEnum
+#Local imports
+from nbconvert.export import export_by_name
+from nbconvert.exporters.exporter import Exporter
+from nbconvert.transformers import extractfigure
 
+#-----------------------------------------------------------------------------
+#Globals and constants
+#-----------------------------------------------------------------------------
 
-# local
-from converters.html import ConverterHTML
-from converters.markdown import ConverterMarkdown
-from converters.bloggerhtml import ConverterBloggerHTML
-from converters.rst import ConverterRST
-from converters.latex import ConverterLaTeX
-from converters.python import ConverterPy
-from converters.reveal import ConverterReveal
-from converters.base import Converter
-from converters.pdf import ConverterLaTeXToPDF
+#'Keys in resources' user prompt.
+KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
+KEYS_PROMPT_BODY = """
+===========================================================================
+You are responsible for writting these files into the appropriate 
+directorie(s) if need be.  If you do not want to see this message, enable
+the 'write' (boolean) flag of the converter.
+===========================================================================
+"""
 
+#-----------------------------------------------------------------------------
+#Classes and functions
+#-----------------------------------------------------------------------------
 
-# When adding a new format, make sure to add it to the `converters`
-# dictionary below. This is used to create the list of known formats,
-# which gets printed in case an unknown format is encounteres, as well
-# as in the help
+class NbConvertApp(Application):
+    """Application used to convert to and from notebook file type (*.ipynb)"""
 
-converters = {
-    'rst': ConverterRST,
-    'markdown': ConverterMarkdown,
-    'html': ConverterHTML,
-    'blogger-html': ConverterBloggerHTML,
-    'latex': ConverterLaTeX,
-    'pdf' : ConverterLaTeXToPDF,
-    'py': ConverterPy,
-    'reveal': ConverterReveal,
-    }
+    stdout = Bool(
+        True, config=True,
+        help="""Whether to print the converted IPYNB file to stdout
+        use full do diff files without actually writing a new file"""
+        )
 
-default_format = 'rst'
+    write = Bool(
+        False, config=True,
+        help="""Should the converted notebook file be written to disk
+        along with potential extracted resources."""
+        )
 
-# Extract the list of known formats and mark the first format as the default.
-known_formats = ', '.join([key + " (default)" if key == default_format else key
-                           for key in converters])
-
-class NbconvertApp(Application):
-
-
-    fmt = CaselessStrEnum(converters.keys(),
-                          default_value='rst',
-                          config=True,
-                          help="Supported conversion format")
-
-    exclude = List( [],
-                    config=True,
-                    help = 'list of cells to exclude while converting')
-
-    aliases = {
-            'format':'NbconvertApp.fmt',
-            'exclude':'NbconvertApp.exclude',
-            'highlight':'Converter.highlight_source',
-            'preamble':'Converter.preamble',
-            }
 
     def __init__(self, **kwargs):
-        super(NbconvertApp, self).__init__(**kwargs)
-        # ensure those are registerd
-        self.classes.insert(0,Converter)
-        self.classes.insert(0,ConverterRST)
-        self.classes.insert(0,ConverterMarkdown)
-        self.classes.insert(0,ConverterBloggerHTML)
-        self.classes.insert(0,ConverterLaTeX)
-        self.classes.insert(0,ConverterPy)
+        """Public constructor"""
 
-    def initialize(self, argv=None):
+        #Call base class
+        super(NbConvertApp, self).__init__(**kwargs)
+
+        #Register class here to have help with help all
+        self.classes.insert(0, Exporter)
+
+
+    def start(self, argv=None):
+        """Entrypoint of NbConvert application.
+        
+        Parameters
+        ----------
+        argv : list
+            Commandline arguments
+        """
+        
+        #Parse the commandline options.
         self.parse_command_line(argv)
-        cl_config = self.config
-        self.update_config(cl_config)
 
-    def run(self):
-        """Convert a notebook in one step"""
-        ConverterClass = converters[self.fmt]
-        infile = (self.extra_args or [None])[0]
-        converter = ConverterClass(infile=infile,  config=self.config)
-        converter.render()
+        #Call base
+        super(NbConvertApp, self).start()
+
+        #The last arguments in list will be used by nbconvert
+        export_type = (self.extra_args)[1]
+        ipynb_file = (self.extra_args)[2]
+        
+        #Export
+        return_value = export_by_name(export_type, ipynb_file)
+        if return_value is None:
+            print("Error: '%s' template not found." % export_type)
+            return
+        else:
+            (output, resources, exporter) = return_value 
+        
+        #TODO: Allow user to set output directory and file. 
+        destination_filename = None
+        destination_directory = None
+        if self.write:
+                
+            #Get the file name without the '.ipynb' (6 chars) extension and then
+            #remove any addition periods and spaces. The resulting name will
+            #be used to create the directory that the files will be exported
+            #into.
+            out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
+            destination_filename = os.path.join(out_root+'.'+exporter.file_extension)
+            
+            destination_directory = out_root+'_files'
+            if not os.path.exists(destination_directory):
+                os.mkdir(destination_directory)
+                
+        #Write the results
+        if self.stdout or not (destination_filename is None and destination_directory is None):
+            self._write_results(output, resources, self.stdout, destination_filename, destination_directory)
+
+
+    def _write_results(self, output, resources, stdout=False, destination_filename=None, destination_directory=None):
+        """Output the conversion results to the console and/or filesystem
+        
+        Parameters
+        ----------
+        output : str
+            Output of conversion
+        resources : dictionary
+            Additional input/output used by the transformers.  For
+            example, the ExtractFigure transformer outputs the
+            figures it extracts into this dictionary.  This method
+            relies on the figures being in this dictionary when
+            attempting to write the figures to the file system.
+        stdout : bool, Optional
+            Whether or not to echo output to console
+        destination_filename : str, Optional
+            Filename to write output into.  If None, output is not 
+            written to a file.
+        destination_directory : str, Optional 
+            Directory to write notebook data (i.e. figures) to.  If
+            None, figures are not written to the file system.
+        """
+        
+        if stdout:
+            print(output.encode('utf-8'))
+
+        #Write file output from conversion.
+        if not destination_filename is None:
+            with io.open(destination_filename, 'w') as f:
+                f.write(output)
+
+        #Get the key names used by the extract figure transformer
+        figures_key = extractfigure.FIGURES_KEY
+        binary_key = extractfigure.BINARY_KEY
+        text_key = extractfigure.TEXT_KEY
+        
+        #Output any associate figures into the same "root" directory.
+        binkeys = resources.get(figures_key, {}).get(binary_key,{}).keys()
+        textkeys = resources.get(figures_key, {}).get(text_key,{}).keys()
+        if binkeys or textkeys :
+            if not destination_directory is None:
+                for key in binkeys:
+                    with io.open(os.path.join(destination_directory, key), 'wb') as f:
+                        f.write(resources[figures_key][binary_key][key])
+                for key in textkeys:
+                    with io.open(os.path.join(destination_directory, key), 'w') as f:
+                        f.write(resources[figures_key][text_key][key])
+
+            #Figures that weren't exported which will need to be created by the
+            #user.  Tell the user what figures these are.
+            if stdout:
+                print(KEYS_PROMPT_HEAD)
+                print(resources[figures_key].keys())
+                print(KEYS_PROMPT_BODY)
+
+#-----------------------------------------------------------------------------
+#Script main
+#-----------------------------------------------------------------------------
 
 def main():
-    """Convert a notebook to html in one step"""
-    app = NbconvertApp.instance()
+    """Application entry point"""
+
+    app = NbConvertApp.instance()
     app.description = __doc__
-    print("""
-======================================================
-Warning, we are deprecating this version of nbconvert,
-please consider using the new version.
-======================================================
-    """)
-    app.initialize()
-    app.start()
-    app.run()
-#-----------------------------------------------------------------------------
-# Script main
-#-----------------------------------------------------------------------------
+    app.start(argv=sys.argv)
 
+#Check to see if python is calling this file directly.
 if __name__ == '__main__':
-    # TODO: consider passing file like object around, rather than filenames
-    # would allow us to process stdin, or even http streams
-    #parser.add_argument('infile', nargs='?', type=argparse.FileType('r'),
-    #                    default=sys.stdin)
-
-    #parser.add_argument('-e', '--exclude', default='',
-    #                    help='Comma-separated list of cells to exclude')
-    #exclude_cells = [s.strip() for s in args.exclude.split(',')]
-
     main()
