@@ -204,4 +204,22 @@ class TestSession(SessionTestCase):
         self.assertEqual(session.bsession, session.session.encode('ascii'))
         self.assertEqual(b'stuff', session.bsession)
 
+    def test_zero_digest_history(self):
+        session = ss.Session(digest_history_size=0)
+        for i in range(11):
+            session._add_digest(uuid.uuid4().bytes)
+        self.assertEqual(len(session.digest_history), 0)
+
+    def test_cull_digest_history(self):
+        session = ss.Session(digest_history_size=100)
+        for i in range(100):
+            session._add_digest(uuid.uuid4().bytes)
+        self.assertTrue(len(session.digest_history) == 100)
+        session._add_digest(uuid.uuid4().bytes)
+        self.assertTrue(len(session.digest_history) == 91)
+        for i in range(9):
+            session._add_digest(uuid.uuid4().bytes)
+        self.assertTrue(len(session.digest_history) == 100)
+        session._add_digest(uuid.uuid4().bytes)
+        self.assertTrue(len(session.digest_history) == 91)
 
