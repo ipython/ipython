@@ -28,7 +28,7 @@ from IPython.config.application import Application
 from IPython.utils.traitlets import (Bool)
 
 #Local imports
-from nbconvert.export import export_by_name
+from nbconvert.exporters.export import export_by_name
 from nbconvert.exporters.exporter import Exporter
 from nbconvert.transformers import extractfigure
 
