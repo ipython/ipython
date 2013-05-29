@@ -53,6 +53,11 @@ class Dummy1(object):
 class Dummy2(Dummy1):
     _repr_pretty_ = None
 
+class NoModule(object):
+    pass
+
+NoModule.__module__ = None
+
 
 def test_indentation():
     """Test correct indentation in groups"""
@@ -106,3 +111,10 @@ def test_pprint_heap_allocated_type():
     import xxlimited
     output = pretty.pretty(xxlimited.Null)
     nt.assert_equal(output, 'xxlimited.Null')
+
+def test_pprint_nomod():
+    """
+    Test that pprint works for classes with no __module__.
+    """
+    output = pretty.pretty(NoModule)
+    nt.assert_equal(output, 'NoModule')
