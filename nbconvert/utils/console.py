@@ -37,7 +37,7 @@ def input(prompt_text):
     # if the command isn't found.
     try:
         majorversion = sys.version_info[0]
-    except:
+    except AttributeError:
         majorversion = 1
         
     # Use the correct function to prompt the user for input depending on 
@@ -115,7 +115,6 @@ def prompt_dictionary(choices, default_style=1, menu_comments={}):
                 response = default_style
             else:
                 response = int(text_response)
-        except:
+        except ValueError:
             print("Error: Value is not an available option.  0 selects the default.\n")
     return choices[response]
-    
