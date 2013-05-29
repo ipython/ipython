@@ -198,11 +198,12 @@ var IPython = (function (IPython) {
      * Threshold is a maximum number of lines. If unspecified, defaults to
      * OutputArea.minimum_scroll_threshold.
      *
-     * Negative or null (0) threshold will prevent the OutputArea from ever
-     * scrolling
+     * Negative threshold will prevent the OutputArea from ever scrolling.
      *
      * @method scroll_if_long
-     * @param [lines=OutputArea.minimum_scroll_threshold]{Number} Default to `OutputArea.minimum_scroll_threshold`
+     *
+     * @param [lines=20]{Number} Default to 20 if not set,
+     * behavior undefined for value of `0`.
      *
      **/
     OutputArea.prototype.scroll_if_long = function (lines) {
