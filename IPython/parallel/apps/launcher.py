@@ -61,6 +61,7 @@ from IPython.utils.text import EvalFormatter
 from IPython.utils.traitlets import (
     Any, Integer, CFloat, List, Unicode, Dict, Instance, HasTraits, CRegExp
 )
+from IPython.utils.encoding import DEFAULT_ENCODING
 from IPython.utils.path import get_home_dir
 from IPython.utils.process import find_cmd, FindCmdError
 
@@ -85,7 +86,6 @@ ipcontroller_cmd_argv = [sys.executable, "-c", cmd % "ipcontrollerapp"]
 #-----------------------------------------------------------------------------
 # Base launchers and errors
 #-----------------------------------------------------------------------------
-
 
 class LauncherError(Exception):
     pass
@@ -613,10 +613,10 @@ class SSHLauncher(LocalProcessLauncher):
             # wait up to 10s for remote file to exist
             check = check_output(self.ssh_cmd + self.ssh_args + \
                 [self.location, 'test -e', remote, "&& echo 'yes' || echo 'no'"])
-            check = check.strip()
-            if check == 'no':
+            check = check.decode(DEFAULT_ENCODING, 'replace').strip()
+            if check == u'no':
                 time.sleep(1)
-            elif check == 'yes':
+            elif check == u'yes':
                 break
         check_output(self.scp_cmd + [full_remote, local])
     
@@ -889,6 +889,7 @@ class WindowsHPCLauncher(BaseLauncher):
             cwd=self.work_dir,
             stderr=STDOUT
         )
+        output = output.decode(DEFAULT_ENCODING, 'replace')
         job_id = self.parse_job_id(output)
         self.notify_start(job_id)
         return job_id
@@ -906,8 +907,9 @@ class WindowsHPCLauncher(BaseLauncher):
                 cwd=self.work_dir,
                 stderr=STDOUT
             )
+            output = output.decode(DEFAULT_ENCODING, 'replace')
         except:
-            output = 'The job already appears to be stoppped: %r' % self.job_id
+            output = u'The job already appears to be stopped: %r' % self.job_id
         self.notify_stop(dict(job_id=self.job_id, output=output))  # Pass the output of the kill cmd
         return output
 
@@ -1117,6 +1119,7 @@ class BatchSystemLauncher(BaseLauncher):
         # can be used in the batch script template as {profile_dir}
         self.write_batch_script(n)
         output = check_output(self.args, env=os.environ)
+        output = output.decode(DEFAULT_ENCODING, 'replace')
 
         job_id = self.parse_job_id(output)
         self.notify_start(job_id)
@@ -1124,6 +1127,7 @@ class BatchSystemLauncher(BaseLauncher):
 
     def stop(self):
         output = check_output(self.delete_command+[self.job_id], env=os.environ)
+        output = output.decode(DEFAULT_ENCODING, 'replace')
         self.notify_stop(dict(job_id=self.job_id, output=output)) # Pass the output of the kill cmd
         return output
 
@@ -1242,11 +1246,11 @@ class LSFLauncher(BatchSystemLauncher):
         # Here we save profile_dir in the context so they
         # can be used in the batch script template as {profile_dir}
         self.write_batch_script(n)
-        #output = check_output(self.args, env=os.environ)
         piped_cmd = self.args[0]+'<\"'+self.args[1]+'\"'
         self.log.debug("Starting %s: %s", self.__class__.__name__, piped_cmd)
         p = Popen(piped_cmd, shell=True,env=os.environ,stdout=PIPE)
         output,err = p.communicate()
+        output = output.decode(DEFAULT_ENCODING, 'replace')
         job_id = self.parse_job_id(output)
         self.notify_start(job_id)
         return job_id
