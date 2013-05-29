@@ -45,7 +45,7 @@ def input(prompt_text):
     if majorversion >= 3:
         return input(prompt_text) 
     else:
-        return raw_input(prompt_text)
+        return raw_input(prompt_text).decode(sys.stdin.encoding)
 
     
 def prompt_boolean(prompt, default=False):
