@@ -30,7 +30,6 @@ except ImportError:
     from docutils.error_reporting import SafeString
 
 from IPython.nbformat import current as nbformat
-import pypandoc
 
 # the ipython prompt regular expression
 IPYPROMPT = re.compile(r"(?P<prompt>In \[[0-9]+\]:)(?P<code>.*)")
