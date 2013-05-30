@@ -514,7 +514,7 @@ var IPython = (function (IPython) {
             $('<a/>')
                 .addClass('anchor-link')
                 .attr('href', '#' + link)
-                .html('¶')
+                .text('¶')
             )
         );
     };
