@@ -643,7 +643,7 @@ class SSHLauncher(LocalProcessLauncher):
             self.process.stdin.write('~.')
             self.process.stdin.flush()
 
-class SSHClusterLauncher(SSHLauncher):
+class SSHClusterLauncher(SSHLauncher, ClusterAppMixin):
     
     remote_profile_dir = Unicode('', config=True,
         help="""The remote profile_dir to use.  
@@ -1332,6 +1332,7 @@ ssh_launchers = [
     SSHControllerLauncher,
     SSHEngineLauncher,
     SSHEngineSetLauncher,
+    SSHProxyEngineSetLauncher,
 ]
 winhpc_launchers = [
     WindowsHPCLauncher,
