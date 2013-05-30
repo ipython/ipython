@@ -54,16 +54,35 @@ class NbConvertApp(Application):
     """Application used to convert to and from notebook file type (*.ipynb)"""
 
     stdout = Bool(
-        True, config=True,
+        False, config=True,
         help="""Whether to print the converted IPYNB file to stdout
         use full do diff files without actually writing a new file"""
         )
 
     write = Bool(
-        False, config=True,
+        True, config=True,
         help="""Should the converted notebook file be written to disk
         along with potential extracted resources."""
         )
+
+    aliases = {
+             'stdout':'NbConvertApp.stdout',
+             'write':'NbConvertApp.write',
+             }
+
+    flags = {}
+
+    flags['stdout'] = (
+        {'NbConvertApp' : {'stdout' : True}},
+    """Print converted file to stdout, equivalent to --stdout=True
+    """
+    )
+
+    flags['no-write'] = (
+        {'NbConvertApp' : {'write' : True}},
+    """Do not write to disk, eauivalent to --write=False
+    """
+    )
 
 
     def __init__(self, **kwargs):
@@ -121,10 +140,10 @@ class NbConvertApp(Application):
                 
         #Write the results
         if self.stdout or not (destination_filename is None and destination_directory is None):
-            self._write_results(output, resources, self.stdout, destination_filename, destination_directory)
+            self._write_results(output, resources, destination_filename, destination_directory)
 
 
-    def _write_results(self, output, resources, stdout=False, destination_filename=None, destination_directory=None):
+    def _write_results(self, output, resources, destination_filename=None, destination_directory=None):
         """Output the conversion results to the console and/or filesystem
         
         Parameters
@@ -137,8 +156,6 @@ class NbConvertApp(Application):
             figures it extracts into this dictionary.  This method
             relies on the figures being in this dictionary when
             attempting to write the figures to the file system.
-        stdout : bool, Optional
-            Whether or not to echo output to console
         destination_filename : str, Optional
             Filename to write output into.  If None, output is not 
             written to a file.
@@ -147,7 +164,7 @@ class NbConvertApp(Application):
             None, figures are not written to the file system.
         """
         
-        if stdout:
+        if self.stdout:
             print(output.encode('utf-8'))
 
         #Write file output from conversion.
@@ -174,10 +191,10 @@ class NbConvertApp(Application):
 
             #Figures that weren't exported which will need to be created by the
             #user.  Tell the user what figures these are.
-            if stdout:
-                print(KEYS_PROMPT_HEAD)
-                print(resources[figures_key].keys())
-                print(KEYS_PROMPT_BODY)
+            if self.stdout:
+                print(KEYS_PROMPT_HEAD, file=sys.stderr)
+                print(resources[figures_key].keys(), file=sys.stderr)
+                print(KEYS_PROMPT_BODY , file=sys.stderr)
 
 #-----------------------------------------------------------------------------
 #Script main
