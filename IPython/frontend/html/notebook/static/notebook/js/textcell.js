@@ -515,14 +515,8 @@ var IPython = (function (IPython) {
                 .addClass('anchor-link')
                 .attr('href', '#' + link)
                 .html('¶')
-                .hide()
             )
         );
-        r.hover(function() {
-            r.find("a.anchor-link").show();
-        }, function() {
-            r.find("a.anchor-link").hide();
-        });
     };
 
 
