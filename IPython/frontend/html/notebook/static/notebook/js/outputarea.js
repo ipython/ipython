@@ -173,10 +173,10 @@ var IPython = (function (IPython) {
      *
      * @property auto_scroll_threshold
      * @type Number
-     * @default 20
+     * @default 100
      *
      **/
-    OutputArea.auto_scroll_threshold = 20;
+    OutputArea.auto_scroll_threshold = 100;
 
 
     /**
