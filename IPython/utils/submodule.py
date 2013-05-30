@@ -32,20 +32,13 @@ def ipython_parent():
 
 def ipython_submodules(root):
     """return IPython submodules relative to root"""
-    from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
     return [
-        pjoin(DEFAULT_STATIC_FILES_PATH, 'components')
+        pjoin(root, 'IPython', 'frontend', 'html', 'notebook', 'static', 'components'),
     ]
 
 def is_repo(d):
     """is d a git repo?"""
     return os.path.exists(pjoin(d, '.git'))
-
-def is_package():
-    """Is a package manager responsible for the static files path?"""
-    from IPython.utils.path import get_ipython_package_dir
-    from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
-    return not DEFAULT_STATIC_FILES_PATH.startswith(get_ipython_package_dir())
 
 def check_submodule_status(root=None):
     """check submodule status
@@ -60,23 +53,19 @@ def check_submodule_status(root=None):
     if hasattr(sys, "frozen"):
         # frozen via py2exe or similar, don't bother
         return 'clean'
-    
-    if is_package():
-        # package manager is responsible for static files, don't bother
-        return 'clean'
 
     if not root:
         root = ipython_parent()
+    
+    if not is_repo(root):
+        # not in git, assume clean
+        return 'clean'
 
     submodules = ipython_submodules(root)
 
     for submodule in submodules:
         if not os.path.exists(submodule):
             return 'missing'
-
-    if not is_repo(root):
-        # not in git, assume clean
-        return 'clean'
 
     # check with git submodule status
     proc = subprocess.Popen('git submodule status',
