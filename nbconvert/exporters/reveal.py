@@ -48,3 +48,6 @@ class RevealExporter(basichtml.BasicHtmlExporter):
         #Register reveal help transformer
         self.register_transformer(nbconvert.transformers.revealhelp.RevealHelpTransformer)
         
+        #Register CSSHtmlHeaderTransformer transformer
+        self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)
+        

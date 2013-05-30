@@ -12,19 +12,19 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-<link rel="stylesheet" href="reveal/css/reveal.css">
-<link rel="stylesheet" href="reveal/css/theme/simple.css" id="theme">
+<link rel="stylesheet" href="reveal.js/css/reveal.css">
+<link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
 
 <!-- For syntax highlighting -->
-<link rel="stylesheet" href="reveal/lib/css/zenburn.css">
+<link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
 
 <!-- If the query includes 'print-pdf', use the PDF print sheet -->
 <script>
-document.write( '<link rel="stylesheet" href="reveal/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+document.write( '<link rel="stylesheet" href="reveal.js/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
 </script>
 
 <!--[if lt IE 9]>
-<script src="reveal/lib/js/html5shiv.js"></script>
+<script src="reveal.js/lib/js/html5shiv.js"></script>
 <![endif]-->
 
 {% for css in resources.inlining.css -%}
@@ -88,7 +88,7 @@ div.output_prompt {
 
 </div></div>
 
-<!-- Social buttons -->
+<!-- Social buttons
 <div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
 <a class="addthis_button_twitter"></a>
 <a class="addthis_button_google_plusone_share"></a>
@@ -96,7 +96,34 @@ div.output_prompt {
 <a class="addthis_button_facebook"></a>
 <a class="addthis_button_more"></a>
 </div>
-<!-- End of social buttons -->
+End of social buttons -->
+
+<script src="reveal.js/lib/js/head.min.js"></script>
+
+<script src="reveal.js/js/reveal.min.js"></script>
+
+<script>
+
+// Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+{ src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+{ src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+// { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
+// { src: 'js/mathjax-onload.js', async: true}
+]
+});
+</script>
 
 <!-- MathJax configuration -->
 <script type="text/x-mathjax-config">
@@ -113,31 +140,19 @@ MathJax.Hub.Config({
 </script>
 <!-- End of mathjax configuration -->
 
-<script src="reveal/lib/js/head.min.js"></script>
-
-<script src="reveal/js/reveal.min.js"></script>
-
 <script>
-
-// Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
-Reveal.initialize({
-controls: true,
-progress: true,
-history: true,
-
-theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
-transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
-
-// Optional libraries used to extend on reveal.js
-dependencies: [
-{ src: 'reveal/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-{ src: 'reveal/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-{ src: 'reveal/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'reveal/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } },
-{ src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
-{ src: 'js/mathjax-onload.js', async: true}
-]
-});
+//  We wait for the onload function to load MathJax after the page is completely loaded.  
+//  MathJax is loaded 1 unit of time after the page is ready.
+//  This hack prevent problems when you load multiple js files (i.e. social button from addthis).
+//
+window.onload = function () {
+  setTimeout(function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  },1)
+}
 </script>
 
 <script>
