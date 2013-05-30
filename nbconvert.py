@@ -92,6 +92,9 @@ class NbConvertApp(Application):
         super(NbConvertApp, self).start()
 
         #The last arguments in list will be used by nbconvert
+        if len(self.extra_args) is not 3:
+            print( "Wrong number of arguments, use --help flag for usage", file=sys.stderr)
+            sys.exit(-1)
         export_type = (self.extra_args)[1]
         ipynb_file = (self.extra_args)[2]
         
