@@ -121,6 +121,8 @@ def require_clean_submodules():
     after everything has been set in motion,
     this is not a distutils command.
     """
+    # PACKAGERS: Add a return here to skip checks for git submodules
+    
     # don't do anything if nothing is actually supposed to happen
     for do_nothing in ('-h', '--help', '--help-commands', 'clean', 'submodule'):
         if do_nothing in sys.argv:
