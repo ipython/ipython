@@ -2363,10 +2363,38 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to extracting values/expressions from kernel and user_ns
     #-------------------------------------------------------------------------
 
-    def _simple_error(self):
-        etype, value = sys.exc_info()[:2]
-        return u'[ERROR] {e.__name__}: {v}'.format(e=etype, v=value)
+    def _user_obj_error(self):
+        """return simple exception dict
+        
+        for use in user_variables / expressions
+        """
+        
+        etype, evalue, tb = self._get_exc_info()
+        stb = self.InteractiveTB.get_exception_only(etype, evalue)
+        
+        exc_info = {
+            u'status' : 'error',
+            u'traceback' : stb,
+            u'ename' : unicode(etype.__name__),
+            u'evalue' : py3compat.safe_unicode(evalue),
+        }
 
+        return exc_info
+    
+    def _format_user_obj(self, obj):
+        """format a user object to display dict
+        
+        for use in user_expressions / variables
+        """
+        
+        data, md = self.display_formatter.format(obj)
+        value = {
+            'status' : 'ok',
+            'data' : data,
+            'metadata' : md,
+        }
+        return value
+    
     def user_variables(self, names):
         """Get a list of variable names from the user's namespace.
 
@@ -2377,15 +2405,17 @@ class InteractiveShell(SingletonConfigurable):
 
         Returns
         -------
-        A dict, keyed by the input names and with the repr() of each value.
+        A dict, keyed by the input names and with the rich mime-type repr(s) of each value.
+        Each element will be a sub-dict of the same form as a display_data message.
         """
         out = {}
         user_ns = self.user_ns
+        
         for varname in names:
             try:
-                value = repr(user_ns[varname])
+                value = self._format_user_obj(user_ns[varname])
             except:
-                value = self._simple_error()
+                value = self._user_obj_error()
             out[varname] = value
         return out
 
@@ -2401,17 +2431,18 @@ class InteractiveShell(SingletonConfigurable):
 
         Returns
         -------
-        A dict, keyed like the input expressions dict, with the repr() of each
-        value.
+        A dict, keyed like the input expressions dict, with the rich mime-typed
+        display_data of each value.
         """
         out = {}
         user_ns = self.user_ns
         global_ns = self.user_global_ns
+        
         for key, expr in expressions.iteritems():
             try:
-                value = repr(eval(expr, global_ns, user_ns))
+                value = self._format_user_obj(eval(expr, global_ns, user_ns))
             except:
-                value = self._simple_error()
+                value = self._user_obj_error()
             out[key] = value
         return out
 

@@ -15,6 +15,7 @@ from __future__ import print_function
 
 # Stdlib
 import io
+import json
 import sys
 from pprint import pformat
 
@@ -32,6 +33,55 @@ from IPython.utils.warn import warn, error
 #-----------------------------------------------------------------------------
 # Magics class implementation
 #-----------------------------------------------------------------------------
+
+class MagicsDisplay(object):
+    def __init__(self, magics_manager):
+        self.magics_manager = magics_manager
+    
+    def _lsmagic(self):
+        """The main implementation of the %lsmagic"""
+        mesc = magic_escapes['line']
+        cesc = magic_escapes['cell']
+        mman = self.magics_manager
+        magics = mman.lsmagic()
+        out = ['Available line magics:',
+               mesc + ('  '+mesc).join(sorted(magics['line'])),
+               '',
+               'Available cell magics:',
+               cesc + ('  '+cesc).join(sorted(magics['cell'])),
+               '',
+               mman.auto_status()]
+        return '\n'.join(out)
+
+    def _repr_pretty_(self, p, cycle):
+        p.text(self._lsmagic())
+    
+    def __str__(self):
+        return self._lsmagic()
+    
+    def _jsonable(self):
+        """turn magics dict into jsonable dict of the same structure
+        
+        replaces object instances with their class names as strings
+        """
+        magic_dict = {}
+        mman = self.magics_manager
+        magics = mman.lsmagic()
+        for key, subdict in magics.items():
+            d = {}
+            magic_dict[key] = d
+            for name, obj in subdict.items():
+                try:
+                    classname = obj.im_class.__name__
+                except AttributeError:
+                    classname = 'Other'
+                
+                d[name] = classname
+        return magic_dict
+        
+    def _repr_json_(self):
+        return json.dumps(self._jsonable())
+
 
 @magics_class
 class BasicMagics(Magics):
@@ -124,24 +174,10 @@ class BasicMagics(Magics):
                 magic_escapes['cell'], name,
                 magic_escapes['cell'], target))
 
-    def _lsmagic(self):
-        mesc = magic_escapes['line']
-        cesc = magic_escapes['cell']
-        mman = self.shell.magics_manager
-        magics = mman.lsmagic()
-        out = ['Available line magics:',
-               mesc + ('  '+mesc).join(sorted(magics['line'])),
-               '',
-               'Available cell magics:',
-               cesc + ('  '+cesc).join(sorted(magics['cell'])),
-               '',
-               mman.auto_status()]
-        return '\n'.join(out)
-
     @line_magic
     def lsmagic(self, parameter_s=''):
         """List currently available magic functions."""
-        print(self._lsmagic())
+        return MagicsDisplay(self.shell.magics_manager)
 
     def _magic_docs(self, brief=False, rest=False):
         """Return docstrings from magic functions."""

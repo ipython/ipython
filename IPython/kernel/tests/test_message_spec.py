@@ -361,7 +361,21 @@ def test_user_variables():
 
     msg_id, reply = execute(code='x=1', user_variables=['x'])
     user_variables = reply['user_variables']
-    nt.assert_equal(user_variables, {u'x' : u'1'})
+    nt.assert_equal(user_variables, {u'x': {
+        u'status': u'ok',
+        u'data': {u'text/plain': u'1'},
+        u'metadata': {},
+    }})
+
+
+def test_user_variables_fail():
+    flush_channels()
+
+    msg_id, reply = execute(code='x=1', user_variables=['nosuchname'])
+    user_variables = reply['user_variables']
+    foo = user_variables['nosuchname']
+    nt.assert_equal(foo['status'], 'error')
+    nt.assert_equal(foo['ename'], 'KeyError')
 
 
 def test_user_expressions():
@@ -369,7 +383,21 @@ def test_user_expressions():
 
     msg_id, reply = execute(code='x=1', user_expressions=dict(foo='x+1'))
     user_expressions = reply['user_expressions']
-    nt.assert_equal(user_expressions, {u'foo' : u'2'})
+    nt.assert_equal(user_expressions, {u'foo': {
+        u'status': u'ok',
+        u'data': {u'text/plain': u'2'},
+        u'metadata': {},
+    }})
+
+
+def test_user_expressions_fail():
+    flush_channels()
+
+    msg_id, reply = execute(code='x=0', user_expressions=dict(foo='nosuchname'))
+    user_expressions = reply['user_expressions']
+    foo = user_expressions['foo']
+    nt.assert_equal(foo['status'], 'error')
+    nt.assert_equal(foo['ename'], 'NameError')
 
 
 @dec.parametric
