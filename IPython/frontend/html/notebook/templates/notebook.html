@@ -45,19 +45,23 @@ class="notebook_app"
 {% block site %}
 
 <div id="menubar_container">
-<div id="menubar">
-    <ul id="menus">
-        <li><a href="#">File</a>
-            <ul>
+<div id="menubar" class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+    <ul id="menus" class="nav">
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">File</a>
+            <ul class="dropdown-menu">
                 <li id="new_notebook"><a href="#">New</a></li>
                 <li id="open_notebook"><a href="#">Open...</a></li>
-                <hr/>
+                <!-- <hr/> -->
+                <li class="divider"></li>
                 <li id="copy_notebook"><a href="#">Make a Copy...</a></li>
                 <li id="rename_notebook"><a href="#">Rename...</a></li>
                 <li id="save_checkpoint"><a href="#">Save and Checkpoint</a></li>
-                <hr/>
-                <li id="restore_checkpoint"><a href="#">Revert to Checkpoint</a>
-                  <ul>
+                <!-- <hr/> -->
+                <li class="divider"></li>
+                <li id="restore_checkpoint" class="dropdown-submenu"><a href="#">Revert to Checkpoint</a>
+                  <ul class="dropdown-menu">
                     <li><a href="#"></a></li>
                     <li><a href="#"></a></li>
                     <li><a href="#"></a></li>
@@ -65,21 +69,20 @@ class="notebook_app"
                     <li><a href="#"></a></li>
                   </ul>
                 </li>
-                <hr/>
-                <li><a href="#">Download as</a>
-                    <ul>
+                <li class="divider"></li>
+                <li class="dropdown-submenu"><a href="#">Download as</a>
+                    <ul class="dropdown-menu">
                         <li id="download_ipynb"><a href="#">IPython (.ipynb)</a></li>
                         <li id="download_py"><a href="#">Python (.py)</a></li>
                     </ul>
                 </li>
-                <!--<hr/>
-                <li id="print_notebook"><a href="/{{notebook_id}}/print" target="_blank">Print View</a></li>-->
-                <hr/>
+                <li class="divider"></li>
+                
                 <li id="kill_and_exit"><a href="#" >Close and halt</a></li>
             </ul>
         </li>
-        <li><a href="#">Edit</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Edit</a>
+            <ul class="dropdown-menu">
                 <li id="cut_cell"><a href="#">Cut Cell</a></li>
                 <li id="copy_cell"><a href="#">Copy Cell</a></li>
                 <li id="paste_cell_above" class="ui-state-disabled"><a href="#">Paste Cell Above</a></li>
@@ -87,51 +90,55 @@ class="notebook_app"
                 <li id="paste_cell_replace" class="ui-state-disabled"><a href="#">Paste Cell &amp; Replace</a></li>
                 <li id="delete_cell"><a href="#">Delete Cell</a></li>
                 <li id="undelete_cell" class="ui-state-disabled"><a href="#">Undo Delete Cell</a></li>
-                <hr/>
+                <li class="divider"></li>
                 <li id="split_cell"><a href="#">Split Cell</a></li>
                 <li id="merge_cell_above"><a href="#">Merge Cell Above</a></li>
                 <li id="merge_cell_below"><a href="#">Merge Cell Below</a></li>
-                <hr/>
+                <li class="divider"></li>
                 <li id="move_cell_up"><a href="#">Move Cell Up</a></li>
                 <li id="move_cell_down"><a href="#">Move Cell Down</a></li>
-                <hr/>
+                <li class="divider"></li>
                 <li id="select_previous"><a href="#">Select Previous Cell</a></li>
                 <li id="select_next"><a href="#">Select Next Cell</a></li>
             </ul>
         </li>
-        <li><a href="#">View</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">View</a>
+            <ul class="dropdown-menu">
                 <li id="toggle_header"><a href="#">Toggle Header</a></li>
                 <li id="toggle_toolbar"><a href="#">Toggle Toolbar</a></li>
             </ul>
         </li>
-        <li><a href="#">Insert</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Insert</a>
+            <ul class="dropdown-menu">
                 <li id="insert_cell_above"><a href="#">Insert Cell Above</a></li>
                 <li id="insert_cell_below"><a href="#">Insert Cell Below</a></li>
             </ul>
         </li>
-        <li><a href="#">Cell</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Cell</a>
+            <ul class="dropdown-menu">
                 <li id="run_cell"><a href="#">Run</a></li>
                 <li id="run_cell_in_place"><a href="#">Run in Place</a></li>
                 <li id="run_all_cells"><a href="#">Run All</a></li>
                 <li id="run_all_cells_above"><a href="#">Run All Above</a></li>
                 <li id="run_all_cells_below"><a href="#">Run All Below</a></li>
-                <hr/>
-                <li id="to_code"><a href="#">Code</a></li>
-                <li id="to_markdown"><a href="#">Markdown </a></li>
-                <li id="to_raw"><a href="#">Raw Text</a></li>
-                <li id="to_heading1"><a href="#">Heading 1</a></li>
-                <li id="to_heading2"><a href="#">Heading 2</a></li>
-                <li id="to_heading3"><a href="#">Heading 3</a></li>
-                <li id="to_heading4"><a href="#">Heading 4</a></li>
-                <li id="to_heading5"><a href="#">Heading 5</a></li>
-                <li id="to_heading6"><a href="#">Heading 6</a></li>
-                <hr/>
+                <li class="divider"></li>
+                <li id="change_cell_type" class="dropdown-submenu"><a href="#">Cell Type</a>
+                    <ul class="dropdown-menu">
+                      <li id="to_code"><a href="#">Code</a></li>
+                      <li id="to_markdown"><a href="#">Markdown </a></li>
+                      <li id="to_raw"><a href="#">Raw Text</a></li>
+                      <li id="to_heading1"><a href="#">Heading 1</a></li>
+                      <li id="to_heading2"><a href="#">Heading 2</a></li>
+                      <li id="to_heading3"><a href="#">Heading 3</a></li>
+                      <li id="to_heading4"><a href="#">Heading 4</a></li>
+                      <li id="to_heading5"><a href="#">Heading 5</a></li>
+                      <li id="to_heading6"><a href="#">Heading 6</a></li>
+                    </ul>
+                </li>
+                <li class="divider"></li>
                 <li id="toggle_output"><a href="#">Toggle Current Output</a></li>
-                <li id="all_outputs"><a href="#">All Output</a>
-                    <ul>
+                <li id="all_outputs" class="dropdown-submenu"><a href="#">All Output</a>
+                    <ul class="dropdown-menu">
                         <li id="expand_all_output"><a href="#">Expand</a></li>
                         <li id="scroll_all_output"><a href="#">Scroll Long</a></li>
                         <li id="collapse_all_output"><a href="#">Collapse</a></li>
@@ -140,18 +147,18 @@ class="notebook_app"
                 </li>
             </ul>
         </li>
-        <li><a href="#">Kernel</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Kernel</a>
+            <ul class="dropdown-menu">
                 <li id="int_kernel"><a href="#">Interrupt</a></li>
                 <li id="restart_kernel"><a href="#">Restart</a></li>
             </ul>
         </li>
-        <li><a href="#">Help</a>
-            <ul>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Help</a>
+            <ul class="dropdown-menu">
                 <li><a href="http://ipython.org/documentation.html" target="_blank">IPython Help</a></li>
                 <li><a href="http://ipython.org/ipython-doc/stable/interactive/htmlnotebook.html" target="_blank">Notebook Help</a></li>
                 <li id="keyboard_shortcuts"><a href="#">Keyboard Shortcuts</a></li>
-                <hr/>
+                <li class="divider"></li>
                 <li><a href="http://docs.python.org" target="_blank">Python</a></li>
                 <li><a href="http://docs.scipy.org/doc/numpy/reference/" target="_blank">NumPy</a></li>
                 <li><a href="http://docs.scipy.org/doc/scipy/reference/" target="_blank">SciPy</a></li>
@@ -160,7 +167,8 @@ class="notebook_app"
             </ul>
         </li>
     </ul>
-
+    </div>
+  </div>
 </div>
     <div id="notification_area">
     </div>
