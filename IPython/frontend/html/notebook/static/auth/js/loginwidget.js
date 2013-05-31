@@ -23,7 +23,7 @@ var IPython = (function (IPython) {
     };
 
     LoginWidget.prototype.style = function () {
-        this.element.find("button").addClass("btn");
+        this.element.find("button").addClass("btn btn-small");
     };
 
 
