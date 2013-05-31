@@ -13,7 +13,7 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    $('#ipython-main-app').addClass('border-box-sizing ui-widget');
+    $('#ipython-main-app').addClass('border-box-sizing');
     IPython.page.show();
 
 });

@@ -13,8 +13,7 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    $('input#login_submit').button();
-    $('#ipython-main-app').addClass('border-box-sizing ui-widget');
+    $('button#login_submit').addClass("btn");
     IPython.page.show();
     $('input#password_input').focus();
 

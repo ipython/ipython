@@ -22,13 +22,14 @@ data-read-only={{read_only}}
 
 <div id="ipython-main-app">
 
-<div id="tabs">
-    <ul>
-        <li><a href="#tab1">Notebooks</a></li>
-        <li><a href="#tab2">Clusters</a></li>
+<div id="tabs" class="tabbable">
+    <ul class="nav nav-tabs" id="tabs">
+        <li class="active"><a href="#tab1" data-toggle="tab">Notebooks</a></li>
+        <li><a href="#tab2" data-toggle="tab">Clusters</a></li>
     </ul>
 
-    <div id="tab1">
+    <div class="tab-content">
+    <div id="tab1" class="tab-pane active">
         {% if logged_in or not read_only %}
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
@@ -38,8 +39,8 @@ data-read-only={{read_only}}
                 <input type="file" name="datafile" class="fileinput" multiple='multiple'>
             </form>
             <span id="notebook_buttons">
-                <button id="refresh_notebook_list" title="Refresh notebook list">Refresh</button>
-                <button id="new_notebook" title="Create new notebook">New Notebook</button>
+                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn">Refresh</button>
+                <button id="new_notebook" title="Create new notebook" class="btn">New Notebook</button>
             </span>
         </div>
         {% endif %}
@@ -54,13 +55,14 @@ data-read-only={{read_only}}
             </div>
         </div>
     </div>
-    <div id="tab2">
+    
+    <div id="tab2" class="tab-pane">
 
         <div id="cluster_toolbar">
             <span id="cluster_list_info">IPython parallel computing clusters</span>
 
             <span id="cluster_buttons">
-                <button id="refresh_cluster_list" title="Refresh cluster list">Refresh</button>
+                <button id="refresh_cluster_list" title="Refresh cluster list" class="btn">Refresh</button>
             </span>
         </div>
 
@@ -72,7 +74,7 @@ data-read-only={{read_only}}
                 <span>status</span>
             </div>
         </div>
-
+        </div>
     </div>
 </div>
 
