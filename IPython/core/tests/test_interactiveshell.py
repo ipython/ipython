@@ -578,3 +578,72 @@ class TestAstTransformError(unittest.TestCase):
 def test__IPYTHON__():
     # This shouldn't raise a NameError, that's all
     __IPYTHON__
+
+
+class DummyRepr(object):
+    def __repr__(self):
+        return "DummyRepr"
+    
+    def _repr_html_(self):
+        return "<b>dummy</b>"
+    
+    def _repr_javascript_(self):
+        return "console.log('hi');", {'key': 'value'}
+    
+
+def test_user_variables():
+    # enable all formatters
+    ip.display_formatter.active_types = ip.display_formatter.format_types
+    
+    ip.user_ns['dummy'] = d = DummyRepr()
+    keys = set(['dummy', 'doesnotexist'])
+    r = ip.user_variables(keys)
+
+    nt.assert_equal(keys, set(r.keys()))
+    dummy = r['dummy']
+    nt.assert_equal(set(['status', 'data', 'metadata']), set(dummy.keys()))
+    nt.assert_equal(dummy['status'], 'ok')
+    data = dummy['data']
+    metadata = dummy['metadata']
+    nt.assert_equal(data.get('text/html'), d._repr_html_())
+    js, jsmd = d._repr_javascript_()
+    nt.assert_equal(data.get('application/javascript'), js)
+    nt.assert_equal(metadata.get('application/javascript'), jsmd)
+    
+    dne = r['doesnotexist']
+    nt.assert_equal(dne['status'], 'error')
+    nt.assert_equal(dne['ename'], 'KeyError')
+    
+    # back to text only
+    ip.display_formatter.active_types = ['text/plain']
+    
+def test_user_expression():
+    # enable all formatters
+    ip.display_formatter.active_types = ip.display_formatter.format_types
+    query = {
+        'a' : '1 + 2',
+        'b' : '1/0',
+    }
+    r = ip.user_expressions(query)
+    import pprint
+    pprint.pprint(r)
+    nt.assert_equal(r.keys(), query.keys())
+    a = r['a']
+    nt.assert_equal(set(['status', 'data', 'metadata']), set(a.keys()))
+    nt.assert_equal(a['status'], 'ok')
+    data = a['data']
+    metadata = a['metadata']
+    nt.assert_equal(data.get('text/plain'), '3')
+    
+    b = r['b']
+    nt.assert_equal(b['status'], 'error')
+    nt.assert_equal(b['ename'], 'ZeroDivisionError')
+    
+    # back to text only
+    ip.display_formatter.active_types = ['text/plain']
+    
+
+
+
+
+

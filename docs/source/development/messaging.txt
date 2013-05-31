@@ -171,8 +171,9 @@ Message type: ``execute_request``::
     # is forced to be False.
     'store_history' : bool,
 
-    # A list of variable names from the user's namespace to be retrieved.  What
-    # returns is a JSON string of the variable's repr(), not a python object.
+    # A list of variable names from the user's namespace to be retrieved.
+    # What returns is a rich representation of each variable (dict keyed by name).
+    # See the display_data content for the structure of the representation data.
     'user_variables' : list,
 
     # Similarly, a dict mapping names to expressions to be evaluated in the
