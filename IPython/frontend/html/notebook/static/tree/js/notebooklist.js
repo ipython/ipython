@@ -28,11 +28,7 @@ var IPython = (function (IPython) {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
         $('#notebook_buttons').addClass('toolbar_buttons');
-        $('div#project_name').addClass('list_header ui-widget ui-widget-header');
-        $('#refresh_notebook_list').button({
-            icons : {primary: 'ui-icon-arrowrefresh-1-s'},
-            text : false
-        });
+        $('li#notebook_list_header').addClass('list_header');
     };
 
 
@@ -145,12 +141,17 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<div/>');
-        item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-        item.css('border-top-style','none');
-        var item_name = $('<span/>').addClass('item_name');
-
-        item.append(item_name);
+        var item = $('<li/>').addClass("list_item");
+        // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
+        // item.css('border-top-style','none');
+        item.append(
+            $('<a/>').addClass('item_row').append(
+                $("<span/>").addClass("item_name")
+            ).append(
+                $('<span/>').addClass("item_buttons btn-group pull-right")
+            )
+        )
+        
         if (index === -1) {
             this.element.append(item);
         } else {
@@ -161,21 +162,13 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.add_link = function (notebook_id, nbname, item) {
+        console.log(item);
         item.data('nbname', nbname);
         item.data('notebook_id', notebook_id);
-        var new_item_name = $('<span/>').addClass('item_name');
-        new_item_name.append(
-            $('<a/>').
-            attr('href', this.baseProjectUrl()+notebook_id).
-            attr('target','_blank').
-            text(nbname)
-        );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
+        item.find("a.item_row")
+            .attr('href', this.baseProjectUrl()+notebook_id)
+            .attr('target','_blank')
+            .find(".item_name").text(nbname);
     };
 
 
@@ -202,10 +195,9 @@ var IPython = (function (IPython) {
     };
 
 
-    NotebookList.prototype.add_shutdown_button = function (item,kernel) {
-        var new_buttons = $('<span/>').addClass('item_buttons');
+    NotebookList.prototype.add_shutdown_button = function (item, kernel) {
         var that = this;
-        var shutdown_button = $('<button>Shutdown</button>').button().
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -218,20 +210,16 @@ var IPython = (function (IPython) {
                 };
                 var url = that.baseProjectUrl() + 'kernels/'+kernel;
                 $.ajax(url, settings);
+                return false;
             });
-        new_buttons.append(shutdown_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        // var new_buttons = item.find('a'); // shutdown_button;
+        item.find(".item_buttons").html("").append(shutdown_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
-        var new_buttons = $('<span/>').addClass('item_buttons');
+        var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $('<button>Delete</button>').button().
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
@@ -267,14 +255,9 @@ var IPython = (function (IPython) {
                         }
                     }
                 });
+                return false;
             });
-        new_buttons.append(delete_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        item.find(".item_buttons").html("").append(delete_button);
     };
 
 
@@ -309,19 +292,17 @@ var IPython = (function (IPython) {
                 var qs = $.param({name:nbname, format:nbformat});
                 var url = that.baseProjectUrl() + 'notebooks?' + qs;
                 $.ajax(url, settings);
+                return false;
             });
         var cancel_button = $('<button>Cancel</button>').button().
             click(function (e) {
                 item.remove();
+                return false;
             });
         upload_button.addClass('upload_button');
-        new_buttons.append(upload_button).append(cancel_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        item.find(".item_buttons").html("")
+            .append(upload_button)
+            .append(cancel_button);
     };
 
 

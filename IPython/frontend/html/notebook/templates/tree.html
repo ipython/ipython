@@ -39,13 +39,14 @@ data-read-only={{read_only}}
                 <input type="file" name="datafile" class="fileinput" multiple='multiple'>
             </form>
             <span id="notebook_buttons">
-                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn">Refresh</button>
-                <button id="new_notebook" title="Create new notebook" class="btn">New Notebook</button>
+                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small">Refresh</button>
+                <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
             </span>
         </div>
         {% endif %}
 
-        <div id="notebook_list">
+        <ul id="notebook_list" class="nav nav-stacked">
+          <li id="notebook_list_header" class="nav-header">
             <div id="project_name">
                 <ul class="breadcrumb">
                     {% for component in project_component %}
@@ -53,7 +54,8 @@ data-read-only={{read_only}}
                     {% endfor %}
                 </ul>
             </div>
-        </div>
+          </li>
+        </ul>
     </div>
     
     <div id="tab2" class="tab-pane">
@@ -62,19 +64,18 @@ data-read-only={{read_only}}
             <span id="cluster_list_info">IPython parallel computing clusters</span>
 
             <span id="cluster_buttons">
-                <button id="refresh_cluster_list" title="Refresh cluster list" class="btn">Refresh</button>
+                <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small">Refresh</button>
             </span>
         </div>
 
-        <div id="cluster_list">
-            <div id="cluster_header">
+        <ul id="cluster_list" class="nav nav-stacked">
+            <li id="cluster_header" class="nav-header">
                 <span>profile</span>
                 <span>action</span>
                 <span title="Enter the number of engines to start or empty for default"># of engines</span>
                 <span>status</span>
-            </div>
-        </div>
-        </div>
+            </li>
+        </ul>
     </div>
 </div>
 

@@ -28,15 +28,17 @@ var IPython = (function (IPython) {
         $('#cluster_toolbar').addClass('list_toolbar');
         $('#cluster_list_info').addClass('toolbar_info');
         $('#cluster_buttons').addClass('toolbar_buttons');
-        $('div#cluster_header').addClass('list_header ui-widget ui-widget-header ui-helper-clearfix');
-        $('div#cluster_header').children().eq(0).addClass('profile_col');
-        $('div#cluster_header').children().eq(1).addClass('action_col');
-        $('div#cluster_header').children().eq(2).addClass('engines_col');
-        $('div#cluster_header').children().eq(3).addClass('status_col');
-        $('#refresh_cluster_list').button({
-            icons : {primary: 'ui-icon-arrowrefresh-1-s'},
-            text : false
-        });
+        var children = $('li#cluster_header').addClass('list_header').children();
+        children.eq(0).addClass('profile_col');
+        children.eq(1).addClass('action_col');
+        children.eq(2).addClass('engines_col');
+        children.eq(3).addClass('status_col');
+        // $('div#cluster_header').children().eq(2).addClass('engines_col');
+        // $('div#cluster_header').children().eq(3).addClass('status_col');
+        // $('#refresh_cluster_list').button({
+        //     icons : {primary: 'ui-icon-arrowrefresh-1-s'},
+        //     text : false
+        // });
     };
 
 
@@ -91,8 +93,7 @@ var IPython = (function (IPython) {
 
 
     ClusterItem.prototype.style = function () {
-        this.element.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-        this.element.css('border-top-style','none');
+        this.element.addClass('list_item');
     }
 
     ClusterItem.prototype.update_state = function (data) {
@@ -117,9 +118,12 @@ var IPython = (function (IPython) {
                 .attr('size',3)
                 .addClass('engine_num_input');
         engines_col.append(input);
-        var action_col = $('<span/>').addClass('action_col');
-        var start_button = $('<button>Start</button>').button();
-        action_col.append(start_button);
+        var start_button = $('<button/>').addClass("btn btn-mini").text("Start");
+        var action_col = $('<span/>').addClass('action_col').append(
+            $("<span/>").addClass("btn-group pull-right").append(
+                start_button
+            )
+        );
         this.element.append(profile_col).
             append(action_col).
             append(engines_col).
@@ -155,9 +159,12 @@ var IPython = (function (IPython) {
         var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
         var status_col = $('<span/>').addClass('status_col').html('running');
         var engines_col = $('<span/>').addClass('engines_col').html(this.data.n);
-        var action_col = $('<span/>').addClass('action_col');
-        var stop_button = $('<button>Stop</button>').button();
-        action_col.append(stop_button);
+        var stop_button = $('<button/>').addClass("btn btn-mini").text("Stop");
+        var action_col = $('<span/>').addClass('action_col').append(
+            $("<span/>").addClass("btn-group pull-right").append(
+                stop_button
+            )
+        );
         this.element.append(profile_col).
             append(action_col).
             append(engines_col).
