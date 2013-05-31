@@ -1343,7 +1343,7 @@ var IPython = (function (IPython) {
         var that = this;
         var dialog = $('<div/>');
         dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
-        $(document).append(dialog);
+        $(document.body).append(dialog);
         dialog.dialog({
             resizable: false,
             modal: true,
@@ -1934,7 +1934,7 @@ var IPython = (function (IPython) {
             ).css("text-align", "center")
         );
         
-        $(document).append(dialog);
+        $(document.body).append(dialog);
         
         dialog.dialog({
             resizable: false,

@@ -79,7 +79,7 @@ var IPython = (function (IPython) {
             .addClass('ui-widget ui-widget-content')
             .attr('value',IPython.notebook.get_notebook_name())
         );
-        // $(document).append(dialog);
+        // $(document.body).append(dialog);
         dialog.dialog({
             resizable: false,
             modal: true,

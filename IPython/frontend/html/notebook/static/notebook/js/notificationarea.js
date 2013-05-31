@@ -99,7 +99,7 @@ var IPython = (function (IPython) {
                 ' the notebook, but running code will no longer work until the notebook' +
                 ' is reopened.'
             );
-            $(document).append(dialog);
+            $(document.body).append(dialog);
             dialog.dialog({
                 resizable: false,
                 modal: true,
@@ -136,7 +136,7 @@ var IPython = (function (IPython) {
                 " network connection or notebook server configuration.";
             var dialog = $('<div/>');
             dialog.html(msg);
-            $(document).append(dialog);
+            $(document.body).append(dialog);
             dialog.dialog({
                 resizable: false,
                 modal: true,
