@@ -26,7 +26,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
-                    icon : 'ui-icon-disk',
+                    icon : 'icon-hdd',
                     callback : function () {
                         IPython.notebook.save_checkpoint();
                         }
@@ -36,7 +36,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'cut_b',
                     label : 'Cut Cell',
-                    icon : 'ui-icon-scissors',
+                    icon : 'icon-cut',
                     callback : function () {
                         IPython.notebook.cut_cell();
                         }
@@ -44,7 +44,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'copy_b',
                     label : 'Copy Cell',
-                    icon : 'ui-icon-copy',
+                    icon : 'icon-copy',
                     callback : function () {
                         IPython.notebook.copy_cell();
                         }
@@ -52,7 +52,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'paste_b',
                     label : 'Paste Cell Below',
-                    icon : 'ui-icon-clipboard',
+                    icon : 'icon-paste',
                     callback : function () {
                         IPython.notebook.paste_cell_below();
                         }
@@ -63,7 +63,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'move_up_b',
                     label : 'Move Cell Up',
-                    icon : 'ui-icon-arrowthick-1-n',
+                    icon : 'icon-arrow-up',
                     callback : function () {
                         IPython.notebook.move_cell_up();
                         }
@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'move_down_b',
                     label : 'Move Cell Down',
-                    icon : 'ui-icon-arrowthick-1-s',
+                    icon : 'icon-arrow-up',
                     callback : function () {
                         IPython.notebook.move_cell_down();
                         }
@@ -82,7 +82,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'insert_above_b',
                     label : 'Insert Cell Above',
-                    icon : 'ui-icon-arrowthickstop-1-n',
+                    icon : 'icon-circle-arrow-up',
                     callback : function () {
                         IPython.notebook.insert_cell_above('code');
                         }
@@ -90,7 +90,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'insert_below_b',
                     label : 'Insert Cell Below',
-                    icon : 'ui-icon-arrowthickstop-1-s',
+                    icon : 'icon-circle-arrow-down',
                     callback : function () {
                         IPython.notebook.insert_cell_below('code');
                         }
@@ -101,7 +101,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'run_b',
                     label : 'Run Cell',
-                    icon : 'ui-icon-play',
+                    icon : 'icon-play',
                     callback : function () {
                     IPython.notebook.execute_selected_cell();
                         }
@@ -109,7 +109,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'interrupt_b',
                     label : 'Interrupt',
-                    icon : 'ui-icon-stop',
+                    icon : 'icon-stop',
                     callback : function () {
                         IPython.notebook.kernel.interrupt();
                         }
@@ -121,7 +121,7 @@ var IPython = (function (IPython) {
         this.element
             .append($('<select/>')
                 .attr('id','cell_type')
-                .addClass('ui-widget-content')
+                // .addClass('ui-widget-content')
                 .append($('<option/>').attr('value','code').text('Code'))
                 .append($('<option/>').attr('value','markdown').text('Markdown'))
                 .append($('<option/>').attr('value','raw').text('Raw Text'))
@@ -136,9 +136,9 @@ var IPython = (function (IPython) {
 
 
     MainToolBar.prototype.add_celltoolbar_list = function () {
-        var label = $('<label/>').text('Cell Toolbar:');
+        var label = $('<span/>').addClass("navbar-text").text('Cell Toolbar:');
         var select = $('<select/>')
-            .addClass('ui-widget-content')
+            // .addClass('ui-widget-content')
             .attr('id', 'ctb_select')
             .append($('<option/>').attr('value', '').text('None'));
         this.element.append(label).append(select);

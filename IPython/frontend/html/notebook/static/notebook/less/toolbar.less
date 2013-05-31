@@ -1,15 +1,10 @@
 .toolbar {
-    padding: 3px 15px;
+    padding: 0px 15px;
     border-bottom: @border_width @border_color solid;
 
-    button {
-        margin-top:2px;
-        margin-bottom:2px;
-    }
-
-
     select, label {
-        height : 19px;
+        width: auto;
+        height: @baseLineHeight + 6px;
         vertical-align:middle;
         margin-right:2px;
         margin-bottom:0;
@@ -19,8 +14,7 @@
         margin-right:0.3em;
         padding: 0px;
     }
-}
-
-.toolbar select{
-    width:auto;
+    .btn {
+        padding: 2px 8px;
+    }
 }
