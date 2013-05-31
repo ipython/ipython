@@ -18,7 +18,13 @@ body {
   padding: 8px;
 }
 .input_area {
-  padding: 0.4em;
+  padding: 0.2em;
+}
+
+pre {
+    border: none;
+    margin: 0px;
+    font-size: 13px;
 }
 </style>
 
