@@ -1226,7 +1226,6 @@ ul.icons-ul{list-style-type:none;text-indent:-0.7142857142857143em;margin-left:2
 .alternate_upload.form{padding:0;margin:0;}
 .alternate_upload input.fileinput{background-color:red;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;}
 #tabs{border-style:none;}
-#tab1,#tab2{padding:1em 0em;}
 .list_toolbar{padding:5px;height:25px;line-height:25px;}
 .toolbar_info{float:left;}
 .toolbar_buttons{float:right;}
@@ -1235,9 +1234,9 @@ ul.icons-ul{list-style-type:none;text-indent:-0.7142857142857143em;margin-left:2
 .notebook_item a{text-decoration:none;}
 .status_col{float:right;width:325px;}
 .engines_col{float:right;width:325px;}
-.action_col{float:right;}
-.item_buttons{float:right;}
-.item_buttons .upload_button{color:darkred;}
+.action_col{float:right;width:64px;text-align:right;}
+.item_buttons{float:right;margin-top:1px;}
+input.nbname_input{height:15px;}
 .highlight_text{color:blue;}
 #project_name>.breadcrumb{padding:0;background-color:transparent;}
 input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:90px;}

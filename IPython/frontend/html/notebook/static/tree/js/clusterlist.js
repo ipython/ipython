@@ -120,7 +120,7 @@ var IPython = (function (IPython) {
         engines_col.append(input);
         var start_button = $('<button/>').addClass("btn btn-mini").text("Start");
         var action_col = $('<span/>').addClass('action_col').append(
-            $("<span/>").addClass("btn-group pull-right").append(
+            $("<span/>").addClass("item_buttons btn-group pull-right").append(
                 start_button
             )
         );
@@ -161,7 +161,7 @@ var IPython = (function (IPython) {
         var engines_col = $('<span/>').addClass('engines_col').html(this.data.n);
         var stop_button = $('<button/>').addClass("btn btn-mini").text("Stop");
         var action_col = $('<span/>').addClass('action_col').append(
-            $("<span/>").addClass("btn-group pull-right").append(
+            $("<span/>").addClass("item_buttons btn-group pull-right").append(
                 stop_button
             )
         );

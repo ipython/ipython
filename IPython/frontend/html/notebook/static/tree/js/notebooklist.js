@@ -162,7 +162,6 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.add_link = function (notebook_id, nbname, item) {
-        console.log(item);
         item.data('nbname', nbname);
         item.data('notebook_id', notebook_id);
         item.find("a.item_row")
@@ -176,10 +175,11 @@ var IPython = (function (IPython) {
         item.data('nbname', nbname);
         var new_item_name = $('<span/>').addClass('item_name');
         new_item_name.append(
-            $('<input/>').addClass('ui-widget ui-widget-content').
-            attr('value', nbname).
-            attr('size', '30').
-            attr('type', 'text')
+            $('<input/>')
+            .addClass("nbname_input")
+            .attr('value', nbname)
+            .attr('size', '30')
+            .attr('type', 'text')
         );
         var e = item.find('.item_name');
         if (e.length === 0) {
@@ -263,10 +263,9 @@ var IPython = (function (IPython) {
 
     NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
-        var new_buttons = $('<span/>').addClass('item_buttons');
-        var upload_button = $('<button>Upload</button>').button().
-            addClass('upload-button').
-            click(function (e) {
+        var upload_button = $('<button/>').text("Upload")
+            .addClass('btn btn-primary btn-mini upload_button')
+            .click(function (e) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
@@ -294,13 +293,14 @@ var IPython = (function (IPython) {
                 $.ajax(url, settings);
                 return false;
             });
-        var cancel_button = $('<button>Cancel</button>').button().
-            click(function (e) {
+        var cancel_button = $('<button/>').text("Cancel")
+            .addClass("btn btn-mini")
+            .click(function (e) {
+                console.log('cancel click');
                 item.remove();
                 return false;
             });
-        upload_button.addClass('upload_button');
-        item.find(".item_buttons").html("")
+        item.find(".item_buttons").empty()
             .append(upload_button)
             .append(cancel_button);
     };

@@ -13,9 +13,7 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    // $('#ipython-main-app').addClass('border-box-sizing ui-widget');
-    // $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
-    $('#new_notebook').button().click(function (e) {
+    $('#new_notebook').click(function (e) {
         window.open($('body').data('baseProjectUrl')+'new');
     });
 
