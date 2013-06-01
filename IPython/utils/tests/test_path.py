@@ -295,6 +295,19 @@ def test_get_ipython_dir_7():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 
+@with_environment
+def test_get_ipython_dir_8():
+    """test_get_ipython_dir_8, test / home directory"""
+    old = path._writable_dir, path.get_xdg_dir
+    try:
+        path._writable_dir = lambda path: bool(path)
+        path.get_xdg_dir = lambda: None
+        env.pop('IPYTHON_DIR', None)
+        env.pop('IPYTHONDIR', None)
+        env['HOME'] = '/'
+        nt.assert_equal(path.get_ipython_dir(), '/.ipython')
+    finally:
+        path._writable_dir, path.get_xdg_dir = old
 
 @with_environment
 def test_get_xdg_dir_0():
