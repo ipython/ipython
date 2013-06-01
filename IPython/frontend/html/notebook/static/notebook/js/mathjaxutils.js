@@ -30,9 +30,9 @@ IPython.mathjaxutils = (function (IPython) {
             MathJax.Hub.Configured();
         } else if (window.mathjax_url != "") {
             // Don't have MathJax, but should. Show dialog.
-            var dialog = $('<div></div>')
+            var message = $('<div/>')
                 .append(
-                    $("<p></p>").addClass('dialog').html(
+                    $("<p/></p>").addClass('dialog').html(
                         "Math/LaTeX rendering will be disabled."
                     )
                 ).append(
@@ -68,11 +68,14 @@ IPython.mathjaxutils = (function (IPython) {
                     $("<p></p>").addClass('dialog').html(
                         "which will prevent this dialog from appearing."
                     )
-                ).dialog({
-                    title: "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
-                    width: "70%",
-                    modal: true,
-                })
+                )
+            IPython.dialog.modal({
+                title : "Failed to retrieve MathJax from '" + window.mathjax_url + "'",
+                body : message,
+                buttons : {
+                    OK : {class: "btn-danger"}
+                }
+            });
         } else {
             // No MathJax, but none expected. No dialog.
         };

@@ -69,28 +69,23 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.rename_notebook = function () {
         var that = this;
-        var dialog = $('<div/>');
-        dialog.append(
-            $('<p/>').html('Enter a new notebook name:')
-            .css({'margin-bottom': '10px'})
-        );
+        var dialog = $('<div/>').append($("<p/>").addClass("rename-message")
+        .html('Enter a new notebook name:'));
         dialog.append(
             $('<input/>').attr('type','text').attr('size','25')
-            .addClass('ui-widget ui-widget-content')
-            .attr('value',IPython.notebook.get_notebook_name())
+            .val(IPython.notebook.get_notebook_name())
         );
-        // $(document.body).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
+        IPython.dialog.modal({
             title: "Rename Notebook",
-            closeText: "",
-            close: function(event, ui) {$(this).dialog('destroy').remove();},
+            body: dialog,
             buttons : {
-                "OK": function () {
-                    var new_name = $(this).find('input').attr('value');
+                "Cancel": {},
+                "OK": {
+                    class: "btn-primary",
+                    click: function () {
+                    var new_name = $(this).find('input').val();
                     if (!IPython.notebook.test_notebook_name(new_name)) {
-                        $(this).find('h3').html(
+                        $(this).find('.rename-message').html(
                             "Invalid notebook name. Notebook names must "+
                             "have 1 or more characters and can contain any characters " +
                             "except :/\\. Please enter a new notebook name:"
@@ -98,21 +93,18 @@ var IPython = (function (IPython) {
                     } else {
                         IPython.notebook.set_notebook_name(new_name);
                         IPython.notebook.save_notebook();
-                        $(this).dialog('close');
                     }
+                }}
                 },
-                "Cancel": function () {
-                    $(this).dialog('close');
-                }
-            },
             open : function (event, ui) {
                 var that = $(this);
                 // Upon ENTER, click the OK button.
                 that.find('input[type="text"]').keydown(function (event, ui) {
                     if (event.which === utils.keycodes.ENTER) {
-                        that.parent().find('button').first().click();
+                        that.find('.btn-primary').first().click();
                     }
                 });
+                that.find('input[type="text"]').focus();
             }
         });
     }
