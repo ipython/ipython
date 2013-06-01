@@ -59,8 +59,7 @@ var IPython = (function (IPython) {
         this.wrapper.addClass('output_wrapper');
         this.element.addClass('output vbox');
         
-        this.collapse_button.button();
-        this.collapse_button.addClass('output_collapsed vbox');
+        this.collapse_button.addClass("btn output_collapsed");
         this.collapse_button.attr('title', 'click to expand output');
         this.collapse_button.html('. . .');
         
@@ -111,11 +110,6 @@ var IPython = (function (IPython) {
         });
         this.collapse_button.click(function () {
             that.expand();
-        });
-        this.collapse_button.hover(function () {
-            $(this).addClass("ui-state-hover");
-        }, function () {
-            $(this).removeClass("ui-state-hover");
         });
     };
 
