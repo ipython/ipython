@@ -14,14 +14,16 @@
 <div id="ipython-main-app" class="container">
 
     {% if login_available %}
-    <div class="navbar">
+    <div class="navbar span8 offset2">
       <div class="navbar-inner">
         <div class="container">
-          <p class="nav navbar-text">Password:</p>
-          <form action="{{base_project_url}}login?next={{next}}" method="post" class="navbar-form pull-left">
-            <input type="password" name="password" id="password_input">
-            <button type="submit" id="login_submit">Log in</button>
-          </form>
+          <div class="center-nav">
+            <p class="navbar-text nav">Password:</p>
+            <form action="{{base_project_url}}login?next={{next}}" method="post" class="navbar-form pull-left">
+              <input type="password" name="password" id="password_input">
+              <button type="submit" id="login_submit">Log in</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
