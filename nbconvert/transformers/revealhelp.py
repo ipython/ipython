@@ -36,16 +36,12 @@ class RevealHelpTransformer(ConfigurableTransformer):
         
         for worksheet in nb.worksheets :
             for i, cell in enumerate(worksheet.cells):
-                
-                #Make sure the cell has metadata.
-                if not cell.get('metadata', None):
-                    break
-                
+
+                #Make sure the cell has slideshow metadata.
+                cell.metadata.slide_type = cell.get('metadata', {}).get('slideshow', {}).get('slide_type', '-')
+
                 #Get the slide type.  If type is start of subslide or slide,
                 #end the last subslide/slide.
-                cell.metadata.slide_type = cell.metadata.get('slideshow', {}).get('slide_type', None)
-                if cell.metadata.slide_type is None:
-                    cell.metadata.slide_type = '-'
                 if cell.metadata.slide_type in ['slide']:
                     worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
