@@ -141,16 +141,20 @@ class Exporter(Configurable):
                     self.environment.filters[key] = user_filter
     
     
-    def from_notebook_node(self, nb):
+    def from_notebook_node(self, nb, resources=None):
         """
         Convert a notebook from a notebook node instance.
     
         Parameters
         ----------
         nb : Notebook node
+        resources : a dict of additional resources that
+                can be accessed read/write by transformers
+                and filters.
         """
-        
-        nb, resources = self._preprocess(nb)
+        if resources is None:
+            resources = {}
+        nb, resources = self._preprocess(nb, resources)
         
         #Load the template file.
         self.template = self.environment.get_template(self.template_file+self.template_extension)
@@ -296,7 +300,7 @@ class Exporter(Configurable):
             self.environment.comment_end_string = self.jinja_comment_block_end
 
 
-    def _preprocess(self, nb):
+    def _preprocess(self, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
         To preprocess the notebook is to apply all of the 
@@ -305,10 +309,11 @@ class Exporter(Configurable):
         ----------
         nb : notebook node
             notebook that is being exported.
+        resources : a dict of additional resources that
+            can be accessed read/write by transformers
+            and filters.
         """
         
-        #Dict of 'resources' that can be filled by the transformers.
-        resources = {}
 
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
