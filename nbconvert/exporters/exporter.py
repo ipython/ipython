@@ -49,6 +49,25 @@ import nbconvert.transformers.coalescestreams
 #Jinja2 extensions to load.
 JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
+default_filters = {
+        'indent': indent,
+        'markdown': markdown,
+        'ansi2html': nbconvert.filters.ansi.ansi2html,
+        'filter_data_type': nbconvert.filters.datatypefilter.DataTypeFilter,
+        'get_lines': nbconvert.filters.strings.get_lines,
+        'highlight': nbconvert.filters.highlight.highlight,
+        'highlight2html': nbconvert.filters.highlight.highlight,
+        'highlight2latex': nbconvert.filters.highlight.highlight2latex,
+        'markdown2latex': nbconvert.filters.markdown.markdown2latex,
+        'markdown2rst': nbconvert.filters.markdown.markdown2rst,
+        'pycomment': nbconvert.filters.strings.python_comment,
+        'rm_ansi': nbconvert.filters.ansi.remove_ansi,
+        'rm_dollars': nbconvert.filters.strings.strip_dollars,
+        'rm_fake': nbconvert.filters.strings.rm_fake,
+        'rm_math_space': nbconvert.filters.latex.rm_math_space,
+        'wrap': nbconvert.filters.strings.wrap
+}
+
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
@@ -61,8 +80,15 @@ class Exporter(Configurable):
     transformers provided by default suffice, there is no need to inherit from
     this class.  Instead, override the template_file and file_extension
     traits via a config file.
-    """
     
+    {filters}
+    """
+
+
+
+    __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
+
+
     template_file = Unicode(
             '', config=True,
             help="Name of the template file to use")
@@ -107,10 +133,11 @@ class Exporter(Configurable):
             the Jinja template engine.  Any transformers specified here 
             will override existing transformers if a naming conflict
             occurs.
-        filters : list[of filter]
-            Custom filters to make accessible to the Jinja templates.  Any
-            filters specified here will override existing filters if a
-            naming conflict occurs.
+        filters : dict[of filter]
+            filters specified here will override existing filters if a naming
+            conflict occurs. Filters are availlable in jinja template through
+            the name of the corresponding key. Cf class docstring for
+            availlable default filters.
         config : config
             User configuration instance.
         """
@@ -253,23 +280,8 @@ class Exporter(Configurable):
         """
         Register all of the filters required for the exporter.
         """
-        
-        self.register_filter('indent', indent)
-        self.register_filter('markdown', markdown)
-        self.register_filter('ansi2html', nbconvert.filters.ansi.ansi2html)
-        self.register_filter('filter_data_type', nbconvert.filters.datatypefilter.DataTypeFilter)
-        self.register_filter('get_lines', nbconvert.filters.strings.get_lines)
-        self.register_filter('highlight', nbconvert.filters.highlight.highlight)
-        self.register_filter('highlight2html', nbconvert.filters.highlight.highlight) 
-        self.register_filter('highlight2latex', nbconvert.filters.highlight.highlight2latex)
-        self.register_filter('markdown2latex', nbconvert.filters.markdown.markdown2latex)
-        self.register_filter('markdown2rst', nbconvert.filters.markdown.markdown2rst)
-        self.register_filter('pycomment', nbconvert.filters.strings.python_comment)
-        self.register_filter('rm_ansi', nbconvert.filters.ansi.remove_ansi)
-        self.register_filter('rm_dollars', nbconvert.filters.strings.strip_dollars)
-        self.register_filter('rm_fake', nbconvert.filters.strings.rm_fake)
-        self.register_filter('rm_math_space', nbconvert.filters.latex.rm_math_space)
-        self.register_filter('wrap', nbconvert.filters.strings.wrap)
+        for k,v in default_filters.iteritems():
+            self.register_filter(k,v)
         
         
     def _init_environment(self):
@@ -320,3 +332,4 @@ class Exporter(Configurable):
         for transformer in self.transformers:
             nb, resources = transformer(nb, resources)
         return nb, resources
+
