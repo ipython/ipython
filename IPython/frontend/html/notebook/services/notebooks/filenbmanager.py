@@ -21,6 +21,7 @@ import io
 import os
 import glob
 import shutil
+from unicodedata import normalize
 
 from tornado import web
 
@@ -78,7 +79,7 @@ class FileNotebookManager(NotebookManager):
         """List all notebook names in the notebook dir."""
         names = glob.glob(os.path.join(self.notebook_dir,
                                        '*' + self.filename_ext))
-        names = [os.path.splitext(os.path.basename(name))[0]
+        names = [normalize('NFC', os.path.splitext(os.path.basename(name))[0])
                  for name in names]
         return names
 
@@ -161,7 +162,7 @@ class FileNotebookManager(NotebookManager):
     def write_notebook_object(self, nb, notebook_id=None):
         """Save an existing notebook object by notebook_id."""
         try:
-            new_name = nb.metadata.name
+            new_name = normalize('NFC', nb.metadata.name)
         except AttributeError:
             raise web.HTTPError(400, u'Missing notebook name')
 
@@ -263,7 +264,7 @@ class FileNotebookManager(NotebookManager):
     
     def get_checkpoint_path_by_name(self, name, checkpoint_id):
         """Return a full path to a notebook checkpoint, given its name and checkpoint id."""
-        filename = "{name}-{checkpoint_id}{ext}".format(
+        filename = u"{name}-{checkpoint_id}{ext}".format(
             name=name,
             checkpoint_id=checkpoint_id,
             ext=self.filename_ext,
@@ -294,7 +295,7 @@ class FileNotebookManager(NotebookManager):
         """Create a checkpoint from the current state of a notebook"""
         nb_path = self.get_path(notebook_id)
         # only the one checkpoint ID:
-        checkpoint_id = "checkpoint"
+        checkpoint_id = u"checkpoint"
         cp_path = self.get_checkpoint_path(notebook_id, checkpoint_id)
         self.log.debug("creating checkpoint for notebook %s", notebook_id)
         if not os.path.exists(self.checkpoint_dir):
@@ -309,7 +310,7 @@ class FileNotebookManager(NotebookManager):
         
         This notebook manager currently only supports one checkpoint per notebook.
         """
-        checkpoint_id = "checkpoint"
+        checkpoint_id = u"checkpoint"
         path = self.get_checkpoint_path(notebook_id, checkpoint_id)
         if not os.path.exists(path):
             return []
