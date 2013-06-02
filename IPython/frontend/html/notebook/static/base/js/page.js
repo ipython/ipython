@@ -18,7 +18,6 @@ var IPython = (function (IPython) {
 
     Page.prototype.style = function () {
         $('div#header').addClass('border-box-sizing').
-            addClass('ui-widget-content').
             css('border-top-style','none').
             css('border-left-style','none').
             css('border-right-style','none');

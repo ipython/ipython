@@ -3,7 +3,6 @@ This is only required when different pages style the same element differently. T
 a hack to deal with our current css styles and no new styling should be added in this file.*/
 
 #ipython-main-app {
-    width: 100%;
     position: relative;
     font-size: 110%;
 }
