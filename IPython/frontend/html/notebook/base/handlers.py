@@ -147,7 +147,10 @@ class AuthenticatedHandler(RequestHandler):
 
     @property
     def cookie_name(self):
-        return self.settings.get('cookie_name', '')
+        default_cookie_name = 'username-{host}'.format(
+            host=self.request.host,
+        ).replace(':', '-')
+        return self.settings.get('cookie_name', default_cookie_name)
     
     @property
     def password(self):
