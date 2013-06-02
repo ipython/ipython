@@ -53,6 +53,9 @@ class ConfigurableTransformer(Configurable):
 
        
     def __call__(self, nb, resources):
+        return self.call(nb,resources)
+
+    def call(self, nb, resources):
         """
         Transformation to apply on each notebook.
         
@@ -95,4 +98,4 @@ class ConfigurableTransformer(Configurable):
 
         raise NotImplementedError('should be implemented by subclass')
         return cell, resources
-    
+

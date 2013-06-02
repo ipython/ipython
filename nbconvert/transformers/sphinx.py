@@ -111,28 +111,7 @@ class SphinxTransformer(ActivatableTransformer):
     overridetitle = Unicode("", config=True, help="")
 
     
-    def __call__(self, nb, resources):
-        """
-        Entrypoint
-        Since we are not interested in any additional manipulation on a cell
-        by cell basis, we do not  call the base implementation.
-        
-        Parameters
-        ----------
-        nb : NotebookNode
-            Notebook being converted
-        resources : dictionary
-            Additional resources used in the conversion process.  Allows
-            transformers to pass variables into the Jinja engine.
-        """
-        
-        if self.enabled:
-            return self.transform(nb, resources)
-        else:
-            return nb,resources
-
-
-    def transform(self, nb, resources):
+    def call(self, nb, resources):
         """
         Sphinx transformation to apply on each notebook.
         
@@ -279,4 +258,4 @@ class SphinxTransformer(ActivatableTransformer):
                     6: "(for international documents)"}
         
         return nbconvert.utils.console.prompt_dictionary(styles, menu_comments=comments)
-    
+
