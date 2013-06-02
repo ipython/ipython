@@ -42,8 +42,7 @@
 
 <body {% block params %}{% endblock %}>
 
-<div id="header-wrapper" class="navbar navbar-static-top">
-  <div class="navbar-inner navbar-nobg">
+<div id="header-wrapper" class="nav-wrapper">
     <div id="header" class="container">
     <span id="ipython_notebook"><div><a href="{{base_project_url}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div></span>
 
@@ -62,7 +61,6 @@
     {% block header %}
     {% endblock %}
     </div>
-  </div>
 </div>
 
 <div id="site" class="container">
