@@ -10,11 +10,12 @@
     <meta charset="utf-8">
 
     <title>{% block title %}IPython Notebook{% endblock %}</title>
-	<link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
+    <link rel="shortcut icon" type="image/x-icon" href="{{static_url("base/images/favicon.ico") }}">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <link rel="stylesheet" href="{{static_url("components/jquery-ui/themes/smoothness/jquery-ui.min.css") }}" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{static_url("components/bootstrap/bootstrap/css/bootstrap.min.css") }}" type="text/css" />
-    <link rel="stylesheet" href="{{static_url("components/bootstrap/bootstrap/css/bootstrap-responsive.min.css") }}" type="text/css" />
+    <!-- <link rel="stylesheet" href="{{static_url("components/bootstrap/bootstrap/css/bootstrap-responsive.min.css") }}" type="text/css" /> -->
     
     <link rel="stylesheet" href="{{static_url("base/css/boilerplate.css") }}" type="text/css" />
     {% block stylesheet %}
@@ -41,7 +42,9 @@
 
 <body {% block params %}{% endblock %}>
 
-<div id="header">
+<div id="header-wrapper" class="navbar navbar-static-top">
+  <div class="navbar-inner navbar-nobg">
+    <div id="header" class="container">
     <span id="ipython_notebook"><div><a href="{{base_project_url}}" alt='dashboard'><img src='{{static_url("base/images/ipynblogo.png") }}' alt='IPython Notebook'/></a></div></span>
 
     {% block login_widget %}
@@ -58,9 +61,11 @@
 
     {% block header %}
     {% endblock %}
+    </div>
+  </div>
 </div>
 
-<div id="site">
+<div id="site" class="container">
 {% block site %}
 {% endblock %}
 </div>

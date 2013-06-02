@@ -45,7 +45,7 @@ class="notebook_app"
 {% block site %}
 
 <div id="menubar_container">
-<div id="menubar" class="navbar">
+<div id="menubar" class="navbar navbar-static-top">
   <div class="navbar-inner">
     <div class="container">
     <ul id="menus" class="nav">
@@ -173,11 +173,11 @@ class="notebook_app"
     <div id="notification_area">
     </div>
 </div>
+<div class="nav-wrapper">
+    <div id="maintoolbar" class="container"></div>
+</div>
 
-
-<div id="maintoolbar"></div>
-
-<div id="ipython-main-app">
+<div id="ipython-main-app" class="container">
 
     <div id="notebook_panel">
         <div id="notebook"></div>
