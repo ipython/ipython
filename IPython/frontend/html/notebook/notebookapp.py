@@ -425,8 +425,12 @@ class NotebookApp(BaseIPythonApplication):
         elif not new.endswith('/'):
             self.base_kernel_url = new+'/'
 
-    websocket_host = Unicode("", config=True,
-        help="""The hostname for the websocket server."""
+    websocket_url = Unicode("", config=True,
+        help="""The base URL for the websocket server,
+        if it differs from the HTTP server (hint: it almost certainly doesn't).
+        
+        Should be in the form of an HTTP origin: ws[s]://hostname[:port]
+        """
     )
 
     extra_static_paths = List(Unicode, config=True,
