@@ -258,7 +258,7 @@ var IPython = (function (IPython) {
     CodeCell.prototype._handle_execute_reply = function (content) {
         this.set_input_prompt(content.execution_count);
         this.element.removeClass("running");
-        $([IPython.events]).trigger('set_dirty.Notebook', {'value': true});
+        $([IPython.events]).trigger('set_dirty.Notebook', {value: true});
     }
 
     /**

@@ -44,17 +44,15 @@ var IPython = (function (IPython) {
             $(this).removeClass("ui-state-hover");
         });
         $([IPython.events]).on('notebook_loaded.Notebook', function () {
-            that.set_last_saved();
             that.update_notebook_name();
             that.update_document_title();
         });
         $([IPython.events]).on('notebook_saved.Notebook', function () {
-            that.set_last_saved();
             that.update_notebook_name();
             that.update_document_title();
         });
         $([IPython.events]).on('notebook_save_failed.Notebook', function () {
-            that.set_save_status('Last Save Failed!');
+            that.set_save_status('Autosave Failed!');
         });
         $([IPython.events]).on('checkpoints_listed.Notebook', function (event, data) {
             that.set_last_checkpoint(data[0]);
@@ -62,6 +60,9 @@ var IPython = (function (IPython) {
         
         $([IPython.events]).on('checkpoint_created.Notebook', function (event, data) {
             that.set_last_checkpoint(data);
+        });
+        $([IPython.events]).on('set_dirty.Notebook', function (event, data) {
+            that.set_autosaved(data.value);
         });
     };
 
@@ -148,9 +149,12 @@ var IPython = (function (IPython) {
         );
     }
 
-    SaveWidget.prototype.set_last_saved = function () {
-        var d = new Date();
-        this.set_save_status('(autosaved: '+d.format('mmm dd HH:MM') + ')');
+    SaveWidget.prototype.set_autosaved = function (dirty) {
+        if (dirty) {
+            this.set_save_status("(unsaved changes)");
+        } else {
+            this.set_save_status("(autosaved)");
+        }
     };
 
 

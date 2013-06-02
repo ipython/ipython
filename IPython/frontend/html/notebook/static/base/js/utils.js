@@ -225,8 +225,8 @@ IPython.utils = (function (IPython) {
             "$1<a target=\"_blank\" href=\"$2$3\">$2$3</a>");
     }
 
-    // some keycodes that seem to be platform/browser independant
-    var keycodes ={
+    // some keycodes that seem to be platform/browser independent
+    var keycodes = {
                 BACKSPACE:  8,
                 TAB      :  9,
                 ENTER    : 13,
@@ -253,7 +253,10 @@ IPython.utils = (function (IPython) {
                 DOWN_ARROW: 40,
                 DOWNARROW: 40,
                 DOWN     : 40,
-                COMMAND  : 91,
+                // all three of these keys may be COMMAND on OS X:
+                LEFT_SUPER : 91,
+                RIGHT_SUPER : 92,
+                COMMAND  : 93,
     };
 
 

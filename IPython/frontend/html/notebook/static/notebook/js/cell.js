@@ -97,6 +97,11 @@ var IPython = (function (IPython) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
             }
         });
+        if (this.code_mirror) {
+            this.code_mirror.on("change", function(cm, change) {
+                $([IPython.events]).trigger("set_dirty.Notebook", {value: true});
+            });
+        }
     };
 
     /**
