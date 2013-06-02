@@ -93,7 +93,7 @@ class Exporter(Configurable):
 
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
-    transformers = [] 
+    transformers = None
 
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -128,7 +128,7 @@ class Exporter(Configurable):
         self._register_filters()
 
         #Load user transformers.  Overwrite existing transformers if need be.
-        if not transformers is None:        
+        if transformers :
             for transformer in transformers:
                 self.register_transformer(transformer)
                 
