@@ -37,7 +37,7 @@ var IPython = (function (IPython) {
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
-        this.dirty = false;
+        this.set_dirty(false);
         this.metadata = {};
         this._checkpoint_after_save = false;
         this.last_checkpoint = null;
@@ -308,10 +308,10 @@ var IPython = (function (IPython) {
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
-            };
+            }
             return true;
         });
-
+        
         var collapse_time = function(time){
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
@@ -351,6 +351,21 @@ var IPython = (function (IPython) {
             // pop up the "don't leave" dialog.
             return null;
         });
+    };
+
+    /**
+     * Set the dirty flag, and trigger the set_dirty.Notebook event
+     * 
+     * @method set_dirty
+     */
+    Notebook.prototype.set_dirty = function (value) {
+        if (value === undefined) {
+            value = true;
+        }
+        if (this.dirty == value) {
+            return;
+        }
+        $([IPython.events]).trigger('set_dirty.Notebook', {value: value});
     };
 
     /**
@@ -645,7 +660,7 @@ var IPython = (function (IPython) {
                 pivot.before(tomove);
                 this.select(i-1);
             };
-            this.dirty = true;
+            this.set_dirty(true);
         };
         return this;
     };
@@ -669,7 +684,7 @@ var IPython = (function (IPython) {
                 this.select(i+1);
             };
         };
-        this.dirty = true;
+        this.set_dirty();
         return this;
     };
 
@@ -700,7 +715,7 @@ var IPython = (function (IPython) {
                 this.undelete_index = i;
                 this.undelete_below = false;
             };
-            this.dirty = true;
+            this.set_dirty(true);
         };
         return this;
     };
@@ -740,7 +755,7 @@ var IPython = (function (IPython) {
             if(this._insert_element_at_index(cell.element,index)){
                 cell.render();
                 this.select(this.find_cell_index(cell));
-                this.dirty = true;
+                this.set_dirty(true);
             }
         }
         return cell;
@@ -779,7 +794,7 @@ var IPython = (function (IPython) {
 
         if (this.undelete_index !== null && index <= this.undelete_index) {
             this.undelete_index = this.undelete_index + 1;
-            this.dirty = true;
+            this.set_dirty(true);
         }
         return true;
     };
@@ -855,7 +870,7 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
-                this.dirty = true;
+                this.set_dirty(true);
             };
         };
     };
@@ -884,7 +899,7 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
-                this.dirty = true;
+                this.set_dirty(true);
             };
         };
     };
@@ -914,7 +929,7 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
-                this.dirty = true;
+                this.set_dirty(true);
             };
         };
     };
@@ -949,7 +964,7 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
-                this.dirty = true;
+                this.set_dirty(true);
             };
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
                 {'cell_type':'heading',level:level}
@@ -1177,7 +1192,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.collapse = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).collapse();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1189,7 +1204,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.expand = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).expand();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /** Toggle whether a cell's output is collapsed or expanded.
@@ -1200,7 +1215,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.toggle_output = function (index) {
         var i = this.index_or_selected(index);
         this.get_cell(i).toggle_output();
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1228,7 +1243,7 @@ var IPython = (function (IPython) {
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1246,7 +1261,7 @@ var IPython = (function (IPython) {
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1264,7 +1279,7 @@ var IPython = (function (IPython) {
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1283,7 +1298,7 @@ var IPython = (function (IPython) {
                 cells[i].set_input_prompt();
             }
         };
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
 
@@ -1376,7 +1391,7 @@ var IPython = (function (IPython) {
                 that.select(cell_index+1);
             };
         };
-        this.dirty = true;
+        this.set_dirty(true);
     };
 
     /**
@@ -1624,7 +1639,7 @@ var IPython = (function (IPython) {
      * @param {jqXHR} xhr jQuery Ajax object
      */
     Notebook.prototype.save_notebook_success = function (start, data, status, xhr) {
-        this.dirty = false;
+        this.set_dirty(false);
         $([IPython.events]).trigger('notebook_saved.Notebook');
         this._update_autosave_interval(start);
         if (this._checkpoint_after_save) {
@@ -1703,7 +1718,7 @@ var IPython = (function (IPython) {
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
         };
-        this.dirty = false;
+        this.set_dirty(false);
         this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
