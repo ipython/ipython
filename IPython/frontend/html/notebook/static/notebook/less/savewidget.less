@@ -4,6 +4,32 @@ span#save_widget {
     display:inline-block;
 }
 
-span#checkpoint_status span#autosave_status {
+span#checkpoint_status, span#autosave_status {
     font-size: small;
 }
+
+@media (max-width: 767px) {
+    span#save_widget {
+        font-size: small;
+    }
+    span#checkpoint_status, span#autosave_status {
+        font-size: x-small;
+    }
+}
+
+@media (max-width: 767px) {
+    span#checkpoint_status, span#autosave_status {
+        display: none;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+    span#checkpoint_status {
+        display: none;
+    }
+    span#autosave_status {
+        font-size: x-small;
+    }
+}
+
+  

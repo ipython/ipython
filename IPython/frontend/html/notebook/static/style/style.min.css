@@ -25,7 +25,7 @@
 .end{-webkit-box-pack:end;-moz-box-pack:end;box-pack:end;}
 .center{-webkit-box-pack:center;-moz-box-pack:center;box-pack:center;}
 body{background-color:white;position:absolute;left:0px;right:0px;top:0px;bottom:0px;overflow:visible;}
-div#header{display:none;position:relative;height:40px;padding:5px;margin:0px;width:100%;}
+div#header{display:none;position:relative;height:40px;padding:5px;}
 span#ipython_notebook{position:absolute;padding:2px 2px 2px 5px;}
 span#ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;height:24px;text-decoration:none;display:inline;color:black;}
 #site{width:100%;display:none;}
@@ -33,7 +33,7 @@ span#ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,G
 .ui-widget input,.ui-widget select,.ui-widget textarea,.ui-widget button{font-family:"Lucinda Grande","Lucinda Sans Unicode",Helvetica,Arial,Verdana,sans-serif;}
 .ui-button .ui-button-text{padding:0.2em 0.8em;font-size:77%;}
 input.ui-button{padding:0.3em 0.9em;}
-span#login_widget{float:right;}
+span#login_widget{float:right;margin-top:2px;}
 @font-face{font-family:'FontAwesome';src:url('../components/font-awesome/build/assets/font-awesome/font/fontawesome-webfont.eot?v=3.1.0');src:url('../components/font-awesome/build/assets/font-awesome/font/fontawesome-webfont.eot?#iefix&v=3.1.0') format('embedded-opentype'),url('../components/font-awesome/build/assets/font-awesome/font/fontawesome-webfont.woff?v=3.1.0') format('woff'),url('../components/font-awesome/build/assets/font-awesome/font/fontawesome-webfont.ttf?v=3.1.0') format('truetype'),url('../components/font-awesome/build/assets/font-awesome/font/fontawesome-webfont.svg#fontawesomeregular?v=3.1.0') format('svg');font-weight:normal;font-style:normal;}[class^="icon-"],[class*=" icon-"]{font-family:FontAwesome;font-weight:normal;font-style:normal;text-decoration:inherit;-webkit-font-smoothing:antialiased;*margin-right:.3em;}
 [class^="icon-"]:before,[class*=" icon-"]:before{text-decoration:inherit;display:inline-block;speak:none;}
 .icon-large:before{vertical-align:-10%;font-size:1.3333333333333333em;}
@@ -526,8 +526,8 @@ div#pager{padding:15px;overflow:auto;display:none;}div#pager pre{font-size:13px;
 .rendered_html p{text-align:justify;}
 .rendered_html p+p{margin-top:1em;}
 span#save_widget{padding:5px;margin:0px 0px 0px 300px;display:inline-block;}
-span#checkpoint_status span#autosave_status{font-size:small;}
-div.text_cell{padding:5px 5px 5px 5px;}
+span#checkpoint_status,span#autosave_status{font-size:small;}
+@media (max-width:767px){span#save_widget{font-size:small;} span#checkpoint_status,span#autosave_status{font-size:x-small;}}@media (max-width:767px){span#checkpoint_status,span#autosave_status{display:none;}}@media (min-width:768px) and (max-width:979px){span#checkpoint_status{display:none;} span#autosave_status{font-size:x-small;}}div.text_cell{padding:5px 5px 5px 5px;}
 div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;background:#f7f7f7;}
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 a.heading-anchor{text-decoration:none;color:inherit;}
