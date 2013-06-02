@@ -1040,7 +1040,7 @@ div.text_cell_input{color:#000000;border:1px solid #cfcfcf;border-radius:4px;bac
 div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;padding:5px;color:#000000;}
 a.heading-anchor{text-decoration:none;color:inherit;}
 a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
-h1:hover .anchor-link{visibility:visible;}
+h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
 .toolbar{padding:3px 15px;border-bottom:1px #ababab solid;}.toolbar button{margin-top:2px;margin-bottom:2px;}
 .toolbar select,.toolbar label{height:19px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;}
 .toolbar select{width:auto;}
