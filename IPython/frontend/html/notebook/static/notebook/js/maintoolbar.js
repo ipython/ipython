@@ -71,7 +71,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'move_down_b',
                     label : 'Move Cell Down',
-                    icon : 'icon-arrow-up',
+                    icon : 'icon-arrow-down',
                     callback : function () {
                         IPython.notebook.move_cell_down();
                         }
