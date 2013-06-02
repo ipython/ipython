@@ -1257,7 +1257,7 @@ var IPython = (function (IPython) {
         for (var i=0; i<ncells; i++) {
             if (cells[i] instanceof IPython.CodeCell) {
                 cells[i].output_area.expand();
-                cells[i].output_area.scroll_if_long(20);
+                cells[i].output_area.scroll_if_long();
             }
         };
         // this should not be set if the `collapse` key is removed from nbformat
