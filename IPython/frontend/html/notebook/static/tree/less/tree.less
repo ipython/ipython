@@ -26,22 +26,14 @@
     float: right;
 }
 
-.list_header {
-    height: 25px;
-    line-height: 25px;
-    padding: 3px 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px 4px 0px 0px;
+.list_header > a{
+  font-size: 100%;
 }
 
 
 
-.list_item {
-    height: 25px;
-    line-height: 25px;
-    padding: 3px 5px;
-    border: 1px solid #ccc;
-    border-top: 0px;
+.cluster_list_item > a {
+    color: @textColor !important;
 }
 
 .notebook_item a {
@@ -69,7 +61,6 @@
 
 .item_buttons {
     float: right;
-    margin-top: 1px;
 }
 
 input.nbname_input {
@@ -82,8 +73,10 @@ input.nbname_input {
 
 
 #project_name > .breadcrumb {
- padding : 0;
- background-color: transparent;
+   padding: 0px;
+   margin: 0px;
+   background-color: transparent;
+   font-size: 120%;
 }
 
 input.engine_num_input {
