@@ -70,7 +70,8 @@ var IPython = (function (IPython) {
 
     Pager.prototype.style = function () {
         this.pager_splitter_element.addClass('border-box-sizing ui-widget ui-state-default');
-        this.pager_element.addClass('border-box-sizing ui-widget');
+        this.pager_element.addClass('border-box-sizing');
+        this.pager_element.find(".container").addClass('border-box-sizing');
         this.pager_splitter_element.attr('title', 'Click to Show/Hide pager area, drag to Resize');
     };
 
@@ -137,7 +138,7 @@ var IPython = (function (IPython) {
 
 
     Pager.prototype.clear = function (text) {
-        this.pager_element.empty();
+        this.pager_element.find(".container").empty();
     };
 
     Pager.prototype.detach = function(){
@@ -162,7 +163,7 @@ var IPython = (function (IPython) {
     }
 
     Pager.prototype.append_text = function (text) {
-        this.pager_element.append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
+        this.pager_element.find(".container").append($('<pre/>').html(utils.fixCarriageReturn(utils.fixConsole(text))));
     };
 
 
