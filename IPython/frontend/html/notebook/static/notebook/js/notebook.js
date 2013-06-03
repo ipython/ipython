@@ -88,13 +88,15 @@ var IPython = (function (IPython) {
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
         var that = this;
+        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         var end_space = $('<div/>').addClass('end_space').height("30%");
         end_space.dblclick(function (e) {
             if (that.read_only) return;
             var ncells = that.ncells();
             that.insert_cell_below('code',ncells-1);
         });
-        this.element.append(end_space);
+        this.element.append(this.container);
+        this.container.append(end_space);
         $('div#notebook').addClass('border-box-sizing');
     };
 
@@ -414,7 +416,7 @@ var IPython = (function (IPython) {
      * @return {jQuery} A selector of all cell elements
      */
     Notebook.prototype.get_cell_elements = function () {
-        return this.element.children("div.cell");
+        return this.container.children("div.cell");
     };
 
     /**
