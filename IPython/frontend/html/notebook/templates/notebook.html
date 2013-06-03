@@ -33,7 +33,7 @@ class="notebook_app"
 
 {% block header %}
 
-<span id="save_widget">
+<span id="save_widget" class="nav pull-left">
     <span id="notebook_name"></span>
     <span id="checkpoint_status"></span>
     <span id="autosave_status"></span>
@@ -44,8 +44,8 @@ class="notebook_app"
 
 {% block site %}
 
-<div id="menubar_container">
-<div id="menubar" class="navbar navbar-static-top">
+<div id="menubar">
+<div class="navbar navbar-static-top">
   <div class="navbar-inner">
     <div class="container">
     <ul id="menus" class="nav">
@@ -173,8 +173,10 @@ class="notebook_app"
     <div id="notification_area">
     </div>
 </div>
-<div class="nav-wrapper">
-    <div id="maintoolbar" class="container"></div>
+<div id="maintoolbar" class="navbar navbar-static-top">
+  <div class="navbar-inner navbar-nobg">
+    <div id="maintoolbar-container" class="container"></div>
+  </div>
 </div>
 
 <div id="ipython-main-app" class="container">

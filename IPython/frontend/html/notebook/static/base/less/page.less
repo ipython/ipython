@@ -17,40 +17,25 @@ body {
     overflow: visible;
 }
 
-
 div#header {
     /* Initially hidden to prevent FLOUC */
     display: none;
-    position: relative;
-    height: 40px;
-    padding: 5px;
 }
 
-span#ipython_notebook {
-    position: absolute;
-    padding: 2px 2px 2px 5px;
+#ipython_notebook {
+    padding: 8px 10px 0px 10px
 }
 
-span#ipython_notebook img {
+#ipython_notebook img {
     font-family: Verdana, "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;
     height: 24px;
     text-decoration:none;
-    display: inline;
     color: black;
 }
 
 #site {
     width: 100%;
     display: none;
-}
-
-/* We set the fonts by hand here to override the values in the theme */
-.ui-widget {
-    font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
-}
-
-.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
-    font-family: "Lucinda Grande", "Lucinda Sans Unicode", Helvetica, Arial, Verdana, sans-serif;
 }
 
 /* Smaller buttons */
@@ -70,4 +55,13 @@ span#login_widget {
 
 .nav-header {
     text-transform: none;
+}
+
+.navbar-nobg {
+    background-color: transparent;
+    background-image: none;
+}
+
+#header > span {
+  margin-top: 10px;
 }

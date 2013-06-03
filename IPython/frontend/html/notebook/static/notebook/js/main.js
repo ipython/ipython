@@ -46,8 +46,6 @@ function (marked) {
     IPython.read_only = $('body').data('readOnly') === 'True';
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
-    // The header's bottom border is provided by the menu bar so we remove it.
-    $('div#header').css('border-bottom-style','none');
 
     var baseProjectUrl = $('body').data('baseProjectUrl')
 
@@ -59,7 +57,7 @@ function (marked) {
     IPython.notebook = new IPython.Notebook('div#notebook',{baseProjectUrl:baseProjectUrl, read_only:IPython.read_only});
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar',{baseProjectUrl:baseProjectUrl})
-    IPython.toolbar = new IPython.MainToolBar('#maintoolbar')
+    IPython.toolbar = new IPython.MainToolBar('#maintoolbar-container')
     IPython.tooltip = new IPython.Tooltip()
     IPython.notification_area = new IPython.NotificationArea('#notification_area')
     IPython.notification_area.init_notification_widgets();

@@ -17,11 +17,8 @@ var IPython = (function (IPython) {
     };
 
     Page.prototype.style = function () {
-        $('div#header').addClass('border-box-sizing').
-            css('border-top-style','none').
-            css('border-left-style','none').
-            css('border-right-style','none');
-        $('div#site').addClass('border-box-sizing')
+        $('div#header').addClass('border-box-sizing');
+        $('div#site').addClass('border-box-sizing');
     };
 
 

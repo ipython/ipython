@@ -141,7 +141,8 @@ var IPython = (function (IPython) {
             IPython.layout_manager.do_resize();
         });
         this.element.find('#toggle_toolbar').click(function () {
-            IPython.toolbar.toggle();
+            $('div#maintoolbar').toggle();
+            IPython.layout_manager.do_resize();
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {
