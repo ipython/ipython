@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
                         helper: null ,
                         drag: function(event, ui) {
                             // recalculate the amount of space the pager should take
-                            var pheight = ($(body).height()-event.clientY-4);
+                            var pheight = ($(document.body).height()-event.clientY-4);
                             var downprct = pheight/IPython.layout_manager.app_height();
                                 downprct = Math.min(0.9, downprct);
                             if (downprct < 0.1) {
