@@ -10,76 +10,72 @@ Overview
 NbConvert provides a command line interface to convert to and from IPython
 notebooks and standard formats.
 
- - ReST
- - Markdown
- - HTML
- - Python script
- - Reveal
- - LaTeX
- - Sphinx
+- ReST
+- Markdown
+- HTML
+- Python script
+- Reveal
+- LaTeX
+- Sphinx
 
 As these functions mature, they will be merged into IPython.
 
 
+Quick Start
+===========
 
-Requirements
-============
-
-Jinja2
-~~~~~~
-All of the exporters rely on the Jinja2 templating language.
-
-
-Markdown
-~~~~~~~~
-You will need the `python markdown module
-<http://pypi.python.org/pypi/Markdown>`_ ::
-
-
-    $ pip install markdown
-
-
-Docutils
-~~~~~~~~
-nbconvert requires the latest development version of docutils. This can be installed
-via ::
-
-    $ curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz
-    $ pip install -U docutils.tgz
-
-
-Sphinx-Latex
+Dependencies
 ~~~~~~~~~~~~
-We are trying to require as little as possible, but for now, compiling the generated Tex file requires texlive-full.
+
+To install the necessary dependencies on a **Linux** machine:
+
 ::
 
-  sudo apt-get install texlive-full
+    pip install jinja2 
+    pip install markdown 
+    curl http://docutils.svn.sourceforge.net/viewvc/docutils/trunk/docutils/?view=tar > docutils.tgz 
+    pip install -U docutils.tgz 
+    pip install pygments 
+    sudo easy_install -U sphinx 
+    sudo apt-get install texlive-full 
+    sudo apt-get install pandoc
 
+If you're on a **Mac**, the last two commands are executed in a different manner (since apt-get doesn't exist.)
 
-*See http://jimmyg.org/blog/2009/sphinx-pdf-generation-with-latex.html for more information*
-
-
-Pandoc
-~~~~~~
-Nbconvert also needs the `pandoc multiformat converter
-<http://johnmacfarlane.net/pandoc>`_ to do the actual text conversions.  Pandoc
-is included in most Linux distribution's package managers, and the author's
-website contains links to Mac OS X and Windows installers.
-
-Pandoc, to convert markdown into latex
 ::
 
-  sudo apt-get install pandoc
+    Install PanDoc via the installer http://code.google.com/p/pandoc/downloads/list
+    Install MacTex via the .pkg http://www.tug.org/mactex/
+
+Exporting
+~~~~~~~~~
+
+Now, to export a notebook you can call
 
 
-Pygment
-~~~~~~~
-For conversion to HTML/LaTeX, pygments is also required for syntax highlighting
 ::
 
-    $ pip install pygments
+    python nbconvert.py sphinx_howto book.ipynb --NbConvertApp.write=True --NbConvertApp.stdout=False
+
+Where **book.ipynb** *is the name of the notebook* you'd like to convert
+and **sphinx_howto** *is the output template name*.  See */nbconvert/templates/* and 
+*/nbconvert/templates/sphinx/* for more.  NOTE: the template
+extension should **not** be included in the template name.
 
 
+This will create a file.ext (converted file) and /book_files/ directory with all of the output figures.  
+
+Latex Only
+~~~~~~~~~~
+
+If you want to compile a PDF from LaTeX output, move the file.tex (conversion results) 
+into the directory with all the figures /book_files/.  The  You can then run
+
+::
+
+    cd book_files       
+    PdfLatex file.tex
+   
 
 Running Tests
 =============
@@ -89,20 +85,4 @@ Please try to run the tests to avoid regression when committing a patch, and cre
 
     $ pip install nose
     $ nosetests
-
-
-
-Using nbconvert
-===============
-
-You will need to either put the source repository in your ``$PATH`` or symlink
-the ``nbconvert.py`` script to a directory in your ``$PATH``, e.g.::
-
-    $ ln -s /usr/local/bin/nbconvert "$PWD/nbconvert.py"
-
-Once this is done, you can call it as::
-
-    $ nbconvert <FORMAT> notebook.ipynb
-
-Use ``nbconvert -h`` for up to date help on the available formats.
 
