@@ -76,6 +76,29 @@ into the directory with all the figures /book_files/.  The  You can then run
     cd book_files       
     PdfLatex file.tex
    
+Reveal-powered slideshows
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you want to convert a notebook to a reveal-powered slideshow, you have to call
+
+::
+
+    python nbconvert.py reveal your_slideshow.ipynb --NbConvertApp.write=True --NbConvertApp.stdout=False
+
+and then, you will get a your_slideshow.reveal.html file.   
+ 
+But the slideshow will not be rendered correctly if you do not download and unzip the reveal.js library
+in the same folder where your_slideshow.reveal.html file is located.
+
+**Note**: You can get the reveal.js library from this link: https://github.com/hakimel/reveal.js/archive/2.4.0.zip
+
+Finally, to see the slideshow, just serve it
+
+::
+
+    python -m SimpleHTTPServer 8000
+    
+and point your browser to http://localhost:8000.  
 
 Running Tests
 =============
