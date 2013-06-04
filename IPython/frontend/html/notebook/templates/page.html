@@ -27,7 +27,7 @@
     <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
     <script>
       require.config({
-          baseUrl: "static",
+          baseUrl: '{{static_url() }}',
       });
     </script>
 

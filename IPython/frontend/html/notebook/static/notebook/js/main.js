@@ -14,7 +14,7 @@
 // as injecting require.js make marked not to put itself in the globals,
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
-require(['static/components/marked/lib/marked.js'],
+require(['components/marked/lib/marked'],
 
 function (marked) {
 
