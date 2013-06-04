@@ -343,6 +343,9 @@ class NotebookApp(BaseIPythonApplication):
         help="""The random bytes used to secure cookies.
         By default this is a new random number every time you start the Notebook.
         Set it to a value in a config file to enable logins to persist across server sessions.
+        
+        Note: Cookie secrets should be kept private, do not share config files with
+        cookie_secret stored in plaintext (you can read the value from a file).
         """
     )
     def _cookie_secret_default(self):
