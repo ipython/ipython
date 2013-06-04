@@ -18,22 +18,8 @@
 .CodeMirror-scroll {
     /*  The CodeMirror docs are a bit fuzzy on if overflow-y should be hidden or visible.*/
     /*  We have found that if it is visible, vertical scrollbars appear with font size changes.*/
-    /*  overflow: scroll prevents scrollbars being drawn on top of the last line of the cell, */
-    /*  but at the expense of extra gutter at the bottom. To compensate, we shrink the margin */
-    /*  between the last line and the scrollbar when it's drawn. */
-    overflow: scroll;
-    margin-bottom: -38px; /* default margin is -30px */
-}
-
-/* this one is needed for Text Cells to match code cells for some reason */
-.CodeMirror-wrap .CodeMirror-scroll {
-  overflow: scroll;
-}
-
-/* CM sometimes draws a vertical scrollbar under zoom, but it never should in the Notebook. */
-/* this hides them - display: none would be preferable, but it gets clobbered by CodeMirror */
-.CodeMirror-vscrollbar, .CodeMirror-scrollbar-filler {
-    visibility: hidden;
+    overflow-y: hidden;
+    overflow-x: auto;
 }
 
 .CodeMirror-lines {
