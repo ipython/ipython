@@ -7,8 +7,8 @@
 Overview
 ========
 
-NbConvert provides a command line interface to convert to and from IPython
-notebooks and standard formats.
+NbConvert provides a command line interface to convert from IPython
+notebooks to standard formats.
 
 - ReST
 - Markdown
@@ -55,7 +55,7 @@ Now, to export a notebook you can call
 
 ::
 
-    python nbconvert.py sphinx_howto book.ipynb --NbConvertApp.write=True --NbConvertApp.stdout=False
+    python nbconvert.py sphinx_howto book.ipynb
 
 Where **book.ipynb** *is the name of the notebook* you'd like to convert
 and **sphinx_howto** *is the output template name*.  See */nbconvert/templates/* and 
@@ -83,7 +83,7 @@ If you want to convert a notebook to a reveal-powered slideshow, you have to cal
 
 ::
 
-    python nbconvert.py reveal your_slideshow.ipynb --NbConvertApp.write=True --NbConvertApp.stdout=False
+    python nbconvert.py reveal your_slideshow.ipynb
 
 and then, you will get a your_slideshow.reveal.html file.   
  
