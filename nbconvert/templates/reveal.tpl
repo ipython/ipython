@@ -39,9 +39,9 @@ document.write( '<link rel="stylesheet" href="reveal.js/css/print/' + ( window.l
   font-size: 20px;
 }
 .reveal pre {
-width: 100%;
-padding: 0.3em;
-margin: 0px auto;
+width: 98%;
+padding: 0.4em;
+margin: 0px;
 font-family: monospace, sans-serif;
 font-size: 80%;
 box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);

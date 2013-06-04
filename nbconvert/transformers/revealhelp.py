@@ -20,7 +20,7 @@ from .base import ConfigurableTransformer
 
 class RevealHelpTransformer(ConfigurableTransformer):
 
-    def __call__(self, nb, resources):
+    def call(self, nb, resources):
         """
         Called once to 'transform' contents of the notebook.
         
