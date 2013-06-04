@@ -8,16 +8,15 @@
 //============================================================================
 // Notebook
 //============================================================================
-"use strict";
 
 /**
  * @module IPython
  * @namespace IPython
  **/
 
-define(function () {
+var IPython = (function (IPython) {
         /**
-         * A place where some stuff can be configured.
+         * A place where some stuff can be confugured.
          *
          * @class config
          * @static
@@ -70,9 +69,10 @@ define(function () {
         };
 
     // use the same method to merge user configuration
-    var config = {};
-    $.extend(config, default_config);
+    IPython.config = {};
+    $.extend(IPython.config, default_config);
 
-    return config;
-});
+    return IPython;
+
+}(IPython));
 

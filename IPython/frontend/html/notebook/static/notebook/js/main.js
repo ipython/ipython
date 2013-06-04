@@ -14,15 +14,12 @@
 // as injecting require.js make marked not to put itself in the globals,
 // which make both this file fail at setting marked configuration, and textcell.js
 // which search marked into global.
-require(['static/components/marked/lib/marked.js',
-        'static/notebook/js/config.js'],
+require(['static/components/marked/lib/marked.js'],
 
-function (marked, config) {
-
-    IPython.config = config;
-    console.log('config is',config);
+function (marked) {
 
     window.marked = marked
+
     // monkey patch CM to be able to syntax highlight cell magics
     // bug reported upstream,
     // see https://github.com/marijnh/CodeMirror2/issues/670
@@ -107,7 +104,6 @@ function (marked, config) {
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
     IPython.notebook.load_notebook($('body').data('notebookId'));
 
-    var marked;
     if (marked) {
         marked.setOptions({
             gfm : true,
