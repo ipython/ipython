@@ -20,9 +20,11 @@ from __future__ import print_function, absolute_import
 import io
 import os
 import inspect
+from copy import deepcopy
 
 # IPython imports
 from IPython.config.configurable import Configurable
+from IPython.config import Config
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
 from IPython.utils.text import indent
@@ -166,6 +168,13 @@ class Exporter(Configurable):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
                     self.environment.filters[key] = user_filter
+
+    @property
+    def default_config(self):
+        if self._default_config:
+            return deepcopy(self._default_config)
+        else :
+            return Config({})
     
     
     def from_notebook_node(self, nb, resources=None):
