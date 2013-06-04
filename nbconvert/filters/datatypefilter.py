@@ -17,7 +17,9 @@ GlobalConfigurable.display_data_priority
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class DataTypeFilter(object):
+from ..utils.config import GlobalConfigurable
+
+class DataTypeFilter(GlobalConfigurable):
     """ Returns the preferred display format """
 
     display_data_priority = ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']
