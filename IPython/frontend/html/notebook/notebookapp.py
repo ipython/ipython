@@ -83,7 +83,7 @@ from IPython.utils.importstring import import_item
 from IPython.utils.localinterfaces import LOCALHOST
 from IPython.utils import submodule
 from IPython.utils.traitlets import (
-    Dict, Unicode, Integer, List, Bool,
+    Dict, Unicode, Integer, List, Bool, Bytes,
     DottedObjectName
 )
 from IPython.utils import py3compat
@@ -164,7 +164,7 @@ class NotebookWebApplication(web.Application):
             static_url_prefix = url_path_join(base_project_url,'/static/'),
             
             # authentication
-            cookie_secret=os.urandom(1024),
+            cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_project_url,'/login'),
             read_only=ipython_app.read_only,
             password=ipython_app.password,
@@ -338,6 +338,18 @@ class NotebookApp(BaseIPythonApplication):
     keyfile = Unicode(u'', config=True, 
         help="""The full path to a private key file for usage with SSL/TLS."""
     )
+    
+    cookie_secret = Bytes(b'', config=True,
+        help="""The random bytes used to secure cookies.
+        By default this is a new random number every time you start the Notebook.
+        Set it to a value in a config file to enable logins to persist across server sessions.
+        
+        Note: Cookie secrets should be kept private, do not share config files with
+        cookie_secret stored in plaintext (you can read the value from a file).
+        """
+    )
+    def _cookie_secret_default(self):
+        return os.urandom(1024)
 
     password = Unicode(u'', config=True,
                       help="""Hashed password to use for web authentication.
