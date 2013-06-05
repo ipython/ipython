@@ -104,7 +104,7 @@ class LatexExporter(exporter.Exporter):
 
         c = self.default_config
         if config :
-            c._merge(Config(config))
+            c.merge(Config(config))
 
         super(LatexExporter, self).__init__(transformers, filters, config=c, **kw)
         

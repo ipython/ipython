@@ -44,13 +44,12 @@ class BasicHtmlExporter(exporter.Exporter):
             'basichtml', config=True,
             help="Name of the template file to use")
 
-    _default_config = Config({}) 
 
     def __init__(self, transformers=None, filters=None, config=None, **kw):
        
         c = self.default_config
         if config :
-            c.update(config)
+            c.merge(config)
         
         super(BasicHtmlExporter, self).__init__(transformers=transformers,
                                                 filters=filters,

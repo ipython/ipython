@@ -85,9 +85,8 @@ class Exporter(Configurable):
     
     {filters}
     """
-
-
-
+    
+    # finish the docstring
     __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
 
@@ -122,6 +121,8 @@ class Exporter(Configurable):
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
     transformers = None
+
+    _default_config = Config()
 
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -174,7 +175,7 @@ class Exporter(Configurable):
         if self._default_config:
             return Config(deepcopy(self._default_config))
         else :
-            return Config({})
+            return Config()
     
     
     def from_notebook_node(self, nb, resources=None):
