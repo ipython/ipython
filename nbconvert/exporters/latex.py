@@ -73,6 +73,13 @@ class LatexExporter(exporter.Exporter):
     
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
+
+     _default_config = Config({
+         'ExtractFigureTransformer' : {
+             'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
+             'extra_ext_map':{'svg':'pdf'}
+             }
+         })
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
         """
@@ -82,7 +89,7 @@ class LatexExporter(exporter.Exporter):
         ----------
         transformers : list[of transformer]
             Custom transformers to apply to the notebook prior to engaging
-            the Jinja template engine.  Any transformers specified here 
+            the Jinja template engine.  Any transformers specified here
             will override existing transformers if a naming conflict
             occurs.
         filters : list[of filter]
@@ -94,9 +101,13 @@ class LatexExporter(exporter.Exporter):
         """
         
         #Call base class constructor.
-        super(LatexExporter, self).__init__(transformers, filters, config, **kw)
+
+        c = self.default_config
+        if config :
+            c.update(config)
+
+        super(LatexExporter, self).__init__(transformers, filters, config=c, **kw)
         
-        self.extract_figure_transformer.display_data_priority = ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
         self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
 
         
@@ -123,4 +134,4 @@ class LatexExporter(exporter.Exporter):
         
         #Register latex transformer
         self.register_transformer(LatexTransformer)
-                    
+
