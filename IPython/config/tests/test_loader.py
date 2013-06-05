@@ -222,11 +222,11 @@ class TestConfig(TestCase):
         c2 = Config()
         c2.bar = 10
         c2.Foo.bar = 10
-        c1._merge(c2)
+        c1.merge(c2)
         self.assertEqual(c1.Foo.bar, 10)
         self.assertEqual(c1.bar, 10)
         c2.Bar.bar = 10
-        c1._merge(c2)
+        c1.merge(c2)
         self.assertEqual(c1.Bar.bar, 10)
 
     def test_merge_exists(self):
@@ -236,12 +236,12 @@ class TestConfig(TestCase):
         c1.Foo.bam = 30
         c2.Foo.bar = 20
         c2.Foo.wow = 40
-        c1._merge(c2)
+        c1.merge(c2)
         self.assertEqual(c1.Foo.bam, 30)
         self.assertEqual(c1.Foo.bar, 20)
         self.assertEqual(c1.Foo.wow, 40)
         c2.Foo.Bam.bam = 10
-        c1._merge(c2)
+        c1.merge(c2)
         self.assertEqual(c1.Foo.Bam.bam, 10)
 
     def test_deepcopy(self):
@@ -261,3 +261,24 @@ class TestConfig(TestCase):
         exec 'foo = True' in c1
         self.assertEqual(c1.foo, True)
         self.assertRaises(ConfigError, setattr, c1, 'ValueError', 10)
+    
+    def test_fromdict(self):
+        c1 = Config({'Foo' : {'bar' : 1}})
+        self.assertEqual(c1.Foo.__class__, Config)
+        self.assertEqual(c1.Foo.bar, 1)
+    
+    def test_fromdictmerge(self):
+        c1 = Config()
+        c2 = Config({'Foo' : {'bar' : 1}})
+        c1.merge(c2)
+        self.assertEqual(c1.Foo.__class__, Config)
+        self.assertEqual(c1.Foo.bar, 1)
+
+    def test_fromdictmerge2(self):
+        c1 = Config({'Foo' : {'baz' : 2}})
+        c2 = Config({'Foo' : {'bar' : 1}})
+        c1.merge(c2)
+        self.assertEqual(c1.Foo.__class__, Config)
+        self.assertEqual(c1.Foo.bar, 1)
+        self.assertEqual(c1.Foo.baz, 2)
+        self.assertRaises(AttributeError, getattr, c2.Foo, 'baz')

@@ -83,16 +83,35 @@ class Config(dict):
         # This sets self.__dict__ = self, but it has to be done this way
         # because we are also overriding __setattr__.
         dict.__setattr__(self, '__dict__', self)
-
+        self._ensure_subconfig()
+    
+    def _ensure_subconfig(self):
+        """ensure that sub-dicts that should be Config objects are
+        
+        casts dicts that are under section keys to Config objects,
+        which is necessary for constructing Config objects from dict literals.
+        """
+        for key in self:
+            obj = self[key]
+            if self._is_section_key(key) \
+                    and isinstance(obj, dict) \
+                    and not isinstance(obj, Config):
+                dict.__setattr__(self, key, Config(obj))
+    
     def _merge(self, other):
+        """deprecated alias, use Config.merge()"""
+        self.merge(other)
+    
+    def merge(self, other):
+        """merge another config object into this one"""
         to_update = {}
         for k, v in other.iteritems():
             if k not in self:
                 to_update[k] = v
             else: # I have this key
-                if isinstance(v, Config):
+                if isinstance(v, Config) and isinstance(self[k], Config):
                     # Recursively merge common sub Configs
-                    self[k]._merge(v)
+                    self[k].merge(v)
                 else:
                     # Plain updates for non-Configs
                     to_update[k] = v
@@ -314,7 +333,7 @@ class PyFileConfigLoader(FileConfigLoader):
                 # when a user s using a profile, but not the default config.
                 pass
             else:
-                self.config._merge(sub_config)
+                self.config.merge(sub_config)
 
         # Again, this needs to be a closure and should be used in config
         # files to get the config being loaded.
@@ -677,7 +696,7 @@ class KVArgParseConfigLoader(ArgParseConfigLoader):
         if self.extra_args:
             sub_parser = KeyValueConfigLoader()
             sub_parser.load_config(self.extra_args)
-            self.config._merge(sub_parser.config)
+            self.config.merge(sub_parser.config)
             self.extra_args = sub_parser.extra_args
 
 
@@ -701,5 +720,5 @@ def load_pyconfig_files(config_files, path):
         except:
             raise
         else:
-            config._merge(next_config)
+            config.merge(next_config)
     return config
