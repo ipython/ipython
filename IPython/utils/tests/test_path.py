@@ -295,6 +295,7 @@ def test_get_ipython_dir_7():
     ipdir = path.get_ipython_dir()
     nt.assert_equal(ipdir, os.path.join(home_dir, 'somewhere'))
 
+@skip_win32
 @with_environment
 def test_get_ipython_dir_8():
     """test_get_ipython_dir_8, test / home directory"""
