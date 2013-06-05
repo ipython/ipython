@@ -21,6 +21,7 @@ import os
 
 # IPython imports
 from IPython.utils.traitlets import Unicode
+from IPython.config import Config
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
@@ -74,11 +75,10 @@ class LatexExporter(exporter.Exporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-     _default_config = Config({
-         'ExtractFigureTransformer' : {
+    _default_config = Config({
              'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
-             'extra_ext_map':{'svg':'pdf'}
-             }
+             'extra_ext_map':{'svg':'pdf'},
+             'ExtractFigureTransformer' : Config({'enabled':True})
          })
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -104,11 +104,11 @@ class LatexExporter(exporter.Exporter):
 
         c = self.default_config
         if config :
-            c.update(config)
+            c._merge(Config(config))
 
         super(LatexExporter, self).__init__(transformers, filters, config=c, **kw)
         
-        self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
+        #self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
 
         
     def _register_filters(self):

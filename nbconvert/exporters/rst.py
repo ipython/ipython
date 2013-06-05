@@ -43,7 +43,7 @@ class RstExporter(exporter.Exporter):
        
         c = self.default_config
         if config :
-            c.update(config)
+            c._merge(config)
         
         super(RstExporter, self).__init__(transformers=transformers,
                                                 filters=filters,

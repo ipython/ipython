@@ -172,7 +172,7 @@ class Exporter(Configurable):
     @property
     def default_config(self):
         if self._default_config:
-            return deepcopy(self._default_config)
+            return Config(deepcopy(self._default_config))
         else :
             return Config({})
     
