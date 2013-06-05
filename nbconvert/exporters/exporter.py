@@ -335,10 +335,13 @@ class Exporter(Configurable):
             and filters.
         """
         
-
+        # Do a deepcopy first, 
+        # we are never safe enough with what the transformers could do.
+        nbc =  deepcopy(nb)
+        resc = deepcopy(resources)
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
         for transformer in self.transformers:
-            nb, resources = transformer(nb, resources)
+            nb, resources = transformer(nbc, resc)
         return nb, resources
 
