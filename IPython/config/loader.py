@@ -83,6 +83,20 @@ class Config(dict):
         # This sets self.__dict__ = self, but it has to be done this way
         # because we are also overriding __setattr__.
         dict.__setattr__(self, '__dict__', self)
+        self._ensure_subconfig()
+    
+    def _ensure_subconfig(self):
+        """ensure that sub-dicts that should be Config objects are
+        
+        casts dicts that are under section keys to Config objects,
+        which is necessary for constructing Config objects from dict literals.
+        """
+        for key in self:
+            obj = self[key]
+            if self._is_section_key(key) \
+                    and isinstance(obj, dict) \
+                    and not isinstance(obj, Config):
+                dict.__setattr__(self, key, Config(obj))
 
     def _merge(self, other):
         to_update = {}
