@@ -15,8 +15,6 @@ Exporter that exports Basic HTML.
 #-----------------------------------------------------------------------------
 
 from IPython.utils.traitlets import Unicode
-from IPython.config import Config
-from copy import deepcopy
 
 import nbconvert.transformers.csshtmlheader
 

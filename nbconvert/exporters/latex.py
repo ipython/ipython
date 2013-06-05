@@ -16,16 +16,11 @@ tags to circumvent Jinja/Latex syntax conflicts.
 # Imports
 #-----------------------------------------------------------------------------
 
-# Stdlib imports
-import os
-
 # IPython imports
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
 # other libs/dependencies
-from jinja2 import Environment, FileSystemLoader
-
 import nbconvert.filters.latex
 import nbconvert.filters.highlight
 from nbconvert.transformers.latex import LatexTransformer

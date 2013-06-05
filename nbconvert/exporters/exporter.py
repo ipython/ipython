@@ -290,8 +290,8 @@ class Exporter(Configurable):
         """
         Register all of the filters required for the exporter.
         """
-        for k,v in default_filters.iteritems():
-            self.register_filter(k,v)
+        for k, v in default_filters.iteritems():
+            self.register_filter(k, v)
         
         
     def _init_environment(self):

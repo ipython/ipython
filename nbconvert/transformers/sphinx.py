@@ -49,7 +49,7 @@ class SphinxTransformer(ActivatableTransformer):
     Sphinx stylized templates.
     """
     
-    interactive = Bool(True, config=True, help="""
+    interactive = Bool(False, config=True, help="""
         Allows you to define whether or not the Sphinx exporter will prompt
         you for input during the conversion process.  If this is set to false,
         the author, version, release, date, and chapter_style traits should

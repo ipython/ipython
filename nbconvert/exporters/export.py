@@ -13,8 +13,6 @@ Module containing single call export functions.
 # Imports
 #-----------------------------------------------------------------------------
 
-import sys
-import inspect
 from functools import wraps
 
 from IPython.nbformat.v3.nbbase import NotebookNode
@@ -209,4 +207,4 @@ def export_by_name(template_name, nb, config=None, transformers=None, filters=No
         return globals()[function_name](nb, config, transformers, filters)
     else:
         return None
-            
+
