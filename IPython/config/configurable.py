@@ -148,7 +148,7 @@ class Configurable(HasTraits):
         # Save a copy of the current config.
         newconfig = deepcopy(self.config)
         # Merge the new config into the current one.
-        newconfig._merge(config)
+        newconfig.merge(config)
         # Save the combined config as self.config, which triggers the traits
         # events.
         self.config = newconfig
