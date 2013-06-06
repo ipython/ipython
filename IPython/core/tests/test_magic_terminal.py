@@ -48,7 +48,7 @@ def check_cpaste(code, should_fail=False):
                 ip.magic('cpaste')
 
         if not should_fail:
-            assert ip.user_ns['code_ran']
+            assert ip.user_ns['code_ran'], "%r failed" % code
     finally:
         sys.stdin = stdin_save
 
@@ -130,6 +130,7 @@ class PasteTestCase(TestCase):
 
     def test_paste_py_multi_r(self):
         "Now, test that self.paste -r works"
+        self.test_paste_py_multi()
         nt.assert_equal(ip.user_ns.pop('x'), [1,2,3])
         nt.assert_equal(ip.user_ns.pop('y'), [1,4,9])
         nt.assert_false('x' in ip.user_ns)
