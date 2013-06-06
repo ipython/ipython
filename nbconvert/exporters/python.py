@@ -35,7 +35,8 @@ class PythonExporter(exporter.Exporter):
             'python', config=True,
             help="Name of the template file to use")
 
-    def __init__(self, transformers=None, filters=None, config=None, armor=False, **kw):
+
+    def __init__(self, transformers=None, filters=None, config=None, **kw):
         """
         Public constructor
     
@@ -46,7 +47,7 @@ class PythonExporter(exporter.Exporter):
             the Jinja template engine.  Any transformers specified here 
             will override existing transformers if a naming conflict
             occurs.
-        filters : list[of filter]
+        filters : dict{of filter}
             Custom filters to make accessible to the Jinja templates.  Any
             filters specified here will override existing filters if a
             naming conflict occurs.
@@ -56,7 +57,3 @@ class PythonExporter(exporter.Exporter):
         
         #Call base class constructor.
         super(PythonExporter, self).__init__(transformers, filters, config, **kw)
-
-        #Set defaults
-        self.extract_figure_transformer.enabled = False
-        

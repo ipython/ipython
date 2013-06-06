@@ -16,15 +16,11 @@ tags to circumvent Jinja/Latex syntax conflicts.
 # Imports
 #-----------------------------------------------------------------------------
 
-# Stdlib imports
-import os
-
 # IPython imports
 from IPython.utils.traitlets import Unicode
+from IPython.config import Config
 
 # other libs/dependencies
-from jinja2 import Environment, FileSystemLoader
-
 import nbconvert.filters.latex
 import nbconvert.filters.highlight
 from nbconvert.transformers.latex import LatexTransformer
@@ -73,6 +69,12 @@ class LatexExporter(exporter.Exporter):
     
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
+
+    _default_config = Config({
+             'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
+             'extra_ext_map':{'svg':'pdf'},
+             'ExtractFigureTransformer' : Config({'enabled':True})
+         })
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
         """
@@ -82,7 +84,7 @@ class LatexExporter(exporter.Exporter):
         ----------
         transformers : list[of transformer]
             Custom transformers to apply to the notebook prior to engaging
-            the Jinja template engine.  Any transformers specified here 
+            the Jinja template engine.  Any transformers specified here
             will override existing transformers if a naming conflict
             occurs.
         filters : list[of filter]
@@ -94,10 +96,14 @@ class LatexExporter(exporter.Exporter):
         """
         
         #Call base class constructor.
-        super(LatexExporter, self).__init__(transformers, filters, config, **kw)
+
+        c = self.default_config
+        if config :
+            c.merge(Config(config))
+
+        super(LatexExporter, self).__init__(transformers, filters, config=c, **kw)
         
-        self.extract_figure_transformer.display_data_priority = ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
-        self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
+        #self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
 
         
     def _register_filters(self):
@@ -123,4 +129,4 @@ class LatexExporter(exporter.Exporter):
         
         #Register latex transformer
         self.register_transformer(LatexTransformer)
-                    
+

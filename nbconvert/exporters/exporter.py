@@ -20,9 +20,11 @@ from __future__ import print_function, absolute_import
 import io
 import os
 import inspect
+from copy import deepcopy
 
 # IPython imports
 from IPython.config.configurable import Configurable
+from IPython.config import Config
 from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
 from IPython.utils.text import indent
@@ -83,9 +85,8 @@ class Exporter(Configurable):
     
     {filters}
     """
-
-
-
+    
+    # finish the docstring
     __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
 
@@ -120,6 +121,8 @@ class Exporter(Configurable):
     #Processors that process the input data prior to the export, set in the 
     #constructor for this class.
     transformers = None
+
+    _default_config = Config()
 
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -166,6 +169,13 @@ class Exporter(Configurable):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
                     self.environment.filters[key] = user_filter
+
+    @property
+    def default_config(self):
+        if self._default_config:
+            return Config(deepcopy(self._default_config))
+        else :
+            return Config()
     
     
     def from_notebook_node(self, nb, resources=None):
@@ -280,8 +290,8 @@ class Exporter(Configurable):
         """
         Register all of the filters required for the exporter.
         """
-        for k,v in default_filters.iteritems():
-            self.register_filter(k,v)
+        for k, v in default_filters.iteritems():
+            self.register_filter(k, v)
         
         
     def _init_environment(self):
@@ -326,10 +336,13 @@ class Exporter(Configurable):
             and filters.
         """
         
-
+        # Do a deepcopy first, 
+        # we are never safe enough with what the transformers could do.
+        nbc =  deepcopy(nb)
+        resc = deepcopy(resources)
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
         for transformer in self.transformers:
-            nb, resources = transformer(nb, resources)
+            nb, resources = transformer(nbc, resc)
         return nb, resources
 

@@ -24,11 +24,11 @@ class ActivatableTransformer(ConfigurableTransformer):
     """ConfigurableTransformer that has an enabled flag
 
     Inherit from this if you just want to have a transformer which is
-    enabled by default and can be disabled via the config by
+    disable by default and can be enabled via the config by
         'c.YourTransformerName.enabled = True'
     """
 
-    enabled = Bool(True, config=True)
+    enabled = Bool(False, config=True)
 
     def __call__(self, nb, resources):
         """
