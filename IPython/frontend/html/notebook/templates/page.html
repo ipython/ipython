@@ -24,7 +24,12 @@
     {% endblock %}
     {% endblock %}
     <link rel="stylesheet" href="{{ static_url("custom/custom.css") }}" type="text/css" />
-
+    <script src="{{static_url("components/requirejs/require.js") }}" type="text/javascript" charset="utf-8"></script>
+    <script>
+      require.config({
+          baseUrl: '{{static_url() }}',
+      });
+    </script>
 
     {% block meta %}
     {% endblock %}
