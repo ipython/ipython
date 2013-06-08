@@ -325,7 +325,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Additional formating
 %==============================================================================
 ((* block data_text *))
-    ((( custom_verbatim(output.text) )))
+    ((( custom_verbatim(output.text) | rm_consoleesc)))
 ((* endblock *))
 
 ((* block traceback_line *))
