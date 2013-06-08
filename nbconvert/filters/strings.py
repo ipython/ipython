@@ -14,6 +14,7 @@ templates.
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
+import re
 
 # Our own imports
 import textwrap
@@ -53,6 +54,18 @@ def strip_dollars(text):
 
     return text.strip('$')
 
+
+def rm_consoleesc(text):
+    """
+    Remove console escapes from text
+    
+    Parameters
+    ----------
+    text : str
+        Text to remove '/files/' from
+    """
+    r= re.compile("\033\[[0-9;]+m")
+    return r.sub('', text)
 
 def rm_fake(text):
     """
