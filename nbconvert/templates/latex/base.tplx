@@ -86,7 +86,7 @@ it introduces a new line
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped *))
-\section{((( cell.source)))}
+\section{((( cell.source | markdown2latex)))}
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))

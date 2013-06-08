@@ -48,7 +48,7 @@ def markdown2latex(source):
         print(err, file=sys.stderr)
     #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
     
-    return unicode(out, 'utf-8')
+    return unicode(out, 'utf-8')[:-1]
 
 
 def markdown2rst(source):

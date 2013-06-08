@@ -209,7 +209,7 @@ Note: For best display, use latex syntax highlighting. =))
     ((= It's important to make sure that underscores (which tend to be common
     in IPYNB file titles) do not make their way into latex.  Sometimes this
     causes latex to barf. =))
-    ((*- endif -*)){((( escape_underscores(cell.source | markdown2latex ) )))}
+    ((*- endif -*)){((( cell.source | markdown2latex )))}
 ((*- endblock headingcell *))
 
 %==============================================================================
@@ -428,12 +428,4 @@ Note: For best display, use latex syntax highlighting. =))
     \includegraphics[max size={\textwidth}{\textheight}]{(((path)))}
     \par
     \end{center}
-((*- endmacro *))
-
-% Name: escape_underscores
-% Purpose: Underscores cause a problem in latex.  It's important that we 
-%          escape any underscores that appear.
-((* macro escape_underscores(text) -*))
-    ((*- set text = text|replace("_","\\_") -*))
-    ((( text )))
 ((*- endmacro *))
