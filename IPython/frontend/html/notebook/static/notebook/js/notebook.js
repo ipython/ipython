@@ -211,6 +211,11 @@ var IPython = (function (IPython) {
                 that.to_markdown();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 82 && that.control_key_active) {
+                // Run all cells = r
+                that.execute_all_cells();
+                that.control_key_active = false;
+                return false;
             } else if (event.which === 84 && that.control_key_active) {
                 // To Raw = t
                 that.to_raw();
