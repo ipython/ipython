@@ -70,42 +70,6 @@ class LatexExporter(exporter.Exporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-    _default_config = Config({
-             'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
-             'extra_ext_map':{'svg':'pdf'},
-             'ExtractFigureTransformer' : Config({'enabled':True})
-         })
-    
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
-        """
-        Public constructor
-    
-        Parameters
-        ----------
-        transformers : list[of transformer]
-            Custom transformers to apply to the notebook prior to engaging
-            the Jinja template engine.  Any transformers specified here
-            will override existing transformers if a naming conflict
-            occurs.
-        filters : list[of filter]
-            Custom filters to make accessible to the Jinja templates.  Any
-            filters specified here will override existing filters if a
-            naming conflict occurs.
-        config : config
-            User configuration instance.
-        """
-        
-        #Call base class constructor.
-
-        c = self.default_config
-        if config :
-            c.merge(Config(config))
-
-        super(LatexExporter, self).__init__(transformers, filters, config=c, **kw)
-        
-        #self.extract_figure_transformer.extra_ext_map={'svg':'pdf'}
-
-        
     def _register_filters(self):
         """
         Register all of the filters required for the exporter.
@@ -129,4 +93,14 @@ class LatexExporter(exporter.Exporter):
         
         #Register latex transformer
         self.register_transformer(LatexTransformer)
+
+    @property
+    def default_config(self):
+        c = Config({
+             'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
+             'extra_ext_map':{'svg':'pdf'},
+             'ExtractFigureTransformer' : Config({'enabled':True})
+         })
+        c.merge(super(LatexExporter,self).default_config)
+        return c
 

@@ -36,24 +36,6 @@ class SphinxHowtoExporter(latex.LatexExporter):
             'sphinx_howto', config=True,
             help="Name of the template file to use")
 
-    _default_config = Config({
-        'SphinxTransformer': {'enabled':True}
-        })
-
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
-
-        c = self.default_config
-        if config:
-            c.merge(config)
-
-        super(SphinxHowtoExporter, self).__init__(
-                                    transformers=transformers,
-                                    filters=filters,
-                                    config=c,
-                                    **kw)
-
-
-
     def _register_transformers(self):
         
         #Register the transformers of the base class.
@@ -61,4 +43,12 @@ class SphinxHowtoExporter(latex.LatexExporter):
         
         #Register sphinx latex transformer
         self.register_transformer(SphinxTransformer) 
+
+    @property
+    def default_config(self):
+        c = Config({
+        'SphinxTransformer': {'enabled':True}
+        })
+        c.merge(super(SphinxHowtoExporter,self).default_config)
+        return c
                     
