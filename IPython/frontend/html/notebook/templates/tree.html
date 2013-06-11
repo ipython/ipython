@@ -24,12 +24,12 @@ data-read-only={{read_only}}
 
 <div id="tabs" class="tabbable">
     <ul class="nav nav-tabs" id="tabs">
-        <li class="active"><a href="#tab1" data-toggle="tab">Notebooks</a></li>
-        <li><a href="#tab2" data-toggle="tab">Clusters</a></li>
+        <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
+        <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
     </ul>
 
     <div class="tab-content">
-    <div id="tab1" class="tab-pane active">
+    <div id="notebooks" class="tab-pane active">
         {% if logged_in or not read_only %}
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
@@ -58,7 +58,7 @@ data-read-only={{read_only}}
         </div>
     </div>
     
-    <div id="tab2" class="tab-pane">
+    <div id="clusters" class="tab-pane">
 
         <div id="cluster_toolbar">
             <span id="cluster_list_info">IPython parallel computing clusters</span>
