@@ -44,8 +44,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
     key_format_map =  Dict({}, config=True,)
     figure_name_format_map =  Dict({}, config=True)
 
-    #display_data_priority = List(['svg', 'png', 'latex', 'jpg', 'jpeg','text'])
-
     #TODO: Change this to .format {} syntax
     default_key_template = Unicode('_fig_{index:02d}.{ext}', config=True)
 

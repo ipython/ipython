@@ -22,8 +22,6 @@ from ..utils.config import GlobalConfigurable
 class DataTypeFilter(GlobalConfigurable):
     """ Returns the preferred display format """
 
-    display_data_priority = ['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text']
-
     def __call__(self, output):
         """ Return the first available format in the priority """
 

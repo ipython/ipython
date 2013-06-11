@@ -103,7 +103,6 @@ class LatexExporter(exporter.Exporter):
              'ExtractFigureTransformer': {
                     'enabled':True,
                     'extra_ext_map':{'svg':'pdf'},
-                 
                  }
          })
         c.merge(super(LatexExporter,self).default_config)
