@@ -75,7 +75,7 @@ down any running kernels (:ghpull:`1739`):
 Cluster management
 ~~~~~~~~~~~~~~~~~~
 
-The notebook dashboard can now also start and stop clusters, thansk to a new
+The notebook dashboard can now also start and stop clusters, thanks to a new
 tab in the dashboard user interface:
 
 .. image:: ../_images/ipy_013_dashboard_cluster.png
