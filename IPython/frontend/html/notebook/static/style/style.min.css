@@ -1551,7 +1551,7 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 a.heading-anchor{text-decoration:none;color:inherit;}
 a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
 h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
-.toolbar{padding:0px 10px;}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;}
+.toolbar{padding:0px 10px;}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0px;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;padding-top:3px;}
 .toolbar .btn{padding:2px 8px;}
 .toolbar .btn-group{margin-top:0px;}
 @-moz-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-webkit-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-moz-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}@-webkit-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}.bigtooltip{overflow:auto;height:200px;-webkit-transition-property:height;-webkit-transition-duration:500ms;-moz-transition-property:height;-moz-transition-duration:500ms;transition-property:height;transition-duration:500ms;}
