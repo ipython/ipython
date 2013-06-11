@@ -31,6 +31,7 @@ from IPython.utils.traitlets import (Bool)
 from nbconvert.exporters.export import export_by_name
 from nbconvert.exporters.exporter import Exporter
 from nbconvert.transformers import extractfigure
+from nbconvert.utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------
 #Globals and constants
@@ -93,6 +94,7 @@ class NbConvertApp(Application):
 
         #Register class here to have help with help all
         self.classes.insert(0, Exporter)
+        self.classes.insert(0, GlobalConfigurable)
 
 
     def start(self, argv=None):

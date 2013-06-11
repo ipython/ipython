@@ -19,12 +19,13 @@ It exposes a convenient class to inherit from to access configurability.
 from __future__ import print_function, absolute_import
 
 from IPython.config.configurable import Configurable
+from ..utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
 #-----------------------------------------------------------------------------
 
-class ConfigurableTransformer(Configurable):
+class ConfigurableTransformer(GlobalConfigurable):
     """ A configurable transformer
 
     Inherit from this class if you wish to have configurability for your
