@@ -65,10 +65,7 @@ IPython.dialog = (function (IPython) {
             });
         }
         
-        dialog.modal(options);
-        // setTimeout(function() {
-        //     footer.find("button").last().focus()
-        // }, 0);
+        return dialog.modal(options);
     }
     
     return {
