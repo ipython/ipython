@@ -16,7 +16,7 @@ $(document).ready(function () {
     $('#new_notebook').click(function (e) {
         window.open($('body').data('baseProjectUrl')+'new');
     });
-
+    
     IPython.read_only = $('body').data('readOnly') === 'True';
     IPython.notebook_list = new IPython.NotebookList('#notebook_list');
     IPython.cluster_list = new IPython.ClusterList('#cluster_list');
@@ -69,6 +69,17 @@ $(document).ready(function () {
     $("#alternate_upload").change(function (event){
         IPython.notebook_list.handelFilesUpload(event,'form');
     });
+    
+    // set hash on tab click
+    $("#tabs").find("a").click(function() {
+        window.location.hash = $(this).attr("href");
+    })
+    
+    // load tab if url hash
+    if (window.location.hash) {
+        $("#tabs").find("a[href=" + window.location.hash + "]").click();
+    }
+
 
 });
 
