@@ -213,7 +213,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini btn-danger").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
@@ -222,31 +222,28 @@ var IPython = (function (IPython) {
                 var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var notebook_id = parent_item.data('notebook_id');
-                var dialog = $('<div/>');
-                dialog.html('Are you sure you want to permanently delete the notebook: ' + nbname + '?');
-                parent_item.append(dialog);
-                dialog.dialog({
-                    resizable: false,
-                    modal: true,
-                    title: "Delete notebook",
+                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
+                IPython.dialog.modal({
+                    title : "Delete notebook",
+                    body : message,
                     buttons : {
-                        "Delete": function () {
-                            var settings = {
-                                processData : false,
-                                cache : false,
-                                type : "DELETE",
-                                dataType : "json",
-                                success : function (data, status, xhr) {
-                                    parent_item.remove();
-                                }
-                            };
-                            var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
-                            $.ajax(url, settings);
-                            $(this).dialog('close');
+                        Delete : {
+                            class: "btn-danger",
+                            click: function() {
+                                var settings = {
+                                    processData : false,
+                                    cache : false,
+                                    type : "DELETE",
+                                    dataType : "json",
+                                    success : function (data, status, xhr) {
+                                        parent_item.remove();
+                                    }
+                                };
+                                var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
+                                $.ajax(url, settings);
+                            }
                         },
-                        "Cancel": function () {
-                            $(this).dialog('close');
-                        }
+                        Cancel : {}
                     }
                 });
                 return false;
