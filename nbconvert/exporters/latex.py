@@ -97,9 +97,14 @@ class LatexExporter(exporter.Exporter):
     @property
     def default_config(self):
         c = Config({
-             'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text'],
-             'extra_ext_map':{'svg':'pdf'},
-             'ExtractFigureTransformer' : Config({'enabled':True})
+            'GlobalConfigurable': {
+                'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
+                },
+             'ExtractFigureTransformer': {
+                    'enabled':True,
+                    'extra_ext_map':{'svg':'pdf'},
+                 
+                 }
          })
         c.merge(super(LatexExporter,self).default_config)
         return c
