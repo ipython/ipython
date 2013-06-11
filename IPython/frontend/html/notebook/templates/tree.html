@@ -45,19 +45,17 @@ data-read-only={{read_only}}
         </div>
         {% endif %}
 
-        <ul id="notebook_list" class="nav nav-tabs nav-stacked">
-          <li id="notebook_list_header" class="disabled list_header">
-            <a>
-              <div id="project_name" class="nav-header">
+        <div id="notebook_list">
+          <div id="notebook_list_header" class="row-fluid">
+              <div id="project_name">
                 <ul class="breadcrumb">
                     {% for component in project_component %}
                         <li>{{component}} <span>/</span></li>
                     {% endfor %}
                 </ul>
               </div>
-            </a>
-          </li>
-        </ul>
+          </div>
+        </div>
     </div>
     
     <div id="tab2" class="tab-pane">

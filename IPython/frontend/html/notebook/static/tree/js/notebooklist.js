@@ -28,7 +28,8 @@ var IPython = (function (IPython) {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
         $('#notebook_buttons').addClass('toolbar_buttons');
-        $('li#notebook_list_header').addClass('list_header');
+        $('#notebook_list_header').addClass('list_header');
+        this.element.addClass("tree_list");
     };
 
 
@@ -141,16 +142,16 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<li/>').addClass("list_item");
+        var item = $('<div/>').addClass("list_item").addClass("row-fluid");
         // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
         // item.css('border-top-style','none');
-        item.append(
-            $('<a/>').addClass('item_row').append(
+        item.append($("<div/>").addClass("span12").append(
+            $("<a/>").addClass("item_link").append(
                 $("<span/>").addClass("item_name")
-            ).append(
-                $('<span/>').addClass("item_buttons btn-group pull-right")
             )
-        )
+        ).append(
+            $('<div/>').addClass("item_buttons btn-group pull-right")
+        ));
         
         if (index === -1) {
             this.element.append(item);
@@ -164,29 +165,22 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_link = function (notebook_id, nbname, item) {
         item.data('nbname', nbname);
         item.data('notebook_id', notebook_id);
-        item.find("a.item_row")
+        item.find(".item_name").text(nbname);
+        item.find("a.item_link")
             .attr('href', this.baseProjectUrl()+notebook_id)
-            .attr('target','_blank')
-            .find(".item_name").text(nbname);
+            .attr('target','_blank');
     };
 
 
     NotebookList.prototype.add_name_input = function (nbname, item) {
         item.data('nbname', nbname);
-        var new_item_name = $('<span/>').addClass('item_name');
-        new_item_name.append(
+        item.find(".item_name").empty().append(
             $('<input/>')
             .addClass("nbname_input")
             .attr('value', nbname)
             .attr('size', '30')
             .attr('type', 'text')
         );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
     };
 
 

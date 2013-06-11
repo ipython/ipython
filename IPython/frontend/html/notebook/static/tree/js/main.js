@@ -18,9 +18,9 @@ $(document).ready(function () {
     });
 
     IPython.read_only = $('body').data('readOnly') === 'True';
-    IPython.notebook_list = new IPython.NotebookList('ul#notebook_list');
-    IPython.cluster_list = new IPython.ClusterList('ul#cluster_list');
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
+    IPython.notebook_list = new IPython.NotebookList('#notebook_list');
+    IPython.cluster_list = new IPython.ClusterList('#cluster_list');
+    IPython.login_widget = new IPython.LoginWidget('#login_widget');
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,

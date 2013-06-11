@@ -26,10 +26,38 @@
     float: right;
 }
 
-.list_header > a{
+.list_header > a {
   font-size: 100%;
 }
 
+.tree_list {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid @borderColor;
+  border-radius: 4px;
+}
+
+.tree_list > div {
+  border-bottom: 1px solid @borderColor;
+  &:hover .list-item{
+    background-color: red;
+  };
+}
+
+.tree_list > div:last-child {
+  border: none;
+}
+
+
+.list_item {
+  &:hover .list_item {
+    background-color: #ddd;
+  };
+}
+
+.tree_list > div > span, .tree_list > div > div {
+  padding: 8px;
+}
 
 
 .cluster_list_item > a {
@@ -60,7 +88,7 @@
 }
 
 .item_buttons {
-    float: right;
+/*    float: right;*/
 }
 
 input.nbname_input {
@@ -73,10 +101,11 @@ input.nbname_input {
 
 
 #project_name > .breadcrumb {
-   padding: 0px;
-   margin: 0px;
-   background-color: transparent;
-   font-size: 120%;
+    padding: 0px;
+    margin-bottom: 0px;
+    background-color: transparent;
+    font-weight: bold;
+   
 }
 
 input.engine_num_input {
