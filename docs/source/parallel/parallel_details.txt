@@ -143,7 +143,7 @@ outer function, then there will not be a closure, and the generated function wil
     g2() # returns 5
 
 `g1` and `g2` *will* be sendable with IPython, and will treat the engine's namespace as
-globals().  The :meth:`pull` method is implemented based on this principal.  If we did not
+globals().  The :meth:`pull` method is implemented based on this principle.  If we did not
 provide pull, you could implement it yourself with `apply`, by simply returning objects out
 of the global namespace:
 
