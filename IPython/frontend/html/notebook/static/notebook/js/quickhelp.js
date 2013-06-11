@@ -64,7 +64,6 @@ var IPython = (function (IPython) {
                 Close : {}
             }
         });
-        console.log(dialog);
     };
 
     // Set module variables
