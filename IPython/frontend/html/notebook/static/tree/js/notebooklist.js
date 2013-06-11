@@ -29,7 +29,7 @@ var IPython = (function (IPython) {
         $('#drag_info').addClass('toolbar_info');
         $('#notebook_buttons').addClass('toolbar_buttons');
         $('#notebook_list_header').addClass('list_header');
-        this.element.addClass("tree_list");
+        this.element.addClass("list_container");
     };
 
 

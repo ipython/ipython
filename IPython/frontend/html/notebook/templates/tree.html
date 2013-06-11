@@ -46,7 +46,7 @@ data-read-only={{read_only}}
         {% endif %}
 
         <div id="notebook_list">
-          <div id="notebook_list_header" class="row-fluid">
+          <div id="notebook_list_header" class="row-fluid list_header">
               <div id="project_name">
                 <ul class="breadcrumb">
                     {% for component in project_component %}
@@ -68,17 +68,14 @@ data-read-only={{read_only}}
             </span>
         </div>
 
-        <ul id="cluster_list" class="nav nav-tabs nav-stacked">
-            <li id="cluster_header" class="disabled list_header">
-              <a class="nav-header">
-              <!-- <div class="nav-header"> -->
-                <span class="profile_col">profile</span>
-                <span class="action_col">action</span>
-                <span class="engines_col" title="Enter the number of engines to start or empty for default"># of engines</span>
-                <span class="status_col">status</span>
-              </a>
-            </li>
-        </ul>
+        <div id="cluster_list">
+            <div id="cluster_list_header" class="row-fluid list_header">
+                <span class="profile_col span4">profile</span>
+                <span class="status_col span3">status</span>
+                <span class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</span>
+                <span class="action_col span2">action</span>
+            </div>
+        </div>
     </div>
 </div>
 

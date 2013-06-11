@@ -26,25 +26,25 @@
     float: right;
 }
 
-.list_header > a {
-  font-size: 100%;
+.list_header {
+    font-weight: bold;
 }
 
-.tree_list {
+.list_container {
   margin-top: 16px;
   margin-bottom: 16px;
   border: 1px solid @borderColor;
   border-radius: 4px;
 }
 
-.tree_list > div {
+.list_container > div {
   border-bottom: 1px solid @borderColor;
   &:hover .list-item{
     background-color: red;
   };
 }
 
-.tree_list > div:last-child {
+.list_container > div:last-child {
   border: none;
 }
 
@@ -55,13 +55,13 @@
   };
 }
 
-.tree_list > div > span, .tree_list > div > div {
+.list_container > div > span, .list_container > div > div {
   padding: 8px;
 }
 
 
 .cluster_list_item > a {
-    color: @textColor !important;
+/*    color: @textColor !important;*/
 }
 
 .notebook_item a {
@@ -72,23 +72,13 @@
 }
 
 .status_col {
-    float: right;
-    width: 325px;
 }
 
 .engines_col {
-    float: right;
-    width: 325px;
 }
 
 .action_col {
-    float: right;
-    width: 64px;
-    text-align: right;
-}
-
-.item_buttons {
-/*    float: right;*/
+/*    text-align: right;*/
 }
 
 input.nbname_input {
@@ -113,5 +103,5 @@ input.engine_num_input {
     margin-bottom:2px;
     padding-top:0;
     padding-bottom:0;
-    width: 90px;
+    width: 60px;
 }
