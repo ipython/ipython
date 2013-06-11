@@ -1401,7 +1401,6 @@ ul.icons-ul{list-style-type:none;text-indent:-0.7142857142857143em;margin-left:2
 .alternate_upload{background-color:none;display:inline;}
 .alternate_upload.form{padding:0;margin:0;}
 .alternate_upload input.fileinput{background-color:red;position:relative;opacity:0;z-index:2;width:295px;margin-left:163px;cursor:pointer;}
-#tabs{border-style:none;}
 .list_toolbar{padding:5px;height:25px;line-height:25px;}
 .toolbar_info{float:left;}
 .toolbar_buttons{float:right;}
