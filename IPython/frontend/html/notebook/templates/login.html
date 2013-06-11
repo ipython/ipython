@@ -14,6 +14,7 @@
 <div id="ipython-main-app" class="container">
 
     {% if login_available %}
+    <div class="row">
     <div class="navbar span8 offset2">
       <div class="navbar-inner">
         <div class="container">
@@ -27,14 +28,16 @@
         </div>
       </div>
     </div>
+    </div>
     {% endif %}
-
     {% if message %}
+      <div class="row">
       {% for key in message %}
         <div class="message {{key}}">
            {{message[key]}}
         </div>
       {% endfor %}
+      </div>
     {% endif %}
 
 <div/>
