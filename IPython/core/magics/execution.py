@@ -1031,8 +1031,13 @@ python-profiler package from non-free.""")
 
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
-          Python.  If this option is given, the raw input as typed as the
+          Python.  If this option is given, the raw input as typed at the
           command line is used instead.
+          
+          -q: quiet macro definition.  By default, a tag line is printed 
+          to indicate the macro has been created, and then the contents of 
+          the macro are printed.  If this option is given, then no printout
+          is produced once the macro is created.
 
         This will define a global variable called `name` which is a string
         made of joining the slices and lines you specify (n1,n2,... numbers
@@ -1046,7 +1051,7 @@ python-profiler package from non-free.""")
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
 
-        For example, if your history contains (%hist prints it)::
+        For example, if your history contains (print using %hist -n )::
 
           44: x=1
           45: y=3
@@ -1076,7 +1081,7 @@ python-profiler package from non-free.""")
           print macro_name
 
         """
-        opts,args = self.parse_options(parameter_s,'r',mode='list')
+        opts,args = self.parse_options(parameter_s,'rq',mode='list')
         if not args:   # List existing macros
             return sorted(k for k,v in self.shell.user_ns.iteritems() if\
                                                         isinstance(v, Macro))
@@ -1093,9 +1098,10 @@ python-profiler package from non-free.""")
             return
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
-        print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-        print '=== Macro contents: ==='
-        print macro,
+        if not ( 'q' in opts) : 
+            print 'Macro `%s` created. To execute, type its name (without quotes).' % name
+            print '=== Macro contents: ==='
+            print macro,
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',
