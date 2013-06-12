@@ -78,9 +78,9 @@ it introduces a new line
 ((* endblock *))
 
 ((* block stream *))
-\begin{verbatim}
-((( output.text | rm_consoleesc)))
-\end{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+((( output.text | ansi2latex)))
+\end{Verbatim}
 ((* endblock stream *))
 
 ((* block markdowncell scoped *))((( cell.source | markdown2latex )))
@@ -144,6 +144,8 @@ unknown type  (((cell.type)))
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 
+%fancy verbatim
+\usepackage{fancyvrb}
 % needed for markdown enumerations to work
 \usepackage{enumerate}
 

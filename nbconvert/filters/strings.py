@@ -18,7 +18,7 @@ import re
 
 # Our own imports
 import textwrap
-
+from IPython.utils import coloransi
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
@@ -54,18 +54,52 @@ def strip_dollars(text):
 
     return text.strip('$')
 
+def add_ansi_attr(ansistr, attr):
+    """Adds the attribute key to the ansi colors defined
+    with IPython.utils.ansicolors. Allows to boldface
+    the dark characters.
+    """
+    return ansistr[:3]+str(attr)+ansistr[3:]
 
-def rm_consoleesc(text):
+def single_ansi2latex(code):
+    """Converts single ansi markup to latex format
+
+    Return latex code and number of open brackets.
     """
-    Remove console escapes from text
-    
-    Parameters
-    ----------
-    text : str
-        Text to remove '/files/' from
+    for color in coloransi.color_templates:
+        colcode = getattr(coloransi.TermColors,color[0])
+        # regular fonts
+        if code == colcode:
+            return '\\'+color[0].lower()+'{', 1
+        # bold fonts
+        if code == add_ansi_attr(colcode,1):
+            return '\\textbf{\\textcolor{'+color[0].lower()+'}{', 2
+    return '', 0
+
+def ansi2latex(text):
+    """Converts ansi formated text to latex version
+
+    based on https://bitbucket.org/birkenfeld/sphinx-contrib/ansi.py
     """
-    r= re.compile("\033\[[0-9;]+m")
-    return r.sub('', text)
+    color_pattern = re.compile('\x1b\\[([^m]+)m')
+    last_end = 0
+    openbrack = 0
+    outstring = ''
+    for match in color_pattern.finditer(text):
+        head = text[last_end:match.start()]
+        formater = match.group()
+        outstring += head
+        if openbrack:
+            outstring += '}'*openbrack
+            openbrack = 0
+        if match.group() <> coloransi.TermColors.Normal and not openbrack:
+            texform, openbrack = single_ansi2latex(match.group())
+            outstring += texform
+        last_end = match.end()
+    if openbrack: 
+        outstring += '}'*openbrack
+    outstring += text[last_end:]
+    return outstring.strip()
 
 def rm_fake(text):
     """

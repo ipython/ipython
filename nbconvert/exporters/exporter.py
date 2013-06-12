@@ -66,7 +66,7 @@ default_filters = {
         'rm_ansi': nbconvert.filters.ansi.remove_ansi,
         'rm_dollars': nbconvert.filters.strings.strip_dollars,
         'rm_fake': nbconvert.filters.strings.rm_fake,
-        'rm_consoleesc': nbconvert.filters.strings.rm_consoleesc,
+        'ansi2latex': nbconvert.filters.strings.ansi2latex,
         'rm_math_space': nbconvert.filters.latex.rm_math_space,
         'wrap': nbconvert.filters.strings.wrap
 }
