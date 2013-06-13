@@ -19,8 +19,7 @@ var IPython = (function (IPython) {
         var that = this;
         if ( this.shortcut_dialog ){
             // if dialog is already shown, close it
-            this.shortcut_dialog.find("button").first().click();
-            this.shortcut_dialog = null;
+            $(this.shortcut_dialog).modal("toggle");
             return;
         }
         var body = $('<div/>');
@@ -60,6 +59,7 @@ var IPython = (function (IPython) {
         this.shortcut_dialog = IPython.dialog.modal({
             title : "Keyboard shortcuts",
             body : body,
+            destroy : false,
             buttons : {
                 Close : {}
             }
