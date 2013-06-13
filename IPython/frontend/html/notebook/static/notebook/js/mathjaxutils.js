@@ -20,6 +20,7 @@ IPython.mathjaxutils = (function (IPython) {
                 tex2jax: {
                     inlineMath: [ ['$','$'], ["\\(","\\)"] ],
                     displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+                    processEscapes: true,
                     processEnvironments: true
                 },
                 displayAlign: 'left', // Change this to 'center' to center equations.
