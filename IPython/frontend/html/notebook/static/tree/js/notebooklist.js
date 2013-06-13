@@ -213,7 +213,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_delete_button = function (item) {
         var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini btn-danger").
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
