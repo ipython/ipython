@@ -1031,7 +1031,7 @@ python-profiler package from non-free.""")
 
           -r: use 'raw' input.  By default, the 'processed' history is used,
           so that magics are loaded in their transformed version to valid
-          Python.  If this option is given, the raw input as typed as the
+          Python.  If this option is given, the raw input as typed at the
           command line is used instead.
           
           -q: quiet macro definition.  By default, a tag line is printed 
@@ -1051,7 +1051,7 @@ python-profiler package from non-free.""")
         Note: as a 'hidden' feature, you can also use traditional python slice
         notation, where N:M means numbers N through M-1.
 
-        For example, if your history contains (%hist prints it)::
+        For example, if your history contains (print using %hist -n )::
 
           44: x=1
           45: y=3
