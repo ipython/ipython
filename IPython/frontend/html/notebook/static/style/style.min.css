@@ -1496,6 +1496,7 @@ p.dialog{padding:0.2em;}
 pre,code,kbd,samp{white-space:pre-wrap;}
 #fonttest{font-family:monospace;}
 p{margin-bottom:0;}
+.end_space{height:200px;}
 #notification_area{z-index:10;}
 .notification_widget{padding:6px 12px;margin-top:1px;z-index:10;border:1px solid #ccc;border-radius:4px;background:rgba(240, 240, 240, 0.5);}
 div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}

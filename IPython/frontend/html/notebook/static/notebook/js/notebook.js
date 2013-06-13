@@ -89,7 +89,7 @@ var IPython = (function (IPython) {
         // edited, but is too low on the page, which browsers will do automatically.
         var that = this;
         this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
-        var end_space = $('<div/>').addClass('end_space').height("30%");
+        var end_space = $('<div/>').addClass('end_space');
         end_space.dblclick(function (e) {
             if (that.read_only) return;
             var ncells = that.ncells();
