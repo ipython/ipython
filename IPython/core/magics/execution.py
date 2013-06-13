@@ -1033,11 +1033,11 @@ python-profiler package from non-free.""")
           so that magics are loaded in their transformed version to valid
           Python.  If this option is given, the raw input as typed as the
           command line is used instead.
-		  
-		  -q: quiet macro definition.  By default, a tag line is printed 
-		  to indicate the macro has been created, and then the contents of 
-		  the macro are printed.  If this option is given, then no printout
-		  is produced once the macro is created.
+          
+          -q: quiet macro definition.  By default, a tag line is printed 
+          to indicate the macro has been created, and then the contents of 
+          the macro are printed.  If this option is given, then no printout
+          is produced once the macro is created.
 
         This will define a global variable called `name` which is a string
         made of joining the slices and lines you specify (n1,n2,... numbers
@@ -1099,9 +1099,9 @@ python-profiler package from non-free.""")
         macro = Macro(lines)
         self.shell.define_macro(name, macro)
         if not ( 'q' in opts) : 
-			print 'Macro `%s` created. To execute, type its name (without quotes).' % name
-			print '=== Macro contents: ==='
-			print macro,
+            print 'Macro `%s` created. To execute, type its name (without quotes).' % name
+            print '=== Macro contents: ==='
+            print macro,
 
     @magic_arguments.magic_arguments()
     @magic_arguments.argument('output', type=str, default='', nargs='?',
