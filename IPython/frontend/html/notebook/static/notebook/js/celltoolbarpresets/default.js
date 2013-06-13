@@ -69,7 +69,6 @@
     }
 
     var add_raw_edit_button = function(div, cell) {
-        console.log(div, cell);
         var button_container = div;
         var button = $('<button/>')
             .addClass("btn btn-mini")
