@@ -546,7 +546,7 @@ var IPython = (function (IPython) {
                 $("<input/>")
                 .addClass("raw_input")
                 .attr('type', 'text')
-                .attr("size", 80)
+                .attr("size", 47)
                 .keydown(function (event, ui) {
                     // make sure we submit on enter,
                     // and don't re-execute the *cell* on shift-enter
@@ -558,13 +558,15 @@ var IPython = (function (IPython) {
             )
         );
         this.element.append(area);
-        area.find("input.raw_input").focus();
+        // weirdly need double-focus now,
+        // otherwise only the cell will be focused
+        area.find("input.raw_input").focus().focus();
     }
     OutputArea.prototype._submit_raw_input = function (evt) {
         var container = this.element.find("div.raw_input");
         var theprompt = container.find("span.input_prompt");
         var theinput = container.find("input.raw_input");
-        var value = theinput.attr("value");
+        var value = theinput.val();
         var content = {
             output_type : 'stream',
             name : 'stdout',
