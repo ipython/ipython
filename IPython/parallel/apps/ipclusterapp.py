@@ -581,7 +581,7 @@ class IPClusterStart(IPClusterEngines):
 
 base='IPython.parallel.apps.ipclusterapp.IPCluster'
 
-class IPClusterApp(Application):
+class IPClusterApp(BaseIPythonApplication):
     name = u'ipcluster'
     description = _description
     examples = _main_examples
