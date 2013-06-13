@@ -47,40 +47,37 @@
             lineNumbers: true,
             matchBrackets: true,
         });
-        $(dialogform).dialog({
-                autoOpen: true,
-                height: 300,
-                width: 650,
-                modal: true,
+        IPython.dialog.modal({
+            title: "Edit Cell Metadata",
+            body: dialogform,
                 buttons: {
-                    "Ok": function() {
+                    "OK": { class : "btn-primary",
+                        click: function() {
                         //validate json and set it
                         try {
                            var json = JSON.parse(editor.getValue());
                            cell.metadata = json;
-                           $( this ).dialog( "close" );
-                        }
-                        catch(e)
-                        {
+                        } catch(e) {
                            error_div.text('Warning, invalid json, not saved');
+                           return false;
                         }
-                    },
-                    Cancel: function() {
-                        $( this ).dialog( "close" );
-                    }
-                },
-                close: function() {
-                    //cleanup on close
-                    $(this).remove();
+                    }},
+                    Cancel: {}
                 }
         });
         editor.refresh();
     }
 
     var add_raw_edit_button = function(div, cell) {
-        var button_container = div
-        var button = $('<div/>').button({label:'Raw Edit'})
-                .click(function(){raw_edit(cell); return false;})
+        console.log(div, cell);
+        var button_container = div;
+        var button = $('<button/>')
+            .addClass("btn btn-mini")
+            .text("Raw Edit")
+            .click( function () {
+                raw_edit(cell);
+                return false;
+            });
         button_container.append(button);
     }
 
