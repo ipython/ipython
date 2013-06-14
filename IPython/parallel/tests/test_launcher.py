@@ -56,7 +56,7 @@ class LauncherTest:
         kw = dict(
             work_dir=self.profile_dir,
             profile_dir=self.profile_dir,
-            parent=self,
+            config=self.config,
             cluster_id='',
             log=logging.getLogger(),
         )
