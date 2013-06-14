@@ -83,7 +83,7 @@ class Configurable(HasTraits):
         parent = kwargs.pop('parent', None)
         if parent:
             # config is implied from parent
-            if 'config' not in kwargs:
+            if kwargs.get('config', None) is None:
                 kwargs['config'] = parent.config
             self.parent = parent
         
@@ -159,7 +159,6 @@ class Configurable(HasTraits):
         # load parent config as well, if we have one
         parent_section_names = [] if self.parent is None else self.parent.section_names()
         for parent in parent_section_names:
-            print parent, new._has_section(parent), new[parent]
             if not new._has_section(parent):
                 continue
             self._load_config(new[parent], traits=traits, section_names=section_names)
