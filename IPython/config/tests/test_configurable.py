@@ -181,3 +181,59 @@ class TestSingletonConfigurable(TestCase):
         self.assertEqual(bam, Bam._instance)
         self.assertEqual(bam, Bar._instance)
         self.assertEqual(SingletonConfigurable._instance, None)
+
+
+class MyParent(Configurable):
+    pass
+
+class MyParent2(MyParent):
+    pass
+
+class TestParentConfigurable(TestCase):
+    
+    def test_parent_config(self):
+        
+        cfg = Config({
+            'MyParent' : {
+                'MyConfigurable' : {
+                    'b' : 2.0,
+                }
+            }
+        })
+        parent = MyParent(config=cfg)
+        myc = MyConfigurable(parent=parent)
+        self.assertEqual(myc.b, parent.config.MyParent.MyConfigurable.b)
+
+    def test_parent_inheritance(self):
+        
+        cfg = Config({
+            'MyParent' : {
+                'MyConfigurable' : {
+                    'b' : 2.0,
+                }
+            }
+        })
+        parent = MyParent2(config=cfg)
+        myc = MyConfigurable(parent=parent)
+        self.assertEqual(myc.b, parent.config.MyParent.MyConfigurable.b)
+
+    def test_parent_priority(self):
+        
+        cfg = Config({
+            'MyConfigurable' : {
+                'b' : 2.0,
+            },
+            'MyParent' : {
+                'MyConfigurable' : {
+                    'b' : 3.0,
+                }
+            },
+            'MyParent2' : {
+                'MyConfigurable' : {
+                    'b' : 4.0,
+                }
+            }
+        })
+        parent = MyParent2(config=cfg)
+        myc = MyConfigurable(parent=parent)
+        self.assertEqual(myc.b, parent.config.MyParent2.MyConfigurable.b)
