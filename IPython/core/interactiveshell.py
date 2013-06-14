@@ -419,13 +419,13 @@ class InteractiveShell(SingletonConfigurable):
     # Tracks any GUI loop loaded for pylab
     pylab_gui_select = None
 
-    def __init__(self, config=None, ipython_dir=None, profile_dir=None,
+    def __init__(self, ipython_dir=None, profile_dir=None,
                  user_module=None, user_ns=None,
                  custom_exceptions=((), None), **kwargs):
 
         # This is where traits with a config_key argument are updated
         # from the values on config.
-        super(InteractiveShell, self).__init__(config=config, **kwargs)
+        super(InteractiveShell, self).__init__(**kwargs)
         self.configurables = [self]
 
         # These are relatively independent and stateless
@@ -651,7 +651,7 @@ class InteractiveShell(SingletonConfigurable):
             io.stderr = io.IOStream(sys.stderr)
 
     def init_prompts(self):
-        self.prompt_manager = PromptManager(shell=self, config=self.config)
+        self.prompt_manager = PromptManager(shell=self, parent=self)
         self.configurables.append(self.prompt_manager)
         # Set system prompts, so that scripts can decide if they are running
         # interactively.
@@ -660,24 +660,24 @@ class InteractiveShell(SingletonConfigurable):
         sys.ps3 = 'Out: '
 
     def init_display_formatter(self):
-        self.display_formatter = DisplayFormatter(config=self.config)
+        self.display_formatter = DisplayFormatter(parent=self)
         self.configurables.append(self.display_formatter)
 
     def init_display_pub(self):
-        self.display_pub = self.display_pub_class(config=self.config)
+        self.display_pub = self.display_pub_class(parent=self)
         self.configurables.append(self.display_pub)
 
     def init_data_pub(self):
         if not self.data_pub_class:
             self.data_pub = None
             return
-        self.data_pub = self.data_pub_class(config=self.config)
+        self.data_pub = self.data_pub_class(parent=self)
         self.configurables.append(self.data_pub)
 
     def init_displayhook(self):
         # Initialize displayhook, set in/out prompts and printing system
         self.displayhook = self.displayhook_class(
-            config=self.config,
+            parent=self,
             shell=self,
             cache_size=self.cache_size,
         )
@@ -688,7 +688,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_latextool(self):
         """Configure LaTeXTool."""
-        cfg = LaTeXTool.instance(config=self.config)
+        cfg = LaTeXTool.instance(parent=self)
         if cfg not in self.configurables:
             self.configurables.append(cfg)
 
@@ -1511,7 +1511,7 @@ class InteractiveShell(SingletonConfigurable):
 
     def init_history(self):
         """Sets up the command history, and starts regular autosaves."""
-        self.history_manager = HistoryManager(shell=self, config=self.config)
+        self.history_manager = HistoryManager(shell=self, parent=self)
         self.configurables.append(self.history_manager)
 
     #-------------------------------------------------------------------------
@@ -1943,7 +1943,7 @@ class InteractiveShell(SingletonConfigurable):
                                      global_namespace=self.user_global_ns,
                                      alias_table=self.alias_manager.alias_table,
                                      use_readline=self.has_readline,
-                                     config=self.config,
+                                     parent=self,
                                      )
         self.configurables.append(self.Completer)
 
@@ -2038,7 +2038,7 @@ class InteractiveShell(SingletonConfigurable):
     def init_magics(self):
         from IPython.core import magics as m
         self.magics_manager = magic.MagicsManager(shell=self,
-                                   config=self.config,
+                                   parent=self,
                                    user_magics=m.UserMagics(self))
         self.configurables.append(self.magics_manager)
 
@@ -2299,7 +2299,7 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_alias(self):
-        self.alias_manager = AliasManager(shell=self, config=self.config)
+        self.alias_manager = AliasManager(shell=self, parent=self)
         self.configurables.append(self.alias_manager)
         self.ns_table['alias'] = self.alias_manager.alias_table,
 
@@ -2308,7 +2308,7 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_extension_manager(self):
-        self.extension_manager = ExtensionManager(shell=self, config=self.config)
+        self.extension_manager = ExtensionManager(shell=self, parent=self)
         self.configurables.append(self.extension_manager)
 
     #-------------------------------------------------------------------------
@@ -2316,7 +2316,7 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_payload(self):
-        self.payload_manager = PayloadManager(config=self.config)
+        self.payload_manager = PayloadManager(parent=self)
         self.configurables.append(self.payload_manager)
 
     #-------------------------------------------------------------------------
@@ -2324,7 +2324,7 @@ class InteractiveShell(SingletonConfigurable):
     #-------------------------------------------------------------------------
 
     def init_prefilter(self):
-        self.prefilter_manager = PrefilterManager(shell=self, config=self.config)
+        self.prefilter_manager = PrefilterManager(shell=self, parent=self)
         self.configurables.append(self.prefilter_manager)
         # Ultimately this will be refactored in the new interpreter code, but
         # for now, we should expose the main prefilter method (there's legacy

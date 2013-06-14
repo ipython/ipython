@@ -141,7 +141,7 @@ class Kernel(Configurable):
         super(Kernel, self).__init__(**kwargs)
 
         # Initialize the InteractiveShell subclass
-        self.shell = self.shell_class.instance(config=self.config,
+        self.shell = self.shell_class.instance(parent=self,
             profile_dir = self.profile_dir,
             user_module = self.user_module,
             user_ns     = self.user_ns,

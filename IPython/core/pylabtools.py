@@ -283,7 +283,7 @@ def configure_inline_support(shell, backend, user_ns=None):
 
     user_ns = shell.user_ns if user_ns is None else user_ns
     
-    cfg = InlineBackend.instance(config=shell.config)
+    cfg = InlineBackend.instance(parent=shell)
     cfg.shell = shell
     if cfg not in shell.configurables:
         shell.configurables.append(cfg)

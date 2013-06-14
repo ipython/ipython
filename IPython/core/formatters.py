@@ -92,7 +92,7 @@ class DisplayFormatter(Configurable):
         ]
         d = {}
         for cls in formatter_classes:
-            f = cls(config=self.config)
+            f = cls(parent=self)
             d[f.format_type] = f
         return d
 

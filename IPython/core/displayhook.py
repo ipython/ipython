@@ -50,8 +50,8 @@ class DisplayHook(Configurable):
 
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    def __init__(self, shell=None, cache_size=1000, config=None):
-        super(DisplayHook, self).__init__(shell=shell, config=config)
+    def __init__(self, shell=None, cache_size=1000, **kwargs):
+        super(DisplayHook, self).__init__(shell=shell, **kwargs)
 
         cache_size_min = 3
         if cache_size <= 0:

@@ -37,7 +37,7 @@ class QtKernelManager(KernelManager, QtKernelManagerMixin):
             if self._restarter is None:
                 self._restarter = QtKernelRestarter(
                     kernel_manager=self,
-                    config=self.config,
+                    parent=self,
                     log=self.log,
                 )
                 self._restarter.add_callback(self._handle_kernel_restarted)

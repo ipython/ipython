@@ -522,13 +522,13 @@ class NotebookApp(BaseIPythonApplication):
         # force Session default to be secure
         default_secure(self.config)
         self.kernel_manager = MappingKernelManager(
-            config=self.config, log=self.log, kernel_argv=self.kernel_argv,
+            parent=self, log=self.log, kernel_argv=self.kernel_argv,
             connection_dir = self.profile_dir.security_dir,
         )
         kls = import_item(self.notebook_manager_class)
-        self.notebook_manager = kls(config=self.config, log=self.log)
+        self.notebook_manager = kls(parent=self, log=self.log)
         self.notebook_manager.load_notebook_names()
-        self.cluster_manager = ClusterManager(config=self.config, log=self.log)
+        self.cluster_manager = ClusterManager(parent=self, log=self.log)
         self.cluster_manager.update_profiles()
 
     def init_logging(self):

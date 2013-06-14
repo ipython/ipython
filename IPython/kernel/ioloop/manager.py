@@ -48,7 +48,7 @@ class IOLoopKernelManager(KernelManager):
             if self._restarter is None:
                 self._restarter = IOLoopKernelRestarter(
                     kernel_manager=self, loop=self.loop,
-                    config=self.config, log=self.log
+                    parent=self, log=self.log
                 )
             self._restarter.start()
 

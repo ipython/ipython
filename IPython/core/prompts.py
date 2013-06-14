@@ -318,8 +318,8 @@ class PromptManager(Configurable):
     def _invisible_chars_default(self):
         return {'in': 0, 'in2': 0, 'out': 0, 'rewrite':0}
     
-    def __init__(self, shell, config=None):
-        super(PromptManager, self).__init__(shell=shell, config=config)
+    def __init__(self, shell, **kwargs):
+        super(PromptManager, self).__init__(shell=shell, **kwargs)
         
         # Prepare colour scheme table
         self.color_scheme_table = coloransi.ColorSchemeTable([PColNoColors,
