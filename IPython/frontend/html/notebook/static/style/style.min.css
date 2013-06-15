@@ -1406,8 +1406,8 @@ ul.icons-ul{list-style-type:none;text-indent:-0.7142857142857143em;margin-left:2
 .toolbar_info{float:left;}
 .toolbar_buttons{float:right;}
 .list_header{font-weight:bold;}
-.list_container{margin-top:16px;margin-bottom:16px;border:1px solid #eeeeee;border-radius:4px;}
-.list_container>div{border-bottom:1px solid #eeeeee;}.list_container>div:hover .list-item{background-color:red;}
+.list_container{margin-top:16px;margin-bottom:16px;border:1px solid #ababab;border-radius:4px;}
+.list_container>div{border-bottom:1px solid #ababab;}.list_container>div:hover .list-item{background-color:red;}
 .list_container>div:last-child{border:none;}
 .list_item:hover .list_item{background-color:#ddd;}
 .list_container>div>span,.list_container>div>div{padding:8px;}
