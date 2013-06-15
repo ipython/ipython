@@ -496,6 +496,12 @@ class EmbeddedSphinxShell(object):
             else: # still on a multiline
                 modified = u'%s %s' % (continuation, line)
                 output.append(modified)
+
+                # if the next line is indented, it should be part of multiline
+                if len(content) > lineno + 1:
+                    nextline = content[lineno + 1]
+                    if len(nextline) - len(nextline.lstrip()) > 3:
+                        continue
                 try:
                     mod = ast.parse(
                             '\n'.join(content[multiline_start:lineno+1]))
@@ -532,6 +538,8 @@ class IpythonDirective(Directive):
 
     shell = EmbeddedSphinxShell()
 
+    seen_docs = set()
+
     def get_config_options(self):
         # contains sphinx configuration variables
         config = self.state.document.settings.env.config
@@ -558,16 +566,13 @@ class IpythonDirective(Directive):
         # reset the execution count if we haven't processed this doc
         #NOTE: this may be borked if there are multiple seen_doc tmp files
         #check time stamp?
-        seen_docs = [i for i in os.listdir(tempfile.tempdir)
-            if i.startswith('seen_doc')]
-        if seen_docs:
-            fname = os.path.join(tempfile.tempdir, seen_docs[0])
-            docs = open(fname).read().split('\n')
-            if not self.state.document.current_source in docs:
+
+
+        if not self.state.document.current_source in self.seen_docs:
                 self.shell.IP.history_manager.reset()
                 self.shell.IP.execution_count = 1
-        else: # haven't processed any docs yet
-            docs = []
+                self.seen_docs.add(self.state.document.current_source)
+
 
 
         # get config values
@@ -587,13 +592,6 @@ class IpythonDirective(Directive):
         self.shell.process_input_line('bookmark ipy_savedir %s'%savefig_dir,
                                       store_history=False)
         self.shell.clear_cout()
-
-        # write the filename to a tempfile because it's been "seen" now
-        if not self.state.document.current_source in docs:
-            fd, fname = tempfile.mkstemp(prefix="seen_doc", text=True)
-            fout = open(fname, 'a')
-            fout.write(self.state.document.current_source+'\n')
-            fout.close()
 
         return rgxin, rgxout, promptin, promptout
 
