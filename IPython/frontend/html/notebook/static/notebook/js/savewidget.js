@@ -63,9 +63,12 @@ var IPython = (function (IPython) {
 
     SaveWidget.prototype.rename_notebook = function () {
         var that = this;
-        var dialog = $('<div/>').append($("<p/>").addClass("rename-message")
-        .html('Enter a new notebook name:'));
-        dialog.append(
+        var dialog = $('<div/>').append(
+            $("<p/>").addClass("rename-message")
+                .html('Enter a new notebook name:')
+        ).append(
+            $("<br/>")
+        ).append(
             $('<input/>').attr('type','text').attr('size','25')
             .val(IPython.notebook.get_notebook_name())
         );
