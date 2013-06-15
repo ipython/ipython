@@ -166,6 +166,12 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     stylesheet = Unicode('', config=True,
         help="path to a custom CSS stylesheet")
 
+    hide_menubar = CBool(False, config=True,
+        help="Start the console window with the menu bar hidden.")
+
+    maximize = CBool(False, config=True,
+        help="Start the console window maximized.")
+
     plain = CBool(False, config=True,
         help="Use a plaintext widget instead of rich text (plain can't print/save).")
 
@@ -269,6 +275,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         self.window.add_tab_with_frontend(self.widget)
         self.window.init_menu_bar()
 
+        # Ignore on OSX, where there is always a menu bar
+        if sys.platform != 'darwin' and self.hide_menubar:
+            self.window.menuBar().setVisible(False)
+
         self.window.setWindowTitle('IPython')
 
     def init_colors(self, widget):
@@ -355,7 +365,10 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
     def start(self):
 
         # draw the window
-        self.window.show()
+        if self.maximize:
+            self.window.showMaximized()
+        else:
+            self.window.show()
         self.window.raise_()
 
         # Start the application main loop.
