@@ -1426,7 +1426,7 @@ input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-botto
 .ansigrey{color:grey;}
 .ansibold{font-weight:bold;}
 .cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}.cell.selected{border-radius:4px;border:thin #ababab solid;}
-div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 6px;outline:none;}
+div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 7px;outline:none;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231em;}
 .celltoolbar{border:thin solid #CFCFCF;border-bottom:none;background:#EEE;border-top-right-radius:3px;border-top-left-radius:3px;width:100%;-webkit-box-pack:end;height:22px;}
 .no_input_radius{border-top-right-radius:0px;border-top-left-radius:0px;}
@@ -1483,14 +1483,14 @@ pre .coffeescript .javascript,pre .javascript .xml,pre .tex .formula,pre .xml .j
 .cm-s-ipython span.cm-error{color:#f00;}
 .cm-s-ipython span.cm-operator{color:#AA22FF;font-weight:bold;}
 .cm-s-ipython span.cm-meta{color:#AA22FF;}
-#menubar{margin-bottom:0px;}
-#menubar .navbar-inner{min-height:28px;}
+#menubar .navbar-inner{min-height:28px;border-top:1px;border-radius:0px 0px 4px 4px;}
+#menubar .navbar{margin-bottom:8px;}
 .nav-wrapper{border-bottom:1px solid #d4d4d4;}
 body{background-color:#ffffff;}
 body.notebook_app{overflow:hidden;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
-div#notebook_panel{margin:0px 0px 0px 0px;padding:0px;}
-div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5px;margin:0px;}
+div#notebook_panel{margin:0px 0px 0px 0px;padding:0px;-webkit-box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);-moz-box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);box-shadow:0 -1px 10px rgba(0, 0, 0, 0.1);}
+div#notebook{overflow-y:scroll;overflow-x:auto;width:100%;padding:5px 5px 15px 5px;margin:0px;border-top:1px solid #ababab;}
 div.ui-widget-content{border:1px solid #ababab;outline:none;}
 pre.dialog{background-color:#f7f7f7;border:1px solid #ddd;border-radius:4px;padding:0.4em;padding-left:2em;}
 p.dialog{padding:0.2em;}
@@ -1552,9 +1552,11 @@ div.text_cell_render{outline:none;resize:none;width:inherit;border-style:none;pa
 a.heading-anchor{text-decoration:none;color:inherit;}
 a.anchor-link:link{text-decoration:none;padding:0px 20px;visibility:hidden;}
 h1:hover .anchor-link,h2:hover .anchor-link,h3:hover .anchor-link,h4:hover .anchor-link,h5:hover .anchor-link,h6:hover .anchor-link{visibility:visible;}
-.toolbar{padding:0px 10px;}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0px;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;padding-top:3px;}
+.toolbar{padding:0px 10px;margin-top:-5px;}.toolbar select,.toolbar label{width:auto;height:26px;vertical-align:middle;margin-right:2px;margin-bottom:0px;display:inline;font-size:92%;margin-left:0.3em;margin-right:0.3em;padding:0px;padding-top:3px;}
 .toolbar .btn{padding:2px 8px;}
 .toolbar .btn-group{margin-top:0px;}
+.toolbar-inner{border:none !important;-webkit-box-shadow:none !important;-moz-box-shadow:none !important;box-shadow:none !important;}
+#maintoolbar{margin-bottom:0px;}
 @-moz-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-webkit-keyframes fadeOut{from{opacity:1;} to{opacity:0;}}@-moz-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}@-webkit-keyframes fadeIn{from{opacity:0;} to{opacity:1;}}.bigtooltip{overflow:auto;height:200px;-webkit-transition-property:height;-webkit-transition-duration:500ms;-moz-transition-property:height;-moz-transition-duration:500ms;transition-property:height;transition-duration:500ms;}
 .smalltooltip{-webkit-transition-property:height;-webkit-transition-duration:500ms;-moz-transition-property:height;-moz-transition-duration:500ms;transition-property:height;transition-duration:500ms;text-overflow:ellipsis;overflow:hidden;height:80px;}
 .tooltipbuttons{position:absolute;padding-right:15px;top:0px;right:0px;}
