@@ -34,14 +34,6 @@ class FullHtmlExporter(basichtml.BasicHtmlExporter):
             'fullhtml', config=True,
             help="Name of the template file to use")
 
-    def _register_transformers(self):
-        """
-        Register all of the transformers needed for this exporter.
-        """
-
-        #Register the transformers of the base class.
-        super(FullHtmlExporter, self)._register_transformers()
-
     @property
     def default_config(self):
         c = Config({'CSSHtmlHeaderTransformer':{'enabled':True}})
