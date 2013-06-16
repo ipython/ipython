@@ -19,7 +19,22 @@ Authors:
 #-----------------------------------------------------------------------------
 
 def import_item(name):
-    """Import and return bar given the string foo.bar."""
+    """Import and return ``bar`` given the string ``foo.bar``.
+
+    Calling ``bar = import_item("foo.bar")`` is the functional equivalent of
+    executing the code ``from foo import bar``.
+
+    Parameters
+    ----------
+    name : string
+      The fully qualified name of the module/package being imported.
+
+    Returns
+    -------
+    mod : module object
+       The module that was imported.
+    """
+      
     package = '.'.join(name.split('.')[0:-1])
     obj = name.split('.')[-1]
     
