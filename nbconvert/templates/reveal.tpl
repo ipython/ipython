@@ -36,7 +36,9 @@ document.write( '<link rel="stylesheet" href="reveal.js/css/print/' + ( window.l
 <style type="text/css">
 /* Overrides of notebook CSS for static HTML export */
 .reveal {
-  font-size: 20px;
+font-size: 20px;
+overflow-y: auto;
+overflow-x: hidden;
 }
 .reveal pre {
 width: 98%;
