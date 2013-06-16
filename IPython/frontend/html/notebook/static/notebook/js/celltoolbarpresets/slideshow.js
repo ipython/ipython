@@ -51,6 +51,13 @@
     CellToolbar.register_callback('slideshow.select',select_type);
 
     slideshow_preset.push('slideshow.select');
+    
+    CellToolbar.register_preset('Slideshow',slideshow_preset);
+    console.log('Slideshow extension for metadata editing loaded.');
+
+ // New reveal_preset enhancing the slideshow_preset with an alignment function
+
+    var reveal_preset = slideshow_preset.slice();
 
     var select_align = CellToolbar.utils.select_ui_generator([
             ["Left"         ,undefined      ],
@@ -74,10 +81,10 @@
             "Alignment");
 
     CellToolbar.register_callback('slideshow.select_align',select_align);
-
-    slideshow_preset.push('slideshow.select_align');
-
-    CellToolbar.register_preset('Slideshow',slideshow_preset);
-    console.log('Slideshow extension for metadata editing loaded.');
+ 
+    reveal_preset.push('slideshow.select_align');
+ 
+    CellToolbar.register_preset('Reveal',reveal_preset);
+    console.log('Reveal extension for metadata editing loaded.');
 
 }(IPython));
