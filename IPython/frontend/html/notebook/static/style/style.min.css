@@ -1486,6 +1486,7 @@ pre .coffeescript .javascript,pre .javascript .xml,pre .tex .formula,pre .xml .j
 #menubar .navbar-inner{min-height:28px;border-top:1px;border-radius:0px 0px 4px 4px;}
 #menubar .navbar{margin-bottom:8px;}
 .nav-wrapper{border-bottom:1px solid #d4d4d4;}
+#menubar li.dropdown{line-height:12px;}
 body{background-color:#ffffff;}
 body.notebook_app{overflow:hidden;}
 span#notebook_name{height:1em;line-height:1em;padding:3px;border:none;font-size:146.5%;}
@@ -1499,7 +1500,7 @@ pre,code,kbd,samp{white-space:pre-wrap;}
 p{margin-bottom:0;}
 .end_space{height:200px;}
 #notification_area{z-index:10;}
-.notification_widget{padding:3px 12px;margin:4px;z-index:10;border:1px solid #ccc;border-radius:4px;background:rgba(240, 240, 240, 0.5);}
+.notification_widget{color:#777777;padding:1px 12px;margin:2px 4px;z-index:10;border:1px solid #ccc;border-radius:4px;background:rgba(240, 240, 240, 0.5);}
 div.output_area{padding:0px;page-break-inside:avoid;display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:horizontal;-moz-box-align:stretch;display:box;box-orient:horizontal;box-align:stretch;}
 div.output_area pre{font-family:monospace;margin:0;padding:0;border:0;font-size:100%;vertical-align:baseline;color:black;background-color:transparent;-webkit-border-radius:0;-moz-border-radius:0;border-radius:0;line-height:inherit;}
 div.output_subarea{padding:0.44em 0.4em 0.4em 1px;margin-left:6px;-webkit-box-flex:1;-moz-box-flex:1;box-flex:1;}
