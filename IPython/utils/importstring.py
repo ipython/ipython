@@ -34,29 +34,17 @@ def import_item(name):
     mod : module object
        The module that was imported.
     """
-      
-    package = '.'.join(name.split('.')[0:-1])
-    obj = name.split('.')[-1]
     
-    # Note: the original code for this was the following.  We've left it
-    # visible for now in case the new implementation shows any problems down
-    # the road, to make it easier on anyone looking for a problem.  This code
-    # should be removed once we're comfortable we didn't break anything.
-    
-    ## execString = 'from %s import %s' % (package, obj)
-    ## try:
-    ##     exec execString
-    ## except SyntaxError:
-    ##     raise ImportError("Invalid class specification: %s" % name)
-    ## exec 'temp = %s' % obj
-    ## return temp
-
-    if package:
-        module = __import__(package,fromlist=[obj])
+    parts = name.rsplit('.', 1)
+    if len(parts) == 2:
+        # called with 'foo.bar....'
+        package, obj = parts
+        module = __import__(package, fromlist=[obj])
         try:
             pak = module.__dict__[obj]
         except KeyError:
             raise ImportError('No module named %s' % obj)
         return pak
     else:
-        return __import__(obj)
+        # called with un-dotted string
+        return __import__(parts[0])
