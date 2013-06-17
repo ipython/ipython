@@ -28,6 +28,7 @@ from warnings import warn
 warn("The top-level `frontend` package has been deprecated. "
      "All its subpackages have been moved to the top `IPython` level.")
 
+1/0
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------

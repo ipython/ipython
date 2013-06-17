@@ -34,7 +34,7 @@ import webbrowser
 # Third party
 # check for pyzmq 2.1.11
 from IPython.utils.zmqrelated import check_for_zmq
-check_for_zmq('2.1.11', 'IPython.frontend.html.notebook')
+check_for_zmq('2.1.11', 'IPython.html.notebook')
 
 import zmq
 from jinja2 import Environment, FileSystemLoader
@@ -61,7 +61,7 @@ from tornado import httpserver
 from tornado import web
 
 # Our own libraries
-from IPython.frontend.html.notebook import DEFAULT_STATIC_FILES_PATH
+from IPython.html.notebook import DEFAULT_STATIC_FILES_PATH
 
 from .services.kernels.kernelmanager import MappingKernelManager
 from .services.notebooks.nbmanager import NotebookManager
@@ -72,7 +72,7 @@ from .base.handlers import AuthenticatedFileHandler, FileFindHandler
 
 from IPython.config.application import catch_config_error, boolean_flag
 from IPython.core.application import BaseIPythonApplication
-from IPython.frontend.consoleapp import IPythonConsoleApp
+from IPython.consoleapp import IPythonConsoleApp
 from IPython.kernel import swallow_argv
 from IPython.kernel.zmq.session import default_secure
 from IPython.kernel.zmq.kernelapp import (
@@ -120,7 +120,7 @@ def random_ports(port, n):
 
 def load_handlers(name):
     """Load the (URL pattern, handler) tuples for each component."""
-    name = 'IPython.frontend.html.notebook.' + name
+    name = 'IPython.html.notebook.' + name
     mod = __import__(name, fromlist=['default_handlers'])
     return mod.default_handlers
 
@@ -490,7 +490,7 @@ class NotebookApp(BaseIPythonApplication):
         else:
             self.log.info("Using MathJax: %s", new)
 
-    notebook_manager_class = DottedObjectName('IPython.frontend.html.notebook.services.notebooks.filenbmanager.FileNotebookManager',
+    notebook_manager_class = DottedObjectName('IPython.html.notebook.services.notebooks.filenbmanager.FileNotebookManager',
         config=True,
         help='The notebook manager class to use.')
 
