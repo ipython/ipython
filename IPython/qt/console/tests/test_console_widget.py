@@ -5,7 +5,7 @@ import unittest
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
-from IPython.frontend.qt.console.console_widget import ConsoleWidget
+from IPython.qt.console.console_widget import ConsoleWidget
 
 
 class TestConsoleWidget(unittest.TestCase):

@@ -5,7 +5,7 @@ import unittest
 from IPython.external.qt import QtCore, QtGui
 
 # Local imports
-from IPython.frontend.qt.console.kill_ring import KillRing, QtKillRing
+from IPython.qt.console.kill_ring import KillRing, QtKillRing
 
 
 class TestKillRing(unittest.TestCase):

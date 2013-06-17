@@ -2,9 +2,10 @@
 Shim to maintain backwards compatibility with old frontend imports.
 
 We have moved all contents of the old `frontend` subpackage into top-level
-subpackages (`html`, `qt` and `terminal`).  This will let code that was making
-`from IPython.frontend...` calls continue working, though a warning will be
-printed.
+subpackages (`html`, `qt` and `terminal`).  
+
+This will let code that was making `from IPython.frontend...` calls continue
+working, though a warning will be printed.
 """
 
 #-----------------------------------------------------------------------------
@@ -28,7 +29,6 @@ from warnings import warn
 warn("The top-level `frontend` package has been deprecated. "
      "All its subpackages have been moved to the top `IPython` level.")
 
-1/0
 #-----------------------------------------------------------------------------
 # Class declarations
 #-----------------------------------------------------------------------------

@@ -5,7 +5,7 @@ import unittest
 from pygments.lexers import CLexer, CppLexer, PythonLexer
 
 # Local imports
-from IPython.frontend.qt.console.completion_lexer import CompletionLexer
+from IPython.qt.console.completion_lexer import CompletionLexer
 
 
 class TestCompletionLexer(unittest.TestCase):

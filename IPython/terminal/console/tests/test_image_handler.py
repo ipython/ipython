@@ -11,8 +11,7 @@ import unittest
 import base64
 
 from IPython.kernel import KernelClient
-from IPython.frontend.terminal.console.interactiveshell \
-    import ZMQTerminalInteractiveShell
+from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.testing.tools import monkeypatch
 from IPython.testing.decorators import skip_without
