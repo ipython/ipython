@@ -47,7 +47,7 @@ from IPython.core.magics import ScriptMagics
 from IPython.core.shellapp import (
     InteractiveShellApp, shell_flags, shell_aliases
 )
-from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
 from IPython.utils.traitlets import (
@@ -223,10 +223,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ]
 
     subcommands = Dict(dict(
-        qtconsole=('IPython.frontend.qt.console.qtconsoleapp.IPythonQtConsoleApp',
+        qtconsole=('IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
         ),
-        notebook=('IPython.frontend.html.notebook.notebookapp.NotebookApp',
+        notebook=('IPython.html.notebook.notebookapp.NotebookApp',
             """Launch the IPython HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",
@@ -235,10 +235,10 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         kernel = ("IPython.kernel.zmq.kernelapp.IPKernelApp",
             "Start a kernel without an attached frontend."
         ),
-        console=('IPython.frontend.terminal.console.app.ZMQTerminalIPythonApp',
+        console=('IPython.terminal.console.app.ZMQTerminalIPythonApp',
             """Launch the IPython terminal-based Console."""
         ),
-        locate=('IPython.frontend.terminal.ipapp.LocateIPythonApp',
+        locate=('IPython.terminal.ipapp.LocateIPythonApp',
             LocateIPythonApp.description
         ),
         history=('IPython.core.historyapp.HistoryApp',
