@@ -15,7 +15,7 @@ from IPython.external.qt import QtCore, QtGui
 from IPython.core.inputsplitter import InputSplitter, IPythonInputSplitter
 from IPython.core.inputtransformer import classic_prompt
 from IPython.core.oinspect import call_tip
-from IPython.frontend.qt.base_frontend_mixin import BaseFrontendMixin
+from IPython.qt.base_frontend_mixin import BaseFrontendMixin
 from IPython.utils.traitlets import Bool, Instance, Unicode
 from bracket_matcher import BracketMatcher
 from call_tip_widget import CallTipWidget
