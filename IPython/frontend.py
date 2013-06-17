@@ -23,15 +23,10 @@ from __future__ import print_function
 # Stdlib
 import sys
 import types
+from warnings import warn
 
-m = """\
-*** WARNING*** : The top-level `frontend` package has been deprecated.
-All its subpackages have been moved to the top `IPython` level."""
-
-print(m, file=sys.stderr)
-
-# FIXME: turn this into a Warning once we've fixed all our own imports.
-#raise DeprecationWarning(m)
+warn("The top-level `frontend` package has been deprecated. "
+     "All its subpackages have been moved to the top `IPython` level.")
 
 #-----------------------------------------------------------------------------
 # Class declarations
