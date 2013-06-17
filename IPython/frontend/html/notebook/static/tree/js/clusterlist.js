@@ -25,18 +25,10 @@ var IPython = (function (IPython) {
     };
 
     ClusterList.prototype.style = function () {
+        $('#cluster_list').addClass('list_container');
         $('#cluster_toolbar').addClass('list_toolbar');
         $('#cluster_list_info').addClass('toolbar_info');
         $('#cluster_buttons').addClass('toolbar_buttons');
-        $('div#cluster_header').addClass('list_header ui-widget ui-widget-header ui-helper-clearfix');
-        $('div#cluster_header').children().eq(0).addClass('profile_col');
-        $('div#cluster_header').children().eq(1).addClass('action_col');
-        $('div#cluster_header').children().eq(2).addClass('engines_col');
-        $('div#cluster_header').children().eq(3).addClass('status_col');
-        $('#refresh_cluster_list').button({
-            icons : {primary: 'ui-icon-arrowrefresh-1-s'},
-            text : false
-        });
     };
 
 
@@ -69,11 +61,11 @@ var IPython = (function (IPython) {
         this.clear_list();
         var len = data.length;
         for (var i=0; i<len; i++) {
-            var item_div = $('<div/>');
-            var item = new ClusterItem(item_div);
+            var element = $('<div/>');
+            var item = new ClusterItem(element);
             item.update_state(data[i]);
-            item_div.data('item', item);
-            this.element.append(item_div);
+            element.data('item', item);
+            this.element.append(element);
         };
     };
 
@@ -91,8 +83,7 @@ var IPython = (function (IPython) {
 
 
     ClusterItem.prototype.style = function () {
-        this.element.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-        this.element.css('border-top-style','none');
+        this.element.addClass('list_item').addClass("row-fluid");
     }
 
     ClusterItem.prototype.update_state = function (data) {
@@ -108,22 +99,25 @@ var IPython = (function (IPython) {
 
     ClusterItem.prototype.state_stopped = function () {
         var that = this;
-        this.element.empty();
-        var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
-        var status_col = $('<span/>').addClass('status_col').html('stopped');
-        var engines_col = $('<span/>').addClass('engines_col');
+        var profile_col = $('<span/>').addClass('profile_col span4').text(this.data.profile);
+        var status_col = $('<span/>').addClass('status_col span3').html('stopped');
+        var engines_col = $('<span/>').addClass('engine_col span3');
         var input = $('<input/>').attr('type','number')
                 .attr('min',1)
                 .attr('size',3)
                 .addClass('engine_num_input');
         engines_col.append(input);
-        var action_col = $('<span/>').addClass('action_col');
-        var start_button = $('<button>Start</button>').button();
-        action_col.append(start_button);
-        this.element.append(profile_col).
-            append(action_col).
-            append(engines_col).
-            append(status_col);
+        var start_button = $('<button/>').addClass("btn btn-mini").text("Start");
+        var action_col = $('<span/>').addClass('action_col span2').append(
+            $("<span/>").addClass("item_buttons btn-group").append(
+                start_button
+            )
+        );
+        this.element.empty()
+            .append(profile_col)
+            .append(status_col)
+            .append(engines_col)
+            .append(action_col);
         start_button.click(function (e) {
             var n = that.element.find('.engine_num_input').val();
             if (!/^\d+$/.test(n) && n.length>0) {
@@ -150,18 +144,21 @@ var IPython = (function (IPython) {
 
 
     ClusterItem.prototype.state_running = function () {
-        this.element.empty();
         var that = this;
-        var profile_col = $('<span/>').addClass('profile_col').text(this.data.profile);
-        var status_col = $('<span/>').addClass('status_col').html('running');
-        var engines_col = $('<span/>').addClass('engines_col').html(this.data.n);
-        var action_col = $('<span/>').addClass('action_col');
-        var stop_button = $('<button>Stop</button>').button();
-        action_col.append(stop_button);
-        this.element.append(profile_col).
-            append(action_col).
-            append(engines_col).
-            append(status_col);
+        var profile_col = $('<span/>').addClass('profile_col span4').text(this.data.profile);
+        var status_col = $('<span/>').addClass('status_col span3').html('running');
+        var engines_col = $('<span/>').addClass('engines_col span3').html(this.data.n);
+        var stop_button = $('<button/>').addClass("btn btn-mini").text("Stop");
+        var action_col = $('<span/>').addClass('action_col span2').append(
+            $("<span/>").addClass("item_buttons btn-group").append(
+                stop_button
+            )
+        );
+        this.element.empty()
+            .append(profile_col)
+            .append(status_col)
+            .append(engines_col)
+            .append(action_col);
         stop_button.click(function (e) {
             var settings = {
                 cache : false,

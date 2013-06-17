@@ -67,6 +67,7 @@ var IPython = (function (IPython) {
         this.input_prompt_number = null;
         this.collapsed = false;
         this.default_mode = 'ipython';
+        this.cell_type = "code";
 
 
         var cm_overwrite_options  = {

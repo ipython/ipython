@@ -52,15 +52,13 @@ var IPython = (function (IPython) {
 
     MenuBar.prototype.style = function () {
         this.element.addClass('border-box-sizing');
-        $('ul#menus').menubar({
-            select : function (event, ui) {
+        this.element.find("li").click(function (event, ui) {
                 // The selected cell loses focus when the menu is entered, so we
                 // re-select it upon selection.
                 var i = IPython.notebook.get_selected_index();
                 IPython.notebook.select(i);
             }
-        });
-        this.element.find("#restore_checkpoint").find("ul").find("li").hide();
+        );
     };
 
 
@@ -143,7 +141,8 @@ var IPython = (function (IPython) {
             IPython.layout_manager.do_resize();
         });
         this.element.find('#toggle_toolbar').click(function () {
-            IPython.toolbar.toggle();
+            $('div#maintoolbar').toggle();
+            IPython.layout_manager.do_resize();
         });
         // Insert
         this.element.find('#insert_cell_above').click(function () {

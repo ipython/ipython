@@ -39,13 +39,13 @@ var IPython = (function (IPython) {
      *      IPython.toolbar.add_buttons_group([
      *          {
      *            label:'my button',
-     *            icon:'ui-icon-disk',
+     *            icon:'icon-hdd',
      *            callback:function(){alert('hoho')},
      *            id : 'my_button_id',    // this is optional
      *          },
      *          {
      *            label:'my second button',
-     *            icon:'ui-icon-scissors',
+     *            icon:'icon-play',
      *            callback:function(){alert('be carefull I cut')}
      *          }
      *        ],
@@ -56,40 +56,37 @@ var IPython = (function (IPython) {
      *  @param list {List}
      *      List of button of the group, with the following paramter for each :
      *      @param list.label {string} text to show on button hover
-     *      @param list.icon {string} icon to choose from [jQuery ThemeRoller](http://jqueryui.com/themeroller/)
+     *      @param list.icon {string} icon to choose from [Font Awesome](http://fortawesome.github.io/Font-Awesome)
      *      @param list.callback {function} function to be called on button click
      *      @param [list.id] {String} id to give to the button
      *  @param [group_id] {String} optionnal id to give to the group
      *
      */
     ToolBar.prototype.add_buttons_group = function (list, group_id) {
-        var span_group = $('<span/>');
+        var btn_group = $('<div/>').addClass("btn-group");
         if( group_id != undefined ) {
-            span_group.attr('id',group_id);
+            btn_group.attr('id',group_id);
         }
         for(var el in list) {
-            var button  = $('<button/>').button({
-                icons : {primary : list[el].icon},
-                text  : false,
-                label : list[el].label
-                });
+            var button  = $('<button/>')
+                .addClass('btn')
+                .attr("title", list[el].label)
+                .append(
+                    $("<i/>").addClass(list[el].icon)
+                );
             var id = list[el].id;
             if( id != undefined )
                 button.attr('id',id);
             var fun = list[el].callback;
             button.click(fun);
-            span_group.append(button);
+            btn_group.append(button);
         }
-        span_group.buttonset();
-        $(this.selector).append(span_group);
+        $(this.selector).append(btn_group);
     };
 
     ToolBar.prototype.style = function () {
-        this.element.addClass('border-box-sizing').
-            addClass('toolbar').
-            css('border-top-style','none').
-            css('border-left-style','none').
-            css('border-right-style','none');
+        this.element.addClass('border-box-sizing')
+            .addClass('toolbar');
     };
 
     /**

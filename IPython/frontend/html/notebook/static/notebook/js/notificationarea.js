@@ -92,28 +92,24 @@ var IPython = (function (IPython) {
         });
 
         $([IPython.events]).on('status_dead.Kernel',function () {
-            var dialog = $('<div/>');
-            dialog.html('The kernel has died, and the automatic restart has failed.' +
+            var msg = 'The kernel has died, and the automatic restart has failed.' +
                 ' It is possible the kernel cannot be restarted.' +
                 ' If you are not able to restart the kernel, you will still be able to save' +
                 ' the notebook, but running code will no longer work until the notebook' +
-                ' is reopened.'
-            );
-            $(document).append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
+                ' is reopened.';
+
+            IPython.dialog.modal({
                 title: "Dead kernel",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                body : msg,
                 buttons : {
-                    "Manual Restart": function () {
-                        $([IPython.events]).trigger('status_restarting.Kernel');
-                        IPython.notebook.start_kernel();
-                        $(this).dialog('close');
+                    "Manual Restart": {
+                        class: "btn-danger",
+                        click: function () {
+                            $([IPython.events]).trigger('status_restarting.Kernel');
+                            IPython.notebook.start_kernel();
+                        }
                     },
-                    "Don't restart": function () {
-                        $(this).dialog('close');
-                    }
+                    "Don't restart": {}
                 }
             });
         });
@@ -134,25 +130,18 @@ var IPython = (function (IPython) {
             msg = "A WebSocket connection to could not be established." +
                 " You will NOT be able to run code. Check your" +
                 " network connection or notebook server configuration.";
-            var dialog = $('<div/>');
-            dialog.html(msg);
-            $(document).append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
+            IPython.dialog.modal({
                 title: "WebSocket connection failed",
-                closeText: "",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                body: msg,
                 buttons : {
-                    "OK": function () {
-                        $(this).dialog('close');
-                    },
-                    "Reconnect": function () {
-                        knw.set_message('Reconnecting WebSockets', 1000);
-                        setTimeout(function () {
-                            kernel.start_channels();
-                        }, 5000);
-                        $(this).dialog('close');
+                    "OK": {},
+                    "Reconnect": {
+                        click: function () {
+                            knw.set_message('Reconnecting WebSockets', 1000);
+                            setTimeout(function () {
+                                kernel.start_channels();
+                            }, 5000);
+                        }
                     }
                 }
             });

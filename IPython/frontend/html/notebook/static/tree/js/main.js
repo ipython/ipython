@@ -13,22 +13,14 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-
-    $('div#tabs').tabs();
-    $('div#tabs').on('tabsselect', function (event, ui) {
-        var new_url = $('body').data('baseProjectUrl') + '#' + ui.panel.id;
-        window.history.replaceState({}, '', new_url);
-    });
-    $('#ipython-main-app').addClass('border-box-sizing ui-widget');
-    $('div#notebooks_toolbar').addClass('ui-widget ui-helper-clearfix');    
-    $('#new_notebook').button().click(function (e) {
+    $('#new_notebook').click(function (e) {
         window.open($('body').data('baseProjectUrl')+'new');
     });
-
+    
     IPython.read_only = $('body').data('readOnly') === 'True';
-    IPython.notebook_list = new IPython.NotebookList('div#notebook_list');
-    IPython.cluster_list = new IPython.ClusterList('div#cluster_list');
-    IPython.login_widget = new IPython.LoginWidget('span#login_widget');
+    IPython.notebook_list = new IPython.NotebookList('#notebook_list');
+    IPython.cluster_list = new IPython.ClusterList('#cluster_list');
+    IPython.login_widget = new IPython.LoginWidget('#login_widget');
 
     var interval_id=0;
     // auto refresh every xx secondes, no need to be fast,
@@ -77,6 +69,17 @@ $(document).ready(function () {
     $("#alternate_upload").change(function (event){
         IPython.notebook_list.handelFilesUpload(event,'form');
     });
+    
+    // set hash on tab click
+    $("#tabs").find("a").click(function() {
+        window.location.hash = $(this).attr("href");
+    })
+    
+    // load tab if url hash
+    if (window.location.hash) {
+        $("#tabs").find("a[href=" + window.location.hash + "]").click();
+    }
+
 
 });
 

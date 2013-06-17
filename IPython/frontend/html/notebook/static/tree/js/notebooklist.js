@@ -28,11 +28,8 @@ var IPython = (function (IPython) {
         $('#notebook_toolbar').addClass('list_toolbar');
         $('#drag_info').addClass('toolbar_info');
         $('#notebook_buttons').addClass('toolbar_buttons');
-        $('div#project_name').addClass('list_header ui-widget ui-widget-header');
-        $('#refresh_notebook_list').button({
-            icons : {primary: 'ui-icon-arrowrefresh-1-s'},
-            text : false
-        });
+        $('#notebook_list_header').addClass('list_header');
+        this.element.addClass("list_container");
     };
 
 
@@ -145,12 +142,17 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.new_notebook_item = function (index) {
-        var item = $('<div/>');
-        item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
-        item.css('border-top-style','none');
-        var item_name = $('<span/>').addClass('item_name');
-
-        item.append(item_name);
+        var item = $('<div/>').addClass("list_item").addClass("row-fluid");
+        // item.addClass('list_item ui-widget ui-widget-content ui-helper-clearfix');
+        // item.css('border-top-style','none');
+        item.append($("<div/>").addClass("span12").append(
+            $("<a/>").addClass("item_link").append(
+                $("<span/>").addClass("item_name")
+            )
+        ).append(
+            $('<div/>').addClass("item_buttons btn-group pull-right")
+        ));
+        
         if (index === -1) {
             this.element.append(item);
         } else {
@@ -163,37 +165,22 @@ var IPython = (function (IPython) {
     NotebookList.prototype.add_link = function (notebook_id, nbname, item) {
         item.data('nbname', nbname);
         item.data('notebook_id', notebook_id);
-        var new_item_name = $('<span/>').addClass('item_name');
-        new_item_name.append(
-            $('<a/>').
-            attr('href', this.baseProjectUrl()+notebook_id).
-            attr('target','_blank').
-            text(nbname)
-        );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
+        item.find(".item_name").text(nbname);
+        item.find("a.item_link")
+            .attr('href', this.baseProjectUrl()+notebook_id)
+            .attr('target','_blank');
     };
 
 
     NotebookList.prototype.add_name_input = function (nbname, item) {
         item.data('nbname', nbname);
-        var new_item_name = $('<span/>').addClass('item_name');
-        new_item_name.append(
-            $('<input/>').addClass('ui-widget ui-widget-content').
-            attr('value', nbname).
-            attr('size', '30').
-            attr('type', 'text')
+        item.find(".item_name").empty().append(
+            $('<input/>')
+            .addClass("nbname_input")
+            .attr('value', nbname)
+            .attr('size', '30')
+            .attr('type', 'text')
         );
-        var e = item.find('.item_name');
-        if (e.length === 0) {
-            item.append(new_item_name);
-        } else {
-            e.replaceWith(new_item_name);
-        };
     };
 
 
@@ -202,10 +189,9 @@ var IPython = (function (IPython) {
     };
 
 
-    NotebookList.prototype.add_shutdown_button = function (item,kernel) {
-        var new_buttons = $('<span/>').addClass('item_buttons');
+    NotebookList.prototype.add_shutdown_button = function (item, kernel) {
         var that = this;
-        var shutdown_button = $('<button>Shutdown</button>').button().
+        var shutdown_button = $("<button/>").text("Shutdown").addClass("btn btn-mini").
             click(function (e) {
                 var settings = {
                     processData : false,
@@ -218,20 +204,16 @@ var IPython = (function (IPython) {
                 };
                 var url = that.baseProjectUrl() + 'kernels/'+kernel;
                 $.ajax(url, settings);
+                return false;
             });
-        new_buttons.append(shutdown_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        // var new_buttons = item.find('a'); // shutdown_button;
+        item.find(".item_buttons").html("").append(shutdown_button);
     };
 
     NotebookList.prototype.add_delete_button = function (item) {
-        var new_buttons = $('<span/>').addClass('item_buttons');
+        var new_buttons = $('<span/>').addClass("btn-group pull-right");
         var notebooklist = this;
-        var delete_button = $('<button>Delete</button>').button().
+        var delete_button = $("<button/>").text("Delete").addClass("btn btn-mini").
             click(function (e) {
                 // $(this) is the button that was clicked.
                 var that = $(this);
@@ -240,50 +222,41 @@ var IPython = (function (IPython) {
                 var parent_item = that.parents('div.list_item');
                 var nbname = parent_item.data('nbname');
                 var notebook_id = parent_item.data('notebook_id');
-                var dialog = $('<div/>');
-                dialog.html('Are you sure you want to permanently delete the notebook: ' + nbname + '?');
-                parent_item.append(dialog);
-                dialog.dialog({
-                    resizable: false,
-                    modal: true,
-                    title: "Delete notebook",
+                var message = 'Are you sure you want to permanently delete the notebook: ' + nbname + '?';
+                IPython.dialog.modal({
+                    title : "Delete notebook",
+                    body : message,
                     buttons : {
-                        "Delete": function () {
-                            var settings = {
-                                processData : false,
-                                cache : false,
-                                type : "DELETE",
-                                dataType : "json",
-                                success : function (data, status, xhr) {
-                                    parent_item.remove();
-                                }
-                            };
-                            var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
-                            $.ajax(url, settings);
-                            $(this).dialog('close');
+                        Delete : {
+                            class: "btn-danger",
+                            click: function() {
+                                var settings = {
+                                    processData : false,
+                                    cache : false,
+                                    type : "DELETE",
+                                    dataType : "json",
+                                    success : function (data, status, xhr) {
+                                        parent_item.remove();
+                                    }
+                                };
+                                var url = notebooklist.baseProjectUrl() + 'notebooks/' + notebook_id;
+                                $.ajax(url, settings);
+                            }
                         },
-                        "Cancel": function () {
-                            $(this).dialog('close');
-                        }
+                        Cancel : {}
                     }
                 });
+                return false;
             });
-        new_buttons.append(delete_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        item.find(".item_buttons").html("").append(delete_button);
     };
 
 
     NotebookList.prototype.add_upload_button = function (item) {
         var that = this;
-        var new_buttons = $('<span/>').addClass('item_buttons');
-        var upload_button = $('<button>Upload</button>').button().
-            addClass('upload-button').
-            click(function (e) {
+        var upload_button = $('<button/>').text("Upload")
+            .addClass('btn btn-primary btn-mini upload_button')
+            .click(function (e) {
                 var nbname = item.find('.item_name > input').attr('value');
                 var nbformat = item.data('nbformat');
                 var nbdata = item.data('nbdata');
@@ -309,19 +282,18 @@ var IPython = (function (IPython) {
                 var qs = $.param({name:nbname, format:nbformat});
                 var url = that.baseProjectUrl() + 'notebooks?' + qs;
                 $.ajax(url, settings);
+                return false;
             });
-        var cancel_button = $('<button>Cancel</button>').button().
-            click(function (e) {
+        var cancel_button = $('<button/>').text("Cancel")
+            .addClass("btn btn-mini")
+            .click(function (e) {
+                console.log('cancel click');
                 item.remove();
+                return false;
             });
-        upload_button.addClass('upload_button');
-        new_buttons.append(upload_button).append(cancel_button);
-        var e = item.find('.item_buttons');
-        if (e.length === 0) {
-            item.append(new_buttons);
-        } else {
-            e.replaceWith(new_buttons);
-        };
+        item.find(".item_buttons").empty()
+            .append(upload_button)
+            .append(cancel_button);
     };
 
 

@@ -47,11 +47,11 @@ var IPython = (function (IPython) {
 
         var pager_height = IPython.pager.percentage_height*app_height;
         var pager_splitter_height = $('div#pager_splitter').outerHeight(true);
-        $('div#pager').height(pager_height);
+        $('div#pager').outerHeight(pager_height);
         if (IPython.pager.expanded) {
-            $('div#notebook').height(app_height-pager_height-pager_splitter_height);
+            $('div#notebook').outerHeight(app_height-pager_height-pager_splitter_height);
         } else {
-            $('div#notebook').height(app_height-pager_splitter_height);
+            $('div#notebook').outerHeight(app_height-pager_splitter_height);
         }
     };
 

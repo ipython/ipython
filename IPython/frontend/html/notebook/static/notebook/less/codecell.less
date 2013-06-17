@@ -25,11 +25,9 @@ div.input_prompt {
 div.output_wrapper {
     /* This is a spacer between the input and output of each cell */
     margin-top: 5px;
-    margin-left: 5px;
-    /* FF needs explicit width to stretch */
-    width: 100%;
     /* this position must be relative to enable descendents to be absolute within it */
     position: relative;
+    .vbox()
 }
 
 /* class for the output area when it should be height-limited */
@@ -46,12 +44,14 @@ div.output_scroll {
 
 /* output div while it is collapsed */
 div.output_collapsed {
-  margin-right: 5px;
+  margin: 0px;
+  padding: 0px;
+  .vbox();
 }
 
 div.out_prompt_overlay {
   height: 100%;
-  padding: 0px;
+  padding: 0px 0.4em;
   position: absolute;
   .corner-all;
 }
@@ -64,6 +64,4 @@ div.out_prompt_overlay:hover {
 
 div.output_prompt {
     color: darkred;
-    /* 5px right shift to account for margin in parent container */
-    margin: 0 5px 0 -5px;
 }
