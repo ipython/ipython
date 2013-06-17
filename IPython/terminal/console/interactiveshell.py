@@ -37,8 +37,8 @@ from IPython.utils import io
 from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory
 
-from IPython.frontend.terminal.interactiveshell import TerminalInteractiveShell
-from IPython.frontend.terminal.console.completer import ZMQCompleter
+from IPython.terminal.interactiveshell import TerminalInteractiveShell
+from IPython.terminal.console.completer import ZMQCompleter
 
 
 class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
