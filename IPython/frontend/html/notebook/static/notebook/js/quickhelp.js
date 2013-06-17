@@ -19,12 +19,10 @@ var IPython = (function (IPython) {
         var that = this;
         if ( this.shortcut_dialog ){
             // if dialog is already shown, close it
-            this.shortcut_dialog.dialog("close");
-            this.shortcut_dialog = null;
+            $(this.shortcut_dialog).modal("toggle");
             return;
         }
-        var dialog = $('<div/>');
-        this.shortcut_dialog = dialog;
+        var body = $('<div/>');
         var shortcuts = [
             {key: 'Shift-Enter', help: 'run cell'},
             {key: 'Ctrl-Enter', help: 'run cell in-place'},
@@ -53,16 +51,19 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m h', help: 'show keyboard shortcuts'}
         ];
         for (var i=0; i<shortcuts.length; i++) {
-            dialog.append($('<div>').
+            body.append($('<div>').
                 append($('<span/>').addClass('shortcut_key').html(shortcuts[i].key)).
                 append($('<span/>').addClass('shortcut_descr').html(' : ' + shortcuts[i].help))
             );
         };
-        dialog.bind('dialogclose', function(event) {
-            // dialog has been closed, allow it to be drawn again.
-            that.shortcut_dialog = null;
+        this.shortcut_dialog = IPython.dialog.modal({
+            title : "Keyboard shortcuts",
+            body : body,
+            destroy : false,
+            buttons : {
+                Close : {}
+            }
         });
-        dialog.dialog({title: 'Keyboard shortcuts', closeText: ''});
     };
 
     // Set module variables

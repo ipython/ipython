@@ -88,13 +88,15 @@ var IPython = (function (IPython) {
         // ii) to prevent the div from scrolling up when the last cell is being
         // edited, but is too low on the page, which browsers will do automatically.
         var that = this;
-        var end_space = $('<div/>').addClass('end_space').height("30%");
+        this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
+        var end_space = $('<div/>').addClass('end_space');
         end_space.dblclick(function (e) {
             if (that.read_only) return;
             var ncells = that.ncells();
             that.insert_cell_below('code',ncells-1);
         });
-        this.element.append(end_space);
+        this.element.append(this.container);
+        this.container.append(end_space);
         $('div#notebook').addClass('border-box-sizing');
     };
 
@@ -414,7 +416,7 @@ var IPython = (function (IPython) {
      * @return {jQuery} A selector of all cell elements
      */
     Notebook.prototype.get_cell_elements = function () {
-        return this.element.children("div.cell");
+        return this.container.children("div.cell");
     };
 
     /**
@@ -1341,21 +1343,18 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.restart_kernel = function () {
         var that = this;
-        var dialog = $('<div/>');
-        dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
-        $(document).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Restart kernel or continue running?",
-            closeText: '',
+        IPython.dialog.modal({
+            title : "Restart kernel or continue running?",
+            body : $("<p/>").html(
+                'Do you want to restart the current kernel?  You will lose all variables defined in it.'
+            ),
             buttons : {
-                "Restart": function () {
-                    that.kernel.restart();
-                    $(this).dialog('close');
-                },
-                "Continue running": function () {
-                    $(this).dialog('close');
+                "Continue running" : {},
+                "Restart" : {
+                    "class" : "btn-danger",
+                    "click" : function() {
+                        that.kernel.restart();
+                    }
                 }
             }
         });
@@ -1526,24 +1525,16 @@ var IPython = (function (IPython) {
             };
         };
         if (data.worksheets.length > 1) {
-            var dialog = $('<div/>');
-            dialog.html("This notebook has " + data.worksheets.length + " worksheets, " +
-            "but this version of IPython can only handle the first.  " +
-            "If you save this notebook, worksheets after the first will be lost."
-            );
-            this.element.append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
-                title: "Multiple worksheets",
-                closeText: "",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+            IPython.dialog.modal({
+                title : "Multiple worksheets",
+                body : "This notebook has " + data.worksheets.length + " worksheets, " +
+                    "but this version of IPython can only handle the first.  " +
+                    "If you save this notebook, worksheets after the first will be lost.",
                 buttons : {
-                    "OK": function () {
-                        $(this).dialog('close');
+                    OK : {
+                        class : "btn-danger"
                     }
-                },
-                width: 400
+                }
             });
         }
     };
@@ -1722,27 +1713,20 @@ var IPython = (function (IPython) {
         this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
-            msg = "This notebook has been converted from an older " +
+            var msg = "This notebook has been converted from an older " +
             "notebook format (v"+data.orig_nbformat+") to the current notebook " +
             "format (v"+data.nbformat+"). The next time you save this notebook, the " +
-            "newer notebook format will be used and older verions of IPython " +
+            "newer notebook format will be used and older versions of IPython " +
             "may not be able to read it. To keep the older version, close the " +
             "notebook without saving it.";
-            var dialog = $('<div/>');
-            dialog.html(msg);
-            this.element.append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
-                title: "Notebook converted",
-                closeText: "",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+            IPython.dialog.modal({
+                title : "Notebook converted",
+                body : msg,
                 buttons : {
-                    "OK": function () {
-                        $(this).dialog('close');
+                    OK : {
+                        class : "btn-primary"
                     }
-                },
-                width: 400
+                }
             });
         } else if (data.orig_nbformat_minor !== undefined && data.nbformat_minor !== data.orig_nbformat_minor) {
             var that = this;
@@ -1752,21 +1736,14 @@ var IPython = (function (IPython) {
             this_vs + ".  You can still work with this notebook, but some features " +
             "introduced in later notebook versions may not be available."
 
-            var dialog = $('<div/>');
-            dialog.html(msg);
-            this.element.append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
-                title: "Newer Notebook",
-                closeText: "",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+            IPython.dialog.modal({
+                title : "Newer Notebook",
+                body : msg,
                 buttons : {
-                    "OK": function () {
-                        $(this).dialog('close');
+                    OK : {
+                        class : "btn-danger"
                     }
-                },
-                width: 400
+                }
             });
 
         }
@@ -1795,21 +1772,13 @@ var IPython = (function (IPython) {
             "this notebook is in a newer format than is supported by this " +
             "version of IPython. This version can load notebook formats " +
             "v"+this.nbformat+" or earlier.";
-            var dialog = $('<div/>');
-            dialog.html(msg);
-            this.element.append(dialog);
-            dialog.dialog({
-                resizable: false,
-                modal: true,
+            
+            IPython.dialog.modal({
                 title: "Error loading notebook",
-                closeText: "",
-                close: function(event, ui) {$(this).dialog('destroy').remove();},
+                body : msg,
                 buttons : {
-                    "OK": function () {
-                        $(this).dialog('close');
-                    }
-                },
-                width: 400
+                    "OK": {}
+                }
             });
         }
     }
@@ -1917,7 +1886,7 @@ var IPython = (function (IPython) {
             console.log("restore dialog, but no checkpoint to restore to!");
             return;
         }
-        var dialog = $('<div/>').append(
+        var body = $('<div/>').append(
             $('<p/>').addClass("p-space").text(
                 "Are you sure you want to revert the notebook to " +
                 "the latest checkpoint?"
@@ -1934,23 +1903,18 @@ var IPython = (function (IPython) {
             ).css("text-align", "center")
         );
         
-        $(document).append(dialog);
-        
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Revert notebook to checkpoint",
-            closeText: '',
+        IPython.dialog.modal({
+            title : "Revert notebook to checkpoint",
+            body : body,
             buttons : {
-                "Revert": function () {
-                    that.restore_checkpoint(checkpoint.checkpoint_id);
-                    $(this).dialog('close');
+                Revert : {
+                    class : "btn-danger",
+                    click : function () {
+                        that.restore_checkpoint(checkpoint.checkpoint_id);
+                    }
                 },
-                "Cancel": function () {
-                    $(this).dialog('close');
+                Cancel : {}
                 }
-            },
-            width: 400
         });
     }
     

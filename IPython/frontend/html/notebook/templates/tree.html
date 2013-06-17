@@ -20,15 +20,16 @@ data-read-only={{read_only}}
 
 {% block site %}
 
-<div id="ipython-main-app">
+<div id="ipython-main-app" class="container">
 
-<div id="tabs">
-    <ul>
-        <li><a href="#tab1">Notebooks</a></li>
-        <li><a href="#tab2">Clusters</a></li>
+<div id="tabs" class="tabbable">
+    <ul class="nav nav-tabs" id="tabs">
+        <li class="active"><a href="#notebooks" data-toggle="tab">Notebooks</a></li>
+        <li><a href="#clusters" data-toggle="tab">Clusters</a></li>
     </ul>
 
-    <div id="tab1">
+    <div class="tab-content">
+    <div id="notebooks" class="tab-pane active">
         {% if logged_in or not read_only %}
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
@@ -38,41 +39,43 @@ data-read-only={{read_only}}
                 <input type="file" name="datafile" class="fileinput" multiple='multiple'>
             </form>
             <span id="notebook_buttons">
-                <button id="refresh_notebook_list" title="Refresh notebook list">Refresh</button>
-                <button id="new_notebook" title="Create new notebook">New Notebook</button>
+                <button id="refresh_notebook_list" title="Refresh notebook list" class="btn btn-small">Refresh</button>
+                <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
             </span>
         </div>
         {% endif %}
 
         <div id="notebook_list">
-            <div id="project_name">
+          <div id="notebook_list_header" class="row-fluid list_header">
+              <div id="project_name">
                 <ul class="breadcrumb">
                     {% for component in project_component %}
                         <li>{{component}} <span>/</span></li>
                     {% endfor %}
                 </ul>
-            </div>
+              </div>
+          </div>
         </div>
     </div>
-    <div id="tab2">
+    
+    <div id="clusters" class="tab-pane">
 
         <div id="cluster_toolbar">
             <span id="cluster_list_info">IPython parallel computing clusters</span>
 
             <span id="cluster_buttons">
-                <button id="refresh_cluster_list" title="Refresh cluster list">Refresh</button>
+                <button id="refresh_cluster_list" title="Refresh cluster list" class="btn btn-small">Refresh</button>
             </span>
         </div>
 
         <div id="cluster_list">
-            <div id="cluster_header">
-                <span>profile</span>
-                <span>action</span>
-                <span title="Enter the number of engines to start or empty for default"># of engines</span>
-                <span>status</span>
+            <div id="cluster_list_header" class="row-fluid list_header">
+                <span class="profile_col span4">profile</span>
+                <span class="status_col span3">status</span>
+                <span class="engines_col span3" title="Enter the number of engines to start or empty for default"># of engines</span>
+                <span class="action_col span2">action</span>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -82,6 +85,7 @@ data-read-only={{read_only}}
 
 {% block script %}
     {{super()}}
+    <script src="{{static_url("base/js/dialog.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/notebooklist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/clusterlist.js") }}" type="text/javascript" charset="utf-8"></script>
     <script src="{{static_url("tree/js/main.js") }}" type="text/javascript" charset="utf-8"></script>

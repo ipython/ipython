@@ -1,9 +1,34 @@
 span#save_widget {
-    padding: 5px;
-    margin: 0px 0px 0px 300px;
-    display:inline-block;
+    padding: 0px 5px;
+    margin-top: 12px;
 }
 
-span#checkpoint_status span#autosave_status {
+span#checkpoint_status, span#autosave_status {
     font-size: small;
 }
+
+@media (max-width: 767px) {
+    span#save_widget {
+        font-size: small;
+    }
+    span#checkpoint_status, span#autosave_status {
+        font-size: x-small;
+    }
+}
+
+@media (max-width: 767px) {
+    span#checkpoint_status, span#autosave_status {
+        display: none;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 979px) {
+    span#checkpoint_status {
+        display: none;
+    }
+    span#autosave_status {
+        font-size: x-small;
+    }
+}
+
+  
