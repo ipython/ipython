@@ -219,7 +219,6 @@ def main() :
             '--test',
             action='store_true')
     parser.add_argument('tarball',
-            type=int,
             help="the local tar/zip-ball containing mathjax",
             nargs='?',
             metavar='tarball')
