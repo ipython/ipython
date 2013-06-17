@@ -2,7 +2,7 @@
 import unittest
 
 # Local imports
-from IPython.frontend.qt.console.ansi_code_processor import AnsiCodeProcessor
+from IPython.qt.console.ansi_code_processor import AnsiCodeProcessor
 
 
 class TestAnsiCodeProcessor(unittest.TestCase):

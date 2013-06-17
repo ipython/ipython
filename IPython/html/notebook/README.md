@@ -54,7 +54,7 @@ wide install.
 
 First, cd into js directory :
 ```bash
-cd IPython/frontend/html/notebook/static/js/
+cd IPython/html/notebook/static/js/
 # install yuidoc
 npm install yuidocjs
 ```
@@ -62,7 +62,7 @@ npm install yuidocjs
 
 ### Run YUIdoc server
 
-From IPython/frontend/html/notebook/static/js/
+From IPython/html/notebook/static/js/
 ```bash
 # run yuidoc for install dir 
 ./node_modules/yuidocjs/lib/cli.js --server .
