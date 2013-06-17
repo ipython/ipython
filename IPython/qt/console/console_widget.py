@@ -18,8 +18,8 @@ from IPython.external.qt import QtCore, QtGui
 # Local imports
 from IPython.config.configurable import LoggingConfigurable
 from IPython.core.inputsplitter import ESC_SEQUENCES
-from IPython.frontend.qt.rich_text import HtmlExporter
-from IPython.frontend.qt.util import MetaQObjectHasTraits, get_font
+from IPython.qt.rich_text import HtmlExporter
+from IPython.qt.util import MetaQObjectHasTraits, get_font
 from IPython.utils.text import columnize
 from IPython.utils.traitlets import Bool, Enum, Integer, Unicode
 from ansi_code_processor import QtAnsiCodeProcessor
