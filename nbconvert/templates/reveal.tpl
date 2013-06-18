@@ -41,7 +41,7 @@ overflow-y: auto;
 overflow-x: hidden;
 }
 .reveal pre {
-width: 98%;
+width: 95%;
 padding: 0.4em;
 margin: 0px;
 font-family: monospace, sans-serif;
