@@ -238,10 +238,10 @@ class ProfileCreate(BaseIPythonApplication):
     def init_config_files(self):
         super(ProfileCreate, self).init_config_files()
         # use local imports, since these classes may import from here
-        from IPython.frontend.terminal.ipapp import TerminalIPythonApp
+        from IPython.terminal.ipapp import TerminalIPythonApp
         apps = [TerminalIPythonApp]
         try:
-            from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
+            from IPython.qt.console.qtconsoleapp import IPythonQtConsoleApp
         except Exception:
             # this should be ImportError, but under weird circumstances
             # this might be an AttributeError, or possibly others
@@ -250,7 +250,7 @@ class ProfileCreate(BaseIPythonApplication):
         else:
             apps.append(IPythonQtConsoleApp)
         try:
-            from IPython.frontend.html.notebook.notebookapp import NotebookApp
+            from IPython.html.notebook.notebookapp import NotebookApp
         except ImportError:
             pass
         except Exception:

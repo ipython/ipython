@@ -51,7 +51,7 @@ def find_cmd(cmd):
 
         from IPython.utils.path import get_ipython_module_path
         from IPython.utils.process import pycmd2argv
-        argv = pycmd2argv(get_ipython_module_path('IPython.frontend.terminal.ipapp'))
+        argv = pycmd2argv(get_ipython_module_path('IPython.terminal.ipapp'))
 
     Parameters
     ----------
