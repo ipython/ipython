@@ -300,7 +300,7 @@ def connect_qtconsole(connection_file=None, argv=None, profile=None):
         cf = find_connection_file(connection_file, profile=profile)
     
     cmd = ';'.join([
-        "from IPython.frontend.qt.console import qtconsoleapp",
+        "from IPython.qt.console import qtconsoleapp",
         "qtconsoleapp.main()"
     ])
     

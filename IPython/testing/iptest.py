@@ -230,8 +230,8 @@ def make_exclude():
                   # files for web serving.  Occasionally projects may put a .py
                   # file in there (MathJax ships a conf.py), so we might as
                   # well play it safe and skip the whole thing.
-                  ipjoin('frontend', 'html', 'notebook', 'static'),
-                  ipjoin('frontend', 'html', 'notebook', 'fabfile'),
+                  ipjoin('html', 'notebook', 'static'),
+                  ipjoin('html', 'notebook', 'fabfile'),
                   ]
     if not have['sqlite3']:
         exclusions.append(ipjoin('core', 'tests', 'test_history'))
@@ -261,18 +261,18 @@ def make_exclude():
     if not have['pexpect']:
         exclusions.extend([ipjoin('lib', 'irunner'),
                            ipjoin('lib', 'tests', 'test_irunner'),
-                           ipjoin('frontend', 'terminal', 'console'),
+                           ipjoin('terminal', 'console'),
                            ])
 
     if not have['zmq']:
         exclusions.append(ipjoin('kernel'))
-        exclusions.append(ipjoin('frontend', 'qt'))
-        exclusions.append(ipjoin('frontend', 'html'))
-        exclusions.append(ipjoin('frontend', 'consoleapp.py'))
-        exclusions.append(ipjoin('frontend', 'terminal', 'console'))
+        exclusions.append(ipjoin('qt'))
+        exclusions.append(ipjoin('html'))
+        exclusions.append(ipjoin('consoleapp.py'))
+        exclusions.append(ipjoin('terminal', 'console'))
         exclusions.append(ipjoin('parallel'))
     elif not have['qt'] or not have['pygments']:
-        exclusions.append(ipjoin('frontend', 'qt'))
+        exclusions.append(ipjoin('qt'))
 
     if not have['pymongo']:
         exclusions.append(ipjoin('parallel', 'controller', 'mongodb'))
@@ -293,17 +293,17 @@ def make_exclude():
         exclusions.extend([ipjoin('extensions', 'tests', 'test_octavemagic')])
 
     if not have['tornado']:
-        exclusions.append(ipjoin('frontend', 'html'))
+        exclusions.append(ipjoin('html'))
 
     if not have['jinja2']:
-        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'notebookapp'))
+        exclusions.append(ipjoin('html', 'notebook', 'notebookapp'))
 
     if not have['rpy2'] or not have['numpy']:
         exclusions.append(ipjoin('extensions', 'rmagic'))
         exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
 
     if not have['azure']:
-        exclusions.append(ipjoin('frontend', 'html', 'notebook', 'services', 'notebooks', 'azurenbmanager'))
+        exclusions.append(ipjoin('html', 'notebook', 'services', 'notebooks', 'azurenbmanager'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
@@ -429,14 +429,21 @@ class IPTester(object):
                 # The process did not die...
                 print('... failed. Manual cleanup may be required.')
 
+                
 def make_runners(inc_slow=False):
     """Define the top-level packages that need to be tested.
     """
 
     # Packages to be tested via nose, that only depend on the stdlib
-    nose_pkg_names = ['config', 'core', 'extensions', 'frontend', 'lib',
+    nose_pkg_names = ['config', 'core', 'extensions', 'lib', 'terminal',
                       'testing', 'utils', 'nbformat' ]
 
+    if have['qt']:
+        nose_pkg_names.append('qt')
+
+    if have['tornado']:
+        nose_pkg_names.append('html')
+        
     if have['zmq']:
         nose_pkg_names.append('kernel')
         nose_pkg_names.append('kernel.inprocess')
