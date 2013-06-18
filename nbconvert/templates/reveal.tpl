@@ -90,8 +90,11 @@ div.output_prompt {
 
 </div></div>
 
-// Uncomment the following block and the addthis_widget.js (see below inside dependencies)
-// to get enable social buttons.
+<!-- 
+Uncomment the following block and the addthis_widget.js (see below inside dependencies)
+to get enable social buttons.
+-->
+
 <!--
 <div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
 <a class="addthis_button_twitter"></a>
