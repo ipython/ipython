@@ -23,14 +23,14 @@ def test_import_plain():
     "Test simple imports"
     import os
     os2 = import_item('os')
-    nt.assert_is(os, os2)
+    nt.assert_true(os is os2)
 
 
 def test_import_nested():
     "Test nested imports from the stdlib"
     from os import path
     path2 = import_item('os.path')
-    nt.assert_is(path, path2)
+    nt.assert_true(path is path2)
 
 
 def test_import_raises():
