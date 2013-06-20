@@ -104,7 +104,9 @@ var IPython = (function (IPython) {
         this.kernel_id = json.kernel_id;
         var ws_url = json.ws_url;
         if (ws_url.match(/wss?:\/\//) == null) {
-            ws_url = "ws" + location.origin.substr(4) + ws_url;
+            // trailing 's' in https will become wss for secure web sockets
+            prot = location.protocol.replace('http', 'ws') + "//";
+            ws_url = prot + location.host + ws_url;
         };
         this.ws_url = ws_url;
         this.kernel_url = this.base_url + "/" + this.kernel_id;
