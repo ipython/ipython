@@ -250,7 +250,7 @@ class ProfileCreate(BaseIPythonApplication):
         else:
             apps.append(IPythonQtConsoleApp)
         try:
-            from IPython.html.notebook.notebookapp import NotebookApp
+            from IPython.html.notebookapp import NotebookApp
         except ImportError:
             pass
         except Exception:

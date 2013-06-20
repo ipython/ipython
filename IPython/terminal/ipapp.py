@@ -226,7 +226,7 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         qtconsole=('IPython.qt.console.qtconsoleapp.IPythonQtConsoleApp',
             """Launch the IPython Qt Console."""
         ),
-        notebook=('IPython.html.notebook.notebookapp.NotebookApp',
+        notebook=('IPython.html.notebookapp.NotebookApp',
             """Launch the IPython HTML Notebook Server."""
         ),
         profile = ("IPython.core.profileapp.ProfileApp",

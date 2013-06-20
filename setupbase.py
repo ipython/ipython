@@ -134,7 +134,7 @@ def find_package_data():
     
     # walk notebook resources:
     cwd = os.getcwd()
-    os.chdir(os.path.join('IPython', 'html', 'notebook'))
+    os.chdir(os.path.join('IPython', 'html'))
     static_walk = list(os.walk('static'))
     os.chdir(cwd)
     static_data = []
@@ -148,7 +148,7 @@ def find_package_data():
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
-        'IPython.html.notebook' : ['templates/*'] + static_data,
+        'IPython.html' : ['templates/*'] + static_data,
         'IPython.qt.console' : ['resources/icon/*.svg'],
     }
     return package_data

@@ -33,7 +33,7 @@ def ipython_parent():
 def ipython_submodules(root):
     """return IPython submodules relative to root"""
     return [
-        pjoin(root, 'IPython', 'html', 'notebook', 'static', 'components'),
+        pjoin(root, 'IPython', 'html', 'static', 'components'),
     ]
 
 def is_repo(d):

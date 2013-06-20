@@ -230,8 +230,8 @@ def make_exclude():
                   # files for web serving.  Occasionally projects may put a .py
                   # file in there (MathJax ships a conf.py), so we might as
                   # well play it safe and skip the whole thing.
-                  ipjoin('html', 'notebook', 'static'),
-                  ipjoin('html', 'notebook', 'fabfile'),
+                  ipjoin('html', 'static'),
+                  ipjoin('html', 'fabfile'),
                   ]
     if not have['sqlite3']:
         exclusions.append(ipjoin('core', 'tests', 'test_history'))
@@ -296,14 +296,14 @@ def make_exclude():
         exclusions.append(ipjoin('html'))
 
     if not have['jinja2']:
-        exclusions.append(ipjoin('html', 'notebook', 'notebookapp'))
+        exclusions.append(ipjoin('html', 'notebookapp'))
 
     if not have['rpy2'] or not have['numpy']:
         exclusions.append(ipjoin('extensions', 'rmagic'))
         exclusions.append(ipjoin('extensions', 'tests', 'test_rmagic'))
 
     if not have['azure']:
-        exclusions.append(ipjoin('html', 'notebook', 'services', 'notebooks', 'azurenbmanager'))
+        exclusions.append(ipjoin('html', 'services', 'notebooks', 'azurenbmanager'))
 
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
