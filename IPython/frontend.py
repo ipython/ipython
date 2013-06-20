@@ -34,10 +34,14 @@ warn("The top-level `frontend` package has been deprecated. "
 #-----------------------------------------------------------------------------
 
 class ShimModule(types.ModuleType):
+    
+    def __init__(self, *args, **kwargs):
+        self._mirror = kwargs.pop("mirror")
+        super(ShimModule, self).__init__(*args, **kwargs)
 
-    def __getattribute__(self, key):
+    def __getattr__(self, key):
         # Use the equivalent of import_item(name), see below
-        name = 'IPython.' + key
+        name = "%s.%s" % (self._mirror, key)
 
         # NOTE: the code below is copied *verbatim* from
         # importstring.import_item. For some very strange reason that makes no
@@ -50,7 +54,7 @@ class ShimModule(types.ModuleType):
         # the below could be replaced simply with:
         #
         # from IPython.utils.importstring import import_item
-        # return import_item('IPython.' + key)
+        # return import_item('MIRROR.' + key)
         
         parts = name.rsplit('.', 1)
         if len(parts) == 2:
@@ -70,4 +74,5 @@ class ShimModule(types.ModuleType):
 # Unconditionally insert the shim into sys.modules so that further import calls
 # trigger the custom attribute access above
 
-sys.modules['IPython.frontend'] = ShimModule('frontend')
+sys.modules['IPython.frontend.html.notebook'] = ShimModule('notebook', mirror='IPython.html')
+sys.modules['IPython.frontend'] = ShimModule('frontend', mirror='IPython')
