@@ -647,12 +647,18 @@ class MainWindow(QtGui.QMainWindow):
                 mclass = subdict[name]
                 magic_menu = self._get_magic_menu(mclass)
                 pmagic = prefix + name
+                
+                # Adding seperate QActions is needed for some window managers
                 xaction = QtGui.QAction(pmagic,
                     self,
                     triggered=self._make_dynamic_magic(pmagic)
                     )
+                xaction_all = QtGui.QAction(pmagic,
+                    self,
+                    triggered=self._make_dynamic_magic(pmagic)
+                    )
                 magic_menu.addAction(xaction)
-                self.all_magic_menu.addAction(xaction)
+                self.all_magic_menu.addAction(xaction_all)
 
     def update_all_magic_menu(self):
         """ Update the list of magics in the "All Magics..." Menu
