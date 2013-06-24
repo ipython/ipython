@@ -81,7 +81,7 @@ class NbConvertApp(Application):
 
     flags['no-write'] = (
         {'NbConvertApp' : {'write' : True}},
-    """Do not write to disk, eauivalent to --write=False
+    """Do not write to disk, equivalent to --write=False
     """
     )
 
