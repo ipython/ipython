@@ -77,6 +77,9 @@ div.output_prompt {
     /* 5px right shift to account for margin in parent container */
     margin: 5px 5px 0 -5px;
 }
+.rendered_html p {
+text-align: inherit;
+}
 </style>
 </head>
 {% endblock header%}
