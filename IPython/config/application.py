@@ -165,7 +165,7 @@ class Application(SingletonConfigurable):
     def _log_format_changed(self, name, old, new):
         """Change the log formatter when log_format is set."""
         _log_handler = self.log.handlers[0]
-        _log_formatter = LevelFormatter(new, datefmt=self._log_datefmt)
+        _log_formatter = LevelFormatter(new, datefmt=self.log_datefmt)
         _log_handler.setFormatter(_log_formatter)
 
     log = Instance(logging.Logger)
