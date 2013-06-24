@@ -122,8 +122,6 @@ class Exporter(Configurable):
     #constructor for this class.
     transformers = None
 
-    _default_config = Config()
-
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
         """
@@ -146,7 +144,11 @@ class Exporter(Configurable):
         """
         
         #Call the base class constructor
-        super(Exporter, self).__init__(config=config, **kw)
+        c = self.default_config
+        if config:
+            c.merge(config)
+
+        super(Exporter, self).__init__(config=c, **kw)
 
         #Standard environment
         self._init_environment()
@@ -172,10 +174,8 @@ class Exporter(Configurable):
 
     @property
     def default_config(self):
-        if self._default_config:
-            return Config(deepcopy(self._default_config))
-        else :
-            return Config()
+        return Config()
+
     
     
     def from_notebook_node(self, nb, resources=None):

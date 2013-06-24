@@ -34,26 +34,3 @@ class PythonExporter(exporter.Exporter):
     template_file = Unicode(
             'python', config=True,
             help="Name of the template file to use")
-
-
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
-        """
-        Public constructor
-    
-        Parameters
-        ----------
-        transformers : list[of transformer]
-            Custom transformers to apply to the notebook prior to engaging
-            the Jinja template engine.  Any transformers specified here 
-            will override existing transformers if a naming conflict
-            occurs.
-        filters : dict{of filter}
-            Custom filters to make accessible to the Jinja templates.  Any
-            filters specified here will override existing filters if a
-            naming conflict occurs.
-        config : config
-            User configuration instance.
-        """
-        
-        #Call base class constructor.
-        super(PythonExporter, self).__init__(transformers, filters, config, **kw)

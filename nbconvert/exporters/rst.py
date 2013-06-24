@@ -36,17 +36,8 @@ class RstExporter(exporter.Exporter):
             'rst', config=True,
             help="Name of the template file to use")
 
-    _default_config = Config({'ExtractFigureTransformer':{'enabled':True}}) 
-
-
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
-       
-        c = self.default_config
-        if config :
-            c.merge(config)
-        
-        super(RstExporter, self).__init__(transformers=transformers,
-                                                filters=filters,
-                                                config=c,
-                                                **kw)
-                    
+    @property
+    def default_config(self):
+        c = Config({'ExtractFigureTransformer':{'enabled':True}})
+        c.merge(super(RstExporter,self).default_config)
+        return c

@@ -43,18 +43,6 @@ class BasicHtmlExporter(exporter.Exporter):
             help="Name of the template file to use")
 
 
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
-       
-        c = self.default_config
-        if config :
-            c.merge(config)
-        
-        super(BasicHtmlExporter, self).__init__(transformers=transformers,
-                                                filters=filters,
-                                                config=c,
-                                                **kw)
-        
-
     def _register_transformers(self):
         """
         Register all of the transformers needed for this exporter.

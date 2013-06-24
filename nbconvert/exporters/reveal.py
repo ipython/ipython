@@ -19,6 +19,7 @@ from IPython.utils.traitlets import Unicode
 import basichtml
 
 import nbconvert.transformers.revealhelp
+from IPython.config import Config
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -47,7 +48,9 @@ class RevealExporter(basichtml.BasicHtmlExporter):
         
         #Register reveal help transformer
         self.register_transformer(nbconvert.transformers.revealhelp.RevealHelpTransformer)
-        
-        #Register CSSHtmlHeaderTransformer transformer
-        self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)
-        
+
+    @property
+    def default_config(self):
+        c = Config({'CSSHtmlHeaderTransformer':{'enabled':True}})
+        c.merge(super(RevealExporter,self).default_config)
+        return c
