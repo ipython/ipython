@@ -1048,6 +1048,7 @@ a.label:hover,a.label:focus,a.badge:hover,a.badge:focus{color:#ffffff;text-decor
 body{background-color:white;position:absolute;left:0px;right:0px;top:0px;bottom:0px;overflow:visible;}
 div#header{display:none;}
 #ipython_notebook{padding-left:16px;}
+#noscript{width:auto;padding-top:16px;padding-bottom:16px;text-align:center;font-size:22px;color:red;font-weight:bold;}
 #ipython_notebook img{font-family:Verdana,"Helvetica Neue",Arial,Helvetica,Geneva,sans-serif;height:24px;text-decoration:none;color:black;}
 #site{width:100%;display:none;}
 .ui-button .ui-button-text{padding:0.2em 0.8em;font-size:77%;}
