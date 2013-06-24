@@ -61,6 +61,10 @@ This line is evaluated in Python, so simple expressions are allowed, e.g.::
 `--C.a='range(3)'` For setting C.a=[0,1,2].
 """.strip() # trim newlines of front and back
 
+# Set calling program to the empty string, when there is no argv in sys.
+if not hasattr(sys, "argv"):
+    sys.argv = [""]
+
 subcommand_description = """
 Subcommands are launched as `{app} cmd [args]`. For information on using
 subcommand 'cmd', do: `{app} cmd -h`.
