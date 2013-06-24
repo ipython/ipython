@@ -83,6 +83,24 @@ ipengine_cmd_argv = [sys.executable, "-c", cmd % "ipengineapp"]
 
 ipcontroller_cmd_argv = [sys.executable, "-c", cmd % "ipcontrollerapp"]
 
+# HTCondor frustratingly destroys sys.executable when launching remote processes
+# thus Python will default back to the system module search paths which is
+# ridiculously fragile (not to mention destructive for virutalenvs).
+# however, if we use the ip{cluster, engine, controller} scripts as our
+# executable we circumvent this - the mechanism of shebanged scripts means that
+# the python binary will be launched with argv[0] set correctly.
+# This does mean that for HTCondor we require that:
+#   a. The python interpreter you are using is in a folder next to the ipengine,
+#      ipcluster and ipcontroller scripts
+#   b. I have no idea what the consequences are for Windows.
+bin_dir = os.path.dirname(sys.executable)
+
+condor_ipcluster_cmd_argv = os.path.join(bin_dir, 'ipcluster')
+
+condor_ipengine_cmd_argv = os.path.join(bin_dir, 'ipengine')
+
+condor_ipcontroller_cmd_argv = os.path.join(bin_dir, 'ipcontroller')
+
 #-----------------------------------------------------------------------------
 # Base launchers and errors
 #-----------------------------------------------------------------------------
@@ -1047,6 +1065,7 @@ class BatchSystemLauncher(BaseLauncher):
     batch_file = Unicode(u'')
     # the format dict used with batch_template:
     context = Dict()
+
     def _context_default(self):
         """load the default context with the default values for the basic keys
 
@@ -1057,7 +1076,6 @@ class BatchSystemLauncher(BaseLauncher):
     
     # the Formatter instance for rendering the templates:
     formatter = Instance(EvalFormatter, (), {})
-
 
     def find_args(self):
         return self.submit_command + [self.batch_file]
@@ -1090,27 +1108,33 @@ class BatchSystemLauncher(BaseLauncher):
         if not self.batch_template:
             # third (last) priority is default_template
             self.batch_template = self.default_template
-
             # add jobarray or queue lines to user-specified template
             # note that this is *only* when user did not specify a template.
-            # print self.job_array_regexp.search(self.batch_template)
-            if not self.job_array_regexp.search(self.batch_template):
-                self.log.debug("adding job array settings to batch script")
-                firstline, rest = self.batch_template.split('\n',1)
-                self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
-
-            # print self.queue_regexp.search(self.batch_template)
-            if self.queue and not self.queue_regexp.search(self.batch_template):
-                self.log.debug("adding PBS queue settings to batch script")
-                firstline, rest = self.batch_template.split('\n',1)
-                self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
-
+            self._insert_queue_in_script()
+            self._insert_job_array_in_script()
         script_as_string = self.formatter.format(self.batch_template, **self.context)
         self.log.debug('Writing batch script: %s', self.batch_file)
-
         with open(self.batch_file, 'w') as f:
             f.write(script_as_string)
         os.chmod(self.batch_file, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+
+    def _insert_queue_in_script(self):
+        """Inserts a queue if required into the batch script.
+        """
+        print self.queue_regexp.search(self.batch_template)
+        if self.queue and not self.queue_regexp.search(self.batch_template):
+            self.log.debug("adding PBS queue settings to batch script")
+            firstline, rest = self.batch_template.split('\n',1)
+            self.batch_template = u'\n'.join([firstline, self.queue_template, rest])
+
+    def _insert_job_array_in_script(self):
+        """Inserts a job array if required into the batch script.
+        """
+        print self.job_array_regexp.search(self.batch_template)
+        if not self.job_array_regexp.search(self.batch_template):
+            self.log.debug("adding job array settings to batch script")
+            firstline, rest = self.batch_template.split('\n',1)
+            self.batch_template = u'\n'.join([firstline, self.job_array_template, rest])
 
     def start(self, n):
         """Start n copies of the process using a batch system."""
@@ -1180,6 +1204,7 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
         """Start n engines by profile or profile_dir."""
         return super(PBSEngineSetLauncher, self).start(n)
 
+
 #SGE is very similar to PBS
 
 class SGELauncher(PBSLauncher):
@@ -1188,6 +1213,7 @@ class SGELauncher(PBSLauncher):
     job_array_template = Unicode('#$ -t 1-{n}')
     queue_regexp = CRegExp('#\$\W+-q\W+\$?\w+')
     queue_template = Unicode('#$ -q {queue}')
+
 
 class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
     """Launch a controller using SGE."""
@@ -1203,6 +1229,7 @@ class SGEControllerLauncher(SGELauncher, BatchClusterAppMixin):
     def start(self):
         """Start the controller by profile or profile_dir."""
         return super(SGEControllerLauncher, self).start(1)
+
 
 class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
     """Launch Engines with SGE"""
@@ -1288,6 +1315,76 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
         return super(LSFEngineSetLauncher, self).start(n)
 
 
+# Condor Requires that we launch the ipengine/ipcontroller scripts rather
+# that the python instance but otherwise is very similar to PBS
+
+class CondorLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for Condor."""
+
+    submit_command = List(['condor_submit', '-verbose'], config=True,
+        help="The Condor submit command ['condor_submit']")
+    delete_command = List(['condor_rm'], config=True,
+        help="The Condor delete command ['condor_rm']")
+    job_id_regexp = CRegExp(r'\d+', config=True,
+        help="Regular expression for identifying the job ID [r'\d+']")
+
+    job_array_regexp = CRegExp('queue\W+\$')
+    job_array_template = Unicode('queue {n}')
+    # template for the submission of multiple jobs
+    queue_regexp = CRegExp('#PBS\W+-q\W+\$?\w+')
+    # regex to find a queue if the user has specified a template
+    queue_template = Unicode('#PBS -q {queue}')
+    # the queue we wish to submit to. Need to know the Condor eqiv (eg ibug cluster
+    # or general?)
+
+    def _insert_job_array_in_script(self):
+        """Inserts a job array if required into the batch script.
+        """
+        print self.job_array_regexp.search(self.batch_template)
+        #Condor requires that the job array goes at the bottom of the
+        #script
+        if not self.job_array_regexp.search(self.batch_template):
+            self.log.debug("adding job array settings to batch script")
+            self.batch_template = '\n'.join([self.batch_template,
+                self.job_array_template])
+
+
+class CondorControllerLauncher(CondorLauncher, BatchClusterAppMixin):
+    """Launch a controller using Condor."""
+
+    batch_file_name = Unicode(u'condor_controller', config=True,
+                              help="batch file name for the controller job.")
+    default_template = Unicode(r"""
+universe        = vanilla
+executable      = %s
+# by default we expect a shared file system
+transfer_executable = False
+arguments       = --log-to-file '--profile-dir={profile_dir}' --cluster-id='{cluster_id}'
+""" % condor_ipcontroller_cmd_argv)
+
+    def start(self):
+        """Start the controller by profile or profile_dir."""
+        return super(CondorControllerLauncher, self).start(1)
+
+
+class CondorEngineSetLauncher(CondorLauncher, BatchClusterAppMixin):
+    """Launch Engines using Condor"""
+    batch_file_name = Unicode(u'condor_engines', config=True,
+                              help="batch file name for the engine(s) job.")
+    default_template = Unicode("""
+universe        = vanilla
+executable      = %s
+# by default we expect a shared file system
+transfer_executable = False
+arguments       = "--log-to-file '--profile-dir={profile_dir}' '--cluster-id={cluster_id}'"
+
+""" % condor_ipengine_cmd_argv)
+
+    def start(self, n):
+        """Start n engines by profile or profile_dir."""
+        return super(CondorEngineSetLauncher, self).start(n)
+
+
 #-----------------------------------------------------------------------------
 # A launcher for ipcluster itself!
 #-----------------------------------------------------------------------------
@@ -1354,6 +1451,10 @@ lsf_launchers = [
     LSFControllerLauncher,
     LSFEngineSetLauncher,
 ]
+condor_launchers = [
+    CondorLauncher,
+    CondorControllerLauncher,
+    CondorEngineSetLauncher,
+]
 all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
-                + pbs_launchers + sge_launchers + lsf_launchers
-
+                + pbs_launchers + sge_launchers + lsf_launchers + condor_launchers

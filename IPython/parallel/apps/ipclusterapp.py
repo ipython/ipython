@@ -488,6 +488,7 @@ class IPClusterStart(IPClusterEngines):
             PBS : use PBS (qsub) to submit the controller to a batch queue
             SGE : use SGE (qsub) to submit the controller to a batch queue
             LSF : use LSF (bsub) to submit the controller to a batch queue
+            Condor: use HTCondor to submit the controller to a batch queue
             SSH : use SSH to start the controller
             WindowsHPC : use Windows HPC
 
