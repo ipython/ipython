@@ -93,7 +93,12 @@ text-align: inherit;
 
 </div></div>
 
-<!-- Social buttons
+<!-- 
+Uncomment the following block and the addthis_widget.js (see below inside dependencies)
+to get enable social buttons.
+-->
+
+<!--
 <div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
 <a class="addthis_button_twitter"></a>
 <a class="addthis_button_google_plusone_share"></a>
@@ -101,7 +106,7 @@ text-align: inherit;
 <a class="addthis_button_facebook"></a>
 <a class="addthis_button_more"></a>
 </div>
-End of social buttons -->
+-->
 
 <script src="reveal.js/lib/js/head.min.js"></script>
 
@@ -122,10 +127,8 @@ transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/c
 dependencies: [
 { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
 { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-{ src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
 { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
 // { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
-// { src: 'js/mathjax-onload.js', async: true}
 ]
 });
 </script>
