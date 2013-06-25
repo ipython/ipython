@@ -1184,7 +1184,6 @@ class PBSControllerLauncher(PBSLauncher, BatchClusterAppMixin):
 %s --log-to-file --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
 """%(' '.join(map(pipes.quote, ipcontroller_cmd_argv))))
 
-
     def start(self):
         """Start the controller by profile or profile_dir."""
         return super(PBSControllerLauncher, self).start(1)
@@ -1199,10 +1198,6 @@ class PBSEngineSetLauncher(PBSLauncher, BatchClusterAppMixin):
 #PBS -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
 """%(' '.join(map(pipes.quote,ipengine_cmd_argv))))
-
-    def start(self, n):
-        """Start n engines by profile or profile_dir."""
-        return super(PBSEngineSetLauncher, self).start(n)
 
 
 #SGE is very similar to PBS
@@ -1240,10 +1235,6 @@ class SGEEngineSetLauncher(SGELauncher, BatchClusterAppMixin):
 #$ -N ipengine
 %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
 """%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
-
-    def start(self, n):
-        """Start n engines by profile or profile_dir."""
-        return super(SGEEngineSetLauncher, self).start(n)
 
 
 # LSF launchers
@@ -1310,10 +1301,6 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
     %s --profile-dir="{profile_dir}" --cluster-id="{cluster_id}"
     """%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
-    def start(self, n):
-        """Start n engines by profile or profile_dir."""
-        return super(LSFEngineSetLauncher, self).start(n)
-
 
 # Condor Requires that we launch the ipengine/ipcontroller scripts rather
 # that the python instance but otherwise is very similar to PBS
@@ -1379,10 +1366,6 @@ executable      = %s
 transfer_executable = False
 arguments       = "--log-to-file '--profile-dir={profile_dir}' '--cluster-id={cluster_id}'"
 """ % condor_ipengine_cmd_argv)
-
-    def start(self, n):
-        """Start n engines by profile or profile_dir."""
-        return super(CondorEngineSetLauncher, self).start(n)
 
 
 #-----------------------------------------------------------------------------
