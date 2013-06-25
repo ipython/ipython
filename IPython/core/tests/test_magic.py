@@ -34,6 +34,7 @@ from IPython.nbformat import current
 from IPython.testing import decorators as dec
 from IPython.testing import tools as tt
 from IPython.utils import py3compat
+from IPython.utils.io import capture_output
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.process import find_cmd
 
@@ -216,6 +217,18 @@ def test_macro_run():
         ip.run_cell("test")
     with tt.AssertPrints("13"):
         ip.run_cell("test")
+
+
+def test_magic_magic():
+    """Test %magic"""
+    ip = get_ipython()
+    with capture_output() as captured:
+        ip.magic("magic")
+    
+    stdout = captured.stdout
+    yield (nt.assert_true, '%magic' in stdout)
+    yield (nt.assert_true, 'IPython' in stdout)
+    yield (nt.assert_true, 'Available' in stdout)
 
 
 @dec.skipif_not_numpy
