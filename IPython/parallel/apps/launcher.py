@@ -1334,23 +1334,22 @@ class CondorLauncher(BatchSystemLauncher):
 
     job_array_regexp = CRegExp('queue\W+\$')
     job_array_template = Unicode('queue {n}')
-    # template for the submission of multiple jobs
-    queue_regexp = CRegExp('#PBS\W+-q\W+\$?\w+')
-    # regex to find a queue if the user has specified a template
-    queue_template = Unicode('#PBS -q {queue}')
-    # the queue we wish to submit to. Need to know the Condor eqiv (eg ibug cluster
-    # or general?)
+
 
     def _insert_job_array_in_script(self):
         """Inserts a job array if required into the batch script.
         """
-        print self.job_array_regexp.search(self.batch_template)
-        #Condor requires that the job array goes at the bottom of the
-        #script
         if not self.job_array_regexp.search(self.batch_template):
             self.log.debug("adding job array settings to batch script")
+            #Condor requires that the job array goes at the bottom of the script
             self.batch_template = '\n'.join([self.batch_template,
                 self.job_array_template])
+
+    def _insert_queue_in_script(self):
+        """AFAIK, Condor doesn't have a concept of multiple queues that can be
+        specified in the script..
+        """
+        pass
 
 
 class CondorControllerLauncher(CondorLauncher, BatchClusterAppMixin):
