@@ -1123,7 +1123,6 @@ class BatchSystemLauncher(BaseLauncher):
     def _insert_queue_in_script(self):
         """Inserts a queue if required into the batch script.
         """
-        print self.queue_regexp.search(self.batch_template)
         if self.queue and not self.queue_regexp.search(self.batch_template):
             self.log.debug("adding PBS queue settings to batch script")
             firstline, rest = self.batch_template.split('\n',1)
@@ -1132,7 +1131,6 @@ class BatchSystemLauncher(BaseLauncher):
     def _insert_job_array_in_script(self):
         """Inserts a job array if required into the batch script.
         """
-        print self.job_array_regexp.search(self.batch_template)
         if not self.job_array_regexp.search(self.batch_template):
             self.log.debug("adding job array settings to batch script")
             firstline, rest = self.batch_template.split('\n',1)
