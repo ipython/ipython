@@ -1037,6 +1037,8 @@ class BatchSystemLauncher(BaseLauncher):
     job_id_regexp = CRegExp('', config=True,
         help="""A regular expression used to get the job id from the output of the
         submit_command.""")
+    job_id_regexp_group = Integer(0, config=True,
+        help="""The group we wish to match in job_id_regexp (0 to match all)""")
     batch_template = Unicode('', config=True,
         help="The string that is the batch script template itself.")
     batch_template_file = Unicode(u'', config=True,
@@ -1090,7 +1092,7 @@ class BatchSystemLauncher(BaseLauncher):
         """Take the output of the submit command and return the job id."""
         m = self.job_id_regexp.search(output)
         if m is not None:
-            job_id = m.group()
+            job_id = m.group(self.job_id_regexp_group)
         else:
             raise LauncherError("Job id couldn't be determined: %s" % output)
         self.job_id = job_id
@@ -1321,12 +1323,14 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
 class CondorLauncher(BatchSystemLauncher):
     """A BatchSystemLauncher subclass for Condor."""
 
-    submit_command = List(['condor_submit', '-verbose'], config=True,
+    submit_command = List(['condor_submit'], config=True,
         help="The Condor submit command ['condor_submit']")
     delete_command = List(['condor_rm'], config=True,
         help="The Condor delete command ['condor_rm']")
-    job_id_regexp = CRegExp(r'\d+', config=True,
-        help="Regular expression for identifying the job ID [r'\d+']")
+    job_id_regexp = CRegExp(r'(\d+)\.$', config=True,
+        help="Regular expression for identifying the job ID [r'(\d+)\.$']")
+    job_id_regexp_group = Integer(1, config=True,
+        help="""The group we wish to match in job_id_regexp [1]""")
 
     job_array_regexp = CRegExp('queue\W+\$')
     job_array_template = Unicode('queue {n}')
@@ -1377,7 +1381,6 @@ executable      = %s
 # by default we expect a shared file system
 transfer_executable = False
 arguments       = "--log-to-file '--profile-dir={profile_dir}' '--cluster-id={cluster_id}'"
-
 """ % condor_ipengine_cmd_argv)
 
     def start(self, n):
