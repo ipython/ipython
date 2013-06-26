@@ -83,24 +83,6 @@ ipengine_cmd_argv = [sys.executable, "-c", cmd % "ipengineapp"]
 
 ipcontroller_cmd_argv = [sys.executable, "-c", cmd % "ipcontrollerapp"]
 
-# HTCondor frustratingly destroys sys.executable when launching remote processes
-# thus Python will default back to the system module search paths which is
-# ridiculously fragile (not to mention destructive for virutalenvs).
-# however, if we use the ip{cluster, engine, controller} scripts as our
-# executable we circumvent this - the mechanism of shebanged scripts means that
-# the python binary will be launched with argv[0] set correctly.
-# This does mean that for HTCondor we require that:
-#   a. The python interpreter you are using is in a folder next to the ipengine,
-#      ipcluster and ipcontroller scripts
-#   b. I have no idea what the consequences are for Windows.
-bin_dir = os.path.dirname(sys.executable)
-
-condor_ipcluster_cmd_argv = os.path.join(bin_dir, 'ipcluster')
-
-condor_ipengine_cmd_argv = os.path.join(bin_dir, 'ipengine')
-
-condor_ipcontroller_cmd_argv = os.path.join(bin_dir, 'ipcontroller')
-
 #-----------------------------------------------------------------------------
 # Base launchers and errors
 #-----------------------------------------------------------------------------
@@ -1302,11 +1284,27 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
     """%(' '.join(map(pipes.quote, ipengine_cmd_argv))))
 
 
-# Condor Requires that we launch the ipengine/ipcontroller scripts rather
-# that the python instance but otherwise is very similar to PBS
 
 class CondorLauncher(BatchSystemLauncher):
-    """A BatchSystemLauncher subclass for Condor."""
+    """A BatchSystemLauncher subclass for Condor.
+
+    Condor requires that we launch the ipengine/ipcontroller scripts rather
+    that the python instance but otherwise is very similar to PBS.  This is because 
+    HTCondor destroys sys.executable when launching remote processes - a launched 
+    python process depends on sys.executable to effectively evaluate its
+    module search paths. Without it, regardless of which python interpreter you launch
+    you will get the to built in module search paths.
+
+    We use the ip{cluster, engine, controller} scripts as our executable to circumvent 
+    this - the mechanism of shebanged scripts means that the python binary will be 
+    launched with argv[0] set to the *location of the ip{cluster, engine, controller} 
+    scripts on the remote node*. This means that:
+      a. The default path to ipengine etc scripts on your remote node needs to be
+         in the same directory as the python executable you wish to run
+      b. This functionality is untested on Windows.
+
+    If you need different behavior, consider making you own template.
+    """
 
     submit_command = List(['condor_submit'], config=True,
         help="The Condor submit command ['condor_submit']")
@@ -1344,11 +1342,11 @@ class CondorControllerLauncher(CondorLauncher, BatchClusterAppMixin):
                               help="batch file name for the controller job.")
     default_template = Unicode(r"""
 universe        = vanilla
-executable      = %s
+executable      = ipcontroller
 # by default we expect a shared file system
 transfer_executable = False
 arguments       = --log-to-file '--profile-dir={profile_dir}' --cluster-id='{cluster_id}'
-""" % condor_ipcontroller_cmd_argv)
+""")
 
     def start(self):
         """Start the controller by profile or profile_dir."""
@@ -1361,11 +1359,11 @@ class CondorEngineSetLauncher(CondorLauncher, BatchClusterAppMixin):
                               help="batch file name for the engine(s) job.")
     default_template = Unicode("""
 universe        = vanilla
-executable      = %s
+executable      = ipengine
 # by default we expect a shared file system
 transfer_executable = False
 arguments       = "--log-to-file '--profile-dir={profile_dir}' '--cluster-id={cluster_id}'"
-""" % condor_ipengine_cmd_argv)
+""")
 
 
 #-----------------------------------------------------------------------------
