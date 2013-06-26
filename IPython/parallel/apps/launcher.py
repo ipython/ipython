@@ -1330,7 +1330,7 @@ class CondorLauncher(BatchSystemLauncher):
 
     def _insert_queue_in_script(self):
         """AFAIK, Condor doesn't have a concept of multiple queues that can be
-        specified in the script..
+        specified in the script.
         """
         pass
 
