@@ -129,6 +129,9 @@ class TestSGEControllerLauncher(BatchTest, ControllerLauncherTest, TestCase):
 class TestLSFControllerLauncher(BatchTest, ControllerLauncherTest, TestCase):
     launcher_class = launcher.LSFControllerLauncher
 
+class TestCondorControllerLauncher(BatchTest, ControllerLauncherTest, TestCase):
+    launcher_class = launcher.CondorControllerLauncher
+
 class TestSSHControllerLauncher(SSHTest, ControllerLauncherTest, TestCase):
     launcher_class = launcher.SSHControllerLauncher
 
@@ -154,6 +157,9 @@ class TestSGEEngineSetLauncher(BatchTest, EngineSetLauncherTest, TestCase):
 
 class TestLSFEngineSetLauncher(BatchTest, EngineSetLauncherTest, TestCase):
     launcher_class = launcher.LSFEngineSetLauncher
+
+class TestCondorEngineSetLauncher(BatchTest, EngineSetLauncherTest, TestCase):
+    launcher_class = launcher.CondorEngineSetLauncher
 
 class TestSSHEngineSetLauncher(EngineSetLauncherTest, TestCase):
     launcher_class = launcher.SSHEngineSetLauncher
