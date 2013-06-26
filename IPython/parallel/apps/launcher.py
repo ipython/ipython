@@ -1285,10 +1285,10 @@ class LSFEngineSetLauncher(LSFLauncher, BatchClusterAppMixin):
 
 
 
-class CondorLauncher(BatchSystemLauncher):
-    """A BatchSystemLauncher subclass for Condor.
+class HTCondorLauncher(BatchSystemLauncher):
+    """A BatchSystemLauncher subclass for HTCondor.
 
-    Condor requires that we launch the ipengine/ipcontroller scripts rather
+    HTCondor requires that we launch the ipengine/ipcontroller scripts rather
     that the python instance but otherwise is very similar to PBS.  This is because 
     HTCondor destroys sys.executable when launching remote processes - a launched 
     python process depends on sys.executable to effectively evaluate its
@@ -1307,9 +1307,9 @@ class CondorLauncher(BatchSystemLauncher):
     """
 
     submit_command = List(['condor_submit'], config=True,
-        help="The Condor submit command ['condor_submit']")
+        help="The HTCondor submit command ['condor_submit']")
     delete_command = List(['condor_rm'], config=True,
-        help="The Condor delete command ['condor_rm']")
+        help="The HTCondor delete command ['condor_rm']")
     job_id_regexp = CRegExp(r'(\d+)\.$', config=True,
         help="Regular expression for identifying the job ID [r'(\d+)\.$']")
     job_id_regexp_group = Integer(1, config=True,
@@ -1324,21 +1324,21 @@ class CondorLauncher(BatchSystemLauncher):
         """
         if not self.job_array_regexp.search(self.batch_template):
             self.log.debug("adding job array settings to batch script")
-            #Condor requires that the job array goes at the bottom of the script
+            #HTCondor requires that the job array goes at the bottom of the script
             self.batch_template = '\n'.join([self.batch_template,
                 self.job_array_template])
 
     def _insert_queue_in_script(self):
-        """AFAIK, Condor doesn't have a concept of multiple queues that can be
+        """AFAIK, HTCondor doesn't have a concept of multiple queues that can be
         specified in the script.
         """
         pass
 
 
-class CondorControllerLauncher(CondorLauncher, BatchClusterAppMixin):
-    """Launch a controller using Condor."""
+class HTCondorControllerLauncher(HTCondorLauncher, BatchClusterAppMixin):
+    """Launch a controller using HTCondor."""
 
-    batch_file_name = Unicode(u'condor_controller', config=True,
+    batch_file_name = Unicode(u'htcondor_controller', config=True,
                               help="batch file name for the controller job.")
     default_template = Unicode(r"""
 universe        = vanilla
@@ -1350,12 +1350,12 @@ arguments       = --log-to-file '--profile-dir={profile_dir}' --cluster-id='{clu
 
     def start(self):
         """Start the controller by profile or profile_dir."""
-        return super(CondorControllerLauncher, self).start(1)
+        return super(HTCondorControllerLauncher, self).start(1)
 
 
-class CondorEngineSetLauncher(CondorLauncher, BatchClusterAppMixin):
-    """Launch Engines using Condor"""
-    batch_file_name = Unicode(u'condor_engines', config=True,
+class HTCondorEngineSetLauncher(HTCondorLauncher, BatchClusterAppMixin):
+    """Launch Engines using HTCondor"""
+    batch_file_name = Unicode(u'htcondor_engines', config=True,
                               help="batch file name for the engine(s) job.")
     default_template = Unicode("""
 universe        = vanilla
@@ -1432,10 +1432,10 @@ lsf_launchers = [
     LSFControllerLauncher,
     LSFEngineSetLauncher,
 ]
-condor_launchers = [
-    CondorLauncher,
-    CondorControllerLauncher,
-    CondorEngineSetLauncher,
+htcondor_launchers = [
+    HTCondorLauncher,
+    HTCondorControllerLauncher,
+    HTCondorEngineSetLauncher,
 ]
 all_launchers = local_launchers + mpi_launchers + ssh_launchers + winhpc_launchers\
-                + pbs_launchers + sge_launchers + lsf_launchers + condor_launchers
+                + pbs_launchers + sge_launchers + lsf_launchers + htcondor_launchers

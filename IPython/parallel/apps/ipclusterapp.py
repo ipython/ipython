@@ -60,7 +60,7 @@ _description = """Start an IPython cluster for parallel computing.
 
 An IPython cluster consists of 1 controller and 1 or more engines.
 This command automates the startup of these processes using a wide range of
-startup methods (SSH, local processes, PBS, mpiexec, SGE, LSF, Condor,
+startup methods (SSH, local processes, PBS, mpiexec, SGE, LSF, HTCondor,
 Windows HPC Server 2008). To start a cluster with 4 engines on your
 local host simply do 'ipcluster start --n=4'. For more complex usage
 you will typically do 'ipython profile create mycluster --parallel', then edit
@@ -116,7 +116,7 @@ def find_launcher_class(clsname, kind):
     ==========
     clsname : str
         The full name of the launcher class, either with or without the
-        module path, or an abbreviation (MPI, SSH, SGE, PBS, LSF, Condor
+        module path, or an abbreviation (MPI, SSH, SGE, PBS, LSF, HTCondor
         WindowsHPC).
     kind : str
         Either 'EngineSet' or 'Controller'.
@@ -287,7 +287,7 @@ class IPClusterEngines(BaseParallelApplication):
                         Note that SSH does *not* move the connection files
                         around, so you will likely have to do this manually
                         unless the machines are on a shared file system.
-            Condor : use HTCondor to submit engines to a batch queue
+            HTCondor : use HTCondor to submit engines to a batch queue
             WindowsHPC : use Windows HPC
 
         If you are using one of IPython's builtin launchers, you can specify just the
@@ -489,7 +489,7 @@ class IPClusterStart(IPClusterEngines):
             PBS : use PBS (qsub) to submit the controller to a batch queue
             SGE : use SGE (qsub) to submit the controller to a batch queue
             LSF : use LSF (bsub) to submit the controller to a batch queue
-            Condor: use HTCondor to submit the controller to a batch queue
+            HTCondor : use HTCondor to submit the controller to a batch queue
             SSH : use SSH to start the controller
             WindowsHPC : use Windows HPC
 
