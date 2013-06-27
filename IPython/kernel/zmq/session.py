@@ -49,7 +49,7 @@ from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
-from IPython.utils.py3compat import str_to_bytes
+from IPython.utils.py3compat import str_to_bytes, str_to_unicode
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
                                         DottedObjectName, CUnicode, Dict, Integer)
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
@@ -296,8 +296,9 @@ class Session(Configurable):
     # bsession is the session as bytes
     bsession = CBytes(b'')
 
-    username = Unicode(os.environ.get('USER',u'username'), config=True,
-        help="""Username for the Session. Default is your system username.""")
+    username = Unicode(str_to_unicode(os.environ.get('USER', 'username')),
+        help="""Username for the Session. Default is your system username.""",
+        config=True)
 
     metadata = Dict({}, config=True,
         help="""Metadata dictionary, which serves as the default top-level metadata dict for each message.""")
