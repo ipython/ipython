@@ -395,7 +395,7 @@ class Application(SingletonConfigurable):
         # clear existing instances
         self.__class__.clear_instance()
         # instantiate
-        self.subapp = subapp.instance()
+        self.subapp = subapp.instance(config=self.config)
         # and initialize subapp
         self.subapp.initialize(argv)
     
