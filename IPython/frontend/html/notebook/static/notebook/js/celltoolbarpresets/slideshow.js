@@ -51,8 +51,40 @@
     CellToolbar.register_callback('slideshow.select',select_type);
 
     slideshow_preset.push('slideshow.select');
-
+    
     CellToolbar.register_preset('Slideshow',slideshow_preset);
     console.log('Slideshow extension for metadata editing loaded.');
+
+ // New reveal_preset enhancing the slideshow_preset with an alignment function
+
+    var reveal_preset = slideshow_preset.slice();
+
+    var select_align = CellToolbar.utils.select_ui_generator([
+            ["Left"         ,undefined      ],
+            ["Center"       ,"center"       ],
+            ["Right"        ,"right"        ],
+            ],
+            // setter
+            function(cell, value){
+                // we check that the slideshow namespace exist and create it if needed
+                if (cell.metadata.slideshow == undefined){cell.metadata.slideshow = {}}
+                // set the value
+                cell.metadata.slideshow.align_type = value
+                },
+            //geter
+            function(cell){ var ns = cell.metadata.slideshow;
+                // if the slideshow namespace does not exist return `undefined`
+                // (will be interpreted as `false` by checkbox) otherwise
+                // return the value
+                return (ns == undefined)? undefined: ns.align_type
+                },
+            "Alignment");
+
+    CellToolbar.register_callback('slideshow.select_align',select_align);
+ 
+    reveal_preset.push('slideshow.select_align');
+ 
+    CellToolbar.register_preset('Reveal',reveal_preset);
+    console.log('Reveal extension for metadata editing loaded.');
 
 }(IPython));
