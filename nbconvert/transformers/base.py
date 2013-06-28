@@ -1,5 +1,5 @@
 """
-Module that re-groups transformer that would be applied to iPyNB files
+Module that re-groups transformer that would be applied to ipynb files
 before going through the templating machinery.
 
 It exposes a convenient class to inherit from to access configurability.
@@ -35,7 +35,7 @@ class ConfigurableTransformer(GlobalConfigurable):
     using c.SubClassName.atribute=value
 
     you can overwrite cell_transform to apply a transformation independently on each cell
-    or __call__ if you prefer your own logic. See orresponding docstring for informations.
+    or __call__ if you prefer your own logic. See corresponding docstring for informations.
     """
     
     def __init__(self, config=None, **kw):

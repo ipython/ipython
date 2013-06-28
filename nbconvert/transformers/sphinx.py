@@ -226,7 +226,7 @@ class SphinxTransformer(ActivatableTransformer):
     
     def _prompt_output_style(self):
         """
-        Prompts the user to pick an iPython output style.
+        Prompts the user to pick an IPython output style.
         """
         
         # Dictionary of available output styles
