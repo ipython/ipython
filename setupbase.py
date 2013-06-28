@@ -134,7 +134,7 @@ def find_package_data():
     
     # walk notebook resources:
     cwd = os.getcwd()
-    os.chdir(os.path.join('IPython', 'frontend', 'html', 'notebook'))
+    os.chdir(os.path.join('IPython', 'html'))
     static_walk = list(os.walk('static'))
     os.chdir(cwd)
     static_data = []
@@ -148,8 +148,8 @@ def find_package_data():
         'IPython.config.profile' : ['README*', '*/*.py'],
         'IPython.testing' : ['*.txt'],
         'IPython.testing.plugin' : ['*.txt'],
-        'IPython.frontend.html.notebook' : ['templates/*'] + static_data,
-        'IPython.frontend.qt.console' : ['resources/icon/*.svg'],
+        'IPython.html' : ['templates/*'] + static_data,
+        'IPython.qt.console' : ['resources/icon/*.svg'],
     }
     return package_data
 
@@ -312,7 +312,7 @@ def find_scripts(entry_points=False, suffix=''):
     """
     if entry_points:
         console_scripts = [s % suffix for s in [
-            'ipython%s = IPython.frontend.terminal.ipapp:launch_new_instance',
+            'ipython%s = IPython.terminal.ipapp:launch_new_instance',
             'pycolor%s = IPython.utils.PyColorize:main',
             'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',

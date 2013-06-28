@@ -413,7 +413,7 @@ store the notebooks in a different format. Currently, we ship a
 storage. This can be used by adding the following lines to your 
 ``ipython_notebook_config.py`` file::
 
-    c.NotebookApp.notebook_manager_class = 'IPython.frontend.html.notebook.azurenbmanager.AzureNotebookManager'
+    c.NotebookApp.notebook_manager_class = 'IPython.html.services.notebooks.azurenbmanager.AzureNotebookManager'
     c.AzureNotebookManager.account_name = u'paste_your_account_name_here'
     c.AzureNotebookManager.account_key = u'paste_your_account_key_here'
     c.AzureNotebookManager.container = u'notebooks'

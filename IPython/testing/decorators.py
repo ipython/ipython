@@ -128,15 +128,17 @@ def make_label_dec(label,ds=None):
     --------
 
     A simple labeling decorator:
-    >>> slow = make_label_dec('slow')
-    >>> print slow.__doc__
-    Labels a test as 'slow'.
 
+    >>> slow = make_label_dec('slow')
+    >>> slow.__doc__
+    "Labels a test as 'slow'."
+    
     And one that uses multiple labels and a custom docstring:
+    
     >>> rare = make_label_dec(['slow','hard'],
     ... "Mix labels 'slow' and 'hard' for rare tests.")
-    >>> print rare.__doc__
-    Mix labels 'slow' and 'hard' for rare tests.
+    >>> rare.__doc__
+    "Mix labels 'slow' and 'hard' for rare tests."
 
     Now, let's test using this one:
     >>> @rare

@@ -404,7 +404,7 @@ def test_get_ipython_package_dir():
 
 
 def test_get_ipython_module_path():
-    ipapp_path = path.get_ipython_module_path('IPython.frontend.terminal.ipapp')
+    ipapp_path = path.get_ipython_module_path('IPython.terminal.ipapp')
     nt.assert_true(os.path.isfile(ipapp_path))
 
 

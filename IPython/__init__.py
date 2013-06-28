@@ -44,7 +44,7 @@ from .config.loader import Config
 from .core.getipython import get_ipython
 from .core import release
 from .core.application import Application
-from .frontend.terminal.embed import embed
+from .terminal.embed import embed
 
 from .core.error import TryNext
 from .core.interactiveshell import InteractiveShell

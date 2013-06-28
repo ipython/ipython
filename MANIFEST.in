@@ -11,11 +11,11 @@ graft scripts
 graft IPython
 prune IPython/deathrow
 prune IPython/external/js
-prune IPython/frontend/html/notebook/static/mathjax
+prune IPython/html/static/mathjax
 
 # Include some specific files and data resources we need
 include IPython/.git_commit_info.ini
-include IPython/frontend/qt/console/resources/icon/IPythonConsole.svg
+include IPython/qt/console/resources/icon/IPythonConsole.svg
 
 # Documentation
 graft docs
