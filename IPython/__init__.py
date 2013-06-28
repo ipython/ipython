@@ -84,3 +84,23 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     # Only import .zmq when we really need it
     from IPython.kernel.zmq.embed import embed_kernel as real_embed_kernel
     real_embed_kernel(module=module, local_ns=local_ns, **kwargs)
+
+def start_ipython(argv=None, **kwargs):
+    """launch a normal IPython instance (as opposed to embedded)
+    
+    This is a public API method, and will survive implementation changes.
+    
+    
+    Parameters
+    ----------
+    
+    argv : list or None, optional
+        If unspecified or None, IPython will parse command-line options from sys.argv.
+        To prevent any command-line parsing, pass an empty list: `argv=[]`.
+    
+    kwargs : various, optional
+        Any other kwargs will be passed to the Application constructor,
+        such as `config`.
+    """
+    from IPython.terminal.ipapp import launch_new_instance
+    return launch_new_instance(argv=argv, **kwargs)
