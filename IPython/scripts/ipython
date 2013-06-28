@@ -2,6 +2,6 @@
 """Terminal-based IPython entry point.
 """
 
-from IPython.frontend.terminal.ipapp import launch_new_instance
+from IPython.terminal.ipapp import launch_new_instance
 
 launch_new_instance()
