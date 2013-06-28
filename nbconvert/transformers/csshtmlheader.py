@@ -83,7 +83,7 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
         header = []
         
         #Construct path to iPy CSS
-        sheet_filename = os.path.join(path.get_ipython_package_dir(), 'frontend', 
+        sheet_filename = os.path.join(path.get_ipython_package_dir(), 
             'html', 'notebook', 'static', 'style', 'style.min.css')
         
         #Load style CSS file.
