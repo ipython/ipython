@@ -349,9 +349,11 @@ var IPython = (function (IPython) {
             // still warn, because if we don't the autosave may fail.
             if (that.dirty && ! that.read_only) {
                 if ( that.autosave_interval ) {
-                    setTimeout(function() { that.save_notebook(); }, 0);
+                    that.save_notebook();
+                    return "Autosave in progress, latest changes may be lost.";
+                } else {
+                    return "Unsaved changes will be lost.";
                 }
-                return "Unsaved changes will be lost.";
             };
             // Null is the *only* return value that will make the browser not
             // pop up the "don't leave" dialog.
