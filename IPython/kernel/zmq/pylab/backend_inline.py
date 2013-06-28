@@ -18,7 +18,7 @@ from IPython.config.configurable import SingletonConfigurable
 from IPython.core.display import display
 from IPython.core.displaypub import publish_display_data
 from IPython.core.pylabtools import print_figure, select_figure_format
-from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, CBool
+from IPython.utils.traitlets import Dict, Instance, CaselessStrEnum, Bool
 from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
@@ -56,7 +56,7 @@ class InlineBackend(InlineBackendConfig):
         inline backend."""
     )
 
-    figure_format = CaselessStrEnum(['svg', 'png'], default_value='png', config=True,
+    figure_format = CaselessStrEnum(['svg', 'png', 'retina'], default_value='png', config=True,
         help="The image format for figures with the inline backend.")
 
     def _figure_format_changed(self, name, old, new):
@@ -65,7 +65,7 @@ class InlineBackend(InlineBackendConfig):
         else:
             select_figure_format(self.shell, new)
     
-    close_figures = CBool(True, config=True,
+    close_figures = Bool(True, config=True,
         help="""Close all figures at the end of each cell.
         
         When True, ensures that each cell starts with no active figures, but it

@@ -20,6 +20,7 @@ Authors:
 from __future__ import print_function
 
 import os
+import struct
 
 from IPython.utils.py3compat import string_types
 
@@ -471,6 +472,32 @@ class Javascript(DisplayObject):
 _PNG = b'\x89PNG\r\n\x1a\n'
 _JPEG = b'\xff\xd8'
 
+def _pngxy(data):
+    """read the (width, height) from a PNG header"""
+    ihdr = data.index(b'IHDR')
+    # next 8 bytes are width/height
+    w4h4 = data[ihdr+4:ihdr+12]
+    return struct.unpack('>ii', w4h4)
+
+def _jpegxy(data):
+    """read the (width, height) from a JPEG header"""
+    # adapted from http://www.64lines.com/jpeg-width-height
+    
+    idx = 4
+    while True:
+        block_size = struct.unpack('>H', data[idx:idx+2])[0]
+        idx = idx + block_size
+        if data[idx:idx+2] == b'\xFF\xC0':
+            # found Start of Frame
+            iSOF = idx
+            break
+        else:
+            # read another block
+            idx += 2
+
+    h, w = struct.unpack('>HH', data[iSOF+5:iSOF+9])
+    return w, h
+
 class Image(DisplayObject):
 
     _read_flags = 'rb'
@@ -478,7 +505,7 @@ class Image(DisplayObject):
     _FMT_PNG = u'png'
     _ACCEPTABLE_EMBEDDINGS = [_FMT_JPEG, _FMT_PNG]
 
-    def __init__(self, data=None, url=None, filename=None, format=u'png', embed=None, width=None, height=None):
+    def __init__(self, data=None, url=None, filename=None, format=u'png', embed=None, width=None, height=None, retina=False):
         """Create a display an PNG/JPEG image given raw data.
 
         When this object is returned by an expression or passed to the
@@ -512,6 +539,13 @@ class Image(DisplayObject):
             Width to which to constrain the image in html
         height : int
             Height to which to constrain the image in html
+        retina : bool
+            Automatically set the width and height to half of the measured
+            width and height.
+            This only works for embedded images because it reads the width/height
+            from image data.
+            For non-embedded images, you can just set the desired display width
+            and height directly.
 
         Examples
         --------
@@ -561,12 +595,32 @@ class Image(DisplayObject):
             raise ValueError("Cannot embed the '%s' image format" % (self.format))
         self.width = width
         self.height = height
+        self.retina = retina
         super(Image, self).__init__(data=data, url=url, filename=filename)
+        
+        if retina:
+            self._retina_shape()
+    
+    def _retina_shape(self):
+        """load pixel-doubled width and height from image data"""
+        if not self.embed:
+            return
+        if self.format == 'png':
+            w, h = _pngxy(self.data)
+        elif self.format == 'jpeg':
+            w, h = _jpegxy(self.data)
+        else:
+            # retina only supports png
+            return
+        self.width = w // 2
+        self.height = h // 2
 
     def reload(self):
         """Reload the raw data from file or URL."""
         if self.embed:
             super(Image,self).reload()
+            if self.retina:
+                self._retina_shape()
 
     def _repr_html_(self):
         if not self.embed:
