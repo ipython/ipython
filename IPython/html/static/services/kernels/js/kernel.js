@@ -448,6 +448,11 @@ var IPython = (function (IPython) {
             } else if (content.execution_state === 'idle') {
                 $([IPython.events]).trigger('status_idle.Kernel', {kernel: this});
             } else if (content.execution_state === 'restarting') {
+                // autorestarting is distinct from restarting,
+                // in that it means the kernel died and the server is restarting it.
+                // status_restarting sets the notification widget,
+                // autorestart shows the more prominent dialog.
+                $([IPython.events]).trigger('status_autorestarting.Kernel', {kernel: this});
                 $([IPython.events]).trigger('status_restarting.Kernel', {kernel: this});
             } else if (content.execution_state === 'dead') {
                 this.stop_channels();

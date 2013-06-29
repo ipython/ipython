@@ -86,6 +86,18 @@ var IPython = (function (IPython) {
             IPython.save_widget.update_document_title();
             knw.set_message("Restarting kernel", 2000);
         });
+        
+        $([IPython.events]).on('status_autorestarting.Kernel',function () {
+            IPython.dialog.modal({
+                title: "Kernel Restarting",
+                body: "The kernel appears to have died. It is being restarted.",
+                buttons: {
+                    OK : {
+                        class : "btn-primary"
+                    }
+                }
+            });
+        });
 
         $([IPython.events]).on('status_interrupting.Kernel',function () {
             knw.set_message("Interrupting kernel");
