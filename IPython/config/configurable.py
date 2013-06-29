@@ -81,7 +81,7 @@ class Configurable(HasTraits):
         This ensures that instances will be configured properly.
         """
         parent = kwargs.pop('parent', None)
-        if parent:
+        if parent is not None:
             # config is implied from parent
             if kwargs.get('config', None) is None:
                 kwargs['config'] = parent.config
