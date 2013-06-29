@@ -57,7 +57,7 @@ def test_rehashx():
     nt.assert_true(len(_ip.alias_manager.alias_table) > 10)
     for key, val in _ip.alias_manager.alias_table.iteritems():
         # we must strip dots from alias names
-        nt.assert_true('.' not in key)
+        nt.assert_not_in('.', key)
 
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
@@ -82,9 +82,9 @@ def test_magic_parse_long_options():
     ip = get_ipython()
     m = DummyMagics(ip)
     opts, _ = m.parse_options('--foo --bar=bubble', 'a', 'foo', 'bar=')
-    nt.assert_true('foo' in opts)
-    nt.assert_true('bar' in opts)
-    nt.assert_true(opts['bar'], "bubble")
+    nt.assert_in('foo', opts)
+    nt.assert_in('bar', opts)
+    nt.assert_equal(opts['bar'], "bubble")
 
 
 @dec.skip_without('sqlite3')
@@ -198,8 +198,8 @@ def test_macro():
     ip.magic("macro test 1-3")
     nt.assert_equal(ip.user_ns["test"].value, "\n".join(cmds)+"\n")
     
-    # List macros.
-    assert "test" in ip.magic("macro")
+    # List macros
+    nt.assert_in("test", ip.magic("macro"))
 
 
 @dec.skip_without('sqlite3')
@@ -226,9 +226,9 @@ def test_magic_magic():
         ip.magic("magic")
     
     stdout = captured.stdout
-    nt.assert_true('%magic' in stdout)
-    nt.assert_true('IPython' in stdout)
-    nt.assert_true('Available' in stdout)
+    nt.assert_in('%magic', stdout)
+    nt.assert_in('IPython', stdout)
+    nt.assert_in('Available', stdout)
 
 
 @dec.skipif_not_numpy
@@ -236,9 +236,9 @@ def test_numpy_reset_array_undec():
     "Test '%reset array' functionality"
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
-    nt.assert_true('a' in _ip.user_ns)
+    nt.assert_in('a', _ip.user_ns)
     _ip.magic('reset -f array')
-    nt.assert_false('a' in _ip.user_ns)
+    nt.assert_not_in('a', _ip.user_ns)
 
 def test_reset_out():
     "Test '%reset out' magic"
@@ -248,7 +248,7 @@ def test_reset_out():
     nt.assert_true('dead' in [_ip.user_ns[x] for x in '_','__','___'])
     _ip.magic('reset -f out')
     nt.assert_false('dead' in [_ip.user_ns[x] for x in '_','__','___'])
-    nt.assert_true(len(_ip.user_ns['Out']) == 0)
+    nt.assert_equal(len(_ip.user_ns['Out']), 0)
 
 def test_reset_in():
     "Test '%reset in' magic"
@@ -257,7 +257,7 @@ def test_reset_in():
     nt.assert_true('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
     _ip.magic('%reset -f in')
     nt.assert_false('parrot' in [_ip.user_ns[x] for x in '_i','_ii','_iii'])
-    nt.assert_true(len(set(_ip.user_ns['In'])) == 1)
+    nt.assert_equal(len(set(_ip.user_ns['In'])), 1)
 
 def test_reset_dhist():
     "Test '%reset dhist' magic"
@@ -266,14 +266,14 @@ def test_reset_dhist():
     _ip.magic('cd -')
     nt.assert_true(len(_ip.user_ns['_dh']) > 0)
     _ip.magic('reset -f dhist')
-    nt.assert_true(len(_ip.user_ns['_dh']) == 0)
+    nt.assert_equal(len(_ip.user_ns['_dh']), 0)
     _ip.run_cell("_dh = [d for d in tmp]") #restore
 
 def test_reset_in_length():
     "Test that '%reset in' preserves In[] length"
     _ip.run_cell("print 'foo'")
     _ip.run_cell("reset -f in")
-    nt.assert_true(len(_ip.user_ns['In']) == _ip.displayhook.prompt_count+1)
+    nt.assert_equal(len(_ip.user_ns['In']), _ip.displayhook.prompt_count+1)
 
 def test_tb_syntaxerror():
     """test %tb after a SyntaxError"""
@@ -769,13 +769,13 @@ def test_alias_magic():
 
     # Basic operation: both cell and line magics are created, if possible.
     ip.run_line_magic('alias_magic', 'timeit_alias timeit')
-    nt.assert_true('timeit_alias' in mm.magics['line'])
-    nt.assert_true('timeit_alias' in mm.magics['cell'])
+    nt.assert_in('timeit_alias', mm.magics['line'])
+    nt.assert_in('timeit_alias', mm.magics['cell'])
 
     # --cell is specified, line magic not created.
     ip.run_line_magic('alias_magic', '--cell timeit_cell_alias timeit')
-    nt.assert_false('timeit_cell_alias' in mm.magics['line'])
-    nt.assert_true('timeit_cell_alias' in mm.magics['cell'])
+    nt.assert_not_in('timeit_cell_alias', mm.magics['line'])
+    nt.assert_in('timeit_cell_alias', mm.magics['cell'])
 
     # Test that line alias is created successfully.
     ip.run_line_magic('alias_magic', '--line env_alias env')
@@ -795,12 +795,12 @@ def test_save():
         with open(file) as f:
             content = f.read()
             nt.assert_equal(content.count(cmds[0]), 1)
-            nt.assert_true('coding: utf-8' in content)
+            nt.assert_in('coding: utf-8', content)
         ip.run_line_magic("save", "-a %s 1-10" % file)
         with open(file) as f:
             content = f.read()
             nt.assert_equal(content.count(cmds[0]), 2)
-            nt.assert_true('coding: utf-8' in content)
+            nt.assert_in('coding: utf-8', content)
 
 
 def test_store():
