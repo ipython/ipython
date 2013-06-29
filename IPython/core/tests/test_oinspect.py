@@ -288,3 +288,9 @@ def test_pdef():
     # See gh-1914
     def foo(): pass
     inspector.pdef(foo, 'foo')
+
+def test_pinfo_nonascii():
+    # See gh-1177
+    from . import nonascii2
+    ip.user_ns['nonascii2'] = nonascii2
+    ip._inspect('pinfo', 'nonascii2', detail_level=1)
