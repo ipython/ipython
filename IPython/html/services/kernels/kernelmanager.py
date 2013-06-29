@@ -68,7 +68,7 @@ class MappingKernelManager(MultiKernelManager):
         """notice that a kernel died"""
         self.log.warn("Kernel %s died, removing from map.", kernel_id)
         self.delete_mapping_for_kernel(kernel_id)
-        self.remove_kernel(kernel_id, now=True)
+        self.remove_kernel(kernel_id)
 
     def start_kernel(self, notebook_id=None, **kwargs):
         """Start a kernel for a notebook an return its kernel_id.
