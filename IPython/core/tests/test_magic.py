@@ -54,14 +54,14 @@ def test_rehashx():
     _ip.magic('rehashx')
     # Practically ALL ipython development systems will have more than 10 aliases
 
-    yield (nt.assert_true, len(_ip.alias_manager.alias_table) > 10)
+    nt.assert_true(len(_ip.alias_manager.alias_table) > 10)
     for key, val in _ip.alias_manager.alias_table.iteritems():
         # we must strip dots from alias names
         nt.assert_true('.' not in key)
 
     # rehashx must fill up syscmdlist
     scoms = _ip.db['syscmdlist']
-    yield (nt.assert_true, len(scoms) > 10)
+    nt.assert_true(len(scoms) > 10)
 
 
 def test_magic_parse_options():
@@ -226,9 +226,9 @@ def test_magic_magic():
         ip.magic("magic")
     
     stdout = captured.stdout
-    yield (nt.assert_true, '%magic' in stdout)
-    yield (nt.assert_true, 'IPython' in stdout)
-    yield (nt.assert_true, 'Available' in stdout)
+    nt.assert_true('%magic' in stdout)
+    nt.assert_true('IPython' in stdout)
+    nt.assert_true('Available' in stdout)
 
 
 @dec.skipif_not_numpy
@@ -236,9 +236,9 @@ def test_numpy_reset_array_undec():
     "Test '%reset array' functionality"
     _ip.ex('import numpy as np')
     _ip.ex('a = np.empty(2)')
-    yield (nt.assert_true, 'a' in _ip.user_ns)
+    nt.assert_true('a' in _ip.user_ns)
     _ip.magic('reset -f array')
-    yield (nt.assert_false, 'a' in _ip.user_ns)
+    nt.assert_false('a' in _ip.user_ns)
 
 def test_reset_out():
     "Test '%reset out' magic"
