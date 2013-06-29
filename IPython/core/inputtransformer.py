@@ -381,7 +381,7 @@ def _strip_prompts(prompt_re):
 @CoroutineInputTransformer.wrap
 def classic_prompt():
     """Strip the >>>/... prompts of the Python interactive shell."""
-    prompt_re = re.compile(r'^(>>> |^\.\.\. )')
+    prompt_re = re.compile(r'^(>>> ?|^\.\.\. ?)')
     return _strip_prompts(prompt_re)
 
 @CoroutineInputTransformer.wrap
