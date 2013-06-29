@@ -156,6 +156,10 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
         last_modified, nb = self.read_notebook_object_from_path(path)
         # Always use the filename as the notebook name.
+        # Eventually we will get rid of the notebook name in the metadata
+        # but for now, that name is just an empty string. Until the notebooks
+        # web service knows about names in URLs we still pass the name
+        # back to the web app using the metadata though.
         nb.metadata.name = os.path.splitext(os.path.basename(path))[0]
         return last_modified, nb
     
@@ -173,9 +177,15 @@ class FileNotebookManager(NotebookManager):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
 
         old_name = self.mapping[notebook_id]
-        old_checkpoints = self.list_checkpoints(notebook_id)
-        
+        old_checkpoints = self.list_checkpoints(notebook_id)        
         path = self.get_path_by_name(new_name)
+
+        # Right before we save the notebook, we write an empty string as the
+        # notebook name in the metadata. This is to prepare for removing
+        # this attribute entirely post 1.0. The web app still uses the metadata
+        # name for now.
+        nb.metadata.name = u''
+
         try:
             self.log.debug("Autosaving notebook %s", path)
             with open(path,'w') as f:
