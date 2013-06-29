@@ -117,7 +117,7 @@ def load_ipython_extension(ip):
         pass
     else:
         warnings.warn("The sympyprinting extension in IPython is deprecated, "
-            "use sympy.interactive.ipythonprinting")
+            "use 'from sympy import init_printing; init_printing()'")
         ip.extension_manager.load_extension('sympy.interactive.ipythonprinting')
         return
 
