@@ -123,6 +123,18 @@ var IPython = (function (IPython) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
+        
+        $([IPython.events]).on('status_autorestarting.Kernel', function () {
+            IPython.dialog.modal({
+                title: "Kernel Restarting",
+                body: "The kernel appears to have died. It will restart automatically.",
+                buttons: {
+                    OK : {
+                        class : "btn-primary"
+                    }
+                }
+            });
+        });
 
 
         $(document).keydown(function (event) {
