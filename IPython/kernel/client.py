@@ -59,7 +59,7 @@ class KernelClient(LoggingConfigurable, ConnectionFileMixin):
     # The Session to use for communication with the kernel.
     session = Instance(Session)
     def _session_default(self):
-        return Session(config=self.config)
+        return Session(parent=self)
 
     # The classes to use for the various channels
     shell_channel_class = Type(ShellChannel)

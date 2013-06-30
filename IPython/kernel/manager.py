@@ -56,7 +56,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
     # The Session to use for communication with the kernel.
     session = Instance(Session)
     def _session_default(self):
-        return Session(config=self.config)
+        return Session(parent=self)
 
     # the class to create with our `client` method
     client_class = DottedObjectName('IPython.kernel.blocking.BlockingKernelClient')
@@ -129,7 +129,7 @@ class KernelManager(LoggingConfigurable, ConnectionFileMixin):
         kw.update(dict(
             connection_file=self.connection_file,
             session=self.session,
-            config=self.config,
+            parent=self,
         ))
 
         # add kwargs last, for manual overrides

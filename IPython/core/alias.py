@@ -114,8 +114,8 @@ class AliasManager(Configurable):
     user_aliases = List(default_value=[], config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    def __init__(self, shell=None, config=None):
-        super(AliasManager, self).__init__(shell=shell, config=config)
+    def __init__(self, shell=None, **kwargs):
+        super(AliasManager, self).__init__(shell=shell, **kwargs)
         self.alias_table = {}
         self.exclude_aliases()
         self.init_aliases()

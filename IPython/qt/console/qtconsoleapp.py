@@ -196,7 +196,7 @@ class IPythonQtConsoleApp(BaseIPythonApplication, IPythonConsoleApp):
         """
         kernel_manager = self.kernel_manager_class(
                                 connection_file=self._new_connection_file(),
-                                config=self.config,
+                                parent=self,
                                 autorestart=True,
         )
         # start the kernel

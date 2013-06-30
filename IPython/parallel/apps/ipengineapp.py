@@ -360,7 +360,7 @@ class IPEngineApp(BaseParallelApplication):
     
     def init_mpi(self):
         global mpi
-        self.mpi = MPI(config=self.config)
+        self.mpi = MPI(parent=self)
 
         mpi_import_statement = self.mpi.init_script
         if mpi_import_statement:

@@ -148,7 +148,7 @@ class HistoryAccessor(Configurable):
                     (self.__class__.__name__, new)
             raise TraitError(msg)
     
-    def __init__(self, profile='default', hist_file=u'', config=None, **traits):
+    def __init__(self, profile='default', hist_file=u'', **traits):
         """Create a new history accessor.
         
         Parameters
@@ -162,7 +162,7 @@ class HistoryAccessor(Configurable):
           Config object. hist_file can also be set through this.
         """
         # We need a pointer back to the shell for various tasks.
-        super(HistoryAccessor, self).__init__(config=config, **traits)
+        super(HistoryAccessor, self).__init__(**traits)
         # defer setting hist_file from kwarg until after init,
         # otherwise the default kwarg value would clobber any value
         # set by config

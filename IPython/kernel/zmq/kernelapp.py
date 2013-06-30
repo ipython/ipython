@@ -71,7 +71,7 @@ kernel_aliases.update({
     'stdin' : 'IPKernelApp.stdin_port',
     'control' : 'IPKernelApp.control_port',
     'f' : 'IPKernelApp.connection_file',
-    'parent': 'IPKernelApp.parent',
+    'parent': 'IPKernelApp.parent_handle',
     'transport': 'IPKernelApp.transport',
 })
 if sys.platform.startswith('win'):
@@ -172,7 +172,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         config=True, help="The importstring for the DisplayHook factory")
 
     # polling
-    parent = Integer(0, config=True,
+    parent_handle = Integer(0, config=True,
         help="""kill this process if its parent dies.  On Windows, the argument
         specifies the HANDLE of the parent process, otherwise it is simply boolean.
         """)
@@ -188,9 +188,9 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
 
     def init_poller(self):
         if sys.platform == 'win32':
-            if self.interrupt or self.parent:
-                self.poller = ParentPollerWindows(self.interrupt, self.parent)
-        elif self.parent:
+            if self.interrupt or self.parent_handle:
+                self.poller = ParentPollerWindows(self.interrupt, self.parent_handle)
+        elif self.parent_handle:
             self.poller = ParentPollerUnix()
 
     def _bind_socket(self, s, port):
@@ -329,8 +329,8 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         # to see the connection info
         for line in lines:
             self.log.info(line)
-        # also raw print to the terminal if no parent (`ipython kernel`)
-        if not self.parent:
+        # also raw print to the terminal if no parent_handle (`ipython kernel`)
+        if not self.parent_handle:
             for line in lines:
                 io.rprint(line)
 
@@ -341,7 +341,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     def init_session(self):
         """create our session object"""
         default_secure(self.config)
-        self.session = Session(config=self.config, username=u'kernel')
+        self.session = Session(parent=self, username=u'kernel')
 
     def init_blackhole(self):
         """redirects stdout/stderr to devnull if necessary"""
@@ -372,7 +372,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
         
         kernel_factory = import_item(str(self.kernel_class))
 
-        kernel = kernel_factory(config=self.config, session=self.session,
+        kernel = kernel_factory(parent=self, session=self.session,
                                 shell_streams=[shell_stream, control_stream],
                                 iopub_socket=self.iopub_socket,
                                 stdin_socket=self.stdin_socket,

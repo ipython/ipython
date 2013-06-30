@@ -338,7 +338,7 @@ class IPClusterEngines(BaseParallelApplication):
             self.exit(1)
 
         launcher = klass(
-            work_dir=u'.', config=self.config, log=self.log,
+            work_dir=u'.', parent=self, log=self.log,
             profile_dir=self.profile_dir.location, cluster_id=self.cluster_id,
         )
         return launcher

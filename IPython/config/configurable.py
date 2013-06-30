@@ -52,6 +52,7 @@ class MultipleInstanceError(ConfigurableError):
 class Configurable(HasTraits):
 
     config = Instance(Config, (), {})
+    parent = Instance('IPython.config.configurable.Configurable')
     created = None
 
     def __init__(self, **kwargs):
@@ -63,6 +64,8 @@ class Configurable(HasTraits):
             If this is empty, default values are used. If config is a
             :class:`Config` instance, it will be used to configure the
             instance.
+        parent : Configurable instance, optional
+            The parent Configurable instance of this object.
 
         Notes
         -----
@@ -77,6 +80,13 @@ class Configurable(HasTraits):
 
         This ensures that instances will be configured properly.
         """
+        parent = kwargs.pop('parent', None)
+        if parent is not None:
+            # config is implied from parent
+            if kwargs.get('config', None) is None:
+                kwargs['config'] = parent.config
+            self.parent = parent
+        
         config = kwargs.pop('config', None)
         if config is not None:
             # We used to deepcopy, but for now we are trying to just save
@@ -95,6 +105,54 @@ class Configurable(HasTraits):
     #-------------------------------------------------------------------------
     # Static trait notifiations
     #-------------------------------------------------------------------------
+    
+    @classmethod
+    def section_names(cls):
+        """return section names as a list"""
+        return  [c.__name__ for c in reversed(cls.__mro__) if
+            issubclass(c, Configurable) and issubclass(cls, c)
+        ]
+    
+    def _find_my_config(self, cfg):
+        """extract my config from a global Config object
+        
+        will construct a Config object of only the config values that apply to me
+        based on my mro(), as well as those of my parent(s) if they exist.
+        
+        If I am Bar and my parent is Foo, and their parent is Tim,
+        this will return merge following config sections, in this order::
+        
+            [Bar, Foo.bar, Tim.Foo.Bar]
+        
+        With the last item being the highest priority.
+        """
+        cfgs = [cfg]
+        if self.parent:
+            cfgs.append(self.parent._find_my_config(cfg))
+        my_config = Config()
+        for c in cfgs:
+            for sname in self.section_names():
+                # Don't do a blind getattr as that would cause the config to
+                # dynamically create the section with name Class.__name__.
+                if c._has_section(sname):
+                    my_config.merge(c[sname])
+        return my_config
+
+    def _load_config(self, cfg, section_names=None, traits=None):
+        """load traits from a Config object"""
+        
+        if traits is None:
+            traits = self.traits(config=True)
+        if section_names is None:
+            section_names = self.section_names()
+        
+        my_config = self._find_my_config(cfg)
+        for name, config_value in my_config.iteritems():
+            if name in traits:
+                # We have to do a deepcopy here if we don't deepcopy the entire
+                # config object. If we don't, a mutable config_value will be
+                # shared by all instances, effectively making it a class attribute.
+                setattr(self, name, deepcopy(config_value))
 
     def _config_changed(self, name, old, new):
         """Update all the class traits having ``config=True`` as metadata.
@@ -109,39 +167,8 @@ class Configurable(HasTraits):
         # We auto-load config section for this class as well as any parent
         # classes that are Configurable subclasses.  This starts with Configurable
         # and works down the mro loading the config for each section.
-        section_names = [cls.__name__ for cls in \
-            reversed(self.__class__.__mro__) if
-            issubclass(cls, Configurable) and issubclass(self.__class__, cls)]
-
-        for sname in section_names:
-            # Don't do a blind getattr as that would cause the config to
-            # dynamically create the section with name self.__class__.__name__.
-            if new._has_section(sname):
-                my_config = new[sname]
-                for k, v in traits.iteritems():
-                    # Don't allow traitlets with config=True to start with
-                    # uppercase.  Otherwise, they are confused with Config
-                    # subsections.  But, developers shouldn't have uppercase
-                    # attributes anyways! (PEP 6)
-                    if k[0].upper()==k[0] and not k.startswith('_'):
-                        raise ConfigurableError('Configurable traitlets with '
-                        'config=True must start with a lowercase so they are '
-                        'not confused with Config subsections: %s.%s' % \
-                        (self.__class__.__name__, k))
-                    try:
-                        # Here we grab the value from the config
-                        # If k has the naming convention of a config
-                        # section, it will be auto created.
-                        config_value = my_config[k]
-                    except KeyError:
-                        pass
-                    else:
-                        # print "Setting %s.%s from %s.%s=%r" % \
-                        #     (self.__class__.__name__,k,sname,k,config_value)
-                        # We have to do a deepcopy here if we don't deepcopy the entire
-                        # config object. If we don't, a mutable config_value will be
-                        # shared by all instances, effectively making it a class attribute.
-                        setattr(self, k, deepcopy(config_value))
+        section_names = self.section_names()
+        self._load_config(new, traits=traits, section_names=section_names)
 
     def update_config(self, config):
         """Fire the traits events when the config is updated."""
@@ -161,7 +188,6 @@ class Configurable(HasTraits):
         class defaults.
         """
         assert inst is None or isinstance(inst, cls)
-        cls_traits = cls.class_traits(config=True)
         final_help = []
         final_help.append(u'%s options' % cls.__name__)
         final_help.append(len(final_help[0])*u'-')

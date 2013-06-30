@@ -230,7 +230,7 @@ class EngineFactory(RegistrationFactory):
                 sys.displayhook = self.display_hook_factory(self.session, iopub_socket)
                 sys.displayhook.topic = cast_bytes('engine.%i.pyout' % self.id)
 
-            self.kernel = Kernel(config=self.config, int_id=self.id, ident=self.ident, session=self.session,
+            self.kernel = Kernel(parent=self, int_id=self.id, ident=self.ident, session=self.session,
                     control_stream=control_stream, shell_streams=shell_streams, iopub_socket=iopub_socket,
                     loop=loop, user_ns=self.user_ns, log=self.log)
             
@@ -251,7 +251,7 @@ class EngineFactory(RegistrationFactory):
 
             
             # FIXME: This is a hack until IPKernelApp and IPEngineApp can be fully merged
-            app = IPKernelApp(config=self.config, shell=self.kernel.shell, kernel=self.kernel, log=self.log)
+            app = IPKernelApp(parent=self, shell=self.kernel.shell, kernel=self.kernel, log=self.log)
             app.init_profile_dir()
             app.init_code()
             
