@@ -55,6 +55,9 @@ box-shadow: 0 0 10px rgba(0, 0, 0, 0);
 .reveal .slides {
 text-align: left;
 }
+.reveal.fade {
+opacity: 1;
+}
 div.input_area {
 padding: 0.06em;
 }
