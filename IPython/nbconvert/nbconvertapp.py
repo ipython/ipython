@@ -200,16 +200,13 @@ class NbConvertApp(Application):
                 print(KEYS_PROMPT_BODY , file=sys.stderr)
 
 #-----------------------------------------------------------------------------
-#Script main
+# Main entry point
 #-----------------------------------------------------------------------------
 
-def main():
+def launch_new_instance():
     """Application entry point"""
 
     app = NbConvertApp.instance()
     app.description = __doc__
     app.start(argv=sys.argv)
 
-#Check to see if python is calling this file directly.
-if __name__ == '__main__':
-    main()
