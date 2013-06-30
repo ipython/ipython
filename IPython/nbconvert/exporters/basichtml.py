@@ -16,16 +16,15 @@ Exporter that exports Basic HTML.
 
 from IPython.utils.traitlets import Unicode
 
-import nbconvert.transformers.csshtmlheader
+from ..transformers.csshtmlheader import CSSHtmlHeaderTransformer
 
-# local import
-import exporter
+from .exporter import Exporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class BasicHtmlExporter(exporter.Exporter):
+class BasicHtmlExporter(Exporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
@@ -52,5 +51,5 @@ class BasicHtmlExporter(exporter.Exporter):
         super(BasicHtmlExporter, self)._register_transformers()
         
         #Register CSSHtmlHeaderTransformer transformer
-        self.register_transformer(nbconvert.transformers.csshtmlheader.CSSHtmlHeaderTransformer)
+        self.register_transformer(CSSHtmlHeaderTransformer)
                     

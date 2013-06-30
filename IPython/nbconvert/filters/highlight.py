@@ -20,7 +20,7 @@ from pygments.formatters import HtmlFormatter
 from pygments.formatters import LatexFormatter
 
 # Our own imports
-from nbconvert.utils.lexers import IPythonLexer
+from IPython.nbconvert.utils.lexers import IPythonLexer
 
 #-----------------------------------------------------------------------------
 # Globals and constants

@@ -14,18 +14,16 @@ Reveal slide show exporter.
 #-----------------------------------------------------------------------------
 
 from IPython.utils.traitlets import Unicode
-
-# local import
-import basichtml
-
-import nbconvert.transformers.revealhelp
 from IPython.config import Config
+
+from .basichtml import BasicHtmlExporter
+from IPython.nbconvert import transformers
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class RevealExporter(basichtml.BasicHtmlExporter):
+class RevealExporter(BasicHtmlExporter):
     """
     Exports a Reveal slide show (.HTML) which may be rendered in a web browser.
     """
@@ -47,7 +45,7 @@ class RevealExporter(basichtml.BasicHtmlExporter):
         super(RevealExporter, self)._register_transformers()
         
         #Register reveal help transformer
-        self.register_transformer(nbconvert.transformers.revealhelp.RevealHelpTransformer)
+        self.register_transformer(transformers.RevealHelpTransformer)
 
     @property
     def default_config(self):

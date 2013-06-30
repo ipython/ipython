@@ -14,7 +14,7 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 #-----------------------------------------------------------------------------
 import itertools
 
-from IPython.utils.traitlets import (Dict, List, Unicode)
+from IPython.utils.traitlets import Dict, Unicode
 from .activatable import ActivatableTransformer
 
 #-----------------------------------------------------------------------------

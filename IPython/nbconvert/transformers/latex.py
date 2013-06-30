@@ -18,7 +18,7 @@ from __future__ import print_function, absolute_import
 # Our own imports
 # Needed to override transformer
 from .activatable import (ActivatableTransformer)
-from nbconvert.filters import latex
+from IPython.nbconvert import filters
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -49,5 +49,5 @@ class LatexTransformer(ActivatableTransformer):
         #if spaces exist between the ampersands and the math content.  
         #See filters.latex.rm_math_space for more information.
         if hasattr(cell, "source") and cell.cell_type == "markdown":
-            cell.source = latex.rm_math_space(cell.source)
+            cell.source = filters.rm_math_space(cell.source)
         return cell, resources

@@ -131,7 +131,6 @@ def ansi2latex(text):
     outstring = ''
     for match in color_pattern.finditer(text):
         head = text[last_end:match.start()]
-        formater = match.group()
         outstring += head
         if openbrack:
             outstring += '}'*openbrack

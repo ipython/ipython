@@ -20,19 +20,14 @@ tags to circumvent Jinja/Latex syntax conflicts.
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
-# other libs/dependencies
-import nbconvert.filters.latex
-import nbconvert.filters.highlight
-from nbconvert.transformers.latex import LatexTransformer
-
-# local import
-import exporter
+from IPython.nbconvert import filters, transformers
+from .exporter import Exporter
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class LatexExporter(exporter.Exporter):
+class LatexExporter(Exporter):
     """
     Exports to a Latex template.  Inherit from this class if your template is
     LaTeX based and you need custom tranformers/filters.  Inherit from it if 
@@ -79,8 +74,8 @@ class LatexExporter(exporter.Exporter):
         super(LatexExporter, self)._register_filters()
 
         #Add latex filters to the Jinja2 environment
-        self.register_filter('escape_tex', nbconvert.filters.latex.escape_latex) 
-        self.register_filter('highlight', nbconvert.filters.highlight.highlight2latex) 
+        self.register_filter('escape_tex', filters.escape_latex) 
+        self.register_filter('highlight', filters.highlight2latex) 
     
     
     def _register_transformers(self):
@@ -92,7 +87,7 @@ class LatexExporter(exporter.Exporter):
         super(LatexExporter, self)._register_transformers()
         
         #Register latex transformer
-        self.register_transformer(LatexTransformer)
+        self.register_transformer(transformers.LatexTransformer)
 
     @property
     def default_config(self):
