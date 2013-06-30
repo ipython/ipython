@@ -23,6 +23,12 @@ import subprocess
 # Functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'markdown2latex',
+    'markdown2rst'
+]
+
+
 def markdown2latex(source):
     """Convert a markdown string to LaTeX via pandoc.
 

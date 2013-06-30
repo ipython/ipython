@@ -22,6 +22,15 @@ import textwrap
 # Functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'wrap',
+    'strip_dollars',
+    'rm_fake',
+    'python_comment',
+    'get_lines'
+]
+
+
 def wrap(text, width=100):
     """ 
     Intelligently wrap text.
