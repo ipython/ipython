@@ -150,6 +150,8 @@ def find_package_data():
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.qt.console' : ['resources/icon/*.svg'],
+        'IPython.nbconvert.templates' : ['*.tpl', 'latex/*.tpl',
+            'latex/skeleton/*.tplx', 'skeleton/*']
     }
     return package_data
 
@@ -319,7 +321,7 @@ def find_scripts(entry_points=False, suffix=''):
             'iplogger%s = IPython.parallel.apps.iploggerapp:launch_new_instance',
             'ipcluster%s = IPython.parallel.apps.ipclusterapp:launch_new_instance',
             'iptest%s = IPython.testing.iptest:main',
-            'irunner%s = IPython.lib.irunner:main'
+            'irunner%s = IPython.lib.irunner:main',
         ]]
         gui_scripts = []
         scripts = dict(console_scripts=console_scripts, gui_scripts=gui_scripts)
@@ -369,6 +371,8 @@ def check_for_dependencies():
     check_for_pexpect()
     check_for_pyzmq()
     check_for_readline()
+    check_for_jinja2()
+    check_for_markdown()
 
 #---------------------------------------------------------------------------
 # VCS related

@@ -23,15 +23,13 @@ import io
 import os
 
 #From IPython
-#All the stuff needed for the configurable things
 from IPython.config.application import Application
-from IPython.utils.traitlets import (Bool)
+from IPython.utils.traitlets import Bool
 
-#Local imports
-from nbconvert.exporters.export import export_by_name
-from nbconvert.exporters.exporter import Exporter
-from nbconvert.transformers import extractfigure
-from nbconvert.utils.config import GlobalConfigurable
+from .exporters.export import export_by_name
+from .exporters.exporter import Exporter
+from .transformers import extractfigure
+from .utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------
 #Globals and constants
