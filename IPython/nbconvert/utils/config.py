@@ -11,7 +11,7 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import (Unicode, List, Bool)
+from IPython.utils.traitlets import List
 from IPython.config.configurable import Configurable
 
 #-----------------------------------------------------------------------------

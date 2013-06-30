@@ -16,14 +16,13 @@ formatted for use with PDFLatex.
 
 from IPython.utils.traitlets import Unicode
 
-# local import
-import sphinx_howto
+from .sphinx_howto import SphinxHowtoExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class SphinxManualExporter(sphinx_howto.SphinxHowtoExporter):
+class SphinxManualExporter(SphinxHowtoExporter):
     """
     Exports Sphinx "Manual" LaTeX documents.  The Sphinx "Manual" exporter 
     produces book like latex output for use with PDFLatex. 

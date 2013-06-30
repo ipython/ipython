@@ -16,14 +16,13 @@ Exporter that exports a Python-Armor code file (.py)
 
 from IPython.utils.traitlets import Unicode
 
-# local import
-import python
+from .python import PythonExporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class PythonArmorExporter(python.PythonExporter):
+class PythonArmorExporter(PythonExporter):
     """
     Exports a Python-Armor code file (.py)
     """

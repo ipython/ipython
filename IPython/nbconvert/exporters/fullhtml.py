@@ -16,16 +16,14 @@ Exporter for exporting full HTML documents.
 
 from IPython.utils.traitlets import Unicode
 
-# local import
-import basichtml
-
+from .basichtml import BasicHtmlExporter
 from IPython.config import Config
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class FullHtmlExporter(basichtml.BasicHtmlExporter):
+class FullHtmlExporter(BasicHtmlExporter):
     """
     Exports a full HTML document.
     """

@@ -1,5 +1,5 @@
 from .ansi import *
-from .datatypefilter *
+from .datatypefilter import *
 from .highlight import *
 from .latex import *
 from .markdown import *

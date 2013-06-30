@@ -16,9 +16,6 @@ It exposes a convenient class to inherit from to access configurability.
 # Imports
 #-----------------------------------------------------------------------------
 
-from __future__ import print_function, absolute_import
-
-from IPython.config.configurable import Configurable
 from ..utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------

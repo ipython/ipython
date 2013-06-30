@@ -18,15 +18,15 @@ from IPython.utils.traitlets import Unicode
 from IPython.config import Config
 
 # local import
-import latex
+from .latex import LatexExporter
 
-from nbconvert.transformers.sphinx import SphinxTransformer
+from IPython.nbconvert import transformers
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class SphinxHowtoExporter(latex.LatexExporter):
+class SphinxHowtoExporter(LatexExporter):
     """
     Exports Sphinx "HowTo" LaTeX documents.  The Sphinx "HowTo" exporter 
     produces short document format latex for use with PDFLatex.
@@ -42,7 +42,7 @@ class SphinxHowtoExporter(latex.LatexExporter):
         super(SphinxHowtoExporter, self)._register_transformers()
         
         #Register sphinx latex transformer
-        self.register_transformer(SphinxTransformer) 
+        self.register_transformer(transformers.SphinxTransformer) 
 
     @property
     def default_config(self):

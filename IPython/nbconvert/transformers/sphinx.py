@@ -35,7 +35,7 @@ from IPython.utils.traitlets import Unicode, Bool
 # Needed to override transformer
 from .activatable import (ActivatableTransformer) #TODO
 
-import nbconvert.utils.console  
+from IPython.nbconvert.utils import console  
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -147,8 +147,8 @@ class SphinxTransformer(ActivatableTransformer):
             resources["sphinx"]["outputstyle"] = self._prompt_output_style()
             
             # Small options
-            resources["sphinx"]["centeroutput"] = nbconvert.utils.console.prompt_boolean("Do you want to center the output? (false)", False)
-            resources["sphinx"]["header"] = nbconvert.utils.console.prompt_boolean("Should a Sphinx document header be used? (true)", True)
+            resources["sphinx"]["centeroutput"] = console.prompt_boolean("Do you want to center the output? (false)", False)
+            resources["sphinx"]["header"] = console.prompt_boolean("Should a Sphinx document header be used? (true)", True)
         else:
             
             # Try to use the traitlets.
@@ -194,14 +194,14 @@ class SphinxTransformer(ActivatableTransformer):
         """
         Prompt the user to input an Author name
         """
-        return  nbconvert.utils.console.input("Author name: ")
+        return  console.input("Author name: ")
     
     
     def _prompt_version(self):
         """
         prompt the user to enter a version number
         """
-        return  nbconvert.utils.console.input("Version (ie ""1.0.0""): ")
+        return  console.input("Version (ie ""1.0.0""): ")
     
     
     def _prompt_release(self):
@@ -209,7 +209,7 @@ class SphinxTransformer(ActivatableTransformer):
         Prompt the user to input a release name
         """
         
-        return  nbconvert.utils.console.input("Release Name (ie ""Rough draft""): ")
+        return  console.input("Release Name (ie ""Rough draft""): ")
     
     
     def _prompt_date(self):
@@ -218,7 +218,7 @@ class SphinxTransformer(ActivatableTransformer):
         """
         
         default_date = date.today().strftime("%B %-d, %Y")
-        user_date = nbconvert.utils.console.input("Date (deafults to \"" + default_date + "\"): ")
+        user_date = console.input("Date (deafults to \"" + default_date + "\"): ")
         if len(user_date.strip()) == 0:
             user_date = default_date
         return user_date
@@ -237,7 +237,7 @@ class SphinxTransformer(ActivatableTransformer):
         comments = {1: "(recommended for long code segments)",
                     2: "(default)"}
         
-        return nbconvert.utils.console.prompt_dictionary(styles, default_style=2, menu_comments=comments)
+        return console.prompt_dictionary(styles, default_style=2, menu_comments=comments)
     
     
     def _prompt_chapter_title_style(self):
@@ -257,5 +257,5 @@ class SphinxTransformer(ActivatableTransformer):
         comments = {1: "(default)",
                     6: "(for international documents)"}
         
-        return nbconvert.utils.console.prompt_dictionary(styles, menu_comments=comments)
+        return console.prompt_dictionary(styles, menu_comments=comments)
 

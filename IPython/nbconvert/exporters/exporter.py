@@ -22,27 +22,19 @@ import os
 import inspect
 from copy import deepcopy
 
-# IPython imports
-from IPython.config.configurable import Configurable
-from IPython.config import Config
-from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, Unicode, List, Bool
-from IPython.utils.text import indent
-
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
 from markdown import markdown
 
-# local import
-import nbconvert.filters.strings
-import nbconvert.filters.markdown
-import nbconvert.filters.latex
-import nbconvert.filters.datatypefilter
-import nbconvert.filters.highlight
-import nbconvert.filters.ansi
+# IPython imports
+from IPython.config.configurable import Configurable
+from IPython.config import Config
+from IPython.nbformat import current as nbformat
+from IPython.utils.traitlets import MetaHasTraits, Unicode
+from IPython.utils.text import indent
 
-import nbconvert.transformers.extractfigure
-import nbconvert.transformers.coalescestreams
+from IPython.nbconvert import filters
+from IPython.nbconvert import transformers
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -54,21 +46,21 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 default_filters = {
         'indent': indent,
         'markdown': markdown,
-        'ansi2html': nbconvert.filters.ansi.ansi2html,
-        'filter_data_type': nbconvert.filters.datatypefilter.DataTypeFilter,
-        'get_lines': nbconvert.filters.strings.get_lines,
-        'highlight': nbconvert.filters.highlight.highlight,
-        'highlight2html': nbconvert.filters.highlight.highlight,
-        'highlight2latex': nbconvert.filters.highlight.highlight2latex,
-        'markdown2latex': nbconvert.filters.markdown.markdown2latex,
-        'markdown2rst': nbconvert.filters.markdown.markdown2rst,
-        'pycomment': nbconvert.filters.strings.python_comment,
-        'rm_ansi': nbconvert.filters.ansi.remove_ansi,
-        'rm_dollars': nbconvert.filters.strings.strip_dollars,
-        'rm_fake': nbconvert.filters.strings.rm_fake,
-        'ansi2latex': nbconvert.filters.ansi.ansi2latex,
-        'rm_math_space': nbconvert.filters.latex.rm_math_space,
-        'wrap': nbconvert.filters.strings.wrap
+        'ansi2html': filters.ansi2html,
+        'filter_data_type': filters.DataTypeFilter,
+        'get_lines': filters.get_lines,
+        'highlight': filters.highlight,
+        'highlight2html': filters.highlight,
+        'highlight2latex': filters.highlight2latex,
+        'markdown2latex': filters.markdown2latex,
+        'markdown2rst': filters.markdown2rst,
+        'pycomment': filters.python_comment,
+        'rm_ansi': filters.remove_ansi,
+        'rm_dollars': filters.strip_dollars,
+        'rm_fake': filters.rm_fake,
+        'ansi2latex': filters.ansi2latex,
+        'rm_math_space': filters.rm_math_space,
+        'wrap': filters.wrap
 }
 
 #-----------------------------------------------------------------------------
@@ -280,11 +272,11 @@ class Exporter(Configurable):
         Register all of the transformers needed for this exporter.
         """
          
-        self.register_transformer(nbconvert.transformers.coalescestreams.coalesce_streams)
+        self.register_transformer(transformers.coalesce_streams)
         
         #Remember the figure extraction transformer so it can be enabled and
         #disabled easily later.
-        self.extract_figure_transformer = self.register_transformer(nbconvert.transformers.extractfigure.ExtractFigureTransformer)
+        self.extract_figure_transformer = self.register_transformer(transformers.ExtractFigureTransformer)
         
         
     def _register_filters(self):
