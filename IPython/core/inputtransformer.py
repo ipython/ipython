@@ -389,6 +389,7 @@ def classic_prompt():
 def ipy_prompt():
     """Strip IPython's In [1]:/...: prompts."""
     # FIXME: non-capturing version (?:...) usable?
+    # FIXME: r'^(In \[\d+\]: | {3}\.{3,}: )' clearer?
     prompt_re = re.compile(r'^(In \[\d+\]: |\ \ \ \.\.\.+: )')
     return _strip_prompts(prompt_re)
 
