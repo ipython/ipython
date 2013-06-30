@@ -19,6 +19,8 @@ GlobalConfigurable.display_data_priority
 
 from ..utils.config import GlobalConfigurable
 
+__all__ = ['DataTypeFilter']
+
 class DataTypeFilter(GlobalConfigurable):
     """ Returns the preferred display format """
 

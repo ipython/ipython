@@ -19,6 +19,13 @@ from IPython.utils import coloransi
 # Classes and functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'remove_ansi',
+    'ansi2html',
+    'single_ansi2latex',
+    'ansi2latex'
+]
+
 def remove_ansi(source):
     """
     Remove ansi from text

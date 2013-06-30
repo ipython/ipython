@@ -32,6 +32,12 @@ MULTILINE_OUTPUTS = ['text', 'html', 'svg', 'latex', 'javascript', 'json']
 # Utility functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'highlight',
+    'highlight2latex'
+]
+
+
 def highlight(source, language='ipython'):
     """
     Return a syntax-highlighted version of the input source as html output.

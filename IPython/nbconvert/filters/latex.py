@@ -34,6 +34,12 @@ LATEX_SUBS = (
 # Functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'escape_latex',
+    'rm_math_space'
+]
+
+
 def escape_latex(text):
     """
     Escape characters that may conflict with latex.

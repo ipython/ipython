@@ -74,6 +74,21 @@ def DocDecorator(f):
 # Functions
 #-----------------------------------------------------------------------------
 
+__all__ = [
+    'export',
+    'export_sphinx_manual',
+    'export_sphinx_howto',
+    'export_basic_html',
+    'export_full_html',
+    'export_latex',
+    'export_markdown',
+    'export_python',
+    'export_python_armor',
+    'export_reveal',
+    'export_rst',
+    'export_by_name'
+]
+
 @DocDecorator
 def export(exporter_type, nb, config=None, transformers=None, filters=None):
     """
