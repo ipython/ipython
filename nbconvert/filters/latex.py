@@ -21,6 +21,7 @@ import re
 
 #Latex substitutions for escaping latex.
 LATEX_SUBS = (
+    (re.compile('\033\[[0-9;]+m'),''),  # handle console escapes
     (re.compile(r'\\'), r'\\textbackslash'),
     (re.compile(r'([{}_#%&$])'), r'\\\1'),
     (re.compile(r'~'), r'\~{}'),

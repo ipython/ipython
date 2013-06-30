@@ -71,22 +71,38 @@ it introduces a new line
 ((* endblock *))
 
 ((* block data_latex -*))
-\begin{equation*}
-((( output.latex | rm_dollars)))
-\end{equation*}
+((*- if output.latex.startswith('$'): -*)) \begin{equation*}
+    ((( output.latex | rm_dollars)))
+    \end{equation*}
+((*- else -*)) ((( output.latex ))) ((*- endif *))
 ((* endblock *))
 
 ((* block stream *))
-\begin{verbatim}
-((( output.text)))
-\end{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+((( output.text | ansi2latex)))
+\end{Verbatim}
 ((* endblock stream *))
 
 ((* block markdowncell scoped *))((( cell.source | markdown2latex )))
 ((* endblock markdowncell *))
 
-((* block headingcell scoped *))
-\section{((( cell.source | markdown2latex)))}
+((* block headingcell scoped -*))
+    \
+    ((*- if cell.level == 1 -*))
+        ((* block h1 -*))section((* endblock h1 -*))
+    ((*- elif cell.level == 2 -*))
+        ((* block h2 -*))subsection((* endblock h2 -*))
+    ((*- elif cell.level == 3 -*))
+        ((* block h3 -*))subsubsection((* endblock h3 -*))
+    ((*- elif cell.level == 4 -*))
+        ((* block h4 -*))paragraph((* endblock h4 -*))
+    ((*- elif cell.level == 5 -*))
+        ((* block h5 -*))subparagraph((* endblock h5 -*))
+    ((*- elif cell.level == 6 -*))
+        ((* block h6 -*))subparagraph((* endblock h6 -*))
+        ((= 6th level not available in standard latex =))
+
+    ((*- endif -*)){((( cell.source | markdown2latex )))}
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
@@ -128,6 +144,8 @@ unknown type  (((cell.type)))
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
 
+%fancy verbatim
+\usepackage{fancyvrb}
 % needed for markdown enumerations to work
 \usepackage{enumerate}
 
@@ -147,6 +165,16 @@ unknown type  (((cell.type)))
 \definecolor{inputbackground}{rgb}{.95, .95, .85}
 \definecolor{outputbackground}{rgb}{.95, .95, .95}
 \definecolor{traceback}{rgb}{1, .95, .95}
+
+% new ansi colors
+\definecolor{brown}{rgb}{0.54,0.27,0.07}
+\definecolor{purple}{rgb}{0.5,0.0,0.5}
+\definecolor{darkgray}{gray}{0.25}
+\definecolor{lightred}{rgb}{1.0,0.39,0.28}
+\definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+\definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+\definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+\definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
 
 % Framed environments for code cells (inputs, outputs, errors, ...).  The
 % various uses of \unskip (or not) at the end were fine-tuned by hand, so don't

@@ -68,6 +68,17 @@ Note: For best display, use latex syntax highlighting. =))
     % Pygments requirements
     \usepackage{fancyvrb}
     \usepackage{color}
+    % ansi colors additions
+    \definecolor{darkgreen}{rgb}{.12,.54,.11}
+    \definecolor{lightgray}{gray}{.95}
+    \definecolor{brown}{rgb}{0.54,0.27,0.07}
+    \definecolor{purple}{rgb}{0.5,0.0,0.5}
+    \definecolor{darkgray}{gray}{0.25}
+    \definecolor{lightred}{rgb}{1.0,0.39,0.28}
+    \definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+    \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+    \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+    \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
 
     % Needed to box output/input
     \usepackage{tikz}
@@ -325,7 +336,7 @@ Note: For best display, use latex syntax highlighting. =))
 % Additional formating
 %==============================================================================
 ((* block data_text *))
-    ((( custom_verbatim(output.text) )))
+    ((( custom_verbatim(output.text) | ansi2latex)))
 ((* endblock *))
 
 ((* block traceback_line *))
