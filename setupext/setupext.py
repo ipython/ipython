@@ -67,7 +67,7 @@ def check_for_sphinx():
     try:
         import sphinx
     except ImportError:
-        print_status('sphinx', "Not found (required for building documentation)")
+        print_status('sphinx', "Not found (required for docs and nbconvert)")
         return False
     else:
         print_status('sphinx', sphinx.__version__)
@@ -77,10 +77,30 @@ def check_for_pygments():
     try:
         import pygments
     except ImportError:
-        print_status('pygments', "Not found (required for syntax highlighting documentation)")
+        print_status('pygments', "Not found (required for docs and nbconvert)")
         return False
     else:
         print_status('pygments', pygments.__version__)
+        return True
+
+def check_for_jinja2():
+    try:
+        import jinja2
+    except ImportError:
+        print_status('jinja2', "Not found (required for notebook and nbconvert)")
+        return False
+    else:
+        print_status('jinja2', jinja2.__version__)
+        return True
+
+def check_for_markdown():
+    try:
+        import markdown
+    except ImportError:
+        print_status('pygments', "Not found (required for nbconvert)")
+        return False
+    else:
+        print_status('markdown', markdown.version)
         return True
 
 def check_for_nose():
@@ -101,36 +121,6 @@ def check_for_pexpect():
         return False
     else:
         print_status("pexpect", pexpect.__version__)
-        return True
-
-def check_for_httplib2():
-    try:
-        import httplib2
-    except ImportError:
-        print_status("httplib2", "no (required for blocking http clients)")
-        return False
-    else:
-        print_status("httplib2","yes")
-        return True
-
-def check_for_sqlalchemy():
-    try:
-        import sqlalchemy
-    except ImportError:
-        print_status("sqlalchemy", "no (required for the ipython1 notebook)")
-        return False
-    else:
-        print_status("sqlalchemy","yes")
-        return True
-
-def check_for_simplejson():
-    try:
-        import simplejson
-    except ImportError:
-        print_status("simplejson", "no (required for the ipython1 notebook)")
-        return False
-    else:
-        print_status("simplejson","yes")
         return True
 
 def check_for_pyzmq():

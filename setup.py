@@ -278,6 +278,7 @@ if 'setuptools' in sys.modules:
         doc = 'Sphinx>=0.3',
         test = 'nose>=0.10.1',
         notebook = ['tornado>=2.0', 'pyzmq>=2.1.11', 'jinja2'],
+        nbconvert = ['pygments', 'markdown', 'jinja2', 'Sphinx>=0.3']
     )
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
