@@ -75,14 +75,14 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
 
     def _regen_header(self):
         """ 
-        Fills self.header with lines of CSS extracted from iPython 
+        Fills self.header with lines of CSS extracted from IPython 
         and Pygments.
         """
         
         #Clear existing header.
         header = []
         
-        #Construct path to iPy CSS
+        #Construct path to IPy CSS
         sheet_filename = os.path.join(path.get_ipython_package_dir(), 
             'html', 'static', 'style', 'style.min.css')
         
@@ -93,7 +93,7 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
                 header.append(file_text)
         except IOError:
             
-            # New version of iPython with style.min.css, pass
+            # New version of IPython with style.min.css, pass
             pass
 
         #Add pygments CSS

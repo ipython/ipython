@@ -1,5 +1,5 @@
 """
-Exporter that will export your iPynb to Markdown.
+Exporter that will export your ipynb to Markdown.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
