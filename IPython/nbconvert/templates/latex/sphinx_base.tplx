@@ -1,0 +1,442 @@
+((= NBConvert Sphinx-Latex Template
+
+Purpose: Allow export of PDF friendly Latex inspired by Sphinx.  Most of the
+       template is derived directly from Sphinx source.
+
+Inheritance: null>display_priority 
+
+Note: For best display, use latex syntax highlighting. =))
+
+((*- extends 'display_priority.tplx' -*))
+
+%==============================================================================
+% Declarations
+%==============================================================================
+
+% In order to make sure that the input/output header follows the code it 
+% preceeds, the needspace package is used to request that a certain
+% amount of lines (specified by this variable) are reserved.  If those
+% lines aren't available on the current page, the documenter will break
+% to the next page and the header along with accomanying lines will be
+% rendered together.  This value specifies the number of lines that
+% the header will be forced to group with without a page break.
+((*- set min_header_lines = 4 -*))
+
+% This is the number of characters that are permitted per line.  It's
+% important that this limit is set so characters do not run off the
+% edges of latex pages (since latex does not always seem smart enough
+% to prevent this in some cases.)  This is only applied to textual output
+((* if resources.sphinx.outputstyle == 'simple' *))
+    ((*- set wrap_size = 85 -*))
+((* elif resources.sphinx.outputstyle == 'notebook' *))
+    ((*- set wrap_size = 70 -*))
+((* endif *))
+
+%==============================================================================
+% Header
+%==============================================================================
+((* block header *))
+
+% Header, overrides base
+
+    % Make sure that the sphinx doc style knows who it inherits from.
+    \def\sphinxdocclass{(((parentdocumentclass)))}
+
+    % Declare the document class
+    \documentclass[letterpaper,10pt,english]{((( resources.sphinx.texinputs )))/sphinx(((documentclass)))}
+
+    % Imports
+    \usepackage[utf8]{inputenc}
+    \DeclareUnicodeCharacter{00A0}{\\nobreakspace}
+    \usepackage[T1]{fontenc}
+    \usepackage{babel}
+    \usepackage{times}
+    \usepackage{import}
+    \usepackage[((( resources.sphinx.chapterstyle )))]{((( resources.sphinx.texinputs )))/fncychap}
+    \usepackage{longtable}
+    \usepackage{((( resources.sphinx.texinputs )))/sphinx}
+    \usepackage{multirow}
+
+    \usepackage{amsmath}
+    \usepackage{amssymb}
+    \usepackage{ucs}
+    \usepackage{enumerate}
+
+    % Used to make the Input/Output rules follow around the contents.
+    \usepackage{needspace}
+
+    % Pygments requirements
+    \usepackage{fancyvrb}
+    \usepackage{color}
+    % ansi colors additions
+    \definecolor{darkgreen}{rgb}{.12,.54,.11}
+    \definecolor{lightgray}{gray}{.95}
+    \definecolor{brown}{rgb}{0.54,0.27,0.07}
+    \definecolor{purple}{rgb}{0.5,0.0,0.5}
+    \definecolor{darkgray}{gray}{0.25}
+    \definecolor{lightred}{rgb}{1.0,0.39,0.28}
+    \definecolor{lightgreen}{rgb}{0.48,0.99,0.0}
+    \definecolor{lightblue}{rgb}{0.53,0.81,0.92}
+    \definecolor{lightpurple}{rgb}{0.87,0.63,0.87}
+    \definecolor{lightcyan}{rgb}{0.5,1.0,0.83}
+
+    % Needed to box output/input
+    \usepackage{tikz}
+        \usetikzlibrary{calc,arrows,shadows}
+    \usepackage[framemethod=tikz]{mdframed}
+
+    \usepackage{alltt}
+
+    % Used to load and display graphics
+    \usepackage{graphicx}
+    \graphicspath{ {figs/} }
+    \usepackage[Export]{adjustbox} % To resize
+
+
+    % For formatting output while also word wrapping.
+    \usepackage{listings}
+    \lstset{breaklines=true}
+    \lstset{basicstyle=\small\ttfamily}
+    \def\smaller{\fontsize{9.5pt}{9.5pt}\selectfont}
+
+    %Pygments definitions
+    ((( resources.sphinx.pygment_definitions )))
+
+    %Set pygments styles if needed...
+    ((* if resources.sphinx.outputstyle == 'notebook' *))
+        \definecolor{nbframe-border}{rgb}{0.867,0.867,0.867}
+        \definecolor{nbframe-bg}{rgb}{0.969,0.969,0.969}
+        \definecolor{nbframe-in-prompt}{rgb}{0.0,0.0,0.502}
+        \definecolor{nbframe-out-prompt}{rgb}{0.545,0.0,0.0}
+
+        \newenvironment{ColorVerbatim}
+        {\begin{mdframed}[%
+            roundcorner=1.0pt, %
+            backgroundcolor=nbframe-bg, %
+            userdefinedwidth=1\linewidth, %
+            leftmargin=0.1\linewidth, %
+            innerleftmargin=0pt, %
+            innerrightmargin=0pt, %
+            linecolor=nbframe-border, %
+            linewidth=1pt, %
+            usetwoside=false, %
+            everyline=true, %
+            innerlinewidth=3pt, %
+            innerlinecolor=nbframe-bg, %
+            middlelinewidth=1pt, %
+            middlelinecolor=nbframe-bg, %
+            outerlinewidth=0.5pt, %
+            outerlinecolor=nbframe-border, %
+            needspace=0pt
+        ]}
+        {\end{mdframed}}
+        
+        \newenvironment{InvisibleVerbatim}
+        {\begin{mdframed}[leftmargin=0.1\linewidth,innerleftmargin=3pt,innerrightmargin=3pt, userdefinedwidth=1\linewidth, linewidth=0pt, linecolor=white, usetwoside=false]}
+        {\end{mdframed}}
+
+        \renewenvironment{Verbatim}[1][\unskip]
+        {\begin{alltt}\smaller}
+        {\end{alltt}}
+    ((* endif *))
+
+    % Help prevent overflowing lines due to urls and other hard-to-break 
+    % entities.  This doesn't catch everything...
+    \sloppy
+
+    % Document level variables
+    \title{((( nb.metadata.name | escape_tex )))}
+    \date{((( nb.metadata._draft.date | escape_tex )))}
+    \release{((( nb.metadata._draft.version | escape_tex )))}
+    \author{((( nb.metadata._draft.author | escape_tex )))}
+    \renewcommand{\releasename}{((( nb.metadata._draft.release | escape_tex )))}
+
+    % TODO: Add option for the user to specify a logo for his/her export.
+    \newcommand{\sphinxlogo}{}
+
+    % Make the index page of the document.
+    \makeindex
+
+    % Import sphinx document type specifics.
+    ((* block sphinxheader *))((* endblock sphinxheader *)) 
+((* endblock header *))
+
+%==============================================================================
+% Body
+%==============================================================================
+((* block body *))
+((* block bodyBegin *))
+% Body
+
+    % Start of the document
+    \begin{document}
+
+        ((* if resources.sphinx.header *))
+            \maketitle
+        ((* endif *))
+
+        ((* block toc *))
+            \tableofcontents 
+        ((* endblock toc *))
+
+        ((* endblock bodyBegin *))((( super() )))((* block bodyEnd *))
+
+        \renewcommand{\indexname}{Index}
+        \printindex
+
+    % End of document
+    \end{document}
+((* endblock bodyEnd *))
+((* endblock body *))
+
+%==============================================================================
+% Footer
+%==============================================================================
+((* block footer *))
+((* endblock footer *))
+
+%==============================================================================
+% Headings
+%
+% Purpose: Format pynb headers as sphinx headers.  Depending on the Sphinx
+%          style that is active, this will change.  Thus sphinx styles will
+%          override the values here.
+%==============================================================================
+((* block headingcell -*))
+    \
+    ((*- if cell.level == 1 -*))
+        ((* block h1 -*))part((* endblock h1 -*))
+    ((*- elif cell.level == 2 -*))
+        ((* block h2 -*))chapter((* endblock h2 -*))
+    ((*- elif cell.level == 3 -*))
+        ((* block h3 -*))section((* endblock h3 -*))
+    ((*- elif cell.level == 4 -*))
+        ((* block h4 -*))subsection((* endblock h4 -*))
+    ((*- elif cell.level == 5 -*))
+        ((* block h5 -*))subsubsection((* endblock h5 -*))
+    ((*- elif cell.level == 6 -*))
+        ((* block h6 -*))paragraph((* endblock h6 -*))
+
+    ((= It's important to make sure that underscores (which tend to be common
+    in IPYNB file titles) do not make their way into latex.  Sometimes this
+    causes latex to barf. =))
+    ((*- endif -*)){((( cell.source | markdown2latex )))}
+((*- endblock headingcell *))
+
+%==============================================================================
+% Markdown
+%
+% Purpose: Convert markdown to latex.  Here markdown2latex is explicitly
+%          called since we know we want latex output.
+%==============================================================================
+((*- block markdowncell scoped-*))
+    ((( cell.source | markdown2latex )))
+((*- endblock markdowncell -*))
+
+%==============================================================================
+% Rawcell
+%
+% Purpose: Raw text cells allow the user to manually inject document code that 
+%          will not get touched by the templating system.
+%==============================================================================
+((*- block rawcell *))
+    ((( cell.source | wrap(wrap_size) )))
+((* endblock rawcell -*))
+
+%==============================================================================
+% Unknowncell
+%
+% Purpose: This is the catch anything unhandled.  To display this data, we
+%          remove all possible latex conflicts and wrap the characters so they
+%          can't flow off of the page.
+%==============================================================================
+((* block unknowncell scoped*))
+
+    % Unsupported cell type, no formatting
+    ((( cell.source | wrap | escape_tex )))
+((* endblock unknowncell *))
+
+%==============================================================================
+% Input
+%==============================================================================
+((* block input *))
+
+    % Make sure that atleast 4 lines are below the HR
+    \needspace{((( min_header_lines )))\baselineskip}
+
+    ((* if resources.sphinx.outputstyle == 'simple' *))
+
+        % Add a horizantal break, along with break title.
+        \vspace{10pt}
+        {\scriptsize Input}\\*
+        \rule[10pt]{\linewidth}{0.5pt}
+        \vspace{-25pt}
+
+        % Add contents below.
+        ((( cell.input | highlight )))
+
+    ((* elif resources.sphinx.outputstyle == 'notebook' *))
+        \vspace{6pt}
+        ((( write_prompt("In", cell.prompt_number, "nbframe-in-prompt") )))
+        \vspace{-2.65\baselineskip}
+        \begin{ColorVerbatim}
+            \vspace{-0.7\baselineskip}
+            ((( cell.input | highlight )))
+            ((* if cell.input == None or cell.input == '' *))
+                \vspace{0.3\baselineskip}
+            ((* else *))
+                \vspace{-0.2\baselineskip}
+            ((* endif *))
+        \end{ColorVerbatim}
+    ((* endif *))
+((* endblock input *))
+
+%==============================================================================
+% Output_Group
+%
+% Purpose: Make sure that only one header bar only attaches to the output 
+%          once.  By keeping track of when an input group is started
+%==============================================================================
+((* block output_group *))
+    ((* if cell.outputs.__len__() > 0 *))
+
+        % If the first block is an image, minipage the image.  Else
+        % request a certain amount of space for the input text.
+        ((( iff_figure(cell.outputs[0], "\\begin{minipage}{1.0\\textwidth}", "\\needspace{"  ~ min_header_lines ~ "\\baselineskip}") )))
+        
+        ((* if resources.sphinx.outputstyle == 'simple' *))
+
+            % Add a horizantal break, along with break title.
+            \vspace{10pt}
+            {\scriptsize Output}\\*
+            \rule[10pt]{\linewidth}{0.5pt}
+            \vspace{-20pt}
+
+            % Add the contents of the first block.
+            ((( render_output(cell.outputs[0]) )))
+
+            % Close the minipage.
+            ((( iff_figure(cell.outputs[0], "\\end{minipage}", "") )))
+
+            % Add remainer of the document contents below.
+            ((* for output in cell.outputs[1:] *))
+                ((( render_output(output, cell.prompt_number) )))
+            ((* endfor *))
+        ((* elif resources.sphinx.outputstyle == 'notebook' *))
+
+            % Add document contents.
+            ((* for output in cell.outputs *))
+                ((( render_output(output, cell.prompt_number) )))
+            ((* endfor *))
+        ((* endif *))
+    ((* endif *))
+((* endblock *))
+
+%==============================================================================
+% Additional formating
+%==============================================================================
+((* block data_text *))
+    ((( custom_verbatim(output.text) | ansi2latex)))
+((* endblock *))
+
+((* block traceback_line *))
+    ((( conditionally_center_output(line | indent| rm_ansi) )))
+((* endblock traceback_line *))
+
+%==============================================================================
+% Supported image formats
+%==============================================================================
+((*- block data_png -*))
+    ((( conditionally_center_output(insert_graphics(output.key_png)) )))
+((*- endblock -*))
+
+((*- block data_svg -*))
+    ((( conditionally_center_output(insert_graphics(output.key_svg)) )))
+((*- endblock -*))
+
+((*- block data_latex *))
+    ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
+((*- endblock -*))
+
+%==============================================================================
+% Support Macros
+%==============================================================================
+
+% Name: write_prompt
+% Purpose: Renders an output/input prompt for notebook style pdfs
+((* macro write_prompt(prompt, number, color) -*))
+    \makebox[0.1\linewidth]{\smaller\hfill\tt\color{((( color )))}((( prompt )))\hspace{4pt}{[}((( number ))){]}:\hspace{4pt}}\\*
+((*- endmacro *))
+
+% Name: render_output
+% Purpose: Renders an output block appropriately.
+((* macro render_output(output, prompt_number) -*))
+    ((*- if output.output_type == 'pyerr' -*))
+        ((*- block pyerr scoped *))
+            ((( custom_verbatim(super()) )))
+        ((* endblock pyerr -*))
+    ((*- else -*))
+
+        ((* if resources.sphinx.outputstyle == 'notebook' *))
+            ((*- if output.output_type == 'pyout' -*))
+                ((( write_prompt("Out", prompt_number, "nbframe-out-prompt") )))
+                \vspace{-2.55\baselineskip}
+            ((*- endif -*))
+
+            \begin{InvisibleVerbatim}
+                \vspace{-0.5\baselineskip}
+        ((*- endif -*))
+
+        ((*- block display_data scoped -*))
+            ((( super() )))
+        ((*- endblock display_data -*))
+
+        ((* if resources.sphinx.outputstyle == 'notebook' *))
+            \end{InvisibleVerbatim}
+        ((*- endif -*))
+    ((*- endif -*))
+((*- endmacro *))
+
+% Name: iff_figure
+% Purpose: If the output block provided is a figure type, the 'true_content'
+%          parameter will be returned.  Else, the 'false_content'. 
+((* macro iff_figure(output, true_content, false_content) -*))
+    ((*- set is_figure = false -*))
+    ((*- for type in output | filter_data_type -*))
+        ((*- if type in ['pdf', 'svg', 'png', 'jpeg','html']*))
+            ((*- set is_figure = true -*))
+        ((*- endif -*))
+    ((*- endfor -*))
+    
+    ((* if is_figure -*))
+        ((( true_content )))
+    ((*- else -*))
+        ((( false_content )))
+    ((*- endif *))
+((*- endmacro *))
+
+% Name: custom_verbatim
+% Purpose: This macro creates a verbatim style block that fits the existing
+%          sphinx style more readily than standard verbatim blocks.
+((* macro custom_verbatim(text) -*))
+    \begin{alltt}
+    ((*- if resources.sphinx.centeroutput *))\begin{center} ((* endif -*))
+((( text | wrap(wrap_size) )))
+    ((*- if resources.sphinx.centeroutput *))\end{center}((* endif -*))
+    \end{alltt}
+((*- endmacro *))
+
+% Name: conditionally_center_output
+% Purpose: This macro centers the output if the output centering is enabled.
+((* macro conditionally_center_output(text) -*))
+    ((* if resources.sphinx.centeroutput *)){\centering ((* endif *))((( text )))((* if resources.sphinx.centeroutput *))}((* endif *))
+((*- endmacro *))
+
+% Name: insert_graphics
+% Purpose: This macro will insert an image in the latex document given a path.
+((* macro insert_graphics(path) -*))
+    \begin{center}
+    \includegraphics[max size={\textwidth}{\textheight}]{(((path)))}
+    \par
+    \end{center}
+((*- endmacro *))
