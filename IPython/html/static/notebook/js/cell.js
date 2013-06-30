@@ -39,6 +39,7 @@ var IPython = (function (IPython) {
         this.placeholder = options.placeholder || '';
         this.read_only = options.cm_config.readOnly;
         this.selected = false;
+        this.focused = false;
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
@@ -136,7 +137,7 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * should be triggerd when cell is selected
+     * handle cell level logic when a cell is selected
      * @method select
      */
     Cell.prototype.select = function () {
@@ -144,14 +145,31 @@ var IPython = (function (IPython) {
         this.selected = true;
     };
 
-
     /**
-     * should be triggerd when cell is unselected
+     * handle cell level logic when a cell is unselected
      * @method unselect
      */
     Cell.prototype.unselect = function () {
         this.element.removeClass('selected');
         this.selected = false;
+    };
+
+    /**
+     * handle cell level logic when a cell is focused
+     * @method focus
+     */
+    Cell.prototype.focus = function () {
+        this.element.addClass('focused');
+        this.focused = true;
+    };
+
+    /**
+     * handle cell level logic when a cell is unfocused
+     * @method unfocus
+     */
+    Cell.prototype.unfocus = function () {
+        this.element.removeClass('focused');
+        this.focused = false;
     };
 
     /**
