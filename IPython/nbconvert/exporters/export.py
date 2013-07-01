@@ -221,5 +221,5 @@ def export_by_name(template_name, nb, config=None, transformers=None, filters=No
     if function_name in globals():
         return globals()[function_name](nb, config, transformers, filters)
     else:
-        return None
+        raise NameError("template not found")
 
