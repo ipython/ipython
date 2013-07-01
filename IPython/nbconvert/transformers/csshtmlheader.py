@@ -25,7 +25,7 @@ from .activatable import ActivatableTransformer
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CSSHtmlHeaderTransformer(ActivatableTransformer):
+class CSSHTMLHeaderTransformer(ActivatableTransformer):
     """
     Transformer used to pre-process notebook for HTML output.  Adds IPython notebook
     front-end CSS and Pygments CSS to HTML output.
@@ -45,7 +45,7 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
             Additional arguments
         """
         
-        super(CSSHtmlHeaderTransformer, self).__init__(config=config, **kw)
+        super(CSSHTMLHeaderTransformer, self).__init__(config=config, **kw)
 
         if self.enabled :
             self._regen_header()
