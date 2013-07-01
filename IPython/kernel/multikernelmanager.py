@@ -110,7 +110,7 @@ class MultiKernelManager(LoggingConfigurable):
         # including things like its transport and ip.
         km = self.kernel_manager_factory(connection_file=os.path.join(
                     self.connection_dir, "kernel-%s.json" % kernel_id),
-                    config=self.config, autorestart=True, log=self.log
+                    parent=self, autorestart=True, log=self.log
         )
         km.start_kernel(**kwargs)
         self._kernels[kernel_id] = km

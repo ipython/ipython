@@ -134,8 +134,8 @@ class PrefilterManager(Configurable):
     multi_line_specials = CBool(True, config=True)
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
-    def __init__(self, shell=None, config=None):
-        super(PrefilterManager, self).__init__(shell=shell, config=config)
+    def __init__(self, shell=None, **kwargs):
+        super(PrefilterManager, self).__init__(shell=shell, **kwargs)
         self.shell = shell
         self.init_transformers()
         self.init_handlers()
@@ -150,7 +150,7 @@ class PrefilterManager(Configurable):
         self._transformers = []
         for transformer_cls in _default_transformers:
             transformer_cls(
-                shell=self.shell, prefilter_manager=self, config=self.config
+                shell=self.shell, prefilter_manager=self, parent=self
             )
 
     def sort_transformers(self):
@@ -186,7 +186,7 @@ class PrefilterManager(Configurable):
         self._checkers = []
         for checker in _default_checkers:
             checker(
-                shell=self.shell, prefilter_manager=self, config=self.config
+                shell=self.shell, prefilter_manager=self, parent=self
             )
 
     def sort_checkers(self):
@@ -223,7 +223,7 @@ class PrefilterManager(Configurable):
         self._esc_handlers = {}
         for handler in _default_handlers:
             handler(
-                shell=self.shell, prefilter_manager=self, config=self.config
+                shell=self.shell, prefilter_manager=self, parent=self
             )
 
     @property
@@ -368,9 +368,9 @@ class PrefilterTransformer(Configurable):
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
-    def __init__(self, shell=None, prefilter_manager=None, config=None):
+    def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterTransformer, self).__init__(
-            shell=shell, prefilter_manager=prefilter_manager, config=config
+            shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_transformer(self)
 
@@ -396,9 +396,9 @@ class PrefilterChecker(Configurable):
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
     enabled = Bool(True, config=True)
 
-    def __init__(self, shell=None, prefilter_manager=None, config=None):
+    def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterChecker, self).__init__(
-            shell=shell, prefilter_manager=prefilter_manager, config=config
+            shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_checker(self)
 
@@ -561,9 +561,9 @@ class PrefilterHandler(Configurable):
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
     prefilter_manager = Instance('IPython.core.prefilter.PrefilterManager')
 
-    def __init__(self, shell=None, prefilter_manager=None, config=None):
+    def __init__(self, shell=None, prefilter_manager=None, **kwargs):
         super(PrefilterHandler, self).__init__(
-            shell=shell, prefilter_manager=prefilter_manager, config=config
+            shell=shell, prefilter_manager=prefilter_manager, **kwargs
         )
         self.prefilter_manager.register_handler(
             self.handler_name,

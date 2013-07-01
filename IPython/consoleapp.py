@@ -341,7 +341,7 @@ class IPythonConsoleApp(Configurable):
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
                                 connection_file=self.connection_file,
-                                config=self.config,
+                                parent=self,
         )
         self.kernel_manager.client_factory = self.kernel_client_class
         self.kernel_manager.start_kernel(extra_arguments=self.kernel_argv)
@@ -371,7 +371,7 @@ class IPythonConsoleApp(Configurable):
                                 stdin_port=self.stdin_port,
                                 hb_port=self.hb_port,
                                 connection_file=self.connection_file,
-                                config=self.config,
+                                parent=self,
             )
 
         self.kernel_client.start_channels()

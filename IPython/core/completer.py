@@ -246,7 +246,7 @@ class Completer(Configurable):
     )
     
 
-    def __init__(self, namespace=None, global_namespace=None, config=None, **kwargs):
+    def __init__(self, namespace=None, global_namespace=None, **kwargs):
         """Create a new completer for the command line.
 
         Completer(namespace=ns,global_namespace=ns2) -> completer instance.
@@ -280,7 +280,7 @@ class Completer(Configurable):
         else:
             self.global_namespace = global_namespace
 
-        super(Completer, self).__init__(config=config, **kwargs)
+        super(Completer, self).__init__(**kwargs)
 
     def complete(self, text, state):
         """Return the next possible completion for 'text'.

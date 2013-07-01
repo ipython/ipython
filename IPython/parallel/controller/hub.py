@@ -300,7 +300,7 @@ class HubFactory(RegistrationFactory):
         hrep = ctx.socket(zmq.ROUTER)
         util.set_hwm(hrep, 0)
         hrep.bind(self.engine_url('hb_pong'))
-        self.heartmonitor = HeartMonitor(loop=loop, config=self.config, log=self.log,
+        self.heartmonitor = HeartMonitor(loop=loop, parent=self, log=self.log,
                                 pingstream=ZMQStream(hpub,loop),
                                 pongstream=ZMQStream(hrep,loop)
                             )
@@ -324,7 +324,7 @@ class HubFactory(RegistrationFactory):
         db_class = _db_shortcuts.get(self.db_class.lower(), self.db_class)
         self.log.info('Hub using DB backend: %r', (db_class.split('.')[-1]))
         self.db = import_item(str(db_class))(session=self.session.session,
-                                            config=self.config, log=self.log)
+                                            parent=self, log=self.log)
         time.sleep(.25)
 
         # resubmit stream

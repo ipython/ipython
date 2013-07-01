@@ -112,7 +112,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         IPythonConsoleApp.initialize(self)
         # relay sigint to kernel
         signal.signal(signal.SIGINT, self.handle_sigint)
-        self.shell = ZMQTerminalInteractiveShell.instance(config=self.config,
+        self.shell = ZMQTerminalInteractiveShell.instance(parent=self,
                         display_banner=False, profile_dir=self.profile_dir,
                         ipython_dir=self.ipython_dir,
                         manager=self.kernel_manager,

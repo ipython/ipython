@@ -76,7 +76,7 @@ class IPLoggerApp(BaseParallelApplication):
     
     def init_watcher(self):
         try:
-            self.watcher = LogWatcher(config=self.config, log=self.log)
+            self.watcher = LogWatcher(parent=self, log=self.log)
         except:
             self.log.error("Couldn't start the LogWatcher", exc_info=True)
             self.exit(1)

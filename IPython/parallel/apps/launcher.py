@@ -385,7 +385,7 @@ class LocalEngineSetLauncher(LocalEngineLauncher):
         for i in range(n):
             if i > 0:
                 time.sleep(self.delay)
-            el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log,
+            el = self.launcher_class(work_dir=self.work_dir, parent=self, log=self.log,
                                     profile_dir=self.profile_dir, cluster_id=self.cluster_id,
             )
 
@@ -767,7 +767,7 @@ class SSHEngineSetLauncher(LocalEngineSetLauncher):
             for i in range(n):
                 if i > 0:
                     time.sleep(self.delay)
-                el = self.launcher_class(work_dir=self.work_dir, config=self.config, log=self.log,
+                el = self.launcher_class(work_dir=self.work_dir, parent=self, log=self.log,
                                         profile_dir=self.profile_dir, cluster_id=self.cluster_id,
                 )
                 if i > 0:
@@ -922,9 +922,9 @@ class WindowsHPCControllerLauncher(WindowsHPCLauncher, ClusterAppMixin):
         help="extra args to pass to ipcontroller")
 
     def write_job_file(self, n):
-        job = IPControllerJob(config=self.config)
+        job = IPControllerJob(parent=self)
 
-        t = IPControllerTask(config=self.config)
+        t = IPControllerTask(parent=self)
         # The tasks work directory is *not* the actual work directory of
         # the controller. It is used as the base path for the stdout/stderr
         # files that the scheduler redirects to.
@@ -954,10 +954,10 @@ class WindowsHPCEngineSetLauncher(WindowsHPCLauncher, ClusterAppMixin):
         help="extra args to pas to ipengine")
 
     def write_job_file(self, n):
-        job = IPEngineSetJob(config=self.config)
+        job = IPEngineSetJob(parent=self)
 
         for i in range(n):
-            t = IPEngineTask(config=self.config)
+            t = IPEngineTask(parent=self)
             # The tasks work directory is *not* the actual work directory of
             # the engine. It is used as the base path for the stdout/stderr
             # files that the scheduler redirects to.
