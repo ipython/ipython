@@ -144,7 +144,7 @@ class StoreMagics(Magics):
                     else:
                         ip.user_ns[arg] = obj
             else:
-                refresh_variables(ip)
+                restore_data(ip)
 
         # run without arguments -> list variables & values
         elif not args:
