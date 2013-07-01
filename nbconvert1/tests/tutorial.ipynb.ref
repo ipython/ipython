@@ -1,0 +1,441 @@
+{
+ "metadata": {},
+ "nbformat": 3,
+ "nbformat_minor": 0,
+ "worksheets": [
+  {
+   "cells": [
+    {
+     "cell_type": "heading",
+     "level": 1,
+     "metadata": {},
+     "source": [
+      "An Introduction to machine learning with scikit-learn"
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 1,
+     "metadata": {},
+     "source": [
+      "Section contents"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In this section, we introduce the machine learning\n",
+      "vocabulary that we use through-out scikit-learn and give a\n",
+      "simple learning example."
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Machine learning: the problem setting"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In general, a learning problem considers a set of n\n",
+      "samples of\n",
+      "data and try to predict properties of unknown data. If each sample is\n",
+      "more than a single number, and for instance a multi-dimensional entry\n",
+      "(aka multivariate\n",
+      "data), is it said to have several attributes,\n",
+      "or features."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "We can separate learning problems in a few large categories:"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "supervised learning,\n",
+      "in which the data comes with additional attributes that we want to predict\n",
+      "(:ref:`Click here <supervised-learning>`\n",
+      "to go to the Scikit-Learn supervised learning page).This problem\n",
+      "can be either:"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "classification:\n",
+      "samples belong to two or more classes and we\n",
+      "want to learn from already labeled data how to predict the class\n",
+      "of unlabeled data. An example of classification problem would\n",
+      "be the digit recognition example, in which the aim is to assign\n",
+      "each input vector to one of a finite number of discrete\n",
+      "categories."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "regression:\n",
+      "if the desired output consists of one or more\n",
+      "continuous variables, then the task is called regression. An\n",
+      "example of a regression problem would be the prediction of the\n",
+      "length of a salmon as a function of its age and weight."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "unsupervised learning,\n",
+      "in which the training data consists of a set of input vectors x\n",
+      "without any corresponding target values. The goal in such problems\n",
+      "may be to discover groups of similar examples within the data, where\n",
+      "it is called clustering,\n",
+      "or to determine the distribution of data within the input space, known as\n",
+      "density estimation, or\n",
+      "to project the data from a high-dimensional space down to two or thee\n",
+      "dimensions for the purpose of visualization\n",
+      "(:ref:`Click here <unsupervised-learning>`\n",
+      "to go to the Scikit-Learn unsupervised learning page)."
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Training set and testing set"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "Machine learning is about learning some properties of a data set\n",
+      "and applying them to new data. This is why a common practice in\n",
+      "machine learning to evaluate an algorithm is to split the data\n",
+      "at hand in two sets, one that we call a training set on which\n",
+      "we learn data properties, and one that we call a testing set,\n",
+      "on which we test these properties."
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Loading an example dataset"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "scikit-learn comes with a few standard datasets, for instance the\n",
+      "iris and digits\n",
+      "datasets for classification and the boston house prices dataset for regression.:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "from sklearn import datasets\n",
+      "iris = datasets.load_iris()\n",
+      "digits = datasets.load_digits()"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "A dataset is a dictionary-like object that holds all the data and some\n",
+      "metadata about the data. This data is stored in the .data member,\n",
+      "which is a n_samples, n_features array. In the case of supervised\n",
+      "problem, explanatory variables are stored in the .target member. More\n",
+      "details on the different datasets can be found in the :ref:`dedicated\n",
+      "section <datasets>`."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "For instance, in the case of the digits dataset, digits.data gives\n",
+      "access to the features that can be used to classify the digits samples:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "print digits.data  # doctest: +NORMALIZE_WHITESPACE"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "and digits.target gives the ground truth for the digit dataset, that\n",
+      "is the number corresponding to each digit image that we are trying to\n",
+      "learn:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "digits.target"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Shape of the data arrays"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "The data is always a 2D array, n_samples, n_features, although\n",
+      "the original data may have had a different shape. In the case of the\n",
+      "digits, each original sample is an image of shape 8, 8 and can be\n",
+      "accessed using:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "digits.images[0]"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "The :ref:`simple example on this dataset\n",
+      "<example_plot_digits_classification.py>` illustrates how starting\n",
+      "from the original problem one can shape the data for consumption in\n",
+      "the scikit-learn."
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Learning and Predicting"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In the case of the digits dataset, the task is to predict the value of a\n",
+      "hand-written digit from an image. We are given samples of each of the 10\n",
+      "possible classes on which we fit an\n",
+      "estimator to be able to predict\n",
+      "the labels corresponding to new data."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In scikit-learn, an estimator is just a plain Python class that\n",
+      "implements the methods fit(X, Y) and predict(T)."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "An example of estimator is the class sklearn.svm.SVC that\n",
+      "implements Support Vector Classification. The\n",
+      "constructor of an estimator takes as arguments the parameters of the\n",
+      "model, but for the time being, we will consider the estimator as a black\n",
+      "box:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "from sklearn import svm\n",
+      "clf = svm.SVC(gamma=0.001, C=100.)"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Choosing the parameters of the model"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In this example we set the value of gamma manually. It is possible\n",
+      "to automatically find good values for the parameters by using tools\n",
+      "such as :ref:`grid search <grid_search>` and :ref:`cross validation\n",
+      "<cross_validation>`."
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "We call our estimator instance clf as it is a classifier. It now must\n",
+      "be fitted to the model, that is, it must learn from the model. This is\n",
+      "done by passing our training set to the fit method. As a training\n",
+      "set, let us use all the images of our dataset apart from the last\n",
+      "one:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "clf.fit(digits.data[:-1], digits.target[:-1])"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "Now you can predict new values, in particular, we can ask to the\n",
+      "classifier what is the digit of our last image in the digits dataset,\n",
+      "which we have not used to train the classifier:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "clf.predict(digits.data[-1])"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "The corresponding image is the following:"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "As you can see, it is a challenging task: the images are of poor\n",
+      "resolution. Do you agree with the classifier?"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "A complete example of this classification problem is available as an\n",
+      "example that you can run and study:\n",
+      ":ref:`example_plot_digits_classification.py`."
+     ]
+    },
+    {
+     "cell_type": "heading",
+     "level": 2,
+     "metadata": {},
+     "source": [
+      "Model persistence"
+     ]
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "It is possible to save a model in the scikit by using Python's built-in\n",
+      "persistence model, namely pickle:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "from sklearn import svm\n",
+      "from sklearn import datasets\n",
+      "clf = svm.SVC()\n",
+      "iris = datasets.load_iris()\n",
+      "X, y = iris.data, iris.target\n",
+      "clf.fit(X, y)\n",
+      "import pickle\n",
+      "s = pickle.dumps(clf)\n",
+      "clf2 = pickle.loads(s)\n",
+      "clf2.predict(X[0])\n",
+      "y[0]"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    },
+    {
+     "cell_type": "markdown",
+     "metadata": {},
+     "source": [
+      "In the specific case of the scikit, it may be more interesting to use\n",
+      "joblib's replacement of pickle (joblib.dump & joblib.load),\n",
+      "which is more efficient on big data, but can only pickle to the disk\n",
+      "and not to a string:"
+     ]
+    },
+    {
+     "cell_type": "code",
+     "collapsed": false,
+     "input": [
+      "from sklearn.externals import joblib\n",
+      "joblib.dump(clf, 'filename.pkl') # doctest: +SKIP"
+     ],
+     "language": "python",
+     "metadata": {},
+     "outputs": []
+    }
+   ],
+   "metadata": {}
+  }
+ ]
+}
