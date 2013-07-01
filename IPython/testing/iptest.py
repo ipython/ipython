@@ -355,7 +355,7 @@ class IPTester(object):
         
         # Find the section we're testing (IPython.foo)
         for sect in self.params:
-            if sect.startswith('IPython'): break
+            if sect.startswith('IPython') or sect in special_test_suites: break
         else:
             raise ValueError("Section not found", self.params)
         
@@ -429,6 +429,10 @@ class IPTester(object):
                 # The process did not die...
                 print('... failed. Manual cleanup may be required.')
 
+
+special_test_suites = {
+    'autoreload': ['IPython.extensions.autoreload', 'IPython.extensions.tests.test_autoreload'],
+}
                 
 def make_runners(inc_slow=False):
     """Define the top-level packages that need to be tested.
@@ -458,6 +462,9 @@ def make_runners(inc_slow=False):
 
     # Make runners
     runners = [ (v, IPTester('iptest', params=v)) for v in nose_packages ]
+    
+    for name in special_test_suites:
+        runners.append((name, IPTester('iptest', params=name)))
 
     return runners
 
@@ -475,6 +482,12 @@ def run_iptest():
 
     warnings.filterwarnings('ignore',
         'This will be removed soon.  Use IPython.testing.util instead')
+    
+    if sys.argv[1] in special_test_suites:
+        sys.argv[1:2] = special_test_suites[sys.argv[1]]
+        special_suite = True
+    else:
+        special_suite = False
 
     argv = sys.argv + [ '--detailed-errors',  # extra info in tracebacks
 
@@ -505,7 +518,8 @@ def run_iptest():
 
     # use our plugin for doctesting.  It will remove the standard doctest plugin
     # if it finds it enabled
-    plugins = [IPythonDoctest(make_exclude()), KnownFailure()]
+    ipdt = IPythonDoctest() if special_suite else IPythonDoctest(make_exclude())
+    plugins = [ipdt, KnownFailure()]
     
     # We need a global ipython running in this process, but the special
     # in-process group spawns its own IPython kernels, so for *that* group we
@@ -593,7 +607,7 @@ def run_iptestall(inc_slow=False):
 
 def main():
     for arg in sys.argv[1:]:
-        if arg.startswith('IPython'):
+        if arg.startswith('IPython') or arg in special_test_suites:
             # This is in-process
             run_iptest()
     else:
