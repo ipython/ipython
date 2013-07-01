@@ -261,6 +261,16 @@ def call_tip(oinfo, format_call=True):
 
     return call_line, doc
 
+def safe_hasattr(obj, attr):
+    """In recent versions of Python, hasattr() only catches AttributeError.
+    This catches all errors.
+    """
+    try:
+        getattr(obj, attr)
+        return True
+    except:
+        return False
+
 
 def find_file(obj):
     """Find the absolute path to the file where an object was defined.
@@ -279,7 +289,7 @@ def find_file(obj):
       The absolute path to the file where the object was defined.
     """
     # get source if obj was decorated with @decorator
-    if hasattr(obj, '__wrapped__'):
+    if safe_hasattr(obj, '__wrapped__'):
         obj = obj.__wrapped__
 
     fname = None
@@ -316,7 +326,7 @@ def find_source_lines(obj):
       The line number where the object definition starts.
     """
     # get source if obj was decorated with @decorator
-    if hasattr(obj, '__wrapped__'):
+    if safe_hasattr(obj, '__wrapped__'):
         obj = obj.__wrapped__
     
     try:
@@ -779,7 +789,7 @@ class Inspector:
                 out['init_docstring'] = init_ds
 
             # Call form docstring for callable instances
-            if hasattr(obj, '__call__'):
+            if safe_hasattr(obj, '__call__'):
                 call_def = self._getdef(obj.__call__, oname)
                 if call_def is not None:
                     out['call_def'] = self.format(call_def)

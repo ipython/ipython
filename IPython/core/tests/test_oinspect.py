@@ -158,6 +158,11 @@ class SimpleMagics(Magics):
         "A class-based line/cell magic"
 
 
+class Awkward(object):
+    def __getattr__(self, name):
+        raise Exception(name)
+
+
 def check_calltip(obj, name, call, docstring):
     """Generic check pattern all calltip tests will use"""
     info = inspector.info(obj, name)
@@ -260,6 +265,10 @@ def test_info():
         i = inspector.info(OldStyle())
         nt.assert_equal(i['type_name'], 'instance')
         nt.assert_equal(i['docstring'], OldStyle.__doc__)
+
+def test_info_awkward():
+    # Just test that this doesn't throw an error.
+    i = inspector.info(Awkward())
 
 def test_getdoc():
     class A(object):
