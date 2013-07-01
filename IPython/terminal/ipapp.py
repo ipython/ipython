@@ -81,6 +81,8 @@ ipython help profile       # show the help for the profile subcmd
 
 ipython locate             # print the path to the IPython directory
 ipython locate profile foo # print the path to the directory for profile `foo`
+
+ipython nbconvert           # convert notebooks to/from other formats
 """
 
 #-----------------------------------------------------------------------------
@@ -243,6 +245,9 @@ class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
         ),
         history=('IPython.core.historyapp.HistoryApp',
             "Manage the IPython history database."
+        ),
+        nbconvert=('IPython.nbconvert.nbconvertapp.NbConvertApp',
+            "Convert notebooks to/from other formats."
         ),
     ))
 

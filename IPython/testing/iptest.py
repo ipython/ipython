@@ -166,6 +166,8 @@ have['jinja2'] = test_for('jinja2')
 have['wx'] = test_for('wx')
 have['wx.aui'] = test_for('wx.aui')
 have['azure'] = test_for('azure')
+have['sphinx'] = test_for('sphinx')
+have['markdown'] = test_for('markdown')
 
 min_zmq = (2,1,11)
 
@@ -305,6 +307,9 @@ def make_exclude():
     if not have['azure']:
         exclusions.append(ipjoin('html', 'services', 'notebooks', 'azurenbmanager'))
 
+    if not all((have['pygments'], have['jinja2'], have['markdown'], have['sphinx'])):
+        exclusions.append(ipjoin('nbconvert'))
+
     # This is needed for the reg-exp to match on win32 in the ipdoctest plugin.
     if sys.platform == 'win32':
         exclusions = [s.replace('\\','\\\\') for s in exclusions]
@@ -440,7 +445,7 @@ def make_runners(inc_slow=False):
 
     # Packages to be tested via nose, that only depend on the stdlib
     nose_pkg_names = ['config', 'core', 'extensions', 'lib', 'terminal',
-                      'testing', 'utils', 'nbformat' ]
+                      'testing', 'utils', 'nbformat']
 
     if have['qt']:
         nose_pkg_names.append('qt')
@@ -453,6 +458,9 @@ def make_runners(inc_slow=False):
         nose_pkg_names.append('kernel.inprocess')
         if inc_slow:
             nose_pkg_names.append('parallel')
+
+    if all((have['pygments'], have['jinja2'], have['markdown'], have['sphinx'])):
+        nose_pkg_names.append('nbconvert')
 
     # For debugging this code, only load quick stuff
     #nose_pkg_names = ['core', 'extensions']  # dbg
