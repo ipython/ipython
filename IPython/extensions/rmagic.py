@@ -578,16 +578,24 @@ class RMagics(Magics):
         self.r('png("%s/Rplots%%03d.png",%s)' % (tmpd.replace('\\', '/'), png_args))
 
         text_output = ''
-        if line_mode:
-            for line in code.split(';'):
-                text_result, result = self.eval(line)
+        try:
+            if line_mode:
+                for line in code.split(';'):
+                    text_result, result = self.eval(line)
+                    text_output += text_result
+                if text_result:
+                    # the last line printed something to the console so we won't return it
+                    return_output = False
+            else:
+                text_result, result = self.eval(code)
                 text_output += text_result
-            if text_result:
-                # the last line printed something to the console so we won't return it
-                return_output = False
-        else:
-            text_result, result = self.eval(code)
-            text_output += text_result
+        
+        except RInterpreterError as e:
+            print(e.stdout)
+            if not e.stdout.endswith(e.err):
+                print(e.err)
+            rmtree(tmpd)
+            return
 
         self.r('dev.off()')
 
