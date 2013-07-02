@@ -16,9 +16,6 @@ Authors
 # Imports
 #-----------------------------------------------------------------------------
 
-# Stdlib imports
-from unittest import TestCase
-
 # Third-party imports
 import nose.tools as nt
 

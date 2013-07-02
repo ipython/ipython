@@ -25,7 +25,7 @@ import uuid
 
 from datetime import datetime
 from signal import (
-        signal, getsignal, default_int_handler, SIGINT, SIG_IGN
+        signal, default_int_handler, SIGINT
 )
 
 # System library imports
@@ -37,11 +37,10 @@ from zmq.eventloop.zmqstream import ZMQStream
 from IPython.config.configurable import Configurable
 from IPython.core.error import StdinNotImplementedError
 from IPython.core import release
-from IPython.utils import io
 from IPython.utils import py3compat
 from IPython.utils.jsonutil import json_clean
 from IPython.utils.traitlets import (
-    Any, Instance, Float, Dict, CaselessStrEnum, List, Set, Integer, Unicode,
+    Any, Instance, Float, Dict, List, Set, Integer, Unicode,
     Type
 )
 

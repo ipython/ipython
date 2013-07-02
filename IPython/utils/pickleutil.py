@@ -30,6 +30,7 @@ try:
 except:
     numpy = None
 
+import codeutil  # This registers a hook when it's imported
 import py3compat
 from importstring import import_item
 
