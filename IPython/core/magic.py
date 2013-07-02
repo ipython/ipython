@@ -15,7 +15,6 @@
 # Imports
 #-----------------------------------------------------------------------------
 # Stdlib
-import json
 import os
 import re
 import sys

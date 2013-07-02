@@ -476,8 +476,6 @@ def test_timeit_arguments():
 
 def test_timeit_special_syntax():
     "Test %%timeit with IPython special syntax"
-    from IPython.core.magic import register_line_magic
-
     @register_line_magic
     def lmagic(line):
         ip = get_ipython()

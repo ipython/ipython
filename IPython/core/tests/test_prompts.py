@@ -4,12 +4,10 @@
 import unittest
 
 import os
-import nose.tools as nt
 
 from IPython.testing import tools as tt, decorators as dec
 from IPython.core.prompts import PromptManager, LazyEvaluate
 from IPython.testing.globalipapp import get_ipython
-from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 
 ip = get_ipython()
