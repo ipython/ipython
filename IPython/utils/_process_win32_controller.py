@@ -13,7 +13,7 @@ This file is meant to be used by process.py
 from __future__ import print_function
 
 # stdlib
-import os, sys, time, threading
+import os, sys, threading
 import ctypes, msvcrt
 
 # Win32 API types needed for the API calls

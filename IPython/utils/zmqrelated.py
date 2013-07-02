@@ -10,7 +10,6 @@
 # Verify zmq version dependency >= 2.1.11
 #-----------------------------------------------------------------------------
 
-import warnings
 from IPython.utils.version import check_version
 
 

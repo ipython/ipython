@@ -18,9 +18,6 @@ import random
 
 import nose.tools as nt
 
-from nose import with_setup
-
-from IPython.testing import decorators as dec
 from IPython.utils import text
 
 #-----------------------------------------------------------------------------

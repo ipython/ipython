@@ -19,7 +19,6 @@ from __future__ import print_function
 import os
 import sys
 import ctypes
-import msvcrt
 
 from ctypes import c_int, POINTER
 from ctypes.wintypes import LPCWSTR, HLOCAL
