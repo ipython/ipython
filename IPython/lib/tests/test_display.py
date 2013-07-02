@@ -15,7 +15,6 @@
 from __future__ import print_function
 from tempfile import NamedTemporaryFile, mkdtemp
 from os.path import split
-from os import sep
 
 # Third-party imports
 import nose.tools as nt
