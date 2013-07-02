@@ -233,27 +233,35 @@ var IPython = (function (IPython) {
     };
 
     MenuBar.prototype.update_restore_checkpoint = function(checkpoints) {
-        if (! checkpoints) {
-            checkpoints = [];
+        var ul = this.element.find("#restore_checkpoint").find("ul");
+        ul.empty();
+        if (! checkpoints || checkpoints.length == 0) {
+            ul.append(
+                $("<li/>")
+                .addClass("disabled")
+                .append(
+                    $("<a/>")
+                    .attr("href", "#")
+                    .text("No checkpoints")
+                )
+            );
+            return;
         };
-        this.element.find("#restore_checkpoint").find("ul").find("li").each(function(i) {
-            var li = $(this);
-            var a = li.find("a");
-            a.off("click");
-            if (checkpoints.length <= i) {
-                li.hide();
-                return;
-            } else {
-                li.show();
-            };
+        console.log("checkpoints!", checkpoints);
+        for (var i = 0; i < checkpoints.length; i++) {
             var checkpoint = checkpoints[i];
             var d = new Date(checkpoint.last_modified);
-            li.find('a').text(
-                d.format("mmm dd HH:MM:ss")
-            ).click(function () {
-                IPython.notebook.restore_checkpoint_dialog(checkpoint);
-            });
-        });
+            ul.append(
+                $("<li/>").append(
+                    $("<a/>")
+                    .attr("href", "#")
+                    .text(d.format("mmm dd HH:MM:ss"))
+                    .click(function () {
+                        IPython.notebook.restore_checkpoint_dialog(checkpoint);
+                    })
+                )
+            );
+        };
     };
 
     IPython.MenuBar = MenuBar;
