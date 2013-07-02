@@ -20,7 +20,7 @@ from subprocess import Popen, PIPE
 
 import nose.tools as nt
 
-from IPython.testing import decorators as dec
+from IPython.testing.ipunittest import ParametricTestCase
 from IPython.utils.io import Tee, capture_output
 from IPython.utils.py3compat import doctest_refactor_print
 
@@ -38,7 +38,7 @@ def test_tee_simple():
     nt.assert_equal(chan.getvalue(), text+"\n")
 
 
-class TeeTestCase(dec.ParametricTestCase):
+class TeeTestCase(ParametricTestCase):
 
     def tchan(self, channel, check='close'):
         trap = StringIO()
