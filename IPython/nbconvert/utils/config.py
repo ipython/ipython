@@ -24,7 +24,7 @@ class GlobalConfigurable(Configurable):
     Usefull for display data priority that might be use by many trasnformers
     """
 
-    display_data_priority = List(['html', 'pdf', 'svg', 'latex', 'png', 'jpg', 'jpeg' , 'text'],
+    display_data_priority = List(['pdf', 'svg', 'png', 'jpg', 'jpeg'],
             config=True,
               help= """
                     An ordered list of prefered output type, the first
