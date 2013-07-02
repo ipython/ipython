@@ -160,7 +160,7 @@ class Exporter(Configurable):
         #Load user filters.  Overwrite existing filters if need be.
         if not filters is None:
             for key, user_filter in filters.iteritems():
-                if issubclass(user_filter, MetaHasTraits):
+                if isinstance(user_filter, type) and issubclass(user_filter, MetaHasTraits):
                     self.environment.filters[key] = user_filter(config=config)
                 else:
                     self.environment.filters[key] = user_filter
