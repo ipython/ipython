@@ -16,14 +16,14 @@ Exporter for exporting full HTML documents.
 
 from IPython.utils.traitlets import Unicode
 
-from .basichtml import BasicHtmlExporter
+from .basichtml import BasicHTMLExporter
 from IPython.config import Config
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class FullHtmlExporter(BasicHtmlExporter):
+class FullHTMLExporter(BasicHTMLExporter):
     """
     Exports a full HTML document.
     """
@@ -34,6 +34,6 @@ class FullHtmlExporter(BasicHtmlExporter):
 
     @property
     def default_config(self):
-        c = Config({'CSSHtmlHeaderTransformer':{'enabled':True}})
-        c.merge(super(FullHtmlExporter,self).default_config)
+        c = Config({'CSSHTMLHeaderTransformer':{'enabled':True}})
+        c.merge(super(FullHTMLExporter,self).default_config)
         return c

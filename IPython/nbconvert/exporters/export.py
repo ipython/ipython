@@ -18,8 +18,8 @@ from functools import wraps
 from IPython.nbformat.v3.nbbase import NotebookNode
 
 from .exporter import Exporter
-from .basichtml import BasicHtmlExporter
-from .fullhtml import FullHtmlExporter
+from .basichtml import BasicHTMLExporter
+from .fullhtml import FullHTMLExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
@@ -146,7 +146,7 @@ def export_basic_html(nb, config=None, transformers=None, filters=None):
     """
     Export a notebook object to Basic HTML
     """
-    return export(BasicHtmlExporter, nb, config, transformers, filters)
+    return export(BasicHTMLExporter, nb, config, transformers, filters)
 
 
 @DocDecorator
@@ -154,7 +154,7 @@ def export_full_html(nb, config=None, transformers=None, filters=None):
     """
     Export a notebook object to Full HTML
     """
-    return export(FullHtmlExporter, nb, config, transformers, filters)
+    return export(FullHTMLExporter, nb, config, transformers, filters)
 
 
 @DocDecorator
