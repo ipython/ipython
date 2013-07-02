@@ -2,7 +2,7 @@
 import unittest
 
 # System library imports
-from IPython.external.qt import QtCore, QtGui
+from IPython.external.qt import QtGui
 
 # Local imports
 from IPython.qt.console.kill_ring import KillRing, QtKillRing

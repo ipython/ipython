@@ -4,7 +4,7 @@
 from IPython.external.qt import QtCore
 
 # Local imports
-from IPython.utils.traitlets import Bool, Instance
+from IPython.utils.traitlets import Bool
 
 from IPython.kernel import KernelManager
 from IPython.kernel.restarter import KernelRestarter
