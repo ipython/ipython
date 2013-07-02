@@ -20,6 +20,8 @@ from pygments.formatters import HtmlFormatter
 from IPython.utils import path
 
 from .activatable import ActivatableTransformer
+
+from IPython.utils.traitlets import Unicode
         
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -32,6 +34,9 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
     """
 
     header = []
+
+    highlight_class = Unicode('highlight', config=True,
+                              help="CSS highlight class identifier")
 
     def __init__(self, config=None, **kw):
         """
@@ -97,8 +102,8 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
             pass
 
         #Add pygments CSS
-        highlight_class = '.' + self.config.get('highlight_class', 'highlight')
-        pygments_css = HtmlFormatter().get_style_defs(highlight_class)
+        formatter = HtmlFormatter()
+        pygments_css = formatter.get_style_defs('.' + self.highlight_class)
         header.append(pygments_css)
 
         #Set header        
