@@ -38,7 +38,6 @@ import sys
 import tempfile
 from glob import glob
 from shutil import rmtree
-from getopt import getopt
 
 # numpy and rpy2 imports
 
@@ -57,7 +56,7 @@ except ImportError:
 # IPython imports
 
 from IPython.core.displaypub import publish_display_data
-from IPython.core.magic import (Magics, magics_class, cell_magic, line_magic,
+from IPython.core.magic import (Magics, magics_class, line_magic,
                                 line_cell_magic, needs_local_scope)
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.core.magic_arguments import (
