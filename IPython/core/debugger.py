@@ -206,6 +206,12 @@ class Pdb(OldPdb):
 
         self.shell = get_ipython()
 
+        if self.shell is None:
+            # No IPython instance running, we must create one
+            from IPython.terminal.interactiveshell import \
+                TerminalInteractiveShell
+            self.shell = TerminalInteractiveShell.instance()
+
         if self.is_pydb:
 
             # interactiveshell.py's ipalias seems to want pdb's checkline
