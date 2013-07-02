@@ -48,7 +48,6 @@ Authors
 #-----------------------------------------------------------------------------
 
 # Stdlib imports
-import inspect
 import sys
 import tempfile
 import unittest
@@ -60,9 +59,9 @@ from IPython.external.decorator import decorator
 
 # We already have python3-compliant code for parametric tests
 if sys.version[0]=='2':
-    from _paramtestpy2 import parametric, ParametricTestCase
+    from _paramtestpy2 import parametric
 else:
-    from _paramtestpy3 import parametric, ParametricTestCase
+    from _paramtestpy3 import parametric
 
 # Expose the unittest-driven decorators
 from ipunittest import ipdoctest, ipdocstring

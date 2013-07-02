@@ -16,7 +16,6 @@ Tests for testing.tools
 from __future__ import with_statement
 
 import os
-import sys
 import unittest
 
 import nose.tools as nt
@@ -122,7 +121,7 @@ class Test_ipexec_validate(unittest.TestCase, tt.TempFileMixin):
         out = "A\nB"
         tt.ipexec_validate(self.fname, expected_out=out, expected_err="C\nD")
 
-    def test_exception_path(self):
+    def test_exception_path2(self):
         """Test exception path in exception_validate, expecting windows line endings.
         """
         self.mktmp("from __future__ import print_function\n"
