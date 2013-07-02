@@ -97,7 +97,8 @@ class CSSHtmlHeaderTransformer(ActivatableTransformer):
             pass
 
         #Add pygments CSS
-        pygments_css = HtmlFormatter().get_style_defs('.highlight')
+        highlight_class = '.' + self.config.get('highlight_class', 'highlight')
+        pygments_css = HtmlFormatter().get_style_defs(highlight_class)
         header.append(pygments_css)
 
         #Set header        
