@@ -22,8 +22,6 @@ from .activatable import ActivatableTransformer
 #-----------------------------------------------------------------------------
 
 FIGURES_KEY = "figures"
-BINARY_KEY = "binary"
-TEXT_KEY = "text"
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -79,8 +77,9 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Index of the cell being processed (see base.py)
         """
         
-        if resources.get(FIGURES_KEY, None) is None :
-            resources[FIGURES_KEY] = {TEXT_KEY:{},BINARY_KEY:{}}
+        #Make sure figures key exists
+        if not FIGURES_KEY in resources:
+            resources[FIGURES_KEY] = {}
             
         for out in cell.get('outputs', []):
             for out_type in self.display_data_priority:
