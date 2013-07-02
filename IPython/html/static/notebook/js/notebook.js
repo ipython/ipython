@@ -350,8 +350,10 @@ var IPython = (function (IPython) {
             var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             expand_time(time);
         });
-
-        $(window).bind('beforeunload', function () {
+        
+        // Firefox 22 broke $(window).on("beforeunload")
+        // I'm not sure why or how.
+        window.onbeforeunload = function (e) {
             // TODO: Make killing the kernel configurable.
             var kill_kernel = false;
             if (kill_kernel) {
@@ -370,7 +372,7 @@ var IPython = (function (IPython) {
             // Null is the *only* return value that will make the browser not
             // pop up the "don't leave" dialog.
             return null;
-        });
+        };
     };
 
     /**
