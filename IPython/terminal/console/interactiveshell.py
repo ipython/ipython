@@ -30,9 +30,8 @@ try:
 except:
     from IPython.utils.nested_context import nested
 
-from IPython.core.alias import AliasManager, AliasError
 from IPython.core import page
-from IPython.utils.warn import warn, error, fatal
+from IPython.utils.warn import warn, error
 from IPython.utils import io
 from IPython.utils.traitlets import List, Enum, Any, Instance, Unicode
 from IPython.utils.tempdir import NamedFileInTemporaryDirectory

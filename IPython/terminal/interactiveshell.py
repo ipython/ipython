@@ -17,9 +17,7 @@ from __future__ import print_function
 
 import bdb
 import os
-import re
 import sys
-import textwrap
 
 # We need to use nested to support python 2.6, once we move to >=2.7, we can
 # use the with keyword's new builtin support for nested managers

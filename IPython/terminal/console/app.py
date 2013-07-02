@@ -14,21 +14,16 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 import signal
-import sys
-import time
 
 from IPython.terminal.ipapp import TerminalIPythonApp, frontend_flags as term_flags
 
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Int, CaselessStrEnum, CBool, Any
+    Dict, Any
 )
-from IPython.utils.warn import warn,error
+from IPython.utils.warn import error
 
-from IPython.kernel.zmq.kernelapp import IPKernelApp
-from IPython.kernel.zmq.session import Session, default_secure
-from IPython.kernel.zmq.zmqshell import ZMQInteractiveShell
 from IPython.consoleapp import (
-        IPythonConsoleApp, app_aliases, app_flags, aliases, app_aliases, flags
+        IPythonConsoleApp, app_aliases, app_flags, aliases, flags
     )
 
 from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell

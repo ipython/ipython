@@ -51,7 +51,7 @@ from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from IPython.utils import warn
 from IPython.utils.path import get_ipython_dir, check_for_old_config
 from IPython.utils.traitlets import (
-    Bool, List, Dict, CaselessStrEnum
+    Bool, List, Dict,
 )
 
 #-----------------------------------------------------------------------------
