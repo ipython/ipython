@@ -14,7 +14,7 @@ Contains writer base class.
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..transformers.extractfigure.py import FIGURES_KEY
+from ..transformers.extractfigure import FIGURES_KEY
 from ..utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------
