@@ -99,7 +99,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     data = out[out_type]
 
                     #Binary files are base64-encoded, SVG is already XML
-                    if format in ('png', 'jpg', 'pdf'):
+                    if out_type in ('png', 'jpg', 'pdf'):
                         data = data.decode('base64')
 
                     #If the extension for the data type is different is 
