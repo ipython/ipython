@@ -52,7 +52,8 @@ class FileWriter(WriterBase):
             Parameters
             ----------
             notebook_filename : string
-                Name of the notebook file that was converted.
+                Name of the notebook file that was converted (no extension or 
+                full path).
             output_extension : string
                 Extension to give the output when written to the destination.
             output : string
