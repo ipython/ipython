@@ -279,10 +279,10 @@ var IPython = (function (IPython) {
                                     }
                                 };
                                 if (notebooklist.notebookPath() == "") {
-                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + nbname; 
+                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + nbname +'.ipynb'; 
                                 }
                                 else {
-                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + notebooklist.notebookPath() + nbname;
+                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + notebooklist.notebookPath() + nbname + '.ipynb';
                                 }
                                 $.ajax(url, settings);
                             }
