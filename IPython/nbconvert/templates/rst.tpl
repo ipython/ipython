@@ -33,15 +33,15 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 
 
 
-{% block data_svg %}.. image:: {{output.key_svg}}
+{% block data_svg %}.. image:: {{output.svg_filename}}
 
 {% endblock data_svg %}
 
-{% block data_png %}.. image:: {{output.key_png}}
+{% block data_png %}.. image:: {{output.png_filename}}
 
 {% endblock data_png %}
 
-{% block data_jpg %}..jpg image:: {{output.key_jpg}}
+{% block data_jpg %}..jpg image:: {{output.jpg_filename}}
 
 {% endblock data_jpg %}
 

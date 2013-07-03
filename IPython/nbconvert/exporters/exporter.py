@@ -162,29 +162,37 @@ class Exporter(Configurable):
             for key, user_filter in filters.iteritems():
                 self.register_filter(key, user_filter)
 
+
     @property
     def default_config(self):
         return Config()
-
     
     
-    def from_notebook_node(self, nb, resources=None):
+    def from_notebook_node(self, notebook_name, nb, resources=None):
         """
         Convert a notebook from a notebook node instance.
     
         Parameters
         ----------
+        notebook_name : str
+            Name of the notebook (unique).  Used to prefix extracted figure 
+            filenames.  Must be passed in to exporter so the templates can know
+            the names of the files the extracted figures are stored in.  
+            (ugly, I know... but necessary for building multiple notebooks to 
+                one directory)
         nb : Notebook node
         resources : a dict of additional resources that
                 can be accessed read/write by transformers
                 and filters.
         """
+        self._notebook_name = notebook_name
+
         if resources is None:
             resources = {}
         nb, resources = self._preprocess(nb, resources)
         
         #Load the template file.
-        self.template = self.environment.get_template(self.template_file+self.template_extension)
+        self.template = self.environment.get_template(self.template_file + self.template_extension)
         
         return self.template.render(nb=nb, resources=resources), resources
 
@@ -198,21 +206,32 @@ class Exporter(Configurable):
         filename : str
             Full filename of the notebook file to open and convert.
         """
-        
+
+        #Get the notebook name by removing the full path to the notebook and 
+        #the extension on the notebook.
+        basename = os.path.basename(filename)
+        notebook_name = basename[:basename.rfind('.')]
+
         with io.open(filename) as f:
-            return self.from_notebook_node(nbformat.read(f, 'json'))
+            return self.from_notebook_node(notebook_name, nbformat.read(f, 'json'))
 
 
-    def from_file(self, file_stream):
+    def from_file(self, notebook_name, file_stream):
         """
         Convert a notebook from a notebook file.
     
         Parameters
         ----------
+        notebook_name : str
+            Name of the notebook (unique).  Used to prefix extracted figure 
+            filenames.  Must be passed in to exporter so the templates can know
+            the names of the files the extracted figures are stored in.  
+            (ugly, I know... but necessary for building multiple notebooks to 
+                one directory)
         file_stream : file-like object
             Notebook file-like object to convert.
         """
-        return self.from_notebook_node(nbformat.read(file_stream, 'json'))
+        return self.from_notebook_node(notebook_name, nbformat.read(file_stream, 'json'))
 
 
     def register_transformer(self, transformer):
@@ -273,9 +292,10 @@ class Exporter(Configurable):
         
         #Remember the figure extraction transformer so it can be enabled and
         #disabled easily later.
-        self.extract_figure_transformer = self.register_transformer(transformers.ExtractFigureTransformer)
+        self.extract_figure_transformer = transformers.ExtractFigureTransformer(notebook_name=self._notebook_name, config=self.config)
+        self.register_transformer(self.extract_figure_transformer)
         
-        
+
     def _register_filters(self):
         """
         Register all of the filters required for the exporter.
@@ -335,4 +355,3 @@ class Exporter(Configurable):
         for transformer in self.transformers:
             nb, resources = transformer(nbc, resc)
         return nb, resources
-
