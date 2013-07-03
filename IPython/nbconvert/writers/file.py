@@ -82,7 +82,7 @@ class FileWriter(BaseWriter):
             #AFFECTS SVG FILE LINE ENDINGS ON WINDOWS.  THE SVG FILES WILL STILL
             #WORK IN ANY READER, THEY JUST WONT BE AS HUMAN READABLE (A 
             #CONVERSION WILL BE REQUIRED).
-            for (filename, data) in self._get_extracted_figures(resources):
+            for (filename, data) in self._get_extracted_figures(resources).items():
 
                 #Determine where to write the file to
                 if not destination is None:
