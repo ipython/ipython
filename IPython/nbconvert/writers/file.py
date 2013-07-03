@@ -17,6 +17,7 @@ Contains writer for writing nbconvert output to filesystem.
 import io
 import os
 import shutil
+import glob
 
 from IPython.utils.traitlets import Unicode
 
@@ -42,8 +43,7 @@ class FileWriter(WriterBase):
         super(FileWriter, self).__init__(config=config, **kw)
     
 
-    def write(self, notebook_name, output_extension, output, resources, 
-                  referenced_files=[]):
+    def write(self, notebook_name, output_extension, output, resources):
             """
             Consume and write Jinja output to the file system.  Output directory
             is set via the 'build_directory' variable of this instance (a 
@@ -63,9 +63,6 @@ class FileWriter(WriterBase):
                 Resources created and filled by the nbconvert conversion
                 process.  Includes output from transformers, such as the extract 
                 figure transformer.
-            referenced_files : list [of string]
-                List of the files that the notebook references.  Files will be 
-                included with written output.
             """
 
             #If the user specifies an output directory, use it.
@@ -97,15 +94,19 @@ class FileWriter(WriterBase):
 
             #Copy referenced files to output directory
             if not destination is None:
-                for filename in referenced_files:
-                    shutil.copyfile(filename, os.path.join(destination, filename))
+                for filename in self.files:
+
+                    #Copy files that match search pattern
+                    for matching_filename in glob.glob(filename):
+                        shutil.copyfile(matching_filename, 
+                                        os.path.join(destination, filename))
 
             #Determine where to write conversion results.
             destination_filename = notebook_name + '.' + output_extension
             if not destination is None:
                 destination_filename = os.path.join(destination, 
                                                     destination_filename)
-
+                
             #Write conversion results.
             with io.open(destination_filename, 'w') as f:
                 f.write(output)

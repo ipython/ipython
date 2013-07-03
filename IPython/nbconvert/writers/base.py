@@ -14,6 +14,8 @@ Contains writer base class.
 # Imports
 #-----------------------------------------------------------------------------
 
+from IPython.utils.traitlets import List
+
 from ..transformers.extractfigure import FIGURES_KEY
 from ..utils.config import GlobalConfigurable
 
@@ -26,6 +28,11 @@ class WriterBase(GlobalConfigurable):
     useful location. """
 
 
+    files = List([], config=True, help="""
+        List of the files that the notebook references.  Files will be 
+        included with written output.""")
+
+
     def __init__(self, config=None, **kw):
         """
         Constructor
@@ -33,8 +40,7 @@ class WriterBase(GlobalConfigurable):
         super(WriterBase, self).__init__(config=config, **kw)
 
 
-    def write(self, notebook_name, output_extension, output, resources, 
-              referenced_files=[]):
+    def write(self, notebook_name, output_extension, output, resources):
         """
         Consume and write Jinja output.
 
@@ -51,9 +57,6 @@ class WriterBase(GlobalConfigurable):
             Resources created and filled by the nbconvert conversion process.
             Includes output from transformers, such as the extract figure 
             transformer.
-        referenced_files : list [of string]
-            List of the files that the notebook references.  Files will be 
-            included with written output.
         """
 
         raise NotImplementedError()

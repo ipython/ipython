@@ -35,8 +35,7 @@ class StdoutWriter(WriterBase):
         self._debug = debug
 
 
-    def write(self, notebook_name, output_extension, output, resources, 
-              referenced_files=[]):
+    def write(self, notebook_name, output_extension, output, resources):
         """
         Consume and write Jinja output.
 
@@ -53,9 +52,6 @@ class StdoutWriter(WriterBase):
             Resources created and filled by the nbconvert conversion process.
             Includes output from transformers, such as the extract figure 
             transformer.
-        referenced_files : list [of string]
-            List of the files that the notebook references.  Files will be 
-            included with written output.
         """
 
         #If in debug mode, write resources instead of output.
