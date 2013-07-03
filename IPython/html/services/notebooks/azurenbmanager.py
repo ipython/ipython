@@ -26,7 +26,7 @@ from tornado import web
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Instance
-
+from IPython.utils import tz
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -98,7 +98,7 @@ class AzureNotebookManager(NotebookManager):
             raise web.HTTPError(500, u'Unreadable JSON notebook.')
         # Todo: The last modified should actually be saved in the notebook document.
         # We are just using the current datetime until that is implemented.
-        last_modified = datetime.datetime.utcnow()
+        last_modified = tz.utcnow()
         return last_modified, nb
 
     def write_notebook_object(self, nb, notebook_id=None):
