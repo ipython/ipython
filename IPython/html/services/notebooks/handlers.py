@@ -100,7 +100,7 @@ class NotebookHandler(IPythonHandler):
                 notebook_name = nbm.save_new_notebook(body, notebook_path=notebook_path, name=name, format=format)
             else:
                 notebook_name = nbm.new_notebook(notebook_path=notebook_path)
-            if path==None:
+            if notebook_path==None:
                 self.set_header('Location', nbm.notebook_dir + '/'+ notebook_name)
             else:
                 self.set_header('Location', nbm.notebook_dir + '/'+ notebook_path + '/' + notebook_name)
