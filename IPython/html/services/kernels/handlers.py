@@ -36,22 +36,27 @@ class MainKernelHandler(IPythonHandler):
     @web.authenticated
     def get(self):
         km = self.kernel_manager
-        self.finish(jsonapi.dumps(km.list_kernel_ids()))
+        self.finish(jsonapi.dumps(km.list_kernels()))
 
     @web.authenticated
     def post(self):
         km = self.kernel_manager
         nbm = self.notebook_manager
-        notebook_id = self.get_argument('notebook', default=None)
-        kernel_id = km.start_kernel(notebook_id, cwd=nbm.notebook_dir)
-        data = {'ws_url':self.ws_url,'kernel_id':kernel_id}
+        kernel_id = km.start_kernel(cwd=nbm.notebook_dir)
+        model = km.kernel_model(kernel_id, self.ws_url)
         self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
-        self.finish(jsonapi.dumps(data))
+        self.finish(jsonapi.dumps(model))
 
 
 class KernelHandler(IPythonHandler):
 
-    SUPPORTED_METHODS = ('DELETE')
+    SUPPORTED_METHODS = ('DELETE', 'GET')
+
+    @web.authenticated
+    def get(self, kernel_id):
+        km = self.kernel_manager
+        model = km.kernel_model(kernel_id,self.ws_url)
+        self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def delete(self, kernel_id):
@@ -71,9 +76,9 @@ class KernelActionHandler(IPythonHandler):
             self.set_status(204)
         if action == 'restart':
             km.restart_kernel(kernel_id)
-            data = {'ws_url':self.ws_url, 'kernel_id':kernel_id}
+            model = km.kernel_model(kernel_id,self.ws_url)
             self.set_header('Location', '{0}kernels/{1}'.format(self.base_kernel_url, kernel_id))
-            self.write(jsonapi.dumps(data))
+            self.write(jsonapi.dumps(model))
         self.finish()
 
 
@@ -173,10 +178,10 @@ _kernel_id_regex = r"(?P<kernel_id>\w+-\w+-\w+-\w+-\w+)"
 _kernel_action_regex = r"(?P<action>restart|interrupt)"
 
 default_handlers = [
-    (r"/kernels", MainKernelHandler),
-    (r"/kernels/%s" % _kernel_id_regex, KernelHandler),
-    (r"/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
-    (r"/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
-    (r"/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
-    (r"/kernels/%s/stdin" % _kernel_id_regex, StdinHandler)
+    (r"/api/kernels", MainKernelHandler),
+    (r"/api/kernels/%s" % _kernel_id_regex, KernelHandler),
+    (r"/api/kernels/%s/%s" % (_kernel_id_regex, _kernel_action_regex), KernelActionHandler),
+    (r"/api/kernels/%s/iopub" % _kernel_id_regex, IOPubHandler),
+    (r"/api/kernels/%s/shell" % _kernel_id_regex, ShellHandler),
+    (r"/api/kernels/%s/stdin" % _kernel_id_regex, StdinHandler)
 ]
