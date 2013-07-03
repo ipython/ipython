@@ -20,13 +20,13 @@ import shutil
 
 from IPython.utils.traitlets import Unicode
 
-from .base import BaseWriter
+from .base import WriterBase
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class FileWriter(BaseWriter):
+class FileWriter(WriterBase):
     """Consumes nbconvert output and produces files."""
 
 
