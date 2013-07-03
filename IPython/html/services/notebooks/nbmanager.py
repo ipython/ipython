@@ -38,14 +38,37 @@ class NotebookManager(LoggingConfigurable):
     # Right now we use this attribute in a number of different places and
     # we are going to have to disentangle all of this.
     notebook_dir = Unicode(os.getcwdu(), config=True, help="""
-        The directory to use for notebooks.
-    """)
-    def _notebook_dir_changed(self, name, old, new):
+            The directory to use for notebooks.
+            """)
+            
+    def named_notebook_path(self, notebook_path):
+        
+        l = len(notebook_path)
+        names = notebook_path.split('/')
+        if len(names) > 1:     
+            name = names[len(names)-1]
+            if name[(len(name)-6):(len(name))] == ".ipynb":
+                name = name
+                path = notebook_path[0:l-len(name)-1]+'/'
+            else:
+                name = None
+                path = notebook_path+'/'
+        else:
+            name = names[0]
+            if name[(len(name)-6):(len(name))] == ".ipynb":
+                name = name
+                path = None
+            else:
+                name = None
+                path = notebook_path+'/'
+        return name, path
+             
+    def _notebook_dir_changed(self, new):
         """do a bit of validation of the notebook dir"""
         if not os.path.isabs(new):
             # If we receive a non-absolute path, make it absolute.
             abs_new = os.path.abspath(new)
-            self.notebook_dir = abs_new
+            #self.notebook_dir = os.path.dirname(abs_new)
             return
         if os.path.exists(new) and not os.path.isdir(new):
             raise TraitError("notebook dir %r is not a directory" % new)
@@ -55,20 +78,18 @@ class NotebookManager(LoggingConfigurable):
                 os.mkdir(new)
             except:
                 raise TraitError("Couldn't create notebook dir %r" % new)
-
+                
     allowed_formats = List([u'json',u'py'])
 
-    # Map notebook_ids to notebook names
-    mapping = Dict()
 
-    def load_notebook_names(self):
+    def load_notebook_names(self, path):
         """Load the notebook names into memory.
 
         This should be called once immediately after the notebook manager
         is created to load the existing notebooks into the mapping in
         memory.
         """
-        self.list_notebooks()
+        self.list_notebooks(path)
 
     def list_notebooks(self):
         """List all notebooks.
@@ -84,52 +105,37 @@ class NotebookManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
 
-    def new_notebook_id(self, name):
-        """Generate a new notebook_id for a name and store its mapping."""
-        # TODO: the following will give stable urls for notebooks, but unless
-        # the notebooks are immediately redirected to their new urls when their
-        # filemname changes, nasty inconsistencies result.  So for now it's
-        # disabled and instead we use a random uuid4() call.  But we leave the
-        # logic here so that we can later reactivate it, whhen the necessary
-        # url redirection code is written.
-        #notebook_id = unicode(uuid.uuid5(uuid.NAMESPACE_URL,
-        #                 'file://'+self.get_path_by_name(name).encode('utf-8')))
-        
-        notebook_id = unicode(uuid.uuid4())
-        self.mapping[notebook_id] = name
-        return notebook_id
-
-    def delete_notebook_id(self, notebook_id):
-        """Delete a notebook's id in the mapping.
-
-        This doesn't delete the actual notebook, only its entry in the mapping.
-        """
-        del self.mapping[notebook_id]
-
-    def notebook_exists(self, notebook_id):
+    def notebook_exists(self, notebook_name):
         """Does a notebook exist?"""
-        return notebook_id in self.mapping
+        return notebook_name in self.mapping
 
-    def get_notebook(self, notebook_id, format=u'json'):
-        """Get the representation of a notebook in format by notebook_id."""
+    def notebook_model(self, notebook_name, notebook_path=None):
+        """ Creates the standard notebook model """
+        last_modified, content = self.read_notebook_object(notebook_name, notebook_path)
+        model = {"notebook_name": notebook_name, 
+                    "notebook_path": notebook_path,
+                    "content": content}
+        return model
+
+    def get_notebook(self, body, format=u'json'):
+        """Get the representation of a notebook in format by notebook_name."""
         format = unicode(format)
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
-        last_modified, nb = self.read_notebook_object(notebook_id)
         kwargs = {}
         if format == 'json':
             # don't split lines for sending over the wire, because it
             # should match the Python in-memory format.
             kwargs['split_lines'] = False
-        data = current.writes(nb, format, **kwargs)
-        name = nb.metadata.get('name','notebook')
-        return last_modified, name, data
+        representation = current.writes(body, format, **kwargs)
+        name = body['content']['metadata']['name']
+        return representation, name
 
-    def read_notebook_object(self, notebook_id):
+    def read_notebook_object(self, notebook_name, notebook_path):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
-    def save_new_notebook(self, data, name=None, format=u'json'):
+    def save_new_notebook(self, data, notebook_path = None, name=None, format=u'json'):
         """Save a new notebook and return its notebook_id.
 
         If a name is passed in, it overrides any values in the notebook data
@@ -150,10 +156,10 @@ class NotebookManager(LoggingConfigurable):
                 raise web.HTTPError(400, u'Missing notebook name')
         nb.metadata.name = name
 
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
+        return notebook_name
 
-    def save_notebook(self, notebook_id, data, name=None, format=u'json'):
+    def save_notebook(self, data, notebook_path=None, name=None, format=u'json'):
         """Save an existing notebook by notebook_id."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
@@ -165,18 +171,18 @@ class NotebookManager(LoggingConfigurable):
 
         if name is not None:
             nb.metadata.name = name
-        self.write_notebook_object(nb, notebook_id)
+        self.write_notebook_object(nb, name, notebook_path)
 
-    def write_notebook_object(self, nb, notebook_id=None):
-        """Write a notebook object and return its notebook_id.
+    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None):
+        """Write a notebook object and return its notebook_name.
 
-        If notebook_id is None, this method should create a new notebook_id.
-        If notebook_id is not None, this method should check to make sure it
+        If notebook_name is None, this method should create a new notebook_name.
+        If notebook_name is not None, this method should check to make sure it
         exists and is valid.
         """
         raise NotImplementedError('must be implemented in a subclass')
 
-    def delete_notebook(self, notebook_id):
+    def delete_notebook(self, notebook_name, notebook_path):
         """Delete notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -189,41 +195,41 @@ class NotebookManager(LoggingConfigurable):
         """
         return name
 
-    def new_notebook(self):
+    def new_notebook(self, notebook_path=None):
         """Create a new notebook and return its notebook_id."""
-        name = self.increment_filename('Untitled')
+        name = self.increment_filename('Untitled', notebook_path)
         metadata = current.new_metadata(name=name)
         nb = current.new_notebook(metadata=metadata)
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
+        return notebook_name
 
-    def copy_notebook(self, notebook_id):
+    def copy_notebook(self, name, path):
         """Copy an existing notebook and return its notebook_id."""
-        last_mod, nb = self.read_notebook_object(notebook_id)
+        last_mod, nb = self.read_notebook_object(name, path)
         name = nb.metadata.name + '-Copy'
-        name = self.increment_filename(name)
+        name = self.increment_filename(name, path)
         nb.metadata.name = name
-        notebook_id = self.write_notebook_object(nb)
-        return notebook_id
+        notebook_name = self.write_notebook_object(nb, notebook_path = path)
+        return notebook_name  
     
     # Checkpoint-related
     
-    def create_checkpoint(self, notebook_id):
+    def create_checkpoint(self, notebook_name, notebook_path=None):
         """Create a checkpoint of the current state of a notebook
         
         Returns a checkpoint_id for the new checkpoint.
         """
         raise NotImplementedError("must be implemented in a subclass")
     
-    def list_checkpoints(self, notebook_id):
+    def list_checkpoints(self, notebook_name, notebook_path=None):
         """Return a list of checkpoints for a given notebook"""
         return []
     
-    def restore_checkpoint(self, notebook_id, checkpoint_id):
+    def restore_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
         """Restore a notebook from one of its checkpoints"""
         raise NotImplementedError("must be implemented in a subclass")
 
-    def delete_checkpoint(self, notebook_id, checkpoint_id):
+    def delete_checkpoint(self, notebook_name, checkpoint_id, notebook_path=None):
         """delete a checkpoint for a notebook"""
         raise NotImplementedError("must be implemented in a subclass")
     
@@ -232,4 +238,3 @@ class NotebookManager(LoggingConfigurable):
     
     def info_string(self):
         return "Serving notebooks"
-
