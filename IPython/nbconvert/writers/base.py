@@ -11,17 +11,30 @@ Contains writer base class.
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
-#Classes
+# Imports
 #-----------------------------------------------------------------------------
 
-class WriterBase(object):
+from ..transformers.extractfigure.py import FIGURES_KEY
+from ..utils.config import GlobalConfigurable
+
+#-----------------------------------------------------------------------------
+# Classes
+#-----------------------------------------------------------------------------
+
+class WriterBase(GlobalConfigurable):
     """Consumes output from nbconvert export...() methods and writes to a
     useful location. """
 
-    def __init__(self):
-        super(WriterBase, self).__init__()
 
-    def write(self, notebook_filename, output_extension, output, resources):
+    def __init__(self, config=None, **kw):
+        """
+        Constructor
+        """
+        super(WriterBase, self).__init__(config=config, **kw)
+
+
+    def write(self, notebook_name, output_extension, output, resources, 
+              referenced_files=[]):
         """
         Consume and write Jinja output.
 
@@ -38,6 +51,9 @@ class WriterBase(object):
             Resources created and filled by the nbconvert conversion process.
             Includes output from transformers, such as the extract figure 
             transformer.
+        referenced_files : list [of string]
+            List of the files that the notebook references.  Files will be 
+            included with written output.
         """
 
         raise NotImplementedError()
@@ -55,7 +71,7 @@ class WriterBase(object):
             transformer.
         """
         
-        if 'figures' in resources:
-            return resources['figures']
+        if FIGURES_KEY in resources:
+            return resources[FIGURES_KEY]
         else:
             return {}
