@@ -76,6 +76,10 @@ class ExtractFigureTransformer(ActivatableTransformer):
         cell_index : int
             Index of the cell being processed (see base.py)
         """
+
+        #Make sure a notebook name is set.
+        if self.notebook_name is None:
+            raise TypeError("_notebook_name")
         
         #Make sure figures key exists
         if not FIGURES_KEY in resources:
