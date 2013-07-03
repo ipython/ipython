@@ -77,7 +77,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Index of the cell being processed (see base.py)
         """
         
-        #Make sure figures key exists@br
+        #Make sure figures key exists
         if not FIGURES_KEY in resources:
             resources[FIGURES_KEY] = {}
             
