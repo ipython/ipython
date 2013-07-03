@@ -13,9 +13,17 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    $('#new_notebook').click(function (e) {
-        window.open($('body').data('baseProjectUrl')+'new');
-    });
+    
+    if ($('body').data('notebookPath') == "") {
+        $('#new_notebook').button().click(function (e) {
+                window.open($('body').data('baseProjectUrl')+'notebooks/'+'new');
+        });
+    }
+    else {
+        $('#new_notebook').button().click(function (e) {
+                window.open($('body').data('baseProjectUrl')+'notebooks/'+$('body').data('notebookPath') + '/new');
+        });
+    }
     
     IPython.notebook_list = new IPython.NotebookList('#notebook_list');
     IPython.cluster_list = new IPython.ClusterList('#cluster_list');
@@ -30,14 +38,14 @@ $(document).ready(function () {
         //refresh immediately , then start interval
         if($('.upload_button').length == 0)
         {
-            IPython.notebook_list.load_list();
+            IPython.notebook_list.load_sessions();
             IPython.cluster_list.load_list();
         }
         if (!interval_id){
             interval_id = setInterval(function(){
                     if($('.upload_button').length == 0)
                     {
-                        IPython.notebook_list.load_list();
+                        IPython.notebook_list.load_sessions();
                         IPython.cluster_list.load_list();
                     }
                 }, time_refresh*1000);
