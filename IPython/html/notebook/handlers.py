@@ -22,56 +22,65 @@ HTTPError = web.HTTPError
 
 from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
+from urllib import quote
 
 #-----------------------------------------------------------------------------
 # Handlers
 #-----------------------------------------------------------------------------
 
 
+class NewPathHandler(IPythonHandler):
+    
+    @web.authenticated
+    def get(self, notebook_path):
+        notebook_name = self.notebook_manager.new_notebook(notebook_path)
+        self.redirect(url_path_join(self.base_project_url,"notebooks", notebook_path, notebook_name))
+        
+
 class NewHandler(IPythonHandler):
 
     @web.authenticated
     def get(self):
-        notebook_id = self.notebook_manager.new_notebook()
-        self.redirect(url_path_join(self.base_project_url, notebook_id))
+        notebook_name = self.notebook_manager.new_notebook()
+        self.redirect(url_path_join(self.base_project_url, "notebooks", notebook_name))
 
 
 class NamedNotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, notebook_id):
+    def get(self, notebook_path):
         nbm = self.notebook_manager
-        if not nbm.notebook_exists(notebook_id):
-            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)       
+        name, path = nbm.named_notebook_path(notebook_path)
+        if name != None:
+            name = quote(name)
+        self.log.info(name)
+        if path == None:
+            project = self.project + '/' + name
+        else:
+            project = self.project + '/' + path +'/'+ name
+        #if not nbm.notebook_exists(notebook_path):
+         #   raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_path)       
         self.write(self.render_template('notebook.html',
-            project=self.project,
-            notebook_id=notebook_id,
+            project=project,
+            notebook_path=path,
+            notebook_name=name,
             kill_kernel=False,
             mathjax_url=self.mathjax_url,
             )
         )
 
 
-class NotebookRedirectHandler(IPythonHandler):
-    
-    @web.authenticated
-    def get(self, notebook_name):
-        # strip trailing .ipynb:
-        notebook_name = os.path.splitext(notebook_name)[0]
-        notebook_id = self.notebook_manager.rev_mapping.get(notebook_name, '')
-        if notebook_id:
-            url = url_path_join(self.settings.get('base_project_url', '/'), notebook_id)
-            return self.redirect(url)
-        else:
-            raise HTTPError(404)
-
-
 class NotebookCopyHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self, notebook_id):
-        notebook_id = self.notebook_manager.copy_notebook(notebook_id)
-        self.redirect(url_path_join(self.base_project_url, notebook_id))
+    def get(self, notebook_path=None):
+        nbm = self.notebook_manager
+        name, path = nbm.named_notebook_path(notebook_path)
+        notebook_name = self.notebook_manager.copy_notebook(name, path)
+        if path==None:
+            self.redirect(url_path_join(self.base_project_url, "notebooks", notebook_name))
+        else:
+            self.redirect(url_path_join(self.base_project_url, "notebooks", path, notebook_name))
 
 
 #-----------------------------------------------------------------------------
@@ -79,13 +88,11 @@ class NotebookCopyHandler(IPythonHandler):
 #-----------------------------------------------------------------------------
 
 
-_notebook_id_regex = r"(?P<notebook_id>\w+-\w+-\w+-\w+-\w+)"
-_notebook_name_regex = r"(?P<notebook_name>.+\.ipynb)"
+_notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/new", NewHandler),
-    (r"/%s" % _notebook_id_regex, NamedNotebookHandler),
-    (r"/%s" % _notebook_name_regex, NotebookRedirectHandler),
-    (r"/%s/copy" % _notebook_id_regex, NotebookCopyHandler),
-
+    (r"/notebooks/%s/new" % _notebook_path_regex, NewPathHandler),
+    (r"/notebooks/new", NewHandler),
+    (r"/notebooks/%s/copy" % _notebook_path_regex, NotebookCopyHandler),
+    (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler)
 ]
