@@ -110,7 +110,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
                     #Build a figure name
                     figure_name = self.figure_filename_template.format( 
-                                    notebook_name=self._notebook_name,
+                                    notebook_name=self.notebook_name,
                                     cell_index=cell_index,
                                     index=index,
                                     extension=extension)
