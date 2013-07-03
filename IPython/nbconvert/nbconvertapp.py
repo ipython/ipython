@@ -30,6 +30,8 @@ from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
 from .transformers import extractfigure
 from .utils.config import GlobalConfigurable
+from .writers.file import FileWriter
+from .writers.stdout import StdoutWriter
 
 #-----------------------------------------------------------------------------
 #Globals and constants
@@ -125,79 +127,16 @@ class NbConvertApp(Application):
         else:
             (output, resources, exporter) = return_value 
         
-        #TODO: Allow user to set output directory and file. 
-        destination_filename = None
-        destination_directory = None
-        if self.write:
-                
-            #Get the file name without the '.ipynb' (6 chars) extension and then
-            #remove any addition periods and spaces. The resulting name will
-            #be used to create the directory that the files will be exported
-            #into.
-            out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
-            destination_filename = os.path.join(out_root+'.'+exporter.file_extension)
-            
-            destination_directory = out_root+'_files'
-            if not os.path.exists(destination_directory):
-                os.mkdir(destination_directory)
-                
-        #Write the results
-        if self.stdout or not (destination_filename is None and destination_directory is None):
-            self._write_results(output, resources, destination_filename, destination_directory)
+        #Get the name of the notebook from the filename.  Remove fullpath and
+        #file extension.
+        basename = os.path.basename(ipynb_file)
+        notebook_name = basename[:basename.rfind('.')]
 
+        #Write the output using a notebook writer
+        writer = FileWriter(config=self.config)
+        #writer = StdoutWriter(config=self.config, debug=True)
+        writer.write(notebook_name, exporter.file_extension, output, resources)
 
-    def _write_results(self, output, resources, destination_filename=None, destination_directory=None):
-        """Output the conversion results to the console and/or filesystem
-        
-        Parameters
-        ----------
-        output : str
-            Output of conversion
-        resources : dictionary
-            Additional input/output used by the transformers.  For
-            example, the ExtractFigure transformer outputs the
-            figures it extracts into this dictionary.  This method
-            relies on the figures being in this dictionary when
-            attempting to write the figures to the file system.
-        destination_filename : str, Optional
-            Filename to write output into.  If None, output is not 
-            written to a file.
-        destination_directory : str, Optional 
-            Directory to write notebook data (i.e. figures) to.  If
-            None, figures are not written to the file system.
-        """
-        
-        if self.stdout:
-            print(output.encode('utf-8'))
-
-        #Write file output from conversion.
-        if not destination_filename is None:
-            with io.open(destination_filename, 'w') as f:
-                f.write(output)
-
-        #Get the key names used by the extract figure transformer
-        figures_key = extractfigure.FIGURES_KEY
-        binary_key = extractfigure.BINARY_KEY
-        text_key = extractfigure.TEXT_KEY
-        
-        #Output any associate figures into the same "root" directory.
-        binkeys = resources.get(figures_key, {}).get(binary_key,{}).keys()
-        textkeys = resources.get(figures_key, {}).get(text_key,{}).keys()
-        if binkeys or textkeys :
-            if not destination_directory is None:
-                for key in binkeys:
-                    with io.open(os.path.join(destination_directory, key), 'wb') as f:
-                        f.write(resources[figures_key][binary_key][key])
-                for key in textkeys:
-                    with io.open(os.path.join(destination_directory, key), 'w') as f:
-                        f.write(resources[figures_key][text_key][key])
-
-            #Figures that weren't exported which will need to be created by the
-            #user.  Tell the user what figures these are.
-            if self.stdout:
-                print(KEYS_PROMPT_HEAD, file=sys.stderr)
-                print(resources[figures_key].keys(), file=sys.stderr)
-                print(KEYS_PROMPT_BODY , file=sys.stderr)
 
 #-----------------------------------------------------------------------------
 # Main entry point
