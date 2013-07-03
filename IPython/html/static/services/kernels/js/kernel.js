@@ -24,15 +24,16 @@ var IPython = (function (IPython) {
      * A Kernel Class to communicate with the Python kernel
      * @Class Kernel
      */
-    var Kernel = function (base_url) {
+    var Kernel = function (base_url, session_id) {
         this.kernel_id = null;
+        this.session_id = session_id
         this.shell_channel = null;
         this.iopub_channel = null;
         this.stdin_channel = null;
         this.base_url = base_url;
         this.running = false;
         this.username = "username";
-        this.session_id = utils.uuid();
+        this.base_session_id = utils.uuid();
         this._msg_callbacks = {};
 
         if (typeof(WebSocket) !== 'undefined') {
@@ -51,7 +52,7 @@ var IPython = (function (IPython) {
             header : {
                 msg_id : utils.uuid(),
                 username : this.username,
-                session : this.session_id,
+                session : this.base_session_id,
                 msg_type : msg_type
             },
             metadata : {},
@@ -72,17 +73,19 @@ var IPython = (function (IPython) {
      * Start the Python kernel
      * @method start
      */
-    Kernel.prototype.start = function (params) {
-        var that = this;
-        if (!this.running) {
-            var qs = $.param(params);
-            var url = this.base_url + '?' + qs;
-            $.post(url,
-                $.proxy(that._kernel_started,that),
-                'json'
-            );
-        };
-    };
+     Kernel.prototype.start = function (params) {
+         var that = this;
+         params = params || {};
+         params.session = this.session_id;
+         if (!this.running) {
+             var qs = $.param(params);
+             var url = this.base_url + '?' + qs;
+             $.post(url,
+                 $.proxy(that._kernel_started,that),
+                 'json'
+             );
+         };
+     };
 
     /**
      * Restart the python kernel.
