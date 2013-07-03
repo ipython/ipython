@@ -2,6 +2,7 @@ from .basichtml import BasicHTMLExporter
 from .export import *
 from .exporter import Exporter
 from .fullhtml import FullHTMLExporter
+from .reveal import RevealExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
