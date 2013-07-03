@@ -118,7 +118,7 @@ class NotebookHandler(IPythonHandler):
     def delete(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
-        self.notebook_manager.delete_notebook(name, path)
+        nbm.delete_notebook(name, path)
         self.set_status(204)
         self.finish()
 
