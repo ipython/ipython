@@ -33,7 +33,7 @@ next_attr_name = '__next__' if py3compat.PY3 else 'next'
 
 # timestamp formats
 ISO8601="%Y-%m-%dT%H:%M:%S.%f"
-ISO8601_PAT=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z?([\+\-]\d{2}:?\d{2})?$")
+ISO8601_PAT=re.compile(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+)Z?([\+\-]\d{2}:?\d{2})?$")
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -71,9 +71,11 @@ def extract_dates(obj):
     elif isinstance(obj, (list, tuple)):
         obj = [ extract_dates(o) for o in obj ]
     elif isinstance(obj, basestring):
-        if ISO8601_PAT.match(obj):
+        m = ISO8601_PAT.match(obj)
+        if m:
             # FIXME: add actual timezone support
-            notz = obj.split('Z',1)[0]
+            # this just drops the timezone info
+            notz = m.groups()[0]
             obj = datetime.strptime(notz, ISO8601)
     return obj
 
