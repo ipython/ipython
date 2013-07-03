@@ -21,10 +21,13 @@ from __future__ import print_function
 import sys
 import io
 import os
+import yaml
+import copy
 
 #From IPython
 from IPython.config.application import Application
-from IPython.utils.traitlets import Bool
+from IPython.config.loader import Config
+from IPython.utils.traitlets import Unicode
 
 from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
@@ -34,60 +37,52 @@ from .writers.file import FileWriter
 from .writers.stdout import StdoutWriter
 
 #-----------------------------------------------------------------------------
-#Globals and constants
-#-----------------------------------------------------------------------------
-
-#'Keys in resources' user prompt.
-KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
-KEYS_PROMPT_BODY = """
-===========================================================================
-You are responsible for writting these files into the appropriate 
-directorie(s) if need be.  If you do not want to see this message, enable
-the 'write' (boolean) flag of the converter.
-===========================================================================
-"""
-
-#-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
 
 class NbConvertApp(Application):
     """Application used to convert to and from notebook file type (*.ipynb)"""
 
-    stdout = Bool(
-        False, config=True,
-        help="""Whether to print the converted IPYNB file to stdout
-        use full do diff files without actually writing a new file"""
-        )
+    description = Unicode(
+        u"""This application is used to convert notebook files (*.ipynb).
+        A yaml file can be used to batch convert notebooks in the current 
+        directory.""")
 
-    write = Bool(
-        True, config=True,
-        help="""Should the converted notebook file be written to disk
-        along with potential extracted resources."""
-        )
+    examples = Unicode(u"""
+        Standard
+            > ipython nbconvert
+            
+            Loads the nbconvert.yaml file in the current directory.  The
+            nbconvert.yaml is written by the user and contains all of the 
+            imformation governing what notebooks will be converted and how.
+            For more information about nbconvert YAML, please refer to the 
+            nbconvert example repository
 
-    aliases = {
-             'stdout':'NbConvertApp.stdout',
-             'write':'NbConvertApp.write',
-             }
+        Explicit YAML
+            > ipython nbconvert foo.yaml
 
-    flags = {}
+            Loads the foo.yaml file in the current directory.  Behaves like the
+            Standard usage case (seen above).
 
-    flags['stdout'] = (
-        {'NbConvertApp' : {'stdout' : True}},
-    """Print converted file to stdout, equivalent to --stdout=True
-    """
-    )
+        Simple
+            > ipython nbconvert --template="foo" bar.ipynb
 
-    flags['no-write'] = (
-        {'NbConvertApp' : {'write' : True}},
-    """Do not write to disk, equivalent to --write=False
-    """
-    )
+            Exports bar.ipynb to the "nbconvert_build" subdirectory using the 
+            foo template.
+        """)
+
+    template = Unicode(
+        "", config=True,
+        help="""If specified, nbconvert will convert the document specified
+                using this template.  If set to a blank string, nbconvert will
+                open and use the 'nbconvert.yaml' file or explicitly procided
+                yaml file in the current working directory.""")
+    
+    aliases = {'template':'NbConvertApp.template'}
 
 
     def __init__(self, **kwargs):
-        """Public constructor"""
+        """Constructor"""
 
         #Call base class
         super(NbConvertApp, self).__init__(**kwargs)
@@ -112,20 +107,91 @@ class NbConvertApp(Application):
         #Call base
         super(NbConvertApp, self).start()
 
-        #The last arguments in list will be used by nbconvert
-        if len(self.extra_args) is not 3:
+        #Make sure argument count is correct
+        if len(self.extra_args) > 2:
             print( "Wrong number of arguments, use --help flag for usage", file=sys.stderr)
             sys.exit(-1)
-        export_type = (self.extra_args)[1]
-        ipynb_file = (self.extra_args)[2]
-        
-        #Export
-        return_value = export_by_name(export_type, ipynb_file)
-        if return_value is None:
-            print("Error: '%s' template not found." % export_type)
-            return
+
+        #Check for user specified yaml or notebook file.
+        yaml_file = 'nbconvert.yaml'
+        if len(self.extra_args) > 1:
+
+            #If a template is explicitly set via the commandline, treat the argument
+            #as a notebook file.
+            if len(self.template.strip()) > 0:
+                yaml_file = None
+
+                ipynb_file = self.extra_args[1]
+
+                #Make sure the yaml file exists.
+                if not os.path.isfile(ipynb_file):
+                    print( "Notebook file '%s' not found" % ipynb_file, file=sys.stderr)
+                    sys.exit(-1)
+
+            #Since no template was specified, treat the commandline parameter as
+            #a yaml file.
+            else:
+                yaml_file = self.extra_args[1]
+
+                #Make sure the yaml file exists.
+                if not os.path.isfile(yaml_file):
+                    print( "Yaml file '%s' not found" % yaml_file, file=sys.stderr)
+                    sys.exit(-1)
+
+        #Write the single notebook conversion to the file system.
+        if yaml_file is None:
+            self._export_and_write(self.template, ipynb_file, FileWriter(config=self.config))
         else:
-            (output, resources, exporter) = return_value 
+            with open(yaml_file, "r") as f:
+                yaml_docs = yaml.load_all(f)
+                for yaml_doc in yaml_docs:
+                    self._export_using_yaml(yaml_doc)
+
+
+    def _export_using_yaml(self, yaml):
+        """
+        Export a document using the provided yaml structure
+
+        Parameters
+        ----------
+        yaml : dict
+            Yaml document containing parameters for export process.
+        """
+
+        #Get the writers from the yaml config (if possible).
+        writers = []
+        if 'writters' in yaml:
+            for (writer_name, writer_yaml) in yaml['writers'].items():
+                writers.append(self._writer_from_name(writer_name, writer_yaml))
+        else:
+
+            #Create a filewriter by default
+            writers.append(FileWriter(config=config))
+
+        #Get the notebooks to export, if no notebooks exist, complain.
+        if 'notebooks' in yaml and len(yaml(notebooks)) > 0:
+            for (notebook_name, notebook_yaml) in yaml['notebooks'].items():
+                pass #TODO
+        else:
+            raise TypeError('notebooks note specified in yaml')
+
+
+    def _export_and_write(self, template, ipynb_file, writer, config=None):
+        """
+        Export a notebook file and write it using the writer provided.
+
+        Paramteres
+        ----------
+        template : string
+            Name of the template to use to export.
+        ipynb_file : string
+            Filename & path to the notebook file to be converted.
+        writer : WriterBase
+            Instance of a Writer to use to write the results of the conversion.
+        """
+
+        #Export
+        (output, resources, exporter) = export_by_name(template, ipynb_file)
         
         #Get the name of the notebook from the filename.  Remove fullpath and
         #file extension.
@@ -133,9 +199,49 @@ class NbConvertApp(Application):
         notebook_name = basename[:basename.rfind('.')]
 
         #Write the output using a notebook writer
-        writer = FileWriter(config=self.config)
-        #writer = StdoutWriter(config=self.config, debug=True)
         writer.write(notebook_name, exporter.file_extension, output, resources)
+
+
+    def _writer_from_name(self, writer_name, config_dict=None):
+        """
+        Create a writer using its class name.  Config the writer using a
+        dictionary
+        """
+
+        #Map the yaml config to the config system.
+        if not config_dict is None:
+            config = self._map_dict_to_config(copy.deepcopy(self.config), 
+                                              config_dict)
+
+        #Case insensitive compare
+        writer_name = writer_name.lower().strip()
+        if writer_name == 'filewriter':
+            return FileWriter()
+        elif writer_name == 'stdoutwriter':
+            return StdoutWriter()
+
+
+    def _map_dict_to_config(self, config, dictionary):
+        """
+        Map a dictionary to a config object.  Very similar to Config.Merge 
+        method but designed to handle dictionaries from YAML.
+        """
+
+        to_update = {}
+        for (key, value) in dictionary.items():
+            if key not in config:
+                to_update[key] = value
+            else:
+
+                #Check if the value is a dictionary and the destination value is
+                #a config.  If so, recursively map.
+                if isinstance(value, dict) and isinstance(config[key], Config):
+                    self._map_dict_to_config(config[key], value)
+                else:
+                    to_update[key] = value
+
+        config.update(to_update)
+        return config
 
 
 #-----------------------------------------------------------------------------
