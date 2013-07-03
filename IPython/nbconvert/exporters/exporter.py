@@ -185,7 +185,7 @@ class Exporter(Configurable):
                 can be accessed read/write by transformers
                 and filters.
         """
-        self._notebook_name = notebook_name
+        self.extract_figure_transformer.notebook_name = notebook_name
 
         if resources is None:
             resources = {}
@@ -292,8 +292,7 @@ class Exporter(Configurable):
         
         #Remember the figure extraction transformer so it can be enabled and
         #disabled easily later.
-        self.extract_figure_transformer = transformers.ExtractFigureTransformer(notebook_name=self._notebook_name, config=self.config)
-        self.register_transformer(self.extract_figure_transformer)
+        self.extract_figure_transformer = self.register_transformer(transformers.ExtractFigureTransformer)
         
 
     def _register_filters(self):
