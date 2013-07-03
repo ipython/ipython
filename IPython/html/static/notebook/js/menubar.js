@@ -50,7 +50,10 @@ var IPython = (function (IPython) {
         return this._baseProjectUrl || $('body').data('baseProjectUrl');
     };
 
-
+    MenuBar.prototype.notebookPath = function(){
+        return this._notebookPath || $('body').data('notebookPath');
+    };
+    
     MenuBar.prototype.style = function () {
         this.element.addClass('border-box-sizing');
         this.element.find("li").click(function (event, ui) {
@@ -66,37 +69,67 @@ var IPython = (function (IPython) {
     MenuBar.prototype.bind_events = function () {
         //  File
         var that = this;
-        this.element.find('#new_notebook').click(function () {
-            window.open(that.baseProjectUrl()+'new');
-        });
-        this.element.find('#open_notebook').click(function () {
-            window.open(that.baseProjectUrl());
-        });
+        if (this.notebookPath() != 'None') {
+            this.element.find('#new_notebook').click(function () {
+                window.open(that.baseProjectUrl() + 'notebooks/' + that.notebookPath() +'/new');
+            });
+            this.element.find('#open_notebook').click(function () {
+                window.open(that.baseProjectUrl() + 'tree/' + that.notebookPath());
+            });
+            this.element.find('#copy_notebook').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'notebooks/' + that.notebookPath() + '/'+ notebook_name + '/copy';
+                window.open(url,'_blank');
+                return false;
+            });
+            this.element.find('#download_ipynb').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'api/notebooks/' +
+                          notebook_name + '?format=json';
+                window.location.assign(url);
+            });
+            this.element.find('#download_py').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'api/notebooks/' +
+                          notebook_name + '?format=py';
+                window.location.assign(url);
+            });
+        }
+        else {
+            this.element.find('#new_notebook').click(function () {
+                window.open(that.baseProjectUrl()+'notebooks/new');
+            });
+            this.element.find('#open_notebook').click(function () {
+                window.open(that.baseProjectUrl() + 'tree');
+            });
+            this.element.find('#copy_notebook').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'notebooks/' + notebook_name + '/copy';
+                window.open(url,'_blank');
+                return false;
+            });
+            this.element.find('#download_ipynb').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'api/notebooks/' +
+                          notebook_name + '?format=json';
+                window.location.assign(url);
+            });
+            this.element.find('#download_py').click(function () {
+                var notebook_name = IPython.notebook.get_notebook_name();
+                var url = that.baseProjectUrl() + 'api/notebooks/' +
+                          notebook_name + '?format=py';
+                window.location.assign(url);
+            });
+            
+            
+        }
         this.element.find('#rename_notebook').click(function () {
             IPython.save_widget.rename_notebook();
-        });
-        this.element.find('#copy_notebook').click(function () {
-            var notebook_id = IPython.notebook.get_notebook_id();
-            var url = that.baseProjectUrl() + notebook_id + '/copy';
-            window.open(url,'_blank');
-            return false;
         });
         this.element.find('#save_checkpoint').click(function () {
             IPython.notebook.save_checkpoint();
         });
         this.element.find('#restore_checkpoint').click(function () {
-        });
-        this.element.find('#download_ipynb').click(function () {
-            var notebook_id = IPython.notebook.get_notebook_id();
-            var url = that.baseProjectUrl() + 'notebooks/' +
-                      notebook_id + '?format=json';
-            window.location.assign(url);
-        });
-        this.element.find('#download_py').click(function () {
-            var notebook_id = IPython.notebook.get_notebook_id();
-            var url = that.baseProjectUrl() + 'notebooks/' +
-                      notebook_id + '?format=py';
-            window.location.assign(url);
         });
         this.element.find('#kill_and_exit').click(function () {
             IPython.notebook.kernel.kill();
