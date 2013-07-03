@@ -63,6 +63,13 @@ class TreeRedirectHandler(IPythonHandler):
         url = self.base_project_url + 'tree'
         self.redirect(url)
 
+class TreePathRedirectHandler(IPythonHandler):
+
+    @authenticate_unless_readonly
+    def get(self, notebook_path):
+        url = self.base_project_url + 'tree/'+ notebook_path
+        self.redirect(url)
+
 class ProjectRedirectHandler(IPythonHandler):
     
     @authenticate_unless_readonly
@@ -78,6 +85,7 @@ class ProjectRedirectHandler(IPythonHandler):
 _notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
+    (r"/tree/%s/" % _notebook_path_regex, TreePathRedirectHandler),
     (r"/tree/%s" % _notebook_path_regex, ProjectPathDashboardHandler),
     (r"/tree", ProjectDashboardHandler),
     (r"/tree/", TreeRedirectHandler),
