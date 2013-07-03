@@ -45,6 +45,7 @@ if __name__ == '__main__':
                                         r'\.ipdoctest',
                                         r'\.Gnuplot',
                                         r'\.frontend\.process\.winprocess',
+                                        r'\.frontend',
                                         r'\.Shell',
                                         ]
     
