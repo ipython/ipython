@@ -724,7 +724,7 @@ var IPython = (function (IPython) {
         var i = this.index_or_selected(index);
         var cell = this.get_selected_cell();
         this.undelete_backup = cell.toJSON();
-        $('#undelete_cell').removeClass('ui-state-disabled');
+        $('#undelete_cell').removeClass('disabled');
         if (this.is_valid_cell_index(i)) {
             var ce = this.get_cell_element(i);
             ce.remove();
@@ -1005,11 +1005,11 @@ var IPython = (function (IPython) {
     Notebook.prototype.enable_paste = function () {
         var that = this;
         if (!this.paste_enabled) {
-            $('#paste_cell_replace').removeClass('ui-state-disabled')
+            $('#paste_cell_replace').removeClass('disabled')
                 .on('click', function () {that.paste_cell_replace();});
-            $('#paste_cell_above').removeClass('ui-state-disabled')
+            $('#paste_cell_above').removeClass('disabled')
                 .on('click', function () {that.paste_cell_above();});
-            $('#paste_cell_below').removeClass('ui-state-disabled')
+            $('#paste_cell_below').removeClass('disabled')
                 .on('click', function () {that.paste_cell_below();});
             this.paste_enabled = true;
         };
@@ -1022,9 +1022,9 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.disable_paste = function () {
         if (this.paste_enabled) {
-            $('#paste_cell_replace').addClass('ui-state-disabled').off('click');
-            $('#paste_cell_above').addClass('ui-state-disabled').off('click');
-            $('#paste_cell_below').addClass('ui-state-disabled').off('click');
+            $('#paste_cell_replace').addClass('disabled').off('click');
+            $('#paste_cell_above').addClass('disabled').off('click');
+            $('#paste_cell_below').addClass('disabled').off('click');
             this.paste_enabled = false;
         };
     };
@@ -1123,7 +1123,7 @@ var IPython = (function (IPython) {
             this.undelete_backup = null;
             this.undelete_index = null;
         }
-        $('#undelete_cell').addClass('ui-state-disabled');
+        $('#undelete_cell').addClass('disabled');
     }
 
     // Split/merge
