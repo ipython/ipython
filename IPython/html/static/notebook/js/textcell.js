@@ -104,13 +104,13 @@ var IPython = (function (IPython) {
         this.element.keydown(function (event) {
             if (event.which === 13 && !event.shiftKey) {
                 if (that.rendered) {
-                    that.edit();
+                    that.unrender();
                     return false;
                 };
             };
         });
         this.element.dblclick(function () {
-            that.edit();
+            that.unrender();
         });
     };
 
@@ -134,57 +134,59 @@ var IPython = (function (IPython) {
         return false;
     };
 
-    /**
-     * Select the current cell and trigger 'focus'
-     * @method select
-     */
+    // Cell level actions
+    
     TextCell.prototype.select = function () {
-        IPython.Cell.prototype.select.apply(this);
-        var output = this.element.find("div.text_cell_render");
-        output.trigger('focus');
+        var continue = IPython.Cell.prototype.select.apply(this);
+        if (continue) {
+            if (this.mode === 'edit') {
+                this.code_mirror.refresh();
+            }
+        };
+        return continue;
     };
 
-    /**
-     * unselect the current cell and `render` it
-     * @method unselect
-     */
-    TextCell.prototype.unselect = function() {
-        // render on selection of another cell
-        this.render();
-        IPython.Cell.prototype.unselect.apply(this);
+    TextCell.prototype.render = function () {
+        var continue = IPython.Cell.prototype.render.apply(this);
+        if (continue) {
+            this.execute();
+        };
+        return continue;
     };
 
-    /**
-     *
-     * put the current cell in edition mode
-     * @method edit
-     */
-    TextCell.prototype.edit = function () {
-        if (this.rendered === true) {
+    TextCell.prototype.unrender = function () {
+        if (this.read_only) return;
+        var continue = IPython.Cell.prototype.unrender.apply(this);
+        if (continue) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
             output.hide();
             text_cell.find('div.text_cell_input').show();
-            this.code_mirror.refresh();
-            this.code_mirror.focus();
-            // We used to need an additional refresh() after the focus, but
-            // it appears that this has been fixed in CM. This bug would show
-            // up on FF when a newly loaded markdown cell was edited.
-            this.rendered = false;
+            this.focus_editor();
             if (this.get_text() === this.placeholder) {
                 this.set_text('');
                 this.refresh();
             }
-        }
+
+        };
+        return continue;
     };
 
+    TextCell.prototype.command_mode = function () {
+        var continue = IPython.Cell.prototype.command_mode.apply(this);
+        if (continue) {
+            this.focus_cell();
+        };
+        return continue;
+    }
 
-    /**
-     * Empty, Subclasses must define render.
-     * @method render
-     */
-    TextCell.prototype.render = function () {};
-
+    TextCell.prototype.edit_mode = function () {
+        var continue = IPython.Cell.prototype.edit_mode.apply(this);
+        if (continue) {
+            this.focus_editor();
+        };
+        return continue;
+    }
 
     /**
      * setter: {{#crossLink "TextCell/set_text"}}{{/crossLink}}
@@ -382,11 +384,12 @@ var IPython = (function (IPython) {
 
     /** @method render **/
     RawCell.prototype.render = function () {
+        
         this.rendered = true;
         var text = this.get_text();
         if (text === "") { text = this.placeholder; }
-        console.log('rendering', text);
         this.set_text(text);
+        this.unrender();
     };
 
 

@@ -39,7 +39,8 @@ var IPython = (function (IPython) {
         this.placeholder = options.placeholder || '';
         this.read_only = options.cm_config.readOnly;
         this.selected = false;
-        this.focused = false;
+        this.rendered = false;
+        this.mode = 'command';
         this.metadata = {};
         // load this from metadata later ?
         this.user_highlight = 'auto';
@@ -130,47 +131,124 @@ var IPython = (function (IPython) {
      * @method typeset
      */
     Cell.prototype.typeset = function () {
-        if (window.MathJax){
+        if (window.MathJax) {
             var cell_math = this.element.get(0);
             MathJax.Hub.Queue(["Typeset", MathJax.Hub, cell_math]);
-        }
+        };
     };
 
     /**
      * handle cell level logic when a cell is selected
      * @method select
+     * @return is the action being taken
      */
     Cell.prototype.select = function () {
-        this.element.addClass('selected');
-        this.selected = true;
+        if (!this.selected) {
+            this.element.addClass('selected');
+            this.element.removeClass('unselected');
+            this.selected = true;
+            return true;
+        } else {
+            return false;
+        };
     };
 
     /**
      * handle cell level logic when a cell is unselected
      * @method unselect
+     * @return is the action being taken
      */
     Cell.prototype.unselect = function () {
-        this.element.removeClass('selected');
-        this.selected = false;
+        if (this.selected) {
+            this.element.addClass('unselected');
+            this.element.removeClass('selected');
+            this.selected = false;
+            return true;
+        } else {
+            return false;
+        };
     };
 
     /**
-     * handle cell level logic when a cell is focused
-     * @method focus
+     * handle cell level logic when a cell is rendered
+     * @method render
+     * @return is the action being taken
      */
-    Cell.prototype.focus = function () {
-        this.element.addClass('focused');
-        this.focused = true;
+    Cell.prototype.render = function () {
+        if (!this.rendered) {
+            this.element.addClass('rendered');
+            this.element.removeClass('unrendered');
+            this.rendered = true;
+            return true;
+        } else {
+            return false;
+        };
     };
 
     /**
-     * handle cell level logic when a cell is unfocused
-     * @method unfocus
+     * handle cell level logic when a cell is unrendered
+     * @method unrender
+     * @return is the action being taken
      */
-    Cell.prototype.unfocus = function () {
-        this.element.removeClass('focused');
-        this.focused = false;
+    Cell.prototype.unrender = function () {
+        if (this.rendered) {
+            this.element.addClass('unrendered');
+            this.element.removeClass('rendered');
+            this.rendered = false;
+            return true;
+        } else {
+            return false;
+        };
     };
+
+    /**
+     * enter the command mode for the cell
+     * @method command_mode
+     * @return is the action being taken
+     */
+    Cell.prototype.command_mode = function () {
+        if (this.mode !== 'command') {
+            this.element.addClass('command_mode');
+            this.element.removeClass('edit_mode');
+            this.mode = 'command';
+            return true;
+        } else {
+            return false;
+        };
+    };
+
+    /**
+     * enter the edit mode for the cell
+     * @method command_mode
+     * @return is the action being taken
+     */
+    Cell.prototype.edit_mode = function () {
+        if (this.mode !== 'edit') {
+            this.element.addClass('edit_mode');
+            this.element.removeClass('command_mode');
+            this.mode = 'edit';
+            return true;
+        } else {
+            return false;
+        };
+    }
+
+    /**
+     * Focus the cell in the DOM sense
+     * @method focus_cell
+     */
+    Cell.prototype.focus_cell = function () {
+        this.element.focus();
+    }
+
+    /**
+     * Focus the editor area so a user can type
+     * @method focus_editor
+     */
+    Cell.prototype.focus_editor = function () {
+        this.code_mirror.refresh();
+        this.code_mirror.focus();
+    }
 
     /**
      * should be overritten by subclass

@@ -149,53 +149,60 @@ var IPython = (function (IPython) {
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
         var that = this;
-        // whatever key is pressed, first, cancel the tooltip request before
-        // they are sent, and remove tooltip if any, except for tab again
-        if (event.type === 'keydown' && event.which != key.TAB ) {
-            IPython.tooltip.remove_and_cancel_tooltip();
-        }
 
-        var cur = editor.getCursor();
-        if (event.keyCode === key.ENTER){
-            this.auto_highlight();
-        }
+        if (this.mode === 'command') {
+            return false
+        } else if (this.mode === 'edit') {
+            // whatever key is pressed, first, cancel the tooltip request before
+            // they are sent, and remove tooltip if any, except for tab again
+            if (event.type === 'keydown' && event.which != key.TAB ) {
+                IPython.tooltip.remove_and_cancel_tooltip();
+            };
 
-        if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
-            // triger on keypress (!) otherwise inconsistent event.which depending on plateform
-            // browser and keyboard layout !
-            // Pressing '(' , request tooltip, don't forget to reappend it
-            // The second argument says to hide the tooltip if the docstring
-            // is actually empty
-            IPython.tooltip.pending(that, true);
-        } else if (event.which === key.UPARROW && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
+            var cur = editor.getCursor();
+            if (event.keyCode === key.ENTER){
+                this.auto_highlight();
             }
-        } else if (event.which === key.ESC) {
-            return IPython.tooltip.remove_and_cancel_tooltip(true);
-        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
+
+            if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
+                // Always ignore shift-enter in CodeMirror as we handle it.
                 return true;
-            }
-        } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
-                if (editor.somethingSelected()){
-                    var anchor = editor.getCursor("anchor");
-                    var head = editor.getCursor("head");
-                    if( anchor.line != head.line){
-                        return false;
+                
+            } else if (event.which === 40 && event.type === 'keypress' && IPython.tooltip.time_before_tooltip >= 0) {
+                // triger on keypress (!) otherwise inconsistent event.which depending on plateform
+                // browser and keyboard layout !
+                // Pressing '(' , request tooltip, don't forget to reappend it
+                // The second argument says to hide the tooltip if the docstring
+                // is actually empty
+                IPython.tooltip.pending(that, true);
+            } else if (event.which === key.UPARROW && event.type === 'keydown') {
+                // If we are not at the top, let CM handle the up arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_top()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
+            } else if (event.which === key.ESC) {
+                IPython.tooltip.remove_and_cancel_tooltip(true);
+                return true;
+            } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+                // If we are not at the bottom, let CM handle the down arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_bottom()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
+            } else if (event.keyCode === key.TAB && event.type == 'keydown' && event.shiftKey) {
+                    if (editor.somethingSelected()){
+                        var anchor = editor.getCursor("anchor");
+                        var head = editor.getCursor("head");
+                        if( anchor.line != head.line){
+                            return false;
+                        }
                     }
                 }
                 IPython.tooltip.request(that);
@@ -213,13 +220,10 @@ var IPython = (function (IPython) {
                 // is empty.  In this case, let CodeMirror handle indentation.
                 return false;
             } else {
-                event.stop();
-                this.completer.startCompletion();
-                return true;
-            }
-        } else {
-            // keypress/keyup also trigger on TAB press, and we don't want to
-            // use those to disable tab completion.
+                // keypress/keyup also trigger on TAB press, and we don't want to
+                // use those to disable tab completion.
+                return false;
+            };
             return false;
         }
         return false;
@@ -304,20 +308,45 @@ var IPython = (function (IPython) {
     // Basic cell manipulation.
 
     CodeCell.prototype.select = function () {
-        IPython.Cell.prototype.select.apply(this);
-        this.code_mirror.refresh();
-        this.auto_highlight();
+        var continue = IPython.Cell.prototype.select.apply(this);
+        if (continue) {
+            this.code_mirror.refresh();
+            this.auto_highlight();
+        };
+        return continue;
     };
 
-    CodeCell.prototype.focus = function () {
-        IPython.Cell.prototype.focus.apply(this);
-        this.code_mirror.focus();
+    CodeCell.prototype.render = function () {
+        var continue = IPython.Cell.prototype.render.apply(this);
+        if (continue) {
+            this.execute();
+        };
+        return continue;
     };
 
-    CodeCell.prototype.unfocus = function () {
-        IPython.Cell.prototype.focus.apply(this);
-        this.code_mirror.blur();
+    CodeCell.prototype.unrender = function () {
+        var continue = IPython.Cell.prototype.unrender.apply(this);
+        if (continue) {
+            this.clear_output(true, true, true);
+        };
+        return continue;
     };
+
+    CodeCell.prototype.command_mode = function () {
+        var continue = IPython.Cell.prototype.command_mode.apply(this);
+        if (continue) {
+            this.focus_cell();
+        };
+        return continue;
+    }
+
+    CodeCell.prototype.edit_mode = function () {
+        var continue = IPython.Cell.prototype.edit_mode.apply(this);
+        if (continue) {
+            this.focus_editor();
+        };
+        return continue;
+    }
 
     CodeCell.prototype.select_all = function () {
         var start = {line: 0, ch: 0};

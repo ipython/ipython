@@ -946,7 +946,7 @@ var IPython = (function (IPython) {
                     text = '';
                 };
                 // The edit must come before the set_text.
-                target_cell.edit();
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
@@ -976,7 +976,7 @@ var IPython = (function (IPython) {
                     text = '';
                 };
                 // The edit must come before the set_text.
-                target_cell.edit();
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
@@ -1011,7 +1011,7 @@ var IPython = (function (IPython) {
                 };
                 // The edit must come before the set_text.
                 target_cell.set_level(level);
-                target_cell.edit();
+                target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
@@ -1179,7 +1179,7 @@ var IPython = (function (IPython) {
                 cell.set_text(textb);
                 cell.render();
                 var new_cell = this.insert_cell_above('markdown');
-                new_cell.edit(); // editor must be visible to call set_text
+                new_cell.unrender(); // editor must be visible to call set_text
                 new_cell.set_text(texta);
                 new_cell.render();
                 this.select_next();
@@ -1208,7 +1208,7 @@ var IPython = (function (IPython) {
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(upper_text+'\n'+text);
             } else if (cell instanceof IPython.MarkdownCell) {
-                cell.edit();
+                cell.unrender();
                 cell.set_text(upper_text+'\n'+text);
                 cell.render();
             };
@@ -1238,7 +1238,7 @@ var IPython = (function (IPython) {
             if (cell instanceof IPython.CodeCell) {
                 cell.set_text(text+'\n'+lower_text);
             } else if (cell instanceof IPython.MarkdownCell) {
-                cell.edit();
+                cell.unrender();
                 cell.set_text(text+'\n'+lower_text);
                 cell.render();
             };
