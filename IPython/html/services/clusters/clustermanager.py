@@ -89,7 +89,9 @@ class ClusterManager(LoggingConfigurable):
 
     def list_profiles(self):
         self.update_profiles()
-        result = [self.profile_info(p) for p in sorted(self.profiles.keys())]
+        # sorted list, but ensure that 'default' always comes first
+        default_first = lambda name: name if name != 'default' else ''
+        result = [self.profile_info(p) for p in sorted(self.profiles, key=default_first)]
         return result
 
     def check_profile(self, profile):
