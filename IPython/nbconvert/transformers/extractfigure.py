@@ -42,7 +42,8 @@ class ExtractFigureTransformer(ActivatableTransformer):
     figure_filename_template = Unicode(
         "{notebook_name}_{cell_index}_{index}.{extension}", config=True)
 
-    def __init__(self, notebook_name, config=None, **kw):
+
+    def __init__(self, config=None, **kw):
         """
         Public constructor
         
@@ -53,14 +54,14 @@ class ExtractFigureTransformer(ActivatableTransformer):
         **kw : misc
             Additional arguments
         """
-
         super(ExtractFigureTransformer, self).__init__(config=config, **kw)
-
+        
         #A name unique to the notebook is needed to name files in build directly 
         #such that they do not conflict with other outputs from other notebooks
         #when the user is batch converting.  Unfortunately this needs to be here
         #so the template can be aware of what filename we are using.
-        self._notebook_name = notebook_name
+        self.notebook_name = None
+
 
     def cell_transform(self, cell, resources, cell_index):
         """
