@@ -18,6 +18,7 @@ Authors:
 
 from tornado import web
 from ..base.handlers import IPythonHandler
+from urllib import quote, unquote
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -31,12 +32,54 @@ class ProjectDashboardHandler(IPythonHandler):
         self.write(self.render_template('tree.html',
             project=self.project,
             project_component=self.project.split('/'),
+            notebook_path= "''"
         ))
 
+
+class ProjectPathDashboardHandler(IPythonHandler):
+
+    @authenticate_unless_readonly
+    def get(self, notebook_path):
+        nbm = self.notebook_manager
+        name, path = nbm.named_notebook_path(notebook_path)
+        if name != None:
+            if path == None:
+                self.redirect(self.base_project_url + 'notebooks/' + quote(name))
+            else:
+                self.redirect(self.base_project_url + 'notebooks/' + path + quote(name))
+        else:
+            project = self.project + '/' + notebook_path
+            self.write(self.render_template('tree.html',
+                project=project,
+                project_component=project.split('/'),
+                notebook_path=path,
+                notebook_name=name))    
+
+
+class TreeRedirectHandler(IPythonHandler):
+    
+    @authenticate_unless_readonly
+    def get(self):
+        url = self.base_project_url + 'tree'
+        self.redirect(url)
+
+class ProjectRedirectHandler(IPythonHandler):
+    
+    @authenticate_unless_readonly
+    def get(self):
+        url = self.base_project_url + 'tree'
+        self.redirect(url)
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
 
 
-default_handlers = [(r"/", ProjectDashboardHandler)]
+_notebook_path_regex = r"(?P<notebook_path>.+)"
+
+default_handlers = [
+    (r"/tree/%s" % _notebook_path_regex, ProjectPathDashboardHandler),
+    (r"/tree", ProjectDashboardHandler),
+    (r"/tree/", TreeRedirectHandler),
+    (r"/", ProjectRedirectHandler)
+    ]
