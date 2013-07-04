@@ -770,7 +770,7 @@ class Kernel(Configurable):
             else:
                 break
         try:
-            value = reply['content']['value']
+            value = py3compat.unicode_to_str(reply['content']['value'])
         except:
             self.log.error("Got bad raw_input reply: ")
             self.log.error("%s", parent)
