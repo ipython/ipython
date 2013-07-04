@@ -151,7 +151,7 @@ def find_package_data():
         'IPython.testing.plugin' : ['*.txt'],
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.qt.console' : ['resources/icon/*.svg'],
-        'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tpl',
+        'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
             'templates/latex/skeleton/*.tplx', 'templates/skeleton/*']
     }
     return package_data
