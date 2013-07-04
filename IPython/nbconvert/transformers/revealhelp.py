@@ -20,12 +20,14 @@ from .base import ConfigurableTransformer
 
 class RevealHelpTransformer(ConfigurableTransformer):
 
-    def call(self, nb, resources):
+    def call(self, notebook_name, nb, resources):
         """
         Called once to 'transform' contents of the notebook.
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : NotebookNode
             Notebook being converted
         resources : dictionary

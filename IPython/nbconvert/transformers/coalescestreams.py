@@ -20,6 +20,8 @@ def cell_preprocessor(function):
     
     Wrapped Parameters
     ----------
+    notebook_name : string
+        Name of the notebook
     cell : NotebookNode cell
         Notebook cell being processed
     resources : dictionary
@@ -29,22 +31,24 @@ def cell_preprocessor(function):
         Index of the cell being processed
     """
     
-    def wrappedfunc(nb, resources):
+    def wrappedfunc(notebook_name, nb, resources):
         for worksheet in nb.worksheets :
             for index, cell in enumerate(worksheet.cells):
-                worksheet.cells[index], resources = function(cell, resources, index)
+                worksheet.cells[index], resources = function(notebook_name, cell, resources, index)
         return nb, resources
     return wrappedfunc
 
 
 @cell_preprocessor
-def coalesce_streams(cell, resources, index):
+def coalesce_streams(notebook_name, cell, resources, index):
     """
     Merge consecutive sequences of stream output into single stream
     to prevent extra newlines inserted at flush calls
     
     Parameters
     ----------
+    notebook_name : string
+        Name of the notebook
     cell : NotebookNode cell
         Notebook cell being processed
     resources : dictionary

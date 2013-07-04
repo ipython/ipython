@@ -153,12 +153,12 @@ class Exporter(Configurable):
         self._register_filters()
 
         #Load user transformers.  Overwrite existing transformers if need be.
-        if transformers :
+        if transformers is not None:
             for transformer in transformers:
                 self.register_transformer(transformer)
                 
         #Load user filters.  Overwrite existing filters if need be.
-        if not filters is None:
+        if filters is not None:
             for key, user_filter in filters.iteritems():
                 self.register_filter(key, user_filter)
 
@@ -185,11 +185,10 @@ class Exporter(Configurable):
                 can be accessed read/write by transformers
                 and filters.
         """
-        self.extract_figure_transformer.notebook_name = notebook_name
 
         if resources is None:
             resources = {}
-        nb, resources = self._preprocess(nb, resources)
+        nb, resources = self._preprocess(notebook_name, nb, resources)
         
         #Load the template file.
         self.template = self.environment.get_template(self.template_file + self.template_extension)
@@ -234,6 +233,7 @@ class Exporter(Configurable):
         return self.from_notebook_node(notebook_name, nbformat.read(file_stream, 'json'))
 
 
+#TODO: Namestrings allowed
     def register_transformer(self, transformer):
         """
         Register a transformer.
@@ -261,7 +261,7 @@ class Exporter(Configurable):
             self.transformers.append(transformer_instance)
             return transformer_instance
 
-
+#TODO: Namestrings allowed
     def register_filter(self, name, filter):
         """
         Register a filter.
@@ -331,13 +331,15 @@ class Exporter(Configurable):
             self.environment.comment_end_string = self.jinja_comment_block_end
 
 
-    def _preprocess(self, nb, resources):
+    def _preprocess(self, notebook_name, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
         To preprocess the notebook is to apply all of the 
     
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : notebook node
             notebook that is being exported.
         resources : a dict of additional resources that
@@ -349,8 +351,10 @@ class Exporter(Configurable):
         # we are never safe enough with what the transformers could do.
         nbc =  deepcopy(nb)
         resc = deepcopy(resources)
+
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
         for transformer in self.transformers:
-            nb, resources = transformer(nbc, resc)
-        return nb, resources
+            nbc, resc = transformer(notebook_name, nbc, resc)
+
+        return nbc, resc

@@ -36,12 +36,17 @@ class FileWriter(WriterBase):
                               to output to the current directory""")
 
 
-    def __init__(self, config, **kw):
-        """
-        Constructor
-        """
-        super(FileWriter, self).__init__(config=config, **kw)
-    
+    #Make sure that the output directory exists.
+    def _build_directory_changed(self, name, old, new):
+        if not os.path.isdir(new):
+            os.mkdir(new) #TODO: makedirs
+
+
+    def __init__(self, **kw):
+        super(FileWriter, self).__init__(**kw)
+        self._build_directory_changed('build_directory', self.build_directory, 
+                                      self.build_directory)
+
 
     def write(self, notebook_name, output_extension, output, resources):
             """
@@ -49,48 +54,20 @@ class FileWriter(WriterBase):
             is set via the 'build_directory' variable of this instance (a 
             configurable).
 
-            Parameters
-            ----------
-            notebook_filename : string
-                Name of the notebook file that was converted (no extension or 
-                full path).
-            output_extension : string
-                Extension to give the output when written to the destination.
-            output : string
-                Conversion results.  This string contains the file contents of 
-                the converted file.
-            resources : dict
-                Resources created and filled by the nbconvert conversion
-                process.  Includes output from transformers, such as the extract 
-                figure transformer.
+            See base for more...
             """
 
-            #If the user specifies an output directory, use it.
-            destination = None
-            if len(self.build_directory) > 0:
-
-                #Make sure that the output directory exists.
-                if not os.path.isdir(self.build_directory):
-                    os.mkdir(self.build_directory)
-                destination = self.build_directory
-
             #Write all of the extracted resources to the destination directory.
-            #NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY SINCE WE DON'T KNOW
-            #IF IT'S TEXT OR BINARY.  AT THE TIME OF WRITING, THIS ONLY
-            #AFFECTS SVG FILE LINE ENDINGS ON WINDOWS.  THE SVG FILES WILL STILL
-            #WORK IN ANY READER, THEY JUST WONT BE AS HUMAN READABLE (A 
-            #CONVERSION WILL BE REQUIRED).
-            for (filename, data) in self._get_extracted_figures(resources).items():
+            #NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
+            #TRANSFORMER SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
+            for filename, data in resources.get('figures', {}).items():
 
                 #Determine where to write the file to
-                if not destination is None:
-                    destination_filename = os.path.join(destination, filename)
-                else:
-                    destination_filename = filename
-
+                dest = os.path.join(self.build_directory, filename)
+                
                 #Write file
-                with io.open(destination_filename, 'wb') as f:
-                        f.write(data)
+                with io.open(dest, 'wb') as f:
+                    f.write(data)
 
             #Copy referenced files to output directory
             if not destination is None:
@@ -102,11 +79,11 @@ class FileWriter(WriterBase):
                                         os.path.join(destination, filename))
 
             #Determine where to write conversion results.
-            destination_filename = notebook_name + '.' + output_extension
+            dest = notebook_name + '.' + output_extension
             if not destination is None:
-                destination_filename = os.path.join(destination, 
-                                                    destination_filename)
+                dest = os.path.join(destination, 
+                                                    dest)
                 
             #Write conversion results.
-            with io.open(destination_filename, 'w') as f:
+            with io.open(dest, 'w') as f:
                 f.write(output)

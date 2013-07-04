@@ -18,12 +18,6 @@ from IPython.utils.traitlets import Dict, Unicode
 from .activatable import ActivatableTransformer
 
 #-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
-FIGURES_KEY = "figures"
-
-#-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
@@ -33,17 +27,12 @@ class ExtractFigureTransformer(ActivatableTransformer):
     figures are returned in the 'resources' dictionary.
     """
 
-    extra_extension_map =  Dict({},
-        config=True,
-        help="""Extra map to override extension based on type.
-        Useful for latex where SVG will be converted to PDF before inclusion
-        """)
-    
+
     figure_filename_template = Unicode(
         "{notebook_name}_{cell_index}_{index}.{extension}", config=True)
 
 
-    def __init__(self, config=None, **kw):
+    def __init__(self, **kw):
         """
         Public constructor
         
@@ -54,21 +43,17 @@ class ExtractFigureTransformer(ActivatableTransformer):
         **kw : misc
             Additional arguments
         """
-        super(ExtractFigureTransformer, self).__init__(config=config, **kw)
-        
-        #A name unique to the notebook is needed to name files in build directly 
-        #such that they do not conflict with other outputs from other notebooks
-        #when the user is batch converting.  Unfortunately this needs to be here
-        #so the template can be aware of what filename we are using.
-        self.notebook_name = None
+        super(ExtractFigureTransformer, self).__init__(**kw)
 
 
-    def cell_transform(self, cell, resources, cell_index):
+    def transform_cell(self, notebook_name, cell, resources, cell_index):
         """
         Apply a transformation on each cell,
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         cell : NotebookNode cell
             Notebook cell being processed
         resources : dictionary
@@ -78,20 +63,16 @@ class ExtractFigureTransformer(ActivatableTransformer):
             Index of the cell being processed (see base.py)
         """
 
-        #Make sure a notebook name is set.
-        if self.notebook_name is None:
-            raise TypeError("_notebook_name")
+        # #Make sure a notebook name is set.
+        # if self.notebook_name is None:
+        #     raise TypeError("_notebook_name")
         
         #Make sure figures key exists
-        if not FIGURES_KEY in resources:
-            resources[FIGURES_KEY] = {}
+        if not 'figures' in resources:
+            resources['figures'] = {}
             
-        #A unique index for association with each output in the cell
-        index_generator = itertools.count(0)
-
         #Loop through all of the outputs in the cell
-        for out in cell.get('outputs', []):
-            index = index_generator.next()
+        for index, out in enumerate(cell.get('outputs', [])):
 
             #Get the output in data formats that the template is interested in.
             for out_type in self.display_data_priority:
@@ -101,16 +82,12 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     #Binary files are base64-encoded, SVG is already XML
                     if out_type in ('png', 'jpg', 'pdf'):
                         data = data.decode('base64')
-
-                    #If the extension for the data type is different is 
-                    #different than the name of the data type, change it here.
-                    extension = out_type
-                    if extension in self.extra_extension_map :
-                        extension = self.extra_extension_map[extension]
-
+                    else:
+                        data = data.replace('\n', '\r\n')
+                    
                     #Build a figure name
                     figure_name = self.figure_filename_template.format( 
-                                    notebook_name=self.notebook_name,
+                                    notebook_name=notebook_name,
                                     cell_index=cell_index,
                                     index=index,
                                     extension=extension)
@@ -123,6 +100,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
 
                     #In the resources, make the figure available via
                     #   resources['figures']['filename'] = data
-                    resources[FIGURES_KEY][figure_name] = data
+                    resources['figures'][figure_name] = data
 
         return cell, resources

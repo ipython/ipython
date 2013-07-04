@@ -111,12 +111,14 @@ class SphinxTransformer(ActivatableTransformer):
     overridetitle = Unicode("", config=True, help="")
 
     
-    def call(self, nb, resources):
+    def call(self, notebook_name, nb, resources):
         """
         Sphinx transformation to apply on each notebook.
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : NotebookNode
             Notebook being converted
         resources : dictionary
@@ -176,6 +178,8 @@ class SphinxTransformer(ActivatableTransformer):
         
         if not (self.overridetitle == None or len(self.overridetitle.strip()) == 0):
             nb.metadata.name = self.overridetitle
+        else
+            nb.metadata.name = notebook_name
         
         # End
         return nb, resources 
@@ -258,4 +262,3 @@ class SphinxTransformer(ActivatableTransformer):
                     6: "(for international documents)"}
         
         return console.prompt_dictionary(styles, menu_comments=comments)
-

@@ -50,10 +50,10 @@ class ConfigurableTransformer(GlobalConfigurable):
         super(ConfigurableTransformer, self).__init__(config=config, **kw)
 
        
-    def __call__(self, nb, resources):
-        return self.call(nb,resources)
+    def __call__(self, notebook_name, nb, resources):
+        return self.call(notebook_name, nb,resources)
 
-    def call(self, nb, resources):
+    def call(self, notebook_name, nb, resources):
         """
         Transformation to apply on each notebook.
         
@@ -63,6 +63,8 @@ class ConfigurableTransformer(GlobalConfigurable):
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : NotebookNode
             Notebook being converted
         resources : dictionary
@@ -72,19 +74,21 @@ class ConfigurableTransformer(GlobalConfigurable):
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], resources = self.cell_transform(cell, resources, index)
+                    worksheet.cells[index], resources = self.cell_transform(notebook_name, cell, resources, index)
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
 
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, notebook_name, cell, resources, index):
         """
         Overwrite if you want to apply a transformation on each cell.  You 
         should return modified cell and resource dictionary.
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         cell : NotebookNode cell
             Notebook cell being processed
         resources : dictionary

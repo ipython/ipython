@@ -30,7 +30,7 @@ class ActivatableTransformer(ConfigurableTransformer):
 
     enabled = Bool(False, config=True)
 
-    def __call__(self, nb, resources):
+    def __call__(self, notebook_name, nb, resources):
         """
         Transformation to apply on each notebook.
         
@@ -40,6 +40,8 @@ class ActivatableTransformer(ConfigurableTransformer):
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : NotebookNode
             Notebook being converted
         resources : dictionary
@@ -47,7 +49,7 @@ class ActivatableTransformer(ConfigurableTransformer):
             transformers to pass variables into the Jinja engine.
         """
         
-        if not self.enabled :
-            return nb, resources
+        if self.enabled :
+            return super(ActivatableTransformer, self).__call__(notebook_name, nb, resources)
         else :
-            return super(ActivatableTransformer, self).__call__(nb, resources)
+            return nb, resources

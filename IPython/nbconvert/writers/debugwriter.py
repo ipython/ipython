@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Contains Stdout writer
+Contains debug writer.
 """
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
@@ -15,16 +15,16 @@ Contains Stdout writer
 #-----------------------------------------------------------------------------
 
 from .base import WriterBase
+from pprint import pprint
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class StdoutWriter(WriterBase):
-    """Consumes output from nbconvert export...() methods and writes to the 
-    stdout stream.  Allows for quick debuging of nbconvert output.  Using the
-    debug flag makes the writer pretty-print the figures contained within the
-    notebook."""
+class DebugWriter(WriterBase):
+    """Consumes output from nbconvert export...() methods and writes usefull
+    debugging information to the stdout.  The information includes a list of
+    resources that were extracted from the notebook(s) during export."""
 
 
     def write(self, notebook_name, output_extension, output, resources):
@@ -34,4 +34,10 @@ class StdoutWriter(WriterBase):
         See base for more...
         """
 
-        print(output)
+        if 'figures' in resources:
+            print("Figures extracted from %s" % notebook_name)
+            print('-' * 80)
+            pprint.pprint(resources['figures'], indent=2, width=70)
+        else:
+            print("No figures extracted from %s" % notebook_name)
+        print('=' * 80)

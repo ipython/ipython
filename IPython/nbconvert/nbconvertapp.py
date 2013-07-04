@@ -27,7 +27,7 @@ import copy
 #From IPython
 from IPython.config.application import Application
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, List
 
 from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
@@ -59,26 +59,36 @@ class NbConvertApp(Application):
             nbconvert example repository
 
         Explicit YAML
-            > ipython nbconvert foo.yaml
+            > ipython nbconvert --yaml=foo.yaml
 
             Loads the foo.yaml file in the current directory.  Behaves like the
             Standard usage case (seen above).
 
         Simple
-            > ipython nbconvert --template="foo" bar.ipynb
+            > ipython nbconvert --template=foo bar.ipynb
 
             Exports bar.ipynb to the "nbconvert_build" subdirectory using the 
-            foo template.
+            foo template.  Still uses the standard yaml file if it exists.
         """)
+
+    yaml_config = Unicode(u'nbconvert.yaml', config=True, help="""""")
 
     template = Unicode(
         "", config=True,
-        help="""If specified, nbconvert will convert the document specified
-                using this template.  If set to a blank string, nbconvert will
-                open and use the 'nbconvert.yaml' file or explicitly procided
-                yaml file in the current working directory.""")
+        help="""If specified, nbconvert will convert the document(s) specified
+                using this template.""")
     
-    aliases = {'template':'NbConvertApp.template'}
+    notebooks = List([], config=True, help="""""")
+
+    writer = Instance('IPython.nbconvert.writers.base.WriterBase',  help="""TODO: Help""")
+    writer_class = DottedObjectName('IPython.nbconvert.writers.base.WriterBase', config=True)
+    writer_factory = Type()
+
+    def _writer_class_changed(self, name, old, new):
+        self.writer_factory = import_item(new)
+    
+
+    aliases = {'template':'NbConvertApp.template'} #TODO, writer/yaml also
 
 
     def __init__(self, **kwargs):
@@ -90,6 +100,12 @@ class NbConvertApp(Application):
         #Register class here to have help with help all
         self.classes.insert(0, Exporter)
         self.classes.insert(0, GlobalConfigurable)
+
+        self._init_writer()
+
+
+    def _init_writer(self):
+        self.writer = self.writer_factory(parent=self)
 
 
     def start(self, argv=None):

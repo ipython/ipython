@@ -29,12 +29,14 @@ class LatexTransformer(ActivatableTransformer):
     Converter for latex destined documents.
     """
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, notebook_name, cell, resources, index):
         """
         Apply a transformation on each cell,
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         cell : NotebookNode cell
             Notebook cell being processed
         resources : dictionary

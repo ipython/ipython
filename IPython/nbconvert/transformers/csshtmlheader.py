@@ -56,7 +56,7 @@ class CSSHTMLHeaderTransformer(ActivatableTransformer):
             self._regen_header()
 
 
-    def __call__(self, nb, resources):
+    def __call__(self, notebook_name, nb, resources):
         """Fetch and add CSS to the resource dictionary
 
         Fetch CSS from IPython and Pygments to add at the beginning
@@ -65,6 +65,8 @@ class CSSHTMLHeaderTransformer(ActivatableTransformer):
         
         Parameters
         ----------
+        notebook_name : string
+            Name of the notebook
         nb : NotebookNode
             Notebook being converted
         resources : dictionary

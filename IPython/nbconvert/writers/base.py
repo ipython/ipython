@@ -16,7 +16,6 @@ Contains writer base class.
 
 from IPython.utils.traitlets import List
 
-from ..transformers.extractfigure import FIGURES_KEY
 from ..utils.config import GlobalConfigurable
 
 #-----------------------------------------------------------------------------
@@ -60,21 +59,3 @@ class WriterBase(GlobalConfigurable):
         """
 
         raise NotImplementedError()
-
-
-    def _get_extracted_figures(self, resources):
-        """
-        Get the figures extracted via the extract figures transformer.
-
-        Parameters
-        ----------
-        resources : dict
-            Resources created and filled by the nbconvert conversion process.
-            Includes output from transformers, such as the extract figure 
-            transformer.
-        """
-        
-        if FIGURES_KEY in resources:
-            return resources[FIGURES_KEY]
-        else:
-            return {}
