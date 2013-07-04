@@ -466,7 +466,8 @@ class NotebookApp(BaseIPythonApplication):
         if not self.enable_mathjax:
             return u''
         static_url_prefix = self.webapp_settings.get("static_url_prefix",
-                                                     "/static/")
+                         url_path_join(self.base_project_url, "static")
+        )
         try:
             mathjax = filefind(os.path.join('mathjax', 'MathJax.js'), self.static_file_path)
         except IOError:
@@ -481,7 +482,7 @@ class NotebookApp(BaseIPythonApplication):
             return url
         else:
             self.log.info("Using local MathJax from %s" % mathjax)
-            return static_url_prefix+u"mathjax/MathJax.js"
+            return url_path_join(static_url_prefix, u"mathjax/MathJax.js")
     
     def _mathjax_url_changed(self, name, old, new):
         if new and not self.enable_mathjax:
