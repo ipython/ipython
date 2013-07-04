@@ -117,17 +117,20 @@ class RichIPythonWidget(IPythonWidget):
             content = msg['content']
             prompt_number = content.get('execution_count', 0)
             data = content['data']
+            metadata = msg['content']['metadata']
             if 'image/svg+xml' in data:
                 self._pre_image_append(msg, prompt_number)
                 self._append_svg(data['image/svg+xml'], True)
                 self._append_html(self.output_sep2, True)
             elif 'image/png' in data:
                 self._pre_image_append(msg, prompt_number)
-                self._append_png(decodestring(data['image/png'].encode('ascii')), True)
+                png = decodestring(data['image/png'].encode('ascii'))
+                self._append_png(png, True, metadata=metadata.get('image/png', None))
                 self._append_html(self.output_sep2, True)
             elif 'image/jpeg' in data and self._jpg_supported:
                 self._pre_image_append(msg, prompt_number)
-                self._append_jpg(decodestring(data['image/jpeg'].encode('ascii')), True)
+                jpg = decodestring(data['image/jpeg'].encode('ascii'))
+                self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
                 self._append_html(self.output_sep2, True)
             else:
                 # Default back to the plain text representation.
@@ -151,11 +154,11 @@ class RichIPythonWidget(IPythonWidget):
                 # PNG data is base64 encoded as it passes over the network
                 # in a JSON structure so we decode it.
                 png = decodestring(data['image/png'].encode('ascii'))
-                self._append_png(png, True)
+                self._append_png(png, True, metadata=metadata.get('image/png', None))
             elif 'image/jpeg' in data and self._jpg_supported:
                 self.log.debug("display: %s", msg.get('content', ''))
                 jpg = decodestring(data['image/jpeg'].encode('ascii'))
-                self._append_jpg(jpg, True)
+                self._append_jpg(jpg, True, metadata=metadata.get('image/jpeg', None))
             else:
                 # Default back to the plain text representation.
                 return super(RichIPythonWidget, self)._handle_display_data(msg)
@@ -164,14 +167,14 @@ class RichIPythonWidget(IPythonWidget):
     # 'RichIPythonWidget' protected interface
     #---------------------------------------------------------------------------
 
-    def _append_jpg(self, jpg, before_prompt=False):
+    def _append_jpg(self, jpg, before_prompt=False, metadata=None):
         """ Append raw JPG data to the widget."""
-        self._append_custom(self._insert_jpg, jpg, before_prompt)
+        self._append_custom(self._insert_jpg, jpg, before_prompt, metadata=metadata)
 
-    def _append_png(self, png, before_prompt=False):
+    def _append_png(self, png, before_prompt=False, metadata=None):
         """ Append raw PNG data to the widget.
         """
-        self._append_custom(self._insert_png, png, before_prompt)
+        self._append_custom(self._insert_png, png, before_prompt, metadata=metadata)
 
     def _append_svg(self, svg, before_prompt=False):
         """ Append raw SVG data to the widget.
@@ -276,20 +279,31 @@ class RichIPythonWidget(IPythonWidget):
         else:
             return '<b>Unrecognized image format</b>'
 
-    def _insert_jpg(self, cursor, jpg):
+    def _insert_jpg(self, cursor, jpg, metadata=None):
         """ Insert raw PNG data into the widget."""
-        self._insert_img(cursor, jpg, 'jpg')
+        self._insert_img(cursor, jpg, 'jpg', metadata=metadata)
 
-    def _insert_png(self, cursor, png):
+    def _insert_png(self, cursor, png, metadata=None):
         """ Insert raw PNG data into the widget.
         """
-        self._insert_img(cursor, png, 'png')
+        self._insert_img(cursor, png, 'png', metadata=metadata)
 
-    def _insert_img(self, cursor, img, fmt):
+    def _insert_img(self, cursor, img, fmt, metadata=None):
         """ insert a raw image, jpg or png """
+        if metadata:
+            width = metadata.get('width', None)
+            height = metadata.get('height', None)
+        else:
+            width = height = None
         try:
             image = QtGui.QImage()
             image.loadFromData(img, fmt.upper())
+            if width and height:
+                image = image.scaled(width, height)
+            elif width and not height:
+                image = image.scaledToWidth(width)
+            elif height and not width:
+                image = image.scaledToHeight(height)
         except ValueError:
             self._insert_plain_text(cursor, 'Received invalid %s data.'%fmt)
         else:
