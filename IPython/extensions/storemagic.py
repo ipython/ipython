@@ -88,7 +88,10 @@ class StoreMagics(Magics):
 
           ville@badger:~$ ipython
           In [1]: l
-          Out[1]: ['hello', 10, 'world']
+          NameError: name 'l' is not defined
+          In [2]: %store -r
+          In [3]: l
+          Out[3]: ['hello', 10, 'world']
 
         Usage:
 
@@ -98,7 +101,7 @@ class StoreMagics(Magics):
                                 to disk
         * ``%store -d spam``  - Remove the variable and its value from storage
         * ``%store -z``       - Remove all variables from storage
-        * ``%store -r``       - Refresh all variables from store (delete
+        * ``%store -r``       - Refresh all variables from store (overwrite
                                 current vals)
         * ``%store -r spam bar`` - Refresh specified variables from store
                                    (delete current val)
