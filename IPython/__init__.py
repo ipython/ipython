@@ -86,10 +86,17 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     real_embed_kernel(module=module, local_ns=local_ns, **kwargs)
 
 def start_ipython(argv=None, **kwargs):
-    """launch a normal IPython instance (as opposed to embedded)
+    """Launch a normal IPython instance (as opposed to embedded)
+    
+    `IPython.embed()` puts a shell in a particular calling scope,
+    such as a function or method for debugging purposes,
+    which is often not desirable.
+    
+    `start_ipython()` does full, regular IPython initialization,
+    including loading startup files, configuration, etc.
+    much of which is skipped by `embed()`.
     
     This is a public API method, and will survive implementation changes.
-    
     
     Parameters
     ----------
@@ -97,7 +104,8 @@ def start_ipython(argv=None, **kwargs):
     argv : list or None, optional
         If unspecified or None, IPython will parse command-line options from sys.argv.
         To prevent any command-line parsing, pass an empty list: `argv=[]`.
-    
+    user_ns : dict, optional
+        specify this dictionary to initialize the IPython user namespace with particular values.
     kwargs : various, optional
         Any other kwargs will be passed to the Application constructor,
         such as `config`.
