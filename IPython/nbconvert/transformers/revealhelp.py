@@ -62,3 +62,4 @@ class RevealHelpTransformer(ConfigurableTransformer):
         resources['reveal']['url_prefix'] = self.url_prefix
 
         return nb, resources
+    
