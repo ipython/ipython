@@ -241,13 +241,12 @@ var IPython = (function (IPython) {
                 .addClass("disabled")
                 .append(
                     $("<a/>")
-                    .attr("href", "#")
                     .text("No checkpoints")
                 )
             );
             return;
         };
-        console.log("checkpoints!", checkpoints);
+        
         for (var i = 0; i < checkpoints.length; i++) {
             var checkpoint = checkpoints[i];
             var d = new Date(checkpoint.last_modified);
