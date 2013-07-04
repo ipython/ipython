@@ -111,6 +111,7 @@ var IPython = (function (IPython) {
             success : $.proxy(this.sessions_loaded, this)
         };
         var url = this.baseProjectUrl() + 'api/sessions';
+        console.log("THIS IS A TEST");
         $.ajax(url,settings);
     };
 
