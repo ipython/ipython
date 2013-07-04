@@ -21,7 +21,6 @@ import os
 from shutil import copyfile
 import sys
 
-from IPython.core.error import UsageError
 from IPython.config.configurable import Configurable
 from IPython.utils.traitlets import Instance
 from IPython.utils.py3compat import PY3

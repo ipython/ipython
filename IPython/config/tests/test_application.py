@@ -28,7 +28,7 @@ from IPython.config.application import (
 )
 
 from IPython.utils.traitlets import (
-    Bool, Unicode, Integer, Float, List, Dict
+    Bool, Unicode, Integer, List, Dict
 )
 
 #-----------------------------------------------------------------------------

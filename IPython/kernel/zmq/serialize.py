@@ -15,13 +15,6 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-# Standard library imports
-import logging
-import os
-import re
-import socket
-import sys
-
 try:
     import cPickle
     pickle = cPickle

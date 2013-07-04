@@ -71,7 +71,6 @@ import re
 import sys
 
 # IPython modules
-from IPython.core.splitinput import split_user_input, LineInfo
 from IPython.utils.py3compat import cast_unicode
 from IPython.core.inputtransformer import (leading_indent,
                                            classic_prompt,
@@ -85,7 +84,7 @@ from IPython.core.inputtransformer import (leading_indent,
                                            assemble_python_lines,
                                            )
 
-# Temporary!
+# These are available in this module for backwards compatibility.
 from IPython.core.inputtransformer import (ESC_SHELL, ESC_SH_CAP, ESC_HELP,
                                         ESC_HELP2, ESC_MAGIC, ESC_MAGIC2,
                                         ESC_QUOTE, ESC_QUOTE2, ESC_PAREN, ESC_SEQUENCES)

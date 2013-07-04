@@ -4,7 +4,6 @@
 # Library imports
 #-----------------------------------------------------------------------------
 # Stdlib
-import sys
 import unittest
 
 # Our own

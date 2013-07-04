@@ -5,7 +5,6 @@
 # Std lib
 import inspect
 import sys
-import unittest
 
 # Third party
 import nose.tools as nt

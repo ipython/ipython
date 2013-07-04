@@ -29,7 +29,6 @@ import tempfile
 from unittest import TestCase
 
 import nose.tools as nt
-from nose import SkipTest
 
 from IPython.core.profileapp import list_profiles_in, list_bundled_profiles
 from IPython.core.profiledir import ProfileDir

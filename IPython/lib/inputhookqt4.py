@@ -18,7 +18,6 @@ Author: Christian Boos
 
 import os
 import signal
-import time
 import threading
 
 from IPython.core.interactiveshell import InteractiveShell

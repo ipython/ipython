@@ -14,7 +14,6 @@
 
 import os
 import socket
-import sys
 from threading import Thread
 
 import zmq

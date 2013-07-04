@@ -27,8 +27,6 @@ maintained here for backwards compatablitiy with old SymPy versions.
 #-----------------------------------------------------------------------------
 
 from IPython.lib.latextools import latex_to_png
-from IPython.testing import decorators as dec
-# use @dec.skipif_not_sympy to skip tests requiring sympy
 
 try:
     from sympy import pretty, latex

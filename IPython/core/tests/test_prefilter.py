@@ -6,7 +6,7 @@
 import nose.tools as nt
 
 from IPython.core.prefilter import AutocallChecker
-from IPython.testing import tools as tt, decorators as dec
+from IPython.testing import decorators as dec
 from IPython.testing.globalipapp import get_ipython
 
 #-----------------------------------------------------------------------------

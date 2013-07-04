@@ -30,7 +30,7 @@ import sys
 
 from IPython.external import argparse
 from IPython.utils.path import filefind, get_ipython_dir
-from IPython.utils import py3compat, text, warn
+from IPython.utils import py3compat, warn
 from IPython.utils.encoding import DEFAULT_ENCODING
 
 #-----------------------------------------------------------------------------
@@ -498,8 +498,6 @@ class KeyValueConfigLoader(CommandLineConfigLoader):
             or dicts.  When the flag is triggered, The config is loaded as
             `self.config.update(cfg)`.
         """
-        from IPython.config.configurable import Configurable
-
         self.clear()
         if argv is None:
             argv = self.argv

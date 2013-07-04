@@ -388,14 +388,6 @@ class InteractiveLoopTestCase(unittest.TestCase):
         self.check_ns(['x =(1+','1+','2)'], dict(x=4))
 
 
-def test_LineInfo():
-    """Simple test for LineInfo construction and str()"""
-    linfo = isp.LineInfo('  %cd /home')
-    nt.assert_equal(str(linfo), 'LineInfo [  |%|cd|/home]')
-
-
-
-
 class IPythonInputTestCase(InputSplitterTestCase):
     """By just creating a new class whose .isp is a different instance, we
     re-run the same test battery on the new input splitter.

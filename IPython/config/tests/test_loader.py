@@ -28,8 +28,6 @@ from nose import SkipTest
 
 from IPython.testing.tools import mute_warn
 
-from IPython.utils.traitlets import Unicode
-from IPython.config.configurable import Configurable
 from IPython.config.loader import (
     Config,
     PyFileConfigLoader,

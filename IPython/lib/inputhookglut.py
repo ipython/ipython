@@ -33,7 +33,6 @@ import os
 import sys
 import time
 import signal
-import OpenGL
 import OpenGL.GLUT as glut
 import OpenGL.platform as platform
 from timeit import default_timer as clock

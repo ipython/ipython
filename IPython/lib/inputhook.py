@@ -417,7 +417,6 @@ class InputHookManager(object):
         IPython.
 
         """
-        import pyglet
         from IPython.lib.inputhookpyglet import inputhook_pyglet
         self.set_inputhook(inputhook_pyglet)
         self._current_gui = GUI_PYGLET

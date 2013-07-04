@@ -20,7 +20,7 @@ from tornado import web
 
 from IPython.kernel.multikernelmanager import MultiKernelManager
 from IPython.utils.traitlets import (
-    Dict, List, Unicode, Integer,
+    Dict, List, Unicode,
 )
 
 #-----------------------------------------------------------------------------

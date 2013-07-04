@@ -208,7 +208,7 @@ def test_calltip_cell_magic():
     check_calltip(cmagic, 'cmagic', 'cmagic(line, cell)', "A cell magic")
 
         
-def test_calltip_line_magic():
+def test_calltip_line_cell_magic():
     check_calltip(lcmagic, 'lcmagic', 'lcmagic(line, cell=None)', 
                   "A line/cell magic")
         

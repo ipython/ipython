@@ -3,7 +3,6 @@ from __future__ import print_function
 # Standard library imports
 from collections import namedtuple
 import sys
-import time
 import uuid
 
 # System library imports

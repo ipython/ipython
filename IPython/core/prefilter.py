@@ -29,11 +29,7 @@ import re
 from IPython.core.autocall import IPyAutocall
 from IPython.config.configurable import Configurable
 from IPython.core.inputsplitter import (
-    ESC_SHELL,
-    ESC_SH_CAP,
-    ESC_HELP,
     ESC_MAGIC,
-    ESC_MAGIC2,
     ESC_QUOTE,
     ESC_QUOTE2,
     ESC_PAREN,
