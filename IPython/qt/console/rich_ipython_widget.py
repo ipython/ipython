@@ -299,11 +299,11 @@ class RichIPythonWidget(IPythonWidget):
             image = QtGui.QImage()
             image.loadFromData(img, fmt.upper())
             if width and height:
-                image = image.scaled(width, height)
+                image = image.scaled(width, height, transformMode=QtCore.Qt.SmoothTransformation)
             elif width and not height:
-                image = image.scaledToWidth(width)
+                image = image.scaledToWidth(width, transformMode=QtCore.Qt.SmoothTransformation)
             elif height and not width:
-                image = image.scaledToHeight(height)
+                image = image.scaledToHeight(height, transformMode=QtCore.Qt.SmoothTransformation)
         except ValueError:
             self._insert_plain_text(cursor, 'Received invalid %s data.'%fmt)
         else:
