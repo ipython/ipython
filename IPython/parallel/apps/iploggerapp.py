@@ -91,7 +91,7 @@ class IPLoggerApp(BaseParallelApplication):
             self.log.critical("Logging Interrupted, shutting down...\n")
 
 
-launch_new_instance = IPLoggerApp.launch_new_instance
+launch_new_instance = IPLoggerApp.launch_instance
 
 
 if __name__ == '__main__':

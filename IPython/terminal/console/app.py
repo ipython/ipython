@@ -141,7 +141,7 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         pass
 
 
-launch_new_instance = ZMQTerminalIPythonApp.launch_new_instance
+launch_new_instance = ZMQTerminalIPythonApp.launch_instance
 
 
 if __name__ == '__main__':

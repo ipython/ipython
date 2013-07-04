@@ -389,7 +389,7 @@ def load_default_config(ipython_dir=None):
     return config
 
 
-launch_new_instance = TerminalIPythonApp.launch_new_instance
+launch_new_instance = TerminalIPythonApp.launch_instance
 
 
 if __name__ == '__main__':

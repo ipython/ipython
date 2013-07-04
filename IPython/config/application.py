@@ -524,8 +524,11 @@ class Application(SingletonConfigurable):
         sys.exit(exit_status)
 
     @classmethod
-    def launch_new_instance(cls, argv=None, **kwargs):
-        """Launch a global instance of this Application"""
+    def launch_instance(cls, argv=None, **kwargs):
+        """Launch a global instance of this Application
+        
+        If a global instance already exists, this reinitializes and starts it
+        """
         app = cls.instance(**kwargs)
         app.initialize(argv)
         app.start()

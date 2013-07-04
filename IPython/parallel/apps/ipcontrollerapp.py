@@ -544,7 +544,7 @@ def launch_new_instance(*args, **kwargs):
         if p.name != 'MainProcess':
             # we are a subprocess, don't start another Controller!
             return
-    return IPControllerApp.launch_new_instance(*args, **kwargs)
+    return IPControllerApp.launch_instance(*args, **kwargs)
 
 
 if __name__ == '__main__':

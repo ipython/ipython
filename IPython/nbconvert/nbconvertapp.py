@@ -203,5 +203,5 @@ class NbConvertApp(Application):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-launch_new_instance = NbConvertApp.launch_new_instance
+launch_new_instance = NbConvertApp.launch_instance
 

@@ -608,7 +608,7 @@ class IPClusterApp(BaseIPythonApplication):
         else:
             return self.subapp.start()
 
-launch_new_instance = IPClusterApp.launch_new_instance
+launch_new_instance = IPClusterApp.launch_instance
 
 if __name__ == '__main__':
     launch_new_instance()

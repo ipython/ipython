@@ -388,7 +388,7 @@ class IPEngineApp(BaseParallelApplication):
             self.log.critical("Engine Interrupted, shutting down...\n")
 
 
-launch_new_instance = IPEngineApp.launch_new_instance
+launch_new_instance = IPEngineApp.launch_instance
 
 
 if __name__ == '__main__':

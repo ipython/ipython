@@ -745,5 +745,5 @@ class NotebookApp(BaseIPythonApplication):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-launch_new_instance = NotebookApp.launch_new_instance
+launch_new_instance = NotebookApp.launch_instance
 
