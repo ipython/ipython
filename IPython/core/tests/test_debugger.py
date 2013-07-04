@@ -122,7 +122,7 @@ def test_ipdb_magics():
     ipdb> continue
     '''
 
-def test_ipdb_magics():
+def test_ipdb_magics2():
     '''Test ipdb with a very short function.
 
     >>> def bar():

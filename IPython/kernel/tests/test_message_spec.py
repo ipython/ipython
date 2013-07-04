@@ -8,8 +8,6 @@
 #-----------------------------------------------------------------------------
 
 import re
-import sys
-import time
 from subprocess import PIPE
 from Queue import Empty
 
@@ -17,9 +15,7 @@ import nose.tools as nt
 
 from IPython.kernel import KernelManager
 
-
 from IPython.testing import decorators as dec
-from IPython.utils import io
 from IPython.utils.traitlets import (
     HasTraits, TraitError, Bool, Unicode, Dict, Integer, List, Enum, Any,
 )

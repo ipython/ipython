@@ -27,7 +27,6 @@ import socket
 import sys
 import threading
 import time
-import uuid
 import webbrowser
 
 
@@ -36,7 +35,6 @@ import webbrowser
 from IPython.utils.zmqrelated import check_for_zmq
 check_for_zmq('2.1.11', 'IPython.html')
 
-import zmq
 from jinja2 import Environment, FileSystemLoader
 
 # Install the pyzmq ioloop. This has to be done before anything else from

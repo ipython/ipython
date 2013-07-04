@@ -15,7 +15,6 @@ import unittest
 
 # Local imports
 from IPython.kernel.inprocess.blocking import BlockingInProcessKernelClient
-from IPython.kernel.inprocess.ipkernel import InProcessKernel
 from IPython.kernel.inprocess.manager import InProcessKernelManager
 
 #-----------------------------------------------------------------------------

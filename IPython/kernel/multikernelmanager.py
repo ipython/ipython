@@ -26,7 +26,7 @@ import zmq
 from IPython.config.configurable import LoggingConfigurable
 from IPython.utils.importstring import import_item
 from IPython.utils.traitlets import (
-    Instance, Dict, Unicode, Any, DottedObjectName, Bool
+    Instance, Dict, Unicode, Any, DottedObjectName
 )
 
 #-----------------------------------------------------------------------------

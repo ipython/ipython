@@ -161,7 +161,6 @@ class TestConfigurable(TestCase):
 class TestSingletonConfigurable(TestCase):
 
     def test_instance(self):
-        from IPython.config.configurable import SingletonConfigurable
         class Foo(SingletonConfigurable): pass
         self.assertEqual(Foo.initialized(), False)
         foo = Foo.instance()

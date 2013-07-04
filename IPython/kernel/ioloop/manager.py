@@ -13,7 +13,6 @@
 
 from __future__ import absolute_import
 
-import zmq
 from zmq.eventloop import ioloop
 from zmq.eventloop.zmqstream import ZMQStream
 

@@ -22,13 +22,11 @@ from tornado import web
 from zmq.eventloop import ioloop
 
 from IPython.config.configurable import LoggingConfigurable
-from IPython.config.loader import load_pyconfig_files
 from IPython.utils.traitlets import Dict, Instance, CFloat
 from IPython.parallel.apps.ipclusterapp import IPClusterStart
 from IPython.core.profileapp import list_profiles_in
 from IPython.core.profiledir import ProfileDir
 from IPython.utils.path import get_ipython_dir
-from IPython.utils.sysinfo import num_cpus
 
 
 #-----------------------------------------------------------------------------

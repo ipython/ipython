@@ -17,13 +17,12 @@ restarts the kernel if it dies.
 
 from __future__ import absolute_import
 
-import zmq
 from zmq.eventloop import ioloop
 
 
 from IPython.kernel.restarter import KernelRestarter
 from IPython.utils.traitlets import (
-    Instance, Float, List,
+    Instance,
 )
 
 #-----------------------------------------------------------------------------

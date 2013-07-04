@@ -44,7 +44,6 @@ from zmq.utils import jsonapi
 from zmq.eventloop.ioloop import IOLoop
 from zmq.eventloop.zmqstream import ZMQStream
 
-from IPython.config.application import Application, boolean_flag
 from IPython.config.configurable import Configurable, LoggingConfigurable
 from IPython.utils import io
 from IPython.utils.importstring import import_item

@@ -20,11 +20,10 @@ import sys
 from pprint import pformat
 
 # Our own packages
-from IPython.core import magic_arguments
+from IPython.core import magic_arguments, page
 from IPython.core.error import UsageError
 from IPython.core.magic import Magics, magics_class, line_magic, magic_escapes
 from IPython.utils.text import format_screen, dedent, indent
-from IPython.core import magic_arguments, page
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.ipstruct import Struct
 from IPython.utils.path import unquote_filename

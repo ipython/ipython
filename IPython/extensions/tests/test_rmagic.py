@@ -1,7 +1,6 @@
 from StringIO import StringIO
 
 import numpy as np
-from IPython.core.interactiveshell import InteractiveShell
 from IPython.testing.decorators import skip_without
 from IPython.extensions import rmagic
 from rpy2 import rinterface

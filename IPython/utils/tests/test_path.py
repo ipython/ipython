@@ -18,7 +18,6 @@ import os
 import shutil
 import sys
 import tempfile
-from io import StringIO
 from contextlib import contextmanager
 
 from os.path import join, abspath, split
@@ -31,7 +30,7 @@ import IPython
 from IPython.testing import decorators as dec
 from IPython.testing.decorators import skip_if_not_win32, skip_win32
 from IPython.testing.tools import make_tempfile, AssertPrints
-from IPython.utils import path, io
+from IPython.utils import path
 from IPython.utils import py3compat
 from IPython.utils.tempdir import TemporaryDirectory
 

@@ -3,7 +3,7 @@ import functools
 import re
 from StringIO import StringIO
 
-from IPython.core.splitinput import split_user_input, LineInfo
+from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
 from IPython.utils.tokenize2 import generate_tokens, untokenize, TokenError
 

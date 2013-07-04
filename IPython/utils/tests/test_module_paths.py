@@ -1,5 +1,5 @@
 # encoding: utf-8
-"""Tests for IPython.utils.path.py"""
+"""Tests for IPython.utils.module_paths.py"""
 
 #-----------------------------------------------------------------------------
 #  Copyright (C) 2008-2011  The IPython Development Team
@@ -18,20 +18,10 @@ import os
 import shutil
 import sys
 import tempfile
-import StringIO
 
 from os.path import join, abspath, split
 
-import nose.tools as nt
-
-from nose import with_setup
-
-import IPython
-from IPython.testing import decorators as dec
-from IPython.testing.decorators import skip_if_not_win32, skip_win32
 from IPython.testing.tools import make_tempfile
-from IPython.utils import path, io
-from IPython.utils import py3compat
 
 import IPython.utils.module_paths as mp
 
@@ -91,7 +81,7 @@ def test_get_init_3():
     with make_tempfile(join(TMP_TEST_DIR, "__init__.pyc")):
         assert mp.get_init(TMP_TEST_DIR) is None
 
-def test_get_init_3():
+def test_get_init_4():
     """get_init can't find __init__ in empty testdir"""
     assert mp.get_init(TMP_TEST_DIR) is None
 

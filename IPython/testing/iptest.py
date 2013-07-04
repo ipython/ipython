@@ -57,7 +57,7 @@ from nose.core import TestProgram
 from IPython.utils import py3compat
 from IPython.utils.importstring import import_item
 from IPython.utils.path import get_ipython_module_path, get_ipython_package_dir
-from IPython.utils.process import find_cmd, pycmd2argv
+from IPython.utils.process import pycmd2argv
 from IPython.utils.sysinfo import sys_info
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.warn import warn

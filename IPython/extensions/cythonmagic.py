@@ -57,7 +57,6 @@ from distutils.command.build_ext import build_ext
 from IPython.core import display
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, cell_magic
-from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils import py3compat
 from IPython.utils.path import get_ipython_cache_dir
 

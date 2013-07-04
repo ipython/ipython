@@ -18,15 +18,12 @@ from __future__ import print_function
 __all__ = ['Inspector','InspectColors']
 
 # stdlib modules
-import __builtin__
 import inspect
 import linecache
 import os
-import sys
 import types
 import io as stdlib_io
 
-from collections import namedtuple
 try:
     from itertools import izip_longest
 except ImportError:

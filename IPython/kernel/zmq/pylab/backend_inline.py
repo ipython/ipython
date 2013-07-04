@@ -5,9 +5,6 @@
 #-----------------------------------------------------------------------------
 from __future__ import print_function
 
-# Standard library imports
-import sys
-
 # Third-party imports
 import matplotlib
 from matplotlib.backends.backend_agg import new_figure_manager, FigureCanvasAgg

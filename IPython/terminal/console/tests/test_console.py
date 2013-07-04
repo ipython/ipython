@@ -18,7 +18,6 @@ import nose.tools as nt
 from nose import SkipTest
 
 from IPython.testing import decorators as dec
-from IPython.testing import tools as tt
 from IPython.utils import py3compat
 from IPython.utils.process import find_cmd
 
