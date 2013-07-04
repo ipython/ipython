@@ -65,7 +65,6 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
     from the scope of the surrounding function,
     and/or you want to load full IPython configuration,
     you probably want `IPython.start_kernel()` instead.
-
     
     Parameters
     ----------
@@ -78,7 +77,6 @@ def embed_kernel(module=None, local_ns=None, **kwargs):
         Further keyword args are relayed to the IPKernelApp constructor,
         allowing configuration of the Kernel.  Will only have an effect
         on the first embed_kernel call for a given process.
-    
     """
     
     (caller_module, caller_locals) = extract_module_locals(1)
