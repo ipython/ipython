@@ -71,7 +71,7 @@ class StatelessInputTransformer(InputTransformer):
         self.func = func
     
     def __repr__(self):
-        return "StatelessInputTransformer(func={!r})".format(self.func)
+        return "StatelessInputTransformer(func={0!r})".format(self.func)
     
     def push(self, line):
         """Send a line of input to the transformer, returning the
@@ -90,7 +90,7 @@ class CoroutineInputTransformer(InputTransformer):
         next(self.coro)
     
     def __repr__(self):
-        return "CoroutineInputTransformer(coro={!r})".format(self.coro)
+        return "CoroutineInputTransformer(coro={0!r})".format(self.coro)
     
     def push(self, line):
         """Send a line of input to the transformer, returning the
