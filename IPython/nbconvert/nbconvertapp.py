@@ -203,10 +203,5 @@ class NbConvertApp(Application):
 # Main entry point
 #-----------------------------------------------------------------------------
 
-def launch_new_instance():
-    """Application entry point"""
-
-    app = NbConvertApp.instance()
-    app.description = __doc__
-    app.start(argv=sys.argv)
+launch_new_instance = NbConvertApp.launch_new_instance
 

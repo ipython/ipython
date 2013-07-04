@@ -608,12 +608,7 @@ class IPClusterApp(BaseIPythonApplication):
         else:
             return self.subapp.start()
 
-def launch_new_instance():
-    """Create and run the IPython cluster."""
-    app = IPClusterApp.instance()
-    app.initialize()
-    app.start()
-
+launch_new_instance = IPClusterApp.launch_new_instance
 
 if __name__ == '__main__':
     launch_new_instance()

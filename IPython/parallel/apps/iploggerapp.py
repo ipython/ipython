@@ -91,11 +91,7 @@ class IPLoggerApp(BaseParallelApplication):
             self.log.critical("Logging Interrupted, shutting down...\n")
 
 
-def launch_new_instance():
-    """Create and run the IPython LogWatcher"""
-    app = IPLoggerApp.instance()
-    app.initialize()
-    app.start()
+launch_new_instance = IPLoggerApp.launch_new_instance
 
 
 if __name__ == '__main__':
