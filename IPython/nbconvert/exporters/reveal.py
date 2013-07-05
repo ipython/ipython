@@ -49,6 +49,17 @@ class RevealExporter(BasicHTMLExporter):
 
     @property
     def default_config(self):
-        c = Config({'CSSHTMLHeaderTransformer':{'enabled':True}})
+        c = Config({
+            'CSSHTMLHeaderTransformer':{
+                'enabled':True
+                },
+            'RevealHelpTransformer':{
+                'enabled':True,
+                'url_prefix':'//cdn.jsdelivr.net/reveal.js/2.4.0',
+                # If you want to use a local reveal.js library, just
+                # comment the previous line and uncomment the next one.
+                #'url_prefix':'reveal.js',
+                },                
+            })
         c.merge(super(RevealExporter,self).default_config)
         return c
