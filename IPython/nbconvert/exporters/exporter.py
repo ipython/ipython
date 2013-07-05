@@ -93,11 +93,11 @@ class Exporter(Configurable):
         )
 
     template_path = Unicode(
-        "/../templates/", config=True,
+        os.path.join("..", "templates"), config=True,
         help="Path where the template files are located.")
 
     template_skeleton_path = Unicode(
-        "/../templates/skeleton/", config=True,
+        os.path.join("..", "templates", "skeleton"), config=True,
         help="Path where the template skeleton files are located.") 
 
     #Jinja block definitions
@@ -288,11 +288,11 @@ class Exporter(Configurable):
         """
         Create the Jinja templating environment.
         """
-        
+        here = os.path.realpath(__file__)
         self.environment = Environment(
             loader=FileSystemLoader([
-                os.path.dirname(os.path.realpath(__file__)) + self.template_path,
-                os.path.dirname(os.path.realpath(__file__)) + self.template_skeleton_path,
+                os.path.join(here, self.template_path),
+                os.path.join(here, self.template_skeleton_path),
                 ]),
             extensions=JINJA_EXTENSIONS
             )
