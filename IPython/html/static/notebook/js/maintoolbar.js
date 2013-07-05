@@ -26,7 +26,7 @@ var IPython = (function (IPython) {
                 {
                     id : 'save_b',
                     label : 'Save and Checkpoint',
-                    icon : 'icon-hdd',
+                    icon : 'icon-save',
                     callback : function () {
                         IPython.notebook.save_checkpoint();
                         }
