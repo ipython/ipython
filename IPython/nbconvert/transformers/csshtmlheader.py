@@ -38,7 +38,7 @@ class CSSHTMLHeaderTransformer(ActivatableTransformer):
     highlight_class = Unicode('.highlight', config=True,
                               help="CSS highlight class identifier")
 
-    def __init__(self, config=None, **kw):
+    def __init__(self, **kw):
         """
         Public constructor
         
@@ -50,7 +50,7 @@ class CSSHTMLHeaderTransformer(ActivatableTransformer):
             Additional arguments
         """
         
-        super(CSSHTMLHeaderTransformer, self).__init__(config=config, **kw)
+        super(CSSHTMLHeaderTransformer, self).__init__(**kw)
 
         if self.enabled :
             self._regen_header()
