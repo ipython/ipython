@@ -288,7 +288,7 @@ class Exporter(Configurable):
         """
         Create the Jinja templating environment.
         """
-        here = os.path.realpath(__file__)
+        here = os.path.dirname(os.path.realpath(__file__))
         self.environment = Environment(
             loader=FileSystemLoader([
                 os.path.join(here, self.template_path),
