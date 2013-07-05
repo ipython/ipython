@@ -28,6 +28,7 @@ from tornado import web
 from .nbmanager import NotebookManager
 from IPython.nbformat import current
 from IPython.utils.traitlets import Unicode, Dict, Bool, TraitError
+from IPython.utils import tz
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -139,7 +140,7 @@ class FileNotebookManager(NotebookManager):
     def read_notebook_object_from_path(self, path):
         """read a notebook object from a path"""
         info = os.stat(path)
-        last_modified = datetime.datetime.utcfromtimestamp(info.st_mtime)
+        last_modified = tz.utcfromtimestamp(info.st_mtime)
         with open(path,'r') as f:
             s = f.read()
             try:
@@ -281,7 +282,7 @@ class FileNotebookManager(NotebookManager):
         """construct the info dict for a given checkpoint"""
         path = self.get_checkpoint_path(notebook_id, checkpoint_id)
         stats = os.stat(path)
-        last_modified = datetime.datetime.utcfromtimestamp(stats.st_mtime)
+        last_modified = tz.utcfromtimestamp(stats.st_mtime)
         info = dict(
             checkpoint_id = checkpoint_id,
             last_modified = last_modified,
