@@ -263,6 +263,20 @@ class TestMagicRunSimple(tt.TempFileMixin):
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
         nt.assert_equal(_ip.user_ns['i'], 5)
+    
+    def test_run_second(self):
+        """Test that running a second file doesn't clobber the first, gh-3547
+        """
+        self.mktmp("avar = 1\n"
+                   "def afunc():\n"
+                   "  return avar\n")
+
+        empty = tt.TempFileMixin()
+        empty.mktmp("")
+        
+        _ip.magic('run %s' % self.fname)
+        _ip.magic('run %s' % empty.fname)
+        nt.assert_equal(_ip.user_ns['afunc'](), 1)
 
     @dec.skip_win32
     def test_tclass(self):
