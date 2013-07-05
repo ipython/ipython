@@ -13,7 +13,7 @@
 #-----------------------------------------------------------------------------
 
 from .base import ConfigurableTransformer
-from IPython.utils.traitlets import Bytes
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -21,12 +21,15 @@ from IPython.utils.traitlets import Bytes
 
 class RevealHelpTransformer(ConfigurableTransformer):
 
-    url_prefix = Bytes("", config=True, help="url prefix to get reveal.js files")
+    url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
+                         config=True,
+                         help="""If you want to use a local reveal.js library,
+                         use 'url_prefix':'reveal.js' in your config object.""")
 
     def call(self, notebook_name, nb, resources):
         """
         Called once to 'transform' contents of the notebook.
-        
+
         Parameters
         ----------
         notebook_name : string
@@ -37,8 +40,8 @@ class RevealHelpTransformer(ConfigurableTransformer):
             Additional resources used in the conversion process.  Allows
             transformers to pass variables into the Jinja engine.
         """
-        
-        
+
+
         for worksheet in nb.worksheets :
             for i, cell in enumerate(worksheet.cells):
 
@@ -53,9 +56,8 @@ class RevealHelpTransformer(ConfigurableTransformer):
                 if cell.metadata.slide_type in ['subslide']:
                     worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
 
-                    
+
         resources['reveal'] = {}
-        resources['reveal']['url_prefix'] = self.url_prefix            
-                    
+        resources['reveal']['url_prefix'] = self.url_prefix
+
         return nb, resources
-    
