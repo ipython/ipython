@@ -55,7 +55,8 @@ class RevealHelpTransformer(ConfigurableTransformer):
                     worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
 
 
-        resources['reveal'] = {}
+        if 'reveal' not in resources:
+            resources['reveal'] = {}
         resources['reveal']['url_prefix'] = self.url_prefix
 
         return nb, resources
