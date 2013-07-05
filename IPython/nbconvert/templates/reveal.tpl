@@ -12,19 +12,18 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-<link rel="stylesheet" href="//cdn.jsdelivr.net/reveal.js/2.4.0/css/reveal.css">
-<link rel="stylesheet" href="//cdn.jsdelivr.net/reveal.js/2.4.0/css/theme/simple.css" id="theme">
+<!-- General and theme style sheets -->
+<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/reveal.css">
+<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/theme/simple.css" id="theme">
 
 <!-- For syntax highlighting -->
-<link rel="stylesheet" href="//cdn.jsdelivr.net/reveal.js/2.4.0/lib/css/zenburn.css">
+<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/lib/css/zenburn.css">
 
 <!-- If the query includes 'print-pdf', use the PDF print sheet -->
-<script>
-document.write( '<link rel="stylesheet" href="//cdn.jsdelivr.net/reveal.js/2.4.0/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
-</script>
+<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">
 
 <!--[if lt IE 9]>
-<script src="//cdn.jsdelivr.net/reveal.js/2.4.0/lib/js/html5shiv.js"></script>
+<script src="{{resources.reveal.url_prefix}}/lib/js/html5shiv.js"></script>
 <![endif]-->
 
 {% for css in resources.inlining.css -%}
@@ -96,7 +95,7 @@ text-align: inherit;
 
 </div></div>
 
-<!-- 
+<!--
 Uncomment the following block and the addthis_widget.js (see below inside dependencies)
 to get enable social buttons.
 -->
@@ -111,9 +110,9 @@ to get enable social buttons.
 </div>
 -->
 
-<script src="//cdn.jsdelivr.net/reveal.js/2.4.0/lib/js/head.min.js"></script>
+<script src="{{resources.reveal.url_prefix}}/lib/js/head.min.js"></script>
 
-<script src="//cdn.jsdelivr.net/reveal.js/2.4.0/js/reveal.js"></script>
+<script src="{{resources.reveal.url_prefix}}/js/reveal.js"></script>' );
 
 <script>
 
@@ -128,9 +127,9 @@ transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/c
 
 // Optional libraries used to extend on reveal.js
 dependencies: [
-{ src: '//cdn.jsdelivr.net/reveal.js/2.4.0/lib/js/classList.js', condition: function() { return !document.body.classList; } },
-{ src: '//cdn.jsdelivr.net/reveal.js/2.4.0/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
-{ src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+{ src: "{{resources.reveal.url_prefix}}/lib/js/classList.js", condition: function() { return !document.body.classList; } },
+{ src: "{{resources.reveal.url_prefix}}/plugin/highlight/highlight.js", async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: "{{resources.reveal.url_prefix}}/plugin/notes/notes.js", async: true, condition: function() { return !!document.body.classList; } }
 // { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
 ]
 });
@@ -152,7 +151,7 @@ MathJax.Hub.Config({
 <!-- End of mathjax configuration -->
 
 <script>
-//  We wait for the onload function to load MathJax after the page is completely loaded.  
+//  We wait for the onload function to load MathJax after the page is completely loaded.
 //  MathJax is loaded 1 unit of time after the page is ready.
 //  This hack prevent problems when you load multiple js files (i.e. social button from addthis).
 //

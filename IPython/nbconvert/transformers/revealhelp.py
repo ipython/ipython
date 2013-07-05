@@ -13,12 +13,14 @@
 #-----------------------------------------------------------------------------
 
 from .base import ConfigurableTransformer
-
+from IPython.utils.traitlets import Bytes
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
 class RevealHelpTransformer(ConfigurableTransformer):
+
+    url_prefix = Bytes("", config=True, help="url prefix to get reveal.js files")
 
     def call(self, nb, resources):
         """
@@ -47,6 +49,10 @@ class RevealHelpTransformer(ConfigurableTransformer):
                     worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
                     worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
+
+                    
+        resources['reveal'] = {}
+        resources['reveal']['url_prefix'] = self.url_prefix            
                     
         return nb, resources
     
