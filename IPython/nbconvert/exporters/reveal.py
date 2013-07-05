@@ -49,6 +49,13 @@ class RevealExporter(BasicHTMLExporter):
 
     @property
     def default_config(self):
-        c = Config({'CSSHTMLHeaderTransformer':{'enabled':True}})
+        c = Config({
+            'CSSHTMLHeaderTransformer':{
+                'enabled':True
+                },
+            'RevealHelpTransformer':{
+                'enabled':True,
+                },                
+            })
         c.merge(super(RevealExporter,self).default_config)
         return c
