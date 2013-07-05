@@ -31,20 +31,6 @@ class ExtractFigureTransformer(ActivatableTransformer):
         "{notebook_name}_{cell_index}_{index}.{extension}", config=True)
 
 
-    def __init__(self, **kw):
-        """
-        Public constructor
-        
-        Parameters
-        ----------
-        config : Config
-            Configuration file structure
-        **kw : misc
-            Additional arguments
-        """
-        super(ExtractFigureTransformer, self).__init__(**kw)
-
-
     def transform_cell(self, notebook_name, cell, resources, cell_index):
         """
         Apply a transformation on each cell,
