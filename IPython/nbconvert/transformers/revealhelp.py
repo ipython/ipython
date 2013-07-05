@@ -14,6 +14,7 @@
 
 from .base import ConfigurableTransformer
 from IPython.utils.traitlets import Bytes
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
