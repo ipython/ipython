@@ -55,10 +55,6 @@ class RevealExporter(BasicHTMLExporter):
                 },
             'RevealHelpTransformer':{
                 'enabled':True,
-                'url_prefix':'//cdn.jsdelivr.net/reveal.js/2.4.0',
-                # If you want to use a local reveal.js library, just
-                # comment the previous line and uncomment the next one.
-                #'url_prefix':'reveal.js',
                 },                
             })
         c.merge(super(RevealExporter,self).default_config)
