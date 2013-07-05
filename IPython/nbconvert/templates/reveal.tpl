@@ -20,7 +20,9 @@
 <link rel="stylesheet" href="{{resources.reveal.url_prefix}}/lib/css/zenburn.css">
 
 <!-- If the query includes 'print-pdf', use the PDF print sheet -->
-<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">
+<script>
+document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+</script>
 
 <!--[if lt IE 9]>
 <script src="{{resources.reveal.url_prefix}}/lib/js/html5shiv.js"></script>
@@ -112,7 +114,7 @@ to get enable social buttons.
 
 <script src="{{resources.reveal.url_prefix}}/lib/js/head.min.js"></script>
 
-<script src="{{resources.reveal.url_prefix}}/js/reveal.js"></script>' );
+<script src="{{resources.reveal.url_prefix}}/js/reveal.js"></script>
 
 <script>
 
