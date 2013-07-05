@@ -819,16 +819,9 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to the "main" module
     #-------------------------------------------------------------------------
 
-    def new_main_mod(self,ns=None):
+    def new_main_mod(self,filename):
         """Return a new 'main' module object for user code execution.
-        """
-        main_mod = self._user_main_module
-        init_fakemod_dict(main_mod,ns)
-        return main_mod
-
-    def cache_main_mod(self,ns,fname):
-        """Cache a main module's namespace.
-
+        
         When scripts are executed via %run, we must keep a reference to the
         namespace of their __main__ module (a FakeModule instance) around so
         that Python doesn't clear it, rendering objects defined therein
@@ -840,32 +833,16 @@ class InteractiveShell(SingletonConfigurable):
         keep one copy of the namespace (the last one), thus preventing memory
         leaks from old references while allowing the objects from the last
         execution to be accessible.
-
-        Note: we can not allow the actual FakeModule instances to be deleted,
-        because of how Python tears down modules (it hard-sets all their
-        references to None without regard for reference counts).  This method
-        must therefore make a *copy* of the given namespace, to allow the
-        original module's __dict__ to be cleared and reused.
-
-
-        Parameters
-        ----------
-          ns : a namespace (a dict, typically)
-
-          fname : str
-            Filename associated with the namespace.
-
-        Examples
-        --------
-
-        In [10]: import IPython
-
-        In [11]: _ip.cache_main_mod(IPython.__dict__,IPython.__file__)
-
-        In [12]: IPython.__file__ in _ip._main_ns_cache
-        Out[12]: True
         """
-        self._main_ns_cache[os.path.abspath(fname)] = ns.copy()
+        filename = os.path.abspath(filename)
+        try:
+            main_mod = self._main_mod_cache[filename]
+        except KeyError:
+            main_mod = self._main_mod_cache[filename] = FakeModule()
+        else:
+            init_fakemod_dict(main_mod)
+        
+        return main_mod
 
     def clear_main_mod_cache(self):
         """Clear the cache of main modules.
@@ -877,17 +854,17 @@ class InteractiveShell(SingletonConfigurable):
 
         In [15]: import IPython
 
-        In [16]: _ip.cache_main_mod(IPython.__dict__,IPython.__file__)
+        In [16]: m = _ip.new_main_mod(IPython.__file__)
 
-        In [17]: len(_ip._main_ns_cache) > 0
+        In [17]: len(_ip._main_mod_cache) > 0
         Out[17]: True
 
         In [18]: _ip.clear_main_mod_cache()
 
-        In [19]: len(_ip._main_ns_cache) == 0
+        In [19]: len(_ip._main_mod_cache) == 0
         Out[19]: True
         """
-        self._main_ns_cache.clear()
+        self._main_mod_cache.clear()
 
     #-------------------------------------------------------------------------
     # Things related to debugging
@@ -1017,10 +994,7 @@ class InteractiveShell(SingletonConfigurable):
         # and clear_main_mod_cache() methods for details on use.
 
         # This is the cache used for 'main' namespaces
-        self._main_ns_cache = {}
-        # And this is the single instance of FakeModule whose __dict__ we keep
-        # copying and clearing for reuse on each %run
-        self._user_main_module = FakeModule()
+        self._main_mod_cache = {}
 
         # A table holding all the namespaces IPython deals with, so that
         # introspection facilities can search easily.
@@ -1174,8 +1148,8 @@ class InteractiveShell(SingletonConfigurable):
         
         Note that this does not include the displayhook, which also caches
         objects from the output."""
-        return [self.user_ns, self.user_global_ns,
-                self._user_main_module.__dict__] + self._main_ns_cache.values()
+        return [self.user_ns, self.user_global_ns] + \
+               [m.__dict__ for m in self._main_mod_cache.values()]
 
     def reset(self, new_session=True):
         """Clear all internal namespaces, and attempt to release references to
@@ -1218,9 +1192,6 @@ class InteractiveShell(SingletonConfigurable):
         # Flush the private list of module references kept for script
         # execution protection
         self.clear_main_mod_cache()
-
-        # Clear out the namespace from the last %run
-        self.new_main_mod()
 
     def del_var(self, varname, by_name=False):
         """Delete a variable from the various namespaces, so that, as

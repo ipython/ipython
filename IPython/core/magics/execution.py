@@ -508,7 +508,7 @@ python-profiler package from non-free.""")
             prog_ns = self.shell.user_ns
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
-            main_mod = self.shell.new_main_mod(prog_ns)
+            main_mod = self.shell.user_module
         else:
             # Run in a fresh, empty namespace
             if 'n' in opts:
@@ -516,7 +516,10 @@ python-profiler package from non-free.""")
             else:
                 name = '__main__'
 
-            main_mod = self.shell.new_main_mod()
+            # The shell MUST hold a reference to prog_ns so after %run
+            # exits, the python deletion mechanism doesn't zero it out
+            # (leaving dangling references). See interactiveshell for details
+            main_mod = self.shell.new_main_mod(filename)
             prog_ns = main_mod.__dict__
             prog_ns['__name__'] = name
 
@@ -593,10 +596,6 @@ python-profiler package from non-free.""")
                 if 'i' in opts:
                     self.shell.user_ns['__name__'] = __name__save
                 else:
-                    # The shell MUST hold a reference to prog_ns so after %run
-                    # exits, the python deletion mechanism doesn't zero it out
-                    # (leaving dangling references).
-                    self.shell.cache_main_mod(prog_ns, filename)
                     # update IPython interactive namespace
 
                     # Some forms of read errors on the file may mean the
