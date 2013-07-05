@@ -257,8 +257,9 @@ class TestMagicRunSimple(tt.TempFileMixin):
                "   try:\n"
                "       ip.magic('run %s')\n"
                "   except NameError as e:\n"
-               "       print i;break\n" % empty.fname)
-        self.mktmp(py3compat.doctest_refactor_print(src))
+               "       print(i)\n"
+               "       break\n" % empty.fname)
+        self.mktmp(src)
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
         nt.assert_equal(_ip.user_ns['i'], 4)
