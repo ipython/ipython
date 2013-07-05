@@ -16,6 +16,9 @@ tags to circumvent Jinja/Latex syntax conflicts.
 # Imports
 #-----------------------------------------------------------------------------
 
+# Stdlib imports
+import os
+
 # IPython imports
 from IPython.utils.traitlets import Unicode
 from IPython.config import Config
