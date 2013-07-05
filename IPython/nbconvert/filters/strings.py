@@ -15,7 +15,7 @@ templates.
 # Imports
 #-----------------------------------------------------------------------------
 
-# Our own imports
+import re
 import textwrap
 
 #-----------------------------------------------------------------------------
@@ -63,16 +63,19 @@ def strip_dollars(text):
     return text.strip('$')
 
 
+files_url_pattern = re.compile(r'(src|href)\=([\'"]?)files/')
+
 def rm_fake(text):
     """
-    Remove all occurrences of 'files/' from text
+    Fix all fake URLs that start with `files/`,
+    stripping out the `files/` prefix.
     
     Parameters
     ----------
     text : str
-        Text to remove 'files/' from
+        Text in which to replace 'src="files/real...' with 'src="real...'
     """
-    return text.replace('files/', '')
+    return files_url_pattern.sub(r"\1=\2", text)
 
 
 def python_comment(text):
