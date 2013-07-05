@@ -98,7 +98,11 @@ class Exporter(Configurable):
 
     template_skeleton_path = Unicode(
         "/../templates/skeleton/", config=True,
-        help="Path where the template skeleton files are located.") 
+        help="Path where the template skeleton files are located.")
+
+    user_template_path = Unicode(
+        "", config=True,
+        help="Additional path for user-defined templates")
 
     #Jinja block definitions
     jinja_comment_block_start = Unicode("", config=True)
@@ -288,12 +292,16 @@ class Exporter(Configurable):
         """
         Create the Jinja templating environment.
         """
+        this_directory = os.path.dirname(os.path.realpath(__file__))
+        template_paths = [this_directory + self.template_path,
+                          this_directory + self.template_skeleton_path]
+
+        if self.user_template_path:
+            template_paths.append(self.user_template_path)
         
+
         self.environment = Environment(
-            loader=FileSystemLoader([
-                os.path.dirname(os.path.realpath(__file__)) + self.template_path,
-                os.path.dirname(os.path.realpath(__file__)) + self.template_skeleton_path,
-                ]),
+            loader=FileSystemLoader(template_paths),
             extensions=JINJA_EXTENSIONS
             )
         
