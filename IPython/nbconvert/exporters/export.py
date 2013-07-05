@@ -40,15 +40,6 @@ def DocDecorator(f):
     nb : Notebook node
     config : config
         User configuration instance.
-    transformers : list[of transformer]
-        Custom transformers to apply to the notebook prior to engaging
-        the Jinja template engine.  Any transformers specified here 
-        will override existing transformers if a naming conflict
-        occurs.
-    filters : list[of filter]
-        Custom filters to make accessible to the Jinja templates.  Any
-        filters specified here will override existing filters if a
-        naming conflict occurs.
     notebook_name : string, optional
         Name of the notebook (unique).  Used to prefix extracted figure 
         filenames.  Must be passed in if nb is a notebook node or file-like
@@ -94,7 +85,7 @@ __all__ = [
 ]
 
 @DocDecorator
-def export(exporter_type, nb, config=None, transformers=None, filters=None):
+def export(exporter_type, nb, config=None):
     """
     Export a notebook object using specific exporter class.
     
@@ -116,8 +107,7 @@ def export(exporter_type, nb, config=None, transformers=None, filters=None):
         raise TypeError("nb is None")
     
     #Create the exporter
-    exporter_instance = exporter_type(preprocessors=transformers, 
-                                      jinja_filters=filters, config=config)
+    exporter_instance = exporter_type(config=config)
 
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
@@ -130,98 +120,87 @@ def export(exporter_type, nb, config=None, transformers=None, filters=None):
 
 
 @DocDecorator
-def export_sphinx_manual(nb, config=None, transformers=None, filters=None, 
-                         notebook_name=None):
+def export_sphinx_manual(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Sphinx Manual LaTeX
     """
-    return export(SphinxManualExporter, nb, config, transformers, filters, notebook_name)
+    return export(SphinxManualExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_sphinx_howto(nb, config=None, transformers=None, filters=None, 
-                        notebook_name=None):
+def export_sphinx_howto(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Sphinx HowTo LaTeX
     """
-    return export(SphinxHowtoExporter, nb, config, transformers, filters, notebook_name)
+    return export(SphinxHowtoExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_basic_html(nb, config=None, transformers=None, filters=None, 
-                      notebook_name=None):
+def export_basic_html(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Basic HTML
     """
-    return export(BasicHTMLExporter, nb, config, transformers, filters, notebook_name)
+    return export(BasicHTMLExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_full_html(nb, config=None, transformers=None, filters=None, 
-                     notebook_name=None):
+def export_full_html(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Full HTML
     """
-    return export(FullHTMLExporter, nb, config, transformers, filters, notebook_name)
+    return export(FullHTMLExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_latex(nb, config=None, transformers=None, filters=None, 
-                 notebook_name=None):
+def export_latex(nb, config=None, notebook_name=None):
     """
     Export a notebook object to LaTeX
     """
-    return export(LatexExporter, nb, config, transformers, filters, notebook_name)
+    return export(LatexExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_markdown(nb, config=None, transformers=None, filters=None, 
-                    notebook_name=None):
+def export_markdown(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Markdown
     """
-    return export(MarkdownExporter, nb, config, transformers, filters, notebook_name)
+    return export(MarkdownExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_python(nb, config=None, transformers=None, filters=None, 
-                  notebook_name=None):
+def export_python(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Python
     """
-    return export(PythonExporter, nb, config, transformers, filters, notebook_name)
+    return export(PythonExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_python_armor(nb, config=None, transformers=None, filters=None, 
-                        notebook_name=None):
+def export_python_armor(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Python (Armor)
     """
-    return export(PythonArmorExporter, nb, config, transformers, filters, notebook_name)
+    return export(PythonArmorExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_reveal(nb, config=None, transformers=None, filters=None, 
-                  notebook_name=None):
+def export_reveal(nb, config=None, notebook_name=None):
     """
     Export a notebook object to Reveal
     """
-    return export(RevealExporter, nb, config, transformers, filters, notebook_name)
+    return export(RevealExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_rst(nb, config=None, transformers=None, filters=None, 
-               notebook_name=None):
+def export_rst(nb, config=None, notebook_name=None):
     """
     Export a notebook object to RST
     """
-    return export(RstExporter, nb, config, transformers, filters, notebook_name)
+    return export(RstExporter, nb, config, notebook_name)
 
 
 @DocDecorator
-def export_by_name(template_name, nb, config=None, transformers=None, 
-                   filters=None, notebook_name=None):
+def export_by_name(template_name, nb, config=None, notebook_name=None):
     """
     Export a notebook object to a template type by its name.  Reflection
     (Inspect) is used to find the template's corresponding explicit export
@@ -234,7 +213,7 @@ def export_by_name(template_name, nb, config=None, transformers=None,
     function_name = "export_" + template_name.lower()
     
     if function_name in globals():
-        return globals()[function_name](nb, config, transformers, filters, notebook_name)
+        return globals()[function_name](nb, config, notebook_name)
     else:
         raise NameError("template not found")
 

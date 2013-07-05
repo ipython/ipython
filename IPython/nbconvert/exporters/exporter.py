@@ -17,9 +17,10 @@ that uses Jinja2 to export notebook files into different formats.
 from __future__ import print_function, absolute_import
 
 # Stdlib imports
-import io
+import io                                    
 import os
 import inspect
+import types
 from copy import deepcopy
 
 # other libs/dependencies
@@ -30,7 +31,8 @@ from markdown import markdown
 from IPython.config.configurable import Configurable
 from IPython.config import Config
 from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, Unicode
+from IPython.utils.import_string import import_item
+from IPython.utils.traitlets import MetaHasTraits, Unicode, DottedObjectName, List
 from IPython.utils.text import indent
 
 from IPython.nbconvert import filters
@@ -111,9 +113,12 @@ class Exporter(Configurable):
     #Extension that the template files use.    
     template_extension = Unicode(".tpl", config=True)
 
-    #Processors that process the input data prior to the export, set in the 
-    #constructor for this class.
-    transformers = None
+    #Configurability, allows the user to easily add filters and transformers.
+    transformers = List(config=True,
+        """List of transformers, by name or namespace, to enable.""")
+    filters = Dict(config=True,
+        """Dictionary of filters, by name and namespace, to add to the Jinja
+        environment.""")
 
     
     def __init__(self, transformers=None, filters=None, config=None, **kw):
@@ -153,14 +158,13 @@ class Exporter(Configurable):
         self._register_filters()
 
         #Load user transformers.  Overwrite existing transformers if need be.
-        if transformers is not None:
-            for transformer in transformers:
-                self.register_transformer(transformer)
+        self._transformers = []
+        for transformer in self.transformers:
+            self.register_transformer(transformer)
                 
         #Load user filters.  Overwrite existing filters if need be.
-        if filters is not None:
-            for key, user_filter in filters.iteritems():
-                self.register_filter(key, user_filter)
+        for key, user_filter in self.filters.iteritems():
+            self.register_filter(key, user_filter)
 
 
     @property
@@ -233,7 +237,6 @@ class Exporter(Configurable):
         return self.from_notebook_node(notebook_name, nbformat.read(file_stream, 'json'))
 
 
-#TODO: Namestrings allowed
     def register_transformer(self, transformer):
         """
         Register a transformer.
@@ -246,22 +249,25 @@ class Exporter(Configurable):
         ----------
         transformer : transformer
         """
-        if self.transformers is None:
-            self.transformers = []
+        if self._transformers is None:
+            self._transformers = []
         
         if inspect.isfunction(transformer):
-            self.transformers.append(transformer)
+            self._transformers.append(transformer)
             return transformer
+        elif isinstance(transformer, types.StringTypes):
+            transformer_cls = import_item(DottedObjectName(transformer))
+            return self.register_transformer(transformer_cls)
         elif isinstance(transformer, MetaHasTraits):
             transformer_instance = transformer(config=self.config)
-            self.transformers.append(transformer_instance)
+            self._transformers.append(transformer_instance)
             return transformer_instance
         else:
             transformer_instance = transformer()
-            self.transformers.append(transformer_instance)
+            self._transformers.append(transformer_instance)
             return transformer_instance
 
-#TODO: Namestrings allowed
+
     def register_filter(self, name, filter):
         """
         Register a filter.
@@ -276,6 +282,9 @@ class Exporter(Configurable):
         """
         if inspect.isfunction(filter):
             self.environment.filters[name] = filter
+        elif isinstance(filter, types.StringTypes):
+            fliter_cls = import_item(DottedObjectName(filter))
+            self.register_filter(name, filter_cls)
         elif isinstance(filter, MetaHasTraits):
             self.environment.filters[name] = filter(config=self.config)
         else:
@@ -354,7 +363,7 @@ class Exporter(Configurable):
 
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
-        for transformer in self.transformers:
+        for transformer in self._transformers:
             nbc, resc = transformer(notebook_name, nbc, resc)
 
         return nbc, resc
