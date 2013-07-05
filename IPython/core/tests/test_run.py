@@ -244,7 +244,6 @@ class TestMagicRunSimple(tt.TempFileMixin):
             err = None
         tt.ipexec_validate(self.fname, 'object A deleted', err)
     
-    @dec.skip_known_failure 
     def test_aggressive_namespace_cleanup(self):
         """Test that namespace cleanup is not too aggressive GH-238
 
@@ -262,7 +261,7 @@ class TestMagicRunSimple(tt.TempFileMixin):
         self.mktmp(py3compat.doctest_refactor_print(src))
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
-        nt.assert_equal(_ip.user_ns['i'], 5)
+        nt.assert_equal(_ip.user_ns['i'], 4)
     
     def test_run_second(self):
         """Test that running a second file doesn't clobber the first, gh-3547
