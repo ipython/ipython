@@ -65,14 +65,14 @@ def strip_dollars(text):
 
 def rm_fake(text):
     """
-    Remove all occurrences of '/files/' from text
+    Remove all occurrences of 'files/' from text
     
     Parameters
     ----------
     text : str
-        Text to remove '/files/' from
+        Text to remove 'files/' from
     """
-    return text.replace('/files/', '')
+    return text.replace('files/', '')
 
 
 def python_comment(text):
