@@ -47,11 +47,11 @@ class LatexExporter(Exporter):
 
     #Latex constants
     template_path = Unicode(
-        "/../templates/latex/", config=True,
+        os.path.join("..", "templates", "latex"), config=True,
         help="Path where the template files are located.")
 
     template_skeleton_path = Unicode(
-        "/../templates/latex/skeleton/", config=True,
+        os.path.join("..", "templates", "latex", "skeleton"), config=True,
         help="Path where the template skeleton files are located.") 
 
     #Special Jinja2 syntax that will not conflict when exporting latex.
