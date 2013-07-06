@@ -278,7 +278,20 @@ class CythonMagics(Magics):
             self._so_ext = self._get_build_extension().get_ext_filename('')
             return self._so_ext
 
+    def _clear_distutils_mkpath_cache(self):
+        """clear distutils mkpath cache
+        
+        prevents distutils from skipping re-creation of dirs that have been removed
+        """
+        try:
+            from distutils.dir_util import _path_created
+        except ImportError:
+            pass
+        else:
+            _path_created.clear()
+    
     def _get_build_extension(self):
+        self._clear_distutils_mkpath_cache()
         dist = Distribution()
         config_files = dist.find_config_files()
         try:
