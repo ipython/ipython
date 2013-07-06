@@ -251,7 +251,14 @@ def activate_matplotlib(backend):
 
 
 def import_pylab(user_ns, import_all=True):
-    """Import the standard pylab symbols into user_ns."""
+    """Populate the namespace with pylab-related values.
+    
+    Imports matplotlib, pylab, numpy, and everything from pylab and numpy.
+    
+    Also imports a few names from IPython (figsize, display, getfigs)
+    
+    The import_all parameter is included for backward compatibility, but ignored.
+    """
 
     # Import numpy as np/pyplot as plt are conventions we're trying to
     # somewhat standardize on.  Making them available to users by default
@@ -263,11 +270,17 @@ def import_pylab(user_ns, import_all=True):
           "plt = pyplot\n"
           )
     exec s in user_ns
-
-    if import_all:
-        s = ("from matplotlib.pylab import *\n"
-             "from numpy import *\n")
-        exec s in user_ns
+    
+    s = ("from matplotlib.pylab import *\n"
+         "from numpy import *\n")
+    exec s in user_ns
+    
+    # IPython symbols to add
+    user_ns['figsize'] = figsize
+    from IPython.core.display import display
+    # Add display and getfigs to the user's namespace
+    user_ns['display'] = display
+    user_ns['getfigs'] = getfigs
 
 
 def configure_inline_support(shell, backend, user_ns=None):
@@ -313,8 +326,6 @@ def configure_inline_support(shell, backend, user_ns=None):
             shell._saved_rcParams[k] = pyplot.rcParams[k]
         # load inline_rc
         pyplot.rcParams.update(cfg.rc)
-        # Add 'figsize' to pyplot and to the user's namespace
-        user_ns['figsize'] = pyplot.figsize = figsize
     else:
         from IPython.kernel.zmq.pylab.backend_inline import flush_figures
         if flush_figures in shell._post_execute:
@@ -326,12 +337,6 @@ def configure_inline_support(shell, backend, user_ns=None):
     # Setup the default figure format
     fmt = cfg.figure_format
     select_figure_format(shell, fmt)
-
-    # The old pastefig function has been replaced by display
-    from IPython.core.display import display
-    # Add display and getfigs to the user's namespace
-    user_ns['display'] = display
-    user_ns['getfigs'] = getfigs
 
 
 def pylab_activate(user_ns, gui=None, import_all=True, shell=None, welcome_message=False):
@@ -372,7 +377,8 @@ def pylab_activate(user_ns, gui=None, import_all=True, shell=None, welcome_messa
                     ' Using %s instead.' % (gui, pylab_gui_select))
             gui, backend = find_gui_and_backend(pylab_gui_select)
     activate_matplotlib(backend)
-    import_pylab(user_ns, import_all)
+    if import_all:
+        import_pylab(user_ns)
     if shell is not None:
         configure_inline_support(shell, backend, user_ns)
     if welcome_message:
