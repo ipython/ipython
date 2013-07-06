@@ -103,7 +103,7 @@ it introduces a new line
 ((* endblock stream *))
 
 ((* block markdowncell scoped *))
-((( cell.source | markdown2latex )))
+((( cell.source | extended_markdown2latex )))
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))

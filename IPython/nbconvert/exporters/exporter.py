@@ -57,6 +57,7 @@ default_filters = {
         'ipython2python': filters.ipython2python,
         'posix_path': filters.posix_path,
         'markdown2latex': filters.markdown2latex,
+        'extended_markdown2latex': filters.markdown.extended_markdown2latex,
         'markdown2rst': filters.markdown2rst,
         'comment_lines': filters.comment_lines,
         'strip_ansi': filters.strip_ansi,
