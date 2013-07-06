@@ -81,7 +81,7 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     
     @property
     def max_msg_size(self):
-        return self.settings.get('max_msg_size', 65535)
+        return self.settings.get('max_msg_size', 2**20)
     
     def create_stream(self):
         km = self.kernel_manager

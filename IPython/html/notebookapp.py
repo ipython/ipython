@@ -295,8 +295,8 @@ class NotebookApp(BaseIPythonApplication):
 
     kernel_argv = List(Unicode)
 
-    max_msg_size = Integer(65536, config=True, help="""
-        The max raw message size accepted from the browser
+    max_msg_size = Integer(2**20, config=True, help="""
+        The max raw message size (in bytes) accepted from the browser
         over a WebSocket connection.
     """)
 
