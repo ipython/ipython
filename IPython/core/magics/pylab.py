@@ -14,6 +14,7 @@
 
 # Our own packages
 from IPython.config.application import Application
+from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 
@@ -27,7 +28,21 @@ class PylabMagics(Magics):
 
     @skip_doctest
     @line_magic
-    def pylab(self, parameter_s=''):
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '--no-import', action='store_true', default=None,
+        help="""Prevent IPython from populating the namespace"""
+    )
+    @magic_arguments.argument(
+        'gui', nargs='?',
+        help="""Name of the matplotlib backend to use
+        ('qt', 'wx', 'gtk', 'osx', 'tk', 'inline', 'auto').
+        If given, the corresponding matplotlib backend is used,
+        otherwise it will be matplotlib's default
+        (which you can set in your matplotlib config file).
+        """
+    )
+    def pylab(self, line=''):
         """Load numpy and matplotlib to work interactively.
 
         %pylab [GUINAME]
@@ -75,14 +90,20 @@ class PylabMagics(Magics):
             Backend in use: Qt4Agg
             For more information, type 'help(pylab)'.
         """
-
-        if Application.initialized():
-            app = Application.instance()
-            try:
-                import_all_status = app.pylab_import_all
-            except AttributeError:
-                import_all_status = True
+        args = magic_arguments.parse_argstring(self.pylab, line)
+        if args.no_import is None:
+            # get default from Application
+            if Application.initialized():
+                app = Application.instance()
+                try:
+                    import_all = app.pylab_import_all
+                except AttributeError:
+                    import_all = True
+            else:
+                # nothing specified, no app - default True
+                import_all = True
         else:
-            import_all_status = True
+            # invert no-import flag
+            import_all = not args.no_import
 
-        self.shell.enable_pylab(parameter_s, import_all=import_all_status, welcome_message=True)
+        self.shell.enable_pylab(args.gui, import_all=import_all, welcome_message=True)
