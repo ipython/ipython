@@ -40,124 +40,18 @@ class IPythonError(Exception):
 
     pass
 
-# Exceptions associated with the controller objects
-class ControllerError(IPythonError): pass
-
-class ControllerCreationError(ControllerError): pass
-
-
-# Exceptions associated with the Engines
-class EngineError(IPythonError): pass
-
-class EngineCreationError(EngineError): pass
-
 class KernelError(IPythonError):
     pass
 
-class NotDefined(KernelError):
-    def __init__(self, name):
-        self.name = name
-        self.args = (name,)
-
-    def __repr__(self):
-        return '<NotDefined: %s>' % self.name
-
-    __str__ = __repr__
-
-
-class QueueCleared(KernelError):
-    pass
-
-
-class IdInUse(KernelError):
-    pass
-
-
-class ProtocolError(KernelError):
-    pass
-
-
-class ConnectionError(KernelError):
-    pass
-
-
-class InvalidEngineID(KernelError):
-    pass
 
 
 class NoEnginesRegistered(KernelError):
     pass
 
 
-class InvalidClientID(KernelError):
-    pass
-
-
-class InvalidDeferredID(KernelError):
-    pass
-
-
-class SerializationError(KernelError):
-    pass
-
-
-class MessageSizeError(KernelError):
-    pass
-
-
-class PBMessageSizeError(MessageSizeError):
-    pass
-
-
-class ResultNotCompleted(KernelError):
-    pass
-
-
-class ResultAlreadyRetrieved(KernelError):
-    pass
-
-class ClientError(KernelError):
-    pass
-
-
 class TaskAborted(KernelError):
     pass
 
-
-class TaskTimeout(KernelError):
-    pass
-
-
-class NotAPendingResult(KernelError):
-    pass
-
-
-class UnpickleableException(KernelError):
-    pass
-
-
-class AbortedPendingDeferredError(KernelError):
-    pass
-
-
-class InvalidProperty(KernelError):
-    pass
-
-
-class MissingBlockArgument(KernelError):
-    pass
-
-
-class StopLocalExecution(KernelError):
-    pass
-
-
-class SecurityError(KernelError):
-    pass
-
-
-class FileTimeoutError(KernelError):
-    pass
 
 class TimeoutError(KernelError):
     pass
