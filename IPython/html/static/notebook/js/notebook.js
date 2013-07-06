@@ -1945,7 +1945,7 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.restore_checkpoint = function (checkpoint) {
-        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        $([IPython.events]).trigger('checkpoint_restoring.Notebook', checkpoint);
         var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
         $.post(url).done(
             $.proxy(this.restore_checkpoint_success, this)
@@ -1986,7 +1986,7 @@ var IPython = (function (IPython) {
      * @param {String} checkpoint ID
      */
     Notebook.prototype.delete_checkpoint = function (checkpoint) {
-        $([IPython.events]).trigger('notebook_restoring.Notebook', checkpoint);
+        $([IPython.events]).trigger('checkpoint_deleting.Notebook', checkpoint);
         var url = this.baseProjectUrl() + 'notebooks/' + this.notebook_id + '/checkpoints/' + checkpoint;
         $.ajax(url, {
             type: 'DELETE',
