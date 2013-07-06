@@ -150,6 +150,8 @@ unknown type  ((( cell.type )))
 
 % Scale down larger images
 \usepackage[export]{adjustbox}
+%long table support (required by pandoc > 1.10)
+\usepackage{longtable}
 
 %fancy verbatim
 \usepackage{fancyvrb}
