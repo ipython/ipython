@@ -19,8 +19,6 @@ class Macro(object):
 
     Macro is just a callable that executes a string of IPython
     input when called.
-    
-    Args to macro are available in _margv list if you need them.
     """
 
     def __init__(self,code):
