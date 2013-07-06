@@ -112,6 +112,10 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
         if len(msg) < self.max_msg_size:
             msg = jsonapi.loads(msg)
             self.session.send(self.zmq_stream, msg)
+        else:
+            self.log.warn("Dropping oversized message: %iB > %iB (NotebookApp.max_msg_size)",
+                len(msg), self.max_msg_size
+            )
 
     def on_close(self):
         # This method can be called twice, once by self.kernel_died and once
