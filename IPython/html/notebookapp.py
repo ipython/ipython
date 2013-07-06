@@ -714,7 +714,7 @@ class NotebookApp(BaseIPythonApplication):
                                       self.base_project_url)
         for line in self.notebook_info().split("\n"):
             info(line)
-        info("Use Control-C to stop this server and shut down all kernels.")
+        info("Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).")
 
         if self.open_browser or self.file_to_run:
             ip = self.ip or LOCALHOST
