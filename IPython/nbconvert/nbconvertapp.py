@@ -238,26 +238,7 @@ class NbConvertApp(Application):
 
 
     def _map_dict_to_config(self, config, dictionary):
-        """
-        Map a dictionary to a config object.  Very similar to Config.Merge 
-        method but designed to handle dictionaries from YAML.
-        """
-
-        to_update = {}
-        for (key, value) in dictionary.items():
-            if key not in config:
-                to_update[key] = value
-            else:
-
-                #Check if the value is a dictionary and the destination value is
-                #a config.  If so, recursively map.
-                if isinstance(value, dict) and isinstance(config[key], Config):
-                    self._map_dict_to_config(config[key], value)
-                else:
-                    to_update[key] = value
-
-        config.update(to_update)
-        return config
+        return config.merge(Config(dictionary))
 
 
 #-----------------------------------------------------------------------------
