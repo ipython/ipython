@@ -319,6 +319,21 @@ var IPython = (function (IPython) {
                 that.undelete();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 55 && that.control_key_active) {
+                // Split cell = w
+                that.split_cell();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 56 && that.control_key_active) {
+                // Merge cell above = e
+                that.merge_cell_above();
+                that.control_key_active = false;
+                return false;
+            } else if (event.which === 57 && that.control_key_active) {
+                // Merge cell below = r
+                that.merge_cell_below();
+                that.control_key_active = false;
+                return false;                                                
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;
