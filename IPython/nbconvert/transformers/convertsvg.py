@@ -13,13 +13,13 @@ one format to another.
 # Imports
 #-----------------------------------------------------------------------------
 
-from .convertoutputs import ConvertOutputsTransformer
+from .convertfigure import ConvertFigureTransformer
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConvertSvgTransformer(ConvertOutputsTransformer):
+class ConvertSvgTransformer(ConvertFigureTransformer):
     """
     Converts all of the outputs in a notebook from one format to another.
     """

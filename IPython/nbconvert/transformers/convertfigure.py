@@ -19,7 +19,7 @@ from .activatable import ActivatableTransformer
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConvertOutputsTransformer(ActivatableTransformer):
+class ConvertFigureTransformer(ActivatableTransformer):
     """
     Converts all of the outputs in a notebook from one format to another.
     """
@@ -40,7 +40,7 @@ class ConvertOutputsTransformer(ActivatableTransformer):
         **kw : misc
             Additional arguments
         """
-        super(ConvertOutputsTransformer, self).__init__(**kw)
+        super(ConvertFigureTransformer, self).__init__(**kw)
 
         self._from_formats = from_formats
         self._to_format = to_format
