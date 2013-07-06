@@ -23,7 +23,6 @@ from .fullhtml import FullHTMLExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
-from .python_armor import PythonArmorExporter
 from .reveal import RevealExporter
 from .rst import RstExporter
 from .sphinx_howto import SphinxHowtoExporter
@@ -83,7 +82,6 @@ __all__ = [
     'export_latex',
     'export_markdown',
     'export_python',
-    'export_python_armor',
     'export_reveal',
     'export_rst',
     'export_by_name'
@@ -179,14 +177,6 @@ def export_python(nb, config=None, transformers=None, filters=None):
     Export a notebook object to Python
     """
     return export(PythonExporter, nb, config, transformers, filters)
-
-
-@DocDecorator
-def export_python_armor(nb, config=None, transformers=None, filters=None):
-    """
-    Export a notebook object to Python (Armor)
-    """
-    return export(PythonArmorExporter, nb, config, transformers, filters)
 
 
 @DocDecorator
