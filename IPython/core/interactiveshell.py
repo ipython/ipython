@@ -2865,9 +2865,17 @@ class InteractiveShell(SingletonConfigurable):
                   % (gui, " ".join(sorted(backends.keys()))))
             return
         except ImportError:
-            error("pylab mode doesn't work as matplotlib could not be found." + \
+            error("pylab mode doesn't work as matplotlib or its backend could not be imported." + \
                   "\nIs it installed on the system?")
             return
+        # warn about clobbered names
+        ignored = set(["__builtins__"])
+        both = set(ns).intersection(self.user_ns).difference(ignored)
+        clobbered = [ name for name in both if self.user_ns[name] is not ns[name] ]
+        if clobbered:
+            warn("pylab import has clobbered these variables: %s"
+            "\n`%%pylab --no-import` prevents imports from pylab, numpy, etc."  % clobbered
+            )
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
         # Now we must activate the gui pylab wants to use, and fix %run to take
