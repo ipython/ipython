@@ -868,7 +868,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
     # 'ConsoleWidget' protected interface
     #--------------------------------------------------------------------------
 
-    def _append_custom(self, insert, input, before_prompt=False):
+    def _append_custom(self, insert, input, before_prompt=False, *args, **kwargs):
         """ A low-level method for appending content to the end of the buffer.
 
         If 'before_prompt' is enabled, the content will be inserted before the
@@ -883,7 +883,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         start_pos = cursor.position()
 
         # Perform the insertion.
-        result = insert(cursor, input)
+        result = insert(cursor, input, *args, **kwargs)
 
         # Adjust the prompt position if we have inserted before it. This is safe
         # because buffer truncation is disabled when not executing.
