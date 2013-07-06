@@ -737,6 +737,7 @@ var IPython = (function (IPython) {
                 this.undelete_index = i;
                 this.undelete_below = false;
             };
+            $([IPython.events]).trigger('delete.Cell', {'cell': cell, 'index': i});
             this.set_dirty(true);
         };
         return this;
@@ -777,6 +778,7 @@ var IPython = (function (IPython) {
             if(this._insert_element_at_index(cell.element,index)){
                 cell.render();
                 this.select(this.find_cell_index(cell));
+                $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
                 this.set_dirty(true);
             }
         }
