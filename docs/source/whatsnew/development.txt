@@ -48,3 +48,7 @@ Backwards incompatible changes
   :func:`IPython.utils.doctestreload.doctest_reload` to make doctests run 
   correctly inside IPython. Python releases since those versions are unaffected.
   For details, see :ghpull:`3068` and `Python issue 8048 <http://bugs.python.org/issue8048>`_.
+* The ``InteractiveShell.cache_main_mod()`` method has been removed, and
+  :meth:`~IPython.core.interactiveshell.InteractiveShell.new_main_mod` has a
+  different signature, expecting a filename where earlier versions expected
+  a namespace. See :ghpull:`3555` for details.
