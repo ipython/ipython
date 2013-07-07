@@ -30,9 +30,9 @@ if ON_RTD:
 # absolute, like shown here.
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 
-# Import support for ipython console session syntax highlighting (lives
-# in the sphinxext directory defined above)
-import ipython_console_highlighting
+# Import support for ipython console session syntax highlighting
+# (lives IPython's sphinxext subpackage)
+from IPython.sphinxext import ipython_console_highlighting
 
 # We load the ipython release info into a dict by explicit execution
 iprelease = {}
@@ -50,8 +50,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.inheritance_diagram',
-    'ipython_console_highlighting',
-    'ipython_directive',
+    'IPython.sphinxext.ipython_console_highlighting',
+    'IPython.sphinxext.ipython_directive',
     'numpydoc',  # to preprocess docstrings
     'github',  # for easy GitHub links
 ]
@@ -61,7 +61,7 @@ if ON_RTD:
     extensions.remove('matplotlib.sphinxext.only_directives')
     extensions.remove('matplotlib.sphinxext.mathmpl')
     extensions.remove('matplotlib.sphinxext.plot_directive')
-    extensions.remove('ipython_directive')
+    extensions.remove('IPython.sphinxext.ipython_directive')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
