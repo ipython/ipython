@@ -64,7 +64,7 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 
 {% block headingcell scoped %}
 {%- set len = cell.source|length -%}
-{{ cell.source}}
+{{ cell.source | markdown2rst}}
 {% if cell.level == 1 %}
 {{- '=' * len }}
 {%- elif cell.level == 2 %}
