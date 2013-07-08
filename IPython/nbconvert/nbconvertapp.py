@@ -213,13 +213,22 @@ class NbConvertApp(Application):
         #Call base
         super(NbConvertApp, self).start()
 
-        #Read the writer from the config
-        if 'writer' in self.config:
-            writer_class = self.config['writer'].keys[0]
-        else:
-            writer_class = 
+        #Loop through each notebook&template to export.  Create a config that is 
+        #the current config merged with all the config options specific to that
+        #notebook/template combo.
+        for notebook_filename, notebook_config in self.nb_configs.items():
+            for template_config in notebook_config['templates']:
+                config = copy.deepcopy(self.config)
+                config.merge(template_config)
 
+                template_name = config['template']
+                self.writer = self.writer_factory(config=config)
 
+                basename = os.path.basename(notebook_filename)
+                notebook_name = basename[:basename.rfind('.')]
+
+                (output, resources, exporter_instance) = export_by_name(template_name, notebook_filename, config=config, notebook_name=notebook_name)
+                self.writer.write(notebook_name, exporter_instance.file_extension, output, resources)                
 
 
 #-----------------------------------------------------------------------------
