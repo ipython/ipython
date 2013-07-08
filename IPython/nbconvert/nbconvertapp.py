@@ -88,6 +88,9 @@ class NbConvertApp(Application):
                'yaml':'NbConvertApp.yaml',
                'writer':'NbConvertApp.writer_class'} 
 
+    writer_aliases = {'FileWriter': 'IPython.nbconvert.writers.file.FileWriter',
+                      'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
+                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
 
     @catch_config_error
     def initialize(self, argv=None):
@@ -105,6 +108,18 @@ class NbConvertApp(Application):
 
         #Read yaml config
         yaml_config = self._process_yaml(yaml_filename)
+
+        #Read the config applied to the writer if it exists.  Use that config
+        #as a base for the configs when exporting.
+        if 'writer' in yaml_config:
+            writer_name = yaml_config['writer'].keys[0]
+            writer_config_dict = yaml_config['writer'][writer_name]
+            self.config.merge(Config(writer_config_dict))
+
+            #Use the writer name to determine the writer class.
+            if writer_name in writer_aliases:
+                writer_name = writer_aliases[writer_name]
+            self.writer_class = writer_name
 
         #Use glob to match file names to the pattern filenames from the yaml.
         #Keep separate configs for each notebook in a dictionary for now...
