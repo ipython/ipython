@@ -24,7 +24,7 @@ import os
 
 #From IPython
 from IPython.config.application import Application
-from IPython.utils.traitlets import Bool
+from IPython.utils.traitlets import Bool, Unicode
 
 from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
@@ -39,10 +39,16 @@ from .utils.config import GlobalConfigurable
 KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
 KEYS_PROMPT_BODY = """
 ===========================================================================
-You are responsible for writting these files into the appropriate 
-directorie(s) if need be.  If you do not want to see this message, enable
+You are responsible for writing these files into the appropriate
+directory(ies) if need be.  If you do not want to see this message, enable
 the 'write' (boolean) flag of the converter.
 ===========================================================================
+"""
+
+_examples = """
+ipython nbconvert rst Untitled0.ipynb    # convert ipynb to ReStructured Text
+ipython nbconvert latex Untitled0.ipynb  # convert ipynb to LaTeX
+ipython nbconvert reveal Untitled0.ipynb # convert to Reveal (HTML/JS) slideshow
 """
 
 #-----------------------------------------------------------------------------
@@ -51,6 +57,9 @@ the 'write' (boolean) flag of the converter.
 
 class NbConvertApp(Application):
     """Application used to convert to and from notebook file type (*.ipynb)"""
+    description = Unicode(__doc__)
+
+    examples = _examples
 
     stdout = Bool(
         False, config=True,
