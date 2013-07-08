@@ -51,12 +51,20 @@ ipython nbconvert latex Untitled0.ipynb  # convert ipynb to LaTeX
 ipython nbconvert reveal Untitled0.ipynb # convert to Reveal (HTML/JS) slideshow
 """
 
+
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
 
 class NbConvertApp(Application):
-    """Application used to convert to and from notebook file type (*.ipynb)"""
+    __doc__ = """IPython notebook conversion utility
+    
+Convert to and from notebook file type (*.ipynb)
+
+    ipython nbconvert TARGET FILENAME
+
+Supported export TARGETs are: %s
+""" % (" ".join(get_export_names()))
     description = Unicode(__doc__)
 
     examples = _examples
