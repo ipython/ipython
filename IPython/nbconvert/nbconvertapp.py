@@ -138,7 +138,8 @@ class NbConvertApp(Application):
                         nb_config = Config(yaml_config['notebooks'][notebook_pattern])
 
                         #If the template name was specified, remove any other
-                        #templates from the config
+                        #templates from the config (template name acts as a
+                        #filter)
                         if len(self.template) > 0:
 
                             #Figure out which templates need to be removed.
