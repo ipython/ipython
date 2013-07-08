@@ -178,7 +178,7 @@ class SphinxTransformer(ActivatableTransformer):
         
         if not (self.overridetitle == None or len(self.overridetitle.strip()) == 0):
             nb.metadata.name = self.overridetitle
-        else
+        else:
             nb.metadata.name = notebook_name
         
         # End
