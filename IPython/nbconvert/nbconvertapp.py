@@ -144,7 +144,7 @@ class NbConvertApp(Application):
 
                             #Figure out which templates need to be removed.
                             remove_templates = []
-                            for template_dict in nb_config['templates']
+                            for template_dict in nb_config['templates']:
                                 if not template_dict['template'] == self.template:
                                     remove_templates.append(nb_config['templates'].index(template_dict))
 
