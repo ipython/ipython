@@ -28,7 +28,8 @@ import glob
 #From IPython
 from IPython.config.application import Application, catch_config_error
 from IPython.config.loader import Config
-from IPython.utils.traitlets import Unicode, List
+from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
+from IPython.utils.importstring import import_item
 
 from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
