@@ -115,9 +115,9 @@ class Exporter(Configurable):
 
     #Configurability, allows the user to easily add filters and transformers.
     transformers = List(config=True,
-        """List of transformers, by name or namespace, to enable.""")
+        help="""List of transformers, by name or namespace, to enable.""")
     filters = Dict(config=True,
-        """Dictionary of filters, by name and namespace, to add to the Jinja
+        help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
 
     
