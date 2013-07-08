@@ -175,7 +175,7 @@ class NbConvertApp(Application):
 
             #Create a config and merge each yaml document into the config.
             config = Config()
-            with open(yaml_file, "r") as f:
+            with open(yaml_filename, "r") as f:
                 yaml_docs = yaml.load_all(f)
                 for yaml_doc in yaml_docs:
                     yaml_config = Config(yaml_doc)
