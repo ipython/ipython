@@ -23,9 +23,10 @@ import io
 import os
 import yaml
 import copy
+import glob
 
 #From IPython
-from IPython.config.application import Application
+from IPython.config.application import Application, catch_config_error
 from IPython.config.loader import Config
 from IPython.utils.traitlets import Unicode, List
 
@@ -71,7 +72,7 @@ class NbConvertApp(Application):
             foo template.  Still uses the standard yaml file if it exists.
         """)
 
-    yaml_config = Unicode(u'nbconvert.yaml', config=True, help="""""")
+    yaml = Unicode(u'nbconvert.yaml', config=True, help="""""")
 
     template = Unicode(
         "", config=True,
@@ -83,29 +84,106 @@ class NbConvertApp(Application):
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  help="""TODO: Help""")
     writer_class = DottedObjectName('IPython.nbconvert.writers.base.WriterBase', config=True)
     writer_factory = Type()
-
     def _writer_class_changed(self, name, old, new):
         self.writer_factory = import_item(new)
     
+    aliases = {'template':'NbConvertApp.template',
+               'yaml':'NbConvertApp.yaml',
+               'writer':'NbConvertApp.writer_class'} 
 
-    aliases = {'template':'NbConvertApp.template'} #TODO, writer/yaml also
 
-
-    def __init__(self, **kwargs):
-        """Constructor"""
-
-        #Call base class
-        super(NbConvertApp, self).__init__(**kwargs)
+    @catch_config_error
+    def initialize(self, argv=None):
+        super(NbConvertApp, self).initialize(argv)
 
         #Register class here to have help with help all
         self.classes.insert(0, Exporter)
         self.classes.insert(0, GlobalConfigurable)
 
-        self._init_writer()
+        self.init_configs(self.yaml, self.extra_args)
+        self.init_writer()
 
 
-    def _init_writer(self):
+    def init_configs(self, yaml_filename, extra_args):
+
+        #Read yaml config
+        yaml_config = self._process_yaml(yaml_filename)
+
+        #Use glob to match file names to the pattern filenames from the yaml.
+        #Keep separate configs for each notebook in a dictionary for now...
+        self.nb_configs = {}
+        if 'notebooks' in yaml_config:
+            for notebook_pattern in yaml_config['notebooks']:
+                filenames = glob.glob(notebook_pattern)
+                for filename in filenames:
+
+                    #Check that the notebook exists in the extra-args if the
+                    #extra args isn't empty.
+                    if len(extra_args) == 0 or filename in extra_args:
+                            
+                        #Copy the config for the pattern string
+                        nb_config = Config(yaml_config['notebooks'][notebook_pattern])
+
+                        #If the template name was specified, remove any other
+                        #templates from the config
+                        if len(self.template) > 0:
+
+                            #Figure out which templates need to be removed.
+                            remove_templates = []
+                            for template_dict in nb_config['templates']
+                                if not template_dict['template'] == self.template:
+                                    remove_templates.append(nb_config['templates'].index(template_dict))
+
+                            #Remove the templates
+                            for remove_template in remove_templates:
+                                del nb_config['templates'][remove_template]
+
+                        #Merge to existing config for the file, or set as new config.
+                        if filename in self.nb_configs:
+                            self.nb_configs[filename].merge(nb_config)
+                        else:
+                            self.nb_configs[filename] = nb_config
+        else:
+
+            #No notebooks were specified in the yaml.  Check if notebooks were
+            #specified via the extra args and that a template was set.
+            if len(self.template) > 0 and len(extra_args) > 0:
+                for filename in extra_args:
+                    self.nb_configs[filename] = Config()
+                    self.nb_configs[filename]['templates'] = [{'template':self.template}]
+            else:
+                print("Note enough information provided to perform conversion", 
+                      file=sys.stderr)
+
+        #Remove 'notebooks' node from config.
+        del yaml_config['notebooks']
+
+        #Merge yaml config with user config
+        self.config.merge(yaml_config)
+
+
+    def init_writer(self):
         self.writer = self.writer_factory(parent=self)
+
+
+    def _process_yaml(self, yaml_filename):
+        """
+        Read a yaml file and return a Config instance.
+        """
+
+        #If the file doesn't exist, return an empty config.
+        if yaml_filename is None or not os.path.isfile(yaml_filename):
+            return Config()
+        else:
+
+            #Create a config and merge each yaml document into the config.
+            config = Config()
+            with open(yaml_file, "r") as f:
+                yaml_docs = yaml.load_all(f)
+                for yaml_doc in yaml_docs:
+                    yaml_config = Config(yaml_doc)
+                    config.merge(yaml_config)
+            return config
 
 
     def start(self, argv=None):
@@ -116,52 +194,79 @@ class NbConvertApp(Application):
         argv : list
             Commandline arguments
         """
-        
-        #Parse the commandline options.
-        self.parse_command_line(argv)
 
         #Call base
         super(NbConvertApp, self).start()
 
-        #Make sure argument count is correct
-        if len(self.extra_args) > 2:
-            print( "Wrong number of arguments, use --help flag for usage", file=sys.stderr)
-            sys.exit(-1)
-
-        #Check for user specified yaml or notebook file.
-        yaml_file = 'nbconvert.yaml'
-        if len(self.extra_args) > 1:
-
-            #If a template is explicitly set via the commandline, treat the argument
-            #as a notebook file.
-            if len(self.template.strip()) > 0:
-                yaml_file = None
-
-                ipynb_file = self.extra_args[1]
-
-                #Make sure the yaml file exists.
-                if not os.path.isfile(ipynb_file):
-                    print( "Notebook file '%s' not found" % ipynb_file, file=sys.stderr)
-                    sys.exit(-1)
-
-            #Since no template was specified, treat the commandline parameter as
-            #a yaml file.
-            else:
-                yaml_file = self.extra_args[1]
-
-                #Make sure the yaml file exists.
-                if not os.path.isfile(yaml_file):
-                    print( "Yaml file '%s' not found" % yaml_file, file=sys.stderr)
-                    sys.exit(-1)
-
-        #Write the single notebook conversion to the file system.
-        if yaml_file is None:
-            self._export_and_write(self.template, ipynb_file, FileWriter(config=self.config))
+        #Read the writer from the config
+        if 'writer' in self.config:
+            writer_class = self.config['writer'].keys[0]
         else:
-            with open(yaml_file, "r") as f:
-                yaml_docs = yaml.load_all(f)
-                for yaml_doc in yaml_docs:
-                    self._export_using_yaml(yaml_doc)
+            writer_class = 
+
+
+
+    def _export(self, config, template=None, nb_filenames=[]):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        # #Make sure argument count is correct
+        # if len(self.extra_args) > 2:
+        #     print( "Wrong number of arguments, use --help flag for usage", file=sys.stderr)
+        #     sys.exit(-1)
+
+        # #Check for user specified yaml or notebook file.
+        # yaml_file = 'nbconvert.yaml'
+        # if len(self.extra_args) > 1:
+
+        #     #If a template is explicitly set via the commandline, treat the argument
+        #     #as a notebook file.
+        #     if len(self.template.strip()) > 0:
+        #         yaml_file = None
+
+        #         ipynb_file = self.extra_args[1]
+
+        #         #Make sure the yaml file exists.
+        #         if not os.path.isfile(ipynb_file):
+        #             print( "Notebook file '%s' not found" % ipynb_file, file=sys.stderr)
+        #             sys.exit(-1)
+
+        #     #Since no template was specified, treat the commandline parameter as
+        #     #a yaml file.
+        #     else:
+        #         yaml_file = self.extra_args[1]
+
+        #         #Make sure the yaml file exists.
+        #         if not os.path.isfile(yaml_file):
+        #             print( "Yaml file '%s' not found" % yaml_file, file=sys.stderr)
+        #             sys.exit(-1)
+
+        # #Write the single notebook conversion to the file system.
+        # if yaml_file is None:
+        #     self._export_and_write(self.template, ipynb_file, FileWriter(config=self.config))
+        # else:
+        #     with open(yaml_file, "r") as f:
+        #         yaml_docs = yaml.load_all(f)
+        #         for yaml_doc in yaml_docs:
+        #             self._export_using_yaml(yaml_doc)
 
 
     def _export_using_yaml(self, yaml):
