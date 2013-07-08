@@ -178,7 +178,7 @@ class NbConvertApp(Application):
 
 
     def init_writer(self):
-        self.writer = self.writer_factory(parent=self)
+        self._writer_class_changed('writer_class', self.writer_class, self.writer_class)
 
 
     def _process_yaml(self, yaml_filename):
