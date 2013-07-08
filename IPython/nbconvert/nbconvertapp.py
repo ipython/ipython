@@ -170,7 +170,8 @@ class NbConvertApp(Application):
                       file=sys.stderr)
 
         #Remove 'notebooks' node from config.
-        del yaml_config['notebooks']
+        if 'notebooks' in yaml_config: 
+            del yaml_config['notebooks']
 
         #Merge yaml config with user config
         self.config.merge(yaml_config)
