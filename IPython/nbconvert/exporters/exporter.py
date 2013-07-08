@@ -31,8 +31,8 @@ from markdown import markdown
 from IPython.config.configurable import Configurable
 from IPython.config import Config
 from IPython.nbformat import current as nbformat
-from IPython.utils.import_string import import_item
-from IPython.utils.traitlets import MetaHasTraits, Unicode, DottedObjectName, List
+from IPython.utils.importstring import import_item
+from IPython.utils.traitlets import MetaHasTraits, Unicode, DottedObjectName, List, Dict
 from IPython.utils.text import indent
 
 from IPython.nbconvert import filters
