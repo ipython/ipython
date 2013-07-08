@@ -79,7 +79,7 @@ class NbConvertApp(Application):
     notebooks = List([], config=True, help="""""")
 
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  help="""TODO: Help""")
-    writer_class = DottedObjectName('IPython.nbconvert.writers.base.WriterBase', config=True)
+    writer_class = DottedObjectName('IPython.nbconvert.writers.file.FileWriter', config=True)
     writer_factory = Type()
     def _writer_class_changed(self, name, old, new):
         self.writer_factory = import_item(new)
