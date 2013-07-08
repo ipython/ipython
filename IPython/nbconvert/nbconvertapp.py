@@ -32,10 +32,7 @@ from IPython.utils.traitlets import Unicode, List
 
 from .exporters.export import export_by_name
 from .exporters.exporter import Exporter
-from .transformers import extractfigure
 from .utils.config import GlobalConfigurable
-from .writers.file import FileWriter
-from .writers.stdout import StdoutWriter
 
 #-----------------------------------------------------------------------------
 #Classes and functions
