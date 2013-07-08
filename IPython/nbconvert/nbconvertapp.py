@@ -26,7 +26,7 @@ import os
 from IPython.config.application import Application
 from IPython.utils.traitlets import Bool, Unicode
 
-from .exporters.export import export_by_name
+from .exporters.export import export_by_name, get_export_names
 from .exporters.exporter import Exporter
 from .transformers import extractfigure
 from .utils.config import GlobalConfigurable
@@ -127,10 +127,15 @@ class NbConvertApp(Application):
         ipynb_file = (self.extra_args)[2]
         
         #Export
-        return_value = export_by_name(export_type, ipynb_file)
-        if return_value is None:
-            print("Error: '%s' template not found." % export_type)
-            return
+        try:
+            return_value = export_by_name(export_type, ipynb_file)
+        except NameError as e:
+            print("Error: '%s' exporter not found." % export_type,
+                  file=sys.stderr)
+            print("Known exporters are:",
+                  "\n\t" + "\n\t".join(get_export_names()),
+                  file=sys.stderr)
+            sys.exit(-1)
         else:
             (output, resources, exporter) = return_value 
         

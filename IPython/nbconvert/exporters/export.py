@@ -86,7 +86,8 @@ __all__ = [
     'export_python_armor',
     'export_reveal',
     'export_rst',
-    'export_by_name'
+    'export_by_name',
+    'get_export_names'
 ]
 
 @DocDecorator
@@ -223,3 +224,10 @@ def export_by_name(template_name, nb, config=None, transformers=None, filters=No
     else:
         raise NameError("template for `%s` not found" % function_name)
 
+def get_export_names():
+    "Return a list of the currently supported export targets"
+    # grab everything after 'export_'
+    l = [x[len('export_'):] for x in __all__ if x.startswith('export_')]
+    # filter out the one method that is not a template
+    l = [x for x in l if 'by_name' not in x]
+    return sorted(l)
