@@ -39,6 +39,8 @@ var IPython = (function (IPython) {
         this.undelete_index = null;
         this.undelete_below = false;
         this.paste_enabled = false;
+        this.mode = 'command';
+        this.edit_index = null;
         this.set_dirty(false);
         this.metadata = {};
         this._checkpoint_after_save = false;
@@ -74,7 +76,7 @@ var IPython = (function (IPython) {
      * @method baseProjectUrl
      * @return {String} The base project URL
      */
-    Notebook.prototype.baseProjectUrl = function(){
+    Notebook.prototype.baseProjectUrl = function() {
         return this._baseProjectUrl || $('body').data('baseProjectUrl');
     };
 
@@ -131,6 +133,12 @@ var IPython = (function (IPython) {
             var index = that.find_cell_index(data.cell);
             that.select(index);
         });
+
+        $([IPython.events]).on('edit_mode.Cell', function (event, data) {
+            var index = that.find_cell_index(data.cell);
+            that.select(index);
+            that.edit_mode();
+        });
         
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
             IPython.dialog.modal({
@@ -144,220 +152,222 @@ var IPython = (function (IPython) {
             });
         });
 
-
         $(document).keydown(function (event) {
 
-            // Save (CTRL+S) or (AppleKey+S)
-            //metaKey = applekey on mac
+            // Event handlers for both command and edit mode
             if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
+                // Save (CTRL+S) or (Command+S on Mac)
                 that.save_checkpoint();
                 event.preventDefault();
                 return false;
             } else if (event.which === key.ESC) {
                 // Intercept escape at highest level to avoid closing
                 // websocket connection with firefox
-                IPython.pager.collapse();
                 event.preventDefault();
+                // Don't return yet to allow edit/command modes to handle
             } else if (event.which === key.SHIFT) {
                 // ignore shift keydown
                 return true;
-            }
-            if (event.which === key.UPARROW && !event.shiftKey) {
-                var cell = that.get_selected_cell();
-                if (cell && cell.at_top()) {
-                    event.preventDefault();
-                    that.select_prev();
-                };
-            } else if (event.which === key.DOWNARROW && !event.shiftKey) {
-                var cell = that.get_selected_cell();
-                if (cell && cell.at_bottom()) {
-                    event.preventDefault();
-                    that.select_next();
-                };
             } else if (event.which === key.ENTER && event.shiftKey) {
-                that.execute_selected_cell();
+                that.execute_selected_cell('shift');
                 return false;
             } else if (event.which === key.ENTER && event.altKey) {
                 // Execute code cell, and insert new in place
-                that.execute_selected_cell();
-                 // Only insert a new cell, if we ended up in an already populated cell
-                if (/\S/.test(that.get_selected_cell().get_text()) == true) {
-                    that.insert_cell_above('code');
-                }
+                that.execute_selected_cell('alt');
                 return false;
             } else if (event.which === key.ENTER && event.ctrlKey) {
-                that.execute_selected_cell({terminal:true});
+                that.execute_selected_cell('ctrl');
                 return false;
-            } else if (event.which === 77 && event.ctrlKey && that.control_key_active == false) {
-                that.control_key_active = true;
-                return false;
-            } else if (event.which === 88 && that.control_key_active) {
-                // Cut selected cell = x
-                that.cut_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 67 && that.control_key_active) {
-                // Copy selected cell = c
-                that.copy_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 86 && that.control_key_active) {
-                // Paste below selected cell = v
-                that.paste_cell_below();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 68 && that.control_key_active) {
-                // Delete selected cell = d
-                that.delete_cell();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 65 && that.control_key_active) {
-                // Insert code cell above selected = a
-                that.insert_cell_above('code');
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 66 && that.control_key_active) {
-                // Insert code cell below selected = b
-                that.insert_cell_below('code');
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 89 && that.control_key_active) {
-                // To code = y
-                that.to_code();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 77 && that.control_key_active) {
-                // To markdown = m
-                that.to_markdown();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 84 && that.control_key_active) {
-                // To Raw = t
-                that.to_raw();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 49 && that.control_key_active) {
-                // To Heading 1 = 1
-                that.to_heading(undefined, 1);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 50 && that.control_key_active) {
-                // To Heading 2 = 2
-                that.to_heading(undefined, 2);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 51 && that.control_key_active) {
-                // To Heading 3 = 3
-                that.to_heading(undefined, 3);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 52 && that.control_key_active) {
-                // To Heading 4 = 4
-                that.to_heading(undefined, 4);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 53 && that.control_key_active) {
-                // To Heading 5 = 5
-                that.to_heading(undefined, 5);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 54 && that.control_key_active) {
-                // To Heading 6 = 6
-                that.to_heading(undefined, 6);
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 79 && that.control_key_active) {
-                // Toggle output = o
-                if (event.shiftKey){
-                    that.toggle_output_scroll();
-                } else {
-                    that.toggle_output();
-                }
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 83 && that.control_key_active) {
-                // Save notebook = s
-                that.save_checkpoint();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 74 && that.control_key_active) {
-                // Move cell down = j
-                that.move_cell_down();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 75 && that.control_key_active) {
-                // Move cell up = k
-                that.move_cell_up();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 80 && that.control_key_active) {
-                // Select previous = p
-                that.select_prev();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 78 && that.control_key_active) {
-                // Select next = n
-                that.select_next();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 76 && that.control_key_active) {
-                // Toggle line numbers = l
-                that.cell_toggle_line_numbers();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 73 && that.control_key_active) {
-                // Interrupt kernel = i
-                that.session.interrupt_kernel();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 190 && that.control_key_active) {
-                // Restart kernel = .  # matches qt console
-                that.restart_kernel();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 72 && that.control_key_active) {
-                // Show keyboard shortcuts = h
-                IPython.quick_help.show_keyboard_shortcuts();
-                that.control_key_active = false;
-                return false;
-            } else if (event.which === 90 && that.control_key_active) {
-                // Undo last cell delete = z
-                that.undelete();
-                that.control_key_active = false;
-                return false;
-            } else if ((event.which === 189 || event.which === 173) &&
-                    that.control_key_active) {
-                // how fun! '-' is 189 in Chrome, but 173 in FF and Opera
-                // Split cell = -
-                that.split_cell();
-                that.control_key_active = false;
-                return false;                                               
-            } else if (that.control_key_active) {
-                that.control_key_active = false;
-                return true;
             }
+
+            // Event handlers for edit mode
+            if (that.mode === 'edit') {
+                if (event.which === key.ESC) {
+                    // ESC
+                    that.command_mode();
+                    return false;
+                } else if (event.which === 77 && event.ctrlKey) {
+                    // Ctrl-m
+                    that.command_mode();
+                    return false;
+                } else if (event.which === key.UPARROW && !event.shiftKey) {
+                    var cell = that.get_selected_cell();
+                    if (cell && cell.at_top()) {
+                        event.preventDefault();
+                        that.command_mode()
+                        that.select_prev();
+                        that.edit_mode();
+                        return false;
+                    };
+                } else if (event.which === key.DOWNARROW && !event.shiftKey) {
+                    var cell = that.get_selected_cell();
+                    if (cell && cell.at_bottom()) {
+                        event.preventDefault();
+                        that.command_mode()
+                        that.select_next();
+                        that.edit_mode();
+                        return false;
+                    };
+                };
+            // Event handlers for command mode
+            } else if (that.mode === 'command' && !(event.ctrlKey || event.altKey)) {
+                if (event.which === key.ENTER && !(event.ctrlKey || event.altKey || event.shiftKey)) {
+                    // Enter edit mode = ENTER alone
+                    that.edit_mode();
+                    return false
+                } else if (event.which === key.UPARROW && !event.shiftKey) {
+                    var index = that.get_selected_index();
+                    if (index !== 0 && index !== null) {
+                        that.select_prev();
+                        var cell = that.get_selected_cell();
+                        cell.focus_cell();
+                    };
+                    return false;
+                } else if (event.which === key.DOWNARROW && !event.shiftKey) {
+                    var index = that.get_selected_index();
+                    if (index !== (that.ncells()-1) && index !== null) {
+                        that.select_next();
+                        var cell = that.get_selected_cell();
+                        cell.focus_cell();
+                    };
+                    return false;
+                } else if (event.which === 88) {
+                    // Cut selected cell = x
+                    that.cut_cell();
+                    return false;
+                } else if (event.which === 67) {
+                    // Copy selected cell = c
+                    that.copy_cell();
+                    return false;
+                } else if (event.which === 86) {
+                    // Paste below selected cell = v
+                    that.paste_cell_below();
+                    return false;
+                } else if (event.which === 68) {
+                    // Delete selected cell = d
+                    that.delete_cell();
+                    return false;
+                } else if (event.which === 65) {
+                    // Insert code cell above selected = a
+                    that.insert_cell_above('code');
+                    that.select_prev();
+                    return false;
+                } else if (event.which === 66) {
+                    // Insert code cell below selected = b
+                    that.insert_cell_below('code');
+                    that.select_next();
+                    return false;
+                } else if (event.which === 89) {
+                    // To code = y
+                    that.to_code();
+                    return false;
+                } else if (event.which === 77) {
+                    // To markdown = m
+                    that.to_markdown();
+                    return false;
+                } else if (event.which === 84) {
+                    // To Raw = t
+                    that.to_raw();
+                    return false;
+                } else if (event.which === 49) {
+                    // To Heading 1 = 1
+                    that.to_heading(undefined, 1);
+                    return false;
+                } else if (event.which === 50) {
+                    // To Heading 2 = 2
+                    that.to_heading(undefined, 2);
+                    return false;
+                } else if (event.which === 51) {
+                    // To Heading 3 = 3
+                    that.to_heading(undefined, 3);
+                    return false;
+                } else if (event.which === 52) {
+                    // To Heading 4 = 4
+                    that.to_heading(undefined, 4);
+                    return false;
+                } else if (event.which === 53) {
+                    // To Heading 5 = 5
+                    that.to_heading(undefined, 5);
+                    return false;
+                } else if (event.which === 54) {
+                    // To Heading 6 = 6
+                    that.to_heading(undefined, 6);
+                    return false;
+                } else if (event.which === 79) {
+                    // Toggle output = o
+                    if (event.shiftKey) {
+                        that.toggle_output_scroll();
+                    } else {
+                        that.toggle_output();
+                    };
+                    return false;
+                } else if (event.which === 83) {
+                    // Save notebook = s
+                    that.save_checkpoint();
+                    that.control_key_active = false;
+                    return false;
+                } else if (event.which === 74) {
+                    // Move cell down = j
+                    that.move_cell_down();
+                    return false;
+                } else if (event.which === 75) {
+                    // Move cell up = k
+                    that.move_cell_up();
+                    return false;
+                } else if (event.which === 80) {
+                    // Select previous = p
+                    that.select_prev();
+                    return false;
+                } else if (event.which === 78) {
+                    // Select next = n
+                    that.select_next();
+                    return false;
+                } else if (event.which === 76) {
+                    // Toggle line numbers = l
+                    that.cell_toggle_line_numbers();
+                    return false;
+                } else if (event.which === 73) {
+                    // Interrupt kernel = i
+                    that.kernel.interrupt();
+                    return false;
+                } else if (event.which === 190) {
+                    // Restart kernel = .  # matches qt console
+                    that.restart_kernel();
+                    return false;
+                } else if (event.which === 72) {
+                    // Show keyboard shortcuts = h
+                    IPython.quick_help.show_keyboard_shortcuts();
+                    return false;
+                } else if (event.which === 90) {
+                    // Undo last cell delete = z
+                    that.undelete();
+                    return false;
+                };
+            };
+
+            // If we havn't handled it, let someone else.
             return true;
         });
         
-        var collapse_time = function(time){
+        var collapse_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var new_height = app_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
-        }
+        };
 
-        this.element.bind('collapse_pager', function (event,extrap) {
+        this.element.bind('collapse_pager', function (event, extrap) {
             var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
             collapse_time(time);
         });
 
-        var expand_time = function(time) {
+        var expand_time = function (time) {
             var app_height = $('#ipython-main-app').height(); // content height
             var splitter_height = $('div#pager_splitter').outerHeight(true);
             var pager_height = $('div#pager').outerHeight(true);
             var new_height = app_height - pager_height - splitter_height;
             that.element.animate({height : new_height + 'px'}, time);
-        }
+        };
 
         this.element.bind('expand_pager', function (event, extrap) {
             var time = (extrap != undefined) ? ((extrap.duration != undefined ) ? extrap.duration : 'fast') : 'fast';
@@ -653,6 +663,7 @@ var IPython = (function (IPython) {
                 this.get_cell(sindex).unselect();
             };
             var cell = this.get_cell(index);
+            console.log('Notebook.select', index);
             cell.select();
             if (cell.cell_type === 'heading') {
                 $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
@@ -689,6 +700,48 @@ var IPython = (function (IPython) {
         var index = this.get_selected_index();
         this.select(index-1);
         return this;
+    };
+
+
+    // Edit/Command mode
+
+    /**
+     * Enter command mode for the currently selected cell
+     *
+     * @method command_mode
+     */
+    Notebook.prototype.command_mode = function () {
+        console.log('Notebook.command_mode', this.mode, this.edit_index);
+        if (this.mode !== 'command') {
+            var cell = this.get_cell(this.edit_index);
+            if (cell) {
+                cell.command_mode();
+                this.mode = 'command';
+                this.edit_index = null;
+            };
+        };
+    };
+
+    /**
+     * Enter edit mode for the currently selected cell
+     *
+     * @method editmode
+     */
+    Notebook.prototype.edit_mode = function () {
+        var index = this.get_selected_index();
+        console.log('Notebook.edit_mode', this.mode, index);
+        if (index !== this.edit_index) {
+            if (this.edit_index !== null) {
+                var old_cell = this.get_cell(this.edit_index)
+                old_cell.command_mode();
+            }
+            var cell = this.get_cell(index);
+            if (cell) {
+                cell.edit_mode();
+                this.mode = 'edit';
+                this.edit_index = index;
+            };
+        };
     };
 
 
@@ -804,10 +857,12 @@ var IPython = (function (IPython) {
                 cell = new IPython.HeadingCell();
             }
 
-            if(this._insert_element_at_index(cell.element,index)){
+            if(this._insert_element_at_index(cell.element,index)) {
                 cell.render();
-                this.select(this.find_cell_index(cell));
                 $([IPython.events]).trigger('create.Cell', {'cell': cell, 'index': index});
+                cell.refresh();
+                // TODO: should we really get rid of this?
+                //this.select(this.find_cell_index(cell));
                 this.set_dirty(true);
             }
         }
@@ -952,6 +1007,8 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -1440,30 +1497,40 @@ var IPython = (function (IPython) {
      * @method execute_selected_cell
      * @param {Object} options Customize post-execution behavior
      */
-    Notebook.prototype.execute_selected_cell = function (options) {
-        // add_new: should a new cell be added if we are at the end of the nb
-        // terminal: execute in terminal mode, which stays in the current cell
-        var default_options = {terminal: false, add_new: true};
-        $.extend(default_options, options);
+    Notebook.prototype.execute_selected_cell = function (mode) {
+        // mode = shift, ctrl, alt
+        mode = mode || 'shift'
         var that = this;
         var cell = that.get_selected_cell();
         var cell_index = that.find_cell_index(cell);
-        if (cell instanceof IPython.CodeCell) {
-            cell.execute();
-        }
-        if (default_options.terminal) {
-            cell.select_all();
-        } else {
-            if ((cell_index === (that.ncells()-1)) && default_options.add_new) {
+        
+        cell.execute();
+        console.log('Notebook.execute_selected_cell', mode);
+        if (mode === 'shift') {
+            if (cell_index === (that.ncells()-1)) {
                 that.insert_cell_below('code');
-                // If we are adding a new cell at the end, scroll down to show it.
+                that.select(cell_index+1);
+                that.edit_mode();
                 that.scroll_to_bottom();
             } else {
-                that.select(cell_index+1);
-            };
-        };
+                that.command_mode();
+            }
+        } else if (mode === 'ctrl') {
+            that.select(cell_index+1);
+            that.get_cell(cell_index+1).focus_cell();
+        } else if (mode === 'alt') {
+            // Only insert a new cell, if we ended up in an already populated cell
+            if (/\S/.test(that.get_next_cell().get_text()) == true) {
+                that.insert_cell_below('code');
+            }
+            var next_index = cell_index+1;
+            that.select(cell_index+1);
+            that.edit_mode();             
+        }
+
         this.set_dirty(true);
     };
+
 
     /**
      * Execute all cells below the selected cell.
@@ -1909,9 +1976,13 @@ var IPython = (function (IPython) {
         this.fromJSON(data);
         if (this.ncells() === 0) {
             this.insert_cell_below('code');
+            this.select(0);
+            this.edit_mode();
+        } else {
+            this.select(0);
+            this.command_mode();
         };
         this.set_dirty(false);
-        this.select(0);
         this.scroll_to_top();
         if (data.orig_nbformat !== undefined && data.nbformat !== data.orig_nbformat) {
             var msg = "This notebook has been converted from an older " +

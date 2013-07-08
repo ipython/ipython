@@ -139,6 +139,16 @@ var IPython = (function (IPython) {
         this.completer = new IPython.Completer(this);
     };
 
+    /** @method bind_events */
+    CodeCell.prototype.bind_events = function () {
+        IPython.Cell.prototype.bind_events.apply(this);
+        var that = this;
+
+        this.element.focusout(
+            function() { that.auto_highlight(); }
+        );
+    };
+
     /**
      *  This method gets called in CodeMirror's onKeyDown/onKeyPress
      *  handlers and is used to provide custom key handling. Its return
@@ -308,44 +318,43 @@ var IPython = (function (IPython) {
     // Basic cell manipulation.
 
     CodeCell.prototype.select = function () {
-        var continue = IPython.Cell.prototype.select.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.select.apply(this);
+        console.log('CodeCell.select', cont);
+        if (cont) {
             this.code_mirror.refresh();
             this.auto_highlight();
         };
-        return continue;
+        return cont;
     };
 
     CodeCell.prototype.render = function () {
-        var continue = IPython.Cell.prototype.render.apply(this);
-        if (continue) {
-            this.execute();
-        };
-        return continue;
+        var cont = IPython.Cell.prototype.render.apply(this);
+        console.log('CodeCell.render');
+        // Always execute, even if we are already in the rendered state
+        return cont;
     };
-
+    
     CodeCell.prototype.unrender = function () {
-        var continue = IPython.Cell.prototype.unrender.apply(this);
-        if (continue) {
-            this.clear_output(true, true, true);
-        };
-        return continue;
+        // CodeCell is always rendered
+        return false;
     };
 
     CodeCell.prototype.command_mode = function () {
-        var continue = IPython.Cell.prototype.command_mode.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.command_mode.apply(this);
+        console.log('CodeCell.command_mode');
+        if (cont) {
             this.focus_cell();
         };
-        return continue;
+        return cont;
     }
 
     CodeCell.prototype.edit_mode = function () {
-        var continue = IPython.Cell.prototype.edit_mode.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.edit_mode.apply(this);
+        console.log('CodeCell.edit_mode');
+        if (cont) {
             this.focus_editor();
         };
-        return continue;
+        return cont;
     }
 
     CodeCell.prototype.select_all = function () {

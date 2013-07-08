@@ -64,7 +64,6 @@ var IPython = (function (IPython) {
     };
 
 
-
     /**
      * Create the DOM element of the TextCell
      * @method create_element
@@ -101,6 +100,8 @@ var IPython = (function (IPython) {
     TextCell.prototype.bind_events = function () {
         IPython.Cell.prototype.bind_events.apply(this);
         var that = this;
+
+        // TODO: move this to the notebook event handler
         this.element.keydown(function (event) {
             if (event.which === 13 && !event.shiftKey) {
                 if (that.rendered) {
@@ -109,10 +110,12 @@ var IPython = (function (IPython) {
                 };
             };
         });
+
         this.element.dblclick(function () {
             that.unrender();
         });
     };
+
 
     /**
      * This method gets called in CodeMirror's onKeyDown/onKeyPress
@@ -126,38 +129,34 @@ var IPython = (function (IPython) {
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-
-        if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
-            // Always ignore shift-enter in CodeMirror as we handle it.
-            return true;
-        }
+        if (this.mode === 'command') {
+            return false
+        } else if (this.mode === 'edit') {
+            if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
+                // Always ignore shift-enter in CodeMirror as we handle it.
+                return true;
+            };
+            return false;
+        };
         return false;
     };
 
     // Cell level actions
     
     TextCell.prototype.select = function () {
-        var continue = IPython.Cell.prototype.select.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.select.apply(this);
+        if (cont) {
             if (this.mode === 'edit') {
                 this.code_mirror.refresh();
             }
         };
-        return continue;
-    };
-
-    TextCell.prototype.render = function () {
-        var continue = IPython.Cell.prototype.render.apply(this);
-        if (continue) {
-            this.execute();
-        };
-        return continue;
+        return cont;
     };
 
     TextCell.prototype.unrender = function () {
         if (this.read_only) return;
-        var continue = IPython.Cell.prototype.unrender.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.unrender.apply(this);
+        if (cont) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");
             output.hide();
@@ -169,23 +168,27 @@ var IPython = (function (IPython) {
             }
 
         };
-        return continue;
+        return cont;
+    };
+
+    TextCell.prototype.execute = function () {
+        this.render();
     };
 
     TextCell.prototype.command_mode = function () {
-        var continue = IPython.Cell.prototype.command_mode.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.command_mode.apply(this);
+        if (cont) {
             this.focus_cell();
         };
-        return continue;
+        return cont;
     }
 
     TextCell.prototype.edit_mode = function () {
-        var continue = IPython.Cell.prototype.edit_mode.apply(this);
-        if (continue) {
+        var cont = IPython.Cell.prototype.edit_mode.apply(this);
+        if (cont) {
             this.focus_editor();
         };
-        return continue;
+        return cont;
     }
 
     /**
@@ -224,36 +227,51 @@ var IPython = (function (IPython) {
     };
 
     /**
-     * not deprecated, but implementation wrong
      * @method at_top
-     * @deprecated
-     * @return {Boolean} true is cell rendered, false otherwise
-     * I doubt this is what it is supposed to do
-     * this implementation is completly false
+     * @return {Boolean}
      */
     TextCell.prototype.at_top = function () {
         if (this.rendered) {
             return true;
         } else {
-            return false;
-        }
+            if (cursor.line === 0 && cursor.ch === 0) {
+                return true;
+            } else {
+                return false;
+            };
+        };
     };
 
 
+    /** @method at_bottom **/
+    TextCell.prototype.at_bottom = function () {
+        if (this.rendered) {
+            return true
+        } else {
+            var cursor = this.code_mirror.getCursor();
+            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
+                return true;
+            } else {
+                return false;
+            };
+        };
+    };
+
     /**
-     * not deprecated, but implementation wrong
      * @method at_bottom
-     * @deprecated
-     * @return {Boolean} true is cell rendered, false otherwise
-     * I doubt this is what it is supposed to do
-     * this implementation is completly false
+     * @return {Boolean}
      * */
     TextCell.prototype.at_bottom = function () {
         if (this.rendered) {
             return true;
         } else {
-            return false;
-        }
+            var cursor = this.code_mirror.getCursor();
+            if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
+                return true;
+            } else {
+                return false;
+            };
+        };
     };
 
     /**
@@ -308,16 +326,14 @@ var IPython = (function (IPython) {
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     }
 
-
-
-
     MarkdownCell.prototype = new TextCell();
 
     /**
      * @method render
      */
     MarkdownCell.prototype.render = function () {
-        if (this.rendered === false) {
+        var cont = IPython.TextCell.prototype.render.apply(this);
+        if (cont) {
             var text = this.get_text();
             var math = null;
             if (text === "") { text = this.placeholder; }
@@ -339,9 +355,9 @@ var IPython = (function (IPython) {
             }
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-            this.typeset();
-            this.rendered = true;
-        }
+            this.typeset()
+        };
+        return cont;
     };
 
 
@@ -357,11 +373,6 @@ var IPython = (function (IPython) {
         
         this.cell_type = 'raw';
         TextCell.apply(this, [options]);
-
-        var that = this;
-        this.element.focusout(
-                function() { that.auto_highlight(); }
-        );
     };
 
     RawCell.options_default = {
@@ -370,9 +381,16 @@ var IPython = (function (IPython) {
             "When passing through nbconvert, a Raw Cell's content is added to the output unmodified."
     };
 
-
-
     RawCell.prototype = new TextCell();
+
+    /** @method bind_events **/
+    RawCell.prototype.bind_events = function () {
+        TextCell.prototype.bind_events.apply(this);
+        var that = this
+        this.element.focusout(function() {
+            that.auto_highlight();
+        });
+    };
 
     /**
      * Trigger autodetection of highlight scheme for current cell
@@ -384,12 +402,13 @@ var IPython = (function (IPython) {
 
     /** @method render **/
     RawCell.prototype.render = function () {
-        
-        this.rendered = true;
+        // Make sure that this cell type can never be rendered
+        if (this.rendered) {
+            this.unrender();
+        }
         var text = this.get_text();
         if (text === "") { text = this.placeholder; }
         this.set_text(text);
-        this.unrender();
     };
 
 
@@ -397,53 +416,32 @@ var IPython = (function (IPython) {
     RawCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
         var that = this;
-        if (event.which === key.UPARROW && event.type === 'keydown') {
-            // If we are not at the top, let CM handle the up arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_top()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
+        if (this.mode === 'command') {
+            return false
+        } else if (this.mode === 'edit') {
+            // TODO: review these handlers...
+            if (event.which === key.UPARROW && event.type === 'keydown') {
+                // If we are not at the top, let CM handle the up arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_top()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
+            } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+                // If we are not at the bottom, let CM handle the down arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_bottom()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
             };
-        } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
-            // If we are not at the bottom, let CM handle the down arrow and
-            // prevent the global keydown handler from handling it.
-            if (!that.at_bottom()) {
-                event.stop();
-                return false;
-            } else {
-                return true;
-            };
+            return false;
         };
         return false;
-    };
-
-    /** @method select **/
-    RawCell.prototype.select = function () {
-        IPython.Cell.prototype.select.apply(this);
-        this.edit();
-    };
-
-    /** @method at_top **/
-    RawCell.prototype.at_top = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === 0 && cursor.ch === 0) {
-            return true;
-        } else {
-            return false;
-        }
-    };
-
-
-    /** @method at_bottom **/
-    RawCell.prototype.at_bottom = function () {
-        var cursor = this.code_mirror.getCursor();
-        if (cursor.line === (this.code_mirror.lineCount()-1) && cursor.ch === this.code_mirror.getLine(cursor.line).length) {
-            return true;
-        } else {
-            return false;
-        }
     };
 
 
@@ -541,7 +539,8 @@ var IPython = (function (IPython) {
 
 
     HeadingCell.prototype.render = function () {
-        if (this.rendered === false) {
+        var cont = IPython.TextCell.prototype.render.apply(this);
+        if (cont) {
             var text = this.get_text();
             var math = null;
             // Markdown headings must be a single line
@@ -567,8 +566,9 @@ var IPython = (function (IPython) {
             this.typeset();
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
-            this.rendered = true;
+
         };
+        return cont;
     };
 
     IPython.TextCell = TextCell;
