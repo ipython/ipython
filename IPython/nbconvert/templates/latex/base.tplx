@@ -41,14 +41,14 @@ it introduces a new line
 
 ((*- block data_png -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth, height=0.9\textheight, keepaspectratio]{(((output.key_png)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.key_png)))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth, height=0.9\textheight, keepaspectratio]{(((output.key_jpeg)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.key_jpeg)))}
 \par
 \end{center}
 ((*- endblock -*))
@@ -143,6 +143,9 @@ unknown type  (((cell.type)))
 \usepackage{graphicx}
 \usepackage{ucs}
 \usepackage[utf8x]{inputenc}
+
+% Scale down larger images
+\usepackage[export]{adjustbox}
 
 %fancy verbatim
 \usepackage{fancyvrb}
