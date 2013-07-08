@@ -61,7 +61,7 @@ $$
 
 {% block headingcell scoped %}
 
-{{ '#' * cell.level }} {{ cell.source | wordwrap(80, False, '\n'+'#' * cell.level+' ')}}
+{{ '#' * cell.level }} {{ cell.source }}
 
 {% endblock headingcell %}
 
