@@ -113,7 +113,7 @@ def export(exporter_type, nb, config=None):
     if isinstance(nb, NotebookNode):
         output, resources = exporter_instance.from_notebook_node(notebook_name, nb)
     elif isinstance(nb, basestring):
-        output, resources = exporter_instance.from_filename(nb)
+        output, resources = exporter_instance.from_filename(nb, notebook_name=notebook_name)
     else:
         output, resources = exporter_instance.from_file(notebook_name, nb)
     return output, resources, exporter_instance

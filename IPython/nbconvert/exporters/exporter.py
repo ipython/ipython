@@ -200,7 +200,7 @@ class Exporter(Configurable):
         return self.template.render(nb=nb, resources=resources), resources
 
 
-    def from_filename(self, filename):
+    def from_filename(self, filename, notebook_name=None):
         """
         Convert a notebook from a notebook file.
     
@@ -212,8 +212,9 @@ class Exporter(Configurable):
 
         #Get the notebook name by removing the full path to the notebook and 
         #the extension on the notebook.
-        basename = os.path.basename(filename)
-        notebook_name = basename[:basename.rfind('.')]
+        if notebook_name is None:
+            basename = os.path.basename(filename)
+            notebook_name = basename[:basename.rfind('.')]
 
         with io.open(filename) as f:
             return self.from_notebook_node(notebook_name, nbformat.read(f, 'json'))
