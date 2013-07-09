@@ -70,7 +70,7 @@ class FileWriter(WriterBase):
                     f.write(data)
 
             #Copy referenced files to output directory
-            if not destination is None:
+            if self.build_directory:
                 for filename in self.files:
 
                     #Copy files that match search pattern
@@ -80,10 +80,9 @@ class FileWriter(WriterBase):
 
             #Determine where to write conversion results.
             dest = notebook_name + '.' + output_extension
-            if not destination is None:
-                dest = os.path.join(destination, 
-                                                    dest)
-                
+            if self.build_directory:
+                dest = os.path.join(self.build_directory, dest)
+
             #Write conversion results.
             with io.open(dest, 'w') as f:
                 f.write(output)
