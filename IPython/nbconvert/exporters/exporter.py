@@ -152,13 +152,13 @@ class Exporter(Configurable):
         self._init_environment()
 
         #Add transformers
+        self._transformers = []
         self._register_transformers()
 
         #Add filters to the Jinja2 environment
         self._register_filters()
 
         #Load user transformers.  Overwrite existing transformers if need be.
-        self._transformers = []
         for transformer in self.transformers:
             self.register_transformer(transformer) 
 
