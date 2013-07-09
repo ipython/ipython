@@ -85,6 +85,10 @@ div.output_prompt {
 text-align: inherit;
 }
 </style>
+
+<!-- Custom stylesheet, it must be in the same directory as the html file -->
+<link rel="stylesheet" href="custom.css">
+
 </head>
 {% endblock header%}
 
