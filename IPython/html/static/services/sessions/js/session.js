@@ -59,26 +59,12 @@ var IPython = (function (IPython) {
      * @method restart_kernel
      */
     Session.prototype.restart_kernel = function () {
-        var that = this;
-        var dialog = $('<div/>');
-        dialog.html('Do you want to restart the current kernel?  You will lose all variables defined in it.');
-        $(document).append(dialog);
-        dialog.dialog({
-            resizable: false,
-            modal: true,
-            title: "Restart kernel or continue running?",
-            closeText: '',
-            buttons : {
-                "Restart": function () {
-                    that.kernel.restart();
-                    $(this).dialog('close');
-                },
-                "Continue running": function () {
-                    $(this).dialog('close');
-                }
-            }
-        });
+        this.kernel.restart();
     };
+    
+    Session.prototype.interrupt_kernel = function() {
+        this.kernel.interrupt();
+    }
     
     IPython.Session = Session;
 

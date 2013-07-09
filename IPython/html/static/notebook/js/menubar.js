@@ -223,7 +223,7 @@ var IPython = (function (IPython) {
         });
         // Kernel
         this.element.find('#int_kernel').click(function () {
-            IPython.notebook.kernel.interrupt();
+            IPython.notebook.session.interrupt_kernel();
         });
         this.element.find('#restart_kernel').click(function () {
             IPython.notebook.restart_kernel();
