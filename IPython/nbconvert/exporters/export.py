@@ -85,7 +85,7 @@ __all__ = [
 ]
 
 @DocDecorator
-def export(exporter_type, nb, config=None):
+def export(exporter_type, nb, config=None, notebook_name=None):
     """
     Export a notebook object using specific exporter class.
     
