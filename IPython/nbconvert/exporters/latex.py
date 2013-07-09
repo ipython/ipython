@@ -99,8 +99,7 @@ class LatexExporter(Exporter):
                 'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg']
                 },
              'ExtractFigureTransformer': {
-                    'enabled':True,
-                    'extra_ext_map':{'svg':'pdf'},
+                    'enabled':True
                  }
          })
         c.merge(super(LatexExporter,self).default_config)
