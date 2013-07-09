@@ -28,6 +28,9 @@ pre {
 }
 </style>
 
+<!-- Custom stylesheet, it must be in the same directory as the html file -->
+<link rel="stylesheet" href="custom.css">
+
 <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript">
 
 </script>
