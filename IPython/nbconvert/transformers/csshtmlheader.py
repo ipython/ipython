@@ -92,14 +92,9 @@ class CSSHTMLHeaderTransformer(ActivatableTransformer):
             'html', 'static', 'style', 'style.min.css')
         
         #Load style CSS file.
-        try:
-            with io.open(sheet_filename, encoding='utf-8') as file:
-                file_text = file.read()
-                header.append(file_text)
-        except IOError:
-            
-            # New version of IPython with style.min.css, pass
-            pass
+        with io.open(sheet_filename, encoding='utf-8') as file:
+            file_text = file.read()
+            header.append(file_text)
 
         #Add pygments CSS
         formatter = HtmlFormatter()
