@@ -62,7 +62,7 @@ Out[{{cell.prompt_number}}]:
 <h{{cell.level}}>
 {% set source = cell.source | replace(' ','_') %}
 <a class="heading-anchor" id="{{source}}" href="#{{source}}">
-  {{cell.source}}
+  {{cell.source | markdown| rm_fake}}
 </a>
 </h{{cell.level}}>
 </div>
