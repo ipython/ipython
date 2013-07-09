@@ -43,7 +43,7 @@ class FilesWriter(WriterBase):
 
 
     def __init__(self, **kw):
-        super(FileWriter, self).__init__(**kw)
+        super(FilesWriter, self).__init__(**kw)
         self._build_directory_changed('build_directory', self.build_directory, 
                                       self.build_directory)
 
