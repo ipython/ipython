@@ -311,7 +311,7 @@ var IPython = (function (IPython) {
                 return false;
             } else if (event.which === 73 && that.control_key_active) {
                 // Interrupt kernel = i
-                that.kernel.interrupt();
+                that.session.interrupt_kernel();
                 that.control_key_active = false;
                 return false;
             } else if (event.which === 190 && that.control_key_active) {
@@ -1395,7 +1395,30 @@ var IPython = (function (IPython) {
         this.session.start();
     };
 
-
+    /**
+     * Prompt the user to restart the IPython kernel.
+     * 
+     * @method restart_kernel
+     */
+    Notebook.prototype.restart_kernel = function () {
+        var that = this;
+        IPython.dialog.modal({
+            title : "Restart kernel or continue running?",
+            body : $("<p/>").html(
+                'Do you want to restart the current kernel?  You will lose all variables defined in it.'
+            ),
+            buttons : {
+                "Continue running" : {},
+                "Restart" : {
+                    "class" : "btn-danger",
+                    "click" : function() {
+                        that.session.restart_kernel();
+                    }
+                }
+            }
+        });
+    };
+    
     /**
      * Run the selected cell.
      * 
