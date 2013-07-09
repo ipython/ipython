@@ -74,7 +74,7 @@ class ConfigurableTransformer(GlobalConfigurable):
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], resources = self.cell_transform(notebook_name, cell, resources, index)
+                    worksheet.cells[index], resources = self.transform_cell(notebook_name, cell, resources, index)
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
