@@ -17,6 +17,7 @@ var IPython = (function (IPython) {
         this.session_id = null;
         this.notebook_path = notebook_path;
         this.notebook = Notebook;
+        this._baseProjectUrl = Notebook.baseProjectUrl() 
     };
     
     Session.prototype.start = function(){
@@ -64,7 +65,22 @@ var IPython = (function (IPython) {
     
     Session.prototype.interrupt_kernel = function() {
         this.kernel.interrupt();
-    }
+    };
+    
+    Session.prototype.delete_session = function() {
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "DELETE",
+            dataType : "json",
+        };
+        var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
+        $.ajax(url, settings);
+    };
+
+    Session.prototype.kill_kernel = function() {
+        this.kernel.kill();        
+    };
     
     IPython.Session = Session;
 
