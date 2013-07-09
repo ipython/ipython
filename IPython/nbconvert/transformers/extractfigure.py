@@ -75,13 +75,13 @@ class ExtractFigureTransformer(ActivatableTransformer):
                                     notebook_name=notebook_name,
                                     cell_index=cell_index,
                                     index=index,
-                                    extension=extension)
+                                    extension=out_type)
 
                     #On the cell, make the figure available via 
                     #   cell.outputs[i].svg_filename  ... etc (svg in example)
                     # Where
                     #   cell.outputs[i].svg  contains the data
-                    out[extension + '_filename'] = figure_name
+                    out[out_type + '_filename'] = figure_name
 
                     #In the resources, make the figure available via
                     #   resources['figures']['filename'] = data
