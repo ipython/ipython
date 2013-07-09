@@ -129,7 +129,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             return
         self.config_file_name = new.replace('-','_') + u'_config.py'
         # don't let this count as specifying the config file
-        self.config_file_specified = False
+        self.config_file_specified.remove(self.config_file_name)
         
     # connection info:
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
