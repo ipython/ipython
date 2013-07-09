@@ -284,7 +284,7 @@ class Exporter(Configurable):
         if inspect.isfunction(filter):
             self.environment.filters[name] = filter
         elif isinstance(filter, types.StringTypes):
-            fliter_cls = import_item(DottedObjectName(filter))
+            filter_cls = import_item(DottedObjectName(filter))
             self.register_filter(name, filter_cls)
         elif isinstance(filter, MetaHasTraits):
             self.environment.filters[name] = filter(config=self.config)
