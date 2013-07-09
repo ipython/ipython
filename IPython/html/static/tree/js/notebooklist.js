@@ -103,12 +103,14 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.load_sessions = function(){
+        console.log("DID IT MAKE IT?");
+        var that = this;
         var settings = {
             processData : false,
             cache : false,
             type : "GET",
             dataType : "json",
-            success : $.proxy(this.sessions_loaded, this)
+            success : $.proxy(that.sessions_loaded, this)
         };
         var url = this.baseProjectUrl() + 'api/sessions';
         $.ajax(url,settings);
@@ -116,7 +118,7 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.sessions_loaded = function(data){
-        this.sessions=new Object();
+        this.sessions = new Object();
         var len = data.length;
         if (len != 0) {
             for (var i=0; i<len; i++) {
@@ -238,7 +240,7 @@ var IPython = (function (IPython) {
                     cache : false,
                     type : "DELETE",
                     dataType : "json",
-                    success : function (data, status, xhr) {
+                    success : function () {
                         that.load_sessions();
                     }
                 };
@@ -278,12 +280,7 @@ var IPython = (function (IPython) {
                                         parent_item.remove();
                                     }
                                 };
-                                if (notebooklist.notebookPath() == "") {
-                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + nbname +'.ipynb'; 
-                                }
-                                else {
-                                    var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + notebooklist.notebookPath() + nbname + '.ipynb';
-                                }
+                                var url = notebooklist.baseProjectUrl() + 'api/notebooks/' + notebooklist.notebookPath() + nbname + '.ipynb';
                                 $.ajax(url, settings);
                             }
                         },

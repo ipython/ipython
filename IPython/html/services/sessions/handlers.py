@@ -77,7 +77,7 @@ class SessionHandler(IPythonHandler):
         kernel = km.kernel_model(kernel_id, self.ws_url)
         sm.delete_mapping_for_session(session_id)
         model = sm.session_model(session_id, notebook_name, path, kernel)
-        return model
+        self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def delete(self, session_id):
@@ -87,6 +87,8 @@ class SessionHandler(IPythonHandler):
         kernel_id = sm.get_kernel_from_session(session_id)
         km.shutdown_kernel(kernel_id)
         sm.delete_mapping_for_session(session_id)
+        self.set_status(204)
+        self.finish()
         
 
 #-----------------------------------------------------------------------------
