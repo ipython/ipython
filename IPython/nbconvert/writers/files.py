@@ -75,8 +75,15 @@ class FilesWriter(WriterBase):
 
                     #Copy files that match search pattern
                     for matching_filename in glob.glob(filename):
-                        shutil.copyfile(matching_filename, 
-                                        os.path.join(destination, filename))
+
+                        #Make sure folder exists.
+                        dest = os.path.join(self.build_directory, filename)
+                        path = os.path.dirname(dest)
+                        if not os.path.isdir(path):
+                            os.makedirs(path)
+
+                        #Copy
+                        shutil.copyfile(matching_filename, dest)
 
             #Determine where to write conversion results.
             dest = notebook_name + '.' + output_extension
