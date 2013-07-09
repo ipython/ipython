@@ -38,8 +38,8 @@ class FilesWriter(WriterBase):
 
     #Make sure that the output directory exists.
     def _build_directory_changed(self, name, old, new):
-        if not os.path.isdir(new):
-            os.mkdir(new) #TODO: makedirs
+        if new and not os.path.isdir(new):
+            os.makedirs(new)
 
 
     def __init__(self, **kw):
