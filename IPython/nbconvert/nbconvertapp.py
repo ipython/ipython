@@ -64,34 +64,34 @@ class NbConvertApp(Application):
             Standard usage case (seen above).
 
         Simple
-            > ipython nbconvert --template=foo bar.ipynb
+            > ipython nbconvert --f=foo bar.ipynb
 
             Exports bar.ipynb to the "nbconvert_build" subdirectory using the 
-            foo template.  Still uses the standard yaml file if it exists.
+            foo format.  Still uses the standard yaml file if it exists.
         """)
 
     yaml = Unicode(u'nbconvert.yaml', config=True, help="""""")
 
-    template = Unicode(
+    export_format = Unicode(
         "", config=True,
         help="""If specified, nbconvert will convert the document(s) specified
-                using this template.""")
+                using this format.""")
     
     notebooks = List([], config=True, help="""""")
 
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  help="""TODO: Help""")
-    writer_class = DottedObjectName('IPython.nbconvert.writers.file.FileWriter', config=True)
+    writer_class = DottedObjectName('IPython.nbconvert.writers.files.FilesWriter', config=True)
     writer_factory = Type()
     def _writer_class_changed(self, name, old, new):
         self.writer_factory = import_item(new)
     
-    aliases = {'template':'NbConvertApp.template',
+    aliases = {'f':'NbConvertApp.export_format',
                'yaml':'NbConvertApp.yaml',
                'writer':'NbConvertApp.writer_class'} 
 
-    writer_aliases = {'FileWriter': 'IPython.nbconvert.writers.file.FileWriter',
-                      'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
-                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
+    writer_aliases = {'FilesWriter': ['IPython', 'nbconvert', 'writers', 'files', 'FilesWriter'],
+                      'DebugWriter': ['IPython', 'nbconvert', 'writers', 'debug', 'DebugWriter'],
+                      'StdoutWriter': ['IPython', 'nbconvert', 'writers', 'stdout', 'StdoutWriter']}
 
     @catch_config_error
     def initialize(self, argv=None):
@@ -113,58 +113,61 @@ class NbConvertApp(Application):
         #Read the config applied to the writer if it exists.  Use that config
         #as a base for the configs when exporting.
         if 'writer' in yaml_config:
-            writer_name = yaml_config['writer'].keys[0]
-            writer_config_dict = yaml_config['writer'][writer_name]
-            self.config.merge(Config(writer_config_dict))
+
+            #Append the name of the writer to the writer key list (config path)
+            writer_name = yaml_config['writer'].keys()[0]
 
             #Use the writer name to determine the writer class.
-            if writer_name in writer_aliases:
-                writer_name = writer_aliases[writer_name]
+            if writer_name in self.writer_aliases:
+
+                #Copy the config to the main config in the right destination
+                writer_config = Config({writer_name: yaml_config['writer'][writer_name]})
+                self.config.merge(writer_config)
+
+                #Set the name to the full name so we can create an instance of 
+                #the class.
+                writer_name = '.'.join(self.writer_aliases[writer_name])
+
             self.writer_class = writer_name
+            del yaml_config['writer']
 
         #Use glob to match file names to the pattern filenames from the yaml.
         #Keep separate configs for each notebook in a dictionary for now...
         self.nb_configs = {}
         if 'notebooks' in yaml_config:
             for notebook_pattern in yaml_config['notebooks']:
+
+                if isinstance(notebook_pattern, dict):
+                    notebook_pattern = notebook_pattern.keys()[0]
+
                 filenames = glob.glob(notebook_pattern)
                 for filename in filenames:
 
                     #Check that the notebook exists in the extra-args if the
                     #extra args isn't empty.
                     if len(extra_args) == 0 or filename in extra_args:
-                            
+
                         #Copy the config for the pattern string
                         nb_config = Config(yaml_config['notebooks'][notebook_pattern])
 
-                        #If the template name was specified, remove any other
-                        #templates from the config (template name acts as a
-                        #filter)
-                        if len(self.template) > 0:
+                        for format_dict in nb_config['formats']:
+                            format_name = format_dict['format']
+                            del format_dict['format']
+                            format_dict = Config({'Exporter':format_dict})
 
-                            #Figure out which templates need to be removed.
-                            remove_templates = []
-                            for template_dict in nb_config['templates']:
-                                if not template_dict['template'] == self.template:
-                                    remove_templates.append(nb_config['templates'].index(template_dict))
+                            #If the export_format was specified, use only that config.
+                            if not self.export_format or self.export_format == format_name:
+                                if not (filename, format_name) in self.nb_configs:
+                                    self.nb_configs[(filename, format_name)] = Config()
+                                self.nb_configs[(filename, format_name)].merge(format_dict)
 
-                            #Remove the templates
-                            for remove_template in remove_templates:
-                                del nb_config['templates'][remove_template]
-
-                        #Merge to existing config for the file, or set as new config.
-                        if filename in self.nb_configs:
-                            self.nb_configs[filename].merge(nb_config)
-                        else:
-                            self.nb_configs[filename] = nb_config
         else:
 
             #No notebooks were specified in the yaml.  Check if notebooks were
-            #specified via the extra args and that a template was set.
-            if len(self.template) > 0 and len(extra_args) > 0:
+            #specified via the extra args and that a format was set.
+            if len(self.export_format) > 0 and len(extra_args) > 0:
                 for filename in extra_args:
-                    self.nb_configs[filename] = Config()
-                    self.nb_configs[filename]['templates'] = [{'template':self.template}]
+                    self.nb_configs[(filename, self.export_format)] = Config()
             else:
                 print("Note enough information provided to perform conversion", 
                       file=sys.stderr)
@@ -203,7 +206,7 @@ class NbConvertApp(Application):
 
     def start(self, argv=None):
         """Entrypoint of NbConvert application.
-        
+
         Parameters
         ----------
         argv : list
@@ -213,22 +216,19 @@ class NbConvertApp(Application):
         #Call base
         super(NbConvertApp, self).start()
 
-        #Loop through each notebook&template to export.  Create a config that is 
+        #Loop through each notebook&format to export.  Create a config that is 
         #the current config merged with all the config options specific to that
-        #notebook/template combo.
-        for notebook_filename, notebook_config in self.nb_configs.items():
-            for template_config in notebook_config['templates']:
-                config = copy.deepcopy(self.config)
-                config.merge(template_config)
+        #notebook/format combo.
+        for (notebook_filename, format_name), notebook_config in self.nb_configs.items():
+            config = copy.deepcopy(self.config)
+            config.merge(notebook_config)
+            self.writer = self.writer_factory(config=config)
 
-                template_name = config['template']
-                self.writer = self.writer_factory(config=config)
+            basename = os.path.basename(notebook_filename)
+            notebook_name = basename[:basename.rfind('.')]
 
-                basename = os.path.basename(notebook_filename)
-                notebook_name = basename[:basename.rfind('.')]
-
-                (output, resources, exporter_instance) = export_by_name(template_name, notebook_filename, config=config, notebook_name=notebook_name)
-                self.writer.write(notebook_name, exporter_instance.file_extension, output, resources)                
+            (output, resources, exporter_instance) = export_by_name(format_name, notebook_filename, config=config, notebook_name=notebook_name)
+            self.writer.write(notebook_name, exporter_instance.file_extension, output, resources)                
 
 
 #-----------------------------------------------------------------------------
