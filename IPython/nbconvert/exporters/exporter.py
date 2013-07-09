@@ -160,8 +160,11 @@ class Exporter(Configurable):
         #Load user transformers.  Overwrite existing transformers if need be.
         self._transformers = []
         for transformer in self.transformers:
-            self.register_transformer(transformer)
-                
+            self.register_transformer(transformer) 
+
+            #TODO: Make sure transformer is enabled.
+            #TODO: Decide how to map dict to the config of the transformer...
+
         #Load user filters.  Overwrite existing filters if need be.
         for key, user_filter in self.filters.iteritems():
             self.register_filter(key, user_filter)
