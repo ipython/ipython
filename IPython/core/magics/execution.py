@@ -683,8 +683,7 @@ python-profiler package from non-free.""")
         deb.mainpyfile = deb.canonic(filename)
 
         # Start file run
-        print "NOTE: Enter 'c' at the",
-        print "%s prompt to start your script." % deb.prompt
+        print "NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt
         try:
             #save filename so it can be used by methods on the deb object
             deb._exec_filename = filename
