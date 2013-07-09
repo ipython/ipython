@@ -34,11 +34,11 @@ class ConfigurableTransformer(GlobalConfigurable):
     you can overwrite cell_transform to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See corresponding docstring for informations.
     """
-    
+
     def __init__(self, config=None, **kw):
         """
         Public constructor
-        
+
         Parameters
         ----------
         config : Config
@@ -46,21 +46,22 @@ class ConfigurableTransformer(GlobalConfigurable):
         **kw : misc
             Additional arguments
         """
-        
+
         super(ConfigurableTransformer, self).__init__(config=config, **kw)
 
-       
+
     def __call__(self, notebook_name, nb, resources):
         return self.call(notebook_name, nb,resources)
+
 
     def call(self, notebook_name, nb, resources):
         """
         Transformation to apply on each notebook.
-        
+
         You should return modified nb, resources.
         If you wish to apply your transform on each cell, you might want to 
         overwrite cell_transform method instead.
-        
+
         Parameters
         ----------
         notebook_name : string
@@ -100,4 +101,3 @@ class ConfigurableTransformer(GlobalConfigurable):
 
         raise NotImplementedError('should be implemented by subclass')
         return cell, resources
-
