@@ -59,10 +59,10 @@ def install():
     if not have_setuptools:
         # This currently doesn't work without setuptools,
         # so don't bother making broken links
-        print("Distribute (setuptools) is required to"
+        print("Setuptools is required to"
               " create Start Menu items.", file=sys.stderr)
         print("Re-run this installer after installing"
-              " distribute to get Start Menu items.", file=sys.stderr)
+              " Setuptools to get Start Menu items.", file=sys.stderr)
         return
 
     # Lookup path to common startmenu ...
