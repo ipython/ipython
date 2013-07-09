@@ -100,6 +100,7 @@ function (marked) {
     };
 
     $([IPython.events]).on('notebook_loaded.Notebook', first_load);
+    $([IPython.events]).trigger('app_initialized.NotebookApp');
     IPython.notebook.load_notebook($('body').data('notebookId'));
 
     if (marked) {
