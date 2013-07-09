@@ -19,15 +19,17 @@ from __future__ import print_function
 import sys
 import subprocess
 
+from IPython.nbconvert.utils.pandoc import pandoc
+
 #-----------------------------------------------------------------------------
 # Functions
 #-----------------------------------------------------------------------------
 
 __all__ = [
+    'markdown2html',
     'markdown2latex',
     'markdown2rst'
 ]
-
 
 def markdown2latex(source):
     """Convert a markdown string to LaTeX via pandoc.
@@ -45,17 +47,12 @@ def markdown2latex(source):
     out : string
       Output as returned by pandoc.
     """
-    p = subprocess.Popen('pandoc -f markdown -t latex'.split(),
-                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    
-    out, err = p.communicate(source.encode('utf-8'))
-    
-    if err:
-        print(err, file=sys.stderr)
-    #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
-    
-    return unicode(out, 'utf-8')[:-1]
+    return pandoc(source, 'markdown', 'latex')
 
+
+def markdown2html(source):
+    """Convert a markdown string to HTML via pandoc"""
+    return pandoc(source, 'markdown', 'html')
 
 def markdown2rst(source):
     """Convert a markdown string to LaTeX via pandoc.
@@ -73,13 +70,5 @@ def markdown2rst(source):
     out : string
       Output as returned by pandoc.
     """
-    p = subprocess.Popen('pandoc -f markdown -t rst'.split(),
-                         stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    
-    out, err = p.communicate(source.encode('utf-8'))
-    
-    if err:
-        print(err, file=sys.stderr)
-    #print('*'*20+'\n', out, '\n'+'*'*20)  # dbg
-    
-    return unicode(out, 'utf-8')
+    return pandoc(source, 'markdown', 'rst')
+

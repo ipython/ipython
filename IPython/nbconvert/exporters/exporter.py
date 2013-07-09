@@ -24,7 +24,6 @@ from copy import deepcopy
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader
-from markdown import markdown
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -45,7 +44,7 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
 default_filters = {
         'indent': indent,
-        'markdown': markdown,
+        'markdown': filters.markdown2html,
         'ansi2html': filters.ansi2html,
         'filter_data_type': filters.DataTypeFilter,
         'get_lines': filters.get_lines,
