@@ -1,2 +1,2 @@
-from .file import FileWriter
+from .files import FilesWriter
 from .stdout import StdoutWriter
