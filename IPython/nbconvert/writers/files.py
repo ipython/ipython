@@ -27,7 +27,7 @@ from .base import WriterBase
 # Classes
 #-----------------------------------------------------------------------------
 
-class FileWriter(WriterBase):
+class FilesWriter(WriterBase):
     """Consumes nbconvert output and produces files."""
 
 
