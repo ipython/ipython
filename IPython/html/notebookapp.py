@@ -174,7 +174,6 @@ class NotebookWebApplication(web.Application):
             
             # IPython stuff
             mathjax_url=ipython_app.mathjax_url,
-            max_msg_size=ipython_app.max_msg_size,
             config=ipython_app.config,
             use_less=ipython_app.use_less,
             jinja2_env=Environment(loader=FileSystemLoader(template_path)),
@@ -294,11 +293,6 @@ class NotebookApp(BaseIPythonApplication):
     aliases = Dict(aliases)
 
     kernel_argv = List(Unicode)
-
-    max_msg_size = Integer(2**20, config=True, help="""
-        The max raw message size (in bytes) accepted from the browser
-        over a WebSocket connection.
-    """)
 
     def _log_level_default(self):
         return logging.INFO

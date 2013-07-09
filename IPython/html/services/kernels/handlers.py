@@ -79,10 +79,6 @@ class KernelActionHandler(IPythonHandler):
 
 class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
     
-    @property
-    def max_msg_size(self):
-        return self.settings.get('max_msg_size', 2**20)
-    
     def create_stream(self):
         km = self.kernel_manager
         meth = getattr(km, 'connect_%s' % self.channel)
@@ -109,13 +105,8 @@ class ZMQChannelHandler(AuthenticatedZMQStreamHandler):
             self.zmq_stream.on_recv(self._on_zmq_reply)
 
     def on_message(self, msg):
-        if len(msg) < self.max_msg_size:
-            msg = jsonapi.loads(msg)
-            self.session.send(self.zmq_stream, msg)
-        else:
-            self.log.warn("Dropping oversized message: %iB > %iB (NotebookApp.max_msg_size)",
-                len(msg), self.max_msg_size
-            )
+        msg = jsonapi.loads(msg)
+        self.session.send(self.zmq_stream, msg)
 
     def on_close(self):
         # This method can be called twice, once by self.kernel_died and once
