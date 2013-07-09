@@ -819,20 +819,22 @@ class InteractiveShell(SingletonConfigurable):
     # Things related to the "main" module
     #-------------------------------------------------------------------------
 
-    def new_main_mod(self,filename):
+    def new_main_mod(self, filename):
         """Return a new 'main' module object for user code execution.
         
-        When scripts are executed via %run, we must keep a reference to the
-        namespace of their __main__ module (a FakeModule instance) around so
-        that Python doesn't clear it, rendering objects defined therein
-        useless.
+        ``filename`` should be the path of the script which will be run in the
+        module. Requests with the same filename will get the same module, with
+        its namespace cleared.
+        
+        When scripts are executed via %run, we must keep a reference to their
+        __main__ module (a FakeModule instance) around so that Python doesn't
+        clear it, rendering references to module globals useless.
 
         This method keeps said reference in a private dict, keyed by the
-        absolute path of the module object (which corresponds to the script
-        path).  This way, for multiple executions of the same script we only
-        keep one copy of the namespace (the last one), thus preventing memory
-        leaks from old references while allowing the objects from the last
-        execution to be accessible.
+        absolute path of the script. This way, for multiple executions of the
+        same script we only keep one copy of the namespace (the last one),
+        thus preventing memory leaks from old references while allowing the
+        objects from the last execution to be accessible.
         """
         filename = os.path.abspath(filename)
         try:
