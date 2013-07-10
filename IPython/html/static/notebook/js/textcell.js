@@ -27,7 +27,7 @@ var IPython = (function (IPython) {
      *
      * @class TextCell
      * @constructor TextCell
-     * @extend IPython.Cell
+     * @extend Ipython.Cell
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror, will extend/overwrite default config
      *      @param [options.placeholder] {string} default string to use when souce in empty for rendering (only use in some TextCell subclass)
@@ -285,7 +285,7 @@ var IPython = (function (IPython) {
     /**
      * @class MarkdownCell
      * @constructor MarkdownCell
-     * @extends IPython.HTMLCell
+     * @extends Ipython.HtmlCell
      */
     var MarkdownCell = function (options) {
         var options = options || {};
@@ -342,7 +342,7 @@ var IPython = (function (IPython) {
     /**
      * @class RawCell
      * @constructor RawCell
-     * @extends IPython.TextCell
+     * @extends Ipython.TextCell
      */
     var RawCell = function (options) {
 
@@ -437,12 +437,12 @@ var IPython = (function (IPython) {
 
     /**
      * @class HeadingCell
-     * @extends IPython.TextCell
+     * @extends Ipython.TextCell
      */
 
     /**
      * @constructor HeadingCell
-     * @extends IPython.TextCell
+     * @extends Ipython.TextCell
      */
     var HeadingCell = function (options) {
 
@@ -501,17 +501,17 @@ var IPython = (function (IPython) {
     };
 
 
-    HeadingCell.prototype.set_rendered = function (html) {
+    HeadingCell.prototype.set_rendered = function (text) {
         var r = this.element.find("div.text_cell_render");
         r.empty();
-        var link = $(html).text().replace(/ /g, '_');
+        var link = text.replace(/ /g, '_');
         r.append(
             $('<h'+this.level+'/>')
             .append(
             $('<a/>')
                 .addClass('heading-anchor')
                 .attr('id', link)
-                .html(html)
+                .html(text)
             ).append(
             $('<a/>')
                 .addClass('anchor-link')
@@ -532,11 +532,7 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            text = IPython.mathjaxutils.remove_math(text);
-            var html = marked.parser(marked.lexer(text));
-            html = $(IPython.mathjaxutils.replace_math(html)).html();
-            
-            this.set_rendered(html);
+            this.set_rendered(text);
             this.typeset();
             this.element.find('div.text_cell_input').hide();
             this.element.find("div.text_cell_render").show();
