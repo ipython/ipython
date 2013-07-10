@@ -515,6 +515,9 @@ var IPython = (function (IPython) {
     HeadingCell.prototype.render = function () {
         if (this.rendered === false) {
             var text = this.get_text();
+            // Markdown headings must be a single line,
+            // truncate invalid input
+            text = text.split('\n')[0];
             if (text === "") { text = this.placeholder; }
             text = Array(this.level + 1).join("#") + " " + text;
             text = IPython.mathjaxutils.remove_math(text);
