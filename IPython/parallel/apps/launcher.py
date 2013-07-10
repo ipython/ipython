@@ -1132,7 +1132,15 @@ class BatchSystemLauncher(BaseLauncher):
         return job_id
 
     def stop(self):
-        output = check_output(self.delete_command+[self.job_id], env=os.environ)
+        try:
+            p = Popen(self.delete_command+[self.job_id], env=os.environ,
+                      stdout=PIPE, stderr=PIPE)
+            out, err = p.communicate()
+            output = out + err
+        except:
+            self.log.exception("Problem stopping cluster with command: %s" %
+                               (self.delete_command + [self.job_id]))
+            output = ""
         output = output.decode(DEFAULT_ENCODING, 'replace')
         self.notify_stop(dict(job_id=self.job_id, output=output)) # Pass the output of the kill cmd
         return output
