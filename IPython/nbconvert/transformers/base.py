@@ -31,7 +31,7 @@ class ConfigurableTransformer(GlobalConfigurable):
     Any configurable traitlets this class exposed will be configurable in profiles
     using c.SubClassName.atribute=value
 
-    you can overwrite cell_transform to apply a transformation independently on each cell
+    you can overwrite transform_cell to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See corresponding docstring for informations.
     """
     
@@ -59,7 +59,7 @@ class ConfigurableTransformer(GlobalConfigurable):
         
         You should return modified nb, resources.
         If you wish to apply your transform on each cell, you might want to 
-        overwrite cell_transform method instead.
+        overwrite transform_cell method instead.
         
         Parameters
         ----------
@@ -72,13 +72,13 @@ class ConfigurableTransformer(GlobalConfigurable):
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], resources = self.cell_transform(cell, resources, index)
+                    worksheet.cells[index], resources = self.transform_cell(cell, resources, index)
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
 
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, cell, resources, index):
         """
         Overwrite if you want to apply a transformation on each cell.  You 
         should return modified cell and resource dictionary.

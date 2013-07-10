@@ -29,7 +29,7 @@ class LatexTransformer(ActivatableTransformer):
     Converter for latex destined documents.
     """
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, cell, resources, index):
         """
         Apply a transformation on each cell,
         

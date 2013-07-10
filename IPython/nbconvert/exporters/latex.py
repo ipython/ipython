@@ -85,23 +85,26 @@ class LatexExporter(Exporter):
         """
         Register all of the transformers needed for this exporter.
         """
+
+        #Register ConvertSvgTransformer before any other transformers!  
+        #Important because it allows the conversion of svg->png BEFORE the
+        #extract figure transformer acts on the data.
+        self.register_transformer(transformers.ConvertSvgTransformer, True)
         
-        #Register the transformers of the base class.
+        #Register transformers
         super(LatexExporter, self)._register_transformers()
-        
-        #Register latex transformer
-        self.register_transformer(transformers.LatexTransformer)
+        self.register_transformer(transformers.LatexTransformer, True)
 
     @property
     def default_config(self):
         c = Config({
             'GlobalConfigurable': {
-                'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
+                'display_data_priority' : ['latex', 'png', 'jpg', 'jpeg']
                 },
              'ExtractFigureTransformer': {
-                    'enabled':True,
-                    'extra_ext_map':{'svg':'pdf'},
+                    'enabled':True
                  }
+                 
          })
         c.merge(super(LatexExporter,self).default_config)
         return c

@@ -42,13 +42,4 @@ class SphinxHowtoExporter(LatexExporter):
         super(SphinxHowtoExporter, self)._register_transformers()
         
         #Register sphinx latex transformer
-        self.register_transformer(transformers.SphinxTransformer) 
-
-    @property
-    def default_config(self):
-        c = Config({
-        'SphinxTransformer': {'enabled':True}
-        })
-        c.merge(super(SphinxHowtoExporter,self).default_config)
-        return c
-                    
+        self.register_transformer(transformers.SphinxTransformer, True) 

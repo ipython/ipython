@@ -20,6 +20,7 @@ from __future__ import print_function, absolute_import
 import io
 import os
 import inspect
+import types
 from copy import deepcopy
 
 # other libs/dependencies
@@ -29,7 +30,8 @@ from jinja2 import Environment, FileSystemLoader, ChoiceLoader
 from IPython.config.configurable import Configurable
 from IPython.config import Config
 from IPython.nbformat import current as nbformat
-from IPython.utils.traitlets import MetaHasTraits, Unicode
+from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict
+from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 
 from IPython.nbconvert import filters
@@ -110,27 +112,19 @@ class Exporter(Configurable):
     #Extension that the template files use.    
     template_extension = Unicode(".tpl", config=True)
 
-    #Processors that process the input data prior to the export, set in the 
-    #constructor for this class.
-    transformers = None
-
+    #Configurability, allows the user to easily add filters and transformers.
+    transformers = List(config=True,
+        help="""List of transformers, by name or namespace, to enable.""")
+    filters = Dict(config=True,
+        help="""Dictionary of filters, by name and namespace, to add to the Jinja
+        environment.""")
     
-    def __init__(self, transformers=None, filters=None, config=None, extra_loaders=None, **kw):
+    def __init__(self, config=None, extra_loaders=None, **kw):
         """
         Public constructor
     
         Parameters
         ----------
-        transformers : list[of transformer]
-            Custom transformers to apply to the notebook prior to engaging
-            the Jinja template engine.  Any transformers specified here 
-            will override existing transformers if a naming conflict
-            occurs.
-        filters : dict[of filter]
-            filters specified here will override existing filters if a naming
-            conflict occurs. Filters are availlable in jinja template through
-            the name of the corresponding key. Cf class docstring for
-            availlable default filters.
         config : config
             User configuration instance.
         extra_loaders : list[of Jinja Loaders]
@@ -149,49 +143,53 @@ class Exporter(Configurable):
         self._init_environment(extra_loaders=extra_loaders)
 
         #Add transformers
+        self._transformers = []
         self._register_transformers()
 
         #Add filters to the Jinja2 environment
         self._register_filters()
 
-        #Load user transformers.  Overwrite existing transformers if need be.
-        if transformers :
-            for transformer in transformers:
-                self.register_transformer(transformer)
+        #Load user transformers.  Enabled by default.
+        if self.transformers:
+            for transformer in self.transformers:
+                self.register_transformer(transformer, True)
                 
         #Load user filters.  Overwrite existing filters if need be.
-        if not filters is None:
-            for key, user_filter in filters.iteritems():
+        if self.filters:
+            for key, user_filter in self.filters.iteritems():
                 self.register_filter(key, user_filter)
+
 
     @property
     def default_config(self):
         return Config()
 
     
-    
-    def from_notebook_node(self, nb, resources=None):
+    def from_notebook_node(self, nb, resources={}, **kw):
         """
         Convert a notebook from a notebook node instance.
     
         Parameters
         ----------
         nb : Notebook node
-        resources : a dict of additional resources that
-                can be accessed read/write by transformers
-                and filters.
+        resources : dict (**kw) 
+            of additional resources that can be accessed read/write by 
+            transformers and filters.
         """
-        if resources is None:
-            resources = {}
+
+        #Preprocess
         nb, resources = self._preprocess(nb, resources)
-        
-        #Load the template file.
-        self.template = self.environment.get_template(self.template_file+self.template_extension)
-        
-        return self.template.render(nb=nb, resources=resources), resources
+
+        #Convert
+        self.template = self.environment.get_template(self.template_file + self.template_extension)
+        output = self.template.render(nb=nb, resources=resources)
+
+        #Set output extension in resources dict
+        resources['output_extension'] = self.file_extension
+        return output, resources
 
 
-    def from_filename(self, filename):
+    def from_filename(self, filename, resources={}, **kw):
         """
         Convert a notebook from a notebook file.
     
@@ -202,10 +200,10 @@ class Exporter(Configurable):
         """
         
         with io.open(filename) as f:
-            return self.from_notebook_node(nbformat.read(f, 'json'))
+            return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
 
 
-    def from_file(self, file_stream):
+    def from_file(self, file_stream, resources={}, **kw):
         """
         Convert a notebook from a notebook file.
     
@@ -214,10 +212,10 @@ class Exporter(Configurable):
         file_stream : file-like object
             Notebook file-like object to convert.
         """
-        return self.from_notebook_node(nbformat.read(file_stream, 'json'))
+        return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
 
 
-    def register_transformer(self, transformer):
+    def register_transformer(self, transformer, enabled=None):
         """
         Register a transformer.
         Transformers are classes that act upon the notebook before it is
@@ -229,20 +227,35 @@ class Exporter(Configurable):
         ----------
         transformer : transformer
         """
-        if self.transformers is None:
-            self.transformers = []
-        
+
+        #Handle transformer's registration based on it's type
         if inspect.isfunction(transformer):
-            self.transformers.append(transformer)
+            #Transformer is a function, no need to construct it.
+            self._transformers.append(transformer)
             return transformer
+
+        elif isinstance(transformer, types.StringTypes):
+            #Transformer is a string, import the namespace and recursively call
+            #this register_transformer method
+            transformer_cls = import_item(DottedObjectName(transformer))
+            return self.register_transformer(transformer_cls, enabled=None)
+
         elif isinstance(transformer, MetaHasTraits):
-            transformer_instance = transformer(config=self.config)
-            self.transformers.append(transformer_instance)
-            return transformer_instance
+            #Transformer is configurable.  Make sure to pass in new default for 
+            #the enabled flag if one was specified.
+            c = Config()
+            if not enabled is None:
+                c = Config({transformer.__name__: {'enabled': enabled}})
+            c.merge(self.config)
+            transformer_instance = transformer(config=c)
+
         else:
+            #Transformer is not configurable, construct it
             transformer_instance = transformer()
-            self.transformers.append(transformer_instance)
-            return transformer_instance
+
+        #Register and return the transformer.
+        self._transformers.append(transformer_instance)
+        return transformer_instance
 
 
     def register_filter(self, name, filter):
@@ -259,6 +272,9 @@ class Exporter(Configurable):
         """
         if inspect.isfunction(filter):
             self.environment.filters[name] = filter
+        elif isinstance(filter, types.StringTypes):
+            filter_cls = import_item(DottedObjectName(filter))
+            self.register_filter(name, filter_cls)
         elif isinstance(filter, MetaHasTraits):
             self.environment.filters[name] = filter(config=self.config)
         else:
@@ -268,22 +284,20 @@ class Exporter(Configurable):
     
     def _register_transformers(self):
         """
-        Register all of the transformers needed for this exporter.
+        Register all of the transformers needed for this exporter, disabled
+        unless specified explicitly.
         """
-         
+
         self.register_transformer(transformers.coalesce_streams)
-        
-        #Remember the figure extraction transformer so it can be enabled and
-        #disabled easily later.
-        self.extract_figure_transformer = self.register_transformer(transformers.ExtractFigureTransformer)
+        self.register_transformer(transformers.ExtractFigureTransformer)
         
         
     def _register_filters(self):
         """
         Register all of the filters required for the exporter.
         """
-        for k, v in default_filters.iteritems():
-            self.register_filter(k, v)
+        for key, value in default_filters.iteritems():
+            self.register_filter(key, value)
         
         
     def _init_environment(self, extra_loaders=None):
@@ -338,9 +352,9 @@ class Exporter(Configurable):
         # we are never safe enough with what the transformers could do.
         nbc =  deepcopy(nb)
         resc = deepcopy(resources)
+
         #Run each transformer on the notebook.  Carry the output along
         #to each transformer
-        for transformer in self.transformers:
-            nb, resources = transformer(nbc, resc)
-        return nb, resources
-
+        for transformer in self._transformers:
+            nbc, resc = transformer(nbc, resc)
+        return nbc, resc
