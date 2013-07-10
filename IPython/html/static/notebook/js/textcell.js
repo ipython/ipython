@@ -522,17 +522,10 @@ var IPython = (function (IPython) {
             text = IPython.mathjaxutils.remove_math(text);
             var html = marked.parser(marked.lexer(text));
             var h = $(IPython.mathjaxutils.replace_math(html));
-            // move the markdown-rendered html down one level,
-            // into an anchor tag for linking
-            html = h.html();
-            var hash = h.text().replace(/ /g, '_');
-            h.empty();
-            var a = $('<a/>')
-                .addClass('heading-anchor')
-                .html(html)
-                .attr('id', hash);
-            // and append two anchors (one with the text, one clickable)
-            h.append(a).append(
+            // add id and linkback anchor
+            var hash = h.text().replace(/ /g, '-');
+            h.attr('id', hash);
+            h.append(
                 $('<a/>')
                     .addClass('anchor-link')
                     .attr('href', '#' + hash)
