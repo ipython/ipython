@@ -24,9 +24,9 @@ import os
 
 #From IPython
 from IPython.config.application import Application
-from IPython.utils.traitlets import Bool
+from IPython.utils.traitlets import Bool, Unicode
 
-from .exporters.export import export_by_name
+from .exporters.export import export_by_name, get_export_names
 from .exporters.exporter import Exporter
 from .transformers import extractfigure
 from .utils.config import GlobalConfigurable
@@ -39,18 +39,35 @@ from .utils.config import GlobalConfigurable
 KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
 KEYS_PROMPT_BODY = """
 ===========================================================================
-You are responsible for writting these files into the appropriate 
-directorie(s) if need be.  If you do not want to see this message, enable
+You are responsible for writing these files into the appropriate
+directory(ies) if need be.  If you do not want to see this message, enable
 the 'write' (boolean) flag of the converter.
 ===========================================================================
 """
+
+_examples = """
+ipython nbconvert rst Untitled0.ipynb    # convert ipynb to ReStructured Text
+ipython nbconvert latex Untitled0.ipynb  # convert ipynb to LaTeX
+ipython nbconvert reveal Untitled0.ipynb # convert to Reveal (HTML/JS) slideshow
+"""
+
 
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
 
 class NbConvertApp(Application):
-    """Application used to convert to and from notebook file type (*.ipynb)"""
+    __doc__ = """IPython notebook conversion utility
+    
+Convert to and from notebook file type (*.ipynb)
+
+    ipython nbconvert TARGET FILENAME
+
+Supported export TARGETs are: %s
+""" % (" ".join(get_export_names()))
+    description = Unicode(__doc__)
+
+    examples = _examples
 
     stdout = Bool(
         False, config=True,
@@ -118,10 +135,15 @@ class NbConvertApp(Application):
         ipynb_file = (self.extra_args)[2]
         
         #Export
-        return_value = export_by_name(export_type, ipynb_file)
-        if return_value is None:
-            print("Error: '%s' template not found." % export_type)
-            return
+        try:
+            return_value = export_by_name(export_type, ipynb_file)
+        except NameError as e:
+            print("Error: '%s' exporter not found." % export_type,
+                  file=sys.stderr)
+            print("Known exporters are:",
+                  "\n\t" + "\n\t".join(get_export_names()),
+                  file=sys.stderr)
+            sys.exit(-1)
         else:
             (output, resources, exporter) = return_value 
         
