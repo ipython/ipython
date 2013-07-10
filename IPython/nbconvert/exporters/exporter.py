@@ -23,7 +23,7 @@ import inspect
 from copy import deepcopy
 
 # other libs/dependencies
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -115,7 +115,7 @@ class Exporter(Configurable):
     transformers = None
 
     
-    def __init__(self, transformers=None, filters=None, config=None, **kw):
+    def __init__(self, transformers=None, filters=None, config=None, extra_loaders=None, **kw):
         """
         Public constructor
     
@@ -133,6 +133,9 @@ class Exporter(Configurable):
             availlable default filters.
         config : config
             User configuration instance.
+        extra_loaders : list[of Jinja Loaders]
+            ordered list of Jinja loder to find templates. Will be tried in order
+            before the default FileSysteme ones.
         """
         
         #Call the base class constructor
@@ -143,7 +146,7 @@ class Exporter(Configurable):
         super(Exporter, self).__init__(config=c, **kw)
 
         #Standard environment
-        self._init_environment()
+        self._init_environment(extra_loaders=extra_loaders)
 
         #Add transformers
         self._register_transformers()
@@ -283,16 +286,22 @@ class Exporter(Configurable):
             self.register_filter(k, v)
         
         
-    def _init_environment(self):
+    def _init_environment(self, extra_loaders=None):
         """
         Create the Jinja templating environment.
         """
         here = os.path.dirname(os.path.realpath(__file__))
-        self.environment = Environment(
-            loader=FileSystemLoader([
+        loaders = []
+        if extra_loaders:
+            loaders.extend(extra_loaders)
+
+        loaders.append(FileSystemLoader([
                 os.path.join(here, self.template_path),
                 os.path.join(here, self.template_skeleton_path),
-                ]),
+                ]))
+
+        self.environment = Environment(
+            loader= ChoiceLoader(loaders),
             extensions=JINJA_EXTENSIONS
             )
         
