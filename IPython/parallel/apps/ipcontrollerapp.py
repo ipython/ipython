@@ -528,8 +528,7 @@ class IPControllerApp(BaseParallelApplication):
             self.cleanup_connection_files()
             
 
-
-def launch_new_instance():
+def launch_new_instance(*args, **kwargs):
     """Create and run the IPython controller"""
     if sys.platform == 'win32':
         # make sure we don't get called from a multiprocessing subprocess
@@ -545,9 +544,7 @@ def launch_new_instance():
         if p.name != 'MainProcess':
             # we are a subprocess, don't start another Controller!
             return
-    app = IPControllerApp.instance()
-    app.initialize()
-    app.start()
+    return IPControllerApp.launch_instance(*args, **kwargs)
 
 
 if __name__ == '__main__':

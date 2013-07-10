@@ -315,7 +315,7 @@ def find_scripts(entry_points=False, suffix=''):
     """
     if entry_points:
         console_scripts = [s % suffix for s in [
-            'ipython%s = IPython.terminal.ipapp:launch_new_instance',
+            'ipython%s = IPython:start_ipython',
             'pycolor%s = IPython.utils.PyColorize:main',
             'ipcontroller%s = IPython.parallel.apps.ipcontrollerapp:launch_new_instance',
             'ipengine%s = IPython.parallel.apps.ipengineapp:launch_new_instance',

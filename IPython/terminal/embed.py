@@ -272,6 +272,11 @@ def embed(**kwargs):
     instance and then call it.  Consecutive calls just call the already
     created instance.
 
+    If you don't want the kernel to initialize the namespace
+    from the scope of the surrounding function,
+    and/or you want to load full IPython configuration,
+    you probably want `IPython.start_ipython()` instead.
+
     Here is a simple example::
 
         from IPython import embed
