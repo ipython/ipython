@@ -315,9 +315,11 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            text = IPython.mathjaxutils.remove_math(text);
+            text_math = IPython.mathjaxutils.remove_math(text);
+            text = text_math[0]
+            math = text_math[1]
             var html = marked.parser(marked.lexer(text));
-            html = $(IPython.mathjaxutils.replace_math(html));
+            html = $(IPython.mathjaxutils.replace_math(html, math));
             // links in markdown cells should open in new tabs
             html.find("a[href]").attr("target", "_blank");
             try {

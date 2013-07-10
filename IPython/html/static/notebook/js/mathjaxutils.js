@@ -9,6 +9,8 @@
 // MathJax utility functions
 //============================================================================
 
+"using strict";
+
 IPython.namespace('IPython.mathjaxutils');
 
 IPython.mathjaxutils = (function (IPython) {
@@ -90,8 +92,6 @@ IPython.mathjaxutils = (function (IPython) {
     // permission.
 
     var inline = "$"; // the inline math delimiter
-    var blocks, start, end, last, braces; // used in searching for math
-    var math; // stores math until pagedown (Markdown parser) is done
 
     // MATHSPLIT contains the pattern for math delimiters and special symbols
     // needed for searching for math in the text input.   
@@ -104,7 +104,7 @@ IPython.mathjaxutils = (function (IPython) {
     //  Clear the current math positions and store the index of the
     //    math, then push the math string onto the storage array.
     //  The preProcess function is called on all blocks if it has been passed in
-    var process_math = function (i, j, pre_process) {
+    var process_math = function (i, j, pre_process, math, blocks, start, end, last) {
         var hub = MathJax.Hub;
         var block = blocks.slice(i, j + 1).join("").replace(/&/g, "&amp;") // use HTML entity for &
         .replace(/</g, "&lt;") // use HTML entity for <
@@ -121,7 +121,10 @@ IPython.mathjaxutils = (function (IPython) {
         if (pre_process)
             block = pre_process(block);
         math.push(block);
-        start = end = last = null;
+        start = null;
+        end = null;
+        last = null;
+        return [blocks, start, end, last] 
     }
 
     //  Break up the text into its component parts and search
@@ -135,8 +138,10 @@ IPython.mathjaxutils = (function (IPython) {
             return text;
         }
 
-        start = end = last = null; // for tracking math delimiters
-        math = []; // stores math strings for later
+        var math = []; // stores math strings for later
+        var start;
+        var end;
+        var last;
         
         // Except for extreme edge cases, this should catch precisely those pieces of the markdown
         // source that will later be turned into code spans. While MathJax will not TeXify code spans,
@@ -155,7 +160,7 @@ IPython.mathjaxutils = (function (IPython) {
             de_tilde = function (text) { return text; };
         }
         
-        blocks = IPython.utils.regex_split(text.replace(/\r\n?/g, "\n"),MATHSPLIT);
+        var blocks = IPython.utils.regex_split(text.replace(/\r\n?/g, "\n"),MATHSPLIT);
 
         for (var i = 1, m = blocks.length; i < m; i += 2) {
             var block = blocks[i];
@@ -178,15 +183,25 @@ IPython.mathjaxutils = (function (IPython) {
                         last = i
                     }
                     else {
-                        process_math(start, i, de_tilde)
+                        var res = process_math(start, i, de_tilde, math, blocks, start, end, last);
+                        blocks = res[0];
+                        start  = res[1];
+                        end    = res[2];
+                        last   = res[3];
                     }
                 }
                 else if (block.match(/\n.*\n/)) {
                     if (last) {
                         i = last;
-                        process_math(start, i, de_tilde)
+                        var res = process_math(start, i, de_tilde, math, blocks, start, end, last);
+                        blocks = res[0];
+                        start  = res[1];
+                        end    = res[2];
+                        last   = res[3];
                     }
-                    start = end = last = null;
+                    start = null;
+                    end = null;
+                    last = null;
                     braces = 0;
                 }
                 else if (block === "{") {
@@ -214,30 +229,31 @@ IPython.mathjaxutils = (function (IPython) {
             }
         }
         if (last) {
-            process_math(start, last, de_tilde)
+            var res = process_math(start, last, de_tilde, math, blocks, start, end, last);
+            blocks = res[0];
+            start  = res[1]
+            end    = res[2];
+            last   = res[3];
         }
-        return de_tilde(blocks.join(""));
+        return [de_tilde(blocks.join("")), math];
     }
 
     //
     //  Put back the math strings that were saved,
     //    and clear the math array (no need to keep it around).
     //  
-    var replace_math = function (text) {
+    var replace_math = function (text, math) {
         if (!window.MathJax) {
             return text;
         }
-
         text = text.replace(/@@(\d+)@@/g, function (match, n) {
             return math[n]
         });
-        math = null;
         return text;
     }
 
     return {
         init : init,
-        process_math : process_math,
         remove_math : remove_math,
         replace_math : replace_math
     };
