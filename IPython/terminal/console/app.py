@@ -140,11 +140,8 @@ class ZMQTerminalIPythonApp(TerminalIPythonApp, IPythonConsoleApp):
         # no-op in the frontend, code gets run in the backend
         pass
 
-def launch_new_instance():
-    """Create and run a full blown IPython instance"""
-    app = ZMQTerminalIPythonApp.instance()
-    app.initialize()
-    app.start()
+
+launch_new_instance = ZMQTerminalIPythonApp.launch_instance
 
 
 if __name__ == '__main__':
