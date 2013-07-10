@@ -49,6 +49,13 @@ def wrap(text, width=100):
     wrpd = map('\n'.join, wrp)
     return '\n'.join(wrpd)
 
+def single_line(text):
+    """Wrap multi-line text into a single line
+    
+    Used in markdown heading cells, which are not allowed to be multiline.
+    """
+    return ''.join(text.splitlines())
+
 
 def strip_dollars(text):
     """
