@@ -151,11 +151,23 @@ class NbConvertApp(BaseIPythonApplication):
             resources = {}
             resources['unique_key'] = notebook_name
 
-            #Export & write
-            output, resources = export_by_name(self.export_format,
-                                               notebook_filename, 
-                                               resources=resources,
-                                               config=self.config)
+            #Try to export
+            try:
+                return_value = export_by_name(self.export_format,
+                                              notebook_filename, 
+                                              resources=resources,
+                                              config=self.config)
+            except NameError as e:
+                print("Error: '%s' exporter not found." % self.export_format,
+                      file=sys.stderr)
+                print("Known exporters are:",
+                      "\n\t" + "\n\t".join(get_export_names()),
+                      file=sys.stderr)
+                sys.exit(-1)
+            else:
+                output, resources = return_value 
+
+            #Write
             self.writer.write(output, resources, notebook_name=notebook_name)
 
 
