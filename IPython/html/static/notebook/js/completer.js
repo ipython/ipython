@@ -15,10 +15,10 @@ var IPython = (function (IPython) {
     }
 
     function _existing_completion(item, completion_array){
-       for( var c in completion_array ) {
-           if(completion_array[c].substr(-item.length) == item)
-           { return true; }
-       }
+        for( var c in completion_array ) {
+            if(completion_array[c].trim().substr(-item.length) == item)
+            { return true; }
+        }
        return false;
     }
 
