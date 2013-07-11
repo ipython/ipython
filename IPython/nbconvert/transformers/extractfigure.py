@@ -13,6 +13,7 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 from IPython.utils.traitlets import Dict, Unicode
 from .activatable import ActivatableTransformer
 
