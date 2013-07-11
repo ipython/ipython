@@ -176,13 +176,14 @@ class Exporter(Configurable):
             of additional resources that can be accessed read/write by 
             transformers and filters.
         """
+        nb_copy = deepcopy(nb)
 
         #Preprocess
-        nb, resources = self._preprocess(nb, resources)
+        nb_copy, resources = self._preprocess(nb_copy, resources)
 
         #Convert
         self.template = self.environment.get_template(self.template_file + self.template_extension)
-        output = self.template.render(nb=nb, resources=resources)
+        output = self.template.render(nb=nb_copy, resources=resources)
 
         #Set output extension in resources dict
         resources['output_extension'] = self.file_extension
