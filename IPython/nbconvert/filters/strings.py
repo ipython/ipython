@@ -1,3 +1,4 @@
+# coding: utf-8
 """String filters.
 
 Contains a collection of useful string manipulation filters for use in Jinja
@@ -17,6 +18,9 @@ templates.
 
 import re
 import textwrap
+from xml.etree import ElementTree
+
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Functions
@@ -24,6 +28,8 @@ import textwrap
 
 __all__ = [
     'wrap',
+    'html_text',
+    'add_anchor',
     'strip_dollars',
     'rm_fake',
     'python_comment',
@@ -49,12 +55,34 @@ def wrap(text, width=100):
     wrpd = map('\n'.join, wrp)
     return '\n'.join(wrpd)
 
-def single_line(text):
-    """Wrap multi-line text into a single line
+
+def html_text(element):
+    """extract inner text from html
     
-    Used in markdown heading cells, which are not allowed to be multiline.
+    Analog of jQuery's $(element).text()
     """
-    return ''.join(text.splitlines())
+    if not isinstance(element, (ElementTree.ElementTree, ElementTree.Element)):
+        element = ElementTree.fromstring(element)
+    
+    text = element.text or ""
+    for child in element:
+        text += html_text(child)
+    text += (element.tail or "")
+    return text
+
+
+def add_anchor(html):
+    """Add an anchor-link to an html header tag
+    
+    For use in heading cells
+    """
+    h = ElementTree.fromstring(py3compat.cast_bytes_py2(html))
+    link = html_text(h).replace(' ', '-')
+    h.set('id', link)
+    a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
+    a.text = u'¶'
+    h.append(a)
+    return ElementTree.tostring(h)
 
 
 def strip_dollars(text):
