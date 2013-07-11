@@ -2879,7 +2879,7 @@ class InteractiveShell(SingletonConfigurable):
           make sense in all contexts, for example a terminal ipython can't
           display figures inline.
         """
-        from IPython.core.pylabtools import mpl_runner
+        from IPython.core.pylabtools import mpl_runner, backends
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
@@ -2888,7 +2888,8 @@ class InteractiveShell(SingletonConfigurable):
         try:
             gui = pylab_activate(ns, gui, import_all, self, welcome_message=welcome_message)
         except KeyError:
-            error("Backend %r not supported" % gui)
+            error("Backend '%s' not supported. Supported backends are: %s"
+                  % (gui, " ".join(sorted(backends.keys()))))
             return
         except ImportError:
             error("pylab mode doesn't work as matplotlib could not be found." + \
