@@ -42,4 +42,4 @@ class SphinxHowtoExporter(LatexExporter):
         super(SphinxHowtoExporter, self)._register_transformers()
         
         #Register sphinx latex transformer
-        self.register_transformer(transformers.SphinxTransformer, True) 
+        self.register_transformer(transformers.SphinxTransformer, enabled=True) 

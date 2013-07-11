@@ -45,7 +45,7 @@ class RevealExporter(BasicHTMLExporter):
         super(RevealExporter, self)._register_transformers()
         
         #Register reveal help transformer
-        self.register_transformer(transformers.RevealHelpTransformer, True)
+        self.register_transformer(transformers.RevealHelpTransformer, enabled=True)
 
     @property
     def default_config(self):
