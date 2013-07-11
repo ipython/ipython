@@ -64,7 +64,8 @@ class ConvertSvgTransformer(ConvertFiguresTransformer):
 
             #Read output from drive
             if os.path.isfile(output_filename):
-                with open(output_filename) as f:
-                    return f.read()      
+                with open(output_filename, 'rb') as f:
+                    return f.read().encode("base64") #PDF is a nb supported binary
+                                                     #data type, so base64 encode.
             else:
                 return TypeError("Inkscape svg to png conversion failed")
