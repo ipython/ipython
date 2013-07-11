@@ -76,7 +76,9 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     if out_type in ('png', 'jpg', 'pdf'):
                         data = data.decode('base64')
                     elif sys.platform in WINDOWS_PLATFORMS:
-                        data = data.replace('\n', '\r\n')
+                        data = data.replace('\n', '\r\n').encode("UTF-8")
+                    else:
+                        data = data.encode("UTF-8")
                     
                     #Build a figure name
                     figure_name = self.figure_filename_template.format( 
