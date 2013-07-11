@@ -112,12 +112,17 @@ var IPython = (function (IPython) {
         that.element.click(function (event) {
             if (that.selected === false) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            }
+            };
         });
         that.element.focusin(function (event) {
             if (that.selected === false) {
                 $([IPython.events]).trigger('select.Cell', {'cell':that});
-            }
+            };
+        });
+        that.element.focusout(function (event) {
+            if (that.mode === 'edit') {
+               $([IPython.events]).trigger('command_mode.Cell', {'cell':that});
+            };
         });
         if (this.code_mirror) {
             this.code_mirror.on("change", function(cm, change) {
@@ -148,14 +153,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.select = function () {
-        console.log('Cell.select');
         if (!this.selected) {
             this.element.addClass('selected');
             this.element.removeClass('unselected');
             this.selected = true;
             return true;
         } else {
-            console.log('WARNING: select');
             return false;
         };
     };
@@ -166,14 +169,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.unselect = function () {
-        console.log('Cell.unselect');
         if (this.selected) {
             this.element.addClass('unselected');
             this.element.removeClass('selected');
             this.selected = false;
             return true;
         } else {
-            console.log('WARNING: unselect');
             return false;
         };
     };
@@ -184,14 +185,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.render = function () {
-        console.log('Cell.render');
         if (!this.rendered) {
             this.element.addClass('rendered');
             this.element.removeClass('unrendered');
             this.rendered = true;
             return true;
         } else {
-            console.log('WARNING: render');
             return false;
         };
     };
@@ -202,14 +201,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.unrender = function () {
-        console.log('Cell.unrender');
         if (this.rendered) {
             this.element.addClass('unrendered');
             this.element.removeClass('rendered');
             this.rendered = false;
             return true;
         } else {
-            console.log('WARNING: unrender');
             return false;
         };
     };
@@ -220,14 +217,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.command_mode = function () {
-        console.log('Cell.command_mode:', this.mode);
         if (this.mode !== 'command') {
             this.element.addClass('command_mode');
             this.element.removeClass('edit_mode');
             this.mode = 'command';
             return true;
         } else {
-            console.log('WARNING: command_mode');
             return false;
         };
     };
@@ -238,14 +233,12 @@ var IPython = (function (IPython) {
      * @return is the action being taken
      */
     Cell.prototype.edit_mode = function () {
-        console.log('Cell.edit_mode:', this.mode);
         if (this.mode !== 'edit') {
             this.element.addClass('edit_mode');
             this.element.removeClass('command_mode');
             this.mode = 'edit';
             return true;
         } else {
-            console.log('WARNING: edit_mode');
             return false;
         };
     }

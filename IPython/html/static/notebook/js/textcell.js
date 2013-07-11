@@ -101,18 +101,11 @@ var IPython = (function (IPython) {
         IPython.Cell.prototype.bind_events.apply(this);
         var that = this;
 
-        // TODO: move this to the notebook event handler
-        this.element.keydown(function (event) {
-            if (event.which === 13 && !event.shiftKey) {
-                if (that.rendered) {
-                    that.unrender();
-                    return false;
-                };
-            };
-        });
-
         this.element.dblclick(function () {
-            that.unrender();
+            if (that.selected === false) {
+                $([IPython.events]).trigger('select.Cell', {'cell':that});
+            };
+            $([IPython.events]).trigger('edit_mode.Cell', {cell: that});
         });
     };
 
@@ -129,13 +122,32 @@ var IPython = (function (IPython) {
      * @return {Boolean} `true` if CodeMirror should ignore the event, `false` Otherwise
      */
     TextCell.prototype.handle_codemirror_keyevent = function (editor, event) {
+        var that = this;
         if (this.mode === 'command') {
             return false
         } else if (this.mode === 'edit') {
-            if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey)) {
+            if (event.keyCode === 13 && (event.shiftKey || event.ctrlKey || event.altKey)) {
                 // Always ignore shift-enter in CodeMirror as we handle it.
                 return true;
-            };
+            } else if (event.which === key.UPARROW && event.type === 'keydown') {
+                // If we are not at the top, let CM handle the up arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_top()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
+            } else if (event.which === key.DOWNARROW && event.type === 'keydown') {
+                // If we are not at the bottom, let CM handle the down arrow and
+                // prevent the global keydown handler from handling it.
+                if (!that.at_bottom()) {
+                    event.stop();
+                    return false;
+                } else {
+                    return true;
+                };
+            }
             return false;
         };
         return false;
@@ -186,6 +198,7 @@ var IPython = (function (IPython) {
     TextCell.prototype.edit_mode = function () {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
         if (cont) {
+            this.unrender();
             this.focus_editor();
         };
         return cont;
@@ -234,6 +247,7 @@ var IPython = (function (IPython) {
         if (this.rendered) {
             return true;
         } else {
+            var cursor = this.code_mirror.getCursor();
             if (cursor.line === 0 && cursor.ch === 0) {
                 return true;
             } else {
@@ -369,10 +383,12 @@ var IPython = (function (IPython) {
      * @extends IPython.TextCell
      */
     var RawCell = function (options) {
-        options = this.mergeopt(RawCell, options);
-        
-        this.cell_type = 'raw';
+
+        options = this.mergeopt(RawCell,options)
         TextCell.apply(this, [options]);
+        this.cell_type = 'raw';
+        // RawCell should always hide its rendered div
+        this.element.find('div.text_cell_render').hide();
     };
 
     RawCell.options_default = {

@@ -157,7 +157,6 @@ var IPython = (function (IPython) {
      *  @method handle_codemirror_keyevent
      */
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
-
         var that = this;
 
         if (this.mode === 'command') {
@@ -174,7 +173,7 @@ var IPython = (function (IPython) {
                 this.auto_highlight();
             }
 
-            if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey)) {
+            if (event.keyCode === key.ENTER && (event.shiftKey || event.ctrlKey || event.altKey)) {
                 // Always ignore shift-enter in CodeMirror as we handle it.
                 return true;
                 
@@ -319,7 +318,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.select = function () {
         var cont = IPython.Cell.prototype.select.apply(this);
-        console.log('CodeCell.select', cont);
         if (cont) {
             this.code_mirror.refresh();
             this.auto_highlight();
@@ -329,7 +327,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.render = function () {
         var cont = IPython.Cell.prototype.render.apply(this);
-        console.log('CodeCell.render');
         // Always execute, even if we are already in the rendered state
         return cont;
     };
@@ -341,7 +338,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.command_mode = function () {
         var cont = IPython.Cell.prototype.command_mode.apply(this);
-        console.log('CodeCell.command_mode');
         if (cont) {
             this.focus_cell();
         };
@@ -350,7 +346,6 @@ var IPython = (function (IPython) {
 
     CodeCell.prototype.edit_mode = function () {
         var cont = IPython.Cell.prototype.edit_mode.apply(this);
-        console.log('CodeCell.edit_mode');
         if (cont) {
             this.focus_editor();
         };

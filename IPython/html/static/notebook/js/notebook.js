@@ -40,7 +40,6 @@ var IPython = (function (IPython) {
         this.undelete_below = false;
         this.paste_enabled = false;
         this.mode = 'command';
-        this.edit_index = null;
         this.set_dirty(false);
         this.metadata = {};
         this._checkpoint_after_save = false;
@@ -139,7 +138,11 @@ var IPython = (function (IPython) {
             that.select(index);
             that.edit_mode();
         });
-        
+
+        $([IPython.events]).on('command_mode.Cell', function (event, data) {
+            that.command_mode();
+        });
+
         $([IPython.events]).on('status_autorestarting.Kernel', function () {
             IPython.dialog.modal({
                 title: "Kernel Restarting",
@@ -660,10 +663,10 @@ var IPython = (function (IPython) {
         if (this.is_valid_cell_index(index)) {
             var sindex = this.get_selected_index()
             if (sindex !== null && index !== sindex) {
+                this.command_mode();
                 this.get_cell(sindex).unselect();
             };
             var cell = this.get_cell(index);
-            console.log('Notebook.select', index);
             cell.select();
             if (cell.cell_type === 'heading') {
                 $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
@@ -705,41 +708,36 @@ var IPython = (function (IPython) {
 
     // Edit/Command mode
 
-    /**
-     * Enter command mode for the currently selected cell
-     *
-     * @method command_mode
-     */
+    Notebook.prototype.get_edit_index = function () {
+        var result = null;
+        this.get_cell_elements().filter(function (index) {
+            if ($(this).data("cell").mode === 'edit') {
+                result = index;
+            };
+        });
+        return result;
+    };
+
     Notebook.prototype.command_mode = function () {
-        console.log('Notebook.command_mode', this.mode, this.edit_index);
         if (this.mode !== 'command') {
-            var cell = this.get_cell(this.edit_index);
+            var index = this.get_edit_index();
+            var cell = this.get_cell(index);
             if (cell) {
                 cell.command_mode();
                 this.mode = 'command';
-                this.edit_index = null;
             };
         };
     };
 
-    /**
-     * Enter edit mode for the currently selected cell
-     *
-     * @method editmode
-     */
     Notebook.prototype.edit_mode = function () {
-        var index = this.get_selected_index();
-        console.log('Notebook.edit_mode', this.mode, index);
-        if (index !== this.edit_index) {
-            if (this.edit_index !== null) {
-                var old_cell = this.get_cell(this.edit_index)
-                old_cell.command_mode();
-            }
+        if (this.mode !== 'edit') {
+            // We are in command mode so get_edit_index() is null!!!
+            var index = this.get_selected_index();
+            if (index === null) {return;}  // No cell is selected
             var cell = this.get_cell(index);
             if (cell) {
                 cell.edit_mode();
                 this.mode = 'edit';
-                this.edit_index = index;
             };
         };
     };
@@ -763,6 +761,7 @@ var IPython = (function (IPython) {
                 tomove.detach();
                 pivot.before(tomove);
                 this.select(i-1);
+                
             };
             this.set_dirty(true);
         };
@@ -779,7 +778,7 @@ var IPython = (function (IPython) {
      **/
     Notebook.prototype.move_cell_down = function (index) {
         var i = this.index_or_selected(index);
-        if ( this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
+        if (this.is_valid_cell_index(i) && this.is_valid_cell_index(i+1)) {
             var pivot = this.get_cell_element(i+1);
             var tomove = this.get_cell_element(i);
             if (pivot !== null && tomove !== null) {
@@ -1000,7 +999,7 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
+                // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
@@ -1032,13 +1031,15 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
+                // We must show the editor before setting its contents
                 target_cell.unrender();
                 target_cell.set_text(text);
                 // make this value the starting point, so that we can only undo
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
         };
@@ -1066,7 +1067,7 @@ var IPython = (function (IPython) {
                 if (text === source_cell.placeholder) {
                     text = '';
                 };
-                // The edit must come before the set_text.
+                // We must show the editor before setting its contents
                 target_cell.set_level(level);
                 target_cell.unrender();
                 target_cell.set_text(text);
@@ -1074,6 +1075,8 @@ var IPython = (function (IPython) {
                 // to this state, instead of a blank cell
                 target_cell.code_mirror.clearHistory();
                 source_element.remove();
+                this.select(i);
+                this.edit_mode();
                 this.set_dirty(true);
             };
             $([IPython.events]).trigger('selected_cell_type_changed.Notebook',
@@ -1500,34 +1503,35 @@ var IPython = (function (IPython) {
     Notebook.prototype.execute_selected_cell = function (mode) {
         // mode = shift, ctrl, alt
         mode = mode || 'shift'
-        var that = this;
-        var cell = that.get_selected_cell();
-        var cell_index = that.find_cell_index(cell);
+        var cell = this.get_selected_cell();
+        var cell_index = this.find_cell_index(cell);
         
         cell.execute();
-        console.log('Notebook.execute_selected_cell', mode);
+
+        // If we are at the end always insert a new cell and return
+        if (cell_index === (this.ncells()-1)) {
+            this.insert_cell_below('code');
+            this.select(cell_index+1);
+            this.edit_mode();
+            this.scroll_to_bottom();
+            this.set_dirty(true);
+            return;
+        }      
+  
         if (mode === 'shift') {
-            if (cell_index === (that.ncells()-1)) {
-                that.insert_cell_below('code');
-                that.select(cell_index+1);
-                that.edit_mode();
-                that.scroll_to_bottom();
-            } else {
-                that.command_mode();
-            }
+            this.command_mode();
         } else if (mode === 'ctrl') {
-            that.select(cell_index+1);
-            that.get_cell(cell_index+1).focus_cell();
+            this.select(cell_index+1);
+            this.get_cell(cell_index+1).focus_cell();
         } else if (mode === 'alt') {
             // Only insert a new cell, if we ended up in an already populated cell
-            if (/\S/.test(that.get_next_cell().get_text()) == true) {
-                that.insert_cell_below('code');
+            var next_text = this.get_cell(cell_index+1).get_text();
+            if (/\S/.test(next_text) === true) {
+                this.insert_cell_below('code');
             }
-            var next_index = cell_index+1;
-            that.select(cell_index+1);
-            that.edit_mode();             
+            this.select(cell_index+1);
+            this.edit_mode();
         }
-
         this.set_dirty(true);
     };
 
@@ -1651,7 +1655,7 @@ var IPython = (function (IPython) {
                     cell_data.cell_type = 'raw';
                 }
 
-                new_cell = this.insert_cell_at_bottom(cell_data.cell_type);
+                new_cell = this.insert_cell_at_index(cell_data.cell_type, i);
                 new_cell.fromJSON(cell_data);
             };
         };
