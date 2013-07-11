@@ -28,7 +28,7 @@ from IPython.config.application import catch_config_error
 from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
 from IPython.utils.importstring import import_item
 
-from .exporters.export import export_by_name, get_export_names
+from .exporters.export import export_by_name, get_export_names, ExporterNameError
 from .exporters.exporter import Exporter
 from .writers.base import WriterBase
 from .utils.config import GlobalConfigurable
@@ -157,7 +157,7 @@ class NbConvertApp(BaseIPythonApplication):
                                               notebook_filename, 
                                               resources=resources,
                                               config=self.config)
-            except NameError as e:
+            except ExporterNameError as e:
                 print("Error: '%s' exporter not found." % self.export_format,
                       file=sys.stderr)
                 print("Known exporters are:",
