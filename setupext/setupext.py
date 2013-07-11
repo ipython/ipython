@@ -93,16 +93,6 @@ def check_for_jinja2():
         print_status('jinja2', jinja2.__version__)
         return True
 
-def check_for_markdown():
-    try:
-        import markdown
-    except ImportError:
-        print_status('pygments', "Not found (required for nbconvert)")
-        return False
-    else:
-        print_status('markdown', markdown.version)
-        return True
-
 def check_for_nose():
     try:
         import nose
