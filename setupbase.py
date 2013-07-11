@@ -355,7 +355,7 @@ def check_for_dependencies():
         check_for_sphinx, check_for_pygments,
         check_for_nose, check_for_pexpect,
         check_for_pyzmq, check_for_readline,
-        check_for_jinja2, check_for_markdown
+        check_for_jinja2
     )
     print_line()
     print_raw("BUILDING IPYTHON")
@@ -374,7 +374,6 @@ def check_for_dependencies():
     check_for_pyzmq()
     check_for_readline()
     check_for_jinja2()
-    check_for_markdown()
 
 #---------------------------------------------------------------------------
 # VCS related
