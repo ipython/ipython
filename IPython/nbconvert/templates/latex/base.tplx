@@ -87,22 +87,7 @@ it introduces a new line
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))
-    \
-    ((*- if cell.level == 1 -*))
-        ((* block h1 -*))section((* endblock h1 -*))
-    ((*- elif cell.level == 2 -*))
-        ((* block h2 -*))subsection((* endblock h2 -*))
-    ((*- elif cell.level == 3 -*))
-        ((* block h3 -*))subsubsection((* endblock h3 -*))
-    ((*- elif cell.level == 4 -*))
-        ((* block h4 -*))paragraph((* endblock h4 -*))
-    ((*- elif cell.level == 5 -*))
-        ((* block h5 -*))subparagraph((* endblock h5 -*))
-    ((*- elif cell.level == 6 -*))
-        ((* block h6 -*))subparagraph((* endblock h6 -*))
-        ((= 6th level not available in standard latex =))
-
-    ((*- endif -*)){((( cell.source | markdown2latex )))}
+    ((( '#' * cell.level + ' ' + cell.source | replace('\n', ' ') | markdown2latex )))
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
