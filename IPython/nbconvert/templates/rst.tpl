@@ -63,8 +63,8 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 {% endblock markdowncell %}
 
 {% block headingcell scoped %}
-{%- set len = cell.source|length -%}
-{{ cell.source | markdown2rst }}
+{{ cell.source | replace('\n', ' ') | markdown2rst }}
+{%- set len = cell.source | replace('\n', ' ') | markdown2rst | length -%}
 {% if cell.level == 1 %}
 {{- '=' * len }}
 {%- elif cell.level == 2 %}
