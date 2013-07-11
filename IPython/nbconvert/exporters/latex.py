@@ -99,7 +99,7 @@ class LatexExporter(Exporter):
     def default_config(self):
         c = Config({
             'GlobalConfigurable': {
-                'display_data_priority' : ['latex', 'png', 'jpg', 'jpeg']
+                'display_data_priority' : ['latex', 'png', 'jpg', 'jpeg', 'text']
                 },
              'ExtractFigureTransformer': {
                     'enabled':True
