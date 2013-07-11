@@ -165,7 +165,7 @@ class Exporter(Configurable):
         return Config()
 
     
-    def from_notebook_node(self, nb, resources={}, **kw):
+    def from_notebook_node(self, nb, resources=None, **kw):
         """
         Convert a notebook from a notebook node instance.
     
@@ -190,7 +190,7 @@ class Exporter(Configurable):
         return output, resources
 
 
-    def from_filename(self, filename, resources={}, **kw):
+    def from_filename(self, filename, resources=None **kw):
         """
         Convert a notebook from a notebook file.
     
@@ -204,7 +204,7 @@ class Exporter(Configurable):
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
 
 
-    def from_file(self, file_stream, resources={}, **kw):
+    def from_file(self, file_stream, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
     
