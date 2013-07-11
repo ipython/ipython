@@ -178,11 +178,11 @@ IPython.utils = (function (IPython) {
           // `\033[Xm` == `\033[0;Xm` sets foreground color to `X`.
           //
           str = str.replace(
-              new RegExp('\033\\[([01];)?' + ansi + 'm', 'g'), span
+              new RegExp('\033\\[(0?[01];)?' + ansi + 'm', 'g'), span
           );
         });
 
-        str = str.replace(/\033\[([01]|39|22)?m/g, '</span>');
+        str = str.replace(/\033\[(0?[01]|39|22)?m/g, '</span>');
         return str;
       };
     
