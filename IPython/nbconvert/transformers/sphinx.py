@@ -158,7 +158,7 @@ class SphinxTransformer(ActivatableTransformer):
             
             # Use todays date if none is provided.
             if len(self.publish_date.strip()) == 0:
-                nb.metadata._draft["date"] = date.today().strftime("%B %-d, %Y")
+                nb.metadata._draft["date"] = date.today().strftime("%B %d, %Y")
             else:
                 nb.metadata._draft["date"] = self.publish_date
             
@@ -217,7 +217,7 @@ class SphinxTransformer(ActivatableTransformer):
         Prompt the user to enter a date
         """
         
-        default_date = date.today().strftime("%B %-d, %Y")
+        default_date = date.today().strftime("%B %d, %Y")
         user_date = console.input("Date (deafults to \"" + default_date + "\"): ")
         if len(user_date.strip()) == 0:
             user_date = default_date
