@@ -150,17 +150,17 @@ class NotebookManager(LoggingConfigurable):
             raise web.HTTPError(400, u'Invalid JSON data')
 
         if name is None:
-            try:
-                name = nb.metadata.name
-            except AttributeError:
-                raise web.HTTPError(400, u'Missing notebook name')
+           try:
+               name = nb.metadata.name
+           except AttributeError:
+               raise web.HTTPError(400, u'Missing notebook name')
         nb.metadata.name = name
 
         notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def save_notebook(self, data, notebook_path=None, name=None, format=u'json'):
-        """Save an existing notebook by notebook_id."""
+    def save_notebook(self, data, notebook_path=None, name=None, new_name=None, format=u'json'):
+        """Save an existing notebook by notebook_name."""
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
 
@@ -171,9 +171,9 @@ class NotebookManager(LoggingConfigurable):
 
         if name is not None:
             nb.metadata.name = name
-        self.write_notebook_object(nb, name, notebook_path)
+        self.write_notebook_object(nb, name, notebook_path, new_name)
 
-    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None):
+    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None, new_name=None):
         """Write a notebook object and return its notebook_name.
 
         If notebook_name is None, this method should create a new notebook_name.

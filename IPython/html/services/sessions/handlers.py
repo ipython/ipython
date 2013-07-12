@@ -59,26 +59,27 @@ class SessionRootHandler(IPythonHandler):
         
 class SessionHandler(IPythonHandler):
     
-    @web.authenticated
+    SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
+    
+    @authenticate_unless_readonly
     def get(self, session_id):
         sm = self.session_manager
         model = sm.get_session_from_id(session_id)
         self.finish(jsonapi.dumps(model))
-
-        
-    @authenticate_unless_readonly
-    def put(self, session_id):
+    
+    @web.authenticated
+    def patch(self, session_id):
         sm = self.session_manager
         nbm = self.notebook_manager
         km = self.kernel_manager
-        notebook_path = self.get_argument('notebook_path', default=None)
+        notebook_path = self.request.body
         notebook_name, path = nbm.named_notebook_path(notebook_path)
         kernel_id = sm.get_kernel_from_session(session_id)
         kernel = km.kernel_model(kernel_id, self.ws_url)
         sm.delete_mapping_for_session(session_id)
         model = sm.session_model(session_id, notebook_name, path, kernel)
         self.finish(jsonapi.dumps(model))
-
+        
     @web.authenticated
     def delete(self, session_id):
         sm = self.session_manager

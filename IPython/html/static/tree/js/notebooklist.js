@@ -103,7 +103,6 @@ var IPython = (function (IPython) {
     };
 
     NotebookList.prototype.load_sessions = function(){
-        console.log("DID IT MAKE IT?");
         var that = this;
         var settings = {
             processData : false,

@@ -30,8 +30,33 @@ var IPython = (function (IPython) {
         );
     };
     
+    Session.prototype.notebook_rename = function (notebook_path) {
+        this.notebook_path = notebook_path;
+        console.log("TEST");
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "PATCH",
+            data: notebook_path,
+            dataType : "json",
+        };
+        var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
+        $.ajax(url, settings);
+    }
+    
+    
+    Session.prototype.delete_session = function() {
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "DELETE",
+            dataType : "json",
+        };
+        var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
+        $.ajax(url, settings);
+    };
+    
     // Kernel related things
-
     /**
      * Start a new kernel and set it on each code cell.
      * 
@@ -67,16 +92,6 @@ var IPython = (function (IPython) {
         this.kernel.interrupt();
     };
     
-    Session.prototype.delete_session = function() {
-        var settings = {
-            processData : false,
-            cache : false,
-            type : "DELETE",
-            dataType : "json",
-        };
-        var url = this._baseProjectUrl + 'api/sessions/' + this.session_id;
-        $.ajax(url, settings);
-    };
 
     Session.prototype.kill_kernel = function() {
         this.kernel.kill();        
