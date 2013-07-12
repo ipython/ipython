@@ -318,7 +318,19 @@ var IPython = (function (IPython) {
             toinsert.find('div.prompt').addClass('output_prompt').html('Out[' + n + ']:');
         }
         this.append_mime_type(json, toinsert, dynamic);
-        this.element.append(toinsert);
+        try {
+            this.element.append(toinsert);
+        } catch(err) {
+            console.log("Error attaching output!");
+            console.log(err);
+            this.element.show();
+            toinsert.html($('<div/>')
+                .html("Javascript error adding output!<br/>" +
+                    err.toString() +
+                    '<br/>See your browser Javascript console for more details.')
+                .addClass('js-error')
+            );
+        }
         // If we just output latex, typeset it.
         if ((json.latex !== undefined) || (json.html !== undefined)) {
             this.typeset();
