@@ -136,7 +136,7 @@ class NbConvertApp(BaseIPythonApplication):
 
     def start(self, argv=None):
         """
-        Entrypoint of NbConvert application.
+        Ran after initiialization completed
         """
         super(NbConvertApp, self).start()
         self.convert_notebooks()
