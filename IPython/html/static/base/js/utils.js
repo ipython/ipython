@@ -188,16 +188,16 @@ IPython.utils = (function (IPython) {
                 attrs["class"] += " " + ansi_colormap[n];
             }
         } else if (n == "38" || n == "48") {
-            // 256-color
+            // VT100 256 color or 24 bit RGB
             if (numbers.length < 2) {
-                console.log("Not enough fields for 256-color escapes", numbers);
+                console.log("Not enough fields for VT100 color", numbers);
                 return;
             }
             
             var index_or_rgb = numbers.shift();
             var r,g,b;
             if (index_or_rgb == "5") {
-                // indexed 256 color
+                // 256 color
                 var idx = parseInt(numbers.shift());
                 if (idx < 16) {
                     // indexed ANSI
