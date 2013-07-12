@@ -374,7 +374,7 @@ var IPython = (function (IPython) {
             // TODO: Make killing the kernel configurable.
             var kill_kernel = false;
             if (kill_kernel) {
-                that.kernel.kill();
+                that.session.kill_kernel();
             }
             // if we are autosaving, trigger an autosave on nav-away.
             // still warn, because if we don't the autosave may fail.
@@ -798,7 +798,7 @@ var IPython = (function (IPython) {
 
         if (ncells === 0 || this.is_valid_cell_index(index) || index === ncells) {
             if (type === 'code') {
-                cell = new IPython.CodeCell(this.kernel);
+                cell = new IPython.CodeCell(this.session);
                 cell.set_input_prompt();
             } else if (type === 'markdown') {
                 cell = new IPython.MarkdownCell();
@@ -1393,8 +1393,24 @@ var IPython = (function (IPython) {
         var notebook_info = this.notebookPath() + this.notebook_name;
         this.session = new IPython.Session(notebook_info, this);
         this.session.start();
+        this.link_cells_to_session();
     };
 
+
+    /**
+     * Once a session is started, link the code cells to the session
+     *
+     */
+    Notebook.prototype.link_cells_to_session= function(){
+        var ncells = this.ncells();
+        for (var i=0; i<ncells; i++) {
+            var cell = this.get_cell(i);
+            if (cell instanceof IPython.CodeCell) {
+                cell.set_session(this.session);
+            };
+        };  
+    };
+    
     /**
      * Prompt the user to restart the IPython kernel.
      * 

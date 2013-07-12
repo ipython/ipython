@@ -68,15 +68,7 @@ var IPython = (function (IPython) {
         var base_url = $('body').data('baseKernelUrl') + "api/kernels";
         this.kernel = new IPython.Kernel(base_url, this.session_id);
         // Now that the kernel has been created, tell the CodeCells about it.
-        this.kernel._kernel_started(this.kernel_content)
-        var ncells = this.notebook.ncells();
-        for (var i=0; i<ncells; i++) {
-            var cell = this.notebook.get_cell(i);
-            if (cell instanceof IPython.CodeCell) {
-                cell.set_kernel(this.kernel)
-            };
-        };
-        
+        this.kernel._kernel_started(this.kernel_content);
     };
     
     /**

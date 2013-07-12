@@ -60,8 +60,8 @@ var IPython = (function (IPython) {
      * @param {object|undefined} [options]
      *      @param [options.cm_config] {object} config to pass to CodeMirror
      */
-    var CodeCell = function (kernel, options) {
-        this.kernel = kernel || null;
+    var CodeCell = function (session, options) {
+        this.session = session || null;
         this.code_mirror = null;
         this.input_prompt_number = null;
         this.collapsed = false;
@@ -232,8 +232,8 @@ var IPython = (function (IPython) {
 
     // Kernel related calls.
 
-    CodeCell.prototype.set_kernel = function (kernel) {
-        this.kernel = kernel;
+    CodeCell.prototype.set_session = function (session) {
+        this.session = session;
     }
 
     /**
