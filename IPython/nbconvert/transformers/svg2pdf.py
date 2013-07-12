@@ -23,7 +23,8 @@ from .convertfigures import ConvertFiguresTransformer
 # Constants
 #-----------------------------------------------------------------------------
 
-INKSCAPE_COMMAND = "inkscape --without-gui --export-pdf=\"{to_filename}\" \"{from_filename}\""
+INKSCAPE_COMMAND = 'inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
+INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
 
 
 #-----------------------------------------------------------------------------
@@ -56,10 +57,15 @@ class ConvertSvgTransformer(ConvertFiguresTransformer):
             with open(input_filename, 'w') as f:
                 f.write(data)
 
+            #Determine command (different on Mac OSX)
+            command = INKSCAPE_COMMAND 
+            if sys.platform == 'darwin':
+                command = INKSCAPE_OSX_COMMAND
+
             #Call conversion application
             output_filename = os.path.join(tmpdir, 'figure.pdf')
-            shell = INKSCAPE_COMMAND.format(from_filename=input_filename, 
-                                            to_filename=output_filename)
+            shell = command.format(from_filename=input_filename, 
+                                   to_filename=output_filename)
             subprocess.call(shell, shell=True) #Shell=True okay since input is trusted.
 
             #Read output from drive
