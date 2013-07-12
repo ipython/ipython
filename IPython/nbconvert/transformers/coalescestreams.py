@@ -72,4 +72,3 @@ def coalesce_streams(cell, resources, index):
 
     cell.outputs = new_outputs
     return cell, resources
-
