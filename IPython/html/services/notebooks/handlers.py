@@ -87,7 +87,6 @@ class NotebookHandler(IPythonHandler):
         notebook_name, notebook_path = nbm.named_notebook_path(notebook_path)
         data = jsonapi.loads(self.request.body)
         model = nbm.change_notebook(data, notebook_name, notebook_path)
-        self.log.info(model)
         self.finish(jsonapi.dumps(model))
 
     @web.authenticated
