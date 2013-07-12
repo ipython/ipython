@@ -158,7 +158,7 @@ IPython.utils = (function (IPython) {
     //Map from terminal commands to CSS classes
     var ansi_colormap = {
         "01":"ansibold",
-
+        
         "30":"ansiblack",
         "31":"ansired",
         "32":"ansigreen",
@@ -167,7 +167,7 @@ IPython.utils = (function (IPython) {
         "35":"ansipurple",
         "36":"ansicyan",
         "37":"ansigray",
-
+        
         "40":"ansibgblack",
         "41":"ansibgred",
         "42":"ansibggreen",
@@ -197,11 +197,21 @@ IPython.utils = (function (IPython) {
             var index_or_rgb = numbers.shift();
             var r,g,b;
             if (index_or_rgb == "5") {
+                // indexed 256 color
                 var idx = parseInt(numbers.shift());
                 if (idx < 16) {
-                    // indexed color, not supported
+                    // indexed ANSI
+                    // ignore bright / non-bright distinction
+                    idx = idx % 8;
+                    var ansiclass = ansi_colormap[n[0] + (idx % 8).toString()];
+                    if ( ! attrs["class"] ) {
+                        attrs["class"] = ansiclass;
+                    } else {
+                        attrs["class"] += " " + ansiclass;
+                    }
+                    return;
                 } else if (idx < 232) {
-                    // 216 color 6x6x6
+                    // 216 color 6x6x6 RGB
                     idx = idx - 16;
                     b = idx % 6;
                     g = Math.floor(idx / 6) % 6;
@@ -215,14 +225,14 @@ IPython.utils = (function (IPython) {
                     idx = idx - 231;
                     // it's 1-24 and should *not* include black or white,
                     // so a 26 point scale
-                    r = g = b = idx * 256 / 26;
+                    r = g = b = Math.floor(idx * 256 / 26);
                 }
             } else if (index_or_rgb == "2") {
+                // Simple 24 bit RGB
                 if (numbers.length > 3) {
                     console.log("Not enough fields for RGB", numbers);
                     return;
                 }
-                // simple rgb
                 r = numbers.shift();
                 g = numbers.shift();
                 b = numbers.shift();
