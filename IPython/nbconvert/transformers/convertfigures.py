@@ -14,6 +14,7 @@ one format to another.
 #-----------------------------------------------------------------------------
 
 from .base import ConfigurableTransformer
+from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -24,27 +25,14 @@ class ConvertFiguresTransformer(ConfigurableTransformer):
     Converts all of the outputs in a notebook from one format to another.
     """
 
+    from_format = Unicode(config=True, help='Format the converter accepts')
+    to_format = Unicode(config=True, help='Format the converter writes')
 
-    def __init__(self, from_formats, to_format, **kw):
+    def __init__(self, **kw):
         """
         Public constructor
-        
-        Parameters
-        ----------
-        from_formats : list [of string]
-            Formats that the converter can convert from
-        to_format : string
-            Format that the converter converts to
-        config : Config
-            Configuration file structure
-        **kw : misc
-            Additional arguments
         """
         super(ConvertFiguresTransformer, self).__init__(**kw)
-
-        #TODO: Configurable, singular
-        self._from_formats = from_formats
-        self._to_format = to_format
 
 
     def convert_figure(self, data_format, data):
