@@ -49,15 +49,31 @@ class ConvertFiguresTransformer(ConfigurableTransformer):
         #Loop through all of the datatypes of the outputs in the cell.
         for index, cell_out in enumerate(cell.get('outputs', [])):
             for data_type, data in cell_out.items():
-                self._convert_figure(cell_out, data_type, data)
+
+                #Get the name of the file exported by the extract figure 
+                #transformer.  Do not try to convert the figure if the extract
+                #fig transformer hasn't touched it
+                filename = cell_out.get(data_type + '_filename', None)
+                if filename:
+                    figure_name = filename[:filename.rfind('.')]
+                    self._convert_figure(cell_out, figure_name, resources, data_type, data)
         return cell, resources
 
 
-    def _convert_figure(self, cell_out, data_type, data):
+    def _convert_figure(self, cell_out, resources, figure_name, data_type, data):
         """
         Convert a figure and output the results to the cell output
         """
 
-        if not self._to_format in cell_out:
-            if data_type in self._from_formats:
-                cell_out[self._to_format] = self.convert_figure(data_type, data)
+        if not self.to_format in cell_out:
+            if data_type == self.from_format:
+                filename = figure_name + '.' + self.to_format
+                if filename not in resources['figures']:
+
+                    #On the cell, make the figure available via 
+                    #   cell.outputs[i].pdf_filename  ... etc (PDF in example)
+                    cell_out[self.to_format + '_filename'] = filename
+
+                    #In the resources, make the figure available via
+                    #   resources['figures']['filename'] = data
+                    resources['figures'][filename] = self.convert_figure(data_type, data)
