@@ -3,6 +3,7 @@ import functools
 import re
 from StringIO import StringIO
 
+from IPython.core.error import UsageError
 from IPython.core.splitinput import LineInfo
 from IPython.utils import tokenize2
 from IPython.utils.openpy import cookie_comment_re
@@ -227,8 +228,19 @@ def _tr_help(line_info):
 def _tr_magic(line_info):
     "Translate lines escaped with: %"
     tpl = '%sget_ipython().magic(%r)'
+    if line_info.line.startswith(ESC_MAGIC2):
+        return line_info.line
     cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
     return tpl % (line_info.pre, cmd)
+
+def _tr_cellmagic(line_info):
+    """Translate lines escaped with %%
+    
+    Only happens when cell magics are mid-cell, which is an error.
+    """
+    raise UsageError("Cannot call cell magics (%s%s) mid-cell" % 
+        (ESC_MAGIC2, line_info.ifun)
+    )
 
 def _tr_quote(line_info):
     "Translate lines escaped with: ,"
@@ -250,6 +262,7 @@ tr = { ESC_SHELL  : _tr_system,
        ESC_HELP   : _tr_help,
        ESC_HELP2  : _tr_help,
        ESC_MAGIC  : _tr_magic,
+       ESC_MAGIC2  : _tr_cellmagic,
        ESC_QUOTE  : _tr_quote,
        ESC_QUOTE2 : _tr_quote2,
        ESC_PAREN  : _tr_paren }
