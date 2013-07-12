@@ -17,6 +17,7 @@ It exposes a convenient class to inherit from to access configurability.
 #-----------------------------------------------------------------------------
 
 from ..utils.config import GlobalConfigurable
+from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
@@ -33,6 +34,9 @@ class ConfigurableTransformer(GlobalConfigurable):
 
     you can overwrite transform_cell to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See corresponding docstring for informations.
+
+    Disabled by default and can be enabled via the config by
+        'c.YourTransformerName.enabled = True'
     """
     
     enabled = Bool(False, config=True)
@@ -53,7 +57,11 @@ class ConfigurableTransformer(GlobalConfigurable):
 
        
     def __call__(self, nb, resources):
-        return self.call(nb,resources)
+        if self.enabled:
+            return self.call(nb,resources)
+        else:
+            return nb, resources
+
 
     def call(self, nb, resources):
         """

@@ -17,14 +17,14 @@ from __future__ import print_function, absolute_import
 
 # Our own imports
 # Needed to override transformer
-from .activatable import (ActivatableTransformer)
+from .base import (ConfigurableTransformer)
 from IPython.nbconvert import filters
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class LatexTransformer(ActivatableTransformer):
+class LatexTransformer(ConfigurableTransformer):
     """
     Converter for latex destined documents.
     """

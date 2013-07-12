@@ -33,7 +33,7 @@ from pygments.formatters import LatexFormatter
 from IPython.utils.traitlets import Unicode, Bool
 
 # Needed to override transformer
-from .activatable import (ActivatableTransformer) #TODO
+from .base import (ConfigurableTransformer)
 
 from IPython.nbconvert.utils import console  
 
@@ -41,7 +41,7 @@ from IPython.nbconvert.utils import console
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class SphinxTransformer(ActivatableTransformer):
+class SphinxTransformer(ConfigurableTransformer):
     """
     Sphinx utility transformer.
 

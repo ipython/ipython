@@ -15,13 +15,13 @@ one format to another.
 # Imports
 #-----------------------------------------------------------------------------
 
-from .activatable import ActivatableTransformer
+from .base import ConfigurableTransformer
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConvertFiguresTransformer(ActivatableTransformer):
+class ConvertFiguresTransformer(ConfigurableTransformer):
     """
     Converts all of the outputs in a notebook from one format to another.
     """

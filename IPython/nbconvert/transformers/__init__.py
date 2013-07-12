@@ -1,5 +1,4 @@
 # Class base Transformers
-from .activatable import ActivatableTransformer
 from .base import ConfigurableTransformer
 from .convertfigures import ConvertFiguresTransformer
 from .svg2pdf import Svg2PdfTransformer
