@@ -8,7 +8,6 @@
 //============================================================================
 // Utilities
 //============================================================================
-
 IPython.namespace('IPython.utils');
 
 IPython.utils = (function (IPython) {
@@ -71,7 +70,7 @@ IPython.utils = (function (IPython) {
             separator2, match, lastIndex, lastLength;
         str += ""; // Type-convert
 
-        var compliantExecNpcg = typeof(/()??/.exec("")[1]) === "undefined"
+        var compliantExecNpcg = typeof(/()??/.exec("")[1]) === "undefined";
         if (!compliantExecNpcg) {
             // Doesn't need flags gy, but they don't hurt
             separator2 = new RegExp("^" + separator.source + "$(?!\\s)", flags);
@@ -168,23 +167,100 @@ IPython.utils = (function (IPython) {
         "36":"ansicyan",
         "37":"ansigrey"
     };
+    
+    function _process_numbers(attrs, numbers) {
+        // process ansi escapes
+        var n = numbers.shift();
+        if (ansi_colormap[n]) {
+            if ( ! attrs["class"] ) {
+                attrs["class"] = ansi_colormap[n];
+            } else {
+                attrs["class"] += " " + ansi_colormap[n];
+            }
+        } else if (n == "38" || n == "48") {
+            // 256-color
+            if (numbers.length < 2) {
+                console.log("Not enough fields for 256-color escapes", numbers);
+                return;
+            }
+            
+            var index_or_rgb = numbers.shift();
+            var r,g,b;
+            if (index_or_rgb == "5") {
+                var idx = parseInt(numbers.shift());
+                if (idx < 16) {
+                    // indexed color, not supported
+                } else if (idx < 232) {
+                    // 216 color 6x6x6
+                    idx = idx - 16;
+                    b = idx % 6;
+                    g = Math.floor(idx / 6) % 6;
+                    r = Math.floor(idx / 36) % 6;
+                    // convert to rgb
+                    r = (r * 51);
+                    g = (g * 51);
+                    b = (b * 51);
+                } else {
+                    // grayscale
+                    idx = idx - 231;
+                    // it's 1-24 and should *not* include black or white,
+                    // so a 26 point scale
+                    r = g = b = idx * 256 / 26;
+                }
+            } else if (index_or_rgb == "2") {
+                if (numbers.length > 3) {
+                    console.log("Not enough fields for RGB", numbers);
+                    return;
+                }
+                // simple rgb
+                r = numbers.shift();
+                g = numbers.shift();
+                b = numbers.shift();
+            } else {
+                console.log("unrecognized control", numbers);
+                return;
+            }
+            if (r !== undefined) {
+                // apply the rgb color
+                var line;
+                if (n == "38") {
+                    line = "color: ";
+                } else {
+                    line = "background-color: ";
+                }
+                line = line + "rgb(" + r + "," + g + "," + b + ");"
+                if ( !attrs["style"] ) {
+                    attrs["style"] = line;
+                } else {
+                    attrs["style"] += " " + line;
+                }
+            }
+        }
+    }
 
     function ansispan(str) {
         // ansispan function adapted from github.com/mmalecki/ansispan (MIT License)
-        Object.keys(ansi_colormap).forEach(function(ansi) {
-          var span = '<span class="' + ansi_colormap[ansi] + '">';
-
-          //
-          // `\033[Xm` == `\033[0;Xm` sets foreground color to `X`.
-          //
-          str = str.replace(
-              new RegExp('\033\\[(0?[01];)?' + ansi + 'm', 'g'), span
-          );
+        // regular ansi escapes (using the table above)
+        return str.replace(/\033\[(0?[01]|22|39)?([;\d]+)?m/g, function(match, prefix, pattern) {
+            if (!pattern) {
+                // [(01|22|39|)m close spans
+                return "</span>";
+            }
+            // consume sequence of color escapes
+            var numbers = pattern.match(/\d+/g);
+            var attrs = {};
+            while (numbers.length > 0) {
+                _process_numbers(attrs, numbers);
+            }
+            
+            var span = "<span ";
+            for (var attr in attrs) {
+                var value = attrs[attr];
+                span = span + " " + attr + '="' + attrs[attr] + '"';
+            }
+            return span + ">";
         });
-
-        str = str.replace(/\033\[(0?[01]|39|22)?m/g, '</span>');
-        return str;
-      };
+    };
     
     // Transform ANSI color escape codes into HTML <span> tags with css
     // classes listed in the above ansi_colormap object. The actual color used
