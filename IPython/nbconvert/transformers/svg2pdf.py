@@ -14,6 +14,9 @@ one format to another.
 #-----------------------------------------------------------------------------
 
 import os
+import sys
+import subprocess
+
 from IPython.utils.tempdir import TemporaryDirectory
 
 from .convertfigures import ConvertFiguresTransformer
