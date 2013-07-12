@@ -79,11 +79,14 @@ __all__ = [
     'export_reveal',
     'export_rst',
     'export_by_name',
-    'get_export_names'
+    'get_export_names',
+    'ExporterNameError'
 ]
+
 
 class ExporterNameError(NameError):
     pass
+
 
 @DocDecorator
 def export(exporter_type, nb, **kw):
@@ -209,6 +212,7 @@ def export_by_name(format_name, nb, **kw):
         return globals()[function_name](nb, **kw)
     else:
         raise ExporterNameError("template for `%s` not found" % function_name)
+
 
 def get_export_names():
     "Return a list of the currently supported export targets"
