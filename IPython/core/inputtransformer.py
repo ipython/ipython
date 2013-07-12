@@ -329,7 +329,14 @@ def cellmagic(end_on_blank_line=False):
     line = ''
     while True:
         line = (yield line)
-        if (not line) or (not line.startswith(ESC_MAGIC2)):
+        # consume leading empty lines
+        while not line:
+            line = (yield line)
+        
+        if not line.startswith(ESC_MAGIC2):
+            # This isn't a cell magic, idle waiting for reset then start over
+            while line is not None:
+                line = (yield line)
             continue
         
         if cellmagic_help_re.match(line):
