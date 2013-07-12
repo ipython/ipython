@@ -33,5 +33,5 @@ class GlobalConfigurable(Configurable):
                     """
             )
 
-    def __init__(self, config=None, **kw):
-        super(GlobalConfigurable, self).__init__( config=config, **kw)
+    def __init__(self, **kw):
+        super(GlobalConfigurable, self).__init__(**kw)

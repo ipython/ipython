@@ -35,7 +35,9 @@ class ConfigurableTransformer(GlobalConfigurable):
     or __call__ if you prefer your own logic. See corresponding docstring for informations.
     """
     
-    def __init__(self, config=None, **kw):
+    enabled = Bool(False, config=True)
+
+    def __init__(self, **kw):
         """
         Public constructor
         
@@ -47,7 +49,7 @@ class ConfigurableTransformer(GlobalConfigurable):
             Additional arguments
         """
         
-        super(ConfigurableTransformer, self).__init__(config=config, **kw)
+        super(ConfigurableTransformer, self).__init__(**kw)
 
        
     def __call__(self, nb, resources):
