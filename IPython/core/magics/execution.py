@@ -550,6 +550,11 @@ python-profiler package from non-free.""")
             __name__save = self.shell.user_ns['__name__']
             prog_ns['__name__'] = '__main__'
             main_mod = self.shell.user_module
+            
+            # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
+            # set the __file__ global in the script's namespace
+            # TK: Is this necessary in interactive mode?
+            prog_ns['__file__'] = filename
         else:
             # Run in a fresh, empty namespace
             if 'n' in opts:
@@ -560,13 +565,8 @@ python-profiler package from non-free.""")
             # The shell MUST hold a reference to prog_ns so after %run
             # exits, the python deletion mechanism doesn't zero it out
             # (leaving dangling references). See interactiveshell for details
-            main_mod = self.shell.new_main_mod(filename)
+            main_mod = self.shell.new_main_mod(filename, name)
             prog_ns = main_mod.__dict__
-            prog_ns['__name__'] = name
-
-        # Since '%run foo' emulates 'python foo.py' at the cmd line, we must
-        # set the __file__ global in the script's namespace
-        prog_ns['__file__'] = filename
 
         # pickle fix.  See interactiveshell for an explanation.  But we need to
         # make sure that, if we overwrite __main__, we replace it at the end
