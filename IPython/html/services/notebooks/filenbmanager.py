@@ -21,6 +21,7 @@ import io
 import os
 import glob
 import shutil
+import ast
 
 from unicodedata import normalize
 
@@ -74,7 +75,6 @@ class FileNotebookManager(NotebookManager):
     
     filename_ext = Unicode(u'.ipynb')
 
-    rev_mapping = Dict()
     
     def get_notebook_names(self, path):
         """List all notebook names in the notebook dir."""
@@ -87,13 +87,29 @@ class FileNotebookManager(NotebookManager):
         
     def list_notebooks(self, path):
         """List all notebooks in the notebook dir."""
-        names = self.get_notebook_names(path)
+        notebook_names = self.get_notebook_names(path)
+        notebook_mapping = []
+        for name in notebook_names:
+            model = self.notebook_model(name, path)
+            notebook_mapping.append(model)
+        return notebook_mapping
 
-        data = []
-      	for name in names:
-            data.append(name)
-        #data = sorted(data, key=lambda item: item['name'])
-        return names
+    def change_notebook(self, data, notebook_name, notebook_path=None):
+        """Changes notebook"""
+        full_path = self.get_path(notebook_name, notebook_path)
+        changes = data.keys()
+        for change in changes:
+            if change == "notebook_name":
+                os.rename(notebook_name, data['notebook_name'])
+                notebook_name = data['notebook_name']
+            if change == "notebook_path":
+                new_path = self.get_path(data['notebook_name'], data['notebook_path'])
+                stutil.move(old_path, new_path)
+                notebook_path = data['notebook_path']
+            if change == "content":
+                self.save_notebook(data, notebook_name, notebook_path)
+        model = self.notebook_model(notebook_name, notebook_path)
+        return model
 
     def notebook_exists(self, notebook_name):
         """Does a notebook exist?"""
@@ -102,7 +118,6 @@ class FileNotebookManager(NotebookManager):
             return False
         path = self.get_path_by_name(self.mapping[notebook_name])
         return os.path.isfile(path)
-
 
     def get_path(self, notebook_name, notebook_path=None):
         """Return a full path to a notebook given its notebook_name."""
@@ -145,16 +160,16 @@ class FileNotebookManager(NotebookManager):
         nb.metadata.name = os.path.splitext(os.path.basename(path))[0]
         return last_modified, nb
     
-    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None):
+    def write_notebook_object(self, nb, notebook_name=None, notebook_path=None, new_name= None):
         """Save an existing notebook object by notebook_name."""
-        try:
-            new_name = normalize('NFC', nb.metadata.name)
-        except AttributeError:
-            raise web.HTTPError(400, u'Missing notebook name')
-            
+        if new_name == None:
+            try:
+                new_name = normalize('NFC', nb.metadata.name)
+            except AttributeError:
+                raise web.HTTPError(400, u'Missing notebook name')
+
         new_path = notebook_path
         old_name = notebook_name
-#        old_name = self.mapping[notebook_name]
         old_checkpoints = self.list_checkpoints(old_name)
         
         path = self.get_path_by_name(new_name, new_path)

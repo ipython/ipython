@@ -1664,7 +1664,7 @@ var IPython = (function (IPython) {
         
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
-
+        console.log(JSON.stringify(data))
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1730,6 +1730,32 @@ var IPython = (function (IPython) {
     Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook');
     };
+
+
+    Notebook.prototype.notebook_rename = function (new_name) {
+        var that = this;
+        var name = {'notebook_name': new_name};
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "PATCH",
+            data : JSON.stringify(name),
+            dataType: "json",
+            headers : {'Content-Type': 'application/json'},
+            success : $.proxy(that.rename_success, this)
+        };
+        $([IPython.events]).trigger('notebook_rename.Notebook');
+        var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath()+ this.notebook_name;
+        $.ajax(url, settings);
+    };
+    
+    
+    Notebook.prototype.rename_success = function (json, status, xhr) {
+        this.notebook_name = json.notebook_name
+        var notebook_path = this.notebookPath() + this.notebook_name;
+        this.session.notebook_rename(notebook_path);
+        $([IPython.events]).trigger('notebook_renamed.Notebook');
+    }
     
     /**
      * Request a notebook's data from the server.

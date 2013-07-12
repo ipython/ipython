@@ -17,6 +17,7 @@ Authors:
 #-----------------------------------------------------------------------------
 
 from tornado import web
+import ast
 
 from zmq.utils import jsonapi
 
@@ -35,11 +36,7 @@ class NotebookRootHandler(IPythonHandler):
     def get(self):
         nbm = self.notebook_manager
         km = self.kernel_manager
-        notebook_names = nbm.list_notebooks("")
-        notebooks = []
-        for name in notebook_names:
-            model = nbm.notebook_model(name)
-            notebooks.append(model)
+        notebooks = nbm.list_notebooks("")
         self.finish(jsonapi.dumps(notebooks))
 
     @web.authenticated
@@ -60,7 +57,7 @@ class NotebookRootRedirect(IPythonHandler):
 
 class NotebookHandler(IPythonHandler):
 
-    SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
+    SUPPORTED_METHODS = ('GET', 'PUT', 'PATCH', 'DELETE')
 
     @web.authenticated
     def get(self, notebook_path):
@@ -68,11 +65,7 @@ class NotebookHandler(IPythonHandler):
         name, path = nbm.named_notebook_path(notebook_path)
         
         if name == None:
-            notebook_names = nbm.list_notebooks(path)
-            notebooks = []
-            for name in notebook_names:
-                model = nbm.notebook_model(name,path)
-                notebooks.append(model)
+            notebooks = nbm.list_notebooks(path)
             self.finish(jsonapi.dumps(notebooks))
         else:
             format = self.get_argument('format', default='json')
@@ -87,6 +80,15 @@ class NotebookHandler(IPythonHandler):
                 self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
             #self.set_header('Last-Modified', last_mod)
             self.finish(jsonapi.dumps(model))
+
+    @web.authenticated
+    def patch(self, notebook_path):
+        nbm = self.notebook_manager
+        notebook_name, notebook_path = nbm.named_notebook_path(notebook_path)
+        data = jsonapi.loads(self.request.body)
+        model = nbm.change_notebook(data, notebook_name, notebook_path)
+        self.log.info(model)
+        self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def put(self, notebook_path):
