@@ -272,7 +272,8 @@ _help_end_re = re.compile(r"""(%{0,2}
                               [a-zA-Z_*][\w*]*        # Variable name
                               (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
                               )
-                              (\?\??)$                # ? or ??""",
+                              (\?\??)$                # ? or ??
+                              """,
                               re.VERBOSE)
 
 def has_comment(src):
