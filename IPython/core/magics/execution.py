@@ -293,10 +293,31 @@ python-profiler package from non-free.""")
         self.shell.call_pdb = new_pdb
         print 'Automatic pdb calling has been turned',on_off(new_pdb)
 
-    @line_magic
-    def debug(self, parameter_s=''):
-        """Activate the interactive debugger in post-mortem mode.
+    @skip_doctest
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument('--breakpoint', '-b', metavar='FILE:LINE',
+        help="""
+        Set break point at LINE in FILE.
+        """
+    )
+    @magic_arguments.argument('statement', nargs='*',
+        help="""
+        Code to run in debugger.
+        You can omit this in cell magic mode.
+        """
+    )
+    @line_cell_magic
+    def debug(self, line='', cell=None):
+        """Activate the interactive debugger.
 
+        This magic command support two ways of activating debugger.
+        One is to activate debugger before executing code.  This way, you
+        can set a break point, to step through the code from the point.
+        You can use this mode by giving statements to execute and optionally
+        a breakpoint.
+
+        The other one is to activate debugger in post-mortem mode.  You can
+        activate this mode simply running %debug without any argument.
         If an exception has just occurred, this lets you inspect its stack
         frames interactively.  Note that this will always work only on the last
         traceback that occurred, so you must call this quickly after an
@@ -306,7 +327,26 @@ python-profiler package from non-free.""")
         If you want IPython to automatically do this on every exception, see
         the %pdb magic for more details.
         """
+        args = magic_arguments.parse_argstring(self.debug, line)
+
+        if not (args.breakpoint or args.statement or cell):
+            self._debug_post_mortem()
+        else:
+            code = "\n".join(args.statement)
+            if cell:
+                code += "\n" + cell
+            self._debug_exec(code, args.breakpoint)
+
+    def _debug_post_mortem(self):
         self.shell.debugger(force=True)
+
+    def _debug_exec(self, code, breakpoint):
+        if breakpoint:
+            (filename, bp_line) = breakpoint.split(':', 1)
+            bp_line = int(bp_line)
+        else:
+            (filename, bp_line) = (None, None)
+        self._run_with_debugger(code, self.shell.user_ns, filename, bp_line)
 
     @line_magic
     def tb(self, s):
@@ -563,8 +603,10 @@ python-profiler package from non-free.""")
                     stats = self._run_with_profiler(code, opts, code_ns)
                 else:
                     if 'd' in opts:
+                        bp_file, bp_line = parse_breakpoint(
+                            opts.get('b', ['1'])[0], filename)
                         self._run_with_debugger(
-                            code, code_ns, opts.get('b', ['1'])[0], filename)
+                            code, code_ns, filename, bp_line, bp_file)
                     else:
                         if 'm' in opts:
                             def run():
@@ -628,7 +670,8 @@ python-profiler package from non-free.""")
 
         return stats
 
-    def _run_with_debugger(self, code, code_ns, break_point, filename):
+    def _run_with_debugger(self, code, code_ns, filename=None,
+                           bp_line=None, bp_file=None):
         """
         Run `code` in debugger with a break point.
 
@@ -638,19 +681,18 @@ python-profiler package from non-free.""")
             Code to execute.
         code_ns : dict
             A namespace in which `code` is executed.
-        break_point : str
-            Line number in the file specified by `filename` argument
-            or a string in the format ``file:line``.  In the latter
-            case, `filename` is ignored.
-            See also :func:`.parse_breakpoint`.
         filename : str
+            `code` is ran as if it is in `filename`.
+        bp_line : int, optional
+            Line number of the break point.
+        bp_file : str, optional
             Path to the file in which break point is specified.
+            `filename` is used if not given.
 
         Raises
         ------
         UsageError
-            If no meaningful break point is given by `break_point` and
-            `filename`.
+            If the break point given by `bp_line` is not valid.
 
         """
         deb = debugger.Pdb(self.shell.colors)
@@ -659,33 +701,36 @@ python-profiler package from non-free.""")
         bdb.Breakpoint.next = 1
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
-        # Set an initial breakpoint to stop execution
-        maxtries = 10
-        bp_file, bp_line = parse_breakpoint(break_point, filename)
-        checkline = deb.checkline(bp_file, bp_line)
-        if not checkline:
-            for bp in range(bp_line + 1, bp_line + maxtries + 1):
-                if deb.checkline(bp_file, bp):
-                    break
-            else:
-                msg = ("\nI failed to find a valid line to set "
-                       "a breakpoint\n"
-                       "after trying up to line: %s.\n"
-                       "Please set a valid breakpoint manually "
-                       "with the -b option." % bp)
-                raise UsageError(msg)
-        # if we find a good linenumber, set the breakpoint
-        deb.do_break('%s:%s' % (bp_file, bp_line))
+        if bp_line is not None:
+            # Set an initial breakpoint to stop execution
+            maxtries = 10
+            bp_file = bp_file or filename
+            checkline = deb.checkline(bp_file, bp_line)
+            if not checkline:
+                for bp in range(bp_line + 1, bp_line + maxtries + 1):
+                    if deb.checkline(bp_file, bp):
+                        break
+                else:
+                    msg = ("\nI failed to find a valid line to set "
+                           "a breakpoint\n"
+                           "after trying up to line: %s.\n"
+                           "Please set a valid breakpoint manually "
+                           "with the -b option." % bp)
+                    raise UsageError(msg)
+            # if we find a good linenumber, set the breakpoint
+            deb.do_break('%s:%s' % (bp_file, bp_line))
 
-        # Mimic Pdb._runscript(...)
-        deb._wait_for_mainpyfile = True
-        deb.mainpyfile = deb.canonic(filename)
+        if filename:
+            # Mimic Pdb._runscript(...)
+            deb._wait_for_mainpyfile = True
+            deb.mainpyfile = deb.canonic(filename)
 
         # Start file run
         print "NOTE: Enter 'c' at the %s prompt to continue execution." % deb.prompt
         try:
-            #save filename so it can be used by methods on the deb object
-            deb._exec_filename = filename
+            if filename:
+                # save filename so it can be used by methods on the deb object
+                deb._exec_filename = filename
             deb.run(code, code_ns)
 
         except:
