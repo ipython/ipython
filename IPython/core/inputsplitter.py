@@ -487,11 +487,11 @@ class IPythonInputSplitter(InputSplitter):
             self.physical_line_transforms = physical_line_transforms
         else:
             self.physical_line_transforms = [
-                                             cellmagic(end_on_blank_line=line_input_checker),
                                              leading_indent(),
                                              classic_prompt(),
                                              ipy_prompt(),
                                              strip_encoding_cookie(),
+                                             cellmagic(end_on_blank_line=line_input_checker),
                                             ]
         
         self.assemble_logical_lines = assemble_logical_lines()
