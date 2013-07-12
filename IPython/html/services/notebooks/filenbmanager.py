@@ -96,15 +96,16 @@ class FileNotebookManager(NotebookManager):
 
     def change_notebook(self, data, notebook_name, notebook_path=None):
         """Changes notebook"""
-        full_path = self.get_path(notebook_name, notebook_path)
         changes = data.keys()
         for change in changes:
+            full_path = self.get_path(notebook_name, notebook_path)
             if change == "notebook_name":
-                os.rename(notebook_name, data['notebook_name'])
+                os.rename(full_path,
+                    self.get_path(data['notebook_name'], notebook_path))
                 notebook_name = data['notebook_name']
             if change == "notebook_path":
                 new_path = self.get_path(data['notebook_name'], data['notebook_path'])
-                stutil.move(old_path, new_path)
+                stutil.move(full_path, new_path)
                 notebook_path = data['notebook_path']
             if change == "content":
                 self.save_notebook(data, notebook_name, notebook_path)
