@@ -21,7 +21,9 @@ import io
 import os
 import inspect
 import types
-from copy import deepcopy
+import copy
+import collections
+import datetime
 
 # other libs/dependencies
 from jinja2 import Environment, FileSystemLoader, ChoiceLoader
@@ -34,8 +36,8 @@ from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, Li
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
 
+from IPython.nbconvert import transformers as nbtransformers
 from IPython.nbconvert import filters
-from IPython.nbconvert import transformers
 
 #-----------------------------------------------------------------------------
 # Globals and constants
@@ -115,9 +117,16 @@ class Exporter(Configurable):
     #Configurability, allows the user to easily add filters and transformers.
     transformers = List(config=True,
         help="""List of transformers, by name or namespace, to enable.""")
+
     filters = Dict(config=True,
         help="""Dictionary of filters, by name and namespace, to add to the Jinja
         environment.""")
+
+    default_transformers = List([nbtransformers.coalesce_streams,
+                                 nbtransformers.ExtractFigureTransformer],
+        config=True,
+        help="""List of transformers available by default, by name, namespace, 
+        instance, or type.""")
     
     def __init__(self, config=None, extra_loaders=None, **kw):
         """
@@ -139,25 +148,10 @@ class Exporter(Configurable):
 
         super(Exporter, self).__init__(config=c, **kw)
 
-        #Standard environment
+        #Init
         self._init_environment(extra_loaders=extra_loaders)
-
-        #Add transformers
-        self._transformers = []
-        self._register_transformers()
-
-        #Add filters to the Jinja2 environment
-        self._register_filters()
-
-        #Load user transformers.  Enabled by default.
-        if self.transformers:
-            for transformer in self.transformers:
-                self.register_transformer(transformer, enabled=True)
-                
-        #Load user filters.  Overwrite existing filters if need be.
-        if self.filters:
-            for key, user_filter in self.filters.iteritems():
-                self.register_filter(key, user_filter)
+        self._init_transformers()
+        self._init_filters()
 
 
     @property
@@ -176,11 +170,8 @@ class Exporter(Configurable):
             of additional resources that can be accessed read/write by 
             transformers and filters.
         """
-        nb_copy = deepcopy(nb)
-
-        #Set output extension in resources dict
-        #TODO: init_resources
-        resources['output_extension'] = self.file_extension
+        nb_copy = copy.deepcopy(nb)
+        resources = self._init_resources(resources)
 
         #Preprocess
         nb_copy, resources = self._transform(nb_copy, resources)
@@ -200,6 +191,16 @@ class Exporter(Configurable):
         filename : str
             Full filename of the notebook file to open and convert.
         """
+
+        #Pull the metadata from the filesystem.
+        if not 'metadata' in resources:
+            resources['metadata'] = ResourcesDict()
+        basename = os.path.basename(filename)
+        notebook_name = basename[:basename.rfind('.')]
+        resources['metadata']['name'] = notebook_name
+
+        modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
+        resources['metadata']['modified_date'] = modified_date.strftime("%B %-d, %Y")
         
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
@@ -281,24 +282,6 @@ class Exporter(Configurable):
             self.environment.filters[name] = filter()
         return self.environment.filters[name]
 
-    
-    def _register_transformers(self):
-        """
-        Register all of the transformers needed for this exporter, disabled
-        unless specified explicitly.
-        """
-
-        self.register_transformer(transformers.coalesce_streams)
-        self.register_transformer(transformers.ExtractFigureTransformer)
-        
-        
-    def _register_filters(self):
-        """
-        Register all of the filters required for the exporter.
-        """
-        for key, value in default_filters.iteritems():
-            self.register_filter(key, value)
-        
         
     def _init_environment(self, extra_loaders=None):
         """
@@ -333,6 +316,63 @@ class Exporter(Configurable):
         if self.jinja_comment_block_end:
             self.environment.comment_end_string = self.jinja_comment_block_end
 
+    
+    def _init_transformers(self):
+        """
+        Register all of the transformers needed for this exporter, disabled
+        unless specified explicitly.
+        """
+        self._transformers = []
+
+        #Load default transformers (not necessarly enabled by default).
+        if self.default_transformers:
+            for transformer in self.default_transformers:
+                self.register_transformer(transformer)
+
+        #Load user transformers.  Enable by default.
+        if self.transformers:
+            for transformer in self.transformers:
+                self.register_transformer(transformer, enabled=True)
+ 
+
+    def _init_filters(self):
+        """
+        Register all of the filters required for the exporter.
+        """
+        
+        #Add default filters to the Jinja2 environment
+        for key, value in default_filters.iteritems():
+            self.register_filter(key, value)
+
+        #Load user filters.  Overwrite existing filters if need be.
+        if self.filters:
+            for key, user_filter in self.filters.iteritems():
+                self.register_filter(key, user_filter)
+
+
+    def _init_resources(self, resources):
+
+        #Make sure the resources dict is of ResourcesDict type.
+        if resources is None:
+            resources = ResourcesDict()
+        if not isinstance(resources, ResourcesDict):
+            new_resources = ResourcesDict()
+            new_resources.update(resources)
+            resources = new_resources 
+
+        #Make sure the metadata extension exists in resources
+        if 'metadata' in resources:
+            if not isinstance(resources['metadata'], ResourcesDict):
+                resources['metadata'] = ResourcesDict(resources['metadata'])
+        else:
+            resources['metadata'] = ResourcesDict()
+            resources['metadata']['name'] = 'Notebook'
+            resources['metadata']['modified_date'] = ''
+
+        #Set the output extension
+        resources['output_extension'] = self.file_extension
+        return resources
+        
 
     def _transform(self, nb, resources):
         """

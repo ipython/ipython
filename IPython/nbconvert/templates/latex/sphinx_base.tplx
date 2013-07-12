@@ -145,11 +145,11 @@ Note: For best display, use latex syntax highlighting. =))
     \sloppy
 
     % Document level variables
-    \title{((( nb.metadata.name | escape_tex )))}
-    \date{((( nb.metadata._draft.date | escape_tex )))}
-    \release{((( nb.metadata._draft.version | escape_tex )))}
-    \author{((( nb.metadata._draft.author | escape_tex )))}
-    \renewcommand{\releasename}{((( nb.metadata._draft.release | escape_tex )))}
+    \title{((( resources.metadata.name | escape_tex )))}
+    \date{((( resources.sphinx.date | escape_tex )))}
+    \release{((( resources.sphinx.version | escape_tex )))}
+    \author{((( resources.sphinx.author | escape_tex )))}
+    \renewcommand{\releasename}{((( resources.sphinx.release | escape_tex )))}
 
     % TODO: Add option for the user to specify a logo for his/her export.
     \newcommand{\sphinxlogo}{}
