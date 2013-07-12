@@ -27,7 +27,6 @@ import inspect, os, sys, textwrap
 # Our own
 from IPython.config.configurable import Configurable
 from IPython.core.error import UsageError
-from IPython.core.fakemodule import FakeModule
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.traitlets import Bool
@@ -224,7 +223,8 @@ class StoreMagics(Magics, Configurable):
                     raise UsageError("Unknown variable '%s'" % args[0])
 
             else:
-                if isinstance(inspect.getmodule(obj), FakeModule):
+                modname = getattr(inspect.getmodule(obj), '__name__', '')
+                if modname == '__main__':
                     print textwrap.dedent("""\
                     Warning:%s is %s
                     Proper storage of interactively declared classes (or instances
