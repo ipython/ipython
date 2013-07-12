@@ -371,8 +371,8 @@ class Exporter(Configurable):
                 resources['metadata'] = ResourcesDict(resources['metadata'])
         else:
             resources['metadata'] = ResourcesDict()
-            resources['metadata']['name'] = 'Notebook'
-            resources['metadata']['modified_date'] = ''
+            if not resources['metadata']['name']: 
+                resources['metadata']['name']: = 'Notebook'
 
         #Set the output extension
         resources['output_extension'] = self.file_extension
