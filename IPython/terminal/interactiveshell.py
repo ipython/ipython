@@ -304,7 +304,10 @@ class TerminalInteractiveShell(InteractiveShell):
         """
         # Deferred import
         from IPython.lib.inputhook import enable_gui as real_enable_gui
-        return real_enable_gui(gui, app)
+        try:
+            return real_enable_gui(gui, app)
+        except ValueError as e:
+            raise UsageError("%s" % e)
     
     def __init__(self, config=None, ipython_dir=None, profile_dir=None,
                  user_ns=None, user_module=None, custom_exceptions=((),None),
