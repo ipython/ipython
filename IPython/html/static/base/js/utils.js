@@ -158,6 +158,7 @@ IPython.utils = (function (IPython) {
     //Map from terminal commands to CSS classes
     var ansi_colormap = {
         "01":"ansibold",
+
         "30":"ansiblack",
         "31":"ansired",
         "32":"ansigreen",
@@ -165,7 +166,16 @@ IPython.utils = (function (IPython) {
         "34":"ansiblue",
         "35":"ansipurple",
         "36":"ansicyan",
-        "37":"ansigrey"
+        "37":"ansigray",
+
+        "40":"ansibgblack",
+        "41":"ansibgred",
+        "42":"ansibggreen",
+        "44":"ansibgyellow",
+        "44":"ansibgblue",
+        "45":"ansibgpurple",
+        "46":"ansibgcyan",
+        "47":"ansibggray"
     };
     
     function _process_numbers(attrs, numbers) {

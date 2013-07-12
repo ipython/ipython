@@ -1417,6 +1417,7 @@ input.nbname_input{height:15px;}
 .highlight_text{color:blue;}
 #project_name>.breadcrumb{padding:0px;margin-bottom:0px;background-color:transparent;font-weight:bold;}
 input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-bottom:0;width:60px;}
+.ansibold{font-weight:bold;}
 .ansiblack{color:black;}
 .ansired{color:darkred;}
 .ansigreen{color:darkgreen;}
@@ -1424,8 +1425,15 @@ input.engine_num_input{height:20px;margin-bottom:2px;padding-top:0;padding-botto
 .ansiblue{color:darkblue;}
 .ansipurple{color:darkviolet;}
 .ansicyan{color:steelblue;}
-.ansigrey{color:grey;}
-.ansibold{font-weight:bold;}
+.ansigray{color:gray;}
+.ansibgblack{background-color:black;}
+.ansibgred{background-color:red;}
+.ansibggreen{background-color:green;}
+.ansibgyellow{background-color:yellow;}
+.ansibgblue{background-color:blue;}
+.ansibgpurple{background-color:magenta;}
+.ansibgcyan{background-color:cyan;}
+.ansibggray{background-color:gray;}
 .cell{border:1px solid transparent;display:-webkit-box;-webkit-box-orient:vertical;-webkit-box-align:stretch;display:-moz-box;-moz-box-orient:vertical;-moz-box-align:stretch;display:box;box-orient:vertical;box-align:stretch;width:100%;}.cell.selected{border-radius:4px;border:thin #ababab solid;}
 div.cell{width:100%;padding:5px 5px 5px 0px;margin:2px 0px 2px 7px;outline:none;}
 div.prompt{width:11ex;padding:0.4em;margin:0px;font-family:monospace;text-align:right;line-height:1.231em;}
