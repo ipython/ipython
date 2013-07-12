@@ -152,7 +152,7 @@ class Exporter(Configurable):
         #Load user transformers.  Enabled by default.
         if self.transformers:
             for transformer in self.transformers:
-                self.register_transformer(transformer, True)
+                self.register_transformer(transformer, enabled=True)
                 
         #Load user filters.  Overwrite existing filters if need be.
         if self.filters:
@@ -178,19 +178,20 @@ class Exporter(Configurable):
         """
         nb_copy = deepcopy(nb)
 
+        #Set output extension in resources dict
+        #TODO: init_resources
+        resources['output_extension'] = self.file_extension
+
         #Preprocess
-        nb_copy, resources = self._preprocess(nb_copy, resources)
+        nb_copy, resources = self._transform(nb_copy, resources)
 
         #Convert
         self.template = self.environment.get_template(self.template_file + self.template_extension)
         output = self.template.render(nb=nb_copy, resources=resources)
-
-        #Set output extension in resources dict
-        resources['output_extension'] = self.file_extension
         return output, resources
 
 
-    def from_filename(self, filename, resources=None **kw):
+    def from_filename(self, filename, resources=None, **kw):
         """
         Convert a notebook from a notebook file.
     
@@ -244,11 +245,9 @@ class Exporter(Configurable):
         elif isinstance(transformer, MetaHasTraits):
             #Transformer is configurable.  Make sure to pass in new default for 
             #the enabled flag if one was specified.
-            c = Config()
-            if not enabled is None:
-                c = Config({transformer.__name__: {'enabled': enabled}})
-            c.merge(self.config)
-            transformer_instance = transformer(config=c)
+            transformer_instance = transformer(parent=self)
+            if enabled is not None:
+                transformer_instance.enabled = True
 
         else:
             #Transformer is not configurable, construct it
@@ -335,7 +334,7 @@ class Exporter(Configurable):
             self.environment.comment_end_string = self.jinja_comment_block_end
 
 
-    def _preprocess(self, nb, resources):
+    def _transform(self, nb, resources):
         """
         Preprocess the notebook before passing it into the Jinja engine.
         To preprocess the notebook is to apply all of the 

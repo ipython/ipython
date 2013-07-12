@@ -9,6 +9,8 @@ one format to another.
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+#TODO: Come after extract
+
 #-----------------------------------------------------------------------------
 # Imports
 #-----------------------------------------------------------------------------
@@ -42,6 +44,7 @@ class ConvertFiguresTransformer(ActivatableTransformer):
         """
         super(ConvertFiguresTransformer, self).__init__(**kw)
 
+        #TODO: Configurable, singular
         self._from_formats = from_formats
         self._to_format = to_format
 

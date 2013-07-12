@@ -143,6 +143,7 @@ class NbConvertApp(BaseIPythonApplication):
         super(NbConvertApp, self).start()
 
         #Export each notebook
+        #TODO: Empty check
         for notebook_filename in self.notebooks:
 
             #Get a unique key for the notebook and set it in the resources object.
@@ -153,7 +154,7 @@ class NbConvertApp(BaseIPythonApplication):
 
             #Try to export
             try:
-                return_value = export_by_name(self.export_format,
+                output, resources = export_by_name(self.export_format,
                                               notebook_filename, 
                                               resources=resources,
                                               config=self.config)
@@ -164,8 +165,9 @@ class NbConvertApp(BaseIPythonApplication):
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
                 sys.exit(-1)
-            else:
-                output, resources = return_value 
+            except Exception as e:
+                print("Error: could no export '%s'" % notebook_filename, file=sys.stderr)
+                print(e, file=sys.stderr)
 
             #Write
             self.writer.write(output, resources, notebook_name=notebook_name)
@@ -176,4 +178,3 @@ class NbConvertApp(BaseIPythonApplication):
 #-----------------------------------------------------------------------------
 
 launch_new_instance = NbConvertApp.launch_instance
-

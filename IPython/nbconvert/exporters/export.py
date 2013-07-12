@@ -107,10 +107,10 @@ def export(exporter_type, nb, **kw):
         raise TypeError("nb is None")
     
     #Create the exporter
-    exporter_instance = exporter_type(config=kw.get('config', Config()))
+    resources = kw.pop('resources', None)
+    exporter_instance = exporter_type(**kw)
 
     #Try to convert the notebook using the appropriate conversion function.
-    resources = kw.get('resources', {})
     if isinstance(nb, NotebookNode):
         output, resources = exporter_instance.from_notebook_node(nb, resources)
     elif isinstance(nb, basestring):

@@ -129,7 +129,7 @@ class SphinxTransformer(ActivatableTransformer):
         #       '_draft' to signify that this needs to change.
         if not "_draft" in nb.metadata:
             nb.metadata._draft = {}
-            
+#TODO: Remove draft, and nb            
         if not "sphinx" in resources:
             resources["sphinx"] = {}
 

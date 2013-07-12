@@ -18,15 +18,6 @@ from IPython.utils.traitlets import Dict, Unicode
 from .activatable import ActivatableTransformer
 
 #-----------------------------------------------------------------------------
-# Constants
-#-----------------------------------------------------------------------------
-
-# win64 is win32 for backwards compatability, for now.  See 
-# http://mail.python.org/pipermail/patches/2000-May/000648.html
-# for the original patch that this decision was made.
-WINDOWS_PLATFORMS = ['win32']
-
-#-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
@@ -75,7 +66,7 @@ class ExtractFigureTransformer(ActivatableTransformer):
                     #Binary files are base64-encoded, SVG is already XML
                     if out_type in ('png', 'jpg', 'pdf'):
                         data = data.decode('base64')
-                    elif sys.platform in WINDOWS_PLATFORMS:
+                    elif sys.platform == 'win32':
                         data = data.replace('\n', '\r\n').encode("UTF-8")
                     else:
                         data = data.encode("UTF-8")

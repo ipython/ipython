@@ -69,3 +69,4 @@ class ConvertSvgTransformer(ConvertFiguresTransformer):
                                                      #data type, so base64 encode.
             else:
                 return TypeError("Inkscape svg to png conversion failed")
+#TODO: ERROR: which notebook crashed exporter
