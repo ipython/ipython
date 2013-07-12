@@ -18,6 +18,7 @@ import sys
 import subprocess
 
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils.traitlets import Unicode
 
 from .convertfigures import ConvertFiguresTransformer
 
@@ -39,12 +40,8 @@ class ConvertSvgTransformer(ConvertFiguresTransformer):
     Converts all of the outputs in a notebook from one format to another.
     """
 
-
-    def __init__(self, **kw):
-        """
-        Constructor
-        """
-        super(ConvertSvgTransformer, self).__init__(['svg'], 'pdf', **kw)
+    from_format = Unicode('svg', config=True, help='Format the converter accepts')
+    to_format = Unicode('pdf', config=False, help='Format the converter writes')
 
 
     def convert_figure(self, data_format, data):
@@ -78,4 +75,3 @@ class ConvertSvgTransformer(ConvertFiguresTransformer):
                                                      #data type, so base64 encode.
             else:
                 return TypeError("Inkscape svg to png conversion failed")
-#TODO: ERROR: which notebook crashed exporter
