@@ -14,7 +14,7 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 #-----------------------------------------------------------------------------
 
 import sys
-from IPython.utils.traitlets import Dict, Unicode
+from IPython.utils.traitlets import Unicode
 from .base import ConfigurableTransformer
 
 #-----------------------------------------------------------------------------
@@ -26,7 +26,6 @@ class ExtractFigureTransformer(ConfigurableTransformer):
     Extracts all of the figures from the notebook file.  The extracted 
     figures are returned in the 'resources' dictionary.
     """
-
 
     figure_filename_template = Unicode(
         "{unique_key}_{cell_index}_{index}.{extension}", config=True)
