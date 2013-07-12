@@ -138,12 +138,16 @@ class NbConvertApp(BaseIPythonApplication):
         """
         Entrypoint of NbConvert application.
         """
-
-        #Call base
         super(NbConvertApp, self).start()
+        self.convert_notebooks()
 
+
+    def convert_notebooks(self):
+        """
+        Convert the notebooks in the self.notebook traitlet
+        """
         #Export each notebook
-        #TODO: Empty check
+        conversion_success = 0
         for notebook_filename in self.notebooks:
 
             #Get a unique key for the notebook and set it in the resources object.
@@ -165,12 +169,24 @@ class NbConvertApp(BaseIPythonApplication):
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
                 sys.exit(-1)
-            except Exception as e:
-                print("Error: could no export '%s'" % notebook_filename, file=sys.stderr)
-                print(e, file=sys.stderr)
+            #except Exception as e:
+                #print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
+                #print(e, file=sys.stderr)
+            else:
+                self.writer.write(output, resources, notebook_name=notebook_name)
+                conversion_success += 1
 
-            #Write
-            self.writer.write(output, resources, notebook_name=notebook_name)
+        #If nothing was converted successfully, help the user.
+        if conversion_success == 0:
+
+            #No notebooks were specified, show help.
+            if len(self.notebooks) == 0:
+                self.print_help()
+
+            #Notebooks were specified, but not converted successfully.  Show how
+            #to access help.
+            else:
+                print('For help, use "ipython nbconvert --help"')
 
 
 #-----------------------------------------------------------------------------
