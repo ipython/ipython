@@ -87,7 +87,7 @@ it introduces a new line
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))
-    ((( '#' * cell.level + ' ' + cell.source | replace('\n', ' ') | markdown2latex )))
+    ((( ('#' * cell.level + cell.source) | replace('\n', ' ') | markdown2latex )))
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
