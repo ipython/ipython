@@ -70,6 +70,11 @@ default_filters = {
 # Class
 #-----------------------------------------------------------------------------
 
+class ResourcesDict(collections.defaultdict):
+    def __missing__(self, key):
+        return ''
+
+
 class Exporter(Configurable):
     """
     Exports notebooks into other file formats.  Uses Jinja 2 templating engine
