@@ -16,7 +16,7 @@ Exporter that exports Basic HTML.
 
 from IPython.utils.traitlets import Unicode, List
 
-from ..transformers.csshtmlheader import CSSHTMLHeaderTransformer
+from IPython.nbconvert import transformers
 
 from .exporter import Exporter
 
