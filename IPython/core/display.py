@@ -21,6 +21,9 @@ from __future__ import print_function
 
 import os
 import struct
+import StringIO
+import base64
+import sys
 
 from IPython.utils.py3compat import string_types, cast_bytes_py2, cast_unicode
 
@@ -689,3 +692,63 @@ def clear_output(stdout=True, stderr=True, other=True):
             print('\033[2K\r', file=io.stderr, end='')
             io.stderr.flush()
 
+class Audio(DisplayObject):
+    def __init__(self, data=None, rate=None, url=None, filename=None, autoplay=False):
+        if(data is not None):
+            buffer = StringIO.StringIO()
+            buffer.write(b'RIFF')
+            buffer.write(b'\x00\x00\x00\x00')
+            buffer.write(b'WAVE')
+
+            buffer.write(b'fmt ')
+            if data.ndim == 1:
+                noc = 1
+            else:
+                noc = data.shape[1]
+            bits = data.dtype.itemsize * 8
+            sbytes = rate*(bits // 8)*noc
+            ba = noc * (bits // 8)
+            buffer.write(struct.pack('<ihHIIHH', 16, 1, noc, rate, sbytes, ba, bits))
+
+            # data chunk
+            buffer.write(b'data')
+            buffer.write(struct.pack('<i', data.nbytes))
+
+            if data.dtype.byteorder == '>' or (data.dtype.byteorder == '=' and sys.byteorder == 'big'):
+                data = data.byteswap()
+
+            buffer.write(data.tostring())
+            size = buffer.tell()
+            buffer.seek(4)
+            buffer.write(struct.pack('<i', size-8))
+
+            self.data = buffer.getvalue()
+        else:
+            self.data = None
+
+        self.autoplay = autoplay
+        self.url = None if url is None else unicode(url)
+        self.filename = None if filename is None else unicode(filename)
+
+    def _repr_html_(self):
+        src = """
+        <audio controls="controls" style="width:600px" {autoplay}>
+          <source controls src="{src}" type="audio/wav" />
+          Your browser does not support the audio element.
+        </audio>
+        """.format(src=self.src_attr(),autoplay=self.autoplay_attr())
+        return src
+
+    def src_attr(self):
+        if(self.data is not None):
+            return """data:audio/wav;base64,{base64}""".format(base64=base64.encodestring(self.data))
+        elif(self.url is not None):
+            return self.url
+        elif(self.filename is not None):
+            return 'files/' + self.filename
+
+    def autoplay_attr(self):
+        if(self.autoplay):
+            return 'autoplay="autoplay"'
+        else:
+            return ''
