@@ -58,7 +58,7 @@ var IPython = (function (IPython) {
             var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
             morelink.append(morespan);
             morelink.click(function () {
-                that.showInPager();
+                that.showInPager(that._old_cell);
             });
 
             // close the tooltip
