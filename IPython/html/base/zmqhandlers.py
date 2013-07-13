@@ -25,7 +25,7 @@ from zmq.utils import jsonapi
 
 from IPython.kernel.zmq.session import Session
 from IPython.utils.jsonutil import date_default
-from IPython.utils.py3compat import PY3
+from IPython.utils.py3compat import PY3, cast_unicode
 
 from .handlers import IPythonHandler
 
@@ -83,7 +83,7 @@ class ZMQStreamHandler(websocket.WebSocketHandler):
 class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
 
     def open(self, kernel_id):
-        self.kernel_id = kernel_id.decode('ascii')
+        self.kernel_id = cast_unicode(kernel_id, 'ascii')
         self.session = Session(config=self.config)
         self.save_on_message = self.on_message
         self.on_message = self.on_first_message
@@ -97,7 +97,7 @@ class AuthenticatedZMQStreamHandler(ZMQStreamHandler, IPythonHandler):
             msg = msg.encode('utf8', 'replace')
         try:
             identity, msg = msg.split(':', 1)
-            self.session.session = identity.decode('ascii')
+            self.session.session = cast_unicode(identity, 'ascii')
         except Exception:
             logging.error("First ws message didn't have the form 'identity:[cookie]' - %r", msg)
         
