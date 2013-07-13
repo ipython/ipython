@@ -69,17 +69,22 @@ class NotebookHandler(IPythonHandler):
             self.finish(jsonapi.dumps(notebooks))
         else:
             format = self.get_argument('format', default='json')
+            download = self.get_argument('download', default='False')
             model = nbm.notebook_model(name,path)
             last_mod, representation, name = nbm.get_notebook(name, path, format)
-
-            if format == u'json':
-                self.set_header('Content-Type', 'application/json')
-                self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
-            elif format == u'py':
-                self.set_header('Content-Type', 'application/x-python')
-                self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
-            #self.set_header('Last-Modified', last_mod)
-            self.finish(jsonapi.dumps(model))
+            self.set_header('Last-Modified', last_mod)
+            
+            if download == 'True':
+                if format == u'json':
+                    self.set_header('Content-Type', 'application/json')
+                    self.set_header('Content-Disposition','attachment; filename="%s.ipynb"' % name)
+                    self.finish(representation)
+                elif format == u'py':
+                    self.set_header('Content-Type', 'application/x-python')
+                    self.set_header('Content-Disposition','attachment; filename="%s.py"' % name)
+                    self.finish(representation)
+            else:
+                self.finish(jsonapi.dumps(model))
 
     @web.authenticated
     def patch(self, notebook_path):
