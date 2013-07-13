@@ -231,7 +231,7 @@ def activate_matplotlib(backend):
 
     import matplotlib
     matplotlib.interactive(True)
-
+    
     # Matplotlib had a bug where even switch_backend could not force
     # the rcParam to update. This needs to be set *before* the module
     # magic of switch_backend().
@@ -257,7 +257,6 @@ def import_pylab(user_ns, import_all=True):
     
     Also imports a few names from IPython (figsize, display, getfigs)
     
-    The import_all parameter is included for backward compatibility, but ignored.
     """
 
     # Import numpy as np/pyplot as plt are conventions we're trying to
@@ -271,9 +270,10 @@ def import_pylab(user_ns, import_all=True):
           )
     exec s in user_ns
     
-    s = ("from matplotlib.pylab import *\n"
-         "from numpy import *\n")
-    exec s in user_ns
+    if import_all:
+        s = ("from matplotlib.pylab import *\n"
+             "from numpy import *\n")
+        exec s in user_ns
     
     # IPython symbols to add
     user_ns['figsize'] = figsize
@@ -283,7 +283,7 @@ def import_pylab(user_ns, import_all=True):
     user_ns['getfigs'] = getfigs
 
 
-def configure_inline_support(shell, backend, user_ns=None):
+def configure_inline_support(shell, backend):
     """Configure an IPython shell object for matplotlib use.
 
     Parameters
@@ -291,10 +291,6 @@ def configure_inline_support(shell, backend, user_ns=None):
     shell : InteractiveShell instance
 
     backend : matplotlib backend
-
-    user_ns : dict
-      A namespace where all configured variables will be placed.  If not given,
-      the `user_ns` attribute of the shell object is used.
     """
     # If using our svg payload backend, register the post-execution
     # function that will pick up the results for display.  This can only be
@@ -309,8 +305,6 @@ def configure_inline_support(shell, backend, user_ns=None):
         return
     from matplotlib import pyplot
 
-    user_ns = shell.user_ns if user_ns is None else user_ns
-    
     cfg = InlineBackend.instance(parent=shell)
     cfg.shell = shell
     if cfg not in shell.configurables:
@@ -335,57 +329,5 @@ def configure_inline_support(shell, backend, user_ns=None):
             del shell._saved_rcParams
 
     # Setup the default figure format
-    fmt = cfg.figure_format
-    select_figure_format(shell, fmt)
+    select_figure_format(shell, cfg.figure_format)
 
-
-def pylab_activate(user_ns, gui=None, import_all=True, shell=None, welcome_message=False):
-    """Activate pylab mode in the user's namespace.
-
-    Loads and initializes numpy, matplotlib and friends for interactive use.
-
-    Parameters
-    ----------
-    user_ns : dict
-      Namespace where the imports will occur.
-
-    gui : optional, string
-      A valid gui name following the conventions of the %gui magic.
-
-    import_all : optional, boolean
-      If true, an 'import *' is done from numpy and pylab.
-
-    welcome_message : optional, boolean
-      If true, print a welcome message about pylab, which includes the backend
-      being used.
-
-    Returns
-    -------
-    The actual gui used (if not given as input, it was obtained from matplotlib
-    itself, and will be needed next to configure IPython's gui integration.
-    """
-    pylab_gui_select = shell.pylab_gui_select if shell is not None else None
-    # Try to find the appropriate gui and backend for the settings
-    gui, backend = find_gui_and_backend(gui, pylab_gui_select)
-    if shell is not None and gui != 'inline':
-        # If we have our first gui selection, store it
-        if pylab_gui_select is None:
-            shell.pylab_gui_select = gui
-        # Otherwise if they are different
-        elif gui != pylab_gui_select:
-            print ('Warning: Cannot change to a different GUI toolkit: %s.'
-                    ' Using %s instead.' % (gui, pylab_gui_select))
-            gui, backend = find_gui_and_backend(pylab_gui_select)
-    activate_matplotlib(backend)
-    if import_all:
-        import_pylab(user_ns)
-    if shell is not None:
-        configure_inline_support(shell, backend, user_ns)
-    if welcome_message:
-        print """
-Welcome to pylab, a matplotlib-based Python environment [backend: %s].
-For more information, type 'help(pylab)'.""" % backend
-        # flush stdout, just to be safe
-        sys.stdout.flush()
-
-    return gui

@@ -55,7 +55,6 @@ from IPython.core.macro import Macro
 from IPython.core.payload import PayloadManager
 from IPython.core.prefilter import PrefilterManager
 from IPython.core.profiledir import ProfileDir
-from IPython.core.pylabtools import pylab_activate
 from IPython.core.prompts import PromptManager
 from IPython.lib.latextools import LaTeXTool
 from IPython.testing.skipdoctest import skip_doctest
@@ -2832,15 +2831,17 @@ class InteractiveShell(SingletonConfigurable):
 
     def enable_gui(self, gui=None):
         raise NotImplementedError('Implement enable_gui in a subclass')
-
-    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
-        """Activate pylab support at runtime.
-
-        This turns on support for matplotlib, preloads into the interactive
-        namespace all of numpy and pylab, and configures IPython to correctly
-        interact with the GUI event loop.  The GUI backend to be used can be
-        optionally selected with the optional ``gui`` argument.
-
+    
+    def enable_matplotlib(self, gui=None):
+        """Enable interactive matplotlib and inline figure support.
+        
+        This takes the following steps:
+        
+        1. select the appropriate eventloop and matplotlib backend
+        2. set up matplotlib for interactive use with that backend
+        3. configure formatters for inline figure display
+        4. enable the selected gui eventloop
+        
         Parameters
         ----------
         gui : optional, string
@@ -2852,37 +2853,73 @@ class InteractiveShell(SingletonConfigurable):
           make sense in all contexts, for example a terminal ipython can't
           display figures inline.
         """
-        from IPython.core.pylabtools import mpl_runner, backends
+        from IPython.core import pylabtools as pt
+        gui, backend = pt.find_gui_and_backend(gui, self.pylab_gui_select)
+    
+        if gui != 'inline':
+            # If we have our first gui selection, store it
+            if self.pylab_gui_select is None:
+                self.pylab_gui_select = gui
+            # Otherwise if they are different
+            elif gui != self.pylab_gui_select:
+                print ('Warning: Cannot change to a different GUI toolkit: %s.'
+                        ' Using %s instead.' % (gui, self.pylab_gui_select))
+                gui, backend = pt.find_gui_and_backend(self.pylab_gui_select)
+        
+        pt.activate_matplotlib(backend)
+        pt.configure_inline_support(self, backend)
+        
+        # Now we must activate the gui pylab wants to use, and fix %run to take
+        # plot updates into account
+        self.enable_gui(gui)
+        self.magics_manager.registry['ExecutionMagics'].default_runner = \
+            pt.mpl_runner(self.safe_execfile)
+        
+        return gui, backend
+
+    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+        """Activate pylab support at runtime.
+
+        This turns on support for matplotlib, preloads into the interactive
+        namespace all of numpy and pylab, and configures IPython to correctly
+        interact with the GUI event loop.  The GUI backend to be used can be
+        optionally selected with the optional ``gui`` argument.
+        
+        This method only adds preloading the namespace to InteractiveShell.enable_matplotlib.
+
+        Parameters
+        ----------
+        gui : optional, string
+          If given, dictates the choice of matplotlib GUI backend to use
+          (should be one of IPython's supported backends, 'qt', 'osx', 'tk',
+          'gtk', 'wx' or 'inline'), otherwise we use the default chosen by
+          matplotlib (as dictated by the matplotlib build-time options plus the
+          user's matplotlibrc configuration file).  Note that not all backends
+          make sense in all contexts, for example a terminal ipython can't
+          display figures inline.
+        import_all : optional, bool, default: True
+          Whether to do `from numpy import *` and `from pylab import *`
+          in addition to module imports.
+        welcome_message : deprecated
+          This argument is ignored, no welcome message will be displayed.
+        """
+        from IPython.core.pylabtools import import_pylab
+        
+        gui, backend = self.enable_matplotlib(gui)
+        
         # We want to prevent the loading of pylab to pollute the user's
         # namespace as shown by the %who* magics, so we execute the activation
         # code in an empty namespace, and we update *both* user_ns and
         # user_ns_hidden with this information.
         ns = {}
-        try:
-            gui = pylab_activate(ns, gui, import_all, self, welcome_message=welcome_message)
-        except KeyError:
-            error("Backend '%s' not supported. Supported backends are: %s"
-                  % (gui, " ".join(sorted(backends.keys()))))
-            return
-        except ImportError:
-            error("pylab mode doesn't work as matplotlib or its backend could not be imported." + \
-                  "\nIs it installed on the system?")
-            return
+        import_pylab(ns, import_all)
         # warn about clobbered names
         ignored = set(["__builtins__"])
         both = set(ns).intersection(self.user_ns).difference(ignored)
         clobbered = [ name for name in both if self.user_ns[name] is not ns[name] ]
-        if clobbered:
-            warn("pylab import has clobbered these variables: %s"
-            "\n`%%pylab --no-import` prevents imports from pylab, numpy, etc."  % clobbered
-            )
         self.user_ns.update(ns)
         self.user_ns_hidden.update(ns)
-        # Now we must activate the gui pylab wants to use, and fix %run to take
-        # plot updates into account
-        self.enable_gui(gui)
-        self.magics_manager.registry['ExecutionMagics'].default_runner = \
-        mpl_runner(self.safe_execfile)
+        return gui, backend, clobbered
 
     #-------------------------------------------------------------------------
     # Utilities

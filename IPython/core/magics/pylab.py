@@ -17,23 +17,13 @@ from IPython.config.application import Application
 from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
+from IPython.utils.warn import warn
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
 #-----------------------------------------------------------------------------
 
-@magics_class
-class PylabMagics(Magics):
-    """Magics related to matplotlib's pylab support"""
-
-    @skip_doctest
-    @line_magic
-    @magic_arguments.magic_arguments()
-    @magic_arguments.argument(
-        '--no-import', action='store_true', default=None,
-        help="""Prevent IPython from populating the namespace"""
-    )
-    @magic_arguments.argument(
+magic_gui_arg = magic_arguments.argument(
         'gui', nargs='?',
         help="""Name of the matplotlib backend to use
         ('qt', 'wx', 'gtk', 'osx', 'tk', 'inline', 'auto').
@@ -41,18 +31,24 @@ class PylabMagics(Magics):
         otherwise it will be matplotlib's default
         (which you can set in your matplotlib config file).
         """
-    )
-    def pylab(self, line=''):
-        """Load numpy and matplotlib to work interactively.
+)
 
-        %pylab [GUINAME]
 
-        This function lets you activate pylab (matplotlib, numpy and
-        interactive support) at any point during an IPython session.
-
-        It will import at the top level numpy as np, pyplot as plt, matplotlib,
-        pylab and mlab, as well as all names from numpy and pylab.
-
+@magics_class
+class PylabMagics(Magics):
+    """Magics related to matplotlib's pylab support"""
+    
+    @skip_doctest
+    @line_magic
+    @magic_arguments.magic_arguments()
+    @magic_gui_arg
+    def matplotlib(self, line=''):
+        """Set up matplotlib to work interactively.
+        
+        This function lets you activate matplotlib interactive support
+        at any point during an IPython session.
+        It does not import anything into the interactive namespace.
+        
         If you are using the inline matplotlib backend for embedded figures,
         you can adjust its behavior via the %config magic::
 
@@ -64,34 +60,59 @@ class PylabMagics(Magics):
             # cells:
             In [2]: %config InlineBackend.close_figures = False
 
-        Parameters
-        ----------
-        guiname : optional
-          One of the valid arguments to the %gui magic ('qt', 'wx', 'gtk',
-          'osx' or 'tk').  If given, the corresponding Matplotlib backend is
-          used, otherwise matplotlib's default (which you can override in your
-          matplotlib config file) is used.
-
         Examples
         --------
         In this case, where the MPL default is TkAgg::
 
-            In [2]: %pylab
-
-            Welcome to pylab, a matplotlib-based Python environment.
-            Backend in use: TkAgg
-            For more information, type 'help(pylab)'.
+            In [2]: %matplotlib
+            Using matplotlib backend: TkAgg
 
         But you can explicitly request a different backend::
 
-            In [3]: %pylab qt
+            In [3]: %matplotlib qt
+        """
+        args = magic_arguments.parse_argstring(self.matplotlib, line)
+        gui, backend = self.shell.enable_matplotlib(args.gui)
+        self._show_matplotlib_backend(args.gui, backend)
 
-            Welcome to pylab, a matplotlib-based Python environment.
-            Backend in use: Qt4Agg
-            For more information, type 'help(pylab)'.
+    @skip_doctest
+    @line_magic
+    @magic_arguments.magic_arguments()
+    @magic_arguments.argument(
+        '--no-import-all', action='store_true', default=None,
+        help="""Prevent IPython from performing ``import *`` into the interactive namespace.
+        
+        The names that will still be added to the namespace if this flag is given::
+        
+            numpy
+            matplotlib
+            np (numpy alias)
+            plt (matplotlib.pyplot alias)
+            pylab (from matplotlib)
+            pyplot (from matplotlib)
+            mlab (from matplotlib)
+            display (from IPython)
+            figsize (from IPython)
+            getfigs (from IPython)
+        
+        You can govern the default behavior with the
+        InteractiveShellApp.pylab_import_all configurable.
+        """
+    )
+    @magic_gui_arg
+    def pylab(self, line=''):
+        """Load numpy and matplotlib to work interactively.
+
+        This function lets you activate pylab (matplotlib, numpy and
+        interactive support) at any point during an IPython session.
+
+        It will import at the top level numpy as np, pyplot as plt, matplotlib,
+        pylab and mlab, as well as all names from numpy and pylab.
+        
+        See the %matplotlib magic for more details.
         """
         args = magic_arguments.parse_argstring(self.pylab, line)
-        if args.no_import is None:
+        if args.no_import_all is None:
             # get default from Application
             if Application.initialized():
                 app = Application.instance()
@@ -104,6 +125,17 @@ class PylabMagics(Magics):
                 import_all = True
         else:
             # invert no-import flag
-            import_all = not args.no_import
+            import_all = not args.no_import_all
 
-        self.shell.enable_pylab(args.gui, import_all=import_all, welcome_message=True)
+        gui, backend, clobbered = self.shell.enable_pylab(args.gui, import_all=import_all)
+        self._show_matplotlib_backend(args.gui, backend)
+        if clobbered:
+            warn("pylab import has clobbered these variables: %s"  % clobbered +
+            "\n`%pylab --no-import-all` prevents importing * from pylab and numpy"
+            )
+    
+    def _show_matplotlib_backend(self, gui, backend):
+        """show matplotlib message backend message"""
+        if not gui or gui == 'auto':
+            print ("using matplotlib backend: %s" % backend)
+    
