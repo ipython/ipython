@@ -694,6 +694,40 @@ def clear_output(stdout=True, stderr=True, other=True):
 
 class Audio(DisplayObject):
     def __init__(self, data=None, rate=None, url=None, filename=None, autoplay=False):
+        """Create an audio player given raw PCM data.
+
+        When this object is returned by an expression or passed to the
+        display function, it will result in an audio player widget
+        displayed in the frontend.
+
+        Parameters
+        ----------
+        data : unicode, str or bytes
+            The raw audio data.
+        rate : integer
+            The sampling rate of the raw data.
+            Only required when data parameter is being used
+        url : unicode
+            A URL to download the data from.
+        filename : unicode
+            Path to a local file to load the data from.
+        autoplay : bool
+            Set to True if the audio should immediately start playing.
+
+            Default is `False`.
+
+        Examples
+        --------
+        # embedded raw audio data
+        Audio(data=2**13*numpy.sin(2*pi*440/44100*numpy.arange(44100)).astype(numpy.int16),
+            rate=44100)
+
+        # Specifying Audio(url=...) or Audio(filename=...) does not
+        # embed the audio data, it only generates an `<audio>` tag with a
+        # link to the source. This will not work when offline.
+        Audio(filename='something.wav', autoplay=True)
+
+        """
         if(data is not None):
             buffer = StringIO.StringIO()
             buffer.write(b'RIFF')
