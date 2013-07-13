@@ -21,7 +21,7 @@ from __future__ import print_function
 
 import os
 import struct
-import StringIO
+from io import BytesIO
 import base64
 import sys
 
@@ -729,7 +729,7 @@ class Audio(DisplayObject):
 
         """
         if(data is not None):
-            buffer = StringIO.StringIO()
+            buffer = BytesIO()
             buffer.write(b'RIFF')
             buffer.write(b'\x00\x00\x00\x00')
             buffer.write(b'WAVE')
