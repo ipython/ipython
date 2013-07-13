@@ -91,14 +91,14 @@ var IPython = (function (IPython) {
         });
         this.element.find('#download_ipynb').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks/' +
-                      notebook_name + '?format=json';
+            var url = that.baseProjectUrl() + 'api/notebooks/' + that.notebookPath() +
+                      notebook_name + '?format=json'+ '&download=True';
             window.location.assign(url);
         });
         this.element.find('#download_py').click(function () {
             var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'api/notebooks/' +
-                      notebook_name + '?format=py';
+            var url = that.baseProjectUrl() + 'api/notebooks/' + that.notebookPath() +
+                      notebook_name + '?format=py' + '&download=True';
             window.location.assign(url);
         });
         this.element.find('#rename_notebook').click(function () {
