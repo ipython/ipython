@@ -117,19 +117,20 @@ class NotebookManager(LoggingConfigurable):
                     "content": content}
         return model
 
-    def get_notebook(self, body, format=u'json'):
+    def get_notebook(self, notebook_name, notebook_path=None, format=u'json'):
         """Get the representation of a notebook in format by notebook_name."""
         format = unicode(format)
         if format not in self.allowed_formats:
             raise web.HTTPError(415, u'Invalid notebook format: %s' % format)
         kwargs = {}
+        last_mod, nb = self.read_notebook_object(notebook_name, notebook_path)
         if format == 'json':
             # don't split lines for sending over the wire, because it
             # should match the Python in-memory format.
             kwargs['split_lines'] = False
-        representation = current.writes(body, format, **kwargs)
-        name = body['content']['metadata']['name']
-        return representation, name
+        representation = current.writes(nb, format, **kwargs)
+        name = nb.metadata.get('name', 'notebook')
+        return last_mod, representation, name
 
     def read_notebook_object(self, notebook_name, notebook_path):
         """Get the object representation of a notebook by notebook_id."""

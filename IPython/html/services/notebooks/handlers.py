@@ -70,7 +70,7 @@ class NotebookHandler(IPythonHandler):
         else:
             format = self.get_argument('format', default='json')
             model = nbm.notebook_model(name,path)
-            data, name = nbm.get_notebook(model, format)
+            last_mod, representation, name = nbm.get_notebook(name, path, format)
 
             if format == u'json':
                 self.set_header('Content-Type', 'application/json')
