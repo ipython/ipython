@@ -61,7 +61,8 @@ This line is evaluated in Python, so simple expressions are allowed, e.g.::
 `--C.a='range(3)'` For setting C.a=[0,1,2].
 """.strip() # trim newlines of front and back
 
-# Set calling program to the empty string, when there is no argv in sys.
+# sys.argv can be missing, for example when python is embedded. See the docs
+# for details: http://docs.python.org/2/c-api/intro.html#embedding-python
 if not hasattr(sys, "argv"):
     sys.argv = [""]
 
