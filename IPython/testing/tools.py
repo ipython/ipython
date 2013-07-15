@@ -19,6 +19,7 @@ from __future__ import absolute_import
 #-----------------------------------------------------------------------------
 
 import os
+import pipes
 import re
 import sys
 import tempfile
@@ -157,7 +158,7 @@ def default_config():
 def ipexec(fname, options=None):
     """Utility to call 'ipython filename'.
 
-    Starts IPython witha minimal and safe configuration to make startup as fast
+    Starts IPython with a minimal and safe configuration to make startup as fast
     as possible.
 
     Note that this starts IPython in a subprocess!
@@ -186,8 +187,8 @@ def ipexec(fname, options=None):
 
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
-
-    ipython_cmd = [sys.executable, '-m', 'IPython']
+    
+    ipython_cmd = pipes.quote(sys.executable) + " -m IPython"
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
