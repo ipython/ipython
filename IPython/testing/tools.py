@@ -187,7 +187,7 @@ def ipexec(fname, options=None):
     _ip = get_ipython()
     test_dir = os.path.dirname(__file__)
 
-    ipython_cmd = find_cmd('ipython3' if py3compat.PY3 else 'ipython')
+    ipython_cmd = [sys.executable, '-m', 'IPython']
     # Absolute path for filename
     full_fname = os.path.join(test_dir, fname)
     full_cmd = '%s %s %s' % (ipython_cmd, cmdargs, full_fname)
