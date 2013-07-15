@@ -47,7 +47,8 @@ def test_image_filename_defaults():
                      embed=True)
     nt.assert_raises(ValueError, display.Image)
     nt.assert_raises(ValueError, display.Image, data='this is not an image', format='badformat', embed=True)
-    imgfile = os.path.join(tpath, 'html/static/base/images/ipynblogo.png')
+    from IPython.html import DEFAULT_STATIC_FILES_PATH
+    imgfile = os.path.join(DEFAULT_STATIC_FILES_PATH, 'base/images/ipynblogo.png')
     img = display.Image(filename=imgfile)
     nt.assert_equal('png', img.format)
     nt.assert_is_not_none(img._repr_png_())
