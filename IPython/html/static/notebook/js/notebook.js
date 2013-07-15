@@ -319,6 +319,11 @@ var IPython = (function (IPython) {
                 that.undelete();
                 that.control_key_active = false;
                 return false;
+            } else if (event.which === 189 && that.control_key_active) {
+                // Split cell = -
+                that.split_cell();
+                that.control_key_active = false;
+                return false;                                               
             } else if (that.control_key_active) {
                 that.control_key_active = false;
                 return true;

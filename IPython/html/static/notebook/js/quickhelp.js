@@ -32,6 +32,7 @@ var IPython = (function (IPython) {
             {key: 'Ctrl-m v', help: 'paste cell'},
             {key: 'Ctrl-m d', help: 'delete cell'},
             {key: 'Ctrl-m z', help: 'undo last cell deletion'},
+            {key: 'Ctrl-m -', help: 'split cell'},            
             {key: 'Ctrl-m a', help: 'insert cell above'},
             {key: 'Ctrl-m b', help: 'insert cell below'},
             {key: 'Ctrl-m o', help: 'toggle output'},
