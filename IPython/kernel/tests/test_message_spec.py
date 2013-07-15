@@ -32,6 +32,10 @@ def setup():
     KC.start_channels()
     
     # wait for kernel to be ready
+    try:
+        msg = KC.iopub_channel.get_msg(block=True, timeout=10)
+    except Empty:
+        pass
     KC.execute("pass")
     KC.get_shell_msg(block=True, timeout=5)
     flush_channels()
