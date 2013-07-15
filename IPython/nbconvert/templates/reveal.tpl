@@ -21,7 +21,7 @@
 
 <!-- If the query includes 'print-pdf', use the PDF print sheet -->
 <script>
-document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+document.write( '<link rel="stylesheet" href="{{resources.reveal.url_prefix}}/css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
 </script>
 
 <!--[if lt IE 9]>
