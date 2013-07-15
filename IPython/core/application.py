@@ -87,7 +87,7 @@ class BaseIPythonApplication(Application):
     # because some logic happens only if we aren't using the default.
     config_file_specified = Set()
 
-    config_file_name = Unicode(u'ipython_config.py')
+    config_file_name = Unicode()
     def _config_file_name_default(self):
         return self.name.replace('-','_') + u'_config.py'
     def _config_file_name_changed(self, name, old, new):
@@ -141,7 +141,7 @@ class BaseIPythonApplication(Application):
 
     config_files = List(Unicode)
     def _config_files_default(self):
-        return [u'ipython_config.py']
+        return [self.config_file_name]
 
     copy_config_files = Bool(False, config=True,
         help="""Whether to install the default config files into the profile dir.
