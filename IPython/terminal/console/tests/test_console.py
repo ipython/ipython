@@ -20,7 +20,6 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.utils import py3compat
-from IPython.utils.process import find_cmd
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -31,7 +30,19 @@ def test_console_starts():
     """test that `ipython console` starts a terminal"""
     from IPython.external import pexpect
     
-    p = pexpect.spawn(sys.executable, args=['-m', 'IPython', 'console', '--colors=NoColor'])
+    args = ['console', '--colors=NoColor']
+    # FIXME: remove workaround for 2.6 support
+    if sys.version_info[:2] > (2,6):
+        args = ['-m', 'IPython'] + args
+        cmd = sys.executable
+    else:
+        cmd = 'ipython'
+    
+    try:
+        p = pexpect.spawn(cmd, args=args)
+    except IOError:
+        raise SkipTest("Couldn't find command %s" % cmd)
+    
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=15)
     nt.assert_equal(idx, 0, "expected in prompt")
     p.sendline('5')
