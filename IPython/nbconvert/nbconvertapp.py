@@ -87,13 +87,15 @@ class NbConvertApp(BaseIPythonApplication):
     notebooks = List([], config=True, help="""List of notebooks to convert.
                      Search patterns are supported.""")
 
-    aliases = {'format':'NbConvertApp.export_format',
+    nbconvert_aliases = {'format':'NbConvertApp.export_format',
                'notebooks':'NbConvertApp.notebooks',
                'writer':'NbConvertApp.writer_class'} 
 
 
     @catch_config_error
     def initialize(self, argv=None):
+        self.aliases.update(nbconvert_aliases)
+
         super(NbConvertApp, self).initialize(argv)
 
         #Register class here to have help with help all
