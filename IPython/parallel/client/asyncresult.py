@@ -195,15 +195,17 @@ class AsyncResult(object):
             results = [results]
         engine_ids = [ md['engine_id'] for md in self._metadata ]
         
-        seen = set()
-        for engine_id in engine_ids:
-            if engine_id in seen:
-                raise ValueError("Cannot build dict, %i jobs ran on engine #%i"%(
-                    engine_ids.count(engine_id), engine_id))
+        
+        rdict = {}
+        for engine_id, result in zip(engine_ids, results):
+            if engine_id in rdict:
+                raise ValueError("Cannot build dict, %i jobs ran on engine #%i" % (
+                    engine_ids.count(engine_id), engine_id)
+                )
             else:
-                seen.add(engine_id)
+                rdict[engine_id] = result
 
-        return dict(zip(engine_ids,results))
+        return rdict
 
     @property
     def result(self):
