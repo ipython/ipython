@@ -122,8 +122,10 @@ def draw_if_interactive():
     # execution.  Also sets the _draw_called flag, signaling that there will be
     # something to send.  At the end of the code execution, a separate call to
     # flush_figures() will act upon these values
-
-    fig = Gcf.get_active().canvas.figure
+    manager = Gcf.get_active()
+    if manager is None:
+        return
+    fig = manager.canvas.figure
 
     # Hack: matplotlib FigureManager objects in interacive backends (at least
     # in some of them) monkeypatch the figure object and add a .show() method
