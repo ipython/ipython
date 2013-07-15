@@ -1,7 +1,7 @@
 import os
 
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.inprocess import QtInProcessKernelManager
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.inprocess import QtInProcessKernelManager
 from IPython.lib import guisupport
 
 
