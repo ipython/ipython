@@ -252,13 +252,15 @@ class TestMagicRunSimple(tt.TempFileMixin):
         class secondtmp(tt.TempFileMixin): pass
         empty = secondtmp()
         empty.mktmp('')
+        # On Windows, the filename will have \users in it, so we need to use the
+        # repr so that the \u becomes \\u.
         src = ("ip = get_ipython()\n"
                "for i in range(5):\n"
                "   try:\n"
-               "       ip.magic('run %s')\n"
+               "       ip.magic(%r)\n"
                "   except NameError as e:\n"
                "       print(i)\n"
-               "       break\n" % empty.fname)
+               "       break\n" % ('run ' + empty.fname))
         self.mktmp(src)
         _ip.magic('run %s' % self.fname)
         _ip.run_cell('ip == get_ipython()')
