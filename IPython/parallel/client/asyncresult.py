@@ -191,12 +191,17 @@ class AsyncResult(object):
         """
 
         results = self.get(timeout)
+        if self._single_result:
+            results = [results]
         engine_ids = [ md['engine_id'] for md in self._metadata ]
-        bycount = sorted(engine_ids, key=lambda k: engine_ids.count(k))
-        maxcount = bycount.count(bycount[-1])
-        if maxcount > 1:
-            raise ValueError("Cannot build dict, %i jobs ran on engine #%i"%(
-                    maxcount, bycount[-1]))
+        
+        seen = set()
+        for engine_id in engine_ids:
+            if engine_id in seen:
+                raise ValueError("Cannot build dict, %i jobs ran on engine #%i"%(
+                    engine_ids.count(engine_id), engine_id))
+            else:
+                seen.add(engine_id)
 
         return dict(zip(engine_ids,results))
 
