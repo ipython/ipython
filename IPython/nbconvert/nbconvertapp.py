@@ -94,7 +94,7 @@ class NbConvertApp(BaseIPythonApplication):
 
     @catch_config_error
     def initialize(self, argv=None):
-        self.aliases.update(nbconvert_aliases)
+        self.aliases.update(self.nbconvert_aliases)
 
         super(NbConvertApp, self).initialize(argv)
 
