@@ -40,6 +40,7 @@ from .utils.config import GlobalConfigurable
 class NbConvertApp(BaseIPythonApplication):
     """Application used to convert to and from notebook file type (*.ipynb)"""
 
+    name = 'ipython-nbconvert'
 
     description = Unicode(
         u"""This application is used to convert notebook files (*.ipynb).
@@ -58,8 +59,6 @@ class NbConvertApp(BaseIPythonApplication):
         > ipython nbconvert # this will use the config file to fill in the notebooks
         """)
     
-    config_file_name = Unicode(u'ipython_nbconvert_config.py')
-
     #Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
