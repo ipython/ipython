@@ -35,6 +35,9 @@ def wait(n):
     time.sleep(n)
     return n
 
+def echo(x):
+    return x
+
 class AsyncResultTest(ClusterTestCase):
 
     def test_single_result_view(self):
@@ -76,6 +79,20 @@ class AsyncResultTest(ClusterTestCase):
         self.assertEqual(sorted(d.keys()), sorted(self.client.ids))
         for eid,r in d.iteritems():
             self.assertEqual(r, 5)
+    
+    def test_get_dict_single(self):
+        view = self.client[-1]
+        for v in (range(5), 5, ('abc', 'def'), 'string'):
+            ar = view.apply_async(echo, v)
+            self.assertEqual(ar.get(), v)
+            d = ar.get_dict()
+            self.assertEqual(d, {view.targets : v})
+    
+    def test_get_dict_bad(self):
+        ar = self.client[:].apply_async(lambda : 5)
+        ar2 = self.client[:].apply_async(lambda : 5)
+        ar = self.client.get_result(ar.msg_ids + ar2.msg_ids)
+        self.assertRaises(ValueError, ar.get_dict)
     
     def test_list_amr(self):
         ar = self.client.load_balanced_view().map_async(wait, [0.1]*5)
