@@ -35,7 +35,7 @@ INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inksca
 # Classes
 #-----------------------------------------------------------------------------
 
-class Svg2PdfTransformer(ConvertFiguresTransformer):
+class SVG2PDFTransformer(ConvertFiguresTransformer):
     """
     Converts all of the outputs in a notebook from one format to another.
     """

@@ -71,7 +71,7 @@ class LatexExporter(Exporter):
     default_transformers = List([transformers.ExtractFigureTransformer,
                                  transformers.CSSHTMLHeaderTransformer,
                                  transformers.LatexTransformer,
-                                 transformers.Svg2PdfTransformer],
+                                 transformers.SVG2PDFTransformer],
         config=True,
         help="""List of transformers available by default, by name, namespace, 
         instance, or type.""")
@@ -99,7 +99,7 @@ class LatexExporter(Exporter):
              'ExtractFigureTransformer': {
                     'enabled':True
                  },
-             'Svg2PdfTransformer': {
+             'SVG2PDFTransformer': {
                     'enabled':True
                  },
              'LatexTransformer': {
