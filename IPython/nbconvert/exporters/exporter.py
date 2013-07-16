@@ -198,7 +198,9 @@ class Exporter(Configurable):
         """
 
         #Pull the metadata from the filesystem.
-        if not 'metadata' in resources:
+        if resources is None:
+            resources = ResourcesDict()
+        if not 'metadata' in resources or resources['metadata'] == '':
             resources['metadata'] = ResourcesDict()
         basename = os.path.basename(filename)
         notebook_name = basename[:basename.rfind('.')]
