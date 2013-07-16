@@ -173,10 +173,6 @@ class Config(dict):
             return dict.__getitem__(self, key)
 
     def __setitem__(self, key, value):
-        # Don't allow names in __builtin__ to be modified.
-        if hasattr(builtin_mod, key):
-            raise ConfigError('Config variable names cannot have the same name '
-                              'as a Python builtin: %s' % key)
         if self._is_section_key(key):
             if not isinstance(value, Config):
                 raise ValueError('values whose keys begin with an uppercase '
