@@ -16,13 +16,13 @@ Contains writer base class.
 
 from IPython.utils.traitlets import List
 
-from ..utils.config import GlobalConfigurable
+from ..utils.config import NbConvertBase
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class WriterBase(GlobalConfigurable):
+class WriterBase(NbConvertBase):
     """Consumes output from nbconvert export...() methods and writes to a
     useful location. """
 

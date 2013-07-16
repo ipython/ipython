@@ -16,14 +16,14 @@ It exposes a convenient class to inherit from to access configurability.
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..utils.config import GlobalConfigurable
+from ..utils.config import NbConvertBase
 from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
 #-----------------------------------------------------------------------------
 
-class ConfigurableTransformer(GlobalConfigurable):
+class ConfigurableTransformer(NbConvertBase):
     """ A configurable transformer
 
     Inherit from this class if you wish to have configurability for your

@@ -93,7 +93,7 @@ class LatexExporter(Exporter):
     @property
     def default_config(self):
         c = Config({
-            'GlobalConfigurable': {
+            'NbConvertBase': {
                 'display_data_priority' : ['latex', 'png', 'jpg', 'svg', 'jpeg', 'text']
                 },
              'ExtractFigureTransformer': {
