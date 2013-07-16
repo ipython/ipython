@@ -46,7 +46,7 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     """
     command = ['pandoc', '-f', fmt, '-t', to]
     if extra_args:
-        command = command + extra_args
+        command.extend(extra_args)
     p = subprocess.Popen(command,
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
