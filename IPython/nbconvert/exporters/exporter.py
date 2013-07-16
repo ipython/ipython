@@ -57,6 +57,8 @@ default_filters = {
         'rm_ansi': filters.remove_ansi,
         'rm_dollars': filters.strip_dollars,
         'rm_fake': filters.rm_fake,
+        'html_text' : filters.html_text,
+        'add_anchor': filters.add_anchor,
         'ansi2latex': filters.ansi2latex,
         'rm_math_space': filters.rm_math_space,
         'wrap': filters.wrap

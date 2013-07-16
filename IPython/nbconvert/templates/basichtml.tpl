@@ -59,12 +59,7 @@ Out[{{cell.prompt_number}}]:
 
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-<h{{cell.level}}>
-{% set source = cell.source | replace(' ','_') %}
-<a class="heading-anchor" id="{{source}}" href="#{{source}}">
-  {{cell.source | markdown| rm_fake}}
-</a>
-</h{{cell.level}}>
+  {{("#" * cell.level + cell.source) | replace('\n', ' ') | markdown | rm_fake | add_anchor }}
 </div>
 {% endblock headingcell %}
 
