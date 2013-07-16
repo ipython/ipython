@@ -1672,7 +1672,13 @@ class InteractiveShell(SingletonConfigurable):
         
         return etype, value, tb
     
-
+    def show_usage_error(self, exc):
+        """Show a short message for UsageErrors
+        
+        These are special exceptions that shouldn't show a traceback.
+        """
+        self.write_err("UsageError: %s" % exc)
+    
     def showtraceback(self,exc_tuple = None,filename=None,tb_offset=None,
                       exception_only=False):
         """Display the exception that just occurred.
@@ -1698,7 +1704,7 @@ class InteractiveShell(SingletonConfigurable):
                 # line, there may be SyntaxError cases with imported code.
                 self.showsyntaxerror(filename)
             elif etype is UsageError:
-                self.write_err("UsageError: %s" % value)
+                self.show_usage_error(value)
             else:
                 if exception_only:
                     stb = ['An exception has occurred, use %tb to see '
@@ -2597,8 +2603,8 @@ class InteractiveShell(SingletonConfigurable):
         try:
             self.input_transformer_manager.push(raw_cell)
             cell = self.input_transformer_manager.source_reset()
-        except UsageError:
-            self.showtraceback()
+        except UsageError as e:
+            self.show_usage_error(e)
             return
         
         # Our own compiler remembers the __future__ environment. If we want to
