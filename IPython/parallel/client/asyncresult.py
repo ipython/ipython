@@ -73,6 +73,9 @@ class AsyncResult(object):
         if isinstance(msg_ids, basestring):
             # always a list
             msg_ids = [msg_ids]
+            self._single_result = True
+        else:
+            self._single_result = False
         if tracker is None:
             # default to always done
             tracker = finished_tracker
@@ -81,14 +84,11 @@ class AsyncResult(object):
         self._fname=fname
         self._targets = targets
         self._tracker = tracker
+        
         self._ready = False
         self._outputs_ready = False
         self._success = None
         self._metadata = [ self._client.metadata.get(id) for id in self.msg_ids ]
-        if len(msg_ids) == 1:
-            self._single_result = not isinstance(targets, (list, tuple))
-        else:
-            self._single_result = False
 
     def __repr__(self):
         if self._ready:
