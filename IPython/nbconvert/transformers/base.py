@@ -16,7 +16,7 @@ It exposes a convenient class to inherit from to access configurability.
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..utils.config import NbConvertBase
+from ..utils.base import NbConvertBase
 from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------

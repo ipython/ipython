@@ -31,7 +31,7 @@ from IPython.utils.importstring import import_item
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
 from .exporters.exporter import Exporter
 from .writers.base import WriterBase
-from .utils.config import NbConvertBase
+from .utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
 #Classes and functions

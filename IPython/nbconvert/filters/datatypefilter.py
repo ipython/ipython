@@ -17,7 +17,7 @@ NbConvertBase.display_data_priority
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-from ..utils.config import NbConvertBase
+from ..utils.base import NbConvertBase
 
 __all__ = ['DataTypeFilter']
 

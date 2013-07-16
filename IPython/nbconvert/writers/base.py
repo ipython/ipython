@@ -16,7 +16,7 @@ Contains writer base class.
 
 from IPython.utils.traitlets import List
 
-from ..utils.config import NbConvertBase
+from ..utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
 # Classes
