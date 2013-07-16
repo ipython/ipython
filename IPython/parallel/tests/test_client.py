@@ -152,10 +152,10 @@ class TestClient(ClusterTestCase):
         ar = c[t].apply_async(wait, 1)
         # give the monitor time to notice the message
         time.sleep(.25)
-        ahr = self.client.get_result(ar.msg_ids)
+        ahr = self.client.get_result(ar.msg_ids[0])
         self.assertTrue(isinstance(ahr, AsyncHubResult))
         self.assertEqual(ahr.get(), ar.get())
-        ar2 = self.client.get_result(ar.msg_ids)
+        ar2 = self.client.get_result(ar.msg_ids[0])
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.close()
     
@@ -171,10 +171,11 @@ class TestClient(ClusterTestCase):
         ar = c[t].execute("import time; time.sleep(1)", silent=False)
         # give the monitor time to notice the message
         time.sleep(.25)
-        ahr = self.client.get_result(ar.msg_ids)
+        ahr = self.client.get_result(ar.msg_ids[0])
+        print ar.get(), ahr.get(), ar._single_result, ahr._single_result
         self.assertTrue(isinstance(ahr, AsyncHubResult))
         self.assertEqual(ahr.get().pyout, ar.get().pyout)
-        ar2 = self.client.get_result(ar.msg_ids)
+        ar2 = self.client.get_result(ar.msg_ids[0])
         self.assertFalse(isinstance(ar2, AsyncHubResult))
         c.close()
     
