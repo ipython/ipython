@@ -1,7 +1,7 @@
 import os
 
 from IPython.kernel.inprocess import InProcessKernelManager
-from IPython.frontend.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
+from IPython.terminal.console.interactiveshell import ZMQTerminalInteractiveShell
 
 
 def print_process_id():
