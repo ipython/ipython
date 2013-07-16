@@ -36,7 +36,7 @@ class SphinxHowtoExporter(LatexExporter):
             'sphinx_howto', config=True,
             help="Name of the template file to use")
 
-    default_transformers = List([transformers.Svg2PdfTransformer,
+    default_transformers = List([transformers.SVG2PDFTransformer,
                                  transformers.ExtractFigureTransformer,
                                  transformers.CSSHTMLHeaderTransformer,
                                  transformers.LatexTransformer,
