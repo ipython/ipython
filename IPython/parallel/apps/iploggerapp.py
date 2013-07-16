@@ -40,8 +40,6 @@ from IPython.parallel.apps.logwatcher import LogWatcher
 #-----------------------------------------------------------------------------
 
 #: The default config file name for this application
-default_config_file_name = u'iplogger_config.py'
-
 _description = """Start an IPython logger for parallel computing.
 
 IPython controllers and engines (and your own processes) can broadcast log messages
@@ -64,8 +62,6 @@ class IPLoggerApp(BaseParallelApplication):
 
     name = u'iplogger'
     description = _description
-    config_file_name = Unicode(default_config_file_name)
-    
     classes = [LogWatcher, ProfileDir]
     aliases = Dict(aliases)
 

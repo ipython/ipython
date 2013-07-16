@@ -53,9 +53,6 @@ from IPython.parallel.apps.baseapp import (
 #-----------------------------------------------------------------------------
 
 
-default_config_file_name = u'ipcluster_config.py'
-
-
 _description = """Start an IPython cluster for parallel computing.
 
 An IPython cluster consists of 1 controller and 1 or more engines.
@@ -176,7 +173,6 @@ class IPClusterStop(BaseParallelApplication):
     name = u'ipcluster'
     description = stop_help
     examples = _stop_examples
-    config_file_name = Unicode(default_config_file_name)
 
     signal = Integer(signal.SIGINT, config=True,
         help="signal to use for stopping processes.")
@@ -247,7 +243,6 @@ class IPClusterEngines(BaseParallelApplication):
     description = engines_help
     examples = _engines_examples
     usage = None
-    config_file_name = Unicode(default_config_file_name)
     default_log_level = logging.INFO
     classes = List()
     def _classes_default(self):

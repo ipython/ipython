@@ -58,9 +58,6 @@ from IPython.utils.traitlets import (
 # Globals, utilities and helpers
 #-----------------------------------------------------------------------------
 
-#: The default config file name for this application.
-default_config_file_name = u'ipython_config.py'
-
 _examples = """
 ipython --pylab            # start in pylab mode
 ipython --pylab=qt         # start in pylab mode with the qt4 backend
@@ -203,7 +200,6 @@ class LocateIPythonApp(BaseIPythonApplication):
 class TerminalIPythonApp(BaseIPythonApplication, InteractiveShellApp):
     name = u'ipython'
     description = usage.cl_usage
-    default_config_file_name = default_config_file_name
     crash_handler_class = IPAppCrashHandler
     examples = _examples
 
@@ -380,7 +376,7 @@ def load_default_config(ipython_dir=None):
     if ipython_dir is None:
         ipython_dir = get_ipython_dir()
     profile_dir = os.path.join(ipython_dir, 'profile_default')
-    cl = PyFileConfigLoader(default_config_file_name, profile_dir)
+    cl = PyFileConfigLoader("ipython_config.py", profile_dir)
     try:
         config = cl.load_config()
     except ConfigFileNotFound:
