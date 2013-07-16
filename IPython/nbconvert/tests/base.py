@@ -152,7 +152,17 @@ class TestsBase(object):
 
 
     def _get_files_path(self):
-        return os.path.join(IPython.__path__[0], 'nbconvert', 'tests', 'files')
+
+        #Get the relative path to this module in the IPython directory.
+        names = self.__module__.split('.')[1:-1]
+        names.append('files')
+        
+        #Build a path using the IPython directory and the relative path we just
+        #found.
+        path = IPython.__path__[0]
+        for name in names:
+            path = os.path.join(path, name)
+        return path
 
 
     def call(self, parameters):
