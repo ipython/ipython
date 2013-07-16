@@ -121,6 +121,10 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
     session = Instance('IPython.kernel.zmq.session.Session')
     ports = Dict()
     
+    # ipkernel doesn't get its own config file
+    def _config_file_name_default(self):
+        return 'ipython_config.py'
+    
     # inherit config file name from parent:
     parent_appname = Unicode(config=True)
     def _parent_appname_changed(self, name, old, new):
