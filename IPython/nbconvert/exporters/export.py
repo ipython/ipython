@@ -89,29 +89,31 @@ class ExporterNameError(NameError):
 
 
 @DocDecorator
-def export(exporter_type, nb, **kw):
+def export(exporter, nb, **kw):
     """
     Export a notebook object using specific exporter class.
     
-    exporter_type : Exporter class type
-        Class type of the exporter that should be used.  This method
-        will initialize it's own instance of the class.  It is
-        ASSUMED that the class type provided exposes a
-        constructor (__init__) with the same signature as the
-        base Exporter class.}
+    exporter : Exporter class type or instance
+        Class type or instance of the exporter that should be used.  If the 
+        method initializes it's own instance of the class, it is ASSUMED that 
+        the class type provided exposes a constructor (__init__) with the same 
+        signature as the base Exporter class.
     """
     
     #Check arguments
-    if exporter_type is None:
+    if exporter is None:
         raise TypeError("Exporter is None")
-    elif not issubclass(exporter_type, Exporter):
-        raise TypeError("Exporter type does not inherit from Exporter (base)")
+    elif not isinstance(exporter, Exporter) and not issubclass(exporter, Exporter):
+        raise TypeError("exporter does not inherit from Exporter (base)")
     if nb is None:
         raise TypeError("nb is None")
     
     #Create the exporter
     resources = kw.pop('resources', None)
-    exporter_instance = exporter_type(**kw)
+    if isinstance(exporter, Exporter):
+        exporter_instance = exporter
+    else:
+        exporter_instance = exporter(**kw)
 
     #Try to convert the notebook using the appropriate conversion function.
     if isinstance(nb, NotebookNode):
