@@ -122,7 +122,6 @@ else:
 
 class IPythonConsoleApp(Configurable):
     name = 'ipython-console-mixin'
-    default_config_file_name='ipython_config.py'
 
     description = """
         The IPython Mixin Console.
