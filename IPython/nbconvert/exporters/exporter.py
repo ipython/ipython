@@ -225,7 +225,7 @@ class Exporter(Configurable):
         return self.from_notebook_node(nbformat.read(file_stream, 'json'), resources=resources, **kw)
 
 
-    def register_transformer(self, transformer, enabled=None):
+    def register_transformer(self, transformer, enabled=False):
         """
         Register a transformer.
         Transformers are classes that act upon the notebook before it is
@@ -237,33 +237,39 @@ class Exporter(Configurable):
         ----------
         transformer : transformer
         """
+        if transformer is None:
+            raise TypeError('transformer')
+        isclass = inspect.isclass(transformer)
+        constructed = not isclass
 
         #Handle transformer's registration based on it's type
-        if inspect.isfunction(transformer):
+        if constructed and isinstance(transformer, types.StringTypes):
+            #Transformer is a string, import the namespace and recursively call
+            #this register_transformer method
+            transformer_cls = import_item(transformer)
+            return self.register_transformer(transformer_cls, enabled)
+        
+        if constructed and hasattr(transformer, '__call__'):
             #Transformer is a function, no need to construct it.
+            #Register and return the transformer.
+            if enabled:
+                transformer.enabled = True
             self._transformers.append(transformer)
             return transformer
 
-        elif isinstance(transformer, types.StringTypes):
-            #Transformer is a string, import the namespace and recursively call
-            #this register_transformer method
-            transformer_cls = import_item(DottedObjectName(transformer))
-            return self.register_transformer(transformer_cls, enabled=None)
-
-        elif isinstance(transformer, MetaHasTraits):
+        elif isclass and isinstance(transformer, MetaHasTraits):
             #Transformer is configurable.  Make sure to pass in new default for 
             #the enabled flag if one was specified.
-            transformer_instance = transformer(parent=self)
-            if enabled is not None:
-                transformer_instance.enabled = True
+            self.register_transformer(transformer(parent=self), enabled)
+
+        elif isclass:
+            #Transformer is not configurable, construct it
+            self.register_transformer(transformer(), enabled)
 
         else:
-            #Transformer is not configurable, construct it
-            transformer_instance = transformer()
-
-        #Register and return the transformer.
-        self._transformers.append(transformer_instance)
-        return transformer_instance
+            #Transformer is an instance of something without a __call__ 
+            #attribute.  
+            raise TypeError('transformer')
 
 
     def register_filter(self, name, filter):
@@ -278,16 +284,36 @@ class Exporter(Configurable):
             name to give the filter in the Jinja engine
         filter : filter
         """
-        if inspect.isfunction(filter):
+        if filter is None:
+            raise TypeError('filter')
+        isclass = inspect.isclass(filter)
+        constructed = not isclass
+
+        #Handle filter's registration based on it's type
+        if constructed and isinstance(filter, types.StringTypes):
+            #filter is a string, import the namespace and recursively call
+            #this register_filter method
+            filter_cls = import_item(filter)
+            return self.register_filter(name, filter_cls)
+        
+        if constructed and hasattr(filter, '__call__'):
+            #filter is a function, no need to construct it.
             self.environment.filters[name] = filter
-        elif isinstance(filter, types.StringTypes):
-            filter_cls = import_item(DottedObjectName(filter))
-            self.register_filter(name, filter_cls)
-        elif isinstance(filter, MetaHasTraits):
-            self.environment.filters[name] = filter(config=self.config)
+            return filter
+
+        elif isclass and isinstance(filter, MetaHasTraits):
+            #filter is configurable.  Make sure to pass in new default for 
+            #the enabled flag if one was specified.
+            self.register_filter(name, filter(parent=self))
+
+        elif isclass:
+            #filter is not configurable, construct it
+            self.register_filter(name, filter())
+
         else:
-            self.environment.filters[name] = filter()
-        return self.environment.filters[name]
+            #filter is an instance of something without a __call__ 
+            #attribute.  
+            raise TypeError('filter')
 
         
     def _init_environment(self, extra_loaders=None):
