@@ -549,8 +549,8 @@ class DirectView(View):
         block = self.block if block is None else block
         track = self.track if track is None else track
         targets = self.targets if targets is None else targets
-
-        _idents = self.client._build_targets(targets)[0]
+        
+        _idents, _targets = self.client._build_targets(targets)
         msg_ids = []
         trackers = []
         for ident in _idents:
@@ -559,8 +559,10 @@ class DirectView(View):
             if track:
                 trackers.append(msg['tracker'])
             msg_ids.append(msg['header']['msg_id'])
+        if isinstance(targets, int):
+            msg_ids = msg_ids[0]
         tracker = None if track is False else zmq.MessageTracker(*trackers)
-        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=targets, tracker=tracker)
+        ar = AsyncResult(self.client, msg_ids, fname=getname(f), targets=_targets, tracker=tracker)
         if block:
             try:
                 return ar.get()
@@ -631,13 +633,15 @@ class DirectView(View):
         block = self.block if block is None else block
         targets = self.targets if targets is None else targets
 
-        _idents = self.client._build_targets(targets)[0]
+        _idents, _targets = self.client._build_targets(targets)
         msg_ids = []
         trackers = []
         for ident in _idents:
             msg = self.client.send_execute_request(self._socket, code, silent=silent, ident=ident)
             msg_ids.append(msg['header']['msg_id'])
-        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=targets)
+        if isinstance(targets, int):
+            msg_ids = msg_ids[0]
+        ar = AsyncResult(self.client, msg_ids, fname='execute', targets=_targets)
         if block:
             try:
                 ar.get()
