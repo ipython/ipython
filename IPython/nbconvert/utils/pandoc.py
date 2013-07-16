@@ -24,7 +24,7 @@ from IPython.utils.py3compat import cast_bytes
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-def pandoc(source, fmt, to, encoding='utf-8'):
+def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     """Convert an input string in format `from` to format `to` via pandoc.
 
     This function will raise an error if pandoc is not installed.
@@ -44,7 +44,10 @@ def pandoc(source, fmt, to, encoding='utf-8'):
     out : unicode
       Output as returned by pandoc.
     """
-    p = subprocess.Popen(['pandoc', '-f', fmt, '-t', to],
+    command = ['pandoc', '-f', fmt, '-t', to]
+    if extra_args:
+        command.extend(extra_args)
+    p = subprocess.Popen(command,
                          stdin=subprocess.PIPE, stdout=subprocess.PIPE
     )
     out, _ = p.communicate(cast_bytes(source, encoding))

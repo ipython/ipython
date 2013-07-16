@@ -44,7 +44,7 @@ it introduces a new line
 {% endblock markdowncell %}
 
 {% block headingcell scoped %}
-{{ '#' * cell.level }}{{ cell.source | pycomment}}
+{{ '#' * cell.level }}{{ cell.source | replace('\n', ' ') | pycomment}}
 {% endblock headingcell %}
 
 {% block rawcell scoped %}
