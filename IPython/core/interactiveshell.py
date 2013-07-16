@@ -2599,14 +2599,10 @@ class InteractiveShell(SingletonConfigurable):
         
         if silent:
             store_history = False
-        
-        try:
-            self.input_transformer_manager.push(raw_cell)
-            cell = self.input_transformer_manager.source_reset()
-        except UsageError as e:
-            self.show_usage_error(e)
-            return
-        
+
+        self.input_transformer_manager.push(raw_cell)
+        cell = self.input_transformer_manager.source_reset()
+
         # Our own compiler remembers the __future__ environment. If we want to
         # run code with a separate __future__ environment, use the default
         # compiler
