@@ -1,6 +1,6 @@
 """Tests for two-process terminal frontend
 
-Currenlty only has the most simple test possible, starting a console and running
+Currently only has the most simple test possible, starting a console and running
 a single command.
 
 Authors:
@@ -12,6 +12,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import sys
 import time
 
 import nose.tools as nt
@@ -19,7 +20,6 @@ from nose import SkipTest
 
 from IPython.testing import decorators as dec
 from IPython.utils import py3compat
-from IPython.utils.process import find_cmd
 
 #-----------------------------------------------------------------------------
 # Test functions begin
@@ -30,19 +30,19 @@ def test_console_starts():
     """test that `ipython console` starts a terminal"""
     from IPython.external import pexpect
     
-    # weird IOErrors prevent this from firing sometimes:
-    ipython_cmd = None
-    for i in range(5):
-        try:
-            ipython_cmd = find_cmd('ipython3' if py3compat.PY3 else 'ipython')
-        except IOError:
-            time.sleep(0.1)
-        else:
-            break
-    if ipython_cmd is None:
-        raise SkipTest("Could not determine ipython command")
+    args = ['console', '--colors=NoColor']
+    # FIXME: remove workaround for 2.6 support
+    if sys.version_info[:2] > (2,6):
+        args = ['-m', 'IPython'] + args
+        cmd = sys.executable
+    else:
+        cmd = 'ipython'
     
-    p = pexpect.spawn(ipython_cmd, args=['console', '--colors=NoColor'])
+    try:
+        p = pexpect.spawn(cmd, args=args)
+    except IOError:
+        raise SkipTest("Couldn't find command %s" % cmd)
+    
     idx = p.expect([r'In \[\d+\]', pexpect.EOF], timeout=15)
     nt.assert_equal(idx, 0, "expected in prompt")
     p.sendline('5')
