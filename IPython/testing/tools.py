@@ -37,7 +37,7 @@ except ImportError:
     has_nose = False
 
 from IPython.config.loader import Config
-from IPython.utils.process import find_cmd, getoutputerror
+from IPython.utils.process import getoutputerror
 from IPython.utils.text import list_strings
 from IPython.utils.io import temp_pyfile, Tee
 from IPython.utils import py3compat
