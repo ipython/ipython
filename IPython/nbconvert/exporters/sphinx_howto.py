@@ -36,16 +36,7 @@ class SphinxHowtoExporter(LatexExporter):
             'sphinx_howto', config=True,
             help="Name of the template file to use")
 
-    default_transformers = List([transformers.SVG2PDFTransformer,
-                                 transformers.ExtractFigureTransformer,
-                                 transformers.CSSHTMLHeaderTransformer,
-                                 transformers.LatexTransformer,
-                                 transformers.SphinxTransformer],
-        config=True,
-        help="""List of transformers available by default, by name, namespace, 
-        instance, or type.""")
-
-
+    
     @property
     def default_config(self):
         c = Config({'SphinxTransformer': {'enabled':True}})

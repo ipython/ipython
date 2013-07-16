@@ -128,11 +128,17 @@ class Exporter(Configurable):
         environment.""")
 
     default_transformers = List([nbtransformers.coalesce_streams,
-                                 nbtransformers.ExtractFigureTransformer],
+                                 nbtransformers.SVG2PDFTransformer,
+                                 nbtransformers.ExtractFigureTransformer,
+                                 nbtransformers.CSSHTMLHeaderTransformer,
+                                 nbtransformers.RevealHelpTransformer,
+                                 nbtransformers.LatexTransformer,
+                                 nbtransformers.SphinxTransformer],
         config=True,
         help="""List of transformers available by default, by name, namespace, 
         instance, or type.""")
-    
+
+
     def __init__(self, config=None, extra_loaders=None, **kw):
         """
         Public constructor

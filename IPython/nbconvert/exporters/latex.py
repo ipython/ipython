@@ -68,14 +68,6 @@ class LatexExporter(Exporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-    default_transformers = List([transformers.ExtractFigureTransformer,
-                                 transformers.CSSHTMLHeaderTransformer,
-                                 transformers.LatexTransformer,
-                                 transformers.SVG2PDFTransformer],
-        config=True,
-        help="""List of transformers available by default, by name, namespace, 
-        instance, or type.""")
-
 
     def _init_filters(self):
         """

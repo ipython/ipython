@@ -40,11 +40,3 @@ class BasicHTMLExporter(Exporter):
     template_file = Unicode(
             'basichtml', config=True,
             help="Name of the template file to use")
-
-    default_transformers = List([transformers.coalesce_streams,
-                                 transformers.ExtractFigureTransformer,
-                                 transformers.CSSHTMLHeaderTransformer],
-        config=True,
-        help="""List of transformers available by default, by name, namespace, 
-        instance, or type.""")
-                    

@@ -36,14 +36,6 @@ class RevealExporter(BasicHTMLExporter):
             'reveal', config=True,
             help="Name of the template file to use")
 
-    default_transformers = List([transformers.coalesce_streams,
-                                 transformers.ExtractFigureTransformer,
-                                 transformers.CSSHTMLHeaderTransformer,
-                                 transformers.RevealHelpTransformer],
-        config=True,
-        help="""List of transformers available by default, by name, namespace, 
-        instance, or type.""")
-    
 
     @property
     def default_config(self):
