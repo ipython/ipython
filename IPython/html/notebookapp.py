@@ -277,7 +277,6 @@ notebook_aliases = [u'port', u'port-retries', u'ip', u'keyfile', u'certfile',
 class NotebookApp(BaseIPythonApplication):
 
     name = 'ipython-notebook'
-    default_config_file_name='ipython_notebook_config.py'
     
     description = """
         The IPython HTML Notebook.

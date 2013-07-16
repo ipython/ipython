@@ -58,9 +58,6 @@ from IPython.utils.traitlets import Bool, Unicode, Dict, List, Float, Instance
 # Module level variables
 #-----------------------------------------------------------------------------
 
-#: The default config file name for this application
-default_config_file_name = u'ipengine_config.py'
-
 _description = """Start an IPython engine for parallel computing.
 
 IPython engines run in parallel and perform computations on behalf of a client
@@ -144,7 +141,6 @@ class IPEngineApp(BaseParallelApplication):
     name = 'ipengine'
     description = _description
     examples = _examples
-    config_file_name = Unicode(default_config_file_name)
     classes = List([ZMQInteractiveShell, ProfileDir, Session, EngineFactory, Kernel, MPI])
 
     startup_script = Unicode(u'', config=True,
