@@ -43,15 +43,14 @@ class IPythonError(Exception):
 class KernelError(IPythonError):
     pass
 
-
-
 class NoEnginesRegistered(KernelError):
     pass
-
 
 class TaskAborted(KernelError):
     pass
 
+class TaskTimeout(KernelError):
+    pass
 
 class TimeoutError(KernelError):
     pass

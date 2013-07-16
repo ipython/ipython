@@ -308,4 +308,18 @@ class AsyncResultTest(ClusterTestCase):
         ar.get(5)
         nt.assert_in(4, found)
         self.assertTrue(len(found) > 1, "should have seen data multiple times, but got: %s" % found)
+    
+    def test_not_single_result(self):
+        save_build = self.client._build_targets
+        def single_engine(*a, **kw):
+            idents, targets = save_build(*a, **kw)
+            return idents[:1], targets[:1]
+        ids = single_engine('all')[1]
+        self.client._build_targets = single_engine
+        for targets in ('all', None, ids):
+            dv = self.client.direct_view(targets=targets)
+            ar = dv.apply_async(lambda : 5)
+            self.assertEqual(ar.get(10), [5])
+        self.client._build_targets = save_build
+
 
