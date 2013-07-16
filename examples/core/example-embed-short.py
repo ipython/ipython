@@ -16,7 +16,7 @@ else:
     exit_msg = '*** Back in main IPython ***'
 
 # First import the embed function
-from IPython.frontend.terminal.embed import InteractiveShellEmbed
+from IPython.terminal.embed import InteractiveShellEmbed
 # Now create the IPython shell instance. Put ipshell() anywhere in your code
 # where you want it to open.
 ipshell = InteractiveShellEmbed(banner1=banner, exit_msg=exit_msg)
@@ -36,7 +36,7 @@ from IPython import embed
 try:
     get_ipython
 except NameError:
-    from IPython.frontend.terminal.embed import InteractiveShellEmbed
+    from IPython.terminal.embed import InteractiveShellEmbed
     ipshell = InteractiveShellEmbed()
     # Now ipshell() will open IPython anywhere in the code
 else:

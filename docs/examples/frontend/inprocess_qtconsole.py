@@ -6,8 +6,8 @@ kernel, both directly and via the frontend widget.
 """
 
 from IPython.kernel.inprocess.ipkernel import InProcessKernel
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.inprocess_kernelmanager import QtInProcessKernelManager
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.inprocess_kernelmanager import QtInProcessKernelManager
 from IPython.lib import guisupport
 
 
