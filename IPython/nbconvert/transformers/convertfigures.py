@@ -13,14 +13,14 @@ one format to another.
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import ConfigurableTransformer
+from .base import Transformer
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ConvertFiguresTransformer(ConfigurableTransformer):
+class ConvertFiguresTransformer(Transformer):
     """
     Converts all of the outputs in a notebook from one format to another.
     """
