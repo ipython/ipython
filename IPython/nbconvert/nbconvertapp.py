@@ -79,7 +79,7 @@ class NbConvertApp(BaseIPythonApplication):
 
     #Other configurable variables
     export_format = Unicode(
-        "", config=True,
+        "full_html", config=True,
         help="""If specified, nbconvert will convert the document(s) specified
                 using this format.""")
 
