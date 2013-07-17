@@ -254,11 +254,11 @@ def make_exclude():
     exclusions.append(ipjoin('lib', 'inputhookgtk'))
     exclusions.append(ipjoin('kernel', 'zmq', 'gui', 'gtkembed'))
 
-    #Also done unconditionally, exclude nbconvert directories containing
-    #config files used to test.  Executing the config files with iptest would
-    #cause an exception.
-    exclusions.append(ipjoin('nbconvert', 'tests', 'files'))
-    exclusions.append(ipjoin('nbconvert', 'exporters', 'tests', 'files'))
+    # #Also done unconditionally, exclude nbconvert directories containing
+    # #config files used to test.  Executing the config files with iptest would
+    # #cause an exception.
+    # exclusions.append(ipjoin('nbconvert', 'tests', 'files'))
+    # exclusions.append(ipjoin('nbconvert', 'exporters', 'tests', 'files'))
 
     # These have to be skipped on win32 because the use echo, rm, cd, etc.
     # See ticket https://github.com/ipython/ipython/issues/87
