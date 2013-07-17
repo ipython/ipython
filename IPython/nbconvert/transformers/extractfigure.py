@@ -15,13 +15,13 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 
 import sys
 from IPython.utils.traitlets import Unicode
-from .base import ConfigurableTransformer
+from .base import Transformer
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class ExtractFigureTransformer(ConfigurableTransformer):
+class ExtractFigureTransformer(Transformer):
     """
     Extracts all of the figures from the notebook file.  The extracted 
     figures are returned in the 'resources' dictionary.

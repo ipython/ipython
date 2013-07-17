@@ -23,7 +23,7 @@ from IPython.utils.traitlets import Bool
 # Classes and Functions
 #-----------------------------------------------------------------------------
 
-class ConfigurableTransformer(NbConvertBase):
+class Transformer(NbConvertBase):
     """ A configurable transformer
 
     Inherit from this class if you wish to have configurability for your
@@ -53,7 +53,7 @@ class ConfigurableTransformer(NbConvertBase):
             Additional arguments
         """
         
-        super(ConfigurableTransformer, self).__init__(**kw)
+        super(Transformer, self).__init__(**kw)
 
        
     def __call__(self, nb, resources):

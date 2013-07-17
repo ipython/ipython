@@ -25,7 +25,7 @@ from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
 from .reveal import RevealExporter
-from .rst import RstExporter
+from .rst import RSTExporter
 from .sphinx_howto import SphinxHowtoExporter
 from .sphinx_manual import SphinxManualExporter
 
@@ -33,7 +33,7 @@ from .sphinx_manual import SphinxManualExporter
 # Classes
 #-----------------------------------------------------------------------------
 
-def DocDecorator(f):    
+def DocDecorator(f):
     
     #Set docstring of function
     f.__doc__ = f.__doc__ + """
@@ -184,7 +184,7 @@ def export_python(nb, **kw):
 @DocDecorator
 def export_reveal(nb, **kw):
     """
-    Export a notebook object to Reveal
+    Export a notebook object to a Reveal.js presentation
     """
     return export(RevealExporter, nb, **kw)
 
@@ -192,9 +192,9 @@ def export_reveal(nb, **kw):
 @DocDecorator
 def export_rst(nb, **kw):
     """
-    Export a notebook object to RST
+    Export a notebook object to reStructuredText
     """
-    return export(RstExporter, nb, **kw)
+    return export(RSTExporter, nb, **kw)
 
 
 @DocDecorator

@@ -12,14 +12,14 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import ConfigurableTransformer
+from .base import Transformer
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class RevealHelpTransformer(ConfigurableTransformer):
+class RevealHelpTransformer(Transformer):
 
     url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
                          config=True,

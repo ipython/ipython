@@ -22,7 +22,7 @@ from .exporter import Exporter
 # Classes
 #-----------------------------------------------------------------------------
 
-class RstExporter(Exporter):
+class RSTExporter(Exporter):
     """
     Exports restructured text documents.
     """
@@ -38,5 +38,5 @@ class RstExporter(Exporter):
     @property
     def default_config(self):
         c = Config({'ExtractFigureTransformer':{'enabled':True}})
-        c.merge(super(RstExporter,self).default_config)
+        c.merge(super(RSTExporter,self).default_config)
         return c

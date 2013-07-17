@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""NBConvert is a utility for conversion of IPYNB files.
+"""NBConvert is a utility for conversion of .ipynb files.
 
-Commandline interface for the NBConvert conversion utility.  Read the
-readme.rst for usage information
+Command-line interface for the NbConvert conversion utility.
 """
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
@@ -23,42 +22,87 @@ import os
 import glob
 
 #From IPython
-from IPython.core.application import BaseIPythonApplication
-from IPython.config.application import catch_config_error
-from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
+from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
+from IPython.config import catch_config_error, Configurable
+from IPython.utils.traitlets import (
+    Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
+)
 from IPython.utils.importstring import import_item
 
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
-from .exporters.exporter import Exporter
-from .writers.base import WriterBase
+from IPython.nbconvert import exporters, transformers, writers
 from .utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
 
+nbconvert_aliases = {}
+nbconvert_aliases.update(base_aliases)
+nbconvert_aliases.update({
+    'format' : 'NbConvertApp.export_format',
+    'notebooks' : 'NbConvertApp.notebooks',
+    'writer' : 'NbConvertApp.writer_class',
+})
+
+nbconvert_flags = {}
+nbconvert_flags.update(base_flags)
+nbconvert_flags.update({
+    'stdout' : (
+        {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
+        "Write notebook output to stdout instead of files."
+        )
+})
+
+
 class NbConvertApp(BaseIPythonApplication):
     """Application used to convert to and from notebook file type (*.ipynb)"""
 
     name = 'ipython-nbconvert'
+    aliases = nbconvert_aliases
+    flags = nbconvert_flags
+    
+    def _classes_default(self):
+        classes = [NbConvertBase]
+        for pkg in (exporters, transformers, writers):
+            for name in dir(pkg):
+                cls = getattr(pkg, name)
+                if isinstance(cls, type) and issubclass(cls, Configurable):
+                    classes.append(cls)
+        return classes
 
     description = Unicode(
-        u"""This application is used to convert notebook files (*.ipynb).
-        An ipython config file can be used to batch convert notebooks in the 
-        current directory.""")
+        u"""This application is used to convert notebook files (*.ipynb)
+        to various other formats.""")
 
     examples = Unicode(u"""
-        Running `ipython nbconvert` will read the directory config file and then 
-        apply it to one or more notebooks.
-
+        The simplest way to use nbconvert is
+        
+        > ipython nbconvert mynotebook.ipynb
+        
+        which will convert mynotebook.ipynb to the default format (probably HTML).
+        
+        You can specify the export format with `--format`.
+        Options include {0}
+        
+        > ipython nbconvert --format latex mynotebook.ipnynb
+        
+        You can also pipe the output to stdout, rather than a file
+        
+        > ipython nbconvert mynotebook.ipynb --stdout
+        
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
   
         > ipython nbconvert notebook*.ipynb
         > ipython nbconvert notebook1.ipynb notebook2.ipynb
-        > ipython nbconvert # this will use the config file to fill in the notebooks
-        """)
-    
+        
+        or you can specify the notebooks list in a config file, containing::
+        
+            c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+        
+        > ipython nbconvert --config mycfg.py
+        """.format(get_export_names()))
     #Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
@@ -78,54 +122,44 @@ class NbConvertApp(BaseIPythonApplication):
 
 
     #Other configurable variables
-    export_format = Unicode(
-        "", config=True,
-        help="""If specified, nbconvert will convert the document(s) specified
-                using this format.""")
+    export_format = CaselessStrEnum(get_export_names(),
+        default_value="full_html",
+        config=True,
+        help="""The export format to be used."""
+    )
 
     notebooks = List([], config=True, help="""List of notebooks to convert.
-                     Search patterns are supported.""")
-
-    nbconvert_aliases = {'format':'NbConvertApp.export_format',
-               'notebooks':'NbConvertApp.notebooks',
-               'writer':'NbConvertApp.writer_class'} 
-
+                     Wildcards are supported.
+                     Filenames passed positionally will be added to the list.
+                     """)
 
     @catch_config_error
     def initialize(self, argv=None):
-        self.aliases.update(self.nbconvert_aliases)
-
         super(NbConvertApp, self).initialize(argv)
-
-        #Register class here to have help with help all
-        self.classes.insert(0, Exporter)
-        self.classes.insert(0, WriterBase)
-        self.classes.insert(0, NbConvertBase)
-
-        #Init
-        self.init_config(self.extra_args)
+        self.init_notebooks()
         self.init_writer()
 
-
-    def init_config(self, extra_args):
+    def init_notebooks(self):
+        """Construct the list of notebooks.
+        If notebooks are passed on the command-line,
+        they override notebooks specified in config files.
+        Glob each notebook to replace notebook patterns with filenames.
         """
-        Add notebooks to the config if needed.  Glob each notebook to replace
-        notebook patterns with filenames.
-        """
 
-        #Get any additional notebook patterns from the commandline
-        if len(extra_args) > 0:
-            for pattern in extra_args:
-                self.notebooks.append(pattern)
+        # Specifying notebooks on the command-line overrides (rather than adds)
+        # the notebook list
+        if self.extra_args:
+            patterns = self.extra_args
+        else:
+            patterns = self.notebooks
 
         #Use glob to replace all the notebook patterns with filenames.
         filenames = []
-        for pattern in self.notebooks:
+        for pattern in patterns:
             for filename in glob.glob(pattern):
                 if not filename in filenames:
                     filenames.append(filename)
         self.notebooks = filenames
-
 
     def init_writer(self):
         """
@@ -134,14 +168,12 @@ class NbConvertApp(BaseIPythonApplication):
         self._writer_class_changed(None, self.writer_class, self.writer_class)
         self.writer = self.writer_factory(parent=self)
 
-
-    def start(self, argv=None):
+    def start(self):
         """
-        Ran after initiialization completed
+        Ran after initialization completed
         """
         super(NbConvertApp, self).start()
         self.convert_notebooks()
-
 
     def convert_notebooks(self):
         """

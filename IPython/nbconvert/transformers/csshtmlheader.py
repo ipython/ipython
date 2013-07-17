@@ -19,7 +19,7 @@ from pygments.formatters import HtmlFormatter
 
 from IPython.utils import path
 
-from .base import ConfigurableTransformer
+from .base import Transformer
 
 from IPython.utils.traitlets import Unicode
 
@@ -27,7 +27,7 @@ from IPython.utils.traitlets import Unicode
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CSSHTMLHeaderTransformer(ConfigurableTransformer):
+class CSSHTMLHeaderTransformer(Transformer):
     """
     Transformer used to pre-process notebook for HTML output.  Adds IPython notebook
     front-end CSS and Pygments CSS to HTML output.

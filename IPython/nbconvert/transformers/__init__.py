@@ -1,5 +1,5 @@
 # Class base Transformers
-from .base import ConfigurableTransformer
+from .base import Transformer
 from .convertfigures import ConvertFiguresTransformer
 from .svg2pdf import SVG2PDFTransformer
 from .extractfigure import ExtractFigureTransformer
