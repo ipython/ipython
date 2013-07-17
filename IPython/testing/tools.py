@@ -190,7 +190,7 @@ def ipexec(fname, options=None):
     
     # FIXME: remove workaround for 2.6 support
     if sys.version_info[:2] > (2,6):
-        ipython_cmd = pipes.quote(sys.executable) + " -m IPython"
+        ipython_cmd = sys.executable + " -m IPython"
     else:
         ipython_cmd = "ipython"
     # Absolute path for filename
