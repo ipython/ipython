@@ -4,7 +4,7 @@
 from IPython.external.qt import QtCore
 
 # Local imports
-from IPython.utils.traitlets import Bool
+from IPython.utils.traitlets import Bool, DottedObjectName
 
 from IPython.kernel import KernelManager
 from IPython.kernel.restarter import KernelRestarter
@@ -30,6 +30,7 @@ class QtKernelRestarter(KernelRestarter, QtKernelRestarterMixin):
 class QtKernelManager(KernelManager, QtKernelManagerMixin):
     """A KernelManager with Qt signals for restart"""
 
+    client_class = DottedObjectName('IPython.qt.client.QtKernelClient')
     autorestart = Bool(True, config=True)
 
     def start_restarter(self):
