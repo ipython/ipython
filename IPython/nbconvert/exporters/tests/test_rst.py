@@ -15,7 +15,7 @@ Module with tests for rst.py
 #-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
-from ..rst import RstExporter
+from ..rst import RSTExporter
 
 #-----------------------------------------------------------------------------
 # Class
@@ -26,14 +26,14 @@ class Test_RstExporter(ExportersTestsBase):
 
     def test_constructor(self):
         """
-        Can a RstExporter be constructed?
+        Can a RSTExporter be constructed?
         """
-        RstExporter()
+        RSTExporter()
 
 
     def test_export(self):
         """
-        Can a RstExporter export something?
+        Can a RSTExporter export something?
         """
-        (output, resources) = RstExporter().from_filename(self._get_notebook())
+        (output, resources) = RSTExporter().from_filename(self._get_notebook())
         assert len(output) > 0
