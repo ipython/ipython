@@ -5,6 +5,7 @@ Authors : MinRK, gregcaporaso, dannystaple
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
 from IPython.core.display import DisplayObject
+import mimetypes
 
 
 class IFrame(object):
@@ -415,18 +416,28 @@ class Audio(DisplayObject):
 
         self.autoplay = autoplay
 
+    def reload(self):
+        if self.filename is not None:
+            self.mimetype = mimetypes.guess_type(self.filename)
+        elif self.url is not None:
+            self.mimetype = mimetypes.guess_type(self.url)
+        else
+            self.mimetype = "audio/wav"
+
+        super(Audio, self).reload()
+
     def _repr_html_(self):
         src = """
         <audio controls="controls" {autoplay}>
-          <source controls src="{src}" type="audio/wav" />
+          <source controls src="{src}" type="{type}" />
           Your browser does not support the audio element.
         </audio>
-        """.format(src=self.src_attr(),autoplay=self.autoplay_attr())
+        """.format(src=self.src_attr(),type=self.mimetype, autoplay=self.autoplay_attr())
         return src
 
     def src_attr(self):
         if(self.data is not None):
-            return """data:audio/wav;base64,{base64}""".format(base64=base64.encodestring(self.data))
+            return """data:{type};base64,{base64}""".format(type=self.mimetype, base64=base64.encodestring(self.data))
         else:
             return ""
 
