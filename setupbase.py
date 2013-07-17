@@ -152,7 +152,8 @@ def find_package_data():
         'IPython.html' : ['templates/*'] + static_data,
         'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
-            'templates/latex/skeleton/*.tplx', 'templates/skeleton/*']
+            'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
+            'tests/files/*.ipynb', 'exporters/tests/files/*.ipynb']
     }
     return package_data
 
