@@ -8,7 +8,7 @@ python:
 before_install:
     - easy_install -q pyzmq
     - easy_install pygments
-    - easy_install  jinja2
+    - easy_install jinja2
     - easy_install markdown
     - easy_install sphinx
 install:
