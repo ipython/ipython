@@ -25,7 +25,7 @@ from ..exporter import Exporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_Exporter(ExportersTestsBase):
+class TestExporter(ExportersTestsBase):
     """Contains test functions for exporter.py"""
 
 

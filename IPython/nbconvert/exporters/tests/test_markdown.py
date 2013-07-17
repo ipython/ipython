@@ -21,7 +21,7 @@ from ..markdown import MarkdownExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_MarkdownExporter(ExportersTestsBase):
+class TestMarkdownExporter(ExportersTestsBase):
     """Contains test functions for markdown.py"""
 
     def test_constructor(self):

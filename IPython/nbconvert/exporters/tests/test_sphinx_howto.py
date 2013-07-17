@@ -21,7 +21,7 @@ from ..sphinx_howto import SphinxHowtoExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_SphinxHowtoExporter(ExportersTestsBase):
+class TestSphinxHowtoExporter(ExportersTestsBase):
     """Contains test functions for sphinx_howto.py"""
 
     def test_constructor(self):

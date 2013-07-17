@@ -21,7 +21,7 @@ from ..fullhtml import FullHTMLExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_FullHTMLExporter(ExportersTestsBase):
+class TestFullHTMLExporter(ExportersTestsBase):
     """Contains test functions for fullhtml.py"""
 
     def test_constructor(self):

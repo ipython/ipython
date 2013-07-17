@@ -23,7 +23,7 @@ from ..datatypefilter import DataTypeFilter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_DataTypeFilter(TestsBase):
+class TestDataTypeFilter(TestsBase):
     """Contains test functions for datatypefilter.py"""
 
 

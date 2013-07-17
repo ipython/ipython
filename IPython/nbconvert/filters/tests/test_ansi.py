@@ -24,7 +24,7 @@ from ..ansi import *
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_Ansi(TestsBase):
+class TestAnsi(TestsBase):
     """Contains test functions for ansi.py"""
 
 

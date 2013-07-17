@@ -21,7 +21,7 @@ from ..latex import LatexExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_LatexExporter(ExportersTestsBase):
+class TestLatexExporter(ExportersTestsBase):
     """Contains test functions for latex.py"""
 
     def test_constructor(self):

@@ -21,7 +21,7 @@ from ..reveal import RevealExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_RevealExporter(ExportersTestsBase):
+class TestRevealExporter(ExportersTestsBase):
     """Contains test functions for reveal.py"""
 
     def test_constructor(self):

@@ -23,7 +23,7 @@ from ..highlight import *
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_Highlight(TestsBase):
+class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
 
 

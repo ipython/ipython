@@ -21,7 +21,7 @@ from ..python import PythonExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_PythonExporter(ExportersTestsBase):
+class TestPythonExporter(ExportersTestsBase):
     """Contains test functions for python.py"""
 
     def test_constructor(self):

@@ -21,7 +21,7 @@ from ..basichtml import BasicHTMLExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_BasicHTMLExporter(ExportersTestsBase):
+class TestBasicHTMLExporter(ExportersTestsBase):
     """Contains test functions for basichtml.py"""
 
     def test_constructor(self):

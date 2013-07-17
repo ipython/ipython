@@ -21,7 +21,7 @@ from ..rst import RSTExporter
 # Class
 #-----------------------------------------------------------------------------
 
-class Test_RstExporter(ExportersTestsBase):
+class TestRSTExporter(ExportersTestsBase):
     """Contains test functions for rst.py"""
 
     def test_constructor(self):

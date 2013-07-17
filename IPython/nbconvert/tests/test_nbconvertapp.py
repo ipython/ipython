@@ -20,7 +20,7 @@ from .base import TestsBase
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class Test_NbConvertApp(TestsBase):
+class TestNbConvertApp(TestsBase):
     """Collection of NbConvertApp tests"""
 
 
