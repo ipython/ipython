@@ -227,6 +227,8 @@ def _tr_help(line_info):
 def _tr_magic(line_info):
     "Translate lines escaped with: %"
     tpl = '%sget_ipython().magic(%r)'
+    if line_info.line.startswith(ESC_MAGIC2):
+        return line_info.line
     cmd = ' '.join([line_info.ifun, line_info.the_rest]).strip()
     return tpl % (line_info.pre, cmd)
 
@@ -272,7 +274,8 @@ _help_end_re = re.compile(r"""(%{0,2}
                               [a-zA-Z_*][\w*]*        # Variable name
                               (\.[a-zA-Z_*][\w*]*)*   # .etc.etc
                               )
-                              (\?\??)$                # ? or ??""",
+                              (\?\??)$                # ? or ??
+                              """,
                               re.VERBOSE)
 
 def has_comment(src):
@@ -328,7 +331,14 @@ def cellmagic(end_on_blank_line=False):
     line = ''
     while True:
         line = (yield line)
-        if (not line) or (not line.startswith(ESC_MAGIC2)):
+        # consume leading empty lines
+        while not line:
+            line = (yield line)
+        
+        if not line.startswith(ESC_MAGIC2):
+            # This isn't a cell magic, idle waiting for reset then start over
+            while line is not None:
+                line = (yield line)
             continue
         
         if cellmagic_help_re.match(line):

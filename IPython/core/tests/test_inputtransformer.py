@@ -259,6 +259,9 @@ syntax_ml = \
           (u'hello', None),
           (None , u_fmt("get_ipython().run_cell_magic({u}'bar', {u}'123', {u}'hello')")),
           ],
+         [(u'a=5', 'a=5'),
+          (u'%%cellmagic', '%%cellmagic'),
+          ],
        ],
        
        escaped =
