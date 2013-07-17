@@ -27,9 +27,10 @@ from IPython.config.application import catch_config_error
 from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
 from IPython.utils.importstring import import_item
 
-from .exporters.export import export_by_name, get_export_names, ExporterNameError
-from .exporters.exporter import Exporter
-from .writers.base import WriterBase
+from .exporters.export import (
+    export_by_name, get_export_names, ExporterNameError, get_exporters
+)
+from .writers import FilesWriter, StdoutWriter
 from .utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
@@ -62,6 +63,10 @@ class NbConvertApp(BaseIPythonApplication):
     flags = nbconvert_flags
     
     def _classes_default(self):
+        classes = []
+        classes.extend(get_exporters())
+        classes.extend([FilesWriter, StdoutWriter])
+        
         return [
             Exporter,
             WriterBase,
