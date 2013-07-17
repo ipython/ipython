@@ -18,6 +18,7 @@ from IPython.core import magic_arguments
 from IPython.core.magic import Magics, magics_class, line_magic
 from IPython.testing.skipdoctest import skip_doctest
 from IPython.utils.warn import warn
+from IPython.core.pylabtools import backends
 
 #-----------------------------------------------------------------------------
 # Magic implementation classes
@@ -25,12 +26,11 @@ from IPython.utils.warn import warn
 
 magic_gui_arg = magic_arguments.argument(
         'gui', nargs='?',
-        help="""Name of the matplotlib backend to use
-        ('qt', 'wx', 'gtk', 'osx', 'tk', 'inline', 'auto').
+        help="""Name of the matplotlib backend to use %s.
         If given, the corresponding matplotlib backend is used,
         otherwise it will be matplotlib's default
         (which you can set in your matplotlib config file).
-        """
+        """ % str(tuple(sorted(backends.keys())))
 )
 
 
