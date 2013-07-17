@@ -18,7 +18,7 @@ from IPython.config.configurable import Configurable
 # Classes and functions
 #-----------------------------------------------------------------------------
            
-class GlobalConfigurable(Configurable):
+class NbConvertBase(Configurable):
     """Global configurable class for shared config
 
     Usefull for display data priority that might be use by many trasnformers
@@ -33,5 +33,5 @@ class GlobalConfigurable(Configurable):
                     """
             )
 
-    def __init__(self, config=None, **kw):
-        super(GlobalConfigurable, self).__init__( config=config, **kw)
+    def __init__(self, **kw):
+        super(NbConvertBase, self).__init__(**kw)

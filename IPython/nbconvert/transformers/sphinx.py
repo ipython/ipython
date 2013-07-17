@@ -33,7 +33,7 @@ from pygments.formatters import LatexFormatter
 from IPython.utils.traitlets import Unicode, Bool
 
 # Needed to override transformer
-from .activatable import (ActivatableTransformer) #TODO
+from .base import (Transformer)
 
 from IPython.nbconvert.utils import console  
 
@@ -41,7 +41,7 @@ from IPython.nbconvert.utils import console
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class SphinxTransformer(ActivatableTransformer):
+class SphinxTransformer(Transformer):
     """
     Sphinx utility transformer.
 
@@ -127,9 +127,6 @@ class SphinxTransformer(ActivatableTransformer):
         # TODO: Add versatile method of additional notebook metadata.  Include
         #       handling of multiple files.  For now use a temporay namespace,
         #       '_draft' to signify that this needs to change.
-        if not "_draft" in nb.metadata:
-            nb.metadata._draft = {}
-            
         if not "sphinx" in resources:
             resources["sphinx"] = {}
 
@@ -137,10 +134,10 @@ class SphinxTransformer(ActivatableTransformer):
             
             # Prompt the user for additional meta data that doesn't exist currently
             # but would be usefull for Sphinx.
-            nb.metadata._draft["author"] = self._prompt_author()
-            nb.metadata._draft["version"] = self._prompt_version()
-            nb.metadata._draft["release"] = self._prompt_release()
-            nb.metadata._draft["date"] = self._prompt_date()
+            resources["sphinx"]["author"] = self._prompt_author()
+            resources["sphinx"]["version"] = self._prompt_version()
+            resources["sphinx"]["release"] = self._prompt_release()
+            resources["sphinx"]["date"] = self._prompt_date()
             
             # Prompt the user for the document style.
             resources["sphinx"]["chapterstyle"] = self._prompt_chapter_title_style()
@@ -152,15 +149,17 @@ class SphinxTransformer(ActivatableTransformer):
         else:
             
             # Try to use the traitlets.
-            nb.metadata._draft["author"] = self.author
-            nb.metadata._draft["version"] = self.version
-            nb.metadata._draft["release"] = self.release
+            resources["sphinx"]["author"] = self.author
+            resources["sphinx"]["version"] = self.version
+            resources["sphinx"]["release"] = self.release
             
             # Use todays date if none is provided.
-            if len(self.publish_date.strip()) == 0:
-                nb.metadata._draft["date"] = date.today().strftime("%B %d, %Y")
+            if self.publish_date:
+                resources["sphinx"]["date"] = self.publish_date
+            elif len(resources['metadata']['modified_date'].strip()) == 0:
+                resources["sphinx"]["date"] = date.today().strftime("%B %-d, %Y")
             else:
-                nb.metadata._draft["date"] = self.publish_date
+                resources["sphinx"]["date"] = resources['metadata']['modified_date']
             
             # Sphinx traitlets.
             resources["sphinx"]["chapterstyle"] = self.chapter_style
@@ -175,7 +174,7 @@ class SphinxTransformer(ActivatableTransformer):
         resources["sphinx"]["pygment_definitions"] = self._generate_pygments_latex_def()
         
         if not (self.overridetitle == None or len(self.overridetitle.strip()) == 0):
-            nb.metadata.name = self.overridetitle
+            resources['metadata']['name'] = self.overridetitle
         
         # End
         return nb, resources 
@@ -212,12 +211,16 @@ class SphinxTransformer(ActivatableTransformer):
         return  console.input("Release Name (ie ""Rough draft""): ")
     
     
-    def _prompt_date(self):
+    def _prompt_date(self, resources):
         """
         Prompt the user to enter a date
         """
         
-        default_date = date.today().strftime("%B %d, %Y")
+        if resources['metadata']['modified_date']:
+            default_date = resources['metadata']['modified_date']
+        else:
+            default_date = date.today().strftime("%B %-d, %Y")
+            
         user_date = console.input("Date (deafults to \"" + default_date + "\"): ")
         if len(user_date.strip()) == 0:
             user_date = default_date

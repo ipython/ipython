@@ -17,19 +17,19 @@ from __future__ import print_function, absolute_import
 
 # Our own imports
 # Needed to override transformer
-from .activatable import (ActivatableTransformer)
+from .base import (Transformer)
 from IPython.nbconvert import filters
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class LatexTransformer(ActivatableTransformer):
+class LatexTransformer(Transformer):
     """
     Converter for latex destined documents.
     """
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, cell, resources, index):
         """
         Apply a transformation on each cell,
         

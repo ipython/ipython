@@ -12,14 +12,14 @@
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import ConfigurableTransformer
+from .base import Transformer
 from IPython.utils.traitlets import Unicode
 
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class RevealHelpTransformer(ConfigurableTransformer):
+class RevealHelpTransformer(Transformer):
 
     url_prefix = Unicode('//cdn.jsdelivr.net/reveal.js/2.4.0',
                          config=True,
@@ -39,9 +39,8 @@ class RevealHelpTransformer(ConfigurableTransformer):
             transformers to pass variables into the Jinja engine.
         """
 
-
         for worksheet in nb.worksheets :
-            for i, cell in enumerate(worksheet.cells):
+            for index, cell in enumerate(worksheet.cells):
 
                 #Make sure the cell has slideshow metadata.
                 cell.metadata.align_type = cell.get('metadata', {}).get('slideshow', {}).get('align_type', 'Left')
@@ -50,9 +49,9 @@ class RevealHelpTransformer(ConfigurableTransformer):
                 #Get the slide type.  If type is start of subslide or slide,
                 #end the last subslide/slide.
                 if cell.metadata.slide_type in ['slide']:
-                    worksheet.cells[i - 1].metadata.slide_helper = 'slide_end'
+                    worksheet.cells[index - 1].metadata.slide_helper = 'slide_end'
                 if cell.metadata.slide_type in ['subslide']:
-                    worksheet.cells[i - 1].metadata.slide_helper = 'subslide_end'
+                    worksheet.cells[index - 1].metadata.slide_helper = 'subslide_end'
 
 
         if 'reveal' not in resources:

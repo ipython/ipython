@@ -13,7 +13,7 @@ Reveal slide show exporter.
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, List
 from IPython.config import Config
 
 from .basichtml import BasicHTMLExporter
@@ -35,17 +35,7 @@ class RevealExporter(BasicHTMLExporter):
     template_file = Unicode(
             'reveal', config=True,
             help="Name of the template file to use")
-    
-    def _register_transformers(self):
-        """
-        Register all of the transformers needed for this exporter.
-        """
-        
-        #Register the transformers of the base class.
-        super(RevealExporter, self)._register_transformers()
-        
-        #Register reveal help transformer
-        self.register_transformer(transformers.RevealHelpTransformer)
+
 
     @property
     def default_config(self):

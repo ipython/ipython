@@ -16,18 +16,18 @@ import os
 import io
 
 from pygments.formatters import HtmlFormatter
-        
+
 from IPython.utils import path
 
-from .activatable import ActivatableTransformer
+from .base import Transformer
 
 from IPython.utils.traitlets import Unicode
-        
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class CSSHTMLHeaderTransformer(ActivatableTransformer):
+class CSSHTMLHeaderTransformer(Transformer):
     """
     Transformer used to pre-process notebook for HTML output.  Adds IPython notebook
     front-end CSS and Pygments CSS to HTML output.

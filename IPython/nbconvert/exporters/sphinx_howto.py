@@ -14,7 +14,7 @@ formatted for use with PDFLatex.
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, List
 from IPython.config import Config
 
 # local import
@@ -36,19 +36,9 @@ class SphinxHowtoExporter(LatexExporter):
             'sphinx_howto', config=True,
             help="Name of the template file to use")
 
-    def _register_transformers(self):
-        
-        #Register the transformers of the base class.
-        super(SphinxHowtoExporter, self)._register_transformers()
-        
-        #Register sphinx latex transformer
-        self.register_transformer(transformers.SphinxTransformer) 
-
+    
     @property
     def default_config(self):
-        c = Config({
-        'SphinxTransformer': {'enabled':True}
-        })
+        c = Config({'SphinxTransformer': {'enabled':True}})
         c.merge(super(SphinxHowtoExporter,self).default_config)
         return c
-                    

@@ -14,9 +14,9 @@ Exporter that exports Basic HTML.
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, List
 
-from ..transformers.csshtmlheader import CSSHTMLHeaderTransformer
+from IPython.nbconvert import transformers
 
 from .exporter import Exporter
 
@@ -40,16 +40,3 @@ class BasicHTMLExporter(Exporter):
     template_file = Unicode(
             'basichtml', config=True,
             help="Name of the template file to use")
-
-
-    def _register_transformers(self):
-        """
-        Register all of the transformers needed for this exporter.
-        """
-        
-        #Register the transformers of the base class.
-        super(BasicHTMLExporter, self)._register_transformers()
-        
-        #Register CSSHTMLHeaderTransformer transformer
-        self.register_transformer(CSSHTMLHeaderTransformer)
-                    
