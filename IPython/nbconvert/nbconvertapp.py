@@ -134,13 +134,18 @@ class NbConvertApp(BaseIPythonApplication):
         self.init_writer()
 
     def init_notebooks(self):
-        """
-        Add notebooks to the config if needed.  Glob each notebook to replace
-        notebook patterns with filenames.
+        """Construct the list of notebooks.
+        If notebooks are passed on the command-line,
+        they override notebooks specified in config files.
+        Glob each notebook to replace notebook patterns with filenames.
         """
 
-        #Get any additional notebook patterns from the commandline
-        patterns = self.notebooks + self.extra_args
+        # Specifying notebooks on the command-line overrides (rather than adds)
+        # the notebook list
+        if self.extra_args:
+            patterns = self.extra_args
+        else:
+            patterns = self.notebooks
 
         #Use glob to replace all the notebook patterns with filenames.
         filenames = []
