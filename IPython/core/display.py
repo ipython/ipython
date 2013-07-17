@@ -722,9 +722,8 @@ class Audio(DisplayObject):
         Audio(data=2**13*numpy.sin(2*pi*440/44100*numpy.arange(44100)).astype(numpy.int16),
             rate=44100)
 
-        # Specifying Audio(url=...) or Audio(filename=...) does not
-        # embed the audio data, it only generates an `<audio>` tag with a
-        # link to the source. This will not work when offline.
+        # Specifying Audio(url=...) or Audio(filename=...) will load the data
+        # from an existing WAV file and embed it into the notebook.
         Audio(filename='something.wav', autoplay=True)
 
         """
