@@ -149,7 +149,9 @@ def ansi2latex(text):
             texform, openbrack = single_ansi2latex(match.group())
             outstring += texform
         last_end = match.end()
+
+    #Add the remainer of the string and THEN close any remaining color brackets.
+    outstring += text[last_end:]
     if openbrack: 
         outstring += '}'*openbrack
-    outstring += text[last_end:]
     return outstring.strip()
