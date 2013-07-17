@@ -384,42 +384,9 @@ class Audio(DisplayObject):
         Audio(filename='something.wav', autoplay=True)
 
         """
-
-        super(Audio, self).__init__(data, url, filename)
-
-        if data is not None and not isinstance(data, string_types):
-            buffer = BytesIO()
-            buffer.write(b'RIFF')
-            buffer.write(b'\x00\x00\x00\x00')
-            buffer.write(b'WAVE')
-
-            buffer.write(b'fmt ')
-            if data.ndim == 1:
-                noc = 1
-            else:
-                noc = data.shape[1]
-            bits = data.dtype.itemsize * 8
-            sbytes = rate*(bits // 8)*noc
-            ba = noc * (bits // 8)
-            buffer.write(struct.pack('<ihHIIHH', 16, 1, noc, rate, sbytes, ba, bits))
-
-            # data chunk
-            buffer.write(b'data')
-            buffer.write(struct.pack('<i', data.nbytes))
-
-            if data.dtype.byteorder == '>' or (data.dtype.byteorder == '=' and sys.byteorder == 'big'):
-                data = data.byteswap()
-
-            buffer.write(data.tostring())
-            size = buffer.tell()
-            buffer.seek(4)
-            buffer.write(struct.pack('<i', size-8))
-
-            self.data = buffer.getvalue()
-        else:
-            self.data = None
-
+        self.rate = rate
         self.autoplay = autoplay
+        super(Audio, self).__init__(data, url, filename)
 
     def reload(self):
         if self.filename is not None:
@@ -428,6 +395,34 @@ class Audio(DisplayObject):
             self.mimetype = mimetypes.guess_type(self.url)[0]
         else:
             self.mimetype = "audio/wav"
+
+            buffer = BytesIO()
+            buffer.write(b'RIFF')
+            buffer.write(b'\x00\x00\x00\x00')
+            buffer.write(b'WAVE')
+
+            buffer.write(b'fmt ')
+            if self.data.ndim == 1:
+                noc = 1
+            else:
+                noc = self.data.shape[1]
+            bits = self.data.dtype.itemsize * 8
+            sbytes = self.rate*(bits // 8)*noc
+            ba = noc * (bits // 8)
+            buffer.write(struct.pack('<ihHIIHH', 16, 1, noc, self.rate, sbytes, ba, bits))
+
+            # data chunk
+            buffer.write(b'data')
+            buffer.write(struct.pack('<i', self.data.nbytes))
+
+            if self.data.dtype.byteorder == '>' or (self.data.dtype.byteorder == '=' and sys.byteorder == 'big'):
+                self.data = self.data.byteswap()
+
+            buffer.write(self.data.tostring())
+            size = buffer.tell()
+            buffer.seek(4)
+            buffer.write(struct.pack('<i', size-8))
+            self.data = buffer.getvalue()
 
         super(Audio, self).reload()
 
