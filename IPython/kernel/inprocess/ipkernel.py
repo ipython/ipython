@@ -160,19 +160,23 @@ class InProcessInteractiveShell(ZMQInteractiveShell):
     #-------------------------------------------------------------------------
 
     def enable_gui(self, gui=None):
-        """ Enable GUI integration for the kernel.
-        """
+        """Enable GUI integration for the kernel."""
         from IPython.kernel.zmq.eventloops import enable_gui
         if not gui:
             gui = self.kernel.gui
-        enable_gui(gui, kernel=self.kernel)
+        return enable_gui(gui, kernel=self.kernel)
 
-    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
-        """ Activate pylab support at runtime.
-        """
+    def enable_matplotlib(self, gui=None):
+        """Enable matplotlib integration for the kernel."""
         if not gui:
             gui = self.kernel.gui
-        super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
+        return super(InProcessInteractiveShell, self).enable_matplotlib(gui)
+
+    def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
+        """Activate pylab support at runtime."""
+        if not gui:
+            gui = self.kernel.gui
+        return super(InProcessInteractiveShell, self).enable_pylab(gui, import_all,
                                                             welcome_message)
 
 InteractiveShellABC.register(InProcessInteractiveShell)
