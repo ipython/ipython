@@ -6,6 +6,6 @@ from .reveal import RevealExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
-from .rst import RstExporter
+from .rst import RSTExporter
 from .sphinx_howto import SphinxHowtoExporter
 from .sphinx_manual import SphinxManualExporter
