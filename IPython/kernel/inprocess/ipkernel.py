@@ -170,7 +170,7 @@ class InProcessInteractiveShell(ZMQInteractiveShell):
         """Enable matplotlib integration for the kernel."""
         if not gui:
             gui = self.kernel.gui
-        return super(InProcessInteractiveShell, self).enable_matplotlib(self, gui)
+        return super(InProcessInteractiveShell, self).enable_matplotlib(gui)
 
     def enable_pylab(self, gui=None, import_all=True, welcome_message=False):
         """Activate pylab support at runtime."""
