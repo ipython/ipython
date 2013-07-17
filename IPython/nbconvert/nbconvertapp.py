@@ -96,6 +96,12 @@ class NbConvertApp(BaseIPythonApplication):
   
         > ipython nbconvert notebook*.ipynb
         > ipython nbconvert notebook1.ipynb notebook2.ipynb
+        
+        or you can specify the notebooks list in a config file, containing::
+        
+            c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+        
+        > ipython nbconvert --config mycfg.py
         """.format(get_export_names()))
     #Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
