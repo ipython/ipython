@@ -7,6 +7,10 @@ python:
     - 3.3
 before_install:
     - easy_install -q pyzmq
+    - easy_install pygments
+    - easy_install  jinja2
+    - easy_install markdown
+    - easy_install sphinx
 install:
     - python setup.py install -q 
 script:
