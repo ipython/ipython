@@ -224,12 +224,3 @@ def get_export_names():
     # filter out the one method that is not a template
     l = [x for x in l if 'by_name' not in x]
     return sorted(l)
-
-def get_exporters():
-    "Return a list of the currently supported export targets"
-    # grab everything after 'export_'
-    l = [x for x in __all__ if x.endswith('Exporter')]
-    g = globals()
-    # filter out the one method that is not a template
-    l = [g[x] for x in l if issubclass(g[x], Exporter)]
-    return sorted(l)

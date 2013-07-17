@@ -23,14 +23,12 @@ import glob
 
 #From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
-from IPython.config.application import catch_config_error
+from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
 from IPython.utils.importstring import import_item
 
-from .exporters.export import (
-    export_by_name, get_export_names, ExporterNameError, get_exporters
-)
-from .writers import FilesWriter, StdoutWriter
+from .exporters.export import export_by_name, get_export_names, ExporterNameError
+from IPython.nbconvert import exporters, transformers, writers
 from .utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
@@ -63,15 +61,13 @@ class NbConvertApp(BaseIPythonApplication):
     flags = nbconvert_flags
     
     def _classes_default(self):
-        classes = []
-        classes.extend(get_exporters())
-        classes.extend([FilesWriter, StdoutWriter])
-        
-        return [
-            Exporter,
-            WriterBase,
-            NbConvertBase,
-        ]
+        classes = [NbConvertBase]
+        for pkg in (exporters, transformers, writers):
+            for name in dir(pkg):
+                cls = getattr(pkg, name)
+                if isinstance(cls, type) and issubclass(cls, Configurable):
+                    classes.append(cls)
+        return classes
 
     description = Unicode(
         u"""This application is used to convert notebook files (*.ipynb).
