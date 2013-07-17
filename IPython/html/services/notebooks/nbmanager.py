@@ -81,6 +81,12 @@ class NotebookManager(LoggingConfigurable):
                 
     allowed_formats = List([u'json',u'py'])
 
+    def add_new_folder(self, path=None):
+        new_path = os.path.join(self.notebook_dir, path)
+        if not os.path.exists(new_path):
+            os.makedirs(new_path) 
+        else:
+            raise web.HTTPError(409, u'Directory already exists or creation permission not allowed.')
 
     def load_notebook_names(self, path):
         """Load the notebook names into memory.
