@@ -13,13 +13,13 @@ Contains CheeseTransformer
 # Imports
 #-----------------------------------------------------------------------------
 
-from ...transformers.base import ConfigurableTransformer
+from ...transformers.base import Transformer
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class CheeseTransformer(ConfigurableTransformer):
+class CheeseTransformer(Transformer):
     """
     Adds a cheese tag to the resources object
     """
