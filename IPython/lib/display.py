@@ -4,7 +4,12 @@ Authors : MinRK, gregcaporaso, dannystaple
 """
 from os.path import exists, isfile, splitext, abspath, join, isdir
 from os import walk, sep
+import struct
+import base64
+import sys
+from io import BytesIO
 from IPython.core.display import DisplayObject
+from IPython.utils.py3compat import string_types
 import mimetypes
 
 
@@ -418,10 +423,10 @@ class Audio(DisplayObject):
 
     def reload(self):
         if self.filename is not None:
-            self.mimetype = mimetypes.guess_type(self.filename)
+            self.mimetype = mimetypes.guess_type(self.filename)[0]
         elif self.url is not None:
-            self.mimetype = mimetypes.guess_type(self.url)
-        else
+            self.mimetype = mimetypes.guess_type(self.url)[0]
+        else:
             self.mimetype = "audio/wav"
 
         super(Audio, self).reload()

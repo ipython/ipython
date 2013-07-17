@@ -21,9 +21,6 @@ from __future__ import print_function
 
 import os
 import struct
-from io import BytesIO
-import base64
-import sys
 
 from IPython.utils.py3compat import string_types, cast_bytes_py2, cast_unicode
 
@@ -691,3 +688,4 @@ def clear_output(stdout=True, stderr=True, other=True):
         if stderr:
             print('\033[2K\r', file=io.stderr, end='')
             io.stderr.flush()
+
