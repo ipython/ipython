@@ -172,8 +172,7 @@ class HomeDirError(Exception):
 def get_home_dir(require_writable=False):
     """Return the 'home' directory, as a unicode string.
 
-    * First, check for frozen env in case of py2exe
-    * Otherwise, defer to os.path.expanduser('~')
+    Uses os.path.expanduser('~'), and checks for writability.
     
     See stdlib docs for how this is determined.
     $HOME is first priority on *ALL* platforms.
@@ -189,19 +188,6 @@ def get_home_dir(require_writable=False):
             The path is resolved, but it is not guaranteed to exist or be writable.
     """
 
-    # first, check py2exe distribution root directory for _ipython.
-    # This overrides all. Normally does not exist.
-
-    if hasattr(sys, "frozen"): #Is frozen by py2exe
-        if '\\library.zip\\' in IPython.__file__.lower():#libraries compressed to zip-file
-            root, rest = IPython.__file__.lower().split('library.zip')
-        else:
-            root=os.path.join(os.path.split(IPython.__file__)[0],"../../")
-        root=os.path.abspath(root).rstrip('\\')
-        if _writable_dir(os.path.join(root, '_ipython')):
-            os.environ["IPYKITROOT"] = root
-        return py3compat.cast_unicode(root, fs_encoding)
-    
     homedir = os.path.expanduser('~')
     # Next line will make things work even when /home/ is a symlink to
     # /usr/home as it is on FreeBSD, for example
