@@ -24,7 +24,9 @@ import glob
 #From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
 from IPython.config import catch_config_error, Configurable
-from IPython.utils.traitlets import Unicode, List, Instance, DottedObjectName, Type
+from IPython.utils.traitlets import (
+    Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
+)
 from IPython.utils.importstring import import_item
 
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
@@ -70,18 +72,31 @@ class NbConvertApp(BaseIPythonApplication):
         return classes
 
     description = Unicode(
-        u"""This application is used to convert notebook files (*.ipynb).
-        An ipython config file can be used to batch convert notebooks in the 
-        current directory.""")
+        u"""This application is used to convert notebook files (*.ipynb)
+        to various other formats.""")
 
     examples = Unicode(u"""
+        The simplest way to use nbconvert is
+        
+        > ipython nbconvert mynotebook.ipynb
+        
+        which will convert mynotebook.ipynb to the default format (probably HTML).
+        
+        You can specify the export format with `--format`.
+        Options include {0}
+        
+        > ipython nbconvert --format latex mynotebook.ipnynb
+        
+        You can also pipe the output to stdout, rather than a file
+        
+        > ipython nbconvert mynotebook.ipynb --stdout
+        
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
   
         > ipython nbconvert notebook*.ipynb
         > ipython nbconvert notebook1.ipynb notebook2.ipynb
-        > ipython nbconvert --format sphinx_howto notebook.ipynb
-        """)
+        """.format(get_export_names()))
     #Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
@@ -101,13 +116,16 @@ class NbConvertApp(BaseIPythonApplication):
 
 
     #Other configurable variables
-    export_format = Unicode(
-        "full_html", config=True,
-        help="""If specified, nbconvert will convert the document(s) specified
-                using this format.""")
+    export_format = CaselessStrEnum(get_export_names(),
+        default_value="full_html",
+        config=True,
+        help="""The export format to be used."""
+    )
 
     notebooks = List([], config=True, help="""List of notebooks to convert.
-                     Search patterns are supported.""")
+                     Wildcards are supported.
+                     Filenames passed positionally will be added to the list.
+                     """)
 
     @catch_config_error
     def initialize(self, argv=None):
