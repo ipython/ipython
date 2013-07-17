@@ -114,7 +114,8 @@ class NotebookManager(LoggingConfigurable):
         last_modified, content = self.read_notebook_object(notebook_name, notebook_path)
         model = {"notebook_name": notebook_name, 
                     "notebook_path": notebook_path,
-                    "content": content}
+                    "content": content,
+                    "last_modified": last_modified.ctime()}
         return model
 
     def get_notebook(self, notebook_name, notebook_path=None, format=u'json'):
