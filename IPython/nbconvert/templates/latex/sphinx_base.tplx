@@ -347,11 +347,15 @@ Note: For best display, use latex syntax highlighting. =))
 % Supported image formats
 %==============================================================================
 ((*- block data_png -*))
-    ((( conditionally_center_output(insert_graphics(output.key_png)) )))
+    ((( conditionally_center_output(insert_graphics(output.png_filename)) )))
+((*- endblock -*))
+
+((*- block data_jpg -*))
+    ((( conditionally_center_output(insert_graphics(output.jpg_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_svg -*))
-    ((( conditionally_center_output(insert_graphics(output.key_svg)) )))
+    ((( conditionally_center_output(insert_graphics(output.svg_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))

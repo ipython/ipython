@@ -30,15 +30,15 @@ In[{{cell.prompt_number if cell.prompt_number else ' '}}]:{% endblock in_prompt 
 
 
 {% block data_svg %}
-[!image]({{output.key_svg}})
+[!image]({{output.svg_filename}})
 {% endblock data_svg %}
 
 {% block data_png %}
-[!image]({{output.key_png}})
+[!image]({{output.png_filename}})
 {% endblock data_png %}
 
 {% block data_jpg %}
-[!image]({{output.key_jpg}})
+[!image]({{output.jpg_filename}})
 {% endblock data_jpg %}
 
 

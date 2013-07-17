@@ -41,21 +41,21 @@ it introduces a new line
 
 ((*- block data_png -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.key_png)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.png_filename)))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.key_jpeg)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.jpeg_filename)))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_svg -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.key_svg)))}
+\includegraphics[width=0.7\textwidth]{(((output.svg_filename)))}
 \par
 \end{center}
 ((*- endblock -*))
