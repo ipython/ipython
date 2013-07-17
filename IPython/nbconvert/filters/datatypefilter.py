@@ -3,7 +3,7 @@
 The filter contained in the file allows the converter templates to select
 the output format that is most valuable to the active export format.  The
 value of the different formats is set via 
-GlobalConfigurable.display_data_priority
+NbConvertBase.display_data_priority
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -17,11 +17,11 @@ GlobalConfigurable.display_data_priority
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-from ..utils.config import GlobalConfigurable
+from ..utils.base import NbConvertBase
 
 __all__ = ['DataTypeFilter']
 
-class DataTypeFilter(GlobalConfigurable):
+class DataTypeFilter(NbConvertBase):
     """ Returns the preferred display format """
 
     def __call__(self, output):

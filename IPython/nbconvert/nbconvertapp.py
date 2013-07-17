@@ -1,8 +1,7 @@
 #!/usr/bin/env python
-"""NBConvert is a utility for conversion of IPYNB files.
+"""NBConvert is a utility for conversion of .ipynb files.
 
-Commandline interface for the NBConvert conversion utility.  Read the
-readme.rst for usage information
+Command-line interface for the NbConvert conversion utility.
 """
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
@@ -19,211 +18,212 @@ readme.rst for usage information
 #Stdlib imports
 from __future__ import print_function
 import sys
-import io
 import os
+import glob
 
 #From IPython
-from IPython.config.application import Application
-from IPython.utils.traitlets import Bool, Unicode
+from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
+from IPython.config import catch_config_error, Configurable
+from IPython.utils.traitlets import (
+    Unicode, List, Instance, DottedObjectName, Type, CaselessStrEnum,
+)
+from IPython.utils.importstring import import_item
 
-from .exporters.export import export_by_name, get_export_names
-from .exporters.exporter import Exporter
-from .transformers import extractfigure
-from .utils.config import GlobalConfigurable
-
-#-----------------------------------------------------------------------------
-#Globals and constants
-#-----------------------------------------------------------------------------
-
-#'Keys in resources' user prompt.
-KEYS_PROMPT_HEAD = "====================== Keys in Resources =================================="
-KEYS_PROMPT_BODY = """
-===========================================================================
-You are responsible for writing these files into the appropriate
-directory(ies) if need be.  If you do not want to see this message, enable
-the 'write' (boolean) flag of the converter.
-===========================================================================
-"""
-
-_examples = """
-ipython nbconvert rst Untitled0.ipynb    # convert ipynb to ReStructured Text
-ipython nbconvert latex Untitled0.ipynb  # convert ipynb to LaTeX
-ipython nbconvert reveal Untitled0.ipynb # convert to Reveal (HTML/JS) slideshow
-"""
-
+from .exporters.export import export_by_name, get_export_names, ExporterNameError
+from IPython.nbconvert import exporters, transformers, writers
+from .utils.base import NbConvertBase
 
 #-----------------------------------------------------------------------------
 #Classes and functions
 #-----------------------------------------------------------------------------
 
-class NbConvertApp(Application):
-    __doc__ = """IPython notebook conversion utility
+nbconvert_aliases = {}
+nbconvert_aliases.update(base_aliases)
+nbconvert_aliases.update({
+    'format' : 'NbConvertApp.export_format',
+    'notebooks' : 'NbConvertApp.notebooks',
+    'writer' : 'NbConvertApp.writer_class',
+})
+
+nbconvert_flags = {}
+nbconvert_flags.update(base_flags)
+nbconvert_flags.update({
+    'stdout' : (
+        {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
+        "Write notebook output to stdout instead of files."
+        )
+})
+
+
+class NbConvertApp(BaseIPythonApplication):
+    """Application used to convert to and from notebook file type (*.ipynb)"""
+
+    name = 'ipython-nbconvert'
+    aliases = nbconvert_aliases
+    flags = nbconvert_flags
     
-Convert to and from notebook file type (*.ipynb)
+    def _classes_default(self):
+        classes = [NbConvertBase]
+        for pkg in (exporters, transformers, writers):
+            for name in dir(pkg):
+                cls = getattr(pkg, name)
+                if isinstance(cls, type) and issubclass(cls, Configurable):
+                    classes.append(cls)
+        return classes
 
-    ipython nbconvert TARGET FILENAME
+    description = Unicode(
+        u"""This application is used to convert notebook files (*.ipynb)
+        to various other formats.""")
 
-Supported export TARGETs are: %s
-""" % (" ".join(get_export_names()))
-    description = Unicode(__doc__)
-
-    examples = _examples
-
-    stdout = Bool(
-        False, config=True,
-        help="""Whether to print the converted IPYNB file to stdout
-        use full do diff files without actually writing a new file"""
-        )
-
-    write = Bool(
-        True, config=True,
-        help="""Should the converted notebook file be written to disk
-        along with potential extracted resources."""
-        )
-
-    aliases = {
-             'stdout':'NbConvertApp.stdout',
-             'write':'NbConvertApp.write',
-             }
-
-    flags = {}
-
-    flags['stdout'] = (
-        {'NbConvertApp' : {'stdout' : True}},
-    """Print converted file to stdout, equivalent to --stdout=True
-    """
-    )
-
-    flags['no-write'] = (
-        {'NbConvertApp' : {'write' : True}},
-    """Do not write to disk, equivalent to --write=False
-    """
-    )
-
-
-    def __init__(self, **kwargs):
-        """Public constructor"""
-
-        #Call base class
-        super(NbConvertApp, self).__init__(**kwargs)
-
-        #Register class here to have help with help all
-        self.classes.insert(0, Exporter)
-        self.classes.insert(0, GlobalConfigurable)
-
-
-    def start(self, argv=None):
-        """Entrypoint of NbConvert application.
+    examples = Unicode(u"""
+        The simplest way to use nbconvert is
         
-        Parameters
-        ----------
-        argv : list
-            Commandline arguments
+        > ipython nbconvert mynotebook.ipynb
+        
+        which will convert mynotebook.ipynb to the default format (probably HTML).
+        
+        You can specify the export format with `--format`.
+        Options include {0}
+        
+        > ipython nbconvert --format latex mynotebook.ipnynb
+        
+        You can also pipe the output to stdout, rather than a file
+        
+        > ipython nbconvert mynotebook.ipynb --stdout
+        
+        Multiple notebooks can be given at the command line in a couple of 
+        different ways:
+  
+        > ipython nbconvert notebook*.ipynb
+        > ipython nbconvert notebook1.ipynb notebook2.ipynb
+        
+        or you can specify the notebooks list in a config file, containing::
+        
+            c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+        
+        > ipython nbconvert --config mycfg.py
+        """.format(get_export_names()))
+    #Writer specific variables
+    writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
+                      help="""Instance of the writer class used to write the 
+                      results of the conversion.""")
+    writer_class = DottedObjectName('FilesWriter', config=True, 
+                                    help="""Writer class used to write the 
+                                    results of the conversion""")
+    writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
+                      'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
+                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
+    writer_factory = Type()
+
+    def _writer_class_changed(self, name, old, new):
+        if new in self.writer_aliases:
+            new = self.writer_aliases[new]
+        self.writer_factory = import_item(new)
+
+
+    #Other configurable variables
+    export_format = CaselessStrEnum(get_export_names(),
+        default_value="full_html",
+        config=True,
+        help="""The export format to be used."""
+    )
+
+    notebooks = List([], config=True, help="""List of notebooks to convert.
+                     Wildcards are supported.
+                     Filenames passed positionally will be added to the list.
+                     """)
+
+    @catch_config_error
+    def initialize(self, argv=None):
+        super(NbConvertApp, self).initialize(argv)
+        self.init_notebooks()
+        self.init_writer()
+
+    def init_notebooks(self):
+        """Construct the list of notebooks.
+        If notebooks are passed on the command-line,
+        they override notebooks specified in config files.
+        Glob each notebook to replace notebook patterns with filenames.
         """
-        
-        #Parse the commandline options.
-        self.parse_command_line(argv)
 
-        #Call base
-        super(NbConvertApp, self).start()
-
-        #The last arguments in list will be used by nbconvert
-        if len(self.extra_args) is not 3:
-            print( "Wrong number of arguments, use --help flag for usage", file=sys.stderr)
-            sys.exit(-1)
-        export_type = (self.extra_args)[1]
-        ipynb_file = (self.extra_args)[2]
-        
-        #Export
-        try:
-            return_value = export_by_name(export_type, ipynb_file)
-        except NameError as e:
-            print("Error: '%s' exporter not found." % export_type,
-                  file=sys.stderr)
-            print("Known exporters are:",
-                  "\n\t" + "\n\t".join(get_export_names()),
-                  file=sys.stderr)
-            sys.exit(-1)
+        # Specifying notebooks on the command-line overrides (rather than adds)
+        # the notebook list
+        if self.extra_args:
+            patterns = self.extra_args
         else:
-            (output, resources, exporter) = return_value 
-        
-        #TODO: Allow user to set output directory and file. 
-        destination_filename = None
-        destination_directory = None
-        if self.write:
-                
-            #Get the file name without the '.ipynb' (6 chars) extension and then
-            #remove any addition periods and spaces. The resulting name will
-            #be used to create the directory that the files will be exported
-            #into.
-            out_root = ipynb_file[:-6].replace('.', '_').replace(' ', '_')
-            destination_filename = os.path.join(out_root+'.'+exporter.file_extension)
-            
-            destination_directory = out_root+'_files'
-            if not os.path.exists(destination_directory):
-                os.mkdir(destination_directory)
-                
-        #Write the results
-        if self.stdout or not (destination_filename is None and destination_directory is None):
-            self._write_results(output, resources, destination_filename, destination_directory)
+            patterns = self.notebooks
 
+        #Use glob to replace all the notebook patterns with filenames.
+        filenames = []
+        for pattern in patterns:
+            for filename in glob.glob(pattern):
+                if not filename in filenames:
+                    filenames.append(filename)
+        self.notebooks = filenames
 
-    def _write_results(self, output, resources, destination_filename=None, destination_directory=None):
-        """Output the conversion results to the console and/or filesystem
-        
-        Parameters
-        ----------
-        output : str
-            Output of conversion
-        resources : dictionary
-            Additional input/output used by the transformers.  For
-            example, the ExtractFigure transformer outputs the
-            figures it extracts into this dictionary.  This method
-            relies on the figures being in this dictionary when
-            attempting to write the figures to the file system.
-        destination_filename : str, Optional
-            Filename to write output into.  If None, output is not 
-            written to a file.
-        destination_directory : str, Optional 
-            Directory to write notebook data (i.e. figures) to.  If
-            None, figures are not written to the file system.
+    def init_writer(self):
         """
-        
-        if self.stdout:
-            print(output.encode('utf-8'))
+        Initialize the writer (which is stateless)
+        """
+        self._writer_class_changed(None, self.writer_class, self.writer_class)
+        self.writer = self.writer_factory(parent=self)
 
-        #Write file output from conversion.
-        if not destination_filename is None:
-            with io.open(destination_filename, 'w') as f:
-                f.write(output)
+    def start(self):
+        """
+        Ran after initialization completed
+        """
+        super(NbConvertApp, self).start()
+        self.convert_notebooks()
 
-        #Get the key names used by the extract figure transformer
-        figures_key = extractfigure.FIGURES_KEY
-        binary_key = extractfigure.BINARY_KEY
-        text_key = extractfigure.TEXT_KEY
-        
-        #Output any associate figures into the same "root" directory.
-        binkeys = resources.get(figures_key, {}).get(binary_key,{}).keys()
-        textkeys = resources.get(figures_key, {}).get(text_key,{}).keys()
-        if binkeys or textkeys :
-            if not destination_directory is None:
-                for key in binkeys:
-                    with io.open(os.path.join(destination_directory, key), 'wb') as f:
-                        f.write(resources[figures_key][binary_key][key])
-                for key in textkeys:
-                    with io.open(os.path.join(destination_directory, key), 'w') as f:
-                        f.write(resources[figures_key][text_key][key])
+    def convert_notebooks(self):
+        """
+        Convert the notebooks in the self.notebook traitlet
+        """
+        #Export each notebook
+        conversion_success = 0
+        for notebook_filename in self.notebooks:
 
-            #Figures that weren't exported which will need to be created by the
-            #user.  Tell the user what figures these are.
-            if self.stdout:
-                print(KEYS_PROMPT_HEAD, file=sys.stderr)
-                print(resources[figures_key].keys(), file=sys.stderr)
-                print(KEYS_PROMPT_BODY , file=sys.stderr)
+            #Get a unique key for the notebook and set it in the resources object.
+            basename = os.path.basename(notebook_filename)
+            notebook_name = basename[:basename.rfind('.')]
+            resources = {}
+            resources['unique_key'] = notebook_name
+
+            #Try to export
+            try:
+                output, resources = export_by_name(self.export_format,
+                                              notebook_filename, 
+                                              resources=resources,
+                                              config=self.config)
+            except ExporterNameError as e:
+                print("Error: '%s' exporter not found." % self.export_format,
+                      file=sys.stderr)
+                print("Known exporters are:",
+                      "\n\t" + "\n\t".join(get_export_names()),
+                      file=sys.stderr)
+                sys.exit(-1)
+            #except Exception as e:
+                #print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
+                #print(e, file=sys.stderr)
+            else:
+                self.writer.write(output, resources, notebook_name=notebook_name)
+                conversion_success += 1
+
+        #If nothing was converted successfully, help the user.
+        if conversion_success == 0:
+
+            #No notebooks were specified, show help.
+            if len(self.notebooks) == 0:
+                self.print_help()
+
+            #Notebooks were specified, but not converted successfully.  Show how
+            #to access help.
+            else:
+                print('For help, use "ipython nbconvert --help"')
+
 
 #-----------------------------------------------------------------------------
 # Main entry point
 #-----------------------------------------------------------------------------
 
 launch_new_instance = NbConvertApp.launch_instance
-

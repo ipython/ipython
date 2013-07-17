@@ -16,13 +16,14 @@ It exposes a convenient class to inherit from to access configurability.
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..utils.config import GlobalConfigurable
+from ..utils.base import NbConvertBase
+from IPython.utils.traitlets import Bool
 
 #-----------------------------------------------------------------------------
 # Classes and Functions
 #-----------------------------------------------------------------------------
 
-class ConfigurableTransformer(GlobalConfigurable):
+class Transformer(NbConvertBase):
     """ A configurable transformer
 
     Inherit from this class if you wish to have configurability for your
@@ -31,11 +32,16 @@ class ConfigurableTransformer(GlobalConfigurable):
     Any configurable traitlets this class exposed will be configurable in profiles
     using c.SubClassName.atribute=value
 
-    you can overwrite cell_transform to apply a transformation independently on each cell
+    you can overwrite transform_cell to apply a transformation independently on each cell
     or __call__ if you prefer your own logic. See corresponding docstring for informations.
+
+    Disabled by default and can be enabled via the config by
+        'c.YourTransformerName.enabled = True'
     """
     
-    def __init__(self, config=None, **kw):
+    enabled = Bool(False, config=True)
+
+    def __init__(self, **kw):
         """
         Public constructor
         
@@ -47,11 +53,15 @@ class ConfigurableTransformer(GlobalConfigurable):
             Additional arguments
         """
         
-        super(ConfigurableTransformer, self).__init__(config=config, **kw)
+        super(Transformer, self).__init__(**kw)
 
        
     def __call__(self, nb, resources):
-        return self.call(nb,resources)
+        if self.enabled:
+            return self.call(nb,resources)
+        else:
+            return nb, resources
+
 
     def call(self, nb, resources):
         """
@@ -59,7 +69,7 @@ class ConfigurableTransformer(GlobalConfigurable):
         
         You should return modified nb, resources.
         If you wish to apply your transform on each cell, you might want to 
-        overwrite cell_transform method instead.
+        overwrite transform_cell method instead.
         
         Parameters
         ----------
@@ -72,13 +82,13 @@ class ConfigurableTransformer(GlobalConfigurable):
         try :
             for worksheet in nb.worksheets :
                 for index, cell in enumerate(worksheet.cells):
-                    worksheet.cells[index], resources = self.cell_transform(cell, resources, index)
+                    worksheet.cells[index], resources = self.transform_cell(cell, resources, index)
             return nb, resources
         except NotImplementedError:
             raise NotImplementedError('should be implemented by subclass')
 
 
-    def cell_transform(self, cell, resources, index):
+    def transform_cell(self, cell, resources, index):
         """
         Overwrite if you want to apply a transformation on each cell.  You 
         should return modified cell and resource dictionary.

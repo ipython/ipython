@@ -20,7 +20,7 @@ tags to circumvent Jinja/Latex syntax conflicts.
 import os
 
 # IPython imports
-from IPython.utils.traitlets import Unicode
+from IPython.utils.traitlets import Unicode, List
 from IPython.config import Config
 
 from IPython.nbconvert import filters, transformers
@@ -68,41 +68,35 @@ class LatexExporter(Exporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
-    def _register_filters(self):
+
+    def _init_filters(self):
         """
         Register all of the filters required for the exporter.
         """
         
         #Register the filters of the base class.
-        super(LatexExporter, self)._register_filters()
+        super(LatexExporter, self)._init_filters()
 
         #Add latex filters to the Jinja2 environment
         self.register_filter('escape_tex', filters.escape_latex) 
         self.register_filter('highlight', filters.highlight2latex) 
     
-    
-    def _register_transformers(self):
-        """
-        Register all of the transformers needed for this exporter.
-        """
-        
-        #Register the transformers of the base class.
-        super(LatexExporter, self)._register_transformers()
-        
-        #Register latex transformer
-        self.register_transformer(transformers.LatexTransformer)
 
     @property
     def default_config(self):
         c = Config({
-            'GlobalConfigurable': {
-                'display_data_priority' : ['latex', 'svg', 'png', 'jpg', 'jpeg' , 'text']
+            'NbConvertBase': {
+                'display_data_priority' : ['latex', 'png', 'jpg', 'svg', 'jpeg', 'text']
                 },
              'ExtractFigureTransformer': {
-                    'enabled':True,
-                    'extra_ext_map':{'svg':'pdf'},
+                    'enabled':True
+                 },
+             'SVG2PDFTransformer': {
+                    'enabled':True
+                 },
+             'LatexTransformer': {
+                    'enabled':True
                  }
          })
         c.merge(super(LatexExporter,self).default_config)
         return c
-

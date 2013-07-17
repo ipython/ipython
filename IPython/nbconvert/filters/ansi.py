@@ -36,7 +36,7 @@ def remove_ansi(source):
         Source to remove the ansi from
     """
     
-    return re.sub(r'\033\[(0|\d;\d\d)m', '', source)
+    return re.sub(r'\033\[(\d|;)+?m', '', source)
 
 
 def ansi2html(text):
