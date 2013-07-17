@@ -126,13 +126,14 @@ with_environment = with_setup(setup_environment, teardown_environment)
 def test_get_home_dir_1():
     """Testcase for py2exe logic, un-compressed lib
     """
+    unfrozen = path.get_home_dir()
     sys.frozen = True
 
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Lib/IPython/__init__.py"))
 
     home_dir = path.get_home_dir()
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR))
+    nt.assert_equal(home_dir, unfrozen)
 
 
 @skip_if_not_win32
@@ -140,12 +141,13 @@ def test_get_home_dir_1():
 def test_get_home_dir_2():
     """Testcase for py2exe logic, compressed lib
     """
+    unfrozen = path.get_home_dir()
     sys.frozen = True
     #fake filename for IPython.__init__
     IPython.__file__ = abspath(join(HOME_TEST_DIR, "Library.zip/IPython/__init__.py")).lower()
 
     home_dir = path.get_home_dir(True)
-    nt.assert_equal(home_dir, abspath(HOME_TEST_DIR).lower())
+    nt.assert_equal(home_dir, unfrozen)
 
 
 @with_environment
