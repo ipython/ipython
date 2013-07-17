@@ -103,7 +103,7 @@ def setup_environment():
 
 
 def teardown_environment():
-    """Restore things that were remebered by the setup_environment function
+    """Restore things that were remembered by the setup_environment function
     """
     (oldenv, os.name, sys.platform, path.get_home_dir, IPython.__file__, old_wd) = oldstuff
     os.chdir(old_wd)
