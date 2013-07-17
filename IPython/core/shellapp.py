@@ -176,8 +176,11 @@ class InteractiveShellApp(Configurable):
         """
     )
     pylab_import_all = Bool(True, config=True,
-        help="""If true, an 'import *' is done from numpy and pylab,
-        when using pylab"""
+        help="""If true, IPython will populate the user namespace with numpy, pylab, etc.
+        and an 'import *' is done from numpy and pylab, when using pylab mode.
+        
+        When False, pylab mode should not import any names into the user namespace.
+        """
     )
     shell = Instance('IPython.core.interactiveshell.InteractiveShellABC')
 
@@ -198,7 +201,9 @@ class InteractiveShellApp(Configurable):
                     gui, backend = pylabtools.find_gui_and_backend(self.pylab)
                     self.log.info("Enabling GUI event loop integration, "
                               "toolkit=%s, pylab=%s" % (gui, self.pylab))
-                    shell.enable_pylab(gui, import_all=self.pylab_import_all, welcome_message=True)
+                    if self.pylab == "auto":
+                        print ("using matplotlib backend: %s" % backend)
+                    shell.enable_pylab(self.pylab, import_all=self.pylab_import_all)
                 else:
                     self.log.info("Enabling GUI event loop integration, "
                                   "toolkit=%s" % self.gui)

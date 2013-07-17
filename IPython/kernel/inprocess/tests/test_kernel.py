@@ -42,7 +42,7 @@ class InProcessKernelTestCase(unittest.TestCase):
         kc = self.kc
         kc.execute('%pylab')
         msg = get_stream_message(kc)
-        self.assert_('Welcome to pylab' in msg['content']['data'])
+        self.assert_('matplotlib' in msg['content']['data'])
 
     def test_raw_input(self):
         """ Does the in-process kernel handle raw_input correctly?
