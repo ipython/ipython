@@ -66,7 +66,7 @@ class TestsBase(object):
 
     def fuzzy_compare(self, a, b, newlines_are_spaces=True, tabs_are_spaces=True, 
                       fuzzy_spacing=True, ignore_spaces=False, 
-                      ignore_newlines=False, ignore_case=True):
+                      ignore_newlines=False, case_sensitive=False):
         """
         Performs a fuzzy comparison of two strings.  A fuzzy comparison is a
         comparison that ignores insignificant differences in the two comparands.
@@ -94,7 +94,7 @@ class TestsBase(object):
             a = a.replace('\n', '')
             b = b.replace('\n', '')
 
-        if ignore_case:
+        if not case_sensitive:
             a = a.lower()
             b = b.lower()
 
