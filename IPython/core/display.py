@@ -767,7 +767,7 @@ class Audio(DisplayObject):
 
     def _repr_html_(self):
         src = """
-        <audio controls="controls" style="width:600px" {autoplay}>
+        <audio controls="controls" {autoplay}>
           <source controls src="{src}" type="audio/wav" />
           Your browser does not support the audio element.
         </audio>
