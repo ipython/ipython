@@ -8,12 +8,11 @@ python:
 before_install:
     - easy_install -q pyzmq
     - sudo apt-get install pandoc
-    - "if [$TRAVIS_PYTHON_VERSION == '3.2'* ]; then pip install -Iv https://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.6.tar.gz; fi"
-    - "if [! $TRAVIS_PYTHON_VERSION == '3.2'* ]; then pip install jinja2; fi"
-    - pip install -Iv
     - pip install markdown
     - pip install pygments
     - pip install sphinx
+    - "if [[ $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install -Iv https://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.6.tar.gz; fi"
+    - "if [[ ! $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install jinja2; fi"
 install:
     - python setup.py install -q 
 script:
