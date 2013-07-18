@@ -61,9 +61,9 @@ def html_text(element):
     
     Analog of jQuery's $(element).text()
     """
-    instance_element_tree = isinstance(ElementTree.ElementTree, Type) and 
+    instance_element_tree = isinstance(ElementTree.ElementTree, type) and \
                             isinstance(element, (ElementTree.ElementTree))
-    instance_element = isinstance(ElementTree.Element, Type) and 
+    instance_element = isinstance(ElementTree.Element, type) and \
                        isinstance(element, (ElementTree.Element))
     if not (instance_element or instance_element_tree):
         element = ElementTree.fromstring(element)
