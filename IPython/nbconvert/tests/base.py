@@ -18,6 +18,7 @@ import subprocess
 import os
 import glob
 import shutil
+import sys
 
 import IPython
 from IPython.utils.tempdir import TemporaryDirectory
@@ -166,5 +167,5 @@ class TestsBase(object):
 
 
     def call(self, parameters):
-        return subprocess.check_output(parameters)
+        return subprocess.Popen(parameters, stdout=subprocess.PIPE).communicate()[0]
      
