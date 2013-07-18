@@ -9,6 +9,7 @@ import os.path
 import re
 import sys
 from textwrap import dedent
+import time
 from unicodedata import category
 import webbrowser
 
@@ -290,6 +291,21 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         self._reading = False
         self._reading_callback = None
         self._tab_width = 8
+
+        # List of strings pending to be appended as plain text in the widget.
+        # The text is not immediately inserted when available to not
+        # choke the Qt event loop with paint events for the widget in
+        # case of lots of output from kernel.
+        self._pending_insert_text = []
+
+        # Timer to flush the pending stream messages. The interval is adjusted
+        # later based on actual time taken for flushing a screen (buffer_size)
+        # of output text.
+        self._pending_text_flush_interval = QtCore.QTimer(self._control)
+        self._pending_text_flush_interval.setInterval(100)
+        self._pending_text_flush_interval.setSingleShot(True)
+        self._pending_text_flush_interval.timeout.connect(
+                                            self._flush_pending_stream)
 
         # Set a monospaced font.
         self.reset_font()
@@ -877,8 +893,11 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         # Determine where to insert the content.
         cursor = self._control.textCursor()
         if before_prompt and (self._reading or not self._executing):
+            self._flush_pending_stream()
             cursor.setPosition(self._append_before_prompt_pos)
         else:
+            if insert != self._insert_plain_text:
+                self._flush_pending_stream()
             cursor.movePosition(QtGui.QTextCursor.End)
         start_pos = cursor.position()
 
@@ -1459,6 +1478,20 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
 
         return False
 
+    def _flush_pending_stream(self):
+        """ Flush out pending text into the widget. """
+        text = self._pending_insert_text
+        self._pending_insert_text = []
+        buffer_size = self._control.document().maximumBlockCount()
+        if buffer_size > 0:
+            text = self._get_last_lines_from_list(text, buffer_size)
+        text = ''.join(text)
+        t = time.time()
+        self._insert_plain_text(self._get_end_cursor(), text, flush=True)
+        # Set the flush interval to equal the maximum time to update text.
+        self._pending_text_flush_interval.setInterval(max(100,
+                                                 (time.time()-t)*1000))
+
     def _format_as_columns(self, items, separator='  '):
         """ Transform a list of strings into a single string with columns.
 
@@ -1539,6 +1572,43 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 return self._continuation_prompt
         else:
             return None
+
+    def _get_last_lines(self, text, num_lines, return_count=False):
+        """ Return last specified number of lines of text (like `tail -n`).
+        If return_count is True, returns a tuple of clipped text and the
+        number of lines in the clipped text.
+        """
+        pos = len(text)
+        if pos < num_lines:
+            if return_count:
+                return text, text.count('\n') if return_count else text
+            else:
+                return text
+        i = 0
+        while i < num_lines:
+            pos = text.rfind('\n', None, pos)
+            if pos == -1:
+                pos = None
+                break
+            i += 1
+        if return_count:
+            return text[pos:], i
+        else:
+            return text[pos:]
+
+    def _get_last_lines_from_list(self, text_list, num_lines):
+        """ Return the list of text clipped to last specified lines.
+        """
+        ret = []
+        lines_pending = num_lines
+        for text in reversed(text_list):
+            text, lines_added = self._get_last_lines(text, lines_pending,
+                                                     return_count=True)
+            ret.append(text)
+            lines_pending -= lines_added
+            if lines_pending <= 0:
+                break
+        return ret[::-1]
 
     def _get_prompt_cursor(self):
         """ Convenience method that returns a cursor for the prompt position.
@@ -1644,10 +1714,29 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         cursor.endEditBlock()
         return text
 
-    def _insert_plain_text(self, cursor, text):
+    def _insert_plain_text(self, cursor, text, flush=False):
         """ Inserts plain text using the specified cursor, processing ANSI codes
             if enabled.
         """
+        # maximumBlockCount() can be different from self.buffer_size in
+        # case input prompt is active.
+        buffer_size = self._control.document().maximumBlockCount()
+
+        if self._executing and not flush and \
+                self._pending_text_flush_interval.isActive():
+            self._pending_insert_text.append(text)
+            if buffer_size > 0:
+                self._pending_insert_text = self._get_last_lines_from_list(
+                                        self._pending_insert_text, buffer_size)
+            return
+
+        if self._executing and not self._pending_text_flush_interval.isActive():
+            self._pending_text_flush_interval.start()
+
+        # Clip the text to last `buffer_size` lines.
+        if buffer_size > 0:
+            text = self._get_last_lines(text, buffer_size)
+
         cursor.beginEditBlock()
         if self.ansi_codes:
             for substring in self._ansi_processor.split_string(text):
