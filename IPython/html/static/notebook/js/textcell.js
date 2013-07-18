@@ -17,6 +17,7 @@
     @namespace IPython
  */
 var IPython = (function (IPython) {
+    "use strict";
 
     // TextCell base class
     var key = IPython.utils.keycodes;
@@ -315,9 +316,9 @@ var IPython = (function (IPython) {
         if (this.rendered === false) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
-            text_math = IPython.mathjaxutils.remove_math(text);
-            text = text_math[0]
-            math = text_math[1]
+            var text_math = IPython.mathjaxutils.remove_math(text);
+            var text = text_math[0]
+            var math = text_math[1]
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
             // links in markdown cells should open in new tabs
@@ -521,9 +522,11 @@ var IPython = (function (IPython) {
             text = text.replace(/\n/g, ' ');
             if (text === "") { text = this.placeholder; }
             text = Array(this.level + 1).join("#") + " " + text;
-            text = IPython.mathjaxutils.remove_math(text);
+            var text_and_math = IPython.mathjaxutils.remove_math(text);
+            var text = text_and_math[0];
+            var math = text_and_math[1];
             var html = marked.parser(marked.lexer(text));
-            var h = $(IPython.mathjaxutils.replace_math(html));
+            var h = $(IPython.mathjaxutils.replace_math(html, math));
             // add id and linkback anchor
             var hash = h.text().replace(/ /g, '-');
             h.attr('id', hash);
