@@ -19,10 +19,10 @@ developers:
   Code project, work on IPython's core.
 
 * **Brian Granger** <ellisonbg-AT-gmail.com> Parallel computing 
-  infrastructure, IPython core.
+  infrastructure, IPython core, IPython notebook.
 
 * **Benjamin (Min) Ragan-Kelley** <benjaminrk-AT-gmail.com> Parallel computing
-  infrastructure.
+  infrastructure, IPython core, IPython notebook.
 
 * **Ville Vainio** <vivainio-AT-gmail.com> IPython core, maintainer of IPython
   trunk from version 0.7.2 to 0.8.4.
@@ -41,6 +41,15 @@ developers:
   infrastructure to Python3, IPython core.
 
 * **Evan Patterson** <epatters-AT-enthought.com> Qt console frontend with ZeroMQ.
+
+* **Paul Ivanov** <pi-AT-berkeley.edu> IPython core, documentation.
+
+* **Matthias Bussonnier** <bussonniermatthias-AT-gmail.com> IPython notebook,
+  nbviewer, nbconvert.
+
+* **Julian Taylor** <jtaylor.debian-AT-googlemail.com> IPython core, Debian packaging.
+
+* **Brad Froehle** <brad.froehle-AT-gmail.com> IPython core.
 
 
 Special thanks
