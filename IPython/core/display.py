@@ -22,7 +22,7 @@ from __future__ import print_function
 import os
 import struct
 
-from IPython.utils.py3compat import string_types
+from IPython.utils.py3compat import string_types, cast_bytes_py2, cast_unicode
 
 from .displaypub import publish_display_data
 
@@ -377,6 +377,7 @@ class SVG(DisplayObject):
             return
         # parse into dom object
         from xml.dom import minidom
+        svg = cast_bytes_py2(svg)
         x = minidom.parseString(svg)
         # get svg tag (should be 1)
         found_svg = x.getElementsByTagName('svg')
@@ -386,6 +387,7 @@ class SVG(DisplayObject):
             # fallback on the input, trust the user
             # but this is probably an error.
             pass
+        svg = cast_unicode(svg)
         self._data = svg
 
     def _repr_svg_(self):
