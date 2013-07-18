@@ -10,7 +10,7 @@ before_install:
     - easy_install pygments
     - easy_install jinja2
     - easy_install markdown
-    - sudo apt-get install python-sphinx
+    - easy_install sphinx
     - sudo apt-get install pandoc
 install:
     - python setup.py install -q 
