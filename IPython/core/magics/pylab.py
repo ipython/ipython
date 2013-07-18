@@ -82,20 +82,7 @@ class PylabMagics(Magics):
         '--no-import-all', action='store_true', default=None,
         help="""Prevent IPython from performing ``import *`` into the interactive namespace.
         
-        The names that will still be added to the namespace if this flag is given::
-        
-            numpy
-            matplotlib
-            np (numpy alias)
-            plt (matplotlib.pyplot alias)
-            pylab (from matplotlib)
-            pyplot (from matplotlib)
-            mlab (from matplotlib)
-            display (from IPython)
-            figsize (from IPython)
-            getfigs (from IPython)
-        
-        You can govern the default behavior with the
+        You can govern the default behavior of this flag with the
         InteractiveShellApp.pylab_import_all configurable.
         """
     )
@@ -105,11 +92,25 @@ class PylabMagics(Magics):
 
         This function lets you activate pylab (matplotlib, numpy and
         interactive support) at any point during an IPython session.
-
-        It will import at the top level numpy as np, pyplot as plt, matplotlib,
-        pylab and mlab, as well as all names from numpy and pylab.
         
-        See the %matplotlib magic for more details.
+        %pylab makes the following imports::
+        
+            import numpy
+            import matplotlib
+            from matplotlib import pylab, mlab, pyplot
+            np = numpy
+            plt = pyplot
+            
+            from IPython.display import display
+            from IPython.core.pylabtools import figsize, getfigs
+            
+            from pylab import *
+            from numpy import *
+
+        If you pass `--no-import-all`, the last two `*` imports will be excluded.
+        
+        See the %matplotlib magic for more details about activating matplotlib
+        without affecting the interactive namespace.
         """
         args = magic_arguments.parse_argstring(self.pylab, line)
         if args.no_import_all is None:
