@@ -8,7 +8,9 @@ python:
 before_install:
     - easy_install -q pyzmq
     - sudo apt-get install pandoc
-    - pip install jinja2
+    - if [[$TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install -Iv https://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.6.tar.gz
+    - if [[! $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install jinja2
+    - pip install -Iv
     - pip install markdown
     - pip install pygments
     - pip install sphinx
