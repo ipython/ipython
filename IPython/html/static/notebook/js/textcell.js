@@ -317,8 +317,8 @@ var IPython = (function (IPython) {
             var text = this.get_text();
             if (text === "") { text = this.placeholder; }
             var text_math = IPython.mathjaxutils.remove_math(text);
-            var text = text_math[0]
-            var math = text_math[1]
+            var text = text_math[0];
+            var math = text_math[1];
             var html = marked.parser(marked.lexer(text));
             html = $(IPython.mathjaxutils.replace_math(html, math));
             // links in markdown cells should open in new tabs
