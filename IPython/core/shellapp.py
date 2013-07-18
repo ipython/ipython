@@ -41,6 +41,9 @@ from IPython.utils.traitlets import (
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
+backend_keys = sorted(pylabtools.backends.keys())
+backend_keys.insert(0, 'auto')
+
 shell_flags = {}
 
 addflag = lambda *args: shell_flags.update(boolean_flag(*args))
@@ -175,12 +178,12 @@ class InteractiveShellApp(Configurable):
     gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx'), config=True,
         help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx')."
     )
-    matplotlib = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
+    matplotlib = CaselessStrEnum(backend_keys,
         config=True,
         help="""Configure matplotlib for interactive use with
         the default matplotlib backend."""
     )
-    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
+    pylab = CaselessStrEnum(backend_keys,
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
