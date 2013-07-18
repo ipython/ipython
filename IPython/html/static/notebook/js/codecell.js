@@ -85,7 +85,13 @@ var IPython = (function (IPython) {
 
     CodeCell.options_default = {
         cm_config : {
-            extraKeys: {"Tab": "indentMore","Shift-Tab" : "indentLess",'Backspace':"delSpaceToPrevTabStop"},
+            extraKeys: {
+                "Tab" :  "indentMore",
+                "Shift-Tab" : "indentLess",
+                "Backspace" : "delSpaceToPrevTabStop",
+                "Cmd-/" : "toggleComment",
+                "Ctrl-/" : "toggleComment"
+            },
             mode: 'ipython',
             theme: 'ipython',
             matchBrackets: true
