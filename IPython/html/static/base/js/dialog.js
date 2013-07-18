@@ -64,6 +64,14 @@ IPython.dialog = (function (IPython) {
                 dialog.remove();
             });
         }
+        if (options.reselect_cell !== false) {
+            dialog.on("hidden", function () {
+                if (IPython.notebook) {
+                    cell = IPython.notebook.get_selected_cell();
+                    if (cell) cell.select();
+                }
+            });
+        }
         
         return dialog.modal(options);
     }
