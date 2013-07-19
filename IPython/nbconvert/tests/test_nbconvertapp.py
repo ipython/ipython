@@ -16,6 +16,20 @@ Contains tests for the nbconvertapp
 import os
 from .base import TestsBase
 
+from IPython.utils import py3compat
+
+    
+#-----------------------------------------------------------------------------
+# Constants
+#-----------------------------------------------------------------------------
+
+#Define ipython commandline name
+if py3compat.PY3:
+    IPYTHON = 'ipython3'
+else:
+    IPYTHON = 'ipython'
+
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
@@ -29,7 +43,7 @@ class TestNbConvertApp(TestsBase):
         Will help show if no notebooks are specified?
         """
         with self.create_temp_cwd():
-            assert "see '--help-all'" in self.call(['ipython', 'nbconvert'])
+            assert "see '--help-all'" in self.call([IPYTHON, 'nbconvert'])
 
 
     def test_glob(self):
@@ -37,7 +51,7 @@ class TestNbConvertApp(TestsBase):
         Do search patterns work for notebook names?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call(['ipython', 'nbconvert', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', 
                 '--format="python"', '--notebooks=["*.ipynb"]']).lower()
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
@@ -49,7 +63,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd() as cwd:
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
-            assert not 'error' in self.call(['ipython', 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["%s"]' % os.path.join('subdir', '*.ipynb')]).lower()
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
@@ -60,7 +74,7 @@ class TestNbConvertApp(TestsBase):
         Do explicit notebook names work?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call(['ipython', 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["notebook2.ipynb"]']).lower()
             assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
@@ -71,7 +85,7 @@ class TestNbConvertApp(TestsBase):
         Can a search pattern be used along with matching explicit notebook names?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call(['ipython', 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["*.ipynb", "notebook1.ipynb", "notebook2.ipynb"]']).lower()
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
@@ -82,7 +96,7 @@ class TestNbConvertApp(TestsBase):
         Can explicit notebook names be used and then a matching search pattern?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call(['ipython', 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["notebook1.ipynb", "notebook2.ipynb", "*.ipynb"]']).lower()
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
@@ -93,7 +107,7 @@ class TestNbConvertApp(TestsBase):
         Does the default config work?
         """
         with self.create_temp_cwd(['notebook*.ipynb', 'ipython_nbconvert_config.py']):
-            assert not 'error' in self.call(['ipython', 'nbconvert']).lower()
+            assert not 'error' in self.call([IPYTHON, 'nbconvert']).lower()
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
 
@@ -104,6 +118,6 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb', 'ipython_nbconvert_config.py', 
                                    'override.py']):
-            assert not 'error' in self.call(['ipython', 'nbconvert', '--config="override.py"']).lower()
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--config="override.py"']).lower()
             assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
             assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))

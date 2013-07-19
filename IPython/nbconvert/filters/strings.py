@@ -19,8 +19,6 @@ templates.
 import re
 import textwrap
 from xml.etree import ElementTree
-from types import StringTypes
-
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
@@ -62,7 +60,7 @@ def html_text(element):
     
     Analog of jQuery's $(element).text()
     """
-    if isinstance(element, StringTypes):
+    if isinstance(element, py3compat.string_types):
         element = ElementTree.fromstring(element)
     
     text = element.text or ""

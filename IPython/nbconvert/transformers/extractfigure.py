@@ -16,6 +16,7 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 import sys
 from IPython.utils.traitlets import Unicode
 from .base import Transformer
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -64,7 +65,15 @@ class ExtractFigureTransformer(Transformer):
 
                     #Binary files are base64-encoded, SVG is already XML
                     if out_type in ('png', 'jpg', 'jpeg', 'pdf'):
-                        data = data.decode('base64')
+                        
+                        #Python3 base64 is in a separate library...
+                        if py3compat.PY3:
+                            
+                            #Base 64 decode the bytes
+                            import base64
+                            data = base64.b64decode(data)
+                        else:
+                            data = data.decode('base64')
                     elif sys.platform == 'win32':
                         data = data.replace('\n', '\r\n').encode("UTF-8")
                     else:

@@ -145,7 +145,7 @@ def ansi2latex(text):
         if openbrack:
             outstring += '}'*openbrack
             openbrack = 0
-        if match.group() <> coloransi.TermColors.Normal and not openbrack:
+        if not (match.group() == coloransi.TermColors.Normal or openbrack):
             texform, openbrack = single_ansi2latex(match.group())
             outstring += texform
         last_end = match.end()

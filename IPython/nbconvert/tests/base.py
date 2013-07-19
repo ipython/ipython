@@ -22,6 +22,7 @@ import sys
 
 import IPython
 from IPython.utils.tempdir import TemporaryDirectory
+from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
 # Classes and functions
@@ -167,5 +168,11 @@ class TestsBase(object):
 
 
     def call(self, parameters):
-        return subprocess.Popen(parameters, stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(parameters, stdout=subprocess.PIPE).communicate()[0]
+        
+        #Convert the output to a string if running Python3
+        if py3compat.PY3:
+            return output.decode('utf-8')
+        else:
+            return output
      

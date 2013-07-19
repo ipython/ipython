@@ -20,7 +20,6 @@ from __future__ import print_function, absolute_import
 import io
 import os
 import inspect
-import types
 import copy
 import collections
 import datetime
@@ -35,6 +34,7 @@ from IPython.nbformat import current as nbformat
 from IPython.utils.traitlets import MetaHasTraits, DottedObjectName, Unicode, List, Dict
 from IPython.utils.importstring import import_item
 from IPython.utils.text import indent
+from IPython.utils import py3compat
 
 from IPython.nbconvert import transformers as nbtransformers
 from IPython.nbconvert import filters
@@ -247,11 +247,11 @@ class Exporter(Configurable):
         """
         if transformer is None:
             raise TypeError('transformer')
-        isclass = inspect.isclass(transformer)
+        isclass = isinstance(transformer, type)
         constructed = not isclass
 
         #Handle transformer's registration based on it's type
-        if constructed and isinstance(transformer, types.StringTypes):
+        if constructed and isinstance(transformer, py3compat.string_types):
             #Transformer is a string, import the namespace and recursively call
             #this register_transformer method
             transformer_cls = import_item(transformer)
@@ -280,7 +280,7 @@ class Exporter(Configurable):
             raise TypeError('transformer')
 
 
-    def register_filter(self, name, filter):
+    def register_filter(self, name, jinja_filter):
         """
         Register a filter.
         A filter is a function that accepts and acts on one string.  
@@ -292,31 +292,33 @@ class Exporter(Configurable):
             name to give the filter in the Jinja engine
         filter : filter
         """
-        if filter is None:
+        if jinja_filter is None:
             raise TypeError('filter')
-        isclass = inspect.isclass(filter)
+        isclass = isinstance(jinja_filter, type)
         constructed = not isclass
 
         #Handle filter's registration based on it's type
-        if constructed and isinstance(filter, types.StringTypes):
+        if constructed and isinstance(jinja_filter, py3compat.string_types):
             #filter is a string, import the namespace and recursively call
             #this register_filter method
-            filter_cls = import_item(filter)
+            filter_cls = import_item(jinja_filter)
             return self.register_filter(name, filter_cls)
         
-        if constructed and hasattr(filter, '__call__'):
+        if constructed and hasattr(jinja_filter, '__call__'):
             #filter is a function, no need to construct it.
-            self.environment.filters[name] = filter
-            return filter
+            self.environment.filters[name] = jinja_filter
+            return jinja_filter
 
-        elif isclass and isinstance(filter, MetaHasTraits):
+        elif isclass and isinstance(jinja_filter, MetaHasTraits):
             #filter is configurable.  Make sure to pass in new default for 
             #the enabled flag if one was specified.
-            self.register_filter(name, filter(parent=self))
+            filter_instance = jinja_filter(parent=self)
+            self.register_filter(name, filter_instance )
 
         elif isclass:
             #filter is not configurable, construct it
-            self.register_filter(name, filter())
+            filter_instance = jinja_filter()
+            self.register_filter(name, filter_instance)
 
         else:
             #filter is an instance of something without a __call__ 
@@ -382,12 +384,12 @@ class Exporter(Configurable):
         """
         
         #Add default filters to the Jinja2 environment
-        for key, value in default_filters.iteritems():
+        for key, value in default_filters.items():
             self.register_filter(key, value)
 
         #Load user filters.  Overwrite existing filters if need be.
         if self.filters:
-            for key, user_filter in self.filters.iteritems():
+            for key, user_filter in self.filters.items():
                 self.register_filter(key, user_filter)
 
 
