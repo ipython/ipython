@@ -41,14 +41,15 @@ optional dependencies:
 
 .. code-block:: bash
 
-    $ easy_install ipython[zmq,qtconsole,notebook,test]
+    $ easy_install ipython[all]
 
 This will get:
 
 - jinja2, needed for the notebook
+- sphinx, needed for nbconvert
 - pyzmq, needed for IPython's parallel computing features, qt console and
   notebook.
-- pygments, used by the Qt console for syntax highlighting.
+- pygments, used by nbconvert and the Qt console for syntax highlighting.
 - tornado, needed by the web-based notebook
 - nose, used by the test suite.
 
@@ -275,7 +276,7 @@ and OSX clients will use the shell ssh command, but on Windows, we also
 support tunneling with paramiko_.
 
 Dependencies for IPython.kernel.zmq
-============================
+===================================
 
 pyzmq
 -----
@@ -396,11 +397,29 @@ There are some early reports that the Notebook works on Internet Explorer 10, bu
 expect there will be some CSS issues related to the flexible box model.
 
 
+Dependencies for nbconvert (converting notebooks to various formats)
+====================================================================
+
+pandoc
+------
+
+The most important dependency of nbconvert is Pandoc_, a document format translation program.
+This is not a Python package, so it cannot be expressed as a regular IPython dependency with setuptools.
+
+To install pandoc on Linux, you can generally use your package manager::
+
+    sudo apt-get install pandoc
+
+On other platforms, you can get pandoc from `their website <http://johnmacfarlane.net/pandoc/installing.html>`_.
+
+
 .. _ZeroMQ: http://www.zeromq.org
 .. _PyZMQ: https://github.com/zeromq/pyzmq
 .. _paramiko: https://github.com/robey/paramiko
 .. _pygments: http://pygments.org
 .. _pexpect: http://www.noah.org/wiki/Pexpect
 .. _Jinja: http://jinja.pocoo.org
+.. _Sphinx: http://sphinx-doc.org
+.. _pandoc: http://johnmacfarlane.net/pandoc
 .. _Tornado: http://www.tornadoweb.org
 .. _MathJax: http://www.mathjax.org
