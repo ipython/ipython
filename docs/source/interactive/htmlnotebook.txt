@@ -1,6 +1,5 @@
 .. _htmlnotebook:
 
-====================
 The IPython Notebook
 ====================
 
@@ -8,12 +7,17 @@ The IPython Notebook
 
     :ref:`Installation requirements <installnotebook>` for the Notebook.
 
-The IPython Notebook consists of two related components:
+The IPython Notebook consists of two components:
 
-* A web application for interactive authoring of literate computations, combining explanatory text, mathematics, computations and rich media output. Input and output are stored  in persistent cells that may be edited in-place.
+* A web application, called the *IPython Notebook web app*, for interactive authoring of literate computations, in which explanatory text, mathematics, computations and rich media output may be combined. Input and output are stored  in persistent cells that may be edited in-place.
 
-* Notebook documents for recording and distributing
-  the results.
+* Plain text documents, called *notebook documents*, or *notebooks*, for recording and distributing the results of the rich computations.
+
+In the documentation, the distinction between the *N*otebook app and *n*otebook documents is made by capitalization.
+
+The Notebook app automatically saves the current state of the computation in the web browser to the corresponding notebook, which is just a standard text file with the extension ``.ipynb``, stored in a working directory on your computer. This file can be easily put under version control and shared with colleagues.
+
+Despite the fact that the notebook documents are plain text files, they use the JSON format in order to store a *complete*, *reproducible* copy of the state of the computation as it is inside the Notebook app. 
 
 
 Features of the IPython Notebook web app
@@ -94,11 +98,10 @@ This server uses a two-process kernel architecture based on ZeroMQ, as well as T
 
 
 Basic workflow
-------------------------
+--------------
 
-
-Once in a notebook, your browser tab will reflect the name of that notebook (prefixed with "IPy").
-The URL for that notebook is currently not meant to be human-readable and is not persistent across invocations of the notebook server; however, this will change soon.
+When you open or create a new notebook, your browser tab will reflect the name of that notebook, prefixed with "IPy".
+The URL is currently not meant to be human-readable and is not persistent across invocations of the notebook server; however, this will change in a future version of IPython.
 
 The normal workflow in a notebook is quite similar to a normal IPython 
 session, with the difference that you can edit a cell in-place multiple 
@@ -109,7 +112,7 @@ organizing related pieces into cells and moving forward as previous
 parts work correctly.  This is much more convenient for interactive exploration than breaking up a computation into scripts that must be 
 executed together, especially if parts of them take a long time to run
 
-The only significant limitation that the notebook currently has, compared to the qt console, is that it can not run any code that 
+The only significant limitation that the notebook currently has, compared to the qt console, is that it cannot run any code that 
 expects input from the kernel (such as scripts that call 
 :func:`raw_input`).  Very importantly, this means that the ``%debug`` 
 magic does *not* currently work in the notebook!  This limitation will 
@@ -142,16 +145,56 @@ started kernel if there is more than one).  You can also request this
 connection data by typing ``%connect_info``; this will print the same 
 file information as well as the content of the JSON data structure it contains.
 
-    
-Text input
+Cell types
 ----------
 
-In addition to code cells and the output they produce (such as figures), you
-can also type text not meant for execution.  To type text, change the type of a
-cell from ``Code`` to ``Markdown`` by using the button or the :kbd:`Ctrl-m m`
-keybinding (see below).  You can then type any text in Markdown_ syntax, as
-well as mathematical expressions if you use ``$...$`` for inline math or
-``$$...$$`` for displayed math.
+Each IPython input cell has a cell type.
+There is a limited number of possible cell types, which may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
+
+* code :kbd:`Ctrl-m y`
+* markdown :kbd:`Ctrl-m m`
+* raw :kbd:`Ctrl-m t`
+* heading :kbd:`Ctrl-m 1` - :kbd:`Ctrl-m 6`
+
+
+Code cells
+----------
+Code cells contain code, which is Python by default. This code is executed when :kbd:`Shift-Enter` is typed, and the result of running the code will then be displayed as its output just below the cell. For example, the output may be a figure, which can be displayed inline (see below).
+
+Code may be edited inline in the cell, with full syntax highlighting.
+
+    
+Rich text using markdown
+-------------------------
+
+The computational process may be documented using rich text by using a markdown cell. Rich text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. 
+
+
+Mathematics using LaTeX
+-----------------------
+
+You can write mathematics by including LaTeX code in markdown cells.
+ Use ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}`` also work.
+ New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
+
+Raw cells
+---------
+
+Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information to be used when the notebook is exported to a certain format.
+
+
+Plotting
+--------
+
+The Notebook allows 
+
+`%matplotlib` and `%pylab` magics
+
+Inline versus non inline
+
+%config 
+
+Test!
 
 
 Exporting a notebook and importing existing scripts
@@ -193,11 +236,12 @@ notebook format.
 Importing or executing a notebook as a normal Python file
 ---------------------------------------------------------
 
-The native format of the notebook, a file with a ``.ipynb`` extension, is a
+The native format of the notebook, a file with a ``.ipynb`` `extension, is a
 JSON container of all the input and output of the notebook, and therefore not
-valid Python by itself.  This means that by default, you can not import a
-notebook or execute it as a normal python script.  But if you want use
-notebooks as regular Python files, you can start the notebook server with::
+valid Python by itself.  This means that by default, you cannot directly 
+import a notebook from Python, nor execute it as a normal python script.  
+
+But if you want to be able to use notebooks also as regular Python files, you can start the notebook server with::
 
   ipython notebook --script
 
@@ -206,9 +250,9 @@ or you can set this option permanently in your configuration file with::
     c.NotebookManager.save_script=True
 
 This will instruct the notebook server to save the ``.py`` export of each
-notebook adjacent to the ``.ipynb`` at every save.  These files can be
+notebook, in addition to the ``.ipynb``, at every save.  These are standard ``.py`` files, and so they can be
 ``%run``, imported from regular IPython sessions or other notebooks, or
-executed at the command-line as normal Python files.  Since we export the raw
+executed at the command-line.  Since we export the raw
 code you have typed, for these files to be importable from other code you will
 have to avoid using syntax such as ``%magics`` and other IPython-specific
 extensions to the language.
@@ -235,15 +279,14 @@ Configuration
 -------------
 
 The IPython notebook server can be run with a variety of command line arguments. 
-To see a list of available options enter:
+To see a list of available options enter::
 
   $ ipython notebook --help 
 
 Defaults for these options can also be set by creating a file named 
-ipython_notebook_config.py in your IPython profile folder. The profile folder is
-a subfolder of your IPython directory (`ipython locate` will show you where that
-is). To create default configuration files (with lots of info on available 
-options) use:
+``ipython_notebook_config.py`` in your IPython profile folder. The profile folder is a subfolder of your IPython directory; ``ipython locate`` will show you where it is located. 
+
+To create a new set of default configuration files, with lots of information on available options, use::
 
   $ ipython profile create
 
@@ -252,8 +295,8 @@ options) use:
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Keyboard use
-------------
+Keyboard shortcuts
+------------------
 
 All actions in the notebook can be achieved with the mouse, but we have also
 added keyboard shortcuts for the most common ones, so that productive use of

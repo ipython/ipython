@@ -28,7 +28,7 @@ from .convertfigures import ConvertFiguresTransformer
 #-----------------------------------------------------------------------------
 
 INKSCAPE_COMMAND = 'inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
-INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
+#INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
 
 
 #-----------------------------------------------------------------------------
