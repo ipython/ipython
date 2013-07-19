@@ -86,7 +86,7 @@ class NewFolderHandler(IPythonHandler):
         nbm.add_new_folder(path)
         url = self.base_project_url + 'tree/' + notebook_path
         self.redirect(url)
-        
+
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
