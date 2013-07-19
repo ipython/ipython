@@ -79,7 +79,7 @@ font-size: 80%;
 }
 div.output_prompt {
     /* 5px right shift to account for margin in parent container */
-    margin: 5px 5px 0 -5px;
+    margin: 5px 5px 0 0;
 }
 .rendered_html p {
 text-align: inherit;
