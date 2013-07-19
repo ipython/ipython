@@ -15,9 +15,13 @@ The IPython Notebook combines two components:
 
 In the documentation, the distinction between the *N*otebook app and *n*otebook documents is made by capitalization.
 
-The Notebook app automatically saves the current state of the computation in the web browser to the corresponding notebook, which is just a standard text file with the extension ``.ipynb``, stored in a working directory on your computer. This file can be easily put under version control and shared with colleagues.
+The Notebook app automatically saves the current state of the computation in the web browser to the corresponding notebook document.
 
-Despite the fact that the notebook documents are plain text files, they use the JSON format in order to store a *complete*, *reproducible* copy of the state of the computation as it is inside the Notebook app. 
+It is also common to refer to the current state of the computation, as represented by the sequence of input cells in the Notebook app, as a 
+*notebook*. There is no problem with confounding these two concepts, since 
+there is actually a one-to-one correspondence between what you see on the
+ screen inside the app, and what is stored in the corresponding ``.ipynb`` notebook document.
+
 
 
 Features of the IPython Notebook web app
@@ -46,11 +50,13 @@ able to learn how to use the IPython Notebook in just a few minutes.
 Notebook documents
 ------------------
 
-Notebook documents, or *notebooks*, are files which record all computations carried out and the results obtained in a literate way, including inputs, outputs, toegether with descriptive text and mathematics.
+Notebook document files are just  standard text files with the extension 
+``.ipynb``, stored in the working directory on your computer. This file can be easily put under version control and shared with colleagues.
 
-They are plain text files, which are thus easy to share with colleagues and place under version control. But, by using the
-JSON format, they can record all aspects of the computation, including embedding rich media output.
-The standard file extension for notebook documents is ``.ipynb``.
+Despite the fact that the notebook documents are plain text files, they use 
+the JSON format in order to store a *complete*, *reproducible* copy of the
+state of the computation as it is inside the Notebook app. 
+That is, they record all computations carried out and the results obtained in a literate way; inputs and  outputs of computations can be freely mixed  with descriptive text, mathematics, and HTML 5 objects.
 
 Notebooks may easily be exported to a range of static formats, including HTML (for example, for blog posts), PDF and slide shows.
 Furthermore, any publicly
@@ -93,12 +99,40 @@ The IPython Notebook web app is based on a server-client structure.
 This server uses a two-process kernel architecture based on ZeroMQ, as well as Tornado for serving HTTP requests. Other clients may connect to the same underlying IPython kernel.
 
 
-
-Basic workflow
---------------
-
 When you open or create a new notebook, your browser tab will reflect the name of that notebook, prefixed with "IPy".
 The URL is currently not meant to be human-readable and is not persistent across invocations of the notebook server; however, this will change in a future version of IPython.
+
+
+Basic concepts in the Notebook app
+----------------------------------
+
+When you finally start editing a notebook document in the Notebook, you will be presented with the title of the notebook, a *menu bar*, a *toolbar* and an empty *input cell*.
+
+Notebook title
+ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
+
+The title of the notebook document that is currently being edited is displayed at the top of the page, next to the ``IP[y]: Notebook`` logo. This title may be edited directly by clicking on it. The title is reflected in the name of the ``.ipynb`` notebook document file that is saved.
+
+Menu bar
+ˆˆˆˆˆˆˆˆˆ
+
+The menu bar presents different options that may be used to manipulate the way the Notebook functions.
+
+Toolbar
+ˆˆˆˆˆˆˆˆ
+
+The tool bar gives handy icons for the most-used operations within the Notebook.
+
+Input cell
+ˆˆˆˆˆˆˆˆˆˆˆ
+
+Input cells are the core of the funcionality of the IPython Notebook.
+The notebook consists of 
+They provide the means by which you direct the computational process,
+They allow you to enter information of different types as input to the computation. 
+
+
+The IPython Notebook consists of a sequence of *input cells*. There are several
 
 The normal workflow in a notebook is quite similar to a standard IPython 
 session, with the difference that you can edit a cell in-place multiple 
@@ -131,27 +165,30 @@ There is a limited number of possible cell types, which may be set by using the 
 
 
 Code cells
-----------
+ˆˆˆˆˆˆˆˆˆˆˆ
+
 Code cells contain code, which is Python by default. This code is executed when :kbd:`Shift-Enter` is typed, and the result of running the code will then be displayed as its output just below the cell. For example, the output may be a figure, which can be displayed inline (see below).
 
 Code may be edited inline in the cell, with full syntax highlighting.
 
-    
+
 Rich text using markdown
--------------------------
+ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
 
 The computational process may be documented using rich text by using a markdown cell. Rich text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. 
 
 
 Mathematics using LaTeX
------------------------
+ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
 
 You can write mathematics by including LaTeX code in markdown cells.
  Use ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}`` also work.
  New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
 
 Raw cells
----------
+ˆˆˆˆˆˆˆˆˆˆ
+
+
 
 Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information to be used when the notebook is exported to a certain format.
 
