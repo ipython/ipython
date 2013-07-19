@@ -74,8 +74,8 @@ how to install the notebook and its dependencies.
    option.
    
 
-Running the IPython Notebook web app
-====================================
+Starting up the IPython Notebook web app
+----------------------------------------
 
 The Notebook web app is started with the command::
 
@@ -148,24 +148,16 @@ At certain moments, it may be necessary to interrupt a particularly long calcula
 After a restart, all relevant cells must be re-evaluated
 
 
-Saveing a notebook
-------------------
-
-The `Download` button lets you save a notebook file to the Download area
-configured by your web browser (particularly useful if you are running the
-notebook server on a remote host and need a file locally).  
-But you can always export
-the input part of a notebook to a plain python script by choosing Python format
-in the `Download` drop list.  This removes all output and saves the text cells
+A notebook may be downloaded in either ``.ipynb`` or raw ``.py`` form from the menu option ``File -> Download as``
+Choosing the ``.py`` option removes all output and saves the text cells
 in comment areas.  See ref:`below <notebook_format>` for more details on the
 notebook format.
 
     
 .. warning::
 
-   While in simple cases you can roundtrip a notebook to Python, edit the
-   python file and import it back without loss of main content, this is in
-   general *not guaranteed to work at all*.  First, there is extra metadata
+   While in simple cases you can "roundtrip" a notebook to Python, edit the
+   Python file, and then import it back without loss of main content, this is in general *not guaranteed to work*.  First, there is extra metadata
    saved in the notebook that may not be saved to the ``.py`` format.  And as
    the notebook format evolves in complexity, there will be attributes of the
    notebook that will not survive a roundtrip through the Python form.  You
@@ -174,49 +166,35 @@ notebook format.
    notebook started.  But the Python version is *not* an alternate notebook
    format.
 
+
+Keyboard shortcuts
+------------------
+All actions in the notebook can be achieved with the mouse, but we have also
+added keyboard shortcuts for the most common ones, so that productive use of
+the notebook can be achieved with minimal mouse intervention.  The main
+key bindings you need to remember are:
+
+* :kbd:`Shift-Enter`: 
+  execute the current cell, show output (if any), and jump 
+  to the next cell below. If :kbd:`Shift-Enter` 
+  was invoked on the last input line, a new code cell will also be created. Note that in the notebook, simply using :kbd:`Enter` *never* forces execution, it simply inserts a new line in the current cell. Therefore, in the notebook you must always use :kbd:`Shift-Enter` to get execution (or use the mouse and click on the ``Run Selected`` button).
+
+* :kbd:`Alt-Enter`: 
+  this combination is similar to the previous one, with the 
+  exception that, if the next cell below is not empty, a new code cell will be 
+  added to the notebook, even if the cell execution happens not in the last cell. :kbd:`Alt-Enter`: is a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
+  
+* :kbd:`Ctrl-Enter`: 
+  execute the current cell in "terminal mode", where any
+  output is shown, but the cursor remains in the current cell. This is convenient to do quick in-place experiments, or query things like filesystem content, without creating additional cells that you may not want saved in your notebook.
+
+* :kbd:`Ctrl-m`: 
+  this is the prefix for all other keybindings, which consist of an additional single letter or character.  Type :kbd:`Ctrl-m h` (that is, the sole letter
+   :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining available keybindings.
+
+
+
    
-Importing or executing a notebook as a normal Python file
----------------------------------------------------------
-
-The native format of the notebook, a file with a ``.ipynb`` `extension, is a
-JSON container of all the input and output of the notebook, and therefore not
-valid Python by itself.  This means that by default, you cannot directly 
-import a notebook from Python, nor execute it as a normal python script.  
-
-But if you want to be able to use notebooks also as regular Python files, you can start the notebook server with::
-
-  ipython notebook --script
-
-or you can set this option permanently in your configuration file with::
-
-    c.NotebookManager.save_script=True
-
-This will instruct the notebook server to save the ``.py`` export of each
-notebook, in addition to the ``.ipynb``, at every save.  These are standard ``.py`` files, and so they can be
-``%run``, imported from regular IPython sessions or other notebooks, or
-executed at the command-line.  Since we export the raw
-code you have typed, for these files to be importable from other code you will
-have to avoid using syntax such as ``%magics`` and other IPython-specific
-extensions to the language.
-
-In regular practice, the standard way to differentiate importable code from the
-'executable' part of a script is to put at the bottom::
-
-  if __name__ == '__main__':
-    # rest of the code...
-
-Since all cells in the notebook are run as top-level code, you'll need to
-similarly protect *all* cells that you do not want executed when other scripts
-try to import your notebook.  A convenient shortand for this is to define early
-on::
-
-  script = __name__ == '__main__'
-
-and then on any cell that you need to protect, use::
-
-  if script:
-    # rest of the cell...
-
 
 Cell types
 ----------
@@ -305,20 +283,44 @@ When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a 
   ``%matplotlib inline``
 which captures the output inline within the notebook format. This has the benefit that the resulting plots will be stored in the notebook document.
 
-Converting notebooks to other formats using nbconvert
-------------------------------------------------------
+
+Converting notebooks to other formats
+-------------------------------------
+Newly added in the 1.0 release of IPython is the ``nbconvert`` tool to convert a notebook document into another static format. This is a command line tool; at present, this functionality is not available to export directly from within the Notebook app. The syntax is::
+
+  ``$ ipython nbconvert notebook.ipynb``
+
+for standard HTML output, or::
+
+  ``$ ipython nbconvert --format=FORMAT notebook.ipynb``
+
+where ``FORMAT`` is the desired export format. Options for this format include:
+
+* ``full_html``:
+  Standard HTML
+
+* ``simple_html``:
+  A simplified version of HTML
+
+* ``reveal``:
+  A format to be used with the ``reveal.js`` package for slideshow presentations.
+
+* ``sphinx_howto``:
+  A standard documentation format.
+
+* ``latex``:
+  Produces LaTeX output which may be compiled with ``pdflatex`` to PDF.
 
 
 Configuration
 -------------
-
-The IPython notebook server can be run with a variety of command line arguments. 
+The IPython Notebook can be run with a variety of command line arguments. 
 To see a list of available options enter::
 
   $ ipython notebook --help 
 
 Defaults for these options can also be set by creating a file named 
-``ipython_notebook_config.py`` in your IPython profile folder. The profile folder is a subfolder of your IPython directory; ``ipython locate`` will show you where it is located. 
+``ipython_notebook_config.py`` in your IPython *profile folder*. The profile folder is a subfolder of your IPython directory; ``ipython locate`` will show you where it is located. 
 
 To create a new set of default configuration files, with lots of information on available options, use::
 
@@ -329,38 +331,47 @@ To create a new set of default configuration files, with lots of information on 
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-Keyboard shortcuts
-------------------
 
-All actions in the notebook can be achieved with the mouse, but we have also
-added keyboard shortcuts for the most common ones, so that productive use of
-the notebook can be achieved with minimal mouse intervention.  The main
-key bindings you need to remember are:
+Importing or executing a notebook as a normal Python file
+---------------------------------------------------------
 
-* :kbd:`Shift-Enter`: execute the current cell (similar to the Qt console),
-  show output (if any) and jump to the next cell below. If :kbd:`Shift-Enter` 
-  was invoked on the last input line, a new code cell will also be created. Note 
-  that in the notebook, simply using :kbd:`Enter` *never* forces execution, 
-  it simply inserts a new line in the current cell. Therefore, in the notebook 
-  you must always use :kbd:`Shift-Enter` to get execution (or use the mouse and 
-  click on the ``Run Selected`` button).
+The native format of the notebook, a file with a ``.ipynb`` `extension, is a
+JSON container of all the input and output of the notebook, and therefore not
+valid Python by itself.  This means that by default, you cannot directly 
+import a notebook from Python, nor execute it as a normal python script.  
 
-* :kbd:`Alt-Enter`: this combination is similar to the previous one, with the 
-  exception that, if the next cell below is not empty, a new code cell will be 
-  added to the notebook, even if the cell execution happens not in the last cell. 
-  In this regard, :kbd:`Alt-Enter`: is simply a shortcut for the :kbd:`Shift-Enter`, 
-  :kbd:`Ctrl-m a` sequence. 
-  
-* :kbd:`Ctrl-Enter`: execute the current cell in "terminal mode", where any
-  output is shown but the cursor stays in the current cell, whose input
-  area is flushed empty.  This is convenient to do quick in-place experiments
-  or query things like filesystem content without creating additional cells you
-  may not want saved in your notebook.
+But if you want to be able to use notebooks also as regular Python files, you can start the notebook server with::
 
-* :kbd:`Ctrl-m`: this is the prefix for all other keybindings, which consist
-  of an additional single letter.  Type :kbd:`Ctrl-m h` (that is, the sole
-  letter :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining
-  available keybindings.
+  ipython notebook --script
+
+or you can set this option permanently in your configuration file with::
+
+    c.NotebookManager.save_script=True
+
+This will instruct the notebook server to save the ``.py`` export of each
+notebook, in addition to the ``.ipynb``, at every save.  These are standard 
+``.py`` files, and so they can be ``%run``, imported from regular IPython 
+sessions or other notebooks, or executed at the command line.  Since we export 
+the raw code you have typed, for these files to be importable from other code, 
+you will have to avoid using syntax such as ``%magic``s and other IPython-specific extensions to the language.
+
+In regular practice, the standard way to differentiate importable code from the
+'executable' part of a script is to put at the bottom::
+
+  if __name__ == '__main__':
+    # rest of the code...
+
+Since all cells in the notebook are run as top-level code, you will need to
+similarly protect *all* cells that you do not want executed when other scripts
+try to import your notebook.  A convenient shortand for this is to define early
+on::
+
+  script = __name__ == '__main__'
+
+and then on any cell that you need to protect, use::
+
+  if script:
+    # rest of the cell...
 
 
 .. _notebook_security:
