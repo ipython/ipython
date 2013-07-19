@@ -106,24 +106,20 @@ Basic concepts in the Notebook app
 When you finally start editing a notebook document in the Notebook, you will be presented with the title of the notebook, a *menu bar*, a *toolbar* and an empty *input cell*.
 
 Notebook title
-ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
-
+~~~~~~~~~~~~~~
 The title of the notebook document that is currently being edited is displayed at the top of the page, next to the ``IP[y]: Notebook`` logo. This title may be edited directly by clicking on it. The title is reflected in the name of the ``.ipynb`` notebook document file that is saved.
 
 Menu bar
-ˆˆˆˆˆˆˆˆˆ
-
+~~~~~~~~
 The menu bar presents different options that may be used to manipulate the way the Notebook functions.
 
 Toolbar
-ˆˆˆˆˆˆˆˆ
-
+~~~~~~~
 The tool bar gives handy icons for the most-used operations within the Notebook.
 
 
 Input cells
 -----------
-
 Input cells are the core of the functionality of the IPython Notebook.
 They are regions in the document where you can enter different types of text and commands. These regions are then executed using :kbd:`Shift-Enter`, at which point the Notebook executes the current input cell, displays the resulting output beneath it, and adds a new input cell below.
 
@@ -133,7 +129,6 @@ providing the means to direct the computational process.
 
 Basic workflow
 --------------
-
 The normal workflow in a notebook is, then, quite similar to a standard IPython session, with the difference that you can edit cells in-place multiple 
 times until you obtain the desired results, rather than having to 
 rerun separate scripts with the ``%run`` magic command. (Magic commands do, however, also work in the notebook; see below).   Typically, you'll work on a problem in pieces, 
@@ -152,9 +147,8 @@ computer (i.e. if you are accessing it via your localhost address at ``127.0.0.1
 
 Cell types
 ----------
-
-Each IPython input cell has a cell type.
-There is a limited number of possible cell types, which may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
+Each IPython input cell has a *cell type*.
+There is a restricted number of possible cell types, which may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
 
 * code :kbd:`Ctrl-m y`
 * markdown :kbd:`Ctrl-m m`
@@ -163,31 +157,21 @@ There is a limited number of possible cell types, which may be set by using the 
 
 
 Code cells
-ˆˆˆˆˆˆˆˆˆˆˆ
-
-Code cells contain code, which is Python by default. This code is executed when :kbd:`Shift-Enter` is typed, and the result of running the code will then be displayed as its output just below the cell. For example, the output may be a figure, which can be displayed inline (see below).
+~~~~~~~~~~
+Code cells contain code written in some computer language, which is Python by default. When the cell is executed with :kbd:`Shift-Enter`, this code is executed, and the result returned by Python (or the corresponding language) after running the code will be displayed as its output.
 
 Code may be edited inline in the cell, with full syntax highlighting.
 
 
-Rich text using markdown
-ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
+Rich text using Markdown
+~~~~~~~~~~~~~~~~~~~~~~~~
+The computational process may be documented in a literate way using rich text. 
+For this purpose, the Notebook provides markdown cells. Text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. This is rendered using Markdown syntax to a rich HTML representation when the cell is executed. In this case, the output *replaces* the input cell.
 
-The computational process may be documented using rich text by using a markdown cell. Rich text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. 
-
-
-Mathematics using LaTeX
-ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
-
-You can write mathematics by including LaTeX code in markdown cells.
- Use ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}`` also work.
- New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
+Within markdown cells, mathematics can be included in a straightforward manner using LaTeX notation: ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}``, also work. New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
 
 Raw cells
-ˆˆˆˆˆˆˆˆˆˆ
-
-
-
+~~~~~~~~~
 Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information to be used when the notebook is exported to a certain format.
 
 
