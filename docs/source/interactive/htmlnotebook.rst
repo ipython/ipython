@@ -7,7 +7,7 @@ The IPython Notebook
 
     :ref:`Installation requirements <installnotebook>` for the Notebook.
 
-The IPython Notebook consists of two components:
+The IPython Notebook combines two components:
 
 * A web application, called the *IPython Notebook web app*, for interactive authoring of literate computations, in which explanatory text, mathematics, computations and rich media output may be combined. Input and output are stored  in persistent cells that may be edited in-place.
 
@@ -35,7 +35,7 @@ features of the IPython Notebook app include:
 
 If you have ever used the Mathematica or SAGE notebooks (the latter is also
 web-based__) you should feel right at home.  If you have not, you will be
-able to learn how to use it in just a few minutes.
+able to learn how to use the IPython Notebook in just a few minutes.
 
 .. __: http://sagenb.org
 
@@ -74,22 +74,19 @@ how to install the notebook and its dependencies.
 Starting the IPython Notebook web app
 =====================================
 
-The Notebook web app can be started with the command::
+The Notebook web app is started with the command::
 
     $ ipython notebook
 
-The landing page of the notebook server application, the *dashboard*, shows the notebooks currently available in the working directory (the directory from which the notebook was started).
+The landing page of the notebook server application, the *dashboard*, shows the notebooks currently available in the *working directory* (the directory from which the notebook was started).
 You can create new notebooks from the dashboard with the ``New Notebook``
 button, or open existing ones by clicking on their name.
+You can also drag and drop ``.ipynb`` notebooks and standard ``.py`` Python source code files into the notebook list area.
 
+ ``.py`` files will be imported into the IPython Notebook as a notebook with the same name, but an ``.ipynb`` extension, located in the working directory.  The notebook will consist of a single cell containing all the 
+ code in the ``.py`` file, which you can later manually partition into individual cells. 
 
-You can also drag and drop into the area listing files any ``.py`` 
-file:  it will be imported into a notebook with the same name (but 
-``.ipynb``  extension), located in the working directory.  This notebook will consist of a single cell with all the code in the file, which you can later manually partition into individual cells for gradual execution, and add text
-and graphics, etc. 
-Alternatively,
-prior to import, you can manually add ``# <nbformat>2</nbformat>`` 
-markers at the start and then add separators for text/code cells, to get a cleaner import with the file already broken into individual cells.
+ .. Alternatively, prior to importing the ``.py``, you can manually add ``# <nbformat>2</nbformat>`` at the start of the file, and then add separators for text and code cells, to get a cleaner import with the file already broken into individual cells.
 
 
 The IPython Notebook web app is based on a server-client structure. 
@@ -103,16 +100,16 @@ Basic workflow
 When you open or create a new notebook, your browser tab will reflect the name of that notebook, prefixed with "IPy".
 The URL is currently not meant to be human-readable and is not persistent across invocations of the notebook server; however, this will change in a future version of IPython.
 
-The normal workflow in a notebook is quite similar to a normal IPython 
+The normal workflow in a notebook is quite similar to a standard IPython 
 session, with the difference that you can edit a cell in-place multiple 
-times until you obtain the desired resultsj, rather than having to 
-rerun separate scripts with the ``%run`` magic (though magics also work 
-in the notebook).   Typically you'll work on a problem in pieces, 
+times until you obtain the desired results, rather than having to 
+rerun separate scripts with the ``%run`` magic. (Magics do, however, also work
+in the notebook.)   Typically, you'll work on a problem in pieces, 
 organizing related pieces into cells and moving forward as previous 
 parts work correctly.  This is much more convenient for interactive exploration than breaking up a computation into scripts that must be 
 executed together, especially if parts of them take a long time to run
 
-The only significant limitation that the notebook currently has, compared to the qt console, is that it cannot run any code that 
+The only significant limitation that the notebook currently has, compared to the Qt console, is that it cannot run any code that 
 expects input from the kernel (such as scripts that call 
 :func:`raw_input`).  Very importantly, this means that the ``%debug`` 
 magic does *not* currently work in the notebook!  This limitation will 
@@ -120,30 +117,6 @@ be overcome in the future, but in the meantime, there is a way to debug problems
 If your notebook is running on a local
 computer (i.e. if you are accessing it via your localhost address at ``127.0.0.1``), you can just type ``%qtconsole`` in the notebook and a Qt console will open up, connected to that same kernel.
 
-
-Connecting to an existing kernel
----------------------------------
-
-The notebook server always prints to the terminal the full details of 
-how to connect to each kernel, with lines like::
-
-    [IPKernelApp] To connect another client to this kernel, use:
-    [IPKernelApp] --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
-
-This is the name of a JSON file that contains all the port and 
-validation information necessary to connect to the kernel.  You can 
-manually start a Qt console with::
-
-    ipython qtconsole --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
-
-and if you only have a single kernel running, simply typing::
-
-    ipython qtconsole --existing
-
-will automatically find it (it will always find the most recently 
-started kernel if there is more than one).  You can also request this 
-connection data by typing ``%connect_info``; this will print the same 
-file information as well as the content of the JSON data structure it contains.
 
 Cell types
 ----------
@@ -386,6 +359,31 @@ server is for some reason non-responsive.
 
 Quick how to's
 ==============
+
+Connecting to an existing kernel
+---------------------------------
+
+The notebook server always prints to the terminal the full details of 
+how to connect to each kernel, with lines like::
+
+    [IPKernelApp] To connect another client to this kernel, use:
+    [IPKernelApp] --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
+
+This is the name of a JSON file that contains all the port and 
+validation information necessary to connect to the kernel.  You can 
+manually start a Qt console with::
+
+    ipython qtconsole --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
+
+and if you only have a single kernel running, simply typing::
+
+    ipython qtconsole --existing
+
+will automatically find it (it will always find the most recently 
+started kernel if there is more than one).  You can also request this 
+connection data by typing ``%connect_info``; this will print the same 
+file information as well as the content of the JSON data structure it contains.
+
 
 Running a public notebook server
 --------------------------------
