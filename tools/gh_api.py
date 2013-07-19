@@ -1,4 +1,4 @@
-"""Functions for Github authorisation."""
+"""Functions for Github API requests."""
 from __future__ import print_function
 
 try:
@@ -13,6 +13,13 @@ import sys
 import requests
 import getpass
 import json
+
+try:
+    import requests_cache
+except ImportError:
+    print("no cache")
+else:
+    requests_cache.install_cache("gh_api")
 
 # Keyring stores passwords by a 'username', but we're not storing a username and
 # password
