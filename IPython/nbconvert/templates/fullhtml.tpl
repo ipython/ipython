@@ -22,6 +22,7 @@ body {
 }
 
 pre {
+    padding: 0.2em;
     border: none;
     margin: 0px;
     font-size: 13px;
