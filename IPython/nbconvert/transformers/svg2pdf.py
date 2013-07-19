@@ -29,9 +29,7 @@ from .convertfigures import ConvertFiguresTransformer
 # Constants
 #-----------------------------------------------------------------------------
 
-INKSCAPE_COMMAND = 'inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
-INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
-
+INKSCAPE_APP = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -44,6 +42,7 @@ class SVG2PDFTransformer(ConvertFiguresTransformer):
 
     from_format = Unicode('svg', config=True, help='Format the converter accepts')
     to_format = Unicode('pdf', config=False, help='Format the converter writes')
+    
     command = Unicode(config=True,
         help="""The command to use for converting SVG to PDF
         
@@ -55,13 +54,15 @@ class SVG2PDFTransformer(ConvertFiguresTransformer):
         """)
     
     def _command_default(self):
+        return self.inkscape + \
+               ' --without-gui --export-pdf="{to_filename}" "{from_filename}"'
+    
+    inkscape = Unicode(config=True, help="The path to Inkscape, if necessary")
+    def _inkscape_default(self):
         if sys.platform == "darwin":
-            return INKSCAPE_OSX_COMMAND
-        elif sys.platform == "win32":
-            # windows not yet supported
-            return ""
-        else:
-            return INKSCAPE_COMMAND
+            if os.path.isfile(INKSCAPE_APP):
+                return INKSCAPE_APP
+        return "inkscape"
 
 
     def convert_figure(self, data_format, data):
