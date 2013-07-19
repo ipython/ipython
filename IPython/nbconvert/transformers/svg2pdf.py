@@ -14,6 +14,7 @@ one format to another.
 #-----------------------------------------------------------------------------
 
 import base64
+import io
 import os
 import sys
 import subprocess
@@ -73,7 +74,8 @@ class SVG2PDFTransformer(ConvertFiguresTransformer):
             
             #Write fig to temp file
             input_filename = os.path.join(tmpdir, 'figure.' + data_format)
-            with open(input_filename, 'wb') as f:
+            # SVG data is unicode text
+            with io.open(input_filename, 'w', encoding='utf8') as f:
                 f.write(data)
 
             #Call conversion application
