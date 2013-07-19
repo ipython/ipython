@@ -65,7 +65,7 @@ class ShimModule(types.ModuleType):
             try:
                 pak = module.__dict__[obj]
             except KeyError:
-                raise ImportError('No module named %s' % obj)
+                raise AttributeError(obj)
             return pak
         else:
             # called with un-dotted string
