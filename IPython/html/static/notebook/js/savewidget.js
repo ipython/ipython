@@ -87,6 +87,7 @@ var IPython = (function (IPython) {
                             "have 1 or more characters and can contain any characters " +
                             "except :/\\. Please enter a new notebook name:"
                         );
+                        return false;
                     } else {
                         IPython.notebook.set_notebook_name(new_name);
                         IPython.notebook.save_notebook();
