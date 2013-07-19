@@ -177,9 +177,7 @@ Raw cells provide a place to put additional information which is not evaluated b
 
 Plotting
 --------
-
-The Notebook allows 
-
+One major feature of the Notebook is the ability to capture the result of plots as inline output.
 `%matplotlib` and `%pylab` magics
 
 Inline versus non inline
@@ -189,10 +187,22 @@ Inline versus non inline
 
 Magic commands
 --------------
+Magic commands, or *magics*, are one-word commands starting with `%`, which give commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
+
+Magics control different elements of the way that the IPython notebook operates. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
+
+Some of the main magics are the following:
+
+``%lsmagic``
+  Lists all the magic commands available
+
+See CROSS-REF for a complete list of magics
 
 
 Exporting a notebook and importing existing scripts
 ---------------------------------------------------
+
+Need to talk about ipython nbconvert
 
 If you want to provide others with a static HTML or PDF view of your notebook,
 use the ``Print`` button.  This opens a static view of the document, which you
@@ -204,9 +214,8 @@ this, you must send the directory along with the main html file).
 
 The `Download` button lets you save a notebook file to the Download area
 configured by your web browser (particularly useful if you are running the
-notebook server on a remote host and need a file locally).  The notebook is
-saved by default with the ``.ipynb`` extension and the files contain JSON data
-that is not meant for human editing or consumption.  But you can always export
+notebook server on a remote host and need a file locally).  
+But you can always export
 the input part of a notebook to a plain python script by choosing Python format
 in the `Download` drop list.  This removes all output and saves the text cells
 in comment areas.  See ref:`below <notebook_format>` for more details on the
