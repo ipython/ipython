@@ -9,23 +9,18 @@ The IPython Notebook
 
 The IPython Notebook combines two components:
 
-* A web application, called the *IPython Notebook web app*, for interactive 
-authoring of literate computations, in which explanatory text, mathematics,
-computations and rich media output may be combined. Input and output are stored in persistent cells that may be edited in-place.
+* **The *IPython Notebook* web application**:
 
-* Plain text documents, called *notebook documents*, or *notebooks*, for recording and distributing the results of the rich computations.
+  The IPython Notebook web app is a browser-based tool for interactive authoring of literate computations, in which explanatory text, mathematics,computations and rich media output may be combined. Input and output are stored in persistent cells that may be edited in-place.
 
-In the documentation, the distinction between the *N*otebook app and *n*otebook documents is made by capitalization.
+* **Notebook documents**:
 
-The Notebook app automatically saves, at certain intervals, the current state of the computational process occurring in the web browser to the corresponding notebook document.
+  *Notebook documents*, or *notebooks*, are plain text documents which record all inputs and outputs of the computations, interspersed with text, mathematics and HTML 5 representations of objects, in a literate style.
 
-Note that it is also common to refer to the current state of the computation, 
-as represented by the sequence of input cells in the Notebook app, as a 
-*notebook*. There is no problem with confounding these two concepts, since 
-there is actually a one-to-one correspondence between what you see on the
-screen inside the app, and what is stored in the corresponding ``.ipynb``
-notebook document.
+Since the similarity in names can lead to some confusion, in the documentation, we will always use the typographical distinction between the *N*otebook app and *n*otebook documents via the respective capitalization. Here we are thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, to increase clarity.
 
+We refer to the current state of the computational process taking place in the Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
+*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, and the Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same name "notebook" for both the notebook space and the corresonding notebook document.
 
 Features of the IPython Notebook web app
 ----------------------------------------
