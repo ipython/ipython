@@ -153,10 +153,10 @@ Cell types
 Each IPython input cell has a *cell type*.
 There is a restricted number of possible cell types, which may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
 
-* code :kbd:`Ctrl-m y`
-* markdown :kbd:`Ctrl-m m`
-* raw :kbd:`Ctrl-m t`
-* heading :kbd:`Ctrl-m 1` - :kbd:`Ctrl-m 6`
+* **code**: :kbd:`Ctrl-m y`
+* **markdown**: :kbd:`Ctrl-m m`
+* **raw**: :kbd:`Ctrl-m t`
+* **heading**: :kbd:`Ctrl-m 1` - :kbd:`Ctrl-m 6`
 
 
 Code cells
@@ -181,22 +181,34 @@ Raw cells provide a place to put additional information which is not evaluated b
 
 Magic commands
 --------------
-Magic commands, or *magics*, are one-word commands starting with `%%`, which give commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
+Magic commands, or *magics*, are one-word commands beginning with the symbol ``%``, which send commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
 
 Magics control different elements of the way that the IPython notebook operates. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
 
-Some of the main magics are the following:
+There are two types of magics: *line magics*, which begin with a single ``%`` and operate on a single line of the code cell; and *cell magics*, which begin with ``%%`` and operate on the entire contents of the cell.
 
-* ``%lsmagic``
-  Lists all the magic commands available
+Line magics
+˜˜˜˜˜˜˜˜˜˜˜
 
-* ``%config``
-  Configuration of IPython
+Some of the available line magics are the following:
 
-* ``%timeit``
-  Time a single line of code.
+* ``%load``:
+  Loads a file and places its content into a new code cell.
 
-There are also *cell magics*, which start with ``%%``
+* ``%timeit``:
+  A simple way to time how long a single line of code takes to run
+
+* ``%config``:
+  Configuration of the IPython Notebook
+
+* ``%lsmagic``:
+  Provides a list of all available magic commands
+
+Cell magics
+˜˜˜˜˜˜˜˜˜˜˜
+
+* ``%load``:
+  
 
 
 Plotting
