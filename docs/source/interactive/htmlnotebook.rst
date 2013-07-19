@@ -44,9 +44,6 @@ able to learn how to use the IPython Notebook in just a few minutes.
 .. __: http://sagenb.org
 
 
-
-
-
 Notebook documents
 ------------------
 
@@ -77,8 +74,8 @@ how to install the notebook and its dependencies.
    option.
    
 
-Starting the IPython Notebook web app
-=====================================
+Running the IPython Notebook web app
+====================================
 
 The Notebook web app is started with the command::
 
@@ -123,22 +120,23 @@ Toolbar
 
 The tool bar gives handy icons for the most-used operations within the Notebook.
 
-Input cell
-ˆˆˆˆˆˆˆˆˆˆˆ
 
-Input cells are the core of the funcionality of the IPython Notebook.
-The notebook consists of 
-They provide the means by which you direct the computational process,
-They allow you to enter information of different types as input to the computation. 
+Input cells
+-----------
+
+Input cells are the core of the functionality of the IPython Notebook.
+They are regions in the document where you can enter different types of text and commands. These regions are then executed using :kbd:`Shift-Enter`, at which point the Notebook executes the current input cell, displays the resulting output beneath it, and adds a new input cell below.
+
+The notebook consists of a sequence of input cells, 
+providing the means to direct the computational process.
 
 
-The IPython Notebook consists of a sequence of *input cells*. There are several
+Basic workflow
+--------------
 
-The normal workflow in a notebook is quite similar to a standard IPython 
-session, with the difference that you can edit a cell in-place multiple 
+The normal workflow in a notebook is, then, quite similar to a standard IPython session, with the difference that you can edit cells in-place multiple 
 times until you obtain the desired results, rather than having to 
-rerun separate scripts with the ``%run`` magic. (Magics do, however, also work
-in the notebook.)   Typically, you'll work on a problem in pieces, 
+rerun separate scripts with the ``%run`` magic command. (Magic commands do, however, also work in the notebook; see below).   Typically, you'll work on a problem in pieces, 
 organizing related pieces into cells and moving forward as previous 
 parts work correctly.  This is much more convenient for interactive exploration than breaking up a computation into scripts that must be 
 executed together, especially if parts of them take a long time to run
@@ -204,7 +202,9 @@ Inline versus non inline
 
 %config 
 
-Test!
+
+Magic commands
+--------------
 
 
 Exporting a notebook and importing existing scripts
