@@ -358,10 +358,6 @@ Note: For best display, use latex syntax highlighting. =))
     ((( conditionally_center_output(insert_graphics(output.svg_filename)) )))
 ((*- endblock -*))
 
-((*- block data_pdf -*))
-    ((( conditionally_center_output(insert_graphics(output.pdf_filename[:-4])) )))
-((*- endblock -*))
-
 ((*- block data_latex *))
     ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
 ((*- endblock -*))
