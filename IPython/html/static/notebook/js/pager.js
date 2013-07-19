@@ -142,7 +142,7 @@ var IPython = (function (IPython) {
     };
 
     Pager.prototype.detach = function(){
-        var w = window.open("","_blank")
+        var w = window.open("","_blank");
         $(w.document.head)
         .append(
                 $('<link>')
@@ -153,10 +153,10 @@ var IPython = (function (IPython) {
         .append(
                 $('<title>').text("IPython Pager")
         );
-        var pager_body = $(w.document.body)
-            pager_body.attr('style','overflow:scroll');
+        var pager_body = $(w.document.body);
+        pager_body.css('overflow','scroll');
 
-        pager_body.append(this.pager_element.children())
+        pager_body.append(this.pager_element.clone().children());
         w.document.close();
         this.collapse();
 
