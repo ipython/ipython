@@ -288,11 +288,11 @@ Converting notebooks to other formats
 -------------------------------------
 Newly added in the 1.0 release of IPython is the ``nbconvert`` tool to convert a notebook document into another static format. This is a command line tool; at present, this functionality is not available to export directly from within the Notebook app. The syntax is::
 
-  ``$ ipython nbconvert notebook.ipynb``
+  $ ipython nbconvert notebook.ipynb
 
 for standard HTML output, or::
 
-  ``$ ipython nbconvert --format=FORMAT notebook.ipynb``
+  $ ipython nbconvert --format=FORMAT notebook.ipynb
 
 where ``FORMAT`` is the desired export format. Options for this format include:
 
@@ -331,9 +331,8 @@ To create a new set of default configuration files, with lots of information on 
     :ref:`config_overview`, in particular :ref:`Profiles`.
 
 
-
-Importing or executing a notebook as a normal Python file
----------------------------------------------------------
+Extracting standard Python files from notebooks
+-----------------------------------------------
 
 The native format of the notebook, a file with a ``.ipynb`` `extension, is a
 JSON container of all the input and output of the notebook, and therefore not
@@ -377,9 +376,9 @@ and then on any cell that you need to protect, use::
 .. _notebook_security:
 
 Security
-========
+--------
 
-You can protect your notebook server with a simple single-password by
+You can protect your Notebook server with a simple singlepassword by
 setting the :attr:`NotebookApp.password` configurable. You can prepare a
 hashed password using the function :func:`IPython.lib.security.passwd`:
 
@@ -404,16 +403,13 @@ You can then add this to your :file:`ipython_notebook_config.py`, e.g.::
 
 When using a password, it is a good idea to also use SSL, so that your password
 is not sent unencrypted by your browser. You can start the notebook to
-communicate via a secure protocol mode using a self-signed certificate by
-typing::
+communicate via a secure protocol mode using a self-signed certificate with the command::
 
     $ ipython notebook --certfile=mycert.pem
 
 .. note::
 
-    A self-signed certificate can be generated with openssl.  For example, the
-    following command will create a certificate valid for 365 days with both
-    the key and certificate data written to the same file::
+    A self-signed certificate can be generated with ``openssl``.  For example, the following command will create a certificate valid for 365 days with both the key and certificate data written to the same file::
 
         $ openssl req -x509 -nodes -days 365 -newkey rsa:1024 -keyout mycert.pem -out mycert.pem
 
@@ -429,8 +425,6 @@ notebook server over ``https://``, not over plain ``http://``.  The startup
 message from the server prints this, but it's easy to overlook and think the
 server is for some reason non-responsive.
 
-Quick how to's
-==============
 
 Connecting to an existing kernel
 ---------------------------------
@@ -525,36 +519,33 @@ your Notebooks.
 
 .. _notebook_format:
 
-The notebook format
-===================
+Notebook JSON format
+====================
 
-The notebooks themselves are JSON files with an ``ipynb`` extension, formatted
+Notebooks are JSON files with an ``.ipynb`` extension, formatted
 as legibly as possible with minimal extra indentation and cell content broken
 across lines to make them reasonably friendly to use in version-control
-workflows.  You should be very careful if you ever edit manually this JSON
+workflows.  You should be very careful if you ever manually edit this JSON
 data, as it is extremely easy to corrupt its internal structure and make the
 file impossible to load.  In general, you should consider the notebook as a
-file meant only to be edited by IPython itself, not for hand-editing.
+file meant only to be edited by the IPython Notebook app itself, not for hand-editing.
 
 .. note::
 
      Binary data such as figures are directly saved in the JSON file.  This
-     provides convenient single-file portability but means the files can be
-     large and diffs of binary data aren't very meaningful.  Since the binary
-     blobs are encoded in a single line they only affect one line of the diff
-     output, but they are typically very long lines.  You can use the
-     'ClearAll' button to remove all output from a notebook prior to
-     committing it to version control, if this is a concern.
+     provides convenient single-file portability, but means that the files can 
+     be large; ``diff``s of binary data also are not very meaningful.  Since the 
+     binary blobs are encoded in a single line, they affect only one line of 
+     the ``diff`` output, but they are typically very long lines.  You can use the ``Cell -> All Output -> Clear`` menu option to remove all output from a notebook prior to committing it to version control, if this is a concern.
 
-The notebook server can also generate a pure-python version of your notebook,
-by clicking on the 'Download' button and selecting ``py`` as the format.  This
-file will contain all the code cells from your notebook verbatim, and all text
-cells prepended with a comment marker.  The separation between code and text
+The notebook server can also generate a pure Python version of your notebook, 
+using the ``File -> Download as`` menu option. The resulting ``.py`` file will 
+contain all the code cells from your notebook verbatim, and all text cells 
+prepended with a comment marker.  The separation between code and text
 cells is indicated with special comments and there is a header indicating the
-format version.  All output is stripped out when exporting to python.
+format version.  All output is stripped out when exporting to Python.
 
-Here is an example of a simple notebook with one text cell and one code input
-cell, when exported to python format::
+Here is an example of the Python output from a simple notebook with one text cell and one code input cell::
 
     # <nbformat>2</nbformat>
 
@@ -564,14 +555,14 @@ cell, when exported to python format::
 
     # <codecell>
 
-    print "hello IPython"
+    print "Hello, IPython!"
 
 
 Known issues
 ============
 
 When behind a proxy, especially if your system or browser is set to autodetect
-the proxy, the html notebook might fail to connect to the server's websockets,
+the proxy, the Notebook app might fail to connect to the server's websockets,
 and present you with a warning at startup. In this case, you need to configure
 your system not to use the proxy for the server's address.
 
