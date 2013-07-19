@@ -175,15 +175,6 @@ Raw cells
 Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information to be used when the notebook is exported to a certain format.
 
 
-Plotting
---------
-One major feature of the Notebook is the ability to capture the result of plots as inline output.
-`%matplotlib` and `%pylab` magics
-
-Inline versus non inline
-
-%config 
-
 
 Magic commands
 --------------
@@ -193,10 +184,38 @@ Magics control different elements of the way that the IPython notebook operates.
 
 Some of the main magics are the following:
 
-``%lsmagic``
+* ``%lsmagic``
   Lists all the magic commands available
 
-See CROSS-REF for a complete list of magics
+* ``%config``
+  Configuration of IPython
+
+
+Plotting
+--------
+One major feature of the Notebook is the ability to capture the result of plots as inline output. IPython is designed to work seamlessly together with
+the ``%matplotlib`` plotting library. In order to set this up, the 
+``%matplotlib`` magic command must be run before any plotting takes place.
+
+Note that ``%matplotlib`` only sets up IPython to work correctly with ``matplotlib``; it does not actually execute any ``import`` commands and does not add anything to the namespace.
+
+There is an alternative magic, ``%pylab``, which, in addition, also executes a sequence of standard ``import`` statements required for working with the 
+``%matplotlib`` library. In particular, it automatically imports all names in the ``numpy`` and ``matplotlib`` packages to the namespace. A less invasive solution is ``%pylab --no-import-all``, which imports just the standard names 
+``np`` for the ``numpy`` module and ``plt`` for the ``matplotlib.pyplot`` module.
+
+When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a plotting command is captured in a *separate* window. An alternative is to use::
+  ``%matplotlib inline``
+which captures the output inline within the notebook format. This has the benefit that the resulting plots will be stored in the notebook document.
+
+
+
+
+`%matplotlib` and `%pylab` magics
+
+Inline versus non inline
+
+%config 
+
 
 
 Exporting a notebook and importing existing scripts
