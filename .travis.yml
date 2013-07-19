@@ -6,7 +6,12 @@ python:
     - 3.2
     - 3.3
 before_install:
+    - "if [[ $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install -Iv https://pypi.python.org/packages/source/J/Jinja2/Jinja2-2.6.tar.gz; fi"
+    - "if [[ ! $TRAVIS_PYTHON_VERSION == '3.2'* ]]; then pip install jinja2; fi"
     - easy_install -q pyzmq
+    - sudo apt-get install pandoc
+    - pip install pygments
+    - pip install sphinx
 install:
     - python setup.py install -q 
 script:

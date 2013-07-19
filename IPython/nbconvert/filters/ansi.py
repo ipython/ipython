@@ -111,12 +111,22 @@ def single_ansi2latex(code):
     Return latex code and number of open brackets.
     """
     for color in coloransi.color_templates:
-        colcode = getattr(coloransi.TermColors,color[0])
+
+        #Make sure to get the color code (which is a part of the overall style)
+        # i.e.  0;31 is valid
+        #       31 is also valid, and means the same thing
+        #coloransi.color_templates stores the longer of the two formats %d;%d
+        #Get the short format so we can parse that too.  Short format only exist
+        #if no other formating is applied (the other number must be a 0)!
+        style_code = getattr(coloransi.TermColors, color[0])
+        color_code = style_code.split(';')[1]
+        is_normal = style_code.split(';')[0] == '0'
+
         # regular fonts
-        if code == colcode:
+        if (code == style_code) or (is_normal and code == color_code):
             return '\\'+color[0].lower()+'{', 1
         # bold fonts
-        if code == colcode[:3]+str(1)+colcode[3:]:
+        if code == style_code[:3]+str(1)+style_code[3:]:
             return '\\textbf{\\textcolor{'+color[0].lower()+'}{', 2
     return '', 0
 
@@ -135,11 +145,13 @@ def ansi2latex(text):
         if openbrack:
             outstring += '}'*openbrack
             openbrack = 0
-        if match.group() <> coloransi.TermColors.Normal and not openbrack:
+        if not (match.group() == coloransi.TermColors.Normal or openbrack):
             texform, openbrack = single_ansi2latex(match.group())
             outstring += texform
         last_end = match.end()
+
+    #Add the remainer of the string and THEN close any remaining color brackets.
+    outstring += text[last_end:]
     if openbrack: 
         outstring += '}'*openbrack
-    outstring += text[last_end:]
     return outstring.strip()
