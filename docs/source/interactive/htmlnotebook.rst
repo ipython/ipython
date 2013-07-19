@@ -9,33 +9,34 @@ The IPython Notebook
 
 The IPython Notebook combines two components:
 
-* A web application, called the *IPython Notebook web app*, for interactive authoring of literate computations, in which explanatory text, mathematics, computations and rich media output may be combined. Input and output are stored  in persistent cells that may be edited in-place.
+* A web application, called the *IPython Notebook web app*, for interactive 
+authoring of literate computations, in which explanatory text, mathematics,
+computations and rich media output may be combined. Input and output are stored in persistent cells that may be edited in-place.
 
 * Plain text documents, called *notebook documents*, or *notebooks*, for recording and distributing the results of the rich computations.
 
 In the documentation, the distinction between the *N*otebook app and *n*otebook documents is made by capitalization.
 
-The Notebook app automatically saves the current state of the computation in the web browser to the corresponding notebook document.
+The Notebook app automatically saves, at certain intervals, the current state of the computational process occurring in the web browser to the corresponding notebook document.
 
-It is also common to refer to the current state of the computation, as represented by the sequence of input cells in the Notebook app, as a 
+Note that it is also common to refer to the current state of the computation, 
+as represented by the sequence of input cells in the Notebook app, as a 
 *notebook*. There is no problem with confounding these two concepts, since 
 there is actually a one-to-one correspondence between what you see on the
- screen inside the app, and what is stored in the corresponding ``.ipynb`` notebook document.
-
+screen inside the app, and what is stored in the corresponding ``.ipynb``
+notebook document.
 
 
 Features of the IPython Notebook web app
 ----------------------------------------
 
-Some of the main
-features of the IPython Notebook app include:
+Some of the main features of the IPython Notebook app include:
 
-* Display rich data representations (e.g. HTML / LaTeX / SVG) in the browser as a result of computations.
-* Compose text cells using Markdown and HTML.
-* Include mathematical equations, rendered directly in the browser by MathJax.
-* Import standard Python scripts
-* In-browser editing, syntax highlighting, tab completion and autoindentation.
-* Inline figures rendered by the ``matplotlib`` library with publication quality, in a range of formats (SVG / PDF / PNG).
+* In-browser editing, syntax highlighting, tab completion and autoindentation for code.
+* Mix code with rich text using the Markdown markup language.
+* Include mathematical equations using LaTeX notation, rendered directly in the browser by MathJax.
+* Display rich data representations (e.g. HTML / LaTeX / SVG) as the result of computations.
+* Include inline figures rendered by the ``matplotlib`` library with publication quality, in a range of formats (SVG / PDF / PNG).
 
 If you have ever used the Mathematica or SAGE notebooks (the latter is also
 web-based__) you should feel right at home.  If you have not, you will be
@@ -51,16 +52,14 @@ Notebook document files are just  standard text files with the extension
 ``.ipynb``, stored in the working directory on your computer. This file can be easily put under version control and shared with colleagues.
 
 Despite the fact that the notebook documents are plain text files, they use 
-the JSON format in order to store a *complete*, *reproducible* copy of the
-state of the computation as it is inside the Notebook app. 
-That is, they record all computations carried out and the results obtained in a literate way; inputs and  outputs of computations can be freely mixed  with descriptive text, mathematics, and HTML 5 objects.
+the JSON format in order to store a *complete*, *reproducible*, *one-to-one* copy of the state of the computational state as it is inside the Notebook app. 
+All computations carried out, and the corresponding results obtained, are combined in a literate way, mixing them  with descriptive text, mathematics, and HTML 5 representations of objects.
 
-Notebooks may easily be exported to a range of static formats, including HTML (for example, for blog posts), PDF and slide shows.
-Furthermore, any publicly
-available notebook may be shared via the `IPython Notebook Viewer
-<http://nbviewer.ipython.org>`_ service, which will provide it as a static web
-page. The results may thus be shared without having to install anything.
-
+Notebooks may easily be exported to a range of static formats, including 
+HTML (for example, for blog posts), PDF and slide shows.
+Furthermore, any publicly available notebook may be shared via the 
+`IPython Notebook Viewer <http://nbviewer.ipython.org>`_ service, which will 
+provide it as a static web page. The results may thus be shared without having to install anything.
 
 See :ref:`our installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
