@@ -3,9 +3,17 @@
 The IPython Notebook
 ====================
 
+The IPython Notebook is part of the IPython package, which aims to provide a powerful, interactive approach to scientific computation.
+The IPython Notebook extends the previous text-console-based approach, and the later Qt console, in a qualitatively new diretion, providing a web-based application suitable for capturing the whole scientific computation process.
+
+
 .. seealso::
 
     :ref:`Installation requirements <installnotebook>` for the Notebook.
+
+
+Introduction
+------------
 
 The IPython Notebook combines two components:
 
@@ -17,24 +25,24 @@ The IPython Notebook combines two components:
 
   *Notebook documents*, or *notebooks*, are plain text documents which record all inputs and outputs of the computations, interspersed with text, mathematics and HTML 5 representations of objects, in a literate style.
 
-Since the similarity in names can lead to some confusion, in the documentation, we will always use the typographical distinction between the *N*otebook app and *n*otebook documents via the respective capitalization. Here we are thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, to increase clarity.
+Since the similarity in names can lead to some confusion, in the documentation we will always use the typographical distinction between the *N*otebook app and *n*otebook documents via the respective capitalization of the word "notebook". Here, we are thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, to increase clarity.
 
 We refer to the current state of the computational process taking place in the Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
-*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, and the Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same name "notebook" for both the notebook space and the corresonding notebook document.
+*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same name "notebook" for both the notebook space and the corresonding notebook document.
 
 Features of the IPython Notebook web app
 ----------------------------------------
 
 Some of the main features of the IPython Notebook app include:
 
-* In-browser editing, syntax highlighting, tab completion and autoindentation for code.
-* Mix code with rich text using the Markdown markup language.
-* Include mathematical equations using LaTeX notation, rendered directly in the browser by MathJax.
-* Display rich data representations (e.g. HTML / LaTeX / SVG) as the result of computations.
-* Include inline figures rendered by the ``matplotlib`` library with publication quality, in a range of formats (SVG / PDF / PNG).
+* In-browser editing for code, with automatic syntax highlighting, tab completion and autoindentation.
+* Literate combination of code with rich text using the Markdown markup language.
+* Mathematics is easily included within the Markdown using LaTeX notation, and rendered natively by MathJax.
+* Displays rich data representations (e.g. HTML / LaTeX / SVG) as the result of computations.
+* Publication-quality figures in a range of formats (SVG / PDF / PNG), rendered by the ``matplotlib`` library, may be included inline.
 
 If you have ever used the Mathematica or SAGE notebooks (the latter is also
-web-based__) you should feel right at home.  If you have not, you will be
+web-based__) you should feel right at home.  In any case, you will be
 able to learn how to use the IPython Notebook in just a few minutes.
 
 .. __: http://sagenb.org
@@ -43,7 +51,7 @@ able to learn how to use the IPython Notebook in just a few minutes.
 Notebook documents
 ------------------
 
-Notebook document files are just  standard text files with the extension 
+Notebook document files are just standard text files with the extension 
 ``.ipynb``, stored in the working directory on your computer. This file can be easily put under version control and shared with colleagues.
 
 Despite the fact that the notebook documents are plain text files, they use 
