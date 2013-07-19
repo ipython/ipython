@@ -144,6 +144,9 @@ be overcome in the future, but in the meantime, there is a way to debug problems
 If your notebook is running on a local
 computer (i.e. if you are accessing it via your localhost address at ``127.0.0.1``), you can just type ``%qtconsole`` in the notebook and a Qt console will open up, connected to that same kernel.
 
+At certain moments, it may be necessary to interrupt a particularly long calculation, or even to kill the entire computational process. This may be achieved by interrupting or restarting the kernel, respectively.
+After a restart, all relevant cells must be re-evaluated
+
 
 Cell types
 ----------
@@ -178,7 +181,7 @@ Raw cells provide a place to put additional information which is not evaluated b
 
 Magic commands
 --------------
-Magic commands, or *magics*, are one-word commands starting with `%`, which give commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
+Magic commands, or *magics*, are one-word commands starting with `%%`, which give commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
 
 Magics control different elements of the way that the IPython notebook operates. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
 
@@ -189,6 +192,11 @@ Some of the main magics are the following:
 
 * ``%config``
   Configuration of IPython
+
+* ``%timeit``
+  Time a single line of code.
+
+There are also *cell magics*, which start with ``%%``
 
 
 Plotting
@@ -206,15 +214,6 @@ There is an alternative magic, ``%pylab``, which, in addition, also executes a s
 When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a plotting command is captured in a *separate* window. An alternative is to use::
   ``%matplotlib inline``
 which captures the output inline within the notebook format. This has the benefit that the resulting plots will be stored in the notebook document.
-
-
-
-
-`%matplotlib` and `%pylab` magics
-
-Inline versus non inline
-
-%config 
 
 
 
