@@ -219,7 +219,7 @@ var IPython = (function (IPython) {
         var callbacks = {
             'object_info_reply': $.proxy(this._show, this)
         }
-        var msg_id = cell.kernel.object_info_request(re.exec(func), callbacks);
+        var msg_id = cell.session.kernel.object_info_request(re.exec(func), callbacks);
     }
 
     // make an imediate completion request
