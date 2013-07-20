@@ -28,7 +28,7 @@ The IPython Notebook combines two components:
 Since the similarity in names can lead to some confusion, in the documentation we will  use capitalization of the word "notebook" to distinguish the *N*otebook app and *n*otebook documents, thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, and usually to "notebook documents", instead of "notebooks", for added precision.
 
 We refer to the current state of the computational process taking place in the Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
-*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ``.ipynb`. For this reason, there is no confusion about using the same word "notebook" for both the notebook space and the corresonding notebook document, since they are really one and the same concept (we could say that they are "isomorphic").
+*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ``.ipynb``. For this reason, there is no confusion about using the same word "notebook" for both the notebook space and the corresonding notebook document, since they are really one and the same concept (we could say that they are "isomorphic").
 
 
 Main features of the IPython Notebook web app
@@ -61,7 +61,7 @@ Furthermore, any publicly available notebook may be shared via the
 `IPython Notebook Viewer <http://nbviewer.ipython.org>`_ service, which will 
 provide it as a static web page. The results may thus be shared without having to install anything.
 
-See :ref:`our installation documentation <install_index>` for directions on
+See the :ref:`installation documentation <install_index>` for directions on
 how to install the notebook and its dependencies.
 
 .. note::
@@ -358,31 +358,32 @@ The files output by ``nbconvert` are currently placed in a new subdirectory call
 
 Each of the options for PDF export produces as an intermediate step a root LaTeX ``.tex`` file with the same name as the notebook, as well as individual files for each figure, and ``.text` files with textual output from running code cells; all of these files are located together in the ``nbconvert_build`` subdirectory.
 
-To actually produce the final PDF file, change into the ``nbconvert_build`` directory and run the following command::
+To actually produce the final PDF file, run the following commands::
   
+  $ cd nbconvert_build
   $ pdflatex notebook
 
-This requires a local installation of LaTeX on your machine.
-It produes the output PDF file ``notebook.pdf``, also inside the 
+This requires a local installation of LaTeX on your machine;
+it outputs the PDF file ``notebook.pdf``, also inside the 
 ``nbconvert_build`` subdirectory.
 
 Alternatively, the output may be piped to standard output, ``stdout``, with::
     
-    $ ipython nbconvert mynotebook.ipynb --stdout
+  $ ipython nbconvert mynotebook.ipynb --stdout
     
 Multiple notebooks can be specified from the command line::
     
-    $ ipython nbconvert notebook*.ipynb
-    $ ipython nbconvert notebook1.ipynb notebook2.ipynb
+  $ ipython nbconvert notebook*.ipynb
+  $ ipython nbconvert notebook1.ipynb notebook2.ipynb
     
 or via a list in a configuration file, say ``mycfg.py``, containing the text::
-    
-    c = get_config()
-    c.NbConvertApp.notebooks = ["notebook1.ipynb", "notebook2.ipynb"]
+
+  c = get_config()
+  c.NbConvertApp.notebooks = ["notebook1.ipynb", "notebook2.ipynb"]
 
 and using the command::
 
-    $ ipython nbconvert --config mycfg.py
+  $ ipython nbconvert --config mycfg.py
 
 
 Configuring the IPython Notebook
@@ -417,6 +418,7 @@ An alternative is to pass an argument to the IPython Notebook, from the moment w
   ipython notebook --script
 
 or you can set this option permanently in your configuration file with::
+
   c = get_config()
   c.NotebookManager.save_script=True
 
