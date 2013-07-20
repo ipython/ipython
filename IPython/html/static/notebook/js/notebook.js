@@ -1530,7 +1530,8 @@ var IPython = (function (IPython) {
      * @return {String} This notebook's name
      */
     Notebook.prototype.get_notebook_name = function () {
-        return this.notebook_name;
+        nbname = this.notebook_name.substring(0,this.notebook_name.length-6);
+        return nbname;
     };
 
     /**
@@ -1680,7 +1681,6 @@ var IPython = (function (IPython) {
         
         // time the ajax call for autosave tuning purposes.
         var start =  new Date().getTime();
-        console.log(JSON.stringify(data))
         // We do the call with settings so we can set cache to false.
         var settings = {
             processData : false,
@@ -1748,8 +1748,9 @@ var IPython = (function (IPython) {
     };
 
 
-    Notebook.prototype.notebook_rename = function (new_name) {
+    Notebook.prototype.notebook_rename = function (nbname) {
         var that = this;
+        var new_name = nbname + '.ipynb'
         var name = {'notebook_name': new_name};
         var settings = {
             processData : false,
