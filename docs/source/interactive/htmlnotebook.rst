@@ -288,30 +288,69 @@ which captures the output inline within the notebook format. This has the benefi
 
 Converting notebooks to other formats
 -------------------------------------
-Newly added in the 1.0 release of IPython is the ``nbconvert`` tool to convert a notebook document into another static format. This is a command line tool; at present, this functionality is not available to export directly from within the Notebook app. The syntax is::
+Newly added in the 1.0 release of IPython is the ``nbconvert`` tool, which allows you to convert an ``.ipynb`` notebook document file into another static format. 
 
-  $ ipython nbconvert notebook.ipynb
-
-for standard HTML output, or::
+Currently, only a command line tool is provided; at present, this functionality is not available for direct exports from within the Notebook app. The syntax is::
 
   $ ipython nbconvert --format=FORMAT notebook.ipynb
 
-where ``FORMAT`` is the desired export format. Options for this format include:
+which will convert the IPython document file `notebook.ipynb` into the output format specified by the `FORMAT` string.
 
-* ``full_html``:
-  Standard HTML
+The default output format is HTML, for which the `--format`` modifier is not required::
+  
+  $ ipython nbconvert notebook.ipynb
 
-* ``simple_html``:
-  A simplified version of HTML
+Otherwise, the following `FORMAT`
 
-* ``reveal``:
-  A format to be used with the ``reveal.js`` package for slideshow presentations.
+where ``FORMAT`` is the desired export format. The currently export format options available are the following.
+
+* HTML output formats:
+
+  - ``full_html``:
+    Standard HTML
+
+  - ``simple_html``:
+    Simplified HTML
+
+  - ``reveal``:
+    HTML slideshow presentation for use with the ``reveal.js`` package
+
+
 
 * ``sphinx_howto``:
-  A standard documentation format.
+  The format for Sphinx HOWTOs; similar to an `article` in LaTeX
+
+* ``sphinxP
 
 * ``latex``:
   Produces LaTeX output which may be compiled with ``pdflatex`` to PDF.
+
+ The simplest way to use nbconvert is
+    
+    > ipython nbconvert mynotebook.ipynb
+    
+    which will convert mynotebook.ipynb to the default format (probably HTML).
+    
+    You can specify the export format with `--format`.
+    Options include ['basic_html', 'full_html', 'latex', 'markdown', 'python', 'reveal', 'rst', 'sphinx_howto', 'sphinx_manual']
+    
+    > ipython nbconvert --format latex mynotebook.ipnynb
+    
+    You can also pipe the output to stdout, rather than a file
+    
+    > ipython nbconvert mynotebook.ipynb --stdout
+    
+    Multiple notebooks can be given at the command line in a couple of 
+    different ways:
+    
+    > ipython nbconvert notebook*.ipynb
+    > ipython nbconvert notebook1.ipynb notebook2.ipynb
+    
+    or you can specify the notebooks list in a config file, containing::
+    
+        c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
+    
+    > ipython nbconvert --config mycfg.py
 
 
 Configuration
