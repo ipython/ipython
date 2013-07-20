@@ -203,7 +203,7 @@ Upon initial creation, each input cell is by default a code cell.
 
 Code cells
 ~~~~~~~~~~
-A code cell allows you to edit code inline within the cell, with full syntax highlighting and autocompletion. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
+A *code input cell* allows you to edit code inline within the cell, with full syntax highlighting and autocompletion. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
 
 When a code cell is executed with :kbd:`Shift-Enter`, the code that it contains is transparently exported and run in that language 
 (with automatic compiling, etc., if necessary). The result that is returned from this computation  is then displayed in the notebook space as the cell's 
@@ -214,10 +214,12 @@ However, many other possible forms of output are allowed, for example,
 
 Rich text using Markdown
 ~~~~~~~~~~~~~~~~~~~~~~~~
-You can document the computational process in a literate way using rich text. 
-For this purpose, the Notebook provides markdown cells. Text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. This is rendered using Markdown syntax to a rich HTML representation when the cell is executed. In this case, the output *replaces* the input cell.
+You can document the computational process in a literate way, alternating descriptive text with code, using *rich text*. In IPython this is accomplished by marking up text using the Markdown markup language, in *Markdown input cells*. The Markdown language is a simple way to specify that parts of the text should be emphasized (italics), bold, form lists, etc. 
 
-Within markdown cells, mathematics can be included in a straightforward manner using LaTeX notation: ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}``, also work. New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
+When a Markdown input cell is executed, the Markdown code is converted into the corresponding formatted rich text. This output then *replaces* the original Markdown input cell, leaving just the visually-significant marked up rich text.  Markdown allows arbitrary HTML code for formatting.
+
+Within Markdown cells, you can also include *mathematics* in a straightforward way, using standar LaTeX notation: ``$...$`` for inline mathematics and ``$$...$$`` for displayed mathematics. Mathematics is rendered natively in the browser by MathJax. Standard LaTeX and AMS-math environments, such as 
+``\begin{equation}...\end{equation}``, and ``\begin{align}...\end{align}`` also work, and new LaTeX macros may be defined using standard LaTeX methods, such as ``\newcommand``, by placing them anywhere in a Markdown cell.
 
 Raw cells
 ~~~~~~~~~
