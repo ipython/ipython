@@ -32,6 +32,8 @@ def get_issues(project="ipython/ipython", state="closed", pulls=False):
     url = "https://api.github.com/repos/%s/%s?state=%s&per_page=%i" % (project, which, state, PER_PAGE)
     return get_paged_request(url, headers=make_auth_header())
 
+def round_hour(dt):
+    return dt.replace(minute=0,second=0,microsecond=0)
 
 def _parse_datetime(s):
     """Parse dates in the format returned by the Github API."""
@@ -68,26 +70,30 @@ def split_pulls(all_issues, project="ipython/ipython"):
 
 
 
-def issues_closed_since(period=timedelta(days=365), project="ipython/ipython"):
+def issues_closed_since(period=timedelta(days=365), project="ipython/ipython", pulls=False):
     """Get all issues closed since a particular point in time. period
     can either be a datetime object, or a timedelta object. In the
     latter case, it is used as a time before the present.
     """
 
-    which = 'issues'
+    which = 'pulls' if pulls else 'issues'
 
     if isinstance(period, timedelta):
-        since = datetime.now() - period
+        since = round_hour(datetime.utcnow() - period)
     else:
         since = period
     url = "https://api.github.com/repos/%s/%s?state=closed&sort=updated&since=%s&per_page=%i" % (project, which, since.strftime(ISO8601), PER_PAGE)
     allclosed = get_paged_request(url, headers=make_auth_header())
     
-    issues, pulls = split_pulls(allclosed, project=project)
-    issues = [i for i in issues if _parse_datetime(i['closed_at']) > since]
-    pulls = [p for p in pulls if p['merged_at'] and _parse_datetime(p['merged_at']) > since]
+    filtered = [ i for i in allclosed if _parse_datetime(i['closed_at']) > since ]
+    if pulls:
+        filtered = [ i for i in filtered if _parse_datetime(i['merged_at']) > since ]
+        # filter out PRs not against master (backports)
+        filtered = [ i for i in filtered if i['base']['ref'] == 'master' ]
+    else:
+        filtered = [ i for i in filtered if not is_pull_request(i) ]
     
-    return issues, pulls
+    return filtered
 
 
 def sorted_by_field(issues, field='closed_at', reverse=False):
@@ -113,6 +119,10 @@ def report(issues, show_urls=False):
 #-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    # deal with unicode
+    import codecs
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+    
     # Whether to add reST urls for all issues in printout.
     show_urls = True
 
@@ -129,15 +139,25 @@ if __name__ == "__main__":
     if tag:
         cmd = ['git', 'log', '-1', '--format=%ai', tag]
         tagday, tz = check_output(cmd).strip().rsplit(' ', 1)
-        since = datetime.strptime(tagday, "%Y-%m-%d %H:%M:%S")# - timedelta(days=30 * 6)
+        since = datetime.strptime(tagday, "%Y-%m-%d %H:%M:%S")
+        h = int(tz[1:3])
+        m = int(tz[3:])
+        td = timedelta(hours=h, minutes=m)
+        if tz[0] == '-':
+            since += td
+        else:
+            since -= td
     else:
-        since = datetime.now() - timedelta(days=days)
+        since = datetime.utcnow() - timedelta(days=days)
+    
+    since = round_hour(since)
 
     print("fetching GitHub stats since %s (tag: %s)" % (since, tag), file=sys.stderr)
     # turn off to play interactively without redownloading, use %run -i
     if 1:
-        issues, pulls = issues_closed_since(since)
-
+        issues = issues_closed_since(since, pulls=False)
+        pulls = issues_closed_since(since, pulls=True)
+    
     # For regular reports, it's nice to show them in reverse chronological order
     issues = sorted_by_field(issues, reverse=True)
     pulls = sorted_by_field(pulls, reverse=True)
@@ -146,6 +166,7 @@ if __name__ == "__main__":
     n_total = n_issues + n_pulls
     
     # Print summary report we can directly include into release notes.
+    
     print()
     since_day = since.strftime("%Y/%m/%d")
     today = datetime.today().strftime("%Y/%m/%d")
@@ -159,10 +180,9 @@ if __name__ == "__main__":
         cmd = ['git', 'log', '--oneline', since_tag]
         ncommits = len(check_output(cmd).splitlines())
         
-        author_cmd = ['git', 'log', '--format=* %aN', since_tag]
-        all_authors = check_output(author_cmd).splitlines()
-        unique_authors = sorted(set(all_authors))
-        
+        author_cmd = ['git', 'log', '--use-mailmap', "--format='* %aN'", since_tag]
+        all_authors = check_output(author_cmd).decode('utf-8', 'replace').splitlines()
+        unique_authors = sorted(set(all_authors), key=lambda s: s.lower())
         print("The following %i authors contributed %i commits." % (len(unique_authors), ncommits))
         print()
         print('\n'.join(unique_authors))
