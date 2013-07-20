@@ -41,6 +41,9 @@ from IPython.utils.traitlets import (
 # Aliases and Flags
 #-----------------------------------------------------------------------------
 
+backend_keys = sorted(pylabtools.backends.keys())
+backend_keys.insert(0, 'auto')
+
 shell_flags = {}
 
 addflag = lambda *args: shell_flags.update(boolean_flag(*args))
@@ -103,6 +106,11 @@ shell_flags['pylab'] = (
     """Pre-load matplotlib and numpy for interactive use with
     the default matplotlib backend."""
 )
+shell_flags['matplotlib'] = (
+    {'InteractiveShellApp' : {'matplotlib' : 'auto'}},
+    """Configure matplotlib for interactive use with
+    the default matplotlib backend."""
+)
 
 # it's possible we don't want short aliases for *all* of these:
 shell_aliases = dict(
@@ -115,6 +123,7 @@ shell_aliases = dict(
     ext='InteractiveShellApp.extra_extension',
     gui='InteractiveShellApp.gui',
     pylab='InteractiveShellApp.pylab',
+    matplotlib='InteractiveShellApp.matplotlib',
 )
 shell_aliases['cache-size'] = 'InteractiveShell.cache_size'
 
@@ -169,7 +178,12 @@ class InteractiveShellApp(Configurable):
     gui = CaselessStrEnum(('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx'), config=True,
         help="Enable GUI event loop integration ('qt', 'wx', 'gtk', 'glut', 'pyglet', 'osx')."
     )
-    pylab = CaselessStrEnum(['tk', 'qt', 'wx', 'gtk', 'osx', 'inline', 'auto'],
+    matplotlib = CaselessStrEnum(backend_keys,
+        config=True,
+        help="""Configure matplotlib for interactive use with
+        the default matplotlib backend."""
+    )
+    pylab = CaselessStrEnum(backend_keys,
         config=True,
         help="""Pre-load matplotlib and numpy for interactive use,
         selecting a particular matplotlib backend and loop integration.
@@ -194,27 +208,42 @@ class InteractiveShellApp(Configurable):
 
     def init_gui_pylab(self):
         """Enable GUI event loop integration, taking pylab into account."""
-        if self.gui or self.pylab:
-            shell = self.shell
-            try:
-                if self.pylab:
-                    gui, backend = pylabtools.find_gui_and_backend(self.pylab)
-                    self.log.info("Enabling GUI event loop integration, "
-                              "toolkit=%s, pylab=%s" % (gui, self.pylab))
-                    if self.pylab == "auto":
-                        print ("using matplotlib backend: %s" % backend)
-                    shell.enable_pylab(self.pylab, import_all=self.pylab_import_all)
-                else:
-                    self.log.info("Enabling GUI event loop integration, "
-                                  "toolkit=%s" % self.gui)
-                    shell.enable_gui(self.gui)
-            except ImportError:
-                self.log.warn("pylab mode doesn't work as matplotlib could not be found." + \
-                              "\nIs it installed on the system?")
-                self.shell.showtraceback()
-            except Exception:
-                self.log.warn("GUI event loop or pylab initialization failed")
-                self.shell.showtraceback()
+        enable = False
+        shell = self.shell
+        if self.pylab:
+            enable = shell.enable_pylab
+            key = self.pylab
+        elif self.matplotlib:
+            enable = shell.enable_matplotlib
+            key = self.matplotlib
+        elif self.gui:
+            enable = shell.enable_gui
+            key = self.gui
+        
+        if not enable:
+            return
+        
+        try:
+            r = enable(key)
+        except ImportError:
+            self.log.warn("Eventloop or matplotlib integration failed. Is matplotlib installed?")
+            self.shell.showtraceback()
+            return
+        except Exception:
+            self.log.warn("GUI event loop or pylab initialization failed")
+            self.shell.showtraceback()
+            return
+            
+        if isinstance(r, tuple):
+            gui, backend = r[:2]
+            self.log.info("Enabling GUI event loop integration, "
+                      "eventloop=%s, matplotlib=%s", gui, backend)
+            if key == "auto":
+                print ("using matplotlib backend: %s" % backend)
+        else:
+            gui = r
+            self.log.info("Enabling GUI event loop integration, "
+                      "eventloop=%s", gui)
 
     def init_extensions(self):
         """Load all IPython extensions in IPythonApp.extensions.
