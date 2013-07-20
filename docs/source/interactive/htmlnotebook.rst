@@ -149,7 +149,7 @@ At certain moments, it may be necessary to interrupt a particularly long calcula
 After a restart, all relevant cells must be re-evaluated
 
 
-A notebook may be downloaded in either ``.ipynb`` or raw ``.py`` form from the menu option ``File -> Download as``
+A notebook may be downloaded in either ``.ipynb`` or raw ``.py`` form from the menu option ``File  |  Download as``
 Choosing the ``.py`` option removes all output and saves the text cells
 in comment areas.  See ref:`below <notebook_format>` for more details on the
 notebook format.
@@ -174,7 +174,7 @@ All actions in the notebook can be achieved with the mouse, but
 keyboard shortcuts are also available for the most common ones, so that productive use of the notebook can be achieved with minimal mouse usage. The main shortcuts to remember are the following:
 
 * :kbd:`Shift-Enter`: 
-    Execute the current cell, show output (if any), and jump to the next cell below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code cell will also be created. Note that in the notebook, typing :kbd:`Enter` on its own *never* forces execution, but rather just inserts a new line in the current input cell. In the Notebook it is thus always necessary to use :kbd:`Shift-Enter` to execute the cell (or use the ``Cell -> Run`` menu item).
+    Execute the current cell, show output (if any), and jump to the next cell below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code cell will also be created. Note that in the notebook, typing :kbd:`Enter` on its own *never* forces execution, but rather just inserts a new line in the current input cell. In the Notebook it is thus always necessary to use :kbd:`Shift-Enter` to execute the cell (or use the ``Cell  |  Run`` menu item).
 
 * :kbd:`Ctrl-Enter`: 
     Execute the current cell as if it were in "terminal mode", where any output is shown, but the cursor *remains* in the current cell. This is convenient for doing quick experiments in place, or for querying things like filesystem content, without needing to create additional cells that you may not want to be saved in the notebook.
@@ -528,7 +528,7 @@ file information as well as the content of the JSON data structure it contains.
 Running a public notebook server
 --------------------------------
 
-If you want to access your notebook server remotely with just a web browser,
+If you want to access your notebook server remotely via a web browser,
 you can do the following.  
 
 Start by creating a certificate file and a hashed password, as explained above.  Then, create a custom profile for the notebook: at the command line, type::
@@ -556,12 +556,12 @@ You can then start the notebook and access it later by pointing your browser to
 Running with a different URL prefix
 -----------------------------------
 
-The notebook dashboard (i.e. the default landing page with an overview
-of all your notebooks) typically lives at a URL path of
-"http://localhost:8888/". If you want to have it, and the rest of the
+The notebook dashboard (the landing page with an overview
+of the notebooks in your working directory) typically lives at the URL
+``http://localhost:8888/``. If you want to have it, and the rest of the
 notebook, live under a sub-directory,
-e.g. "http://localhost:8888/ipython/", you can do so with
-configuration options like these (see above for instructions about
+e.g. ``http://localhost:8888/ipython/``d, you can do so with
+configuration options like the following (see above for instructions about
 modifying ``ipython_notebook_config.py``)::
 
     c.NotebookApp.base_project_url = '/ipython/'
@@ -571,13 +571,10 @@ modifying ``ipython_notebook_config.py``)::
 Using a different notebook store
 --------------------------------
 
-By default the notebook server stores notebooks as files in the working 
-directory of the notebook server, also known as the ``notebook_dir``. This 
-logic is implemented in the :class:`FileNotebookManager` class. However, the 
-server can be configured to use a different notebook manager class, which can 
-store the notebooks in a different format. Currently, we ship a 
-:class:`AzureNotebookManager` class that stores notebooks in Azure blob 
-storage. This can be used by adding the following lines to your 
+By default, the Notebook app stores the notebook documents that it saves as files in the working directory of the Notebook app, also known as the ``notebook_dir``. This  logic is implemented in the :class:`FileNotebookManager` class. However, the server can be configured to use a different notebook manager class, which can 
+store the notebooks in a different format. 
+
+Currently, we ship a :class:`AzureNotebookManager` class that stores notebooks in Azure blob storage. This can be used by adding the following lines to your 
 ``ipython_notebook_config.py`` file::
 
     c.NotebookApp.notebook_manager_class = 'IPython.html.services.notebooks.azurenbmanager.AzureNotebookManager'
@@ -587,14 +584,13 @@ storage. This can be used by adding the following lines to your
 
 In addition to providing your Azure Blob Storage account name and key, you will 
 have to provide a container name; you can use multiple containers to organize 
-your Notebooks.
+your notebooks.
 
 .. _notebook_format:
 
-Notebook JSON format
-====================
-
-Notebooks are JSON files with an ``.ipynb`` extension, formatted
+JSON format of notebook document files
+--------------------------------------
+Notebook documents are JSON files with an ``.ipynb`` extension, formatted
 as legibly as possible with minimal extra indentation and cell content broken
 across lines to make them reasonably friendly to use in version-control
 workflows.  You should be very careful if you ever manually edit this JSON
@@ -604,41 +600,78 @@ file meant only to be edited by the IPython Notebook app itself, not for hand-ed
 
 .. note::
 
-     Binary data such as figures are directly saved in the JSON file.  This
-     provides convenient single-file portability, but means that the files can 
-     be large; ``diff``s of binary data also are not very meaningful.  Since the 
-     binary blobs are encoded in a single line, they affect only one line of 
-     the ``diff`` output, but they are typically very long lines.  You can use the ``Cell -> All Output -> Clear`` menu option to remove all output from a notebook prior to committing it to version control, if this is a concern.
+     Binary data such as figures are also saved directly in the JSON file.  This provides convenient single-file portability, but means that the files can be large; ``diff``s of binary data also are not very meaningful.  Since the binary blobs are encoded in a single line, they affect only one line of the ``diff`` output, but they are typically very long lines.  You can use the ``Cell  |  All Output  |  Clear`` menu option to remove all output from a notebook prior to committing it to version control, if this is a concdern.
 
 The notebook server can also generate a pure Python version of your notebook, 
-using the ``File -> Download as`` menu option. The resulting ``.py`` file will 
+using the ``File  |  Download as`` menu option. The resulting ``.py`` file will 
 contain all the code cells from your notebook verbatim, and all text cells 
 prepended with a comment marker.  The separation between code and text
 cells is indicated with special comments and there is a header indicating the
-format version.  All output is stripped out when exporting to Python.
+format version.  All output is removed when exporting to Python.
 
-Here is an example of the Python output from a simple notebook with one text cell and one code input cell::
+As an example, consider a simple notebook called ``simple.ipynb`` which contains one Markdown cell, with the content ``The simplest notebook.``, one code input cell with the content ``print Hello, IPython!``, and the corresopnding output.
 
-    # <nbformat>2</nbformat>
+The contents of ``simple.ipynb`` is the following JSON container::
 
-    # <markdowncell>
+  {
+   "metadata": {
+    "name": "simple"
+   },
+   "nbformat": 3,
+   "nbformat_minor": 0,
+   "worksheets": [
+    {
+     "cells": [
+      {
+       "cell_type": "markdown",
+       "metadata": {},
+       "source": "The simplest notebook."
+      },
+      {
+       "cell_type": "code",
+       "collapsed": false,
+       "input": "print \"Hello, IPython\"",
+       "language": "python",
+       "metadata": {},
+       "outputs": [
+        {
+         "output_type": "stream",
+         "stream": "stdout",
+         "text": "Hello, IPython\n"
+        }
+       ],
+       "prompt_number": 1
+      }
+     ],
+     "metadata": {}
+    }
+   ]
+  }
 
-    # A text cell
 
-    # <codecell>
+The corresponding Python script is::
 
-    print "Hello, IPython!"
+  # -*- coding: utf-8 -*-
+  # <nbformat>3.0</nbformat>
+
+  # <markdowncell>
+
+  # The simplest notebook.
+
+  # <codecell>
+
+  print "Hello, IPython"
 
 
 Known issues
-============
+------------
 
 When behind a proxy, especially if your system or browser is set to autodetect
 the proxy, the Notebook app might fail to connect to the server's websockets,
 and present you with a warning at startup. In this case, you need to configure
 your system not to use the proxy for the server's address.
 
-In Firefox, for example, go to the Preferences panel, Advanced section,
+For example, in Firefox, go to the Preferences panel, Advanced section,
 Network tab, click 'Settings...', and add the address of the notebook server
 to the 'No proxy for' field.
 
