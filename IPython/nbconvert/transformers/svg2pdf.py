@@ -13,6 +13,8 @@ one format to another.
 # Imports
 #-----------------------------------------------------------------------------
 
+import base64
+import io
 import os
 import sys
 import subprocess
@@ -27,9 +29,7 @@ from .convertfigures import ConvertFiguresTransformer
 # Constants
 #-----------------------------------------------------------------------------
 
-INKSCAPE_COMMAND = 'inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
-#INKSCAPE_OSX_COMMAND = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape --without-gui --export-pdf="{to_filename}" "{from_filename}"'
-
+INKSCAPE_APP = '/Applications/Inkscape.app/Contents/Resources/bin/inkscape'
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -37,16 +37,37 @@ INKSCAPE_COMMAND = 'inkscape --without-gui --export-pdf="{to_filename}" "{from_f
 
 class SVG2PDFTransformer(ConvertFiguresTransformer):
     """
-    Converts all of the outputs in a notebook from one format to another.
+    Converts all of the outputs in a notebook from SVG to PDF.
     """
 
     from_format = Unicode('svg', config=True, help='Format the converter accepts')
     to_format = Unicode('pdf', config=False, help='Format the converter writes')
+    
+    command = Unicode(config=True,
+        help="""The command to use for converting SVG to PDF
+        
+        This string is a template, which will be formatted with the keys
+        to_filename and from_filename.
+        
+        The conversion call must read the SVG from {from_flename},
+        and write a PDF to {to_filename}.
+        """)
+    
+    def _command_default(self):
+        return self.inkscape + \
+               ' --without-gui --export-pdf="{to_filename}" "{from_filename}"'
+    
+    inkscape = Unicode(config=True, help="The path to Inkscape, if necessary")
+    def _inkscape_default(self):
+        if sys.platform == "darwin":
+            if os.path.isfile(INKSCAPE_APP):
+                return INKSCAPE_APP
+        return "inkscape"
 
 
     def convert_figure(self, data_format, data):
         """
-        Convert a single Svg figure.  Returns converted data.
+        Convert a single SVG figure to PDF.  Returns converted data.
         """
 
         #Work in a temporary directory
@@ -54,24 +75,21 @@ class SVG2PDFTransformer(ConvertFiguresTransformer):
             
             #Write fig to temp file
             input_filename = os.path.join(tmpdir, 'figure.' + data_format)
-            with open(input_filename, 'w') as f:
+            # SVG data is unicode text
+            with io.open(input_filename, 'w', encoding='utf8') as f:
                 f.write(data)
-
-            #Determine command (different on Mac OSX)
-            command = INKSCAPE_COMMAND 
-            if sys.platform == 'darwin':
-                command = INKSCAPE_OSX_COMMAND
 
             #Call conversion application
             output_filename = os.path.join(tmpdir, 'figure.pdf')
-            shell = command.format(from_filename=input_filename, 
+            shell = self.command.format(from_filename=input_filename, 
                                    to_filename=output_filename)
             subprocess.call(shell, shell=True) #Shell=True okay since input is trusted.
 
             #Read output from drive
+            # return value expects a filename
             if os.path.isfile(output_filename):
                 with open(output_filename, 'rb') as f:
-                    return f.read().encode("base64") #PDF is a nb supported binary
-                                                     #data type, so base64 encode.
+                    # PDF is a nb supported binary, data type, so base64 encode.
+                    return base64.encodestring(f.read())
             else:
-                return TypeError("Inkscape svg to png conversion failed")
+                raise TypeError("Inkscape svg to png conversion failed")

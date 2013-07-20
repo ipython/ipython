@@ -280,6 +280,14 @@ if 'setuptools' in sys.modules:
         notebook = ['tornado>=2.0', 'pyzmq>=2.1.11', 'jinja2'],
         nbconvert = ['pygments', 'jinja2', 'Sphinx>=0.3']
     )
+    everything = set()
+    for deps in setup_args['extras_require'].values():
+        if not isinstance(deps, list):
+            deps = [deps]
+        for dep in deps:
+            everything.add(dep)
+    setup_args['extras_require']['all'] = everything
+    
     requires = setup_args.setdefault('install_requires', [])
     setupext.display_status = False
     if not setupext.check_for_readline():

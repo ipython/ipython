@@ -27,7 +27,7 @@ class DebugWriter(WriterBase):
     resources that were extracted from the notebook(s) during export."""
 
 
-    def write(self, output, resources, **kw):
+    def write(self, output, resources, notebook_name='notebook', **kw):
         """
         Consume and write Jinja output.
 
