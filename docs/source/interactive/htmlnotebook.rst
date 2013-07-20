@@ -279,7 +279,7 @@ Cell magics
 
   * ``%%file filename``:
     Writes the contents of the cell to the file ``filename``.
-    **Caution**: The file is ovewritten!
+    **Caution**: The file is over-written!
 
   * ``%%R``:
     Execute the contents of the cell using the R language.
@@ -305,7 +305,7 @@ It will import at the top level `numpy` as `np`, `pyplot` as `plt`, `matplotlib`
 
 When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a plotting command is captured in a *separate* window. An alternative is to use::
 
-  ``%matplotlib inline``
+  %matplotlib inline
 
 or ``%pylab inline``.
 
@@ -316,19 +316,17 @@ Converting notebooks to other formats
 -------------------------------------
 Newly added in the 1.0 release of IPython is the ``nbconvert`` tool, which allows you to convert an ``.ipynb`` notebook document file into another static format. 
 
-Currently, only a command line tool is provided; at present, this functionality is not available for direct exports from within the Notebook app. The syntax is::
+Currently, only a command line tool is provided; in the future, it will also be possible to export from within the Notebook app. The command line syntax is::
 
   $ ipython nbconvert --format=FORMAT notebook.ipynb
 
-which will convert the IPython document file `notebook.ipynb` into the output format specified by the `FORMAT` string.
+This will convert the IPython document file `notebook.ipynb` into the output format specified by the ``FORMAT`` string.
 
 The default output format is HTML, for which the `--format`` modifier is not required::
   
   $ ipython nbconvert notebook.ipynb
 
-Otherwise, the following `FORMAT`
-
-where ``FORMAT`` is the desired export format. The currently export format options available are the following:
+The currently supported export formats are the following:
 
 * HTML:
 
@@ -344,10 +342,10 @@ where ``FORMAT`` is the desired export format. The currently export format optio
 * PDF:
 
   - ``sphinx_howto``:
-    The format for Sphinx HOWTOs; similar to `article` in LaTeX
+    The format for Sphinx HOWTOs; similar to an ``article`` in LaTeX
 
   - ``sphinx_manual``:
-    The format for Sphinx manuals; similar to `book` in LaTeX 
+    The format for Sphinx manuals; similar to a `book`` in LaTeX 
 
   - ``latex``:
     LaTeX article
@@ -355,37 +353,37 @@ where ``FORMAT`` is the desired export format. The currently export format optio
 * Markup:
 
   - ``rst``:
-    reStructuredText
+    reStructuredText markup
 
   - ``markdown``:
-    Markdown
+    Markdown markup
 
 * Python:
 
-    Produces a standard ``.py`` script, with the non-Python code commented out.
+    Comments out all the non-Python code to produce a standard Python ``.py`` script with just the code content.
     
-The output files are currently placed in a new subdirectory called 
-``nbconvert_build``. 
+The files output by `nbconvert` are currently placed in a new subdirectory called ``nbconvert_build``. 
 
-The PDF options produce a root LaTeX `.tex` file with the same name as the notebook, as well as individual files for each figure, and `.text` files with textual output from running code cells; all of these files are located together in the `nbconvert_build` subdirectory.
+The PDF options produce a root LaTeX ``.tex`` file with the same name as the notebook, as well as individual files for each figure, and `.text` files with textual output from running code cells; all of these files are located together in the ``nbconvert_build`` subdirectory.
 
-To actually produce the final PDF file, simply run::
+To actually produce the final PDF file, change into the ``nbconvert_build`` directory and run the following command::
   
   $ pdflatex notebook
 
-which produces `notebook.pdf`, also inside the `nbconvert_build` subdirectory.
+This requires a local installation of LaTeX on your machine.
+It produes the output PDF file ``notebook.pdf``, also inside the 
+``nbconvert_build`` subdirectory.
 
-Alternatively, the output may be piped to standard output `stdout` with::
+Alternatively, the output may be piped to standard output, ``stdout``, with::
     
     $ ipython nbconvert mynotebook.ipynb --stdout
     
-Multiple notebooks can be specified at the command line in a couple of 
-different ways::
+Multiple notebooks can be specified at the command line::
     
     $ ipython nbconvert notebook*.ipynb
     $ ipython nbconvert notebook1.ipynb notebook2.ipynb
     
-or via a list in a configuration file, containing::
+or via a list in a configuration file, say ``mycfg.py``, containing the text::
     
     c.NbConvertApp.notebooks = ["notebook1.ipynb", "notebook2.ipynb"]
 
@@ -394,15 +392,15 @@ and using the command::
     > ipython nbconvert --config mycfg.py
 
 
-Configuration
--------------
+Configuring the IPython Notebook
+--------------------------------
 The IPython Notebook can be run with a variety of command line arguments. 
 To see a list of available options enter::
 
   $ ipython notebook --help 
 
 Defaults for these options can also be set by creating a file named 
-`ipython_notebook_config.py`` in your IPython *profile folder*. The profile folder is a subfolder of your IPython directory; to find out where it is located, run::
+``ipython_notebook_config.py`` in your IPython *profile folder*. The profile folder is a subfolder of your IPython directory; to find out where it is located, run::
 
   $ ipython locate
 
@@ -417,13 +415,11 @@ To create a new set of default configuration files, with lots of information on 
 
 Extracting standard Python files from notebooks
 -----------------------------------------------
+``.ipynb`` notebook document files are plain text files which store a representation in JSON format of the contents of a notebook space. As such, it is not a valid ``.py`` Python script, and so can be neither ``import``ed in Python, nor executed as a standard Python script.
 
-The native format of the notebook, a file with a ``.ipynb`` `extension, is a
-JSON container of all the input and output of the notebook, and therefore not
-valid Python by itself.  This means that by default, you cannot directly 
-import a notebook from Python, nor execute it as a normal python script.  
+To extract just the Python code from within a notebook document, one option is to use ``ipython nbconvert``, as described above.
 
-But if you want to be able to use notebooks also as regular Python files, you can start the notebook server with::
+An alternative is to run the IPython Notebook, specifying that whenever it saves an ``.ipynb`` notebook document, at the same time it should save the corresponding standard ``.py`` script. To do so, you can execute the following command::
 
   ipython notebook --script
 
@@ -431,19 +427,14 @@ or you can set this option permanently in your configuration file with::
 
     c.NotebookManager.save_script=True
 
-This will instruct the notebook server to save the ``.py`` export of each
-notebook, in addition to the ``.ipynb``, at every save.  These are standard 
-``.py`` files, and so they can be ``%run``, imported from regular IPython 
-sessions or other notebooks, or executed at the command line.  Since we export 
-the raw code you have typed, for these files to be importable from other code, 
-you will have to avoid using syntax such as ``%magic``s and other IPython-specific extensions to the language.
+The result is that standard ``.py`` files are also now generated, and so they can be ``%run``, imported from regular IPython sessions or other notebooks, or executed at the command line, as usual.  Since we export the raw code you have typed, for these files to be importable from other code, you will have to avoid using syntax such as IPython magics and other IPython-specific extensions to the language.
 
-In regular practice, the standard way to differentiate importable code from the
-'executable' part of a script is to put at the bottom::
+In normal Python practice, the standard way to differentiate importable code in a Python script from the "executable" part of a script is to use the following idiom at the start of the executable part of the code::
 
-  if __name__ == '__main__':
+  if __name__ == '__main__'
+
     # rest of the code...
-
+  
 Since all cells in the notebook are run as top-level code, you will need to
 similarly protect *all* cells that you do not want executed when other scripts
 try to import your notebook.  A convenient shortand for this is to define early
@@ -451,7 +442,7 @@ on::
 
   script = __name__ == '__main__'
 
-and then on any cell that you need to protect, use::
+Then in any cell that you need to protect, use::
 
   if script:
     # rest of the cell...
@@ -462,7 +453,7 @@ and then on any cell that you need to protect, use::
 Security
 --------
 
-You can protect your Notebook server with a simple singlepassword by
+You can protect your Notebook server with a simple single password by
 setting the :attr:`NotebookApp.password` configurable. You can prepare a
 hashed password using the function :func:`IPython.lib.security.passwd`:
 
@@ -499,14 +490,14 @@ communicate via a secure protocol mode using a self-signed certificate with the 
 
 Your browser will warn you of a dangerous certificate because it is
 self-signed.  If you want to have a fully compliant certificate that will not
-raise warnings, it is possible (but rather involved) to obtain one for free,
+raise warnings, it is possible (but rather involved) to obtain one,
 `as explained in detailed in this tutorial`__.
 
 .. __: http://arstechnica.com/security/news/2009/12/how-to-get-set-with-a-secure-sertificate-for-free.ars
 	
-Keep in mind that when you enable SSL support, you'll need to access the
+Keep in mind that when you enable SSL support, you will need to access the
 notebook server over ``https://``, not over plain ``http://``.  The startup
-message from the server prints this, but it's easy to overlook and think the
+message from the server prints this, but it is easy to overlook and think the
 server is for some reason non-responsive.
 
 
@@ -514,23 +505,22 @@ Connecting to an existing kernel
 ---------------------------------
 
 The notebook server always prints to the terminal the full details of 
-how to connect to each kernel, with lines like::
+how to connect to each kernel, with messages such as the following::
 
     [IPKernelApp] To connect another client to this kernel, use:
     [IPKernelApp] --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
 
-This is the name of a JSON file that contains all the port and 
-validation information necessary to connect to the kernel.  You can 
-manually start a Qt console with::
+This long string is the name of a JSON file that contains all the port and 
+validation information necessary to connect to the kernel.  You can then, for example, manually start a Qt console connected to the *same* kernel with::
 
     ipython qtconsole --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
 
-and if you only have a single kernel running, simply typing::
+If you have only a single kernel running, simply typing::
 
     ipython qtconsole --existing
 
-will automatically find it (it will always find the most recently 
-started kernel if there is more than one).  You can also request this 
+will automatically find it. (It will always find the most recently 
+started kernel if there is more than one.)  You can also request this 
 connection data by typing ``%connect_info``; this will print the same 
 file information as well as the content of the JSON data structure it contains.
 
@@ -539,15 +529,13 @@ Running a public notebook server
 --------------------------------
 
 If you want to access your notebook server remotely with just a web browser,
-here is a quick set of instructions.  Start by creating a certificate file and
-a hashed password as explained above.  Then, create a custom profile for the
-notebook.  At the command line, type::
+you can do the following.  
+
+Start by creating a certificate file and a hashed password, as explained above.  Then, create a custom profile for the notebook: at the command line, type::
 
   ipython profile create nbserver
 
-In the profile directory, edit the file ``ipython_notebook_config.py``.  By
-default the file has all fields commented, the minimum set you need to
-uncomment and edit is here::
+In the profile directory just created, edit the file ``ipython_notebook_config.py``.  By default, the file has all fields commented; the minimum set you need to uncomment and edit is the following::
 
      c = get_config()
 
@@ -558,8 +546,8 @@ uncomment and edit is here::
      c.NotebookApp.certfile = u'/absolute/path/to/your/certificate/mycert.pem'
      c.NotebookApp.ip = '*'
      c.NotebookApp.open_browser = False
-     c.NotebookApp.password = u'sha1:bcd259ccf...your hashed password here'
-     # It's a good idea to put it on a known, fixed port
+     c.NotebookApp.password = u'sha1:bcd259ccf...[your hashed password here]'
+     # It is a good idea to put it on a known, fixed port
      c.NotebookApp.port = 9999
 
 You can then start the notebook and access it later by pointing your browser to
