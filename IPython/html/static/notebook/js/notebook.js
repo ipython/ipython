@@ -155,7 +155,9 @@ var IPython = (function (IPython) {
             });
         });
 
-        $(document).keydown(function (event) {
+        // $(document).keydown(function (event) {
+        this.element.keydown(function (event) {
+            // console.log(event);
 
             // Event handlers for both command and edit mode
             if ((event.ctrlKey || event.metaKey) && event.keyCode==83) {
