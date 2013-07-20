@@ -2,7 +2,7 @@
 
 The IPython Notebook
 ====================
-
+ 
 The IPython Notebook is part of the IPython package, which aims to provide a powerful, interactive approach to scientific computation.
 The IPython Notebook extends the previous text-console-based approach, and the later Qt console, in a qualitatively new diretion, providing a web-based application suitable for capturing the whole scientific computation process.
 
