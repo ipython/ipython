@@ -2,7 +2,7 @@
 
 The IPython Notebook
 ====================
- 
+
 The IPython Notebook is part of the IPython package, which aims to provide a powerful, interactive approach to scientific computation.
 The IPython Notebook extends the previous text-console-based approach, and the later Qt console, in a qualitatively new diretion, providing a web-based application suitable for capturing the whole scientific computation process.
 
@@ -17,7 +17,7 @@ Basic structure
 
 The IPython Notebook combines two components:
 
-* **The *IPython Notebook* web application**:
+* **The IPython Notebook web application**:
 
   The IPython Notebook web app is a browser-based tool for interactive authoring of literate computations, in which explanatory text, mathematics,computations and rich media output may be combined. Input and output are stored in persistent cells that may be edited in-place.
 
@@ -28,7 +28,7 @@ The IPython Notebook combines two components:
 Since the similarity in names can lead to some confusion, in the documentation we will  use capitalization of the word "notebook" to distinguish the *N*otebook app and *n*otebook documents, thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, and usually to "notebook documents", instead of "notebooks", for added precision.
 
 We refer to the current state of the computational process taking place in the Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
-*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same word "notebook" for both the notebook space and the corresonding notebook document, since they are really one and the same concept ("isomorphic").
+*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ``.ipynb`. For this reason, there is no confusion about using the same word "notebook" for both the notebook space and the corresonding notebook document, since they are really one and the same concept (we could say that they are "isomorphic").
 
 
 Main features of the IPython Notebook web app
@@ -36,7 +36,7 @@ Main features of the IPython Notebook web app
 
 The main features of the IPython Notebook app include:
 
-* In-browser editing for code, with automatic syntax highlighting, tab completion and autoindentation.
+* In-browser editing for code, with automatic syntax highlighting and indentation and tab completion/introspection.
 * Literate combination of code with rich text using the Markdown markup language.
 * Mathematics is easily included within the Markdown using LaTeX notation, and rendered natively by MathJax.
 * Displays rich data representations (e.g. HTML / LaTeX / SVG) as the result of computations.
@@ -76,7 +76,7 @@ how to install the notebook and its dependencies.
 Starting up the IPython Notebook web app
 ----------------------------------------
 
-The Notebook web app is started with the command::
+You can start running the Notebook web app using the following command::
 
     $ ipython notebook
 
@@ -85,8 +85,8 @@ You can create new notebooks from the dashboard with the ``New Notebook``
 button, or open existing ones by clicking on their name.
 You can also drag and drop ``.ipynb`` notebooks and standard ``.py`` Python source code files into the notebook list area.
 
-``.py`` files will be imported into the IPython Notebook as a notebook with the same name, but an ``.ipynb`` extension, located in the working directory.  The notebook will consist of a single cell containing all the 
-code in the ``.py`` file, which you can later manually partition into individual cells. 
+``.py`` files will be imported into the IPython Notebook as a notebook with the same name, but an ``.ipynb`` extension, located in the working directory.  The notebook created will have just one cell, which will contain all the 
+code in the ``.py`` file. You can later manually partition this into individual cells using the ``Edit | Split Cell`` menu option, or the :kbd:`Ctrl-m -` keyboard shortcut.
 
 .. Alternatively, prior to importing the ``.py``, you can manually add ``# <nbformat>2</nbformat>`` at the start of the file, and then add separators for text and code cells, to get a cleaner import with the file already broken into individual cells.
 
@@ -122,35 +122,32 @@ The tool bar gives a quick way of accessing the most-used operations within the 
 Input cells
 -----------
 Input cells are at the core of the functionality of the IPython Notebook.
-They are regions in the document in which you can enter different types of text and commands. To *execute* or *run* the *current cell*, i.e. the cell under the cursor, you can use the:kbd:`Shift-Enter` key combination. 
+They are regions in the document in which you can enter different types of text and commands. To *execute* or *run* the *current cell*, i.e. the cell under the cursor, you can use the :kbd:`Shift-Enter` key combination. 
 This tells the Notebook app to perform the relevant operation for each type of cell (see below), and then to display the resulting output.
 
-The notebook consists of a sequence of input cells, labelled ``In[n]``, which may be executed in a non-linear way, and outpus ``Out[n]``, where ``n`` is a number which denotes the order in which the cells were executed over the history of the computational process. The content of these cells is accessible as Python variables with the same names.
+The notebook consists of a sequence of input cells, labelled ``In[n]``, which may be executed in a non-linear way, and outputs ``Out[n]``, where ``n`` is a number which denotes the order in which the cells were executed over the history of the computational process. The contents of all of these cells are accessible as Python variables with the same names, forming a complete record of the history of the computation.
 
 
 Basic workflow
 --------------
 The normal workflow in a notebook is, then, quite similar to a standard IPython session, with the difference that you can edit cells in-place multiple 
 times until you obtain the desired results, rather than having to 
-rerun separate scripts with the ``%run`` magic command. (Magic commands do, however, also work in the notebook; see below).   Typically, you'll work on a problem in pieces, 
-organizing related pieces into cells and moving forward as previous 
-parts work correctly.  This is much more convenient for interactive exploration than breaking up a computation into scripts that must be 
-executed together, especially if parts of them take a long time to run
+rerun separate scripts with the ``%run`` magic command. (Magic commands do, however, also work in the notebook; see below).   
 
-The only significant limitation that the notebook currently has, compared to the Qt console, is that it cannot run any code that 
-expects input from the kernel (such as scripts that call 
-:func:`raw_input`).  Very importantly, this means that the ``%debug`` 
-magic does *not* currently work in the notebook!  This limitation will 
-be overcome in the future, but in the meantime, there is a way to debug problems in the notebook: you can attach a Qt console to your existing notebook kernel, and run ``%debug`` from the Qt console.  
-If your notebook is running on a local
-computer (i.e. if you are accessing it via your localhost address at ``127.0.0.1``), you can just type ``%qtconsole`` in the notebook and a Qt console will open up, connected to that same kernel.
+Typically, you will work on a computational problem in pieces, organizing related ideas into cells and moving forward once previous parts work correctly. This is much more convenient for interactive exploration than breaking up a computation into scripts that must be executed together, as was previously necessary, especially if parts of them take a long time to run
+
+The only significant limitation that the Notebook currently has, compared to the Qt console, is that it cannot run any code that expects input from the kernel (such as scripts that call :func:`raw_input`).  Very importantly, this means that the ``%debug`` magic does *not* currently work in the notebook!  
+
+This limitation will be overcome in the future, but in the meantime, there is a simple solution for debugging: you can attach a Qt console to your existing notebook kernel, and run ``%debug`` from the Qt console.
+If your notebook is running on a local computer (i.e. if you are accessing it via your localhost address at ``127.0.0.1``), then you can just type 
+``%qtconsole`` in the notebook and a Qt console will open up, connected to that same kernel.
 
 At certain moments, it may be necessary to interrupt a particularly long calculation, or even to kill the entire computational process. This may be achieved by interrupting or restarting the kernel, respectively.
-After a restart, all relevant cells must be re-evaluated
+After a kernel restart, it as if the notebook were loaded afresh.
 
 
-A notebook may be downloaded in either ``.ipynb`` or raw ``.py`` form from the menu option ``File  |  Download as``
-Choosing the ``.py`` option removes all output and saves the text cells
+A notebook may be downloaded in either ``.ipynb`` or raw ``.py`` form from the menu option ``File | Download as``.
+Choosing the ``.py`` option downloads a Python ``.py`` script, in which all output has been removed and the content of Markdown cells 
 in comment areas.  See ref:`below <notebook_format>` for more details on the
 notebook format.
 
@@ -174,24 +171,24 @@ All actions in the notebook can be achieved with the mouse, but
 keyboard shortcuts are also available for the most common ones, so that productive use of the notebook can be achieved with minimal mouse usage. The main shortcuts to remember are the following:
 
 * :kbd:`Shift-Enter`: 
-    Execute the current cell, show output (if any), and jump to the next cell below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code cell will also be created. Note that in the notebook, typing :kbd:`Enter` on its own *never* forces execution, but rather just inserts a new line in the current input cell. In the Notebook it is thus always necessary to use :kbd:`Shift-Enter` to execute the cell (or use the ``Cell  |  Run`` menu item).
+    Execute the current cell, show output (if any), and jump to the next cell below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code cell will also be created. Note that in the notebook, typing :kbd:`Enter` on its own *never* forces execution, but rather just inserts a new line in the current input cell. In the Notebook it is thus always necessary to use :kbd:`Shift-Enter` to execute the cell (or use the ``Cell | Run`` menu item).
 
 * :kbd:`Ctrl-Enter`: 
     Execute the current cell as if it were in "terminal mode", where any output is shown, but the cursor *remains* in the current cell. This is convenient for doing quick experiments in place, or for querying things like filesystem content, without needing to create additional cells that you may not want to be saved in the notebook.
 
 * :kbd:`Alt-Enter`: 
     Executes the current cell, shows the output, and inserts a *new* input cell between the current cell and the adjacent cell (if one exists). This  is thus a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
+    (:kbd:`Ctrl-m a` adds a new cell below the current one.)
   
 
 
 * :kbd:`Ctrl-m`: 
-  This is the prefix for all of the other shortcuts, which consist of an additional single letter or character. If you type :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), IPython will show you all the available keyboard shortcuts.
+  This is the prefix for *all* other shortcuts, which consist of :kbd:`Ctrl-m` followed by a single letter or character. For example, if you type :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), IPython will show you all the available keyboard shortcuts.
    
 
-Cell types
-----------
-Each IPython input cell has a *cell type*.
-There is a restricted number of possible cell types, which may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
+Input cell types
+----------------
+Each IPython input cell has a *cell type*, of which there is a restricted number. The type of a cell may be set by using the cell type dropdown on the toolbar, or via the following keyboard shortcuts:
 
 * **code**: :kbd:`Ctrl-m y`
 * **markdown**: :kbd:`Ctrl-m m`
@@ -203,55 +200,53 @@ Upon initial creation, each input cell is by default a code cell.
 
 Code cells
 ~~~~~~~~~~
-A *code input cell* allows you to edit code inline within the cell, with full syntax highlighting and autocompletion/introspection. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
+A *code input cell* allows you to edit code inline within the cell, with full syntax highlighting and autocompletion/introspection. By default, the language associated to a code cell is Python, but other languages, such as ``julia`` and ``R``, can be handled using magic commands (see below).
 
 When a code cell is executed with :kbd:`Shift-Enter`, the code that it contains is transparently exported and run in that language 
 (with automatic compiling, etc., if necessary). The result that is returned from this computation  is then displayed in the notebook space as the cell's 
 *output*. If this output is of a textual nature, then it is placed into a numbered *output cell*. 
-However, many other possible forms of output are allowed, for example, 
+However, many other possible forms of output are also possible, including
 ``matplotlib`` figures and HTML tables (as used, for example, in the 
 ``pandas`` data analyis package). This is known as IPython's *rich display* capability.
 
 
 Rich text using Markdown
 ~~~~~~~~~~~~~~~~~~~~~~~~
-You can document the computational process in a literate way, alternating descriptive text with code, using *rich text*. In IPython this is accomplished by marking up text using the Markdown markup language, in *Markdown input cells*. The Markdown language is a simple way to specify that parts of the text should be emphasized (italics), bold, form lists, etc. 
+You can document the computational process in a literate way, alternating descriptive text with code, using *rich text*. In IPython this is accomplished by marking up text with the Markdown language. The corresponding cells are called *Markdown input cells*. The Markdown language provides a simple way to perform this text markup, that is, to specify which parts of the text should be emphasized (italics), bold, form lists, etc. 
 
 When a Markdown input cell is executed, the Markdown code is converted into the corresponding formatted rich text. This output then *replaces* the original Markdown input cell, leaving just the visually-significant marked up rich text.  Markdown allows arbitrary HTML code for formatting.
 
-Within Markdown cells, you can also include *mathematics* in a straightforward way, using standar LaTeX notation: ``$...$`` for inline mathematics and ``$$...$$`` for displayed mathematics. Mathematics is rendered natively in the browser by MathJax. Standard LaTeX and AMS-math environments, such as 
+Within Markdown cells, you can also include *mathematics* in a straightforward way, using standard LaTeX notation: ``$...$`` for inline mathematics and ``$$...$$`` for displayed mathematics. Mathematics is rendered natively in the browser by MathJax. Standard LaTeX and AMS-math environments, such as 
 ``\begin{equation}...\end{equation}``, and ``\begin{align}...\end{align}`` also work, and new LaTeX macros may be defined using standard LaTeX methods, such as ``\newcommand``, by placing them anywhere in a Markdown cell.
 
-Raw cells
-~~~~~~~~~
-Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information you 
-require to be included when the notebook is exported to a certain format.
+Raw input cells
+~~~~~~~~~~~~~~~
+*Raw* input cells provide a place in which you can put additional information which you do not want to evaluated by the Notebook. This can be used, for example, to include extra information that is needed when exporting to a certain format. The output after evaluating a raw cell is just a verbatim copy of the input.
 
 Heading cells
-˜˜˜˜˜˜˜˜˜˜˜˜˜
-You can provide a conceptual structure for your computational document using 
-different levels of headings; there are 6 levels available, from level 1 (main 
-title) down to level 6 (paragraph). These can be used later for constructing 
-tables of contents, etc.
+~~~~~~~~~~~~~
+You can provide a conceptual structure for your computational document as a whole using different levels of headings; there are 6 levels available, from level 1 (main title) down to level 6 (paragraph). These can be used later for constructing tables of contents, etc.
 
 As with Markdown cells, a heading input cell is replaced by a rich text rendering of the heading when the cell is executed.
 
 
 Magic commands
---------------
+~~~~~~~~~~~~~~
 Magic commands, or *magics*, are commands for controlling IPython itself.
-They all begin with ``%`` and are entered into code input cells. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
+They all begin with ``%`` and are entered into code input cells; the code cells are executed as usual with :kbd:`Shift-Enter`.
+
+The magic commands call special functions defined by IPython which manipulate the computational state in certain ways.
 
 There are two types of magics:
 
   **line magics**:
-     These begin with a single ``%`` and take as arguments the rest of the *same line* of the code cell. Any other lines of the code cell are treated as a standard code cell.
+     These begin with a single ``%`` and take as arguments the rest of the *same line* of the code cell. Any other lines of the code cell are treated as if they were part of a standard code cell.
 
   **cell magics**:
     These begin with ``%%`` and operate on the *entire* remaining contents of the code cell.
 
 Line magics
-˜˜˜˜˜˜˜˜˜˜˜
+~~~~~~~~~~~
 Some of the available line magics are the following:
 
   * ``%load filename``:
@@ -263,29 +258,24 @@ Some of the available line magics are the following:
   * ``%config``:
     Configuration of the IPython Notebook
 
-  * ``%load_ext``:
-    Loads an *extension* of the IPython Notebook. Extensions provide extra functionality beyond that of the basic Notebook
-
   * ``%lsmagic``:
     Provides a list of all available magic commands
 
 Cell magics
-˜˜˜˜˜˜˜˜˜˜˜
+~~~~~~~~~~~
+
   * ``%%latex``:
-    The entire contents of the cell is rendered in LaTeX, as in a Markdown cell but without needing LaTeX delimiters.
+    Renders the entire contents of the cell in LaTeX, without needing to use explicit LaTeX delimiters.
 
   * ``%%bash``:
-    When the code cell is executed, its contents are sent to be executed by ``bash``. 
+    The code cell is executed by sending it to be executed by ``bash``. The output of the ``bash`` commands is captured and displayed in the notebook.
 
   * ``%%file filename``:
     Writes the contents of the cell to the file ``filename``.
-    **Caution**: The file is over-written!
+    **Caution**: The file is over-written without warning!
 
   * ``%%R``:
     Execute the contents of the cell using the R language.
-
-  * ``%%cython``:
-    Execute the contents of the cell using ``Cython``.
 
 
 Several of the cell magics provide functionality to manipulate the filesystem of a remote server to which you otherwise do not have access.  
@@ -307,9 +297,11 @@ When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a 
 
   %matplotlib inline
 
-or ``%pylab inline``.
+or::
 
-These capture the output *inline* within the notebook format. This has the benefit that the resulting plots will also stored in the notebook document.
+  %pylab inline
+
+These instead capture the output of the plot and display it *inline* within the notebook format, below the input cell that produced it. The resulting plots will then also be stored in the notebook document.
 
 
 Converting notebooks to other formats
@@ -320,9 +312,9 @@ Currently, only a command line tool is provided; in the future, it will also be 
 
   $ ipython nbconvert --format=FORMAT notebook.ipynb
 
-This will convert the IPython document file `notebook.ipynb` into the output format specified by the ``FORMAT`` string.
+This will convert the IPython document file ``notebook.ipynb`` into the output format given by the ``FORMAT`` string.
 
-The default output format is HTML, for which the `--format`` modifier is not required::
+The default output format is HTML, for which the `--format`` modifier is not actually required::
   
   $ ipython nbconvert notebook.ipynb
 
@@ -348,7 +340,7 @@ The currently supported export formats are the following:
     The format for Sphinx manuals; similar to a `book`` in LaTeX 
 
   - ``latex``:
-    LaTeX article
+    An article formatted completely using LaTeX
 
 * Markup:
 
@@ -362,9 +354,9 @@ The currently supported export formats are the following:
 
     Comments out all the non-Python code to produce a standard Python ``.py`` script with just the code content.
     
-The files output by `nbconvert` are currently placed in a new subdirectory called ``nbconvert_build``. 
+The files output by ``nbconvert` are currently placed in a new subdirectory called ``nbconvert_build``. 
 
-The PDF options produce a root LaTeX ``.tex`` file with the same name as the notebook, as well as individual files for each figure, and `.text` files with textual output from running code cells; all of these files are located together in the ``nbconvert_build`` subdirectory.
+Each of the options for PDF export produces as an intermediate step a root LaTeX ``.tex`` file with the same name as the notebook, as well as individual files for each figure, and ``.text` files with textual output from running code cells; all of these files are located together in the ``nbconvert_build`` subdirectory.
 
 To actually produce the final PDF file, change into the ``nbconvert_build`` directory and run the following command::
   
@@ -378,18 +370,19 @@ Alternatively, the output may be piped to standard output, ``stdout``, with::
     
     $ ipython nbconvert mynotebook.ipynb --stdout
     
-Multiple notebooks can be specified at the command line::
+Multiple notebooks can be specified from the command line::
     
     $ ipython nbconvert notebook*.ipynb
     $ ipython nbconvert notebook1.ipynb notebook2.ipynb
     
 or via a list in a configuration file, say ``mycfg.py``, containing the text::
     
+    c = get_config()
     c.NbConvertApp.notebooks = ["notebook1.ipynb", "notebook2.ipynb"]
 
 and using the command::
 
-    > ipython nbconvert --config mycfg.py
+    $ ipython nbconvert --config mycfg.py
 
 
 Configuring the IPython Notebook
@@ -415,19 +408,19 @@ To create a new set of default configuration files, with lots of information on 
 
 Extracting standard Python files from notebooks
 -----------------------------------------------
-``.ipynb`` notebook document files are plain text files which store a representation in JSON format of the contents of a notebook space. As such, it is not a valid ``.py`` Python script, and so can be neither ``import``ed in Python, nor executed as a standard Python script.
+``.ipynb`` notebook document files are plain text files which store a representation in JSON format of the contents of a notebook space. As such, it is not a valid ``.py`` Python script, and so can be neither imported with 
+``import`` in Python, nor run as a standard Python script.
 
 To extract just the Python code from within a notebook document, one option is to use ``ipython nbconvert``, as described above.
-
-An alternative is to run the IPython Notebook, specifying that whenever it saves an ``.ipynb`` notebook document, at the same time it should save the corresponding standard ``.py`` script. To do so, you can execute the following command::
+An alternative is to pass an argument to the IPython Notebook, from the moment when it is originally started, specifying that whenever it saves an ``.ipynb`` notebook document, it should, at the same time, save the corresponding standard ``.py`` script. To do so, you can execute the following command::
 
   ipython notebook --script
 
 or you can set this option permanently in your configuration file with::
+  c = get_config()
+  c.NotebookManager.save_script=True
 
-    c.NotebookManager.save_script=True
-
-The result is that standard ``.py`` files are also now generated, and so they can be ``%run``, imported from regular IPython sessions or other notebooks, or executed at the command line, as usual.  Since we export the raw code you have typed, for these files to be importable from other code, you will have to avoid using syntax such as IPython magics and other IPython-specific extensions to the language.
+The result is that standard ``.py`` files are also now generated, and so they can be ``%run``, imported from regular IPython sessions or other notebooks, or executed at the command line, as usual.  Since the raw code you have typed is exported you must avoid using syntax such as IPython magics and other IPython-specific extensions to the language for the files to be able to be successfully imported.
 
 In normal Python practice, the standard way to differentiate importable code in a Python script from the "executable" part of a script is to use the following idiom at the start of the executable part of the code::
 
@@ -474,6 +467,7 @@ hashed password using the function :func:`IPython.lib.security.passwd`:
 You can then add this to your :file:`ipython_notebook_config.py`, e.g.::
 
     # Password to use for web authentication
+    c = get_config()
     c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
 
 When using a password, it is a good idea to also use SSL, so that your password
@@ -513,11 +507,11 @@ how to connect to each kernel, with messages such as the following::
 This long string is the name of a JSON file that contains all the port and 
 validation information necessary to connect to the kernel.  You can then, for example, manually start a Qt console connected to the *same* kernel with::
 
-    ipython qtconsole --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
+    $ ipython qtconsole --existing kernel-3bb93edd-6b5a-455c-99c8-3b658f45dde5.json
 
 If you have only a single kernel running, simply typing::
 
-    ipython qtconsole --existing
+    $ ipython qtconsole --existing
 
 will automatically find it. (It will always find the most recently 
 started kernel if there is more than one.)  You can also request this 
@@ -531,9 +525,9 @@ Running a public notebook server
 If you want to access your notebook server remotely via a web browser,
 you can do the following.  
 
-Start by creating a certificate file and a hashed password, as explained above.  Then, create a custom profile for the notebook: at the command line, type::
+Start by creating a certificate file and a hashed password, as explained above.  Then create a custom profile for the notebook, with the following command line, type::
 
-  ipython profile create nbserver
+  $ ipython profile create nbserver
 
 In the profile directory just created, edit the file ``ipython_notebook_config.py``.  By default, the file has all fields commented; the minimum set you need to uncomment and edit is the following::
 
@@ -558,9 +552,8 @@ Running with a different URL prefix
 
 The notebook dashboard (the landing page with an overview
 of the notebooks in your working directory) typically lives at the URL
-``http://localhost:8888/``. If you want to have it, and the rest of the
-notebook, live under a sub-directory,
-e.g. ``http://localhost:8888/ipython/``d, you can do so with
+``http://localhost:8888/``. If you prefer that it lives, together with the rest of the notebook, under a sub-directory,
+e.g. ``http://localhost:8888/ipython/``, you can do so with
 configuration options like the following (see above for instructions about
 modifying ``ipython_notebook_config.py``)::
 
@@ -588,8 +581,8 @@ your notebooks.
 
 .. _notebook_format:
 
-JSON format of notebook document files
---------------------------------------
+Notebook JSON file format
+-------------------------
 Notebook documents are JSON files with an ``.ipynb`` extension, formatted
 as legibly as possible with minimal extra indentation and cell content broken
 across lines to make them reasonably friendly to use in version-control
@@ -600,18 +593,18 @@ file meant only to be edited by the IPython Notebook app itself, not for hand-ed
 
 .. note::
 
-     Binary data such as figures are also saved directly in the JSON file.  This provides convenient single-file portability, but means that the files can be large; ``diff``s of binary data also are not very meaningful.  Since the binary blobs are encoded in a single line, they affect only one line of the ``diff`` output, but they are typically very long lines.  You can use the ``Cell  |  All Output  |  Clear`` menu option to remove all output from a notebook prior to committing it to version control, if this is a concdern.
+     Binary data such as figures are also saved directly in the JSON file.  This provides convenient single-file portability, but means that the files can be large; a ``diff`` of binary data is also not very meaningful.  Since the binary blobs are encoded in a single line, they affect only one line of the ``diff`` output, but they are typically very long lines.  You can use the ``Cell | All Output | Clear`` menu option to remove all output from a notebook prior to committing it to version control, if this is a concern.
 
 The notebook server can also generate a pure Python version of your notebook, 
-using the ``File  |  Download as`` menu option. The resulting ``.py`` file will 
-contain all the code cells from your notebook verbatim, and all text cells 
-prepended with a comment marker.  The separation between code and text
+using the ``File | Download as`` menu option. The resulting ``.py`` file will 
+contain all the code cells from your notebook verbatim, and all Markdown cells 
+prepended with a comment marker.  The separation between code and Markdown
 cells is indicated with special comments and there is a header indicating the
 format version.  All output is removed when exporting to Python.
 
-As an example, consider a simple notebook called ``simple.ipynb`` which contains one Markdown cell, with the content ``The simplest notebook.``, one code input cell with the content ``print Hello, IPython!``, and the corresopnding output.
+As an example, consider a simple notebook called ``simple.ipynb`` which contains one Markdown cell, with the content ``The simplest notebook.``, one code input cell with the content ``print "Hello, IPython!"``, and the corresponding output.
 
-The contents of ``simple.ipynb`` is the following JSON container::
+The contents of the notebook document ``simple.ipynb`` is the following JSON container::
 
   {
    "metadata": {
@@ -661,6 +654,8 @@ The corresponding Python script is::
   # <codecell>
 
   print "Hello, IPython"
+
+Note that indeed the output of the code cell, which is present in the JSON container, has been removed in the ``.py`` script.
 
 
 Known issues
