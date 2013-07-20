@@ -12,8 +12,8 @@ The IPython Notebook extends the previous text-console-based approach, and the l
     :ref:`Installation requirements <installnotebook>` for the Notebook.
 
 
-Introduction
-------------
+Basic structure
+---------------
 
 The IPython Notebook combines two components:
 
@@ -302,9 +302,9 @@ The default output format is HTML, for which the `--format`` modifier is not req
 
 Otherwise, the following `FORMAT`
 
-where ``FORMAT`` is the desired export format. The currently export format options available are the following.
+where ``FORMAT`` is the desired export format. The currently export format options available are the following:
 
-* HTML output formats:
+* HTML:
 
   - ``full_html``:
     Standard HTML
@@ -315,41 +315,56 @@ where ``FORMAT`` is the desired export format. The currently export format optio
   - ``reveal``:
     HTML slideshow presentation for use with the ``reveal.js`` package
 
+* PDF:
 
+  - ``sphinx_howto``:
+    The format for Sphinx HOWTOs; similar to `article` in LaTeX
 
-* ``sphinx_howto``:
-  The format for Sphinx HOWTOs; similar to an `article` in LaTeX
+  - ``sphinx_manual``:
+    The format for Sphinx manuals; similar to `book` in LaTeX 
 
-* ``sphinxP
+  - ``latex``:
+    LaTeX article
 
-* ``latex``:
-  Produces LaTeX output which may be compiled with ``pdflatex`` to PDF.
+* Markup:
 
- The simplest way to use nbconvert is
+  - ``rst``:
+    reStructuredText
+
+  - ``markdown``:
+    Markdown
+
+* Python:
+
+    Produces a standard ``.py`` script, with the non-Python code commented out.
     
-    > ipython nbconvert mynotebook.ipynb
+The output files are currently placed in a new subdirectory called 
+``nbconvert_build``. 
+
+The PDF options produce a root LaTeX `.tex` file with the same name as the notebook, as well as individual files for each figure, and `.text` files with textual output from running code cells; all of these files are located together in the `nbconvert_build` subdirectory.
+
+To actually produce the final PDF file, simply run::
+  
+  $ pdflatex notebook
+
+which produces `notebook.pdf`, also inside the `nbconvert_build` subdirectory.
+
+Alternatively, the output may be piped to standard output `stdout` with::
     
-    which will convert mynotebook.ipynb to the default format (probably HTML).
+    $ ipython nbconvert mynotebook.ipynb --stdout
     
-    You can specify the export format with `--format`.
-    Options include ['basic_html', 'full_html', 'latex', 'markdown', 'python', 'reveal', 'rst', 'sphinx_howto', 'sphinx_manual']
+Multiple notebooks can be specified at the command line in a couple of 
+different ways::
     
-    > ipython nbconvert --format latex mynotebook.ipnynb
+    $ ipython nbconvert notebook*.ipynb
+    $ ipython nbconvert notebook1.ipynb notebook2.ipynb
     
-    You can also pipe the output to stdout, rather than a file
+or via a list in a configuration file, containing::
     
-    > ipython nbconvert mynotebook.ipynb --stdout
-    
-    Multiple notebooks can be given at the command line in a couple of 
-    different ways:
-    
-    > ipython nbconvert notebook*.ipynb
-    > ipython nbconvert notebook1.ipynb notebook2.ipynb
-    
-    or you can specify the notebooks list in a config file, containing::
-    
-        c.NbConvertApp.notebooks = ["my_notebook.ipynb"]
-    
+    c.NbConvertApp.notebooks = ["notebook1.ipynb", "notebook2.ipynb"]
+
+and using the command::
+
     > ipython nbconvert --config mycfg.py
 
 
@@ -361,7 +376,9 @@ To see a list of available options enter::
   $ ipython notebook --help 
 
 Defaults for these options can also be set by creating a file named 
-``ipython_notebook_config.py`` in your IPython *profile folder*. The profile folder is a subfolder of your IPython directory; ``ipython locate`` will show you where it is located. 
+`ipython_notebook_config.py`` in your IPython *profile folder*. The profile folder is a subfolder of your IPython directory; to find out where it is located, run::
+
+  $ ipython locate
 
 To create a new set of default configuration files, with lots of information on available options, use::
 
