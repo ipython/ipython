@@ -239,60 +239,77 @@ As with Markdown cells, a heading input cell is replaced by a rich text renderin
 
 Magic commands
 --------------
-Magic commands, or *magics*, are commands which begin with the symbol ``%``, which send commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
+Magic commands, or *magics*, are commands for controlling IPython itself.
+They all begin with ``%`` and are entered into code input cells. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
 
-Magics control different elements of the way that the IPython notebook operates. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
+There are two types of magics:
 
-There are two types of magics: *line magics*, which begin with a single ``%`` and operate on a single line of the code cell; and *cell magics*, which begin with ``%%`` and operate on the entire contents of the cell.
+  **line magics**:
+     These begin with a single ``%`` and take as arguments the rest of the *same line* of the code cell. Any other lines of the code cell are treated as a standard code cell.
+
+  **cell magics**:
+    These begin with ``%%`` and operate on the *entire* remaining contents of the code cell.
 
 Line magics
 ˜˜˜˜˜˜˜˜˜˜˜
 Some of the available line magics are the following:
 
-* ``%load``:
-  Loads a file and places its content into a new code cell.
+  * ``%load filename``:
+    Loads the contents of the file ``filename`` into a new code cell.
 
-* ``%timeit``:
-  A simple way to time how long a single line of code takes to run
+  * ``%timeit code``:
+    A simple way to time how long the single line of code ``code`` takes to run
 
-* ``%config``:
-  Configuration of the IPython Notebook
+  * ``%config``:
+    Configuration of the IPython Notebook
 
-* ``%lsmagic``:
-  Provides a list of all available magic commands
+  * ``%load_ext``:
+    Loads an *extension* of the IPython Notebook. Extensions provide extra functionality beyond that of the basic Notebook
+
+  * ``%lsmagic``:
+    Provides a list of all available magic commands
 
 Cell magics
 ˜˜˜˜˜˜˜˜˜˜˜
+  * ``%%latex``:
+    The entire contents of the cell is rendered in LaTeX, as in a Markdown cell but without needing LaTeX delimiters.
 
-* ``%%bash``:
-  Send the contents of the code cell to be executed by ``bash``
+  * ``%%bash``:
+    When the code cell is executed, its contents are sent to be executed by ``bash``. 
 
-* ``%%file``:
-  Writes a file with with contents of the cell. *Caution*: The file is ovewritten without asking.
+  * ``%%file filename``:
+    Writes the contents of the cell to the file ``filename``.
+    **Caution**: The file is ovewritten!
 
-* ``%%R``:
-  Execute the contents of the cell using the R language.
+  * ``%%R``:
+    Execute the contents of the cell using the R language.
 
-* ``%%cython``:
-  Execute the contents of the cell using ``Cython``.
-  
+  * ``%%cython``:
+    Execute the contents of the cell using ``Cython``.
+
+
+Several of the cell magics provide functionality to manipulate the filesystem of a remote server to which you otherwise do not have access.  
 
 
 Plotting
 --------
-One major feature of the Notebook is the ability to capture the result of plots as inline output. IPython is designed to work seamlessly together with
-the ``%matplotlib`` plotting library. In order to set this up, the 
-``%matplotlib`` magic command must be run before any plotting takes place.
+One major feature of the Notebook is the ability to capture the result of plots as *inline* output, thus displaying the result of running some code right next to the code itself. IPython is designed to work seamlessly with the ``matplotlib`` plotting library to attain this functionality. 
 
-Note that ``%matplotlib`` only sets up IPython to work correctly with ``matplotlib``; it does not actually execute any ``import`` commands and does not add anything to the namespace.
+To set this up, before any plotting is performed you must execute the
+``%matplotlib`` magic command. This performs the necessary behind-the-scenes setup for IPython to work correctly hand in hand with ``matplotlib``; it does 
+*not*, however, actually execute any Python ``import`` commands, that is, no names are added to the namespace.
 
-There is an alternative magic, ``%pylab``, which, in addition, also executes a sequence of standard ``import`` statements required for working with the 
-``%matplotlib`` library. In particular, it automatically imports all names in the ``numpy`` and ``matplotlib`` packages to the namespace. A less invasive solution is ``%pylab --no-import-all``, which imports just the standard names 
-``np`` for the ``numpy`` module and ``plt`` for the ``matplotlib.pyplot`` module.
+For more agile *interactive* use of the notebook space, an alternative magic, ``%pylab``, is provided. This does the same work as the ``%matplotlib`` magic, but *in addition* it automatically executes a standard sequence of ``import`` statements required to work with the ``%matplotlib`` library:
+
+It will import at the top level `numpy` as `np`, `pyplot` as `plt`, `matplotlib`, `pylab` and `mlab` from `matplotlib`, as well as *all names* from ``numpy`` and ``pylab``. A less invasive, but less interactive, option is ``%pylab --no-import-all``, which does not do these ``import *`` imports.
 
 When the default ``%matplotlib`` or ``%pylab`` magics are used, the output of a plotting command is captured in a *separate* window. An alternative is to use::
+
   ``%matplotlib inline``
-which captures the output inline within the notebook format. This has the benefit that the resulting plots will be stored in the notebook document.
+
+or ``%pylab inline``.
+
+These capture the output *inline* within the notebook format. This has the benefit that the resulting plots will also stored in the notebook document.
 
 
 Converting notebooks to other formats
