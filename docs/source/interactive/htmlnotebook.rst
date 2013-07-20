@@ -203,13 +203,14 @@ Upon initial creation, each input cell is by default a code cell.
 
 Code cells
 ~~~~~~~~~~
-A *code input cell* allows you to edit code inline within the cell, with full syntax highlighting and autocompletion. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
+A *code input cell* allows you to edit code inline within the cell, with full syntax highlighting and autocompletion/introspection. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
 
 When a code cell is executed with :kbd:`Shift-Enter`, the code that it contains is transparently exported and run in that language 
 (with automatic compiling, etc., if necessary). The result that is returned from this computation  is then displayed in the notebook space as the cell's 
 *output*. If this output is of a textual nature, then it is placed into a numbered *output cell*. 
 However, many other possible forms of output are allowed, for example, 
-``matplotlib`` figures and HTML tables (as used, for example, in the ``pandas` data analyis package). This is known as IPython's *rich display* capability.
+``matplotlib`` figures and HTML tables (as used, for example, in the 
+``pandas`` data analyis package). This is known as IPython's *rich display* capability.
 
 
 Rich text using Markdown
@@ -223,12 +224,22 @@ Within Markdown cells, you can also include *mathematics* in a straightforward w
 
 Raw cells
 ~~~~~~~~~
-Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information to be used when the notebook is exported to a certain format.
+Raw cells provide a place to put additional information which is not evaluated by the Notebook. This can be used, for example, for extra information you 
+require to be included when the notebook is exported to a certain format.
+
+Heading cells
+˜˜˜˜˜˜˜˜˜˜˜˜˜
+You can provide a conceptual structure for your computational document using 
+different levels of headings; there are 6 levels available, from level 1 (main 
+title) down to level 6 (paragraph). These can be used later for constructing 
+tables of contents, etc.
+
+As with Markdown cells, a heading input cell is replaced by a rich text rendering of the heading when the cell is executed.
 
 
 Magic commands
 --------------
-Magic commands, or *magics*, are one-word commands beginning with the symbol ``%``, which send commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
+Magic commands, or *magics*, are commands which begin with the symbol ``%``, which send commands to IPython itself (as opposed to standard Python commands which are exported to be run in a Python interpreter).
 
 Magics control different elements of the way that the IPython notebook operates. They are entered into standard code cells and executed as usual with :kbd:`Shift-Enter`.
 
