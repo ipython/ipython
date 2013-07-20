@@ -125,7 +125,7 @@ Input cells are at the core of the functionality of the IPython Notebook.
 They are regions in the document in which you can enter different types of text and commands. To *execute* or *run* the *current cell*, i.e. the cell under the cursor, you can use the:kbd:`Shift-Enter` key combination. 
 This tells the Notebook app to perform the relevant operation for each type of cell (see below), and then to display the resulting output.
 
-The notebook consists of a sequence of input cells, labelled ``In[n]``, which may be executed in a non-linear way, and outpus ``Out[n]``, where ``n`` is a number which denotes the order in which the cells were executed over the history of the computational process.
+The notebook consists of a sequence of input cells, labelled ``In[n]``, which may be executed in a non-linear way, and outpus ``Out[n]``, where ``n`` is a number which denotes the order in which the cells were executed over the history of the computational process. The content of these cells is accessible as Python variables with the same names.
 
 
 Basic workflow
@@ -186,9 +186,6 @@ keyboard shortcuts are also available for the most common ones, so that producti
 
 * :kbd:`Ctrl-m`: 
   This is the prefix for all of the other shortcuts, which consist of an additional single letter or character. If you type :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), IPython will show you all the available keyboard shortcuts.
-
-
-
    
 
 Cell types
@@ -201,17 +198,23 @@ There is a restricted number of possible cell types, which may be set by using t
 * **raw**: :kbd:`Ctrl-m t`
 * **heading**: :kbd:`Ctrl-m 1` - :kbd:`Ctrl-m 6`
 
+Upon initial creation, each input cell is by default a code cell.
+
 
 Code cells
 ~~~~~~~~~~
-Code cells contain code written in some computer language, which is Python by default. When the cell is executed with :kbd:`Shift-Enter`, this code is executed, and the result returned by Python (or the corresponding language) after running the code will be displayed as its output.
+A code cell allows you to edit code inline within the cell, with full syntax highlighting and autocompletion. By default, the language of a code cell is Python, but other languages, such as ``julia`` and ``R``, are handled using magic commands (see below).
 
-Code may be edited inline in the cell, with full syntax highlighting.
+When a code cell is executed with :kbd:`Shift-Enter`, the code that it contains is transparently exported and run in that language 
+(with automatic compiling, etc., if necessary). The result that is returned from this computation  is then displayed in the notebook space as the cell's 
+*output*. If this output is of a textual nature, then it is placed into a numbered *output cell*. 
+However, many other possible forms of output are allowed, for example, 
+``matplotlib`` figures and HTML tables (as used, for example, in the ``pandas` data analyis package). This is known as IPython's *rich display* capability.
 
 
 Rich text using Markdown
 ~~~~~~~~~~~~~~~~~~~~~~~~
-The computational process may be documented in a literate way using rich text. 
+You can document the computational process in a literate way using rich text. 
 For this purpose, the Notebook provides markdown cells. Text is entered using Markdown_ syntax, allowing for italics, bold, ordered and unordered lists, etc. This is rendered using Markdown syntax to a rich HTML representation when the cell is executed. In this case, the output *replaces* the input cell.
 
 Within markdown cells, mathematics can be included in a straightforward manner using LaTeX notation: ``$...$`` for inline math and ``$$...$$`` for displayed math. Standard LaTeX environments, such as ``\begin{equation}...\end{equation}``, also work. New commands may be defined using standard LaTeX commands, placed anywhere in a markdown cell.
