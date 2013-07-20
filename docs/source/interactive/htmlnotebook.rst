@@ -25,27 +25,22 @@ The IPython Notebook combines two components:
 
   *Notebook documents*, or *notebooks*, are plain text documents which record all inputs and outputs of the computations, interspersed with text, mathematics and HTML 5 representations of objects, in a literate style.
 
-Since the similarity in names can lead to some confusion, in the documentation we will always use the typographical distinction between the *N*otebook app and *n*otebook documents via the respective capitalization of the word "notebook". Here, we are thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, to increase clarity.
+Since the similarity in names can lead to some confusion, in the documentation we will  use capitalization of the word "notebook" to distinguish the *N*otebook app and *n*otebook documents, thinking of the Notebook app as being a proper noun. We will also always refer to the "Notebook app" when we are referring to the browser-based interface, and usually to "notebook documents", instead of "notebooks", for added precision.
 
 We refer to the current state of the computational process taking place in the Notebook app, i.e. the (numbered) sequence of input and output cells, as the 
-*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same name "notebook" for both the notebook space and the corresonding notebook document.
+*notebook space*. Notebook documents provide an *exact*, *one-to-one* record of all the content in the notebook space, as a plain text file in JSON format. The Notebook app automatically saves, at certain intervals, the contents of the notebook space to a notebook document stored on disk, with the same name as the title of the notebook space, and the file extension ".ipynb". For this reason, there is no confusion about using the same word "notebook" for both the notebook space and the corresonding notebook document, since they are really one and the same concept ("isomorphic").
 
-Features of the IPython Notebook web app
-----------------------------------------
 
-Some of the main features of the IPython Notebook app include:
+Main features of the IPython Notebook web app
+---------------------------------------------
+
+The main features of the IPython Notebook app include:
 
 * In-browser editing for code, with automatic syntax highlighting, tab completion and autoindentation.
 * Literate combination of code with rich text using the Markdown markup language.
 * Mathematics is easily included within the Markdown using LaTeX notation, and rendered natively by MathJax.
 * Displays rich data representations (e.g. HTML / LaTeX / SVG) as the result of computations.
-* Publication-quality figures in a range of formats (SVG / PDF / PNG), rendered by the ``matplotlib`` library, may be included inline.
-
-If you have ever used the Mathematica or SAGE notebooks (the latter is also
-web-based__) you should feel right at home.  In any case, you will be
-able to learn how to use the IPython Notebook in just a few minutes.
-
-.. __: http://sagenb.org
+* Publication-quality figures in a range of formats (SVG / PNG), rendered by the ``matplotlib`` library, may be included inline and exported.
 
 
 Notebook documents
@@ -56,7 +51,9 @@ Notebook document files are just standard text files with the extension
 
 Despite the fact that the notebook documents are plain text files, they use 
 the JSON format in order to store a *complete*, *reproducible*, *one-to-one* copy of the state of the computational state as it is inside the Notebook app. 
-All computations carried out, and the corresponding results obtained, are combined in a literate way, mixing them  with descriptive text, mathematics, and HTML 5 representations of objects.
+All computations carried out, and the corresponding results obtained, can be 
+combined in a literate way, mixing them with descriptive text, mathematics, 
+and HTML 5 representations of objects.
 
 Notebooks may easily be exported to a range of static formats, including 
 HTML (for example, for blog posts), PDF and slide shows.
@@ -88,24 +85,26 @@ You can create new notebooks from the dashboard with the ``New Notebook``
 button, or open existing ones by clicking on their name.
 You can also drag and drop ``.ipynb`` notebooks and standard ``.py`` Python source code files into the notebook list area.
 
- ``.py`` files will be imported into the IPython Notebook as a notebook with the same name, but an ``.ipynb`` extension, located in the working directory.  The notebook will consist of a single cell containing all the 
- code in the ``.py`` file, which you can later manually partition into individual cells. 
+``.py`` files will be imported into the IPython Notebook as a notebook with the same name, but an ``.ipynb`` extension, located in the working directory.  The notebook will consist of a single cell containing all the 
+code in the ``.py`` file, which you can later manually partition into individual cells. 
 
- .. Alternatively, prior to importing the ``.py``, you can manually add ``# <nbformat>2</nbformat>`` at the start of the file, and then add separators for text and code cells, to get a cleaner import with the file already broken into individual cells.
-
-
-The IPython Notebook web app is based on a server-client structure. 
-This server uses a two-process kernel architecture based on ZeroMQ, as well as Tornado for serving HTTP requests. Other clients may connect to the same underlying IPython kernel.
+.. Alternatively, prior to importing the ``.py``, you can manually add ``# <nbformat>2</nbformat>`` at the start of the file, and then add separators for text and code cells, to get a cleaner import with the file already broken into individual cells.
 
 
 When you open or create a new notebook, your browser tab will reflect the name of that notebook, prefixed with "IPy".
 The URL is currently not meant to be human-readable and is not persistent across invocations of the notebook server; however, this will change in a future version of IPython.
 
 
+The IPython Notebook web app is based on a server-client structure. 
+This server uses a two-process kernel architecture based on ZeroMQ, as well as Tornado for serving HTTP requests. Other clients may connect to the same underlying IPython kernel; see below.
+
+
+
+
 Notebook user interface
 -----------------------
 
-When you finally start editing a notebook document in the Notebook, you will be presented with the title of the notebook, a *menu bar*, a *toolbar* and an empty *input cell*.
+When you open a new notebook document in the Notebook, you will be presented with the title associated to the notebook space/document, a *menu bar*, a *toolbar* and an empty *input cell*.
 
 Notebook title
 ~~~~~~~~~~~~~~
@@ -117,16 +116,16 @@ The menu bar presents different options that may be used to manipulate the way t
 
 Toolbar
 ~~~~~~~
-The tool bar gives handy icons for the most-used operations within the Notebook.
+The tool bar gives a quick way of accessing the most-used operations within the Notebook, by clicking on an icon.
 
 
 Input cells
 -----------
-Input cells are the core of the functionality of the IPython Notebook.
-They are regions in the document where you can enter different types of text and commands. These regions are then executed using :kbd:`Shift-Enter`, at which point the Notebook executes the current input cell, displays the resulting output beneath it, and adds a new input cell below.
+Input cells are at the core of the functionality of the IPython Notebook.
+They are regions in the document in which you can enter different types of text and commands. To *execute* or *run* the *current cell*, i.e. the cell under the cursor, you can use the:kbd:`Shift-Enter` key combination. 
+This tells the Notebook app to perform the relevant operation for each type of cell (see below), and then to display the resulting output.
 
-The notebook consists of a sequence of input cells, 
-providing the means to direct the computational process.
+The notebook consists of a sequence of input cells, labelled ``In[n]``, which may be executed in a non-linear way, and outpus ``Out[n]``, where ``n`` is a number which denotes the order in which the cells were executed over the history of the computational process.
 
 
 Basic workflow
@@ -171,28 +170,22 @@ notebook format.
 
 Keyboard shortcuts
 ------------------
-All actions in the notebook can be achieved with the mouse, but we have also
-added keyboard shortcuts for the most common ones, so that productive use of
-the notebook can be achieved with minimal mouse intervention.  The main
-key bindings you need to remember are:
+All actions in the notebook can be achieved with the mouse, but 
+keyboard shortcuts are also available for the most common ones, so that productive use of the notebook can be achieved with minimal mouse usage. The main shortcuts to remember are the following:
 
 * :kbd:`Shift-Enter`: 
-  execute the current cell, show output (if any), and jump 
-  to the next cell below. If :kbd:`Shift-Enter` 
-  was invoked on the last input line, a new code cell will also be created. Note that in the notebook, simply using :kbd:`Enter` *never* forces execution, it simply inserts a new line in the current cell. Therefore, in the notebook you must always use :kbd:`Shift-Enter` to get execution (or use the mouse and click on the ``Run Selected`` button).
+    Execute the current cell, show output (if any), and jump to the next cell below. If :kbd:`Shift-Enter` is invoked on the last input cell, a new code cell will also be created. Note that in the notebook, typing :kbd:`Enter` on its own *never* forces execution, but rather just inserts a new line in the current input cell. In the Notebook it is thus always necessary to use :kbd:`Shift-Enter` to execute the cell (or use the ``Cell -> Run`` menu item).
+
+* :kbd:`Ctrl-Enter`: 
+    Execute the current cell as if it were in "terminal mode", where any output is shown, but the cursor *remains* in the current cell. This is convenient for doing quick experiments in place, or for querying things like filesystem content, without needing to create additional cells that you may not want to be saved in the notebook.
 
 * :kbd:`Alt-Enter`: 
-  this combination is similar to the previous one, with the 
-  exception that, if the next cell below is not empty, a new code cell will be 
-  added to the notebook, even if the cell execution happens not in the last cell. :kbd:`Alt-Enter`: is a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
+    Executes the current cell, shows the output, and inserts a *new* input cell between the current cell and the adjacent cell (if one exists). This  is thus a shortcut for the sequence :kbd:`Shift-Enter`, :kbd:`Ctrl-m a`.
   
-* :kbd:`Ctrl-Enter`: 
-  execute the current cell in "terminal mode", where any
-  output is shown, but the cursor remains in the current cell. This is convenient to do quick in-place experiments, or query things like filesystem content, without creating additional cells that you may not want saved in your notebook.
+
 
 * :kbd:`Ctrl-m`: 
-  this is the prefix for all other keybindings, which consist of an additional single letter or character.  Type :kbd:`Ctrl-m h` (that is, the sole letter
-   :kbd:`h` after :kbd:`Ctrl-m`) and IPython will show you the remaining available keybindings.
+  This is the prefix for all of the other shortcuts, which consist of an additional single letter or character. If you type :kbd:`Ctrl-m h` (that is, the sole letter :kbd:`h` after :kbd:`Ctrl-m`), IPython will show you all the available keyboard shortcuts.
 
 
 
