@@ -22,6 +22,7 @@ HTTPError = web.HTTPError
 
 from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
+from urllib import quote
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -50,6 +51,8 @@ class NamedNotebookHandler(IPythonHandler):
     def get(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
+        if name != None:
+            name = quote(name)
         if path == None:
             project = self.project + '/' + name
         else:

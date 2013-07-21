@@ -53,7 +53,7 @@ class ProjectPathDashboardHandler(IPythonHandler):
                 project=project,
                 project_component=project.split('/'),
                 notebook_path=path,
-                notebook_name=name))    
+                notebook_name=quote(name)))    
 
 
 class TreeRedirectHandler(IPythonHandler):
