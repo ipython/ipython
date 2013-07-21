@@ -545,7 +545,10 @@ var IPython = (function (IPython) {
         this.expand();
         this.flush_clear_timeout();
         var area = this.create_output_area();
-
+        
+        // disable any other raw_inputs, if they are left around
+        $("div.output_subarea.raw_input").remove();
+        
         area.append(
             $("<div/>")
             .addClass("box-flex1 output_subarea raw_input")
