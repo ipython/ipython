@@ -42,6 +42,7 @@ var IPython = (function (IPython) {
         } else {
             alert('Your browser does not have WebSocket support, please try Chrome, Safari or Firefox ≥ 6. Firefox 4 and 5 are also supported by you have to enable WebSockets in about:config.');
         };
+        this.bind_events();
     };
 
 
@@ -59,6 +60,13 @@ var IPython = (function (IPython) {
         };
         return msg;
     };
+    
+    Kernel.prototype.bind_events = function() {
+        var that = this;
+        $([IPython.events]).on('send_input_reply.Kernel', function(evt, data) { 
+            that.send_input_reply(data);
+        });
+    }
 
     /**
      * Start the Python kernel
@@ -176,10 +184,6 @@ var IPython = (function (IPython) {
         this.shell_channel.onmessage = $.proxy(this._handle_shell_reply, this);
         this.iopub_channel.onmessage = $.proxy(this._handle_iopub_reply, this);
         this.stdin_channel.onmessage = $.proxy(this._handle_input_request, this);
-
-        $([IPython.events]).on('send_input_reply.Kernel', function(evt, data) { 
-            that.send_input_reply(data);
-        });
     };
 
     /**
