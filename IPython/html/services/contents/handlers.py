@@ -33,7 +33,6 @@ class ContentRootHandler(IPythonHandler):
 
     @authenticate_unless_readonly
     def get(self):
-        nbm = self.notebook_manager
         cm = self.content_manager
         contents = cm.list_contents("")
         self.finish(jsonapi.dumps(contents))
@@ -44,13 +43,13 @@ class ContentHandler(IPythonHandler):
     @web.authenticated
     def get(self, content_path):
         cm = self.content_manager
-        nbm = self.notebook_manager
         contents = cm.list_contents(content_path)
         self.finish(jsonapi.dumps(contents))
 
     @web.authenticated
     def delete(self, content_path):
-        
+        cm = self.content_manager
+        cm.delete_content(content_path)
         self.set_status(204)
         self.finish()
 
