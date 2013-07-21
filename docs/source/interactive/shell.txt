@@ -4,61 +4,33 @@
 IPython as a system shell
 =========================
 
-.. warning::
-
-    This page does not describe the current state of IPython!
-
-.. warning::
-
-    As of IPython 0.11, most of the APIs used by the shell profile have been changed,
-    so it currently does very little beyond changing the IPython prompt.
-    To help restore the shell profile to past functionality described here,
-    the old code is found in :file:`IPython/deathrow`,
-    which needs to be updated to use the APIs in 0.11.
-
 
 
 Overview
 ========
 
-The 'sh' profile optimizes IPython for system shell usage. Apart from
-certain job control functionality that is present in unix (ctrl+z does
-"suspend"), the sh profile should provide you with most of the
-functionality you use daily in system shell, and more. Invoke IPython
-in 'sh' profile by doing 'ipython -p sh', or (in win32) by launching
-the "pysh" shortcut in start menu.
+It is possible to adapt IPython for system shell usage. In the past, IPython
+shipped a special 'sh' profile for this purpose, but it had been quarantined
+since 0.11 release, and in 1.0 it was removed altogether. Nevertheless, much
+of this section relies on machinery which does not require a custom profile.
 
-If you want to use the features of sh profile as your defaults (which
-might be a good idea if you use other profiles a lot of the time but
-still want the convenience of sh profile), add ``import ipy_profile_sh``
-to your $IPYTHONDIR/ipy_user_conf.py.
+You can set up your own 'sh' :ref:`profile <Profiles>` to be different from
+the default profile such that:
 
-The 'sh' profile is different from the default profile in that:
+ * Prompt shows the current directory (see `Prompt customization`_)
+ * Make system commands directly available (in alias table) by running the
+   ``%rehashx`` magic. If you install new programs along your PATH, you might
+   want to run ``%rehashx`` to update the alias table
+ * turn ``%autocall`` to full mode
 
- * Prompt shows the current directory
- * Spacing between prompts and input is more compact (no padding with
-   empty lines). The startup banner is more compact as well.
- * System commands are directly available (in alias table) without
-   requesting %rehashx - however, if you install new programs along
-   your PATH, you might want to run %rehashx to update the persistent
-   alias table
- * Macros are stored in raw format by default. That is, instead of
-   '_ip.system("cat foo"), the macro will contain text 'cat foo')
- * Autocall is in full mode
- * Calling "up" does "cd .."
-
-The 'sh' profile is different from the now-obsolete (and unavailable)
-'pysh' profile in that the ``$$var = command`` and ``$var = command`` syntax is
-not supported anymore. Use ``var = !command`` instead (which is available in all
-IPython profiles).
 
 Aliases
 =======
 
-All of your $PATH has been loaded as IPython aliases, so you should be
-able to type any normal system command and have it executed. See
-%alias?  and %unalias? for details on the alias facilities. See also
-%rehashx? for details on the mechanism used to load $PATH.
+Once you run ``%rehashx``, all of your $PATH has been loaded as IPython aliases,
+so you should be able to type any normal system command and have it executed.
+See ``%alias?``  and ``%unalias?`` for details on the alias facilities. See also
+``%rehashx?`` for details on the mechanism used to load $PATH.
 
 
 Directory management
@@ -68,21 +40,17 @@ Since each command passed by ipython to the underlying system is executed
 in a subshell which exits immediately, you can NOT use !cd to navigate
 the filesystem.
 
-IPython provides its own builtin '%cd' magic command to move in the
+IPython provides its own builtin ``%cd`` magic command to move in the
 filesystem (the % is not required with automagic on). It also maintains
-a list of visited directories (use %dhist to see it) and allows direct
-switching to any of them. Type 'cd?' for more details.
+a list of visited directories (use ``%dhist`` to see it) and allows direct
+switching to any of them. Type ``cd?`` for more details.
 
-%pushd, %popd and %dirs are provided for directory stack handling.
+``%pushd``, ``%popd`` and ``%dirs`` are provided for directory stack handling.
 
 
-Enabled extensions
-==================
+Environment variables
+=====================
 
-Some extensions, listed below, are enabled as default in this profile.
-
-envpersist
-----------
 
 %env can be used to "remember" environment variable manipulations. Examples::
 
@@ -94,67 +62,28 @@ envpersist
 	%env -d VISUAL   - forget VISUAL persistent val
 	%env -p          - print all persistent env modifications
 
-ipy_which
----------
-
-%which magic command. Like 'which' in unix, but knows about ipython aliases.
-
-Example::
-
- [C:/ipython]|14> %which st
- st -> start .
- [C:/ipython]|15> %which d
- d -> dir /w /og /on
- [C:/ipython]|16> %which cp
- cp -> cp
-   == c:\bin\cp.exe
- c:\bin\cp.exe
-
-ipy_app_completers
-------------------
-
-Custom tab completers for some apps like svn, hg, bzr, apt-get. Try 'apt-get install <TAB>' in debian/ubuntu.
-
-ipy_rehashdir
--------------
-
-Allows you to add system command aliases for commands that are not along your path. Let's say that you just installed Putty and want to be able to invoke it without adding it to path, you can create the alias for it with rehashdir::
-
- [~]|22> cd c:/opt/PuTTY/
- [c:opt/PuTTY]|23> rehashdir .
-              <23> ['pageant', 'plink', 'pscp', 'psftp', 'putty', 'puttygen', 'unins000']
-
-Now, you can execute any of those commams directly::
-
- [c:opt/PuTTY]|24> cd
- [~]|25> putty
-
-(the putty window opens).
-
-If you want to store the alias so that it will always be available, do '%store putty'. If you want to %store all these aliases persistently, just do it in a for loop::
-
- [~]|27> for a in _23:
-    |..>     %store $a
-    |..>
-    |..>
- Alias stored: pageant (0, 'c:\\opt\\PuTTY\\pageant.exe')
- Alias stored: plink (0, 'c:\\opt\\PuTTY\\plink.exe')
- Alias stored: pscp (0, 'c:\\opt\\PuTTY\\pscp.exe')
- Alias stored: psftp (0, 'c:\\opt\\PuTTY\\psftp.exe')
- ...
 
 
 Prompt customization
 ====================
 
-The sh profile uses the following prompt configurations::
+Here are some prompt configurations you can try out interactively by using the
+``%config`` magic::
+    
+    %config PromptManager.in_template = r'{color.LightGreen}\u@\h{color.LightBlue}[{color.LightCyan}\Y1{color.LightBlue}]{color.Green}|\#> '
+    %config PromptManager.in2_template = r'{color.Green}|{color.LightGreen}\D{color.Green}> '
+    %config PromptManager.out_template = r'<\#> '
 
+
+You can change the prompt configuration to your liking permanently by editing
+``ipython_config.py``::
+    
     c.PromptManager.in_template = r'{color.LightGreen}\u@\h{color.LightBlue}[{color.LightCyan}\Y1{color.LightBlue}]{color.Green}|\#> '
     c.PromptManager.in2_template = r'{color.Green}|{color.LightGreen}\D{color.Green}> '
     c.PromptManager.out_template = r'<\#> '
 
-You can change the prompt configuration to your liking by editing
-ipython_config.py.
+Read more about the :ref:`configuration system <config_overview>` for details
+on how to find ``ipython_config.py``.
 
 .. _string_lists:
 
