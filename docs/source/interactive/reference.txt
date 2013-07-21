@@ -1084,13 +1084,14 @@ PyGTK, PyQt4 and wxPython. It also provides a number of commands useful for
 scientific computing, all with a syntax compatible with that of the popular
 Matlab program.
 
-To start IPython with matplotlib support, use the ``--pylab`` switch.  If no
+To start using matplotlib support, run the ``%matplotlib`` magic.  If no
 arguments are given, IPython will automatically detect your choice of
-matplotlib backend.  You can also request a specific backend with ``--pylab
-backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx', 'gtk', 'osx'.
-In the web notebook and Qt console, 'inline' is also a valid backend value,
-which produces static figures inlined inside the application window instead of
-matplotlib's interactive figures that live in separate windows.
+matplotlib backend.  You can also request a specific backend with
+``%matplotlib backend``, where ``backend`` must be one of: 'tk', 'qt', 'wx',
+'gtk', 'osx'.  In the web notebook and Qt console, 'inline' is also a valid
+backend value, which produces static figures inlined inside the application
+window instead of matplotlib's interactive figures that live in separate
+windows.
 
 .. _Matplotlib: http://matplotlib.sourceforge.net
 
