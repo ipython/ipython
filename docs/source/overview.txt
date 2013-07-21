@@ -175,6 +175,8 @@ Main features of the interactive shell
   prompts and whitespace) and uses doctest-compatible prompts and
   output, so you can use IPython sessions as doctest code.
 
+.. _ipythonzmq:
+
 Decoupled two-process model
 ==============================
 
