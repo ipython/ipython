@@ -9,19 +9,20 @@ IPython as a system shell
 Overview
 ========
 
-It is possible to adapt IPython for system shell usage. IPython used to ship a
-special 'sh' profile for this purpose, but it had been quarantined since 0.11
-release, and was removed altogether in 1.0. Nevertheless, much of this
-section relies on machinery which does not require a custom profile.
+It is possible to adapt IPython for system shell usage. In the past, IPython
+shipped a special 'sh' profile for this purpose, but it had been quarantined
+since 0.11 release, and in 1.0 it was removed altogether. Nevertheless, much
+of this section relies on machinery which does not require a custom profile.
 
-You can set up your own 'sh' profile to be different from the default profile
-such that:
+You can set up your own 'sh' :ref:`profile <Profiles>` to be different from
+the default profile such that:
 
  * Prompt shows the current directory (see `Prompt customization`_)
- * Make system commands directly available (in alias table)
-   by running the ``%rehashx`` magic. If you install new programs along your
-   PATH, you might want to run ``%rehashx`` to update the alias table
+ * Make system commands directly available (in alias table) by running the
+   ``%rehashx`` magic. If you install new programs along your PATH, you might
+   want to run ``%rehashx`` to update the alias table
  * turn ``%autocall`` to full mode
+
 
 Aliases
 =======
@@ -80,6 +81,9 @@ You can change the prompt configuration to your liking permanently by editing
     c.PromptManager.in_template = r'{color.LightGreen}\u@\h{color.LightBlue}[{color.LightCyan}\Y1{color.LightBlue}]{color.Green}|\#> '
     c.PromptManager.in2_template = r'{color.Green}|{color.LightGreen}\D{color.Green}> '
     c.PromptManager.out_template = r'<\#> '
+
+Read more about the :ref:`configuration system <config_overview>` for details
+on how to find ``ipython_config.py``.
 
 .. _string_lists:
 
