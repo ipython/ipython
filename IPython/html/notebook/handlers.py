@@ -54,8 +54,8 @@ class NamedNotebookHandler(IPythonHandler):
             project = self.project + '/' + name
         else:
             project = self.project + '/' + path +'/'+ name
-        #if not nbm.notebook_exists(notebook_path):
-         #   raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_path)       
+        if not nbm.notebook_exists(notebook_path):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % name)       
         self.write(self.render_template('notebook.html',
             project=project,
             notebook_path=path,

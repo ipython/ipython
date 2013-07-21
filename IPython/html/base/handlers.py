@@ -218,6 +218,10 @@ class IPythonHandler(AuthenticatedHandler):
         return self.settings['session_manager']
     
     @property
+    def content_manager(self):
+        return self.settings['content_manager']
+    
+    @property
     def project(self):
         return self.notebook_manager.notebook_dir
     
