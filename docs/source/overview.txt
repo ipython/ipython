@@ -212,7 +212,7 @@ Interactive parallel computing
 ==============================
 
 Increasingly, parallel computer hardware, such as multicore CPUs, clusters and
-supercomputers, is becoming ubiquitous. Over the last 8 years, we have
+supercomputers, is becoming ubiquitous. Over the last several years, we have
 developed an architecture within IPython that allows such hardware to be used
 quickly and easily from Python. Moreover, this architecture is designed to
 support interactive and collaborative parallel computing.
