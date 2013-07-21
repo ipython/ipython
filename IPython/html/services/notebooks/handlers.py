@@ -35,7 +35,6 @@ class NotebookRootHandler(IPythonHandler):
     @web.authenticated
     def get(self):
         nbm = self.notebook_manager
-        km = self.kernel_manager
         notebooks = nbm.list_notebooks("")
         self.finish(jsonapi.dumps(notebooks))
 

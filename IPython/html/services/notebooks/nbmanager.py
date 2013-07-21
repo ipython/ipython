@@ -111,9 +111,8 @@ class NotebookManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
 
-    def notebook_exists(self, notebook_name):
+    def notebook_exists(self, notebook_path):
         """Does a notebook exist?"""
-        return notebook_name in self.mapping
 
     def notebook_model(self, notebook_name, notebook_path=None):
         """ Creates the standard notebook model """

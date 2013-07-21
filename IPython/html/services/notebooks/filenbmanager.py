@@ -80,7 +80,6 @@ class FileNotebookManager(NotebookManager):
         """List all notebook names in the notebook dir."""
         names = glob.glob(os.path.join(self.notebook_dir, path,
                                        '*' + self.filename_ext))
-        #names = [os.path.splitext(os.path.basename(name))[0]
         names = [os.path.basename(name)
                  for name in names]
         return names
@@ -112,13 +111,9 @@ class FileNotebookManager(NotebookManager):
         model = self.notebook_model(notebook_name, notebook_path)
         return model
 
-    def notebook_exists(self, notebook_name):
+    def notebook_exists(self, notebook_path):
         """Does a notebook exist?"""
-        exists = super(FileNotebookManager, self).notebook_exists(notebook_name)
-        if not exists:
-            return False
-        path = self.get_path_by_name(self.mapping[notebook_name])
-        return os.path.isfile(path)
+        return os.path.isfile(notebook_path)
 
     def get_path(self, notebook_name, notebook_path=None):
         """Return a full path to a notebook given its notebook_name."""
