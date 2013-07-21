@@ -97,7 +97,6 @@ class ContentManager(LoggingConfigurable):
                     "size": size}
         return model
 
-    def delete_content(self, name, content_path):
-        full_path = self.get_path_by_name(name, content_path)
-        os.unlink(full_path)
+    def delete_content(self, content_path):
+        os.unlink(os.path.join(self.content_dir, content_path))
         
