@@ -15,9 +15,12 @@ is somewhat limited for extended interactive use.
 
 The goal of IPython is to create a comprehensive environment for
 interactive and exploratory computing.  To support this goal, IPython
-has two main components:
+has three main components:
 
 * An enhanced interactive Python shell.
+* A decoupled two-process communication model, which allows for multiple
+  clients to connect to a computation kernel, most notably the web-based
+  :ref:`notebook <htmlnotebook>`
 * An architecture for interactive parallel computing.
 
 All of IPython is open source (released under the revised BSD license).
@@ -172,11 +175,44 @@ Main features of the interactive shell
   prompts and whitespace) and uses doctest-compatible prompts and
   output, so you can use IPython sessions as doctest code.
 
+.. _ipythonzmq:
+
+Decoupled two-process model
+==============================
+
+IPython has abstracted and extended the notion of a traditional
+*Read-Evaluate-Print Loop* (REPL) environment by decoupling the *evaluation*
+into its own process. We call this process a kernel: it receives execution
+instructions from clients and communicates the results back to them.
+
+This decoupling allows us to have several clients connected to the same
+kernel, and even allows clients and kernels to live on different machines.
+With the exclusion of the traditional single process terminal-based IPython
+(what you start if you run ``ipython`` without any subcommands), all
+other IPython machinery uses this two-process model. This includes ``ipython
+console``,  ``ipython qtconsole``, and ``ipython notebook``.
+
+As an example, this means that when you start ``ipython qtconsole``, you're
+really starting two processes, a kernel and a Qt-based client can send
+commands to and receive results from that kernel. If there is already a kernel
+running that you want to connect to, you can pass the  ``--existing`` flag
+which will skip initiating a new kernel and connect to the most recent kernel,
+instead. To connect to a specific kernel once you have several kernels
+running, use the ``%connect_info`` magic to get the unique connection file,
+which will be something like ``--existing kernel-19732.json`` but with
+different numbers which correspond to the Process ID of the kernel.
+
+You can read more about using :ref:`ipython qtconsole <qtconsole>`, and
+:ref:`ipython notebook <htmlnotebook>`. There is also a :ref:`message spec
+<messaging>` which documents the protocol for communication between kernels
+and clients.
+
+
 Interactive parallel computing
 ==============================
 
 Increasingly, parallel computer hardware, such as multicore CPUs, clusters and
-supercomputers, is becoming ubiquitous. Over the last 3 years, we have
+supercomputers, is becoming ubiquitous. Over the last several years, we have
 developed an architecture within IPython that allows such hardware to be used
 quickly and easily from Python. Moreover, this architecture is designed to
 support interactive and collaborative parallel computing.
