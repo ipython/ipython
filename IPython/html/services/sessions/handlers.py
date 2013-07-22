@@ -31,8 +31,7 @@ from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 
 class SessionRootHandler(IPythonHandler):
-    
-    
+
     @authenticate_unless_readonly
     def get(self):
         sm = self.session_manager
@@ -40,8 +39,7 @@ class SessionRootHandler(IPythonHandler):
         km = self.kernel_manager
         sessions = sm.list_sessions()
         self.finish(jsonapi.dumps(sessions))
-        
-        
+
     @web.authenticated
     def post(self):
         sm = self.session_manager
@@ -55,18 +53,17 @@ class SessionRootHandler(IPythonHandler):
             kernel = km.kernel_model(kernel_id, self.ws_url)
             model = sm.session_model(session_id, notebook_name, path, kernel)
         self.finish(jsonapi.dumps(model))
-        
-        
+
 class SessionHandler(IPythonHandler):
-    
+
     SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
-    
+
     @authenticate_unless_readonly
     def get(self, session_id):
         sm = self.session_manager
         model = sm.get_session_from_id(session_id)
         self.finish(jsonapi.dumps(model))
-    
+
     @web.authenticated
     def patch(self, session_id):
         sm = self.session_manager
@@ -79,7 +76,7 @@ class SessionHandler(IPythonHandler):
         sm.delete_mapping_for_session(session_id)
         model = sm.session_model(session_id, notebook_name, path, kernel)
         self.finish(jsonapi.dumps(model))
-        
+
     @web.authenticated
     def delete(self, session_id):
         sm = self.session_manager
@@ -90,7 +87,7 @@ class SessionHandler(IPythonHandler):
         sm.delete_mapping_for_session(session_id)
         self.set_status(204)
         self.finish()
-        
+
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
