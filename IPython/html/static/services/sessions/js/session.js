@@ -32,7 +32,6 @@ var IPython = (function (IPython) {
     
     Session.prototype.notebook_rename = function (notebook_path) {
         this.notebook_path = notebook_path;
-        console.log("TEST");
         var settings = {
             processData : false,
             cache : false,
