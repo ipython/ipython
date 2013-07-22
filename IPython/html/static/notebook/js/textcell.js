@@ -297,14 +297,16 @@ var IPython = (function (IPython) {
         this.cell_type = 'markdown';
     };
 
+
     MarkdownCell.options_default = {
         cm_config: {
-            mode: 'gfm'
+           mode: 'gfm',
+           extraKeys: {
+                    "Space" : IPython.Cell.hardwrap(80)
+           },
         },
         placeholder: "Type *Markdown* and LaTeX: $\\alpha^2$"
     }
-
-
 
 
     MarkdownCell.prototype = new TextCell();

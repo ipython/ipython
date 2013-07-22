@@ -270,6 +270,25 @@ var IPython = (function (IPython) {
         this.auto_highlight();
     };
 
+
+    Cell.hardwrap = function(limit){
+    
+        return function(cm) {
+            //var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+            var cur = cm.getCursor();
+            var ln = cur.line;
+            var next_line = cm.getLine(ln+1)|| "";
+
+            if( cur.ch > limit && cur.ch == cm.getLine(ln).length && next_line.trim() == ""){
+                cm.replaceSelection(' \n', "end", "+input");
+                return
+            }
+
+            cm.replaceSelection(' ', "end", "+input");
+            return
+        }
+    }
+
     /**
      * Try to autodetect cell highlight mode, or use selected mode
      * @methods _auto_highlight
