@@ -83,7 +83,8 @@ In \[1\]: from IPython\.config\.application import Application
 In \[2\]: app = Application\.instance\(\)
 In \[3\]: app\.pylab_import_all = True
 In \[4\]: pylab
-^using matplotlib backend:
+^Using matplotlib backend:
+Populating the interactive namespace from numpy and matplotlib
 In \[5\]: ip=get_ipython\(\)
 In \[6\]: \'plot\' in ip\.user_ns
 Out\[6\]: True
@@ -108,7 +109,8 @@ In \[1\]: from IPython\.config\.application import Application
 In \[2\]: app = Application\.instance\(\)
 In \[3\]: app\.pylab_import_all = False
 In \[4\]: pylab
-^using matplotlib backend:
+^Using matplotlib backend:
+Populating the interactive namespace from numpy and matplotlib
 In \[5\]: ip=get_ipython\(\)
 In \[6\]: \'plot\' in ip\.user_ns
 Out\[6\]: False
