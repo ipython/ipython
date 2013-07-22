@@ -177,6 +177,61 @@ def compress_user(path, tilde_expand, tilde_val):
         return path
 
 
+def uniquify(seq):
+    """uniquify a list
+    i.e. remove duplicate elements, but preserving original order
+    Taken from http://www.peterbe.com/plog/uniqifiers-benchmark and
+    http://stackoverflow.com/questions/480214/
+    how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+
+    """
+    
+    seen = set()
+    seen_add = seen.add
+
+    return [ x for x in seq if x not in seen and not seen_add(x)]
+
+
+def penalize_magics_key(word):
+    """key for sorting that penalizes magic commands in the ordering
+
+    Normal words are left alone.
+
+    Magic commands have the initial % moved to the end, e.g.
+    %matplotlib is transformed as follows:
+
+    %matplotlib -> matplotlib%
+
+    [The choice of the final % is arbitrary.]
+
+    Since "matplotlib" < "matplotlib%" as strings, 
+    "timeit" will appear before the magic "%timeit" in the ordering
+
+    However, since we only move one %, cell magics still take priority,
+    e.g.:
+
+    %%timeit -> %timeit%
+
+    and so appears first in the listing, since
+
+    "%timeit%" < "timeit%"
+
+    E.g. completing on 'tim' gives the ordering
+    ["%%time", "%%timeit", "%time", "%timeit"] in
+    the completion listing
+
+    """
+
+
+
+
+    if word[0] == "%":  # if it's a magic command     
+        return word[1:] + "%"   
+
+    return word
+
+
+
 class Bunch(object): pass
 
 
@@ -504,9 +559,9 @@ class IPCompleter(Completer):
         # All active matcher routines for completion
         self.matchers = [self.python_matches,
                          self.file_matches,
-                         self.magic_matches,
                          self.alias_matches,
                          self.python_func_kw_matches,
+                         self.magic_matches
                          ]
 
     def all_completions(self, text):
@@ -832,6 +887,7 @@ class IPCompleter(Completer):
 
         return None
 
+
     def complete(self, text=None, line_buffer=None, cursor_pos=None):
         """Find completions for the given text and line context.
 
@@ -912,9 +968,16 @@ class IPCompleter(Completer):
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
-        self.matches = sorted(set(self.matches))
+
+        self.matches = sorted(set(self.matches), key=penalize_magics_key)
+
+        # Alternative: don't sort, use uniquify instead, which removes duplicate preserving the initial order:
+        # self.matches = uniquify(self.matches)
+        
         #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+        
         return text, self.matches
+
 
     def rlcomplete(self, text, state):
         """Return the state-th possible completion for 'text'.
@@ -977,3 +1040,6 @@ class IPCompleter(Completer):
             return self.matches[state]
         except IndexError:
             return None
+
+
+
