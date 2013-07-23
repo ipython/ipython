@@ -539,17 +539,23 @@ The currently supported export formats are the following:
     Comments out all the non-Python code to produce a ``.py`` Python
     script with just the code content. Currently the output includes IPython magics, and so can be run with ``ipython``, after changing the extension of the script to ``.ipy``.
     
-The files output by ``nbconvert`` are all placed in a new subdirectory 
-called ``nbconvert_build``. 
+The files output file created by ``nbconvert`` will have the same base name as
+the notebook and will be placed in the current working directory. Any
+supporting files (graphics, etc) will be placed in a new directory with the
+same base name as the notebook, suffixed with ``_files``::
+
+  $ ipython nbconvert notebook.ipynb
+  $ ls
+  notebook.ipynb   notebook.html    notebook_files/
 
 Each of the options for PDF export produces as an intermediate step a LaTeX 
 ``.tex`` file with the same basename as the notebook, as well as individual 
-files for each figure, and ``.text` files with textual output from running 
+files for each figure, and ``.text`` files with textual output from running
 code cells.
 
 To actually produce the final PDF file, run the following commands::
   
-  $ cd nbconvert_build
+  $ ipython nbconvert --format=latex notebook.ipynb
   $ pdflatex notebook
 
 This requires a local installation of LaTeX on your machine.
@@ -557,7 +563,7 @@ The output is a PDF file ``notebook.pdf``, also placed inside the ``nbconvert_bu
 
 Alternatively, the output may be sent to standard output with::
     
-  $ ipython nbconvert mynotebook.ipynb --stdout
+  $ ipython nbconvert notebook.ipynb --stdout
     
 Multiple notebooks can be specified from the command line::
     
