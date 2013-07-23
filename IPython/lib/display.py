@@ -386,9 +386,11 @@ class Audio(DisplayObject):
         """
         self.rate = rate
         self.autoplay = autoplay
-        super(Audio, self).__init__(data, url, filename)
+        super(Audio, self).__init__(data=data, url=url, filename=filename)
 
     def reload(self):
+        super(Audio, self).reload()
+
         if self.filename is not None:
             self.mimetype = mimetypes.guess_type(self.filename)[0]
         elif self.url is not None:
@@ -423,8 +425,6 @@ class Audio(DisplayObject):
             buffer.seek(4)
             buffer.write(struct.pack('<i', size-8))
             self.data = buffer.getvalue()
-
-        super(Audio, self).reload()
 
     def _repr_html_(self):
         src = """
