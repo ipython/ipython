@@ -88,8 +88,9 @@ class FilesWriter(WriterBase):
                         if not os.path.isdir(path):
                             os.makedirs(path)
 
-                        #Copy
-                        shutil.copyfile(matching_filename, dest)
+                        #Copy if destination is different.
+                        if not os.path.normpath(dest) == os.path.normpath(matching_filename):
+                            shutil.copyfile(matching_filename, dest)
 
             #Determine where to write conversion results.
             dest = notebook_name + '.' + output_extension
