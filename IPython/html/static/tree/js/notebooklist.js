@@ -34,9 +34,6 @@ var IPython = (function (IPython) {
 
 
     NotebookList.prototype.bind_events = function () {
-        if (IPython.read_only){
-            return;
-        }
         var that = this;
         $('#refresh_notebook_list').click(function () {
             that.load_list();
@@ -129,13 +126,11 @@ var IPython = (function (IPython) {
             var kernel = data[i].kernel_id;
             var item = this.new_notebook_item(i);
             this.add_link(notebook_id, nbname, item);
-            if (!IPython.read_only){
-                // hide delete buttons when readonly
-                if(kernel == null){
-                    this.add_delete_button(item);
-                } else {
-                    this.add_shutdown_button(item,kernel);
-                }
+            // hide delete buttons when readonly
+            if(kernel == null){
+                this.add_delete_button(item);
+            } else {
+                this.add_shutdown_button(item,kernel);
             }
         };
     };

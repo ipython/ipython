@@ -13,7 +13,6 @@
 data-project={{project}}
 data-base-project-url={{base_project_url}}
 data-base-kernel-url={{base_kernel_url}}
-data-read-only={{read_only}}
 
 {% endblock %}
 
@@ -30,7 +29,7 @@ data-read-only={{read_only}}
 
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
-        {% if logged_in or not read_only %}
+        {% if logged_in %}
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
                 <span id="drag_info" style="position:absolute" >

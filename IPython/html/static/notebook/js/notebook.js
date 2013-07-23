@@ -25,7 +25,6 @@ var IPython = (function (IPython) {
     var Notebook = function (selector, options) {
         var options = options || {};
         this._baseProjectUrl = options.baseProjectUrl;
-        this.read_only = options.read_only || IPython.read_only;
 
         this.element = $(selector);
         this.element.scroll();
@@ -91,7 +90,6 @@ var IPython = (function (IPython) {
         this.container = $("<div/>").addClass("container").attr("id", "notebook-container");
         var end_space = $('<div/>').addClass('end_space');
         end_space.dblclick(function (e) {
-            if (that.read_only) return;
             var ncells = that.ncells();
             that.insert_cell_below('code',ncells-1);
         });
@@ -138,8 +136,6 @@ var IPython = (function (IPython) {
 
 
         $(document).keydown(function (event) {
-            // console.log(event);
-            if (that.read_only) return true;
 
             // Save (CTRL+S) or (AppleKey+S)
             //metaKey = applekey on mac
@@ -366,7 +362,7 @@ var IPython = (function (IPython) {
             }
             // if we are autosaving, trigger an autosave on nav-away.
             // still warn, because if we don't the autosave may fail.
-            if (that.dirty && ! that.read_only) {
+            if (that.dirty) {
                 if ( that.autosave_interval ) {
                     that.save_notebook();
                     return "Autosave in progress, latest changes may be lost.";
@@ -1777,11 +1773,10 @@ var IPython = (function (IPython) {
         
         // Create the kernel after the notebook is completely loaded to prevent
         // code execution upon loading, which is a security risk.
-        if (! this.read_only) {
-            this.start_kernel();
-            // load our checkpoint list
-            IPython.notebook.list_checkpoints();
-        }
+        this.start_kernel();
+        // load our checkpoint list
+        IPython.notebook.list_checkpoints();
+
         $([IPython.events]).trigger('notebook_loaded.Notebook');
     };
 

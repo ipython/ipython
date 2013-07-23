@@ -16,7 +16,8 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
-from ..base.handlers import IPythonHandler, authenticate_unless_readonly
+from tornado import web
+from ..base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Handlers
@@ -25,7 +26,7 @@ from ..base.handlers import IPythonHandler, authenticate_unless_readonly
 
 class ProjectDashboardHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         self.write(self.render_template('tree.html',
             project=self.project,
