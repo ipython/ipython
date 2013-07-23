@@ -31,6 +31,7 @@ from __future__ import print_function
 
 from IPython.config.configurable import Configurable
 from IPython.utils import io
+from IPython.utils.traitlets import List
 
 #-----------------------------------------------------------------------------
 # Main payload class
@@ -115,7 +116,20 @@ class DisplayPublisher(Configurable):
         if stderr:
             print('\033[2K\r', file=io.stderr, end='')
             io.stderr.flush()
-            
+
+
+class CapturingDisplayPublisher(DisplayPublisher):
+    """A DisplayPublisher that stores"""
+    outputs = List()
+
+    def publish(self, source, data, metadata=None):
+        self.outputs.append((source, data, metadata))
+    
+    def clear_output(self, stdout=True, stderr=True, other=True):
+        super(CapturingDisplayPublisher, self).clear_output(stdout, stderr, other)
+        if other:
+            # empty the list, *do not* reassign a new list
+            del self.outputs[:]
 
 
 def publish_display_data(source, data, metadata=None):
