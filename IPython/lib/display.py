@@ -376,7 +376,7 @@ class Audio(DisplayObject):
         Examples
         --------
         # embedded raw audio data
-        Audio(data=2**13*numpy.sin(2*pi*440/44100*numpy.arange(44100)).astype(numpy.int16),
+        Audio(data=(2**13*numpy.sin(2*numpy.pi*440/44100*numpy.arange(44100))).astype(numpy.int16),
             rate=44100)
 
         # Specifying Audio(url=...) or Audio(filename=...) will load the data
