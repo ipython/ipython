@@ -37,6 +37,6 @@ class RSTExporter(Exporter):
 
     @property
     def default_config(self):
-        c = Config({'ExtractFigureTransformer':{'enabled':True}})
+        c = Config({'ExtractOutputTransformer':{'enabled':True}})
         c.merge(super(RSTExporter,self).default_config)
         return c

@@ -34,10 +34,10 @@ class DebugWriter(WriterBase):
         See base for more...
         """
 
-        if 'figures' in resources:
-            print("Figures extracted from %s" % notebook_name)
+        if 'outputs' in resources:
+            print("outputs extracted from %s" % notebook_name)
             print('-' * 80)
-            pprint.pprint(resources['figures'], indent=2, width=70)
+            pprint.pprint(resources['outputs'], indent=2, width=70)
         else:
-            print("No figures extracted from %s" % notebook_name)
+            print("No outputs extracted from %s" % notebook_name)
         print('=' * 80)

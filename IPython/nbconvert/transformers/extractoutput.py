@@ -1,5 +1,5 @@
-"""Module containing a transformer that extracts all of the figures from the
-notebook file.  The extracted figures are returned in the 'resources' dictionary.
+"""Module containing a transformer that extracts all of the outputs from the
+notebook file.  The extracted outputs are returned in the 'resources' dictionary.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -15,6 +15,7 @@ notebook file.  The extracted figures are returned in the 'resources' dictionary
 
 import base64
 import sys
+import os
 
 from IPython.utils.traitlets import Unicode
 from .base import Transformer
@@ -24,10 +25,10 @@ from IPython.utils import py3compat
 # Classes
 #-----------------------------------------------------------------------------
 
-class ExtractFigureTransformer(Transformer):
+class ExtractOutputTransformer(Transformer):
     """
-    Extracts all of the figures from the notebook file.  The extracted 
-    figures are returned in the 'resources' dictionary.
+    Extracts all of the outputs from the notebook file.  The extracted 
+    outputs are returned in the 'resources' dictionary.
     """
 
     figure_filename_template = Unicode(
@@ -50,12 +51,14 @@ class ExtractFigureTransformer(Transformer):
         """
 
         #Get the unique key from the resource dict if it exists.  If it does not 
-        #exist, use 'figure' as the default.
+        #exist, use 'figure' as the default.  Also, get files directory if it
+        #has been specified
         unique_key = resources.get('unique_key', 'figure')
+        output_files_dir = resources.get('output_files_dir', None)
         
-        #Make sure figures key exists
-        if not 'figures' in resources:
-            resources['figures'] = {}
+        #Make sure outputs key exists
+        if not 'outputs' in resources:
+            resources['outputs'] = {}
             
         #Loop through all of the outputs in the cell
         for index, out in enumerate(cell.get('outputs', [])):
@@ -77,7 +80,7 @@ class ExtractFigureTransformer(Transformer):
                         data = data.encode("UTF-8")
                     
                     #Build a figure name
-                    figure_name = self.figure_filename_template.format( 
+                    filename = self.figure_filename_template.format( 
                                     unique_key=unique_key,
                                     cell_index=cell_index,
                                     index=index,
@@ -87,10 +90,12 @@ class ExtractFigureTransformer(Transformer):
                     #   cell.outputs[i].svg_filename  ... etc (svg in example)
                     # Where
                     #   cell.outputs[i].svg  contains the data
-                    out[out_type + '_filename'] = figure_name
+                    if output_files_dir is not None:
+                        filename = os.path.join(output_files_dir, filename)
+                    out[out_type + '_filename'] = filename
 
                     #In the resources, make the figure available via
-                    #   resources['figures']['filename'] = data
-                    resources['figures'][figure_name] = data
+                    #   resources['outputs']['filename'] = data
+                    resources['outputs'][filename] = data
 
         return cell, resources

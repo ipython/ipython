@@ -45,16 +45,16 @@ class TestExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    def test_extract_figures(self):
+    def test_extract_outputs(self):
         """
-        If the ExtractFigureTransformer is enabled, are figures extracted?
+        If the ExtractOutputTransformer is enabled, are outputs extracted?
         """
-        config = Config({'ExtractFigureTransformer': {'enabled': True}})
+        config = Config({'ExtractOutputTransformer': {'enabled': True}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None
-        assert 'figures' in resources
-        assert len(resources['figures']) > 0
+        assert 'outputs' in resources
+        assert len(resources['outputs']) > 0
 
 
     def test_transformer_class(self):
