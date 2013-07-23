@@ -67,6 +67,9 @@ class FilesWriter(WriterBase):
 
                 #Determine where to write the file to
                 dest = os.path.join(self.build_directory, filename)
+                path = os.path.dirname(dest)
+                if not os.path.isdir(path):
+                    os.makedirs(path)
 
                 #Write file
                 with io.open(dest, 'wb') as f:
