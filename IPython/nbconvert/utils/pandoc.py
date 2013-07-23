@@ -47,9 +47,13 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     command = ['pandoc', '-f', fmt, '-t', to]
     if extra_args:
         command.extend(extra_args)
-    p = subprocess.Popen(command,
-                         stdin=subprocess.PIPE, stdout=subprocess.PIPE
-    )
+    try:
+        p = subprocess.Popen(command,
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE
+        )
+    except OSError:
+        sys.exit("ERROR: Unable to launch pandoc. Please install pandoc:\n"
+                 "(http://johnmacfarlane.net/pandoc/installing.html)")
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = out.decode(encoding, 'replace')
     return out[:-1]
