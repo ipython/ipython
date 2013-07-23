@@ -36,7 +36,7 @@ class FilesWriter(WriterBase):
                               to output to the current directory""")
 
 
-    #Make sure that the output directory exists.
+    # Make sure that the output directory exists.
     def _build_directory_changed(self, name, old, new):
         if new and not os.path.isdir(new):
             os.makedirs(new)
@@ -57,46 +57,46 @@ class FilesWriter(WriterBase):
             See base for more...
             """
 
-            #Pull the extension from the resources dict.
+            # Pull the extension and subdir from the resources dict.
             output_extension = resources['output_extension']
 
-            #Write all of the extracted resources to the destination directory.
-            #NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
-            #TRANSFORMER SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
+            # Write all of the extracted resources to the destination directory.
+            # NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
+            # TRANSFORMER SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
             for filename, data in resources.get('figures', {}).items():
 
-                #Determine where to write the file to
+                # Determine where to write the file to
                 dest = os.path.join(self.build_directory, filename)
                 path = os.path.dirname(dest)
                 if not os.path.isdir(path):
                     os.makedirs(path)
 
-                #Write file
+                # Write file
                 with io.open(dest, 'wb') as f:
                     f.write(data)
 
-            #Copy referenced files to output directory
+            # Copy referenced files to output directory
             if self.build_directory:
                 for filename in self.files:
 
-                    #Copy files that match search pattern
+                    # Copy files that match search pattern
                     for matching_filename in glob.glob(filename):
 
-                        #Make sure folder exists.
+                        # Make sure folder exists.
                         dest = os.path.join(self.build_directory, filename)
                         path = os.path.dirname(dest)
                         if not os.path.isdir(path):
                             os.makedirs(path)
 
-                        #Copy if destination is different.
+                        # Copy if destination is different.
                         if not os.path.normpath(dest) == os.path.normpath(matching_filename):
                             shutil.copyfile(matching_filename, dest)
 
-            #Determine where to write conversion results.
+            # Determine where to write conversion results.
             dest = notebook_name + '.' + output_extension
             if self.build_directory:
                 dest = os.path.join(self.build_directory, dest)
 
-            #Write conversion results.
+            # Write conversion results.
             with io.open(dest, 'w') as f:
                 f.write(output)
