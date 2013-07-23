@@ -63,7 +63,7 @@ class FilesWriter(WriterBase):
             # Write all of the extracted resources to the destination directory.
             # NOTE: WE WRITE EVERYTHING AS-IF IT'S BINARY.  THE EXTRACT FIG
             # TRANSFORMER SHOULD HANDLE UNIX/WINDOWS LINE ENDINGS...
-            for filename, data in resources.get('figures', {}).items():
+            for filename, data in resources.get('outputs', {}).items():
 
                 # Determine where to write the file to
                 dest = os.path.join(self.build_directory, filename)
