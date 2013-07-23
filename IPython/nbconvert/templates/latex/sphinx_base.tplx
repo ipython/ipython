@@ -359,7 +359,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_pdf -*))
-    ((( conditionally_center_output(insert_graphics(output.pdf_filename[:-4])) )))
+    ((( conditionally_center_output(insert_graphics(output.pdf_filename)) )))
 ((*- endblock -*))
 
 ((*- block data_latex *))
