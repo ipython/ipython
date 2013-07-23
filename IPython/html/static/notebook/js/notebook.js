@@ -368,7 +368,15 @@ var IPython = (function (IPython) {
             // still warn, because if we don't the autosave may fail.
             if (that.dirty && ! that.read_only) {
                 if ( that.autosave_interval ) {
-                    that.save_notebook();
+                    // schedule autosave in a timeout
+                    // this gives you a chance to forcefully discard changes
+                    // by reloading the page if you *really* want to.
+                    // the timer doesn't start until you *dismiss* the dialog.
+                    setTimeout(function () {
+                        if (that.dirty) {
+                            that.save_notebook();
+                        }
+                    }, 1000);
                     return "Autosave in progress, latest changes may be lost.";
                 } else {
                     return "Unsaved changes will be lost.";
