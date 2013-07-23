@@ -188,6 +188,7 @@ class NbConvertApp(BaseIPythonApplication):
             notebook_name = basename[:basename.rfind('.')]
             resources = {}
             resources['unique_key'] = notebook_name
+            resources['output_files_dir'] = '%s_files' % notebook_name
 
             #Try to export
             try:
