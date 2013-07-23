@@ -21,7 +21,6 @@ from tornado import web
 from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
-
 from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 #-----------------------------------------------------------------------------
