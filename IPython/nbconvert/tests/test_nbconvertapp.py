@@ -23,7 +23,7 @@ from IPython.utils import py3compat
 # Constants
 #-----------------------------------------------------------------------------
 
-#Define ipython commandline name
+# Define ipython commandline name
 if py3compat.PY3:
     IPYTHON = 'ipython3'
 else:
