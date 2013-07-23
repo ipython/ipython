@@ -22,9 +22,7 @@ from .base import WriterBase
 
 class StdoutWriter(WriterBase):
     """Consumes output from nbconvert export...() methods and writes to the 
-    stdout stream.  Allows for quick debuging of nbconvert output.  Using the
-    debug flag makes the writer pretty-print the figures contained within the
-    notebook."""
+    stdout stream."""
 
 
     def write(self, output, resources, **kw):

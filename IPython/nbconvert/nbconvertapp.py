@@ -15,13 +15,13 @@ Command-line interface for the NbConvert conversion utility.
 #Imports
 #-----------------------------------------------------------------------------
 
-#Stdlib imports
+# Stdlib imports
 from __future__ import print_function
 import sys
 import os
 import glob
 
-#From IPython
+# From IPython
 from IPython.core.application import BaseIPythonApplication, base_aliases, base_flags
 from IPython.config import catch_config_error, Configurable
 from IPython.utils.traitlets import (
@@ -103,7 +103,7 @@ class NbConvertApp(BaseIPythonApplication):
         
         > ipython nbconvert --config mycfg.py
         """.format(get_export_names()))
-    #Writer specific variables
+    # Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
                       results of the conversion.""")
@@ -121,7 +121,7 @@ class NbConvertApp(BaseIPythonApplication):
         self.writer_factory = import_item(new)
 
 
-    #Other configurable variables
+    # Other configurable variables
     export_format = CaselessStrEnum(get_export_names(),
         default_value="full_html",
         config=True,
@@ -153,7 +153,7 @@ class NbConvertApp(BaseIPythonApplication):
         else:
             patterns = self.notebooks
 
-        #Use glob to replace all the notebook patterns with filenames.
+        # Use glob to replace all the notebook patterns with filenames.
         filenames = []
         for pattern in patterns:
             for filename in glob.glob(pattern):
@@ -179,17 +179,18 @@ class NbConvertApp(BaseIPythonApplication):
         """
         Convert the notebooks in the self.notebook traitlet
         """
-        #Export each notebook
+        # Export each notebook
         conversion_success = 0
         for notebook_filename in self.notebooks:
 
-            #Get a unique key for the notebook and set it in the resources object.
+            # Get a unique key for the notebook and set it in the resources object.
             basename = os.path.basename(notebook_filename)
             notebook_name = basename[:basename.rfind('.')]
             resources = {}
             resources['unique_key'] = notebook_name
+            resources['output_files_dir'] = '%s_files' % notebook_name
 
-            #Try to export
+            # Try to export
             try:
                 output, resources = export_by_name(self.export_format,
                                               notebook_filename, 
@@ -202,22 +203,22 @@ class NbConvertApp(BaseIPythonApplication):
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
                 sys.exit(-1)
-            #except Exception as e:
-                #print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
-                #print(e, file=sys.stderr)
+            # except Exception as e:
+                # print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
+                # print(e, file=sys.stderr)
             else:
                 self.writer.write(output, resources, notebook_name=notebook_name)
                 conversion_success += 1
 
-        #If nothing was converted successfully, help the user.
+        # If nothing was converted successfully, help the user.
         if conversion_success == 0:
 
-            #No notebooks were specified, show help.
+            # No notebooks were specified, show help.
             if len(self.notebooks) == 0:
                 self.print_help()
 
-            #Notebooks were specified, but not converted successfully.  Show how
-            #to access help.
+            # Notebooks were specified, but not converted successfully.  Show how
+            # to access help.
             else:
                 print('For help, use "ipython nbconvert --help"')
 

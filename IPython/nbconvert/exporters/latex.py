@@ -88,7 +88,7 @@ class LatexExporter(Exporter):
             'NbConvertBase': {
                 'display_data_priority' : ['latex', 'pdf', 'png', 'jpg', 'svg', 'jpeg', 'text']
                 },
-             'ExtractFigureTransformer': {
+             'ExtractOutputTransformer': {
                     'enabled':True
                  },
              'SVG2PDFTransformer': {
