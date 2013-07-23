@@ -53,8 +53,8 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', 
                 '--format="python"', '--notebooks=["*.ipynb"]']).lower()
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
 
 
     def test_glob_subdir(self):
@@ -65,8 +65,8 @@ class TestNbConvertApp(TestsBase):
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["%s"]' % os.path.join('subdir', '*.ipynb')]).lower()
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
 
 
     def test_explicit(self):
@@ -76,8 +76,8 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["notebook2.ipynb"]']).lower()
-            assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert not os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
 
 
     def test_glob_explicit(self):
@@ -87,8 +87,8 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["*.ipynb", "notebook1.ipynb", "notebook2.ipynb"]']).lower()
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
 
 
     def test_explicit_glob(self):
@@ -98,8 +98,8 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
                 '--notebooks=["notebook1.ipynb", "notebook2.ipynb", "*.ipynb"]']).lower()
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
 
 
     def test_default_config(self):
@@ -108,8 +108,8 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb', 'ipython_nbconvert_config.py']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert']).lower()
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert os.path.isfile('notebook1.py')
+            assert not os.path.isfile('notebook2.py')
 
 
     def test_override_config(self):
@@ -119,5 +119,5 @@ class TestNbConvertApp(TestsBase):
         with self.create_temp_cwd(['notebook*.ipynb', 'ipython_nbconvert_config.py', 
                                    'override.py']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--config="override.py"']).lower()
-            assert not os.path.isfile(os.path.join('nbconvert_build', 'notebook1.py'))
-            assert os.path.isfile(os.path.join('nbconvert_build', 'notebook2.py'))
+            assert not os.path.isfile('notebook1.py')
+            assert os.path.isfile('notebook2.py')
