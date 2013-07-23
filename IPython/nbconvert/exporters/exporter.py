@@ -131,7 +131,7 @@ class Exporter(Configurable):
 
     default_transformers = List([nbtransformers.coalesce_streams,
                                  nbtransformers.SVG2PDFTransformer,
-                                 nbtransformers.ExtractFigureTransformer,
+                                 nbtransformers.ExtractOutputTransformer,
                                  nbtransformers.CSSHTMLHeaderTransformer,
                                  nbtransformers.RevealHelpTransformer,
                                  nbtransformers.LatexTransformer,

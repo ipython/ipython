@@ -47,9 +47,9 @@ class TestExporter(ExportersTestsBase):
 
     def test_extract_figures(self):
         """
-        If the ExtractFigureTransformer is enabled, are figures extracted?
+        If the ExtractOutputTransformer is enabled, are figures extracted?
         """
-        config = Config({'ExtractFigureTransformer': {'enabled': True}})
+        config = Config({'ExtractOutputTransformer': {'enabled': True}})
         exporter = self._make_exporter(config=config)
         (output, resources) = exporter.from_filename(self._get_notebook())
         assert resources is not None

@@ -1,5 +1,5 @@
-"""Module containing a transformer that extracts all of the figures from the
-notebook file.  The extracted figures are returned in the 'resources' dictionary.
+"""Module containing a transformer that extracts all of the outputs from the
+notebook file.  The extracted outputs are returned in the 'resources' dictionary.
 """
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
@@ -25,10 +25,10 @@ from IPython.utils import py3compat
 # Classes
 #-----------------------------------------------------------------------------
 
-class ExtractFigureTransformer(Transformer):
+class ExtractOutputTransformer(Transformer):
     """
-    Extracts all of the figures from the notebook file.  The extracted 
-    figures are returned in the 'resources' dictionary.
+    Extracts all of the outputs from the notebook file.  The extracted 
+    outputs are returned in the 'resources' dictionary.
     """
 
     figure_filename_template = Unicode(
@@ -56,9 +56,9 @@ class ExtractFigureTransformer(Transformer):
         unique_key = resources.get('unique_key', 'figure')
         output_files_dir = resources.get('output_files_dir', None)
         
-        #Make sure figures key exists
-        if not 'figures' in resources:
-            resources['figures'] = {}
+        #Make sure outputs key exists
+        if not 'outputs' in resources:
+            resources['outputs'] = {}
             
         #Loop through all of the outputs in the cell
         for index, out in enumerate(cell.get('outputs', [])):
@@ -95,7 +95,7 @@ class ExtractFigureTransformer(Transformer):
                     out[out_type + '_filename'] = filename
 
                     #In the resources, make the figure available via
-                    #   resources['figures']['filename'] = data
-                    resources['figures'][filename] = data
+                    #   resources['outputs']['filename'] = data
+                    resources['outputs'][filename] = data
 
         return cell, resources
