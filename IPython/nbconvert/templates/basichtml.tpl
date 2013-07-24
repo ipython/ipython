@@ -53,13 +53,13 @@ Out[{{cell.prompt_number}}]:
 
 {% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-{{ cell.source | markdown| rm_fake}}
+{{ cell.source | rm_math_space | markdown | rm_fake}}
 </div>
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-  {{("#" * cell.level + cell.source) | replace('\n', ' ') | markdown | rm_fake | add_anchor }}
+  {{("#" * cell.level + cell.source) | replace('\n', ' ') | rm_math_space | markdown | rm_fake | add_anchor }}
 </div>
 {% endblock headingcell %}
 
