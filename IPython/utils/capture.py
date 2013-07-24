@@ -89,6 +89,10 @@ class CapturedIO(object):
             return ''
         return self._stderr.getvalue()
     
+    @property
+    def outputs(self):
+        return [ RichOutput(s, d, md) for s, d, md in self._outputs ]
+    
     def show(self):
         """write my output to sys.stdout/err as appropriate"""
         sys.stdout.write(self.stdout)
