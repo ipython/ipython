@@ -136,12 +136,12 @@ class NbConvertApp(BaseIPythonApplication):
     @catch_config_error
     def initialize(self, argv=None):
         super(NbConvertApp, self).initialize(argv)
-        self.init_path()
+        self.init_syspath()
         self.init_notebooks()
         self.init_writer()
 
 
-    def init_path(self):
+    def init_syspath(self):
         """
         Add the cwd to the sys.path ($PYTHONPATH)
         """
