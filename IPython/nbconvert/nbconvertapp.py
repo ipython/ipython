@@ -156,7 +156,13 @@ class NbConvertApp(BaseIPythonApplication):
         # Use glob to replace all the notebook patterns with filenames.
         filenames = []
         for pattern in patterns:
-            for filename in glob.glob(pattern):
+            
+            # Use glob to find matching filenames.  Allow the user to convert 
+            # notebooks without having to type the extension.
+            globbed_files = glob.glob(pattern)
+            globbed_files.extend(glob.glob(pattern + '.ipynb'))
+
+            for filename in globbed_files:
                 if not filename in filenames:
                     filenames.append(filename)
         self.notebooks = filenames
