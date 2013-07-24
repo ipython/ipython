@@ -49,7 +49,7 @@ class LatexExporter(Exporter):
         help="Name of the template file to use")
 
     #Latex constants
-    template_path = Unicode(
+    default_template_path = Unicode(
         os.path.join("..", "templates", "latex"), config=True,
         help="Path where the template files are located.")
 
