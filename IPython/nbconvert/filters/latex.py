@@ -36,7 +36,7 @@ LATEX_SUBS = (
 
 __all__ = [
     'escape_latex',
-    'rm_math_space'
+    'strip_math_space'
 ]
 
 
@@ -55,7 +55,7 @@ def escape_latex(text):
     return return_text
     
     
-def rm_math_space(text):
+def strip_math_space(text):
     """
     Remove the space between latex math commands and enclosing $ symbols.
     This filter is important because latex isn't as flexible as the notebook

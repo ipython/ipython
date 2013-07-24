@@ -27,7 +27,7 @@ class TestHighlight(TestsBase):
     """Contains test functions for highlight.py"""
 
 
-    def test_highlight(source, language='ipython'):
+    def test_highlight2html(source, language='ipython'):
         pass
 
 

@@ -240,7 +240,7 @@ Note: For best display, use latex syntax highlighting. =))
 %          will not get touched by the templating system.
 %==============================================================================
 ((*- block rawcell *))
-    ((( cell.source | wrap(wrap_size) )))
+    ((( cell.source | wrap_text(wrap_size) )))
 ((* endblock rawcell -*))
 
 %==============================================================================
@@ -253,7 +253,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* block unknowncell scoped*))
 
     % Unsupported cell type, no formatting
-    ((( cell.source | wrap | escape_tex )))
+    ((( cell.source | wrap_text | escape_tex )))
 ((* endblock unknowncell *))
 
 %==============================================================================
@@ -273,7 +273,7 @@ Note: For best display, use latex syntax highlighting. =))
         \vspace{-25pt}
 
         % Add contents below.
-        ((( cell.input | highlight )))
+        ((( cell.input | highlight2latex )))
 
     ((* elif resources.sphinx.outputstyle == 'notebook' *))
         \vspace{6pt}
@@ -281,7 +281,7 @@ Note: For best display, use latex syntax highlighting. =))
         \vspace{-2.65\baselineskip}
         \begin{ColorVerbatim}
             \vspace{-0.7\baselineskip}
-            ((( cell.input | highlight )))
+            ((( cell.input | highlight2latex )))
             ((* if cell.input == None or cell.input == '' *))
                 \vspace{0.3\baselineskip}
             ((* else *))
@@ -340,7 +340,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* endblock *))
 
 ((* block traceback_line *))
-    ((( conditionally_center_output(line | indent| rm_ansi) )))
+    ((( conditionally_center_output(line | indent| strip_ansi) )))
 ((* endblock traceback_line *))
 
 %==============================================================================
@@ -363,7 +363,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((*- endblock -*))
 
 ((*- block data_latex *))
-    ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | rm_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
+    ((* if resources.sphinx.centeroutput *))\begin{center}((* endif -*))((( output.latex | strip_math_space )))((*- if resources.sphinx.centeroutput *))\end{center} ((* endif -*))
 ((*- endblock -*))
 
 %==============================================================================
@@ -429,7 +429,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* macro custom_verbatim(text) -*))
     \begin{alltt}
     ((*- if resources.sphinx.centeroutput *))\begin{center} ((* endif -*))
-((( text | wrap(wrap_size) )))
+((( text | wrap_text(wrap_size) )))
     ((*- if resources.sphinx.centeroutput *))\end{center}((* endif -*))
     \end{alltt}
 ((*- endmacro *))

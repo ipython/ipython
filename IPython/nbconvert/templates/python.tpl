@@ -20,16 +20,16 @@ it introduces a new line
 {% endblock pyerr %}
 
 {% block traceback_line %}
-{{ line |indent| rm_ansi }}{% endblock traceback_line %}
+{{ line |indent| strip_ansi }}{% endblock traceback_line %}
 {# .... #}
 
 
 {% block pyout %}
-{{ output.text| indent | pycomment}}
+{{ output.text| indent | comment_lines }}
 {% endblock pyout %}
 
 {% block stream %}
-{{ output.text| indent | pycomment}}
+{{ output.text| indent | comment_lines }}
 {% endblock stream %}
 
 
@@ -40,15 +40,15 @@ it introduces a new line
 {% endblock display_data %}
 
 {% block markdowncell scoped %}
-{{ cell.source | pycomment }}
+{{ cell.source | comment_lines }}
 {% endblock markdowncell %}
 
 {% block headingcell scoped %}
-{{ '#' * cell.level }}{{ cell.source | replace('\n', ' ') | pycomment}}
+{{ '#' * cell.level }}{{ cell.source | replace('\n', ' ') | comment_lines }}
 {% endblock headingcell %}
 
 {% block rawcell scoped %}
-{{ cell.source | pycomment }}
+{{ cell.source | comment_lines }}
 {% endblock rawcell %}
 
 {% block unknowncell scoped %}
