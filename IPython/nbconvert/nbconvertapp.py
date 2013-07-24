@@ -212,13 +212,7 @@ class NbConvertApp(BaseIPythonApplication):
 
         # If nothing was converted successfully, help the user.
         if conversion_success == 0:
-
-            # No notebooks were specified, show help.
-            if len(self.notebooks) == 0:
-                self.print_help()
-
-            # Show how to access help.
-            print('For help, use "ipython nbconvert --help"')
+            self.print_help()
 
 
 #-----------------------------------------------------------------------------
