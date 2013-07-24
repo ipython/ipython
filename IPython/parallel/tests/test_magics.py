@@ -322,8 +322,7 @@ class TestParallelMagics(ClusterTestCase, ParametricTestCase):
         with capture_output() as io:
             ip.magic("px %pylab inline")
         
-        self.assertTrue("Welcome to pylab" in io.stdout, io.stdout)
-        self.assertTrue("backend_inline" in io.stdout, io.stdout)
+        self.assertTrue("Populating the interactive namespace from numpy and matplotlib" in io.stdout, io.stdout)
         
         with capture_output() as io:
             ip.magic("px plot(rand(100))")
