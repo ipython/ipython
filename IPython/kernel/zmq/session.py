@@ -24,6 +24,7 @@ Authors:
 # Imports
 #-----------------------------------------------------------------------------
 
+import hashlib
 import hmac
 import logging
 import os
@@ -50,7 +51,9 @@ from IPython.utils.importstring import import_item
 from IPython.utils.jsonutil import extract_dates, squash_dates, date_default
 from IPython.utils.py3compat import str_to_bytes, str_to_unicode
 from IPython.utils.traitlets import (CBytes, Unicode, Bool, Any, Instance, Set,
-                                        DottedObjectName, CUnicode, Dict, Integer)
+                                        DottedObjectName, CUnicode, Dict, Integer,
+                                        TraitError,
+)
 from IPython.kernel.zmq.serialize import MAX_ITEMS, MAX_BYTES
 
 #-----------------------------------------------------------------------------
@@ -308,9 +311,25 @@ class Session(Configurable):
         help="""execution key, for extra authentication.""")
     def _key_changed(self, name, old, new):
         if new:
-            self.auth = hmac.HMAC(new)
+            self.auth = hmac.HMAC(new, digestmod=self.digest_mod)
         else:
             self.auth = None
+    
+    signature_scheme = Unicode('hmac-sha256', config=True,
+        help="""The digest scheme used to construct the message signatures.
+        Must have the form 'hmac-HASH'.""")
+    def _signature_scheme_changed(self, name, old, new):
+        if not new.startswith('hmac-'):
+            raise TraitError("signature_scheme must start with 'hmac-', got %r" % new)
+        hash_name = new.split('-', 1)[1]
+        try:
+            self.digest_mod = getattr(hashlib, hash_name)
+        except AttributeError:
+            raise TraitError("hashlib has no such attribute: %s" % hash_name)
+    
+    digest_mod = Any()
+    def _digest_mod_default(self):
+        return hashlib.sha256
     
     auth = Instance(hmac.HMAC)
     
@@ -387,6 +406,11 @@ class Session(Configurable):
         key : bytes
             The key used to initialize an HMAC signature.  If unset, messages
             will not be signed or checked.
+        signature_scheme : str
+            The message digest scheme. Currently must be of the form 'hmac-HASH',
+            where 'HASH' is a hashing function available in Python's hashlib.
+            The default is 'hmac-sha256'.
+            This is ignored if 'key' is empty.
         keyfile : filepath
             The file containing a key.  If this is set, `key` will be
             initialized to the contents of the file.
