@@ -227,9 +227,10 @@ class IPEngineApp(BaseParallelApplication):
         ip = disambiguate_ip_address(ip, location)
         d['interface'] = '%s://%s' % (proto, ip)
         
-        # DO NOT allow override of basic URLs, serialization, or exec_key
+        # DO NOT allow override of basic URLs, serialization, or key
         # JSON file takes top priority there
-        config.Session.key = cast_bytes(d['exec_key'])
+        config.Session.key = cast_bytes(d['key'])
+        config.Session.signature_scheme = d['signature_scheme']
         
         config.EngineFactory.url = d['interface'] + ':%i' % d['registration']
         
