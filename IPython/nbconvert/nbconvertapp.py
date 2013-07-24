@@ -215,12 +215,10 @@ class NbConvertApp(BaseIPythonApplication):
 
             # No notebooks were specified, show help.
             if len(self.notebooks) == 0:
-                self.print_help()
+                self.print_examples()
 
-            # Notebooks were specified, but not converted successfully.  Show how
-            # to access help.
-            else:
-                print('For help, use "ipython nbconvert --help"')
+            # Show how to access help.
+            print('For help, use "ipython nbconvert --help"')
 
 
 #-----------------------------------------------------------------------------
