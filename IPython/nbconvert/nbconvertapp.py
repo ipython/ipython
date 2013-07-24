@@ -215,7 +215,7 @@ class NbConvertApp(BaseIPythonApplication):
 
             # No notebooks were specified, show help.
             if len(self.notebooks) == 0:
-                self.print_examples()
+                self.print_help()
 
             # Show how to access help.
             print('For help, use "ipython nbconvert --help"')
