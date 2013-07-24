@@ -18,7 +18,7 @@ import os
 import shutil
 import sys
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nested
 
 from os.path import join, abspath, split
 
@@ -559,3 +559,68 @@ def test_unescape_glob():
     nt.assert_equals(path.unescape_glob(r'\\\*'), r'\*')
     nt.assert_equals(path.unescape_glob(r'\\a'), r'\a')
     nt.assert_equals(path.unescape_glob(r'\a'), r'\a')
+
+
+class TestLinkOrCopy(object):
+    def setUp(self):
+        self.tempdir = TemporaryDirectory()
+        self.src = self.dst("src")
+        with open(self.src, "w") as f:
+            f.write("Hello, world!")
+
+    def tearDown(self):
+        self.tempdir.cleanup()
+
+    def dst(self, *args):
+        return os.path.join(self.tempdir.name, *args)
+
+    def assert_inode_not_equal(self, a, b):
+        nt.assert_not_equals(os.stat(a).st_ino, os.stat(b).st_ino,
+                             "%r and %r do reference the same indoes" %(a, b))
+
+    def assert_inode_equal(self, a, b):
+        nt.assert_equals(os.stat(a).st_ino, os.stat(b).st_ino,
+                         "%r and %r do not reference the same indoes" %(a, b))
+
+    def assert_content_eqal(self, a, b):
+        with nested(open(a), open(b)) as (a_f, b_f):
+            nt.assert_equals(a_f.read(), b_f.read())
+
+    @skip_win32
+    def test_link_successful(self):
+        dst = self.dst("target")
+        path.link_or_copy(self.src, dst)
+        self.assert_inode_equal(self.src, dst)
+
+    @skip_win32
+    def test_link_into_dir(self):
+        dst = self.dst("some_dir")
+        os.mkdir(dst)
+        path.link_or_copy(self.src, dst)
+        expected_dst = self.dst("some_dir", os.path.basename(self.src))
+        self.assert_inode_equal(self.src, expected_dst)
+
+    @skip_win32
+    def test_target_exists(self):
+        dst = self.dst("target")
+        open(dst, "w").close()
+        path.link_or_copy(self.src, dst)
+        self.assert_inode_equal(self.src, dst)
+
+    @skip_win32
+    def test_no_link(self):
+        real_link = os.link
+        try:
+            del os.link
+            dst = self.dst("target")
+            path.link_or_copy(self.src, dst)
+            self.assert_content_eqal(self.src, dst)
+            self.assert_inode_not_equal(self.src, dst)
+        finally:
+            os.link = real_link
+
+    @skip_if_not_win32
+    def test_windows(self):
+        dst = self.dst("target")
+        path.link_or_copy(self.src, dst)
+        self.assert_content_eqal(self.src, dst)
