@@ -515,7 +515,7 @@ def get_security_file(filename, profile='default'):
 
 
 def link(src, dst):
-    """Attempts to hardlink 'src' to 'dst', errno on failure (or 0 on success).
+    """Hard links ``src`` to ``dst``, returning 0 or errno.
 
     Note that the special errno ``1998`` will be returned if ``os.link`` isn't
     supported by the operating system.

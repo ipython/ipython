@@ -582,7 +582,7 @@ class TestLinkOrCopy(object):
         nt.assert_equals(os.stat(a).st_ino, os.stat(b).st_ino,
                          "%r and %r do not reference the same indoes" %(a, b))
 
-    def assert_content_eqal(self, a, b):
+    def assert_content_equal(self, a, b):
         with nested(open(a), open(b)) as (a_f, b_f):
             nt.assert_equals(a_f.read(), b_f.read())
 
@@ -614,7 +614,7 @@ class TestLinkOrCopy(object):
             del os.link
             dst = self.dst("target")
             path.link_or_copy(self.src, dst)
-            self.assert_content_eqal(self.src, dst)
+            self.assert_content_equal(self.src, dst)
             self.assert_inode_not_equal(self.src, dst)
         finally:
             os.link = real_link
@@ -623,4 +623,4 @@ class TestLinkOrCopy(object):
     def test_windows(self):
         dst = self.dst("target")
         path.link_or_copy(self.src, dst)
-        self.assert_content_eqal(self.src, dst)
+        self.assert_content_equal(self.src, dst)
