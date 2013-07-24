@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -53,6 +53,8 @@ class SessionManager(LoggingConfigurable):
                 notebook_name=notebook_name, 
                 notebook_path=notebook_path, 
                 kernel=kernel)
+        if notebook_path == None:
+            model['notebook_path']=""
         self.sessions.append(model)
         return model
     

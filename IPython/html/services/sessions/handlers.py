@@ -1,4 +1,4 @@
-"""Tornado handlers for the notebooks web service.
+"""Tornado handlers for the sessions web service.
 
 Authors:
 
@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2008-2011  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.

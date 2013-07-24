@@ -89,7 +89,7 @@ class FileNotebookManager(NotebookManager):
         notebook_names = self.get_notebook_names(path)
         notebook_mapping = []
         for name in notebook_names:
-            model = self.notebook_model(name, path)
+            model = self.notebook_model(name, path, content=False)
             notebook_mapping.append(model)
         return notebook_mapping
 
