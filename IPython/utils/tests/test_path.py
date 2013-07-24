@@ -18,7 +18,7 @@ import os
 import shutil
 import sys
 import tempfile
-from contextlib import contextmanager, nested
+from contextlib import contextmanager
 
 from os.path import join, abspath, split
 
@@ -583,8 +583,9 @@ class TestLinkOrCopy(object):
                          "%r and %r do not reference the same indoes" %(a, b))
 
     def assert_content_equal(self, a, b):
-        with nested(open(a), open(b)) as (a_f, b_f):
-            nt.assert_equals(a_f.read(), b_f.read())
+        with open(a) as a_f:
+            with open(b) as b_f:
+                nt.assert_equals(a_f.read(), b_f.read())
 
     @skip_win32
     def test_link_successful(self):
