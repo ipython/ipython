@@ -203,9 +203,6 @@ class NbConvertApp(BaseIPythonApplication):
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
                 sys.exit(-1)
-            # except Exception as e:
-                # print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
-                # print(e, file=sys.stderr)
             else:
                 self.writer.write(output, resources, notebook_name=notebook_name)
                 conversion_success += 1
@@ -213,6 +210,7 @@ class NbConvertApp(BaseIPythonApplication):
         # If nothing was converted successfully, help the user.
         if conversion_success == 0:
             self.print_help()
+            sys.exit(-1)
 
 
 #-----------------------------------------------------------------------------
