@@ -102,12 +102,14 @@ class Exporter(Configurable):
         help="Extension of the file that should be written to disk"
         )
 
-    template_path = Unicode(
-        os.path.join("..", "templates"), config=True,
+    template_path = List(['.'], config=True)
+
+    default_template_path = Unicode(
+        os.path.join("..", "templates"), 
         help="Path where the template files are located.")
 
     template_skeleton_path = Unicode(
-        os.path.join("..", "templates", "skeleton"), config=True,
+        os.path.join("..", "templates", "skeleton"), 
         help="Path where the template skeleton files are located.") 
 
     #Jinja block definitions
@@ -335,10 +337,10 @@ class Exporter(Configurable):
         if extra_loaders:
             loaders.extend(extra_loaders)
 
-        loaders.append(FileSystemLoader([
-                os.path.join(here, self.template_path),
-                os.path.join(here, self.template_skeleton_path),
-                ]))
+        paths = self.template_path
+        paths.extend([os.path.join(here, self.default_template_path),
+                      os.path.join(here, self.template_skeleton_path)])
+        loaders.append(FileSystemLoader(paths))
 
         self.environment = Environment(
             loader= ChoiceLoader(loaders),
