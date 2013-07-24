@@ -210,11 +210,11 @@ class NbConvertApp(BaseIPythonApplication):
                 print("Known exporters are:",
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
-                sys.exit(-1)
+                self.exit(-1)
             except ConversionException as e:
                 print("Error while converting '%s': %s" %(notebook_filename, e),
                       file=sys.stderr)
-                sys.exit(-1)
+                self.exit(-1)
             # except Exception as e:
                 # print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
                 # print(e, file=sys.stderr)
