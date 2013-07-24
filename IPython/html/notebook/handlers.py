@@ -67,6 +67,11 @@ class NamedNotebookHandler(IPythonHandler):
             mathjax_url=self.mathjax_url,
             )
         )
+    
+    @web.authenticated
+    def post(self, notebook_path):
+        nbm =self.notebook_manager
+        notebook_name = nbm.new_notebook()
 
 
 class NotebookCopyHandler(IPythonHandler):
