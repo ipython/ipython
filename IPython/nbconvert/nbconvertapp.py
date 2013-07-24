@@ -136,8 +136,17 @@ class NbConvertApp(BaseIPythonApplication):
     @catch_config_error
     def initialize(self, argv=None):
         super(NbConvertApp, self).initialize(argv)
+        self.init_path()
         self.init_notebooks()
         self.init_writer()
+
+
+    def init_path(self):
+        """
+        Add the cwd to the sys.path ($PYTHONPATH)
+        """
+        sys.path.append(os.getcwd())
+        
 
     def init_notebooks(self):
         """Construct the list of notebooks.
