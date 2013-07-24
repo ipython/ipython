@@ -102,7 +102,7 @@ class Exporter(Configurable):
         help="Extension of the file that should be written to disk"
         )
 
-    template_paths = List(['.'], config=True)
+    template_path = List(['.'], config=True)
 
     default_template_path = Unicode(
         os.path.join("..", "templates"), 
@@ -337,7 +337,7 @@ class Exporter(Configurable):
         if extra_loaders:
             loaders.extend(extra_loaders)
 
-        paths = self.template_paths
+        paths = self.template_path
         paths.extend([os.path.join(here, self.default_template_path),
                       os.path.join(here, self.template_skeleton_path)])
         loaders.append(FileSystemLoader(paths))
