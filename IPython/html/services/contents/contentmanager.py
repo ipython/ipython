@@ -6,7 +6,7 @@ Authors:
 """
 
 #-----------------------------------------------------------------------------
-#  Copyright (C) 2011  The IPython Development Team
+#  Copyright (C) 2013  The IPython Development Team
 #
 #  Distributed under the terms of the BSD License.  The full license is in
 #  the file COPYING, distributed as part of this software.
@@ -44,25 +44,32 @@ class ContentManager(LoggingConfigurable):
     contents = List()
     
     def get_content_names(self, content_path):
+        """List of dicts of files in content_path"""
         names = glob.glob(os.path.join(self.content_dir, content_path,'*'))
-        content_names = list()
-        dir_names = list()
+        contents = list()
+        dirs = list()
+        notebooks = list()
         for name in names:
             if os.path.isdir(name) == True:
-                dir_names.append(os.path.split(name)[1])
-            elif os.path.splitext(os.path.basename(name))[1] != '.ipynb':
-                content_names.append(os.path.split(name)[1])        
-        return dir_names, content_names
-        
+                dirs.append(os.path.split(name)[1])
+            elif os.path.splitext(name)[1] == '.ipynb':
+                notebooks.append(os.path.split(name)[1])        
+            else:
+                contents.append(os.path.split(name)[1])        
+        return dirs, notebooks, contents
+
     def list_contents(self, content_path):
         """List all contents in the named path."""
-        dir_names, content_names = self.get_content_names(content_path)
+        dir_names, notebook_names, content_names = self.get_content_names(content_path)
         content_mapping = []
         for name in dir_names:
-            model = self.directory_model(name, content_path)
+            model = self.content_model(name, content_path, type='dir')
             content_mapping.append(model)
         for name in content_names:
-            model = self.content_model(name, content_path)
+            model = self.content_model(name, content_path, type='file')
+            content_mapping.append(model)
+        for name in notebook_names:
+            model = self.content_model(name, content_path, type='notebook')
             content_mapping.append(model)
         return content_mapping
 
@@ -71,32 +78,27 @@ class ContentManager(LoggingConfigurable):
         path = os.path.join(self.content_dir, content_path, name)
         return path
 
-    def read_content(self, name, content_path):
+    def content_info(self, name, content_path):
+        """Read the content of a named file"""
         file_type = os.path.splitext(os.path.basename(name))[1]
-        #Collect contents of file
-        with open(name, 'rb') as file_content:
-            contents = file_content.read()
         full_path = self.get_path_by_name(name, content_path)
         info = os.stat(full_path)
         size = info.st_size
         last_modified = tz.utcfromtimestamp(info.st_mtime)
-        return last_modified, file_type, contents, size
-        
-    def directory_model(self, name, content_path):
-        model = {"name": name,
-                    "path": content_path,
-                    "type": 'tree'}
-        return model
+        return last_modified, file_type, size
 
-    def content_model(self, name, content_path):
-        last_modified, file_type, contents, size = self.read_content(name, content_path)
+    def content_model(self, name, content_path, type=None):
+        """Create a dict standard model for any file (other than notebooks)"""
+        last_modified, file_type, size = self.content_info(name, content_path)
         model = {"name": name,
                     "path": content_path,
-                    "type": file_type,
+                    "type": type,
+                    "MIME-type": "",
                     "last_modified": last_modified.ctime(),
                     "size": size}
         return model
 
     def delete_content(self, content_path):
+        """Delete a file"""
         os.unlink(os.path.join(self.content_dir, content_path))
         

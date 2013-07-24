@@ -114,13 +114,15 @@ class NotebookManager(LoggingConfigurable):
     def notebook_exists(self, notebook_path):
         """Does a notebook exist?"""
 
-    def notebook_model(self, notebook_name, notebook_path=None):
+        
+    def notebook_model(self, notebook_name, notebook_path=None, content=True):
         """ Creates the standard notebook model """
-        last_modified, content = self.read_notebook_object(notebook_name, notebook_path)
+        last_modified, contents = self.read_notebook_object(notebook_name, notebook_path)
         model = {"notebook_name": notebook_name, 
                     "notebook_path": notebook_path,
-                    "content": content,
                     "last_modified": last_modified.ctime()}
+        if content == True:
+            model['content'] = contents
         return model
 
     def get_notebook(self, notebook_name, notebook_path=None, format=u'json'):
@@ -143,7 +145,7 @@ class NotebookManager(LoggingConfigurable):
         raise NotImplementedError('must be implemented in a subclass')
 
     def save_new_notebook(self, data, notebook_path = None, name=None, format=u'json'):
-        """Save a new notebook and return its notebook_id.
+        """Save a new notebook and return its name.
 
         If a name is passed in, it overrides any values in the notebook data
         and the value in the data is updated to use that value.
