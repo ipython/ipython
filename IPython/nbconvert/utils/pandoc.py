@@ -19,16 +19,14 @@ import subprocess
 # IPython imports
 from IPython.utils.py3compat import cast_bytes
 
+from .exceptions import ConversionException
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
 
-class PandocMissing(SystemExit):
-    """Exception raised when Pandoc is missing.
-
-    A subclass of SystemExit so it will cause an exit if not caught, but
-    explicitly named so that it's possible to catch.
-    """
+class PandocMissing(ConversionException):
+    """Exception raised when Pandoc is missing. """
     pass
 
 
@@ -61,7 +59,7 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
         )
     except OSError as e:
         raise PandocMissing(
-            "Error trying to run '%s': %s.\n" %(" ".join(command), e) +
+            "The command '%s' returned an error: %s.\n" %(" ".join(command), e) +
             "Please check that pandoc is installed:\n" +
             "http://johnmacfarlane.net/pandoc/installing.html"
         )
