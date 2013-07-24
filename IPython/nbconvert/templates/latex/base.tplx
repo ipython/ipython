@@ -60,13 +60,6 @@ it introduces a new line
 \end{center}
 ((*- endblock -*))
 
-((*- block data_pdf -*))
-\begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.pdf_filename[:-4])))}
-\par
-\end{center}
-((*- endblock -*))
-
 ((* block pyout *))
 ((* block data_priority scoped *))((( super() )))((* endblock *))
 ((* endblock pyout *))

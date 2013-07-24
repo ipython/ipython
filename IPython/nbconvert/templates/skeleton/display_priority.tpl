@@ -5,10 +5,6 @@
 
 {%- block data_priority scoped -%}
     {%- for type in output | filter_data_type -%}
-        {%- if type in ['pdf']%}
-            {%- block data_pdf -%}
-            {%- endblock -%}
-        {%- endif -%}
         {%- if type in ['svg']%}
             {%- block data_svg -%}
             {%- endblock -%}
