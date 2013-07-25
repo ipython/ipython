@@ -45,8 +45,8 @@ class NotebookRootHandler(IPythonHandler):
         model = nbm.notebook_model(notebook_name)
         self.set_header('Location', '{0}api/notebooks/{1}'.format(self.base_project_url, notebook_name))
         self.finish(jsonapi.dumps(model))
-        
-        
+
+
 class NotebookRootRedirect(IPythonHandler):
 
     @authenticate_unless_readonly

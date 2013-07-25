@@ -20,6 +20,7 @@ import os
 import uuid
 
 from tornado import web
+from urllib import quote, unquote
 
 from IPython.config.configurable import LoggingConfigurable
 from IPython.nbformat import current
@@ -62,7 +63,23 @@ class NotebookManager(LoggingConfigurable):
                 name = None
                 path = notebook_path+'/'
         return name, path
-             
+    
+    def url_encode(self, path):
+        parts = path.split('/')
+        path=""
+        for part in parts:
+           part = quote(part)
+           path = os.path.join(path,part)
+        return path
+
+    def url_decode(self, path):
+        parts = path.split('/')
+        path=""
+        for part in parts:
+           part = unquote(part)
+           path = os.path.join(path,part)
+        return path
+
     def _notebook_dir_changed(self, new):
         """do a bit of validation of the notebook dir"""
         if not os.path.isabs(new):
@@ -114,7 +131,7 @@ class NotebookManager(LoggingConfigurable):
     def notebook_exists(self, notebook_path):
         """Does a notebook exist?"""
 
-        
+
     def notebook_model(self, notebook_name, notebook_path=None, content=True):
         """ Creates the standard notebook model """
         last_modified, contents = self.read_notebook_object(notebook_name, notebook_path)
