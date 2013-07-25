@@ -146,8 +146,9 @@ class FileNotebookManager(NotebookManager):
             try:
                 # v1 and v2 and json in the .ipynb files.
                 nb = current.reads(s, u'json')
-            except Exception as e:
-                raise web.HTTPError(500, u'Unreadable JSON notebook: %s' % e)
+            except ValueError as e:
+                msg = u"Unreadable Notebook: %s" % e
+                raise web.HTTPError(400, msg, reason=msg)
         return last_modified, nb
     
     def read_notebook_object(self, notebook_id):
