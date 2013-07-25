@@ -44,7 +44,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
     """A subclass of TerminalInteractiveShell that uses the 0MQ kernel"""
     _executing = False
     _execution_state = Unicode('')
-    _current_msg_id = Unicode('')
 
     image_handler = Enum(('PIL', 'stream', 'tempfile', 'callable'),
                          config=True, help=
@@ -158,7 +157,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
             self.client.shell_channel.get_msg()
         # shell_channel.execute takes 'hidden', which is the inverse of store_hist
         msg_id = self.client.shell_channel.execute(cell, not store_history)
-        self._current_msg_id = msg_id
         
         # first thing is wait for any side effects (output, stdin, etc.)
         self._executing = True
