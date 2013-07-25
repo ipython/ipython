@@ -85,6 +85,7 @@ var IPython = (function (IPython) {
     
     Notebook.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
+        path = decodeURIComponent(path);
         if (path != 'None') {
             if (path[path.length-1] != '/') {
                 path = path.substring(0,path.length);

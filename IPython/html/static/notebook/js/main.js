@@ -50,6 +50,7 @@ function (marked) {
     var notebookPath = $('body').data('notebookPath');
     var notebookName = $('body').data('notebookName');
     notebookName = decodeURIComponent(notebookName);
+    notebookPath = decodeURIComponent(notebookPath);
     console.log(notebookName);
     if (notebookPath == 'None'){
         notebookPath = "";
