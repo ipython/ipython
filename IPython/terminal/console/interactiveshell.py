@@ -162,7 +162,6 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         self._executing = True
         self._execution_state = "busy"
         while self._execution_state != 'idle' and self.client.is_alive():
-            print (self._execution_state)
             try:
                 self.handle_stdin_request(msg_id, timeout=0.05)
             except Empty:
@@ -387,7 +386,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # run a non-empty no-op, so that we don't get a prompt until
         # we know the kernel is ready. This keeps the connection
         # message above the first prompt.
-        if not self.wait_for_kernel(3):
+        if not self.wait_for_kernel(10):
             error("Kernel did not respond\n")
             return
         
@@ -408,7 +407,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 if ans:
                     if self.manager:
                         self.manager.restart_kernel(True)
-                    self.wait_for_kernel(3)
+                    self.wait_for_kernel(10)
                 else:
                     self.exit_now = True
                 continue
