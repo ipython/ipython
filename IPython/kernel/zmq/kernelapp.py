@@ -99,6 +99,16 @@ kernel_flags.update(shell_flags)
 kernel_aliases.update(session_aliases)
 kernel_flags.update(session_flags)
 
+_ctrl_c_message = """\
+NOTE: When using the `ipython kernel` entry point, Ctrl-C will not work.
+
+To exit, you will have to explicitly quit this process, by either sending
+"quit" from a client, or using Ctrl-\\ in UNIX-like environments.
+
+To read more about this, see https://github.com/ipython/ipython/issues/2049
+
+"""
+
 #-----------------------------------------------------------------------------
 # Application class for starting an IPython Kernel
 #-----------------------------------------------------------------------------
@@ -335,6 +345,7 @@ class IPKernelApp(BaseIPythonApplication, InteractiveShellApp):
             self.log.info(line)
         # also raw print to the terminal if no parent_handle (`ipython kernel`)
         if not self.parent_handle:
+            io.rprint(_ctrl_c_message)
             for line in lines:
                 io.rprint(line)
 
