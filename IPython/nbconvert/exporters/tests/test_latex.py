@@ -41,11 +41,11 @@ class TestLatexExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    def test_export_full(self):
+    def test_export_book(self):
         """
-        Can a LatexExporter export using 'full' flavor?
+        Can a LatexExporter export using 'book' flavor?
         """
-        (output, resources) = LatexExporter(flavor='full').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(flavor='book').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
@@ -57,9 +57,9 @@ class TestLatexExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
-    def test_export_reveal(self):
+    def test_export_article(self):
         """
-        Can a LatexExporter export using 'reveal' flavor?
+        Can a LatexExporter export using 'article' flavor?
         """
-        (output, resources) = LatexExporter(flavor='reveal').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(flavor='article').from_filename(self._get_notebook())
         assert len(output) > 0

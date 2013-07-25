@@ -52,7 +52,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', 
-                '--format="python"', '--notebooks=["*.ipynb"]']).lower()
+                '--to="python"', '--notebooks=["*.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -63,7 +63,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd() as cwd:
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["%s"]' % os.path.join('subdir', '*.ipynb')]).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
@@ -74,10 +74,22 @@ class TestNbConvertApp(TestsBase):
         Do explicit notebook names work?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["notebook2.ipynb"]']).lower()
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
+
+
+    def test_flavor(self):
+        """
+        Do explicit notebook names work?
+        """
+        with self.create_temp_cwd(['notebook*.ipynb']):
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="html"', 
+                '--notebooks=["notebook2.ipynb"]', '--flavor="reveal"']).lower()
+            assert os.path.isfile('notebook2.html')
+            with open('notebook2.html') as f:
+                assert '/reveal.css' in f.read()
 
 
     def test_glob_explicit(self):
@@ -85,7 +97,7 @@ class TestNbConvertApp(TestsBase):
         Can a search pattern be used along with matching explicit notebook names?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["*.ipynb", "notebook1.ipynb", "notebook2.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
@@ -96,7 +108,7 @@ class TestNbConvertApp(TestsBase):
         Can explicit notebook names be used and then a matching search pattern?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["notebook1.ipynb", "notebook2.ipynb", "*.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')

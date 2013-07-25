@@ -15,50 +15,50 @@ Module with tests for basichtml.py
 #-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
-from ..basichtml import BasicHTMLExporter
+from ..html import HTMLExporter
 from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestBasicHTMLExporter(ExportersTestsBase):
+class TestHTMLExporter(ExportersTestsBase):
     """Contains test functions for basichtml.py"""
 
     def test_constructor(self):
         """
-        Can a BasicHTMLExporter be constructed?
+        Can a HTMLExporter be constructed?
         """
-        BasicHTMLExporter()
+        HTMLExporter()
 
     @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
-        Can a BasicHTMLExporter export something?
+        Can a HTMLExporter export something?
         """
-        (output, resources) = BasicHTMLExporter().from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter().from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_basic(self):
         """
-        Can a BasicHTMLExporter export using the 'basic' flavor?
+        Can a HTMLExporter export using the 'basic' flavor?
         """
-        (output, resources) = BasicHTMLExporter(flavor='basic').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(flavor='basic').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_full(self):
         """
-        Can a BasicHTMLExporter export using the 'full' flavor?
+        Can a HTMLExporter export using the 'full' flavor?
         """
-        (output, resources) = BasicHTMLExporter(flavor='full').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(flavor='full').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_reveal(self):
         """
-        Can a BasicHTMLExporter export using the 'reveal' flavor?
+        Can a HTMLExporter export using the 'reveal' flavor?
         """
-        (output, resources) = BasicHTMLExporter(flavor='reveal').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(flavor='reveal').from_filename(self._get_notebook())
         assert len(output) > 0
