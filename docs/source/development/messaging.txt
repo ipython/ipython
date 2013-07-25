@@ -451,7 +451,6 @@ When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
 
-  
 Object information
 ------------------
 
@@ -466,12 +465,12 @@ Message type: ``object_info_request``::
 
     content = {
         # The (possibly dotted) name of the object to be searched in all
-	# relevant namespaces
-        'name' : str,
+        # relevant namespaces
+        'oname' : str,
 
-    	# The level of detail desired.  The default (0) is equivalent to typing
-	# 'x?' at the prompt, 1 is equivalent to 'x??'.
-	'detail_level' : int,
+        # The level of detail desired.  The default (0) is equivalent to typing
+        # 'x?' at the prompt, 1 is equivalent to 'x??'.
+        'detail_level' : int,
     }
 
 The returned information will be a dictionary with keys very similar to the
@@ -526,16 +525,16 @@ Message type: ``object_info_reply``::
     # objects, this field is empty.
     'argspec' : { # The names of all the arguments
                   args : list,
-		  # The name of the varargs (*args), if any
-                  varargs : str,
-		  # The name of the varkw (**kw), if any
-		  varkw : str,
-		  # The values (as strings) of all default arguments.  Note
-		  # that these must be matched *in reverse* with the 'args'
-		  # list above, since the first positional args have no default
-		  # value at all.
-		  defaults : list,
-		  },
+        # The name of the varargs (*args), if any
+                      varargs : str,
+        # The name of the varkw (**kw), if any
+        varkw : str,
+        # The values (as strings) of all default arguments.  Note
+        # that these must be matched *in reverse* with the 'args'
+        # list above, since the first positional args have no default
+        # value at all.
+        defaults : list,
+    },
 
     # For instances, provide the constructor signature (the definition of
     # the __init__ method):
@@ -570,30 +569,44 @@ Message type: ``complete_request``::
 
     content = {
         # The text to be completed, such as 'a.is'
-    'text' : str,
+        # this may be an empty string if the frontend does not do any lexing,
+        # in which case the kernel must figure out the completion
+        # based on 'line' and 'cursor_pos'.
+        'text' : str,
 
-    # The full line, such as 'print a.is'.  This allows completers to
-    # make decisions that may require information about more than just the
-    # current word.
-    'line' : str,
+        # The full line, such as 'print a.is'.  This allows completers to
+        # make decisions that may require information about more than just the
+        # current word.
+        'line' : str,
 
-    # The entire block of text where the line is.  This may be useful in the
-    # case of multiline completions where more context may be needed.  Note: if
-    # in practice this field proves unnecessary, remove it to lighten the
-    # messages.
+        # The entire block of text where the line is.  This may be useful in the
+        # case of multiline completions where more context may be needed.  Note: if
+        # in practice this field proves unnecessary, remove it to lighten the
+        # messages.
     
-    'block' : str,
+        'block' : str or null/None,
 
-    # The position of the cursor where the user hit 'TAB' on the line.
-    'cursor_pos' : int,
+        # The position of the cursor where the user hit 'TAB' on the line.
+        'cursor_pos' : int,
     }
 
 Message type: ``complete_reply``::
 
     content = {
-        # The list of all matches to the completion request, such as
+    # The list of all matches to the completion request, such as
     # ['a.isalnum', 'a.isalpha'] for the above example.
-    'matches' : list
+    'matches' : list,
+    
+    # the substring of the matched text
+    # this is typically the common prefix of the matches,
+    # and the text that is already in the block that would be replaced by the full completion.
+    # This would be 'a.is' in the above example.
+    'text' : str,
+    
+    # status should be 'ok' unless an exception was raised during the request,
+    # in which case it should be 'error', along with the usual error message content
+    # in other messages.
+    'status' : 'ok'
     }
 
     
@@ -668,21 +681,21 @@ Message type: ``connect_request``::
 Message type: ``connect_reply``::
 
     content = {
-        'shell_port' : int  # The port the shell ROUTER socket is listening on.
-        'iopub_port' : int   # The port the PUB socket is listening on.
-        'stdin_port' : int   # The port the stdin ROUTER socket is listening on.
-        'hb_port' : int    # The port the heartbeat socket is listening on.
+        'shell_port' : int,   # The port the shell ROUTER socket is listening on.
+        'iopub_port' : int,   # The port the PUB socket is listening on.
+        'stdin_port' : int,   # The port the stdin ROUTER socket is listening on.
+        'hb_port' : int,      # The port the heartbeat socket is listening on.
     }
 
 
 Kernel info
 -----------
 
-If a client needs to know what protocol the kernel supports, it can
-ask version number of the messaging protocol supported by the kernel.
-This message can be used to fetch other core information of the
+If a client needs to know information about the kernel, it can
+make a request of the kernel's information.
+This message can be used to fetch core information of the
 kernel, including language (e.g., Python), language version number and
-IPython version number.
+IPython version number, and the IPython message spec version number.
 
 Message type: ``kernel_info_request``::
 
@@ -738,9 +751,6 @@ Upon their own shutdown, client applications will typically execute a last
 minute sanity check and forcefully terminate any kernel that is still alive, to
 avoid leaving stray processes in the user's machine.
 
-For both shutdown request and reply, there is no actual content that needs to
-be sent, so the content dict is empty.
-
 Message type: ``shutdown_request``::
 
     content = {
@@ -769,17 +779,12 @@ Streams (stdout,  stderr, etc)
 Message type: ``stream``::
 
     content = {
-        # The name of the stream is one of 'stdin', 'stdout', 'stderr'
+        # The name of the stream is one of 'stdout', 'stderr'
         'name' : str,
     
         # The data is an arbitrary string to be written to that stream
         'data' : str,
     }
-
-When a kernel receives a raw_input call, it should also broadcast it on the pub
-socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
-to monitor/display kernel interactions and possibly replay them to their user
-or otherwise expose them.
 
 Display Data
 ------------
