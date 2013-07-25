@@ -17,7 +17,6 @@ $(document).ready(function () {
         window.open($('body').data('baseProjectUrl')+'new');
     });
     
-    IPython.read_only = $('body').data('readOnly') === 'True';
     IPython.notebook_list = new IPython.NotebookList('#notebook_list');
     IPython.cluster_list = new IPython.ClusterList('#cluster_list');
     IPython.login_widget = new IPython.LoginWidget('#login_widget');

@@ -20,7 +20,7 @@
       {% endfor %}
     {% endif %}
 
-    {% if read_only or not login_available %}
+    {% if not login_available %}
     Proceed to the <a href="{{base_project_url}}">dashboard</a>.
     {% else %}
     Proceed to the <a href="{{base_project_url}}login">login page</a>.

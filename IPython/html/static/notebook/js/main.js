@@ -43,7 +43,6 @@ function (marked) {
 
     IPython.mathjaxutils.init();
 
-    IPython.read_only = $('body').data('readOnly') === 'True';
     $('#ipython-main-app').addClass('border-box-sizing');
     $('div#notebook_panel').addClass('border-box-sizing');
 
@@ -54,7 +53,7 @@ function (marked) {
     IPython.pager = new IPython.Pager('div#pager', 'div#pager_splitter');
     IPython.quick_help = new IPython.QuickHelp();
     IPython.login_widget = new IPython.LoginWidget('span#login_widget',{baseProjectUrl:baseProjectUrl});
-    IPython.notebook = new IPython.Notebook('div#notebook',{baseProjectUrl:baseProjectUrl, read_only:IPython.read_only});
+    IPython.notebook = new IPython.Notebook('div#notebook',{baseProjectUrl:baseProjectUrl});
     IPython.save_widget = new IPython.SaveWidget('span#save_widget');
     IPython.menubar = new IPython.MenuBar('#menubar',{baseProjectUrl:baseProjectUrl})
     IPython.toolbar = new IPython.MainToolBar('#maintoolbar-container')
@@ -74,15 +73,6 @@ function (marked) {
         $('head').append('<style>.CodeMirror span { vertical-align: bottom; }</style>');
     }
     $('#fonttest').remove();
-
-    if(IPython.read_only){
-        // hide various elements from read-only view
-        $('div#pager').remove();
-        $('div#pager_splitter').remove();
-
-        // set the notebook name field as not modifiable
-        $('#notebook_name').attr('disabled','disabled')
-    }
 
     IPython.page.show();
 

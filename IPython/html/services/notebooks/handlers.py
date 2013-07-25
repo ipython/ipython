@@ -22,7 +22,7 @@ from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
 
-from ...base.handlers import IPythonHandler, authenticate_unless_readonly
+from ...base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Notebook web service handlers
@@ -30,7 +30,7 @@ from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 class NotebookRootHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         nbm = self.notebook_manager
         km = self.kernel_manager
@@ -57,7 +57,7 @@ class NotebookHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET', 'PUT', 'DELETE')
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_id):
         nbm = self.notebook_manager
         format = self.get_argument('format', default='json')

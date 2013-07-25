@@ -157,7 +157,6 @@ var IPython = (function (IPython) {
      * @method edit
      */
     TextCell.prototype.edit = function () {
-        if ( this.read_only ) return;
         if (this.rendered === true) {
             var text_cell = this.element;
             var output = text_cell.find("div.text_cell_render");

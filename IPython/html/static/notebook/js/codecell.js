@@ -148,10 +148,6 @@ var IPython = (function (IPython) {
      */
     CodeCell.prototype.handle_codemirror_keyevent = function (editor, event) {
 
-        if (this.read_only){
-            return false;
-        }
-
         var that = this;
         // whatever key is pressed, first, cancel the tooltip request before
         // they are sent, and remove tooltip if any, except for tab again
