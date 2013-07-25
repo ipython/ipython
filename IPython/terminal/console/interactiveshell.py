@@ -118,7 +118,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         from IPython.core.completerlib import (module_completer,
                                                magic_run_completer, cd_completer)
         
-        self.Completer = ZMQCompleter(self, self.client)
+        self.Completer = ZMQCompleter(self, self.client, config=self.config)
         
 
         self.set_hook('complete_command', module_completer, str_key = 'import')

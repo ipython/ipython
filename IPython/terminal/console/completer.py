@@ -2,14 +2,21 @@
 import readline
 from Queue import Empty
 
-class ZMQCompleter(object):
+from IPython.config import Configurable
+from IPython.utils.traitlets import Float
+
+class ZMQCompleter(Configurable):
     """Client-side completion machinery.
 
     How it works: self.complete will be called multiple times, with
     state=0,1,2,... When state=0 it should compute ALL the completion matches,
     and then return them for each value of state."""
+
+    timeout = Float(5.0, config=True, help='timeout before completion abort')
     
-    def __init__(self, shell, client):
+    def __init__(self, shell, client, config=None):
+        super(ZMQCompleter,self).__init__(config=config)
+
         self.shell = shell
         self.client =  client
         self.matches = []
@@ -23,7 +30,7 @@ class ZMQCompleter(object):
         msg_id = self.client.shell_channel.complete(text=text, line=line,
                                                         cursor_pos=cursor_pos)
         
-        msg = self.client.shell_channel.get_msg(timeout=0.5)
+        msg = self.client.shell_channel.get_msg(timeout=self.timeout)
         if msg['parent_header']['msg_id'] == msg_id:
             return msg["content"]["matches"]
         return []
@@ -33,7 +40,8 @@ class ZMQCompleter(object):
             try:
                 self.matches = self.complete_request(text)
             except Empty:
-                print('WARNING: Kernel timeout on tab completion.')
+                #print('WARNING: Kernel timeout on tab completion.')
+                pass
         
         try:
             return self.matches[state]
