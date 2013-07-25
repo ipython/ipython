@@ -29,7 +29,6 @@ data-base-kernel-url={{base_kernel_url}}
 
     <div class="tab-content">
     <div id="notebooks" class="tab-pane active">
-        {% if logged_in %}
         <div id="notebook_toolbar">
             <form id='alternate_upload'  class='alternate_upload' >
                 <span id="drag_info" style="position:absolute" >
@@ -42,7 +41,6 @@ data-base-kernel-url={{base_kernel_url}}
                 <button id="new_notebook" title="Create new notebook" class="btn btn-small">New Notebook</button>
             </span>
         </div>
-        {% endif %}
 
         <div id="notebook_list">
           <div id="notebook_list_header" class="row-fluid list_header">
