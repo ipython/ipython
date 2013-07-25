@@ -17,6 +17,7 @@ Exporter that exports Basic HTML.
 from IPython.utils.traitlets import Unicode, List
 
 from IPython.nbconvert import transformers
+from IPython.config import Config
 
 from .exporter import Exporter
 
@@ -50,5 +51,5 @@ class HTMLExporter(Exporter):
                 'enabled':True,
                 },                
             })
-        c.merge(super(RevealExporter,self).default_config)
+        c.merge(super(HTMLExporter,self).default_config)
         return c

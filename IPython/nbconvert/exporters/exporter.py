@@ -347,10 +347,11 @@ class Exporter(Configurable):
             # flavor (if available).  The flavor can be set on the traitlet
             # or passed in as a kw arg.  The flavor specified in kw overrides
             # what is set in the flavor traitlet.
+            module_name = self.__module__.split('.')[-1]
             if self.flavor or 'flavor' in kw:
-                self.template_file = self.__name__ + '_' + kw.get('flavor', self.flavor)
+                self.template_file = module_name + '_' + kw.get('flavor', self.flavor)
             else:
-                self.template_file = self.__name__
+                self.template_file = module_name
         
 
     def _init_environment(self, extra_loaders=None):

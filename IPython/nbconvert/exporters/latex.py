@@ -82,7 +82,7 @@ class LatexExporter(Exporter):
                  },
              'LatexTransformer': {
                     'enabled':True
-                 }
+                 },
              'SphinxTransformer': {
                     'enabled':True
                  }
