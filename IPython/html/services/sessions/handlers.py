@@ -21,7 +21,7 @@ from tornado import web
 from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
-from ...base.handlers import IPythonHandler, authenticate_unless_readonly
+from ...base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Session web service handlers
@@ -31,7 +31,7 @@ from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 class SessionRootHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         sm = self.session_manager
         nbm = self.notebook_manager
@@ -57,7 +57,7 @@ class SessionHandler(IPythonHandler):
 
     SUPPORTED_METHODS = ('GET', 'PATCH', 'DELETE')
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, session_id):
         sm = self.session_manager
         model = sm.get_session_from_id(session_id)
