@@ -1794,20 +1794,20 @@ var IPython = (function (IPython) {
      * @param {String} errorThrow HTTP error message
      */
     Notebook.prototype.load_notebook_error = function (xhr, textStatus, errorThrow) {
-        if (xhr.status === 500) {
-            var msg = "An error occurred while loading this notebook. Most likely " +
-            "this notebook is in a newer format than is supported by this " +
-            "version of IPython. This version can load notebook formats " +
-            "v"+this.nbformat+" or earlier.";
-            
-            IPython.dialog.modal({
-                title: "Error loading notebook",
-                body : msg,
-                buttons : {
-                    "OK": {}
-                }
-            });
+        if (xhr.status === 400) {
+            var msg = errorThrow;
+        } else if (xhr.status === 500) {
+            var msg = "An unknown error occurred while loading this notebook. " +
+            "This version can load notebook formats " +
+            "v" + this.nbformat + " or earlier.";
         }
+        IPython.dialog.modal({
+            title: "Error loading notebook",
+            body : msg,
+            buttons : {
+                "OK": {}
+            }
+        });
     }
 
     /*********************  checkpoint-related  *********************/
