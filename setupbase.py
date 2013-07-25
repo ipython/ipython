@@ -153,7 +153,7 @@ def find_package_data():
         'IPython.qt.console' : ['resources/icon/*.svg'],
         'IPython.nbconvert' : ['templates/*.tpl', 'templates/latex/*.tplx',
             'templates/latex/skeleton/*.tplx', 'templates/skeleton/*', 
-            'templates/reveal/*.tplx', 'tests/files/*.*', 'exporters/tests/files/*.*']
+            'templates/reveal/*.tpl', 'tests/files/*.*', 'exporters/tests/files/*.*']
     }
     return package_data
 
