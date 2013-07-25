@@ -34,7 +34,7 @@
 
 {% block input %}
 <div class="input_area box-flex1">
-{{cell.input | highlight }}
+{{cell.input | highlight2html }}
 </div>
 {%- endblock input %}
 
@@ -53,13 +53,13 @@ Out[{{cell.prompt_number}}]:
 
 {% block markdowncell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-{{ cell.source | markdown| rm_fake}}
+{{ cell.source | strip_math_space | markdown2html | strip_files_prefix}}
 </div>
 {%- endblock markdowncell %}
 
 {% block headingcell scoped %}
 <div class="text_cell_render border-box-sizing rendered_html">
-  {{("#" * cell.level + cell.source) | replace('\n', ' ') | markdown | rm_fake | add_anchor }}
+  {{("#" * cell.level + cell.source) | replace('\n', ' ') | strip_math_space | markdown2html | strip_files_prefix | add_anchor }}
 </div>
 {% endblock headingcell %}
 

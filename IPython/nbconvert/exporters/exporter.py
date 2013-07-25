@@ -48,24 +48,24 @@ JINJA_EXTENSIONS = ['jinja2.ext.loopcontrols']
 
 default_filters = {
         'indent': indent,
-        'markdown': filters.markdown2html,
+        'markdown2html': filters.markdown2html,
         'ansi2html': filters.ansi2html,
         'filter_data_type': filters.DataTypeFilter,
         'get_lines': filters.get_lines,
-        'highlight': filters.highlight,
-        'highlight2html': filters.highlight,
+        'highlight2html': filters.highlight2html,
         'highlight2latex': filters.highlight2latex,
         'markdown2latex': filters.markdown2latex,
         'markdown2rst': filters.markdown2rst,
-        'pycomment': filters.python_comment,
-        'rm_ansi': filters.remove_ansi,
-        'rm_dollars': filters.strip_dollars,
-        'rm_fake': filters.rm_fake,
-        'html_text' : filters.html_text,
+        'comment_lines': filters.comment_lines,
+        'strip_ansi': filters.strip_ansi,
+        'strip_dollars': filters.strip_dollars,
+        'strip_files_prefix': filters.strip_files_prefix,
+        'html2text' : filters.html2text,
         'add_anchor': filters.add_anchor,
         'ansi2latex': filters.ansi2latex,
-        'rm_math_space': filters.rm_math_space,
-        'wrap': filters.wrap
+        'strip_math_space': filters.strip_math_space,
+        'wrap_text': filters.wrap_text,
+        'escape_latex': filters.escape_latex
 }
 
 #-----------------------------------------------------------------------------

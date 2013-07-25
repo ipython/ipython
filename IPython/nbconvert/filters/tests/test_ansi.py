@@ -28,9 +28,9 @@ class TestAnsi(TestsBase):
     """Contains test functions for ansi.py"""
 
 
-    def test_remove_ansi(self):
+    def test_strip_ansi(self):
         """
-        remove_ansi test
+        strip_ansi test
         """
         correct_outputs = {
             '%s%s%s' % (TermColors.Green, TermColors.White, TermColors.Red)  : '',
@@ -42,11 +42,11 @@ class TestAnsi(TestsBase):
             'hello' : 'hello'}
 
         for inval, outval in correct_outputs.items():
-            yield self._try_remove_ansi, inval, outval
+            yield self._try_strip_ansi, inval, outval
 
 
-    def _try_remove_ansi(self, inval, outval):
-        assert outval == remove_ansi(inval)
+    def _try_strip_ansi(self, inval, outval):
+        assert outval == strip_ansi(inval)
 
 
     def test_ansi2html(self):
