@@ -110,9 +110,9 @@ var IPython = (function (IPython) {
 
 
     Kernel.prototype._kernel_started = function (json) {
-        console.log("Kernel started: ", json.kernel_id);
+        console.log("Kernel started: ", json.id);
         this.running = true;
-        this.kernel_id = json.kernel_id;
+        this.kernel_id = json.id;
         var ws_url = json.ws_url;
         if (ws_url.match(/wss?:\/\//) == null) {
             // trailing 's' in https will become wss for secure web sockets

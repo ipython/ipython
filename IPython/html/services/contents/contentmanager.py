@@ -94,7 +94,7 @@ class ContentManager(LoggingConfigurable):
                     "path": content_path,
                     "type": type,
                     "MIME-type": "",
-                    "last_modified": last_modified.ctime(),
+                    "last_modified (UTC)": last_modified.ctime(),
                     "size": size}
         return model
 
