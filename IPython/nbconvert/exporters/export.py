@@ -66,6 +66,7 @@ def DocDecorator(f):
 __all__ = [
     'export',
     'export_html',
+    'export_custom',
     'export_latex',
     'export_markdown',
     'export_python',
@@ -118,9 +119,17 @@ def export(exporter, nb, **kw):
 
 
 @DocDecorator
+def export_custom(nb, **kw):
+    """
+    Export a notebook object to a custom format
+    """
+    return export(Exporter, nb, **kw)
+
+
+@DocDecorator
 def export_html(nb, **kw):
     """
-    Export a notebook object to Basic HTML
+    Export a notebook object to HTML
     """
     return export(HTMLExporter, nb, **kw)
 
