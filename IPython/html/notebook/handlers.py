@@ -52,15 +52,14 @@ class NamedNotebookHandler(IPythonHandler):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         if name != None:
-            name = quote(name)
+            name = nbm.url_encode(name)
         if path == None:
             project = self.project + '/' + name
         else:
             project = self.project + '/' + path +'/'+ name
+            path = nbm.url_encode(path)
         if not nbm.notebook_exists(notebook_path):
             raise web.HTTPError(404, u'Notebook does not exist: %s' % name)
-        path = nbm.url_encode(path)
-        name = nbm.url_encode(name)
         self.write(self.render_template('notebook.html',
             project=project,
             notebook_path=path,
