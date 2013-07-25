@@ -255,6 +255,9 @@ var IPython = (function (IPython) {
 
 
     OutputArea.prototype.convert_mime_types = function (json, data) {
+        if (data === undefined) {
+            return json;
+        }
         if (data['text/plain'] !== undefined) {
             json.text = data['text/plain'];
         }
