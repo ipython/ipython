@@ -85,10 +85,16 @@ class NbConvertApp(BaseIPythonApplication):
         
         which will convert mynotebook.ipynb to the default format (probably HTML).
         
-        You can specify the export format with `--format`.
+        You can specify the export format with `--to`.
         Options include {0}
         
-        > ipython nbconvert --format latex mynotebook.ipnynb
+        > ipython nbconvert --to latex mynotebook.ipnynb
+
+        Both HTML and LaTeX support multiple flavors of output. LaTeX includes
+        'basic', 'book', and 'article'.  HTML includes 'basic', 'full', and 
+        'reveal'.  You can specify the flavor of the format used.
+
+        > ipython nbconvert --to html --flavor reveal mynotebook.ipnynb
         
         You can also pipe the output to stdout, rather than a file
         
