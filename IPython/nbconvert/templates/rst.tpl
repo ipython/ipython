@@ -18,7 +18,7 @@ Out[{{cell.prompt_number}}]:{% endif %}{% endblock output_prompt %}
 {% endblock pyerr %}
 
 {% block traceback_line %}
-{{ line |indent| rm_ansi }}{% endblock traceback_line %}
+{{ line |indent| strip_ansi }}{% endblock traceback_line %}
 
 {% block pyout %}
 {% block data_priority scoped %}{{ super()}}{% endblock %}

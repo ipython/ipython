@@ -30,7 +30,7 @@ it introduces a new line
 ((* endblock pyerr *))
 
 ((* block traceback_line *))
-((( line |indent| rm_ansi )))((* endblock traceback_line *))
+((( line |indent| strip_ansi )))((* endblock traceback_line *))
 ((= .... =))
 
 
@@ -79,7 +79,7 @@ it introduces a new line
 
 ((* block data_latex -*))
 ((*- if output.latex.startswith('$'): -*)) \begin{equation*}
-    ((( output.latex | rm_dollars)))
+    ((( output.latex | strip_dollars)))
     \end{equation*}
 ((*- else -*)) ((( output.latex ))) ((*- endif *))
 ((* endblock *))
@@ -98,7 +98,7 @@ it introduces a new line
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
-((( cell.source | pycomment )))
+((( cell.source | comment_lines )))
 ((* endblock rawcell *))
 
 ((* block unknowncell scoped *))

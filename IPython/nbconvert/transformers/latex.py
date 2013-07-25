@@ -49,5 +49,5 @@ class LatexTransformer(Transformer):
         #if spaces exist between the ampersands and the math content.  
         #See filters.latex.rm_math_space for more information.
         if hasattr(cell, "source") and cell.cell_type == "markdown":
-            cell.source = filters.rm_math_space(cell.source)
+            cell.source = filters.strip_math_space(cell.source)
         return cell, resources

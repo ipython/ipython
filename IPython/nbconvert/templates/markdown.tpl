@@ -16,7 +16,7 @@ In[{{cell.prompt_number if cell.prompt_number else ' '}}]:{% endblock in_prompt 
 {% endblock pyerr %}
 
 {% block traceback_line %}
-{{ line |indent| rm_ansi }}{% endblock traceback_line %}
+{{ line |indent| strip_ansi }}{% endblock traceback_line %}
 
 {% block pyout %}
 {% block data_priority scoped %}{{ super()}}{% endblock %}
@@ -56,7 +56,7 @@ $$
 {% endblock data_text %}
 
 {% block markdowncell scoped %}
-{{ cell.source | wrap(80)}}
+{{ cell.source | wrap_text(80)}}
 {% endblock markdowncell %}
 
 {% block headingcell scoped %}

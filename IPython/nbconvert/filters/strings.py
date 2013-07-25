@@ -26,17 +26,17 @@ from IPython.utils import py3compat
 #-----------------------------------------------------------------------------
 
 __all__ = [
-    'wrap',
-    'html_text',
+    'wrap_text',
+    'html2text',
     'add_anchor',
     'strip_dollars',
-    'rm_fake',
-    'python_comment',
+    'strip_files_prefix',
+    'comment_lines',
     'get_lines'
 ]
 
 
-def wrap(text, width=100):
+def wrap_text(text, width=100):
     """ 
     Intelligently wrap text.
     Wrap text without breaking words if possible.
@@ -55,7 +55,7 @@ def wrap(text, width=100):
     return '\n'.join(wrpd)
 
 
-def html_text(element):
+def html2text(element):
     """extract inner text from html
     
     Analog of jQuery's $(element).text()
@@ -65,7 +65,7 @@ def html_text(element):
     
     text = element.text or ""
     for child in element:
-        text += html_text(child)
+        text += html2text(child)
     text += (element.tail or "")
     return text
 
@@ -76,7 +76,7 @@ def add_anchor(html):
     For use in heading cells
     """
     h = ElementTree.fromstring(py3compat.cast_bytes_py2(html))
-    link = html_text(h).replace(' ', '-')
+    link = html2text(h).replace(' ', '-')
     h.set('id', link)
     a = ElementTree.Element("a", {"class" : "anchor-link", "href" : "#" + link})
     a.text = u'¶'
@@ -99,7 +99,7 @@ def strip_dollars(text):
 
 files_url_pattern = re.compile(r'(src|href)\=([\'"]?)files/')
 
-def rm_fake(text):
+def strip_files_prefix(text):
     """
     Fix all fake URLs that start with `files/`,
     stripping out the `files/` prefix.
@@ -112,7 +112,7 @@ def rm_fake(text):
     return files_url_pattern.sub(r"\1=\2", text)
 
 
-def python_comment(text):
+def comment_lines(text, prefix='# '):
     """
     Build a Python comment line from input text.
     
@@ -120,12 +120,14 @@ def python_comment(text):
     ----------
     text : str
         Text to comment out.
+    prefix : str
+        Character to append to the start of each line.
     """
     
     #Replace line breaks with line breaks and comment symbols.
     #Also add a comment symbol at the beginning to comment out
     #the first line.
-    return '# '+'\n# '.join(text.split('\n')) 
+    return prefix + ('\n'+prefix).join(text.split('\n')) 
 
 
 def get_lines(text, start=None,end=None):
