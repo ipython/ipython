@@ -10,6 +10,8 @@ Using IPython for interactive work
    reference
    shell
    qtconsole
-   htmlnotebook
+   notebook
+   converting_notebooks
+   working_remotely
 
 
