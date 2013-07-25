@@ -96,8 +96,8 @@ class NbConvertApp(BaseIPythonApplication):
         > ipython nbconvert --to latex mynotebook.ipnynb
 
         Both HTML and LaTeX support multiple flavors of output. LaTeX includes
-        'basic', 'book', and 'article'.  HTML includes 'basic', 'full', and 
-        'reveal'.  You can specify the flavor of the format used.
+        'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
+        can specify the flavor of the format used.
 
         > ipython nbconvert --to html --flavor reveal mynotebook.ipnynb
         

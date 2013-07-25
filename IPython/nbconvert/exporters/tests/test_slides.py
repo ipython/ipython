@@ -1,5 +1,5 @@
 """
-Module with tests for html.py
+Module with tests for slides.py
 """
 
 #-----------------------------------------------------------------------------
@@ -15,42 +15,33 @@ Module with tests for html.py
 #-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
-from ..html import HTMLExporter
-from IPython.testing.decorators import onlyif_cmds_exist
+from ..slides import SlidesExporter
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestHTMLExporter(ExportersTestsBase):
-    """Contains test functions for html.py"""
+class TestSlidesExporter(ExportersTestsBase):
+    """Contains test functions for slides.py"""
 
     def test_constructor(self):
         """
-        Can a HTMLExporter be constructed?
+        Can a SlidesExporter be constructed?
         """
-        HTMLExporter()
+        SlidesExporter()
 
-    @onlyif_cmds_exist('pandoc')
+
     def test_export(self):
         """
-        Can a HTMLExporter export something?
+        Can a SlidesExporter export something?
         """
-        (output, resources) = HTMLExporter().from_filename(self._get_notebook())
+        (output, resources) = SlidesExporter().from_filename(self._get_notebook())
         assert len(output) > 0
 
 
-    def test_export_basic(self):
+    def test_export_reveal(self):
         """
-        Can a HTMLExporter export using the 'basic' flavor?
+        Can a SlidesExporter export using the 'reveal' flavor?
         """
-        (output, resources) = HTMLExporter(flavor='basic').from_filename(self._get_notebook())
-        assert len(output) > 0
-
-
-    def test_export_full(self):
-        """
-        Can a HTMLExporter export using the 'full' flavor?
-        """
-        (output, resources) = HTMLExporter(flavor='full').from_filename(self._get_notebook())
+        (output, resources) = SlidesExporter(flavor='reveal').from_filename(self._get_notebook())
         assert len(output) > 0

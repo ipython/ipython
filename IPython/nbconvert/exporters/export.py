@@ -20,6 +20,7 @@ from IPython.config import Config
 
 from .exporter import Exporter
 from .html import HTMLExporter
+from .slides import SlidesExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
@@ -67,6 +68,7 @@ __all__ = [
     'export',
     'export_html',
     'export_custom',
+    'export_slides',
     'export_latex',
     'export_markdown',
     'export_python',
@@ -132,6 +134,14 @@ def export_html(nb, **kw):
     Export a notebook object to HTML
     """
     return export(HTMLExporter, nb, **kw)
+
+
+@DocDecorator
+def export_slides(nb, **kw):
+    """
+    Export a notebook object to Slides
+    """
+    return export(SlidesExporter, nb, **kw)
 
 
 @DocDecorator

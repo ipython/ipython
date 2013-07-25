@@ -82,10 +82,10 @@ class TestNbConvertApp(TestsBase):
 
     def test_flavor(self):
         """
-        Do explicit notebook names work?
+        Do export flavors work?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="html"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="slides"', 
                 '--notebooks=["notebook2.ipynb"]', '--flavor="reveal"']).lower()
             assert os.path.isfile('notebook2.html')
             with open('notebook2.html') as f:
