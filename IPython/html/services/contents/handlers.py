@@ -53,6 +53,20 @@ class ContentHandler(IPythonHandler):
         self.set_status(204)
         self.finish()
 
+class ServicesRedirectHandler(IPythonHandler):
+    
+    @web.authenticated
+    def get(self):
+        url = self.base_project_url + 'api'
+        self.redirect(url)
+
+class ServicesHandler(IPythonHandler):
+    
+    @web.authenticated
+    def get(self):
+        services = ['contents', 'notebooks', 'sessions', 'kernels', 'clusters']
+        self.finish(jsonapi.dumps(services))
+
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
@@ -62,7 +76,10 @@ _content_path_regex = r"(?P<content_path>.+)"
 
 default_handlers = [
     (r"api/contents/%s" % _content_path_regex, ContentHandler),
-    (r"api/contents",  ContentRootHandler)
+    (r"api/contents",  ContentRootHandler),
+    (r"api/", ServicesRedirectHandler),
+    (r"api", ServicesHandler)
+    
 ]
 
 

@@ -135,9 +135,9 @@ class NotebookManager(LoggingConfigurable):
     def notebook_model(self, notebook_name, notebook_path=None, content=True):
         """ Creates the standard notebook model """
         last_modified, contents = self.read_notebook_object(notebook_name, notebook_path)
-        model = {"notebook_name": notebook_name, 
-                    "notebook_path": notebook_path,
-                    "last_modified": last_modified.ctime()}
+        model = {"name": notebook_name, 
+                    "path": notebook_path,
+                    "last_modified (UTC)": last_modified.ctime()}
         if content == True:
             model['content'] = contents
         return model

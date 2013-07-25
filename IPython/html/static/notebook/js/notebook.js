@@ -1520,16 +1520,6 @@ var IPython = (function (IPython) {
     // Persistance and loading
 
     /**
-     * Getter method for this notebook's ID.
-     * 
-     * @method get_notebook_id
-     * @return {String} This notebook's ID
-     */
-    Notebook.prototype.get_notebook_id = function () {
-        return this.notebook_id;
-    };
-
-    /**
      * Getter method for this notebook's name.
      * 
      * @method get_notebook_name
@@ -1757,7 +1747,7 @@ var IPython = (function (IPython) {
     Notebook.prototype.notebook_rename = function (nbname) {
         var that = this;
         var new_name = nbname + '.ipynb'
-        var name = {'notebook_name': new_name};
+        var name = {'name': new_name};
         var settings = {
             processData : false,
             cache : false,
@@ -1774,7 +1764,7 @@ var IPython = (function (IPython) {
     
     
     Notebook.prototype.rename_success = function (json, status, xhr) {
-        this.notebook_name = json.notebook_name
+        this.notebook_name = json.name
         var notebook_path = this.notebookPath() + this.notebook_name;
         this.session.notebook_rename(notebook_path);
         $([IPython.events]).trigger('notebook_renamed.Notebook');
