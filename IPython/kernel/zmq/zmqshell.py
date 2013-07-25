@@ -61,7 +61,7 @@ class ZMQDisplayPublisher(DisplayPublisher):
     session = Instance(Session)
     pub_socket = Instance(SocketABC)
     parent_header = Dict({})
-    topic = CBytes(b'displaypub')
+    topic = CBytes(b'display_data')
 
     def set_parent(self, parent):
         """Set the parent for outbound messages."""
