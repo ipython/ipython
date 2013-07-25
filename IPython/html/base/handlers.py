@@ -88,33 +88,6 @@ if tornado.version_info <= (2,1,1):
     websocket.WebSocketHandler._execute = _execute
     del _execute
 
-#-----------------------------------------------------------------------------
-# Decorator for disabling read-only handlers
-#-----------------------------------------------------------------------------
-
-@decorator
-def not_if_readonly(f, self, *args, **kwargs):
-    if self.settings.get('read_only', False):
-        raise web.HTTPError(403, "Notebook server is read-only")
-    else:
-        return f(self, *args, **kwargs)
-
-@decorator
-def authenticate_unless_readonly(f, self, *args, **kwargs):
-    """authenticate this page *unless* readonly view is active.
-    
-    In read-only mode, the notebook list and print view should
-    be accessible without authentication.
-    """
-    
-    @web.authenticated
-    def auth_f(self, *args, **kwargs):
-        return f(self, *args, **kwargs)
-
-    if self.settings.get('read_only', False):
-        return f(self, *args, **kwargs)
-    else:
-        return auth_f(self, *args, **kwargs)
 
 #-----------------------------------------------------------------------------
 # Top-level handlers
@@ -141,7 +114,7 @@ class AuthenticatedHandler(RequestHandler):
         if user_id is None:
             # prevent extra Invalid cookie sig warnings:
             self.clear_login_cookie()
-            if not self.read_only and not self.login_available:
+            if not self.login_available:
                 user_id = 'anonymous'
         return user_id
 
@@ -174,13 +147,6 @@ class AuthenticatedHandler(RequestHandler):
 
         """
         return bool(self.settings.get('password', ''))
-
-    @property
-    def read_only(self):
-        """Is the notebook read-only?
-
-        """
-        return self.settings.get('read_only', False)
 
 
 class IPythonHandler(AuthenticatedHandler):
@@ -269,7 +235,6 @@ class IPythonHandler(AuthenticatedHandler):
         return dict(
             base_project_url=self.base_project_url,
             base_kernel_url=self.base_kernel_url,
-            read_only=self.read_only,
             logged_in=self.logged_in,
             login_available=self.login_available,
             use_less=self.use_less,
@@ -278,7 +243,7 @@ class IPythonHandler(AuthenticatedHandler):
 class AuthenticatedFileHandler(IPythonHandler, web.StaticFileHandler):
     """static files should only be accessible when logged in"""
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, path):
         return web.StaticFileHandler.get(self, path)
 

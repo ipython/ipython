@@ -164,7 +164,6 @@ class NotebookWebApplication(web.Application):
             # authentication
             cookie_secret=ipython_app.cookie_secret,
             login_url=url_path_join(base_project_url,'/login'),
-            read_only=ipython_app.read_only,
             password=ipython_app.password,
             
             # managers
@@ -227,18 +226,6 @@ flags['no-mathjax']=(
     When disabled, equations etc. will appear as their untransformed TeX source.
     """
 )
-flags['read-only'] = (
-    {'NotebookApp' : {'read_only' : True}},
-    """Allow read-only access to notebooks.
-    
-    When using a password to protect the notebook server, this flag
-    allows unauthenticated clients to view the notebook list, and
-    individual notebooks, but not edit them, start kernels, or run
-    code.
-    
-    If no password is set, the server will be entirely read-only.
-    """
-)
 
 # Add notebook manager flags
 flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
@@ -248,7 +235,7 @@ flags.update(boolean_flag('script', 'FileNotebookManager.save_script',
 # the flags that are specific to the frontend
 # these must be scrubbed before being passed to the kernel,
 # or it will raise an error on unrecognized flags
-notebook_flags = ['no-browser', 'no-mathjax', 'read-only', 'script', 'no-script']
+notebook_flags = ['no-browser', 'no-mathjax', 'script', 'no-script']
 
 aliases = dict(kernel_aliases)
 
@@ -369,10 +356,6 @@ class NotebookApp(BaseIPythonApplication):
                       BROWSER environment variable to override it.
                       """)
     
-    read_only = Bool(False, config=True,
-        help="Whether to prevent editing/execution of notebooks."
-    )
-
     use_less = Bool(False, config=True,
                        help="""Wether to use Browser Side less-css parsing
                        instead of compiled css version in templates that allows
@@ -554,7 +537,7 @@ class NotebookApp(BaseIPythonApplication):
             if ssl_options is None:
                 self.log.critical(warning + " and not using encryption. This "
                     "is not recommended.")
-            if not self.password and not self.read_only:
+            if not self.password:
                 self.log.critical(warning + " and not using authentication. "
                     "This is highly insecure and not recommended.")
         success = None

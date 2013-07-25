@@ -20,7 +20,7 @@ import os
 from tornado import web
 HTTPError = web.HTTPError
 
-from ..base.handlers import IPythonHandler, authenticate_unless_readonly
+from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
 
 #-----------------------------------------------------------------------------
@@ -38,7 +38,7 @@ class NewHandler(IPythonHandler):
 
 class NamedNotebookHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_id):
         nbm = self.notebook_manager
         if not nbm.notebook_exists(notebook_id):
@@ -54,7 +54,7 @@ class NamedNotebookHandler(IPythonHandler):
 
 class NotebookRedirectHandler(IPythonHandler):
     
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_name):
         # strip trailing .ipynb:
         notebook_name = os.path.splitext(notebook_name)[0]
