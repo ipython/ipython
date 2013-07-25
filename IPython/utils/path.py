@@ -514,15 +514,17 @@ def get_security_file(filename, profile='default'):
     return filefind(filename, ['.', pd.security_dir])
 
 
+ENOLINK = 1998
+
 def link(src, dst):
     """Hard links ``src`` to ``dst``, returning 0 or errno.
 
-    Note that the special errno ``1998`` will be returned if ``os.link`` isn't
+    Note that the special errno ``ENOLINK`` will be returned if ``os.link`` isn't
     supported by the operating system.
     """
 
     if not hasattr(os, "link"):
-        return 1998
+        return ENOLINK
     link_errno = 0
     try:
         os.link(src, dst)
