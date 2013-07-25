@@ -22,7 +22,7 @@ from zmq.utils import jsonapi
 
 from IPython.utils.jsonutil import date_default
 
-from ...base.handlers import IPythonHandler, authenticate_unless_readonly
+from ...base.handlers import IPythonHandler
 
 #-----------------------------------------------------------------------------
 # Contents web service handlers
@@ -31,7 +31,7 @@ from ...base.handlers import IPythonHandler, authenticate_unless_readonly
 
 class ContentRootHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         cm = self.content_manager
         contents = cm.list_contents("")

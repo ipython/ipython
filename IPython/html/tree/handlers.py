@@ -38,7 +38,7 @@ class ProjectDashboardHandler(IPythonHandler):
 
 class ProjectPathDashboardHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
@@ -56,28 +56,28 @@ class ProjectPathDashboardHandler(IPythonHandler):
 
 class TreeRedirectHandler(IPythonHandler):
     
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         url = self.base_project_url + 'tree'
         self.redirect(url)
 
 class TreePathRedirectHandler(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_path):
         url = self.base_project_url + 'tree/'+ notebook_path
         self.redirect(url)
 
 class ProjectRedirectHandler(IPythonHandler):
     
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         url = self.base_project_url + 'tree'
         self.redirect(url)
 
 class NewFolderHandler(IPythonHandler):
     
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self, notebook_path):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
