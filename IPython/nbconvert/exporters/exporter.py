@@ -65,7 +65,7 @@ default_filters = {
         'ansi2latex': filters.ansi2latex,
         'strip_math_space': filters.strip_math_space,
         'wrap_text': filters.wrap_text,
-        'escape_tex': filters.escape_latex
+        'escape_latex': filters.escape_latex
 }
 
 #-----------------------------------------------------------------------------

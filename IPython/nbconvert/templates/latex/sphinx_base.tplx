@@ -145,11 +145,11 @@ Note: For best display, use latex syntax highlighting. =))
     \sloppy
 
     % Document level variables
-    \title{((( resources.metadata.name | escape_tex )))}
-    \date{((( resources.sphinx.date | escape_tex )))}
-    \release{((( resources.sphinx.version | escape_tex )))}
-    \author{((( resources.sphinx.author | escape_tex )))}
-    \renewcommand{\releasename}{((( resources.sphinx.release | escape_tex )))}
+    \title{((( resources.metadata.name | escape_latex )))}
+    \date{((( resources.sphinx.date | escape_latex )))}
+    \release{((( resources.sphinx.version | escape_latex )))}
+    \author{((( resources.sphinx.author | escape_latex )))}
+    \renewcommand{\releasename}{((( resources.sphinx.release | escape_latex )))}
 
     % TODO: Add option for the user to specify a logo for his/her export.
     \newcommand{\sphinxlogo}{}
@@ -253,7 +253,7 @@ Note: For best display, use latex syntax highlighting. =))
 ((* block unknowncell scoped*))
 
     % Unsupported cell type, no formatting
-    ((( cell.source | wrap_text | escape_tex )))
+    ((( cell.source | wrap_text | escape_latex )))
 ((* endblock unknowncell *))
 
 %==============================================================================
