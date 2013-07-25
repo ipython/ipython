@@ -122,13 +122,13 @@ var IPython = (function (IPython) {
         var len = data.length;
         if (len != 0) {
             for (var i=0; i<len; i++) {
-                if (data[i]['notebook_path']==null) {
-                    nb_path = data[i]['notebook_name'];
+                if (data[i]['path']==null) {
+                    nb_path = data[i]['name'];
                 }
                 else {
-                    nb_path = data[i]['notebook_path'] + data[i]['notebook_name'];
+                    nb_path = data[i]['path'] + data[i]['name'];
                 }
-                this.sessions[nb_path]= data[i]['session_id'];
+                this.sessions[nb_path]= data[i]['id'];
             }
         };
         this.load_list();
@@ -168,7 +168,7 @@ var IPython = (function (IPython) {
                     )
         }
         for (var i=0; i<len; i++) {
-            var name = data[i].notebook_name;
+            var name = data[i].name;
             var path = this.notebookPath();
             var nbname = name.split(".")[0];
             var item = this.new_notebook_item(i);

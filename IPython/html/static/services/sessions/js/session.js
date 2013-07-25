@@ -62,7 +62,7 @@ var IPython = (function (IPython) {
      * @method start_kernel
      */
     Session.prototype.start_kernel = function (json) {
-        this.session_id = json.session_id;
+        this.session_id = json.id;
         this.kernel_content = json.kernel;
         var base_url = $('body').data('baseKernelUrl') + "api/kernels";
         this.kernel = new IPython.Kernel(base_url, this.session_id);
