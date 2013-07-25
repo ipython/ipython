@@ -54,6 +54,11 @@ nbconvert_flags.update({
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
+        ),
+
+    'pdf' : (
+        {'NbConvertApp' : {'writer_class' : "PDFWriter"}},
+        "Compile notebook output to a PDF."
         )
 })
 
@@ -99,6 +104,10 @@ class NbConvertApp(BaseIPythonApplication):
         You can also pipe the output to stdout, rather than a file
         
         > ipython nbconvert mynotebook.ipynb --stdout
+
+        or to a PDF
+
+        > ipython nbconvert mynotebook.ipynb --pdf
         
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
@@ -120,6 +129,7 @@ class NbConvertApp(BaseIPythonApplication):
                                     help="""Writer class used to write the 
                                     results of the conversion""")
     writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
+                      'PDFWriter': 'IPython.nbconvert.writers.pdf.PDFWriter',
                       'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
                       'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
     writer_factory = Type()

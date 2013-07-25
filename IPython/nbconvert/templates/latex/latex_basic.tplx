@@ -1,5 +1,7 @@
 ((*- extends 'display_priority.tplx' -*))
 
+\nonstopmode
+
 ((* block in_prompt *))((* endblock in_prompt *))
 
 ((* block output_prompt *))((* endblock output_prompt *))
