@@ -93,7 +93,7 @@ A message is defined by the following four-dictionary structure::
       'header' : {
                     'msg_id' : uuid,
                     'username' : str,
-                    'session' : uuid
+                    'session' : uuid,
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
          },
