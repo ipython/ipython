@@ -450,73 +450,8 @@ When status is 'error', the following extra fields are present::
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
-Kernel attribute access
------------------------
 
-.. warning::
-
-   This part of the messaging spec is not actually implemented in the kernel
-   yet.
- 
-While this protocol does not specify full RPC access to arbitrary methods of
-the kernel object, the kernel does allow read (and in some cases write) access
-to certain attributes.
-
-The policy for which attributes can be read is: any attribute of the kernel, or
-its sub-objects, that belongs to a :class:`Configurable` object and has been
-declared at the class-level with Traits validation, is in principle accessible
-as long as its name does not begin with a leading underscore.  The attribute
-itself will have metadata indicating whether it allows remote read and/or write
-access.  The message spec follows for attribute read and write requests.
-
-Message type: ``getattr_request``::
-
-    content = {
-        # The (possibly dotted) name of the attribute
-	'name' : str,
-    }
-
-When a ``getattr_request`` fails, there are two possible error types:
-
-- AttributeError: this type of error was raised when trying to access the
-  given name by the kernel itself.  This means that the attribute likely
-  doesn't exist.
-
-- AccessError: the attribute exists but its value is not readable remotely.
-
-
-Message type: ``getattr_reply``::
-
-    content = {
-        # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str,
-	# If status is 'ok', a JSON object.
-	'value' : object,
-    }
-
-Message type: ``setattr_request``::
-
-    content = {
-        # The (possibly dotted) name of the attribute
-	'name' : str,
-	
-	# A JSON-encoded object, that will be validated by the Traits
-	# information in the kernel
-	'value' : object,
-    }
-
-When a ``setattr_request`` fails, there are also two possible error types with
-similar meanings  as those of the ``getattr_request`` case, but for writing.
-    
-Message type: ``setattr_reply``::
-
-    content = {
-        # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str,
-    }
-
-
-    
+  
 Object information
 ------------------
 
@@ -1016,39 +951,6 @@ Message type: ``status``::
         # state and when it finishes, it will enter the 'idle' state.
         # The kernel will publish state 'starting' exactly once at process startup.
         execution_state : ('busy', 'idle', 'starting')
-    }
-
-Kernel crashes
---------------
-
-When the kernel has an unexpected exception, caught by the last-resort
-sys.excepthook, we should broadcast the crash handler's output before exiting.
-This will allow clients to notice that a kernel died, inform the user and
-propose further actions.
-
-Message type: ``crash``::
-
-    content = {
-       # Similarly to the 'error' case for execute_reply messages, this will
-       # contain ename, evalue and traceback fields.
-
-       # An additional field with supplementary information such as where to
-       # send the crash message
-       'info' : str,
-    }
-
-
-Future ideas
-------------
-    
-Other potential message types, currently unimplemented, listed below as ideas.
-    
-Message type: ``file``::
-
-    content = {
-    'path' : 'cool.jpg',
-    'mimetype' : str,
-    'data' : str,
     }
 
 
