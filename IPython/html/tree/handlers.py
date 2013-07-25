@@ -43,11 +43,9 @@ class ProjectPathDashboardHandler(IPythonHandler):
         nbm = self.notebook_manager
         name, path = nbm.named_notebook_path(notebook_path)
         if name != None:
-            if path == None:
-                self.redirect(self.base_project_url + 'notebooks/' + quote(name))
-            else:
-                self.redirect(self.base_project_url + 'notebooks/' + path + quote(name))
+            self.redirect(self.base_project_url + 'notebooks/' + notebook_path)
         else:
+            path = nbm.url_encode(path)
             project = self.project + '/' + notebook_path
             self.write(self.render_template('tree.html',
                 project=project,

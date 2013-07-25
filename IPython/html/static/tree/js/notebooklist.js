@@ -25,7 +25,7 @@ var IPython = (function (IPython) {
     NotebookList.prototype.baseProjectUrl = function () {
         return $('body').data('baseProjectUrl');
     };
-    
+
     NotebookList.prototype.notebookPath = function() {
         var path = $('body').data('notebookPath');
         if (path != "") {
