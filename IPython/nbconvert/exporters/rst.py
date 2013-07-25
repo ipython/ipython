@@ -31,10 +31,6 @@ class RSTExporter(Exporter):
         'rst', config=True, 
         help="Extension of the file that should be written to disk")
 
-    template_file = Unicode(
-            'rst', config=True,
-            help="Name of the template file to use")
-
     @property
     def default_config(self):
         c = Config({'ExtractOutputTransformer':{'enabled':True}})

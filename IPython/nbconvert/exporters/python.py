@@ -29,7 +29,3 @@ class PythonExporter(Exporter):
     file_extension = Unicode(
         'py', config=True, 
         help="Extension of the file that should be written to disk")
-
-    template_file = Unicode(
-            'python', config=True,
-            help="Name of the template file to use")

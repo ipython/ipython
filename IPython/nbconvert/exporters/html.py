@@ -24,7 +24,7 @@ from .exporter import Exporter
 # Classes
 #-----------------------------------------------------------------------------
 
-class BasicHTMLExporter(Exporter):
+class HTMLExporter(Exporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
@@ -37,6 +37,18 @@ class BasicHTMLExporter(Exporter):
         help="Extension of the file that should be written to disk"
         )
 
-    template_file = Unicode(
-            'basichtml', config=True,
-            help="Name of the template file to use")
+    flavor = Unicode('full', config=True, help="""Flavor of the data format to 
+        use.  I.E. 'full' or 'basic'""")
+
+    @property
+    def default_config(self):
+        c = Config({
+            'CSSHTMLHeaderTransformer':{
+                'enabled':True
+                },
+            'RevealHelpTransformer':{
+                'enabled':True,
+                },                
+            })
+        c.merge(super(RevealExporter,self).default_config)
+        return c

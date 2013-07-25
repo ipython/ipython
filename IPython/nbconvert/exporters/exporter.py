@@ -86,16 +86,17 @@ class Exporter(Configurable):
     transformers provided by default suffice, there is no need to inherit from
     this class.  Instead, override the template_file and file_extension
     traits via a config file.
-    
-    {filters}
     """
     
     # finish the docstring
     __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
 
+    flavor = Unicode(config=True, help="""Flavor of the data format to use.  
+        I.E. 'full' or 'basic'""")
+
     template_file = Unicode(
-            '', config=True,
+            config=True,
             help="Name of the template file to use")
 
     file_extension = Unicode(
@@ -155,6 +156,9 @@ class Exporter(Configurable):
         extra_loaders : list[of Jinja Loaders]
             ordered list of Jinja loder to find templates. Will be tried in order
             before the default FileSysteme ones.
+        flavor : str
+            Flavor to use when exporting.  This determines what template to use
+            if one hasn't been specifically provided.
         """
         
         #Call the base class constructor
@@ -165,6 +169,7 @@ class Exporter(Configurable):
         super(Exporter, self).__init__(config=c, **kw)
 
         #Init
+        self._init_template(**kw)
         self._init_environment(extra_loaders=extra_loaders)
         self._init_transformers()
         self._init_filters()
@@ -329,6 +334,25 @@ class Exporter(Configurable):
             raise TypeError('filter')
 
         
+    def _init_template(self, **kw):
+        """
+        Make sure a template name is specified.  If one isn't specified, try to
+        build one from the information we know.
+        """
+
+        # Set the template_file if it has not been set explicitly.
+        if not self.template_file:
+
+            # Build the template file name from the name of the exporter and the
+            # flavor (if available).  The flavor can be set on the traitlet
+            # or passed in as a kw arg.  The flavor specified in kw overrides
+            # what is set in the flavor traitlet.
+            if self.flavor or 'flavor' in kw:
+                self.template_file = self.__name__ + '_' + kw.get('flavor', self.flavor)
+            else:
+                self.template_file = self.__name__
+        
+
     def _init_environment(self, extra_loaders=None):
         """
         Create the Jinja templating environment.

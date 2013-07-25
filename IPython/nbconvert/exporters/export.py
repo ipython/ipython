@@ -19,15 +19,11 @@ from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
 
 from .exporter import Exporter
-from .basichtml import BasicHTMLExporter
-from .fullhtml import FullHTMLExporter
+from .html import HTMLExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
-from .reveal import RevealExporter
 from .rst import RSTExporter
-from .sphinx_howto import SphinxHowtoExporter
-from .sphinx_manual import SphinxManualExporter
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -69,14 +65,10 @@ def DocDecorator(f):
 
 __all__ = [
     'export',
-    'export_sphinx_manual',
-    'export_sphinx_howto',
-    'export_basic_html',
-    'export_full_html',
+    'export_html',
     'export_latex',
     'export_markdown',
     'export_python',
-    'export_reveal',
     'export_rst',
     'export_by_name',
     'get_export_names',
@@ -126,35 +118,11 @@ def export(exporter, nb, **kw):
 
 
 @DocDecorator
-def export_sphinx_manual(nb, **kw):
-    """
-    Export a notebook object to Sphinx Manual LaTeX
-    """
-    return export(SphinxManualExporter, nb, **kw)
-
-
-@DocDecorator
-def export_sphinx_howto(nb, **kw):
-    """
-    Export a notebook object to Sphinx HowTo LaTeX
-    """
-    return export(SphinxHowtoExporter, nb, **kw)
-
-
-@DocDecorator
-def export_basic_html(nb, **kw):
+def export_html(nb, **kw):
     """
     Export a notebook object to Basic HTML
     """
-    return export(BasicHTMLExporter, nb, **kw)
-
-
-@DocDecorator
-def export_full_html(nb, **kw):
-    """
-    Export a notebook object to Full HTML
-    """
-    return export(FullHTMLExporter, nb, **kw)
+    return export(HTMLExporter, nb, **kw)
 
 
 @DocDecorator
@@ -179,14 +147,6 @@ def export_python(nb, **kw):
     Export a notebook object to Python
     """
     return export(PythonExporter, nb, **kw)
-
-
-@DocDecorator
-def export_reveal(nb, **kw):
-    """
-    Export a notebook object to a Reveal.js presentation
-    """
-    return export(RevealExporter, nb, **kw)
 
 
 @DocDecorator
