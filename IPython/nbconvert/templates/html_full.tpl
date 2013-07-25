@@ -1,4 +1,4 @@
-{%- extends 'basichtml.tpl' -%}
+{%- extends 'html_basic.tpl' -%}
 
 {%- block header -%}<!DOCTYPE html>
 <html>
