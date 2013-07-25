@@ -49,7 +49,7 @@ class NotebookRootHandler(IPythonHandler):
 
 class NotebookRootRedirect(IPythonHandler):
 
-    @authenticate_unless_readonly
+    @web.authenticated
     def get(self):
         self.redirect("/api/notebooks")
 
