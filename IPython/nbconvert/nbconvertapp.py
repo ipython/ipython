@@ -41,7 +41,9 @@ from .utils.exceptions import ConversionException
 nbconvert_aliases = {}
 nbconvert_aliases.update(base_aliases)
 nbconvert_aliases.update({
-    'format' : 'NbConvertApp.export_format',
+    'to' : 'NbConvertApp.export_format',
+    'flavor' : 'Exporter.flavor',
+    'template' : 'Exporter.template_file',
     'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
 })
@@ -124,7 +126,7 @@ class NbConvertApp(BaseIPythonApplication):
 
     # Other configurable variables
     export_format = CaselessStrEnum(get_export_names(),
-        default_value="full_html",
+        default_value="html",
         config=True,
         help="""The export format to be used."""
     )
