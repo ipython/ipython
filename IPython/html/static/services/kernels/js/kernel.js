@@ -229,6 +229,7 @@ var IPython = (function (IPython) {
         {
             var content = {
                 oname : objname.toString(),
+                detail_level : 0,
             };
             var msg = this._get_msg("object_info_request", content);
             this.shell_channel.send(JSON.stringify(msg));
