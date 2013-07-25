@@ -62,7 +62,7 @@ it introduces a new line
 
 ((*- block data_pdf -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.pdf_filename[:-4])))}
+\includegraphics[width=0.7\textwidth]{(((output.pdf_filename)))}
 \par
 \end{center}
 ((*- endblock -*))
