@@ -88,9 +88,7 @@ def catch_config_error(method, app, *args, **kwargs):
     try:
         return method(app, *args, **kwargs)
     except (TraitError, ArgumentError) as e:
-        app.print_description()
         app.print_help()
-        app.print_examples()
         app.log.fatal("Bad config encountered during initialization:")
         app.log.fatal(str(e))
         app.log.debug("Config at the time: %s", app.config)
@@ -337,6 +335,7 @@ class Application(SingletonConfigurable):
 
         If classes=False (the default), only flags and aliases are printed.
         """
+        self.print_description()
         self.print_subcommands()
         self.print_options()
 
@@ -355,6 +354,9 @@ class Application(SingletonConfigurable):
         else:
             print "To see all available configurables, use `--help-all`"
             print
+
+        self.print_examples()
+
 
     def print_description(self):
         """Print the application description."""
@@ -475,9 +477,7 @@ class Application(SingletonConfigurable):
             interpreted_argv = argv
 
         if any(x in interpreted_argv for x in ('-h', '--help-all', '--help')):
-            self.print_description()
             self.print_help('--help-all' in interpreted_argv)
-            self.print_examples()
             self.exit(0)
 
         if '--version' in interpreted_argv or '-V' in interpreted_argv:
