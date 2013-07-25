@@ -145,7 +145,7 @@ class NbConvertApp(BaseIPythonApplication):
         """
         Add the cwd to the sys.path ($PYTHONPATH)
         """
-        sys.path.append(os.getcwd())
+        sys.path.insert(0, os.getcwd())
         
 
     def init_notebooks(self):
