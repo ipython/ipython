@@ -16,10 +16,10 @@ Contains writer for writing nbconvert output to filesystem.
 
 import io
 import os
-import shutil
 import glob
 
 from IPython.utils.traitlets import Unicode
+from IPython.utils.path import link_or_copy
 
 from .base import WriterBase
 
@@ -90,7 +90,7 @@ class FilesWriter(WriterBase):
 
                         # Copy if destination is different.
                         if not os.path.normpath(dest) == os.path.normpath(matching_filename):
-                            shutil.copyfile(matching_filename, dest)
+                            link_or_copy(matching_filename, dest)
 
             # Determine where to write conversion results.
             dest = notebook_name + '.' + output_extension
