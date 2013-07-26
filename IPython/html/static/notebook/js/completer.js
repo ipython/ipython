@@ -24,9 +24,9 @@ var IPython = (function (IPython) {
 
     // what is the common start of all completions
     function shared_start(B, drop_prct) {
-        //if (B.length == 1) {
+        if (B.length == 1) {
             return B[0];
-        //}
+        }
         var A = new Array();
         var common;
         var min_lead_prct = 10;
