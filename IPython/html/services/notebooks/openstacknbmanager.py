@@ -22,7 +22,7 @@ Authors:
 
 import datetime
 
-from swiftclient import client
+import pyrax
 
 from tornado import web
 
@@ -39,10 +39,15 @@ class OpenStackNotebookManager(NotebookManager):
 
     account_name = Unicode('', config=True, help='OpenStack account name.')
     account_key = Unicode('', config=True, help='OpenStack account key.')
+    identity_type = Unicode('', config=True, help='OpenStack Identity type (e.g. rackspace)')
     container = Unicode('', config=True, help='Container name for notebooks.')
 
     def __init__(self, **kwargs):
         super(OpenStackNotebookManager, self).__init__(**kwargs)
+        pyrax.set_setting("identity_type", identity_type)
+        pyrax.set_credentials(username=account_name, api_key=account_key)
+        # Set the region, optionally
+        # pyrax.set_setting("region", region) # e.g. "LON"
         pass
 
     def load_notebook_names(self):
