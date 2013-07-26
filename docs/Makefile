@@ -58,9 +58,9 @@ html: api
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
-api: source/api/generated/gen.rst
+api: source/api/generated/gen.txt
 
-source/api/generated/gen.rst:
+source/api/generated/gen.txt:
 	python autogen_api.py
 	@echo "Build API docs finished."
 

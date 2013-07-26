@@ -58,9 +58,9 @@ if __name__ == '__main__':
                                            r'\.testing\.mkdoctests']
     # Now, generate the outputs
     docwriter.write_api_docs(outdir)
-    # Write index with .rst extension - we can include it, but Sphinx won't try
+    # Write index with .txt extension - we can include it, but Sphinx won't try
     # to compile it
-    docwriter.write_index(outdir, 'gen.rst',
+    docwriter.write_index(outdir, 'gen.txt',
                           relative_to = pjoin('source','api')
                           )
     print ('%d files written' % len(docwriter.written_modules))
