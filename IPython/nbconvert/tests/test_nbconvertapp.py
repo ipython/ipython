@@ -81,14 +81,14 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.py')
 
 
-    #@dec.skip_known_failure
+    @dec.onlyif_cmds_exist('pdflatex')
     def test_post_processor(self):
         """
         Do post processors work?
         """
         with self.create_temp_cwd(['notebook1.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="latex"', 
-                'notebook1', '--post="PDF"', 'PDFPostProcessor.verbose=True']).lower()
+                'notebook1', '--post="PDF"', '--PDFPostProcessor.verbose=True']).lower()
             assert os.path.isfile('notebook1.tex')
             print("\n\n\t" + "\n\t".join([f for f in os.listdir('.') if os.path.isfile(f)]) + "\n\n")
             assert os.path.isfile('notebook1.pdf')
