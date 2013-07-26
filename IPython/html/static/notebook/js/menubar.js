@@ -78,7 +78,7 @@ var IPython = (function (IPython) {
         //  File
         var that = this;
         this.element.find('#new_notebook').click(function () {
-            window.open(that.baseProjectUrl() + 'notebooks/' + that.notebookPath() +'new');
+            IPython.notebook.new_notebook();
         });
         this.element.find('#open_notebook').click(function () {
             window.open(that.baseProjectUrl() + 'tree/' + that.notebookPath());

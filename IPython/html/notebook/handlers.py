@@ -19,6 +19,8 @@ Authors:
 import os
 from tornado import web
 HTTPError = web.HTTPError
+from zmq.utils import jsonapi
+
 
 from ..base.handlers import IPythonHandler
 from ..utils import url_path_join
@@ -29,20 +31,12 @@ from urllib import quote
 #-----------------------------------------------------------------------------
 
 
-class NewPathHandler(IPythonHandler):
-    
-    @web.authenticated
-    def get(self, notebook_path):
-        notebook_name = self.notebook_manager.new_notebook(notebook_path)
-        self.redirect(url_path_join(self.base_project_url,"notebooks", notebook_path, notebook_name))
-        
-
-class NewHandler(IPythonHandler):
+class NotebookHandler(IPythonHandler):
 
     @web.authenticated
-    def get(self):
+    def post(self):
         notebook_name = self.notebook_manager.new_notebook()
-        self.redirect(url_path_join(self.base_project_url, "notebooks", notebook_name))
+        self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
 class NamedNotebookHandler(IPythonHandler):
@@ -68,11 +62,11 @@ class NamedNotebookHandler(IPythonHandler):
             mathjax_url=self.mathjax_url,
             )
         )
-    
+
     @web.authenticated
     def post(self, notebook_path):
-        nbm =self.notebook_manager
-        notebook_name = nbm.new_notebook()
+        notebook_name = self.notebook_manager.new_notebook(notebook_path)
+        self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
 class NotebookCopyHandler(IPythonHandler):
@@ -96,8 +90,7 @@ class NotebookCopyHandler(IPythonHandler):
 _notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/notebooks/%s/new" % _notebook_path_regex, NewPathHandler),
-    (r"/notebooks/new", NewHandler),
     (r"/notebooks/%s/copy" % _notebook_path_regex, NotebookCopyHandler),
-    (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler)
+    (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
+    (r"/notebooks/", NotebookHandler)
 ]

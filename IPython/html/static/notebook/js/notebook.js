@@ -89,7 +89,7 @@ var IPython = (function (IPython) {
         if (path != 'None') {
             if (path[path.length-1] != '/') {
                 path = path.substring(0,path.length);
-            };
+            }; 
             return path;
         } else {
             return '';
@@ -1741,6 +1741,22 @@ var IPython = (function (IPython) {
      */
     Notebook.prototype.save_notebook_error = function (xhr, status, error_msg) {
         $([IPython.events]).trigger('notebook_save_failed.Notebook');
+    };
+
+    Notebook.prototype.new_notebook = function(){
+        var path = this.notebookPath();
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            dataType : "json",
+            success:$.proxy(function (data, status, xhr){
+                notebook_name = data.name;
+                window.open(this._baseProjectUrl +'notebooks/' + this.notebookPath()+ notebook_name);
+            }, this)
+        };
+        var url = this._baseProjectUrl + 'notebooks/' + path;
+        $.ajax(url,settings);
     };
 
 
