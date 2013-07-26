@@ -1,4 +1,4 @@
-{%- extends 'slides.tpl' -%}
+{%- extends 'reveal_internals/slides.tpl' -%}
 
 
 {% block header %}
