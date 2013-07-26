@@ -14,15 +14,21 @@
 from __future__ import print_function
 
 # Stdlib imports
-import sys
 import subprocess
 
 # IPython imports
 from IPython.utils.py3compat import cast_bytes
 
+from .exceptions import ConversionException
+
 #-----------------------------------------------------------------------------
 # Classes and functions
 #-----------------------------------------------------------------------------
+
+class PandocMissing(ConversionException):
+    """Exception raised when Pandoc is missing. """
+    pass
+
 
 def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
     """Convert an input string in format `from` to format `to` via pandoc.
@@ -49,11 +55,14 @@ def pandoc(source, fmt, to, extra_args=None, encoding='utf-8'):
         command.extend(extra_args)
     try:
         p = subprocess.Popen(command,
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE
         )
-    except OSError:
-        sys.exit("ERROR: Unable to launch pandoc. Please install pandoc:\n"
-                 "(http://johnmacfarlane.net/pandoc/installing.html)")
+    except OSError as e:
+        raise PandocMissing(
+            "The command '%s' returned an error: %s.\n" %(" ".join(command), e) +
+            "Please check that pandoc is installed:\n" +
+            "http://johnmacfarlane.net/pandoc/installing.html"
+        )
     out, _ = p.communicate(cast_bytes(source, encoding))
     out = out.decode(encoding, 'replace')
     return out[:-1]
