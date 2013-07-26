@@ -338,7 +338,21 @@ var IPython = (function (IPython) {
     };
 
 
-
+    NotebookList.prototype.new_notebook = function(){
+        var path = this.notebookPath();
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            dataType : "json",
+            success:$.proxy(function (data, status, xhr){
+                notebook_name = data.name;
+                window.open(this.baseProjectUrl() +'notebooks/' + this.notebookPath()+ notebook_name);
+            }, this)
+        };
+        var url = this.baseProjectUrl() + 'notebooks/' + path;
+        $.ajax(url,settings);
+    };
 
     IPython.NotebookList = NotebookList;
 

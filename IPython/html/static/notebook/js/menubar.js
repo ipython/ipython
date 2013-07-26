@@ -84,9 +84,7 @@ var IPython = (function (IPython) {
             window.open(that.baseProjectUrl() + 'tree/' + that.notebookPath());
         });
         this.element.find('#copy_notebook').click(function () {
-            var notebook_name = IPython.notebook.get_notebook_name();
-            var url = that.baseProjectUrl() + 'notebooks/' + that.notebookPath() + notebook_name + '/copy';
-            window.open(url,'_blank');
+            IPython.notebook.copy_notebook();
             return false;
         });
         this.element.find('#download_ipynb').click(function () {
