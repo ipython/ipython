@@ -1,4 +1,4 @@
-{%- extends 'align_reveal_cells.tpl' -%}
+{%- extends 'reveal_internals/align_reveal_cells.tpl' -%}
 
 
 

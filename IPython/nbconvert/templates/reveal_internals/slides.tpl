@@ -1,4 +1,4 @@
-{%- extends 'subslides.tpl' -%}
+{%- extends 'reveal_internals/subslides.tpl' -%}
 
 
 
