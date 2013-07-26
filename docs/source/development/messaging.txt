@@ -93,7 +93,7 @@ A message is defined by the following four-dictionary structure::
       'header' : {
                     'msg_id' : uuid,
                     'username' : str,
-                    'session' : uuid
+                    'session' : uuid,
                     # All recognized message type strings are listed below.
                     'msg_type' : str,
          },
@@ -101,16 +101,101 @@ A message is defined by the following four-dictionary structure::
       # In a chain of messages, the header from the parent is copied so that
       # clients can track where messages come from.
       'parent_header' : dict,
-
-      # The actual content of the message must be a dict, whose structure
-      # depends on the message type.
-      'content' : dict,
       
       # Any metadata associated with the message.
       'metadata' : dict,
+      
+      # The actual content of the message must be a dict, whose structure
+      # depends on the message type.
+      'content' : dict,
     }
 
-   
+The Wire Protocol
+=================
+
+
+This message format exists at a high level,
+but does not describe the actual *implementation* at the wire level in zeromq.
+The canonical implementation of the message spec is our :class:`~IPython.kernel.zmq.session.Session` class.
+
+.. note::
+
+    This section should only be relevant to non-Python consumers of the protocol.
+    Python consumers should simply import and use IPython's own implementation of the wire protocol
+    in the :class:`IPython.kernel.zmq.session.Session` object.
+
+Every message is serialized to a sequence of at least six blobs of bytes:
+
+.. sourcecode:: python
+
+    [
+      b'u-u-i-d',         # zmq identity(ies)
+      b'<IDS|MSG>',       # delimiter
+      b'baddad42',        # HMAC signature
+      b'{header}',        # serialized header dict
+      b'{parent_header}', # serialized parent header dict
+      b'{metadata}',      # serialized metadata dict
+      b'{content},        # serialized content dict
+      b'blob',            # extra raw data buffer(s)
+      ...
+    ]
+
+The front of the message is the ZeroMQ routing prefix,
+which can be zero or more socket identities.
+This is every piece of the message prior to the delimiter key ``<IDS|MSG>``.
+In the case of IOPub, there should be just one prefix component,
+which is the topic for IOPub subscribers, e.g. ``pyout``, ``display_data``.
+
+.. note::
+
+    In most cases, the IOPub topics are irrelevant and completely ignored,
+    because frontends just subscribe to all topics.
+    The convention used in the IPython kernel is to use the msg_type as the topic,
+    and possibly extra information about the message, e.g. ``pyout`` or ``stream.stdout``
+
+After the delimiter is the `HMAC`_ signature of the message, used for authentication.
+If authentication is disabled, this should be an empty string.
+By default, the hashing function used for computing these signatures is sha256.
+
+.. _HMAC: http://en.wikipedia.org/wiki/HMAC
+
+.. note::
+
+    To disable authentication and signature checking,
+    set the `key` field of a connection file to an empty string.
+
+The signature is the HMAC hex digest of the concatenation of:
+
+- A shared key (typically the ``key`` field of a connection file)
+- The serialized header dict
+- The serialized parent header dict
+- The serialized metadata dict
+- The serialized content dict
+
+In Python, this is implemented via:
+
+.. sourcecode:: python
+
+    # once:
+    digester = HMAC(key, digestmod=hashlib.sha256)
+    
+    # for each message
+    d = digester.copy()
+    for serialized_dict in (header, parent, metadata, content):
+        d.update(serialized_dict)
+    signature = d.hexdigest()
+
+After the signature is the actual message, always in four frames of bytes.
+The four dictionaries that compose a message are serialized separately,
+in the order of header, parent header, metadata, and content.
+These can be serialized by any function that turns a dict into bytes.
+The default and most common serialization is JSON, but msgpack and pickle
+are common alternatives.
+
+After the serialized dicts are zero to many raw data buffers,
+which can be used by message types that support binary data (mainly apply and data_pub).
+
+
 Python functional API
 =====================
 
@@ -388,73 +473,7 @@ When status is 'error', the following extra fields are present::
 When status is 'abort', there are for now no additional data fields.  This
 happens when the kernel was interrupted by a signal.
 
-Kernel attribute access
------------------------
 
-.. warning::
-
-   This part of the messaging spec is not actually implemented in the kernel
-   yet.
- 
-While this protocol does not specify full RPC access to arbitrary methods of
-the kernel object, the kernel does allow read (and in some cases write) access
-to certain attributes.
-
-The policy for which attributes can be read is: any attribute of the kernel, or
-its sub-objects, that belongs to a :class:`Configurable` object and has been
-declared at the class-level with Traits validation, is in principle accessible
-as long as its name does not begin with a leading underscore.  The attribute
-itself will have metadata indicating whether it allows remote read and/or write
-access.  The message spec follows for attribute read and write requests.
-
-Message type: ``getattr_request``::
-
-    content = {
-        # The (possibly dotted) name of the attribute
-	'name' : str,
-    }
-
-When a ``getattr_request`` fails, there are two possible error types:
-
-- AttributeError: this type of error was raised when trying to access the
-  given name by the kernel itself.  This means that the attribute likely
-  doesn't exist.
-
-- AccessError: the attribute exists but its value is not readable remotely.
-
-
-Message type: ``getattr_reply``::
-
-    content = {
-        # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str,
-	# If status is 'ok', a JSON object.
-	'value' : object,
-    }
-
-Message type: ``setattr_request``::
-
-    content = {
-        # The (possibly dotted) name of the attribute
-	'name' : str,
-	
-	# A JSON-encoded object, that will be validated by the Traits
-	# information in the kernel
-	'value' : object,
-    }
-
-When a ``setattr_request`` fails, there are also two possible error types with
-similar meanings  as those of the ``getattr_request`` case, but for writing.
-    
-Message type: ``setattr_reply``::
-
-    content = {
-        # One of ['ok', 'AttributeError', 'AccessError'].
-        'status' : str,
-    }
-
-
-    
 Object information
 ------------------
 
@@ -469,12 +488,12 @@ Message type: ``object_info_request``::
 
     content = {
         # The (possibly dotted) name of the object to be searched in all
-	# relevant namespaces
-        'name' : str,
+        # relevant namespaces
+        'oname' : str,
 
-    	# The level of detail desired.  The default (0) is equivalent to typing
-	# 'x?' at the prompt, 1 is equivalent to 'x??'.
-	'detail_level' : int,
+        # The level of detail desired.  The default (0) is equivalent to typing
+        # 'x?' at the prompt, 1 is equivalent to 'x??'.
+        'detail_level' : int,
     }
 
 The returned information will be a dictionary with keys very similar to the
@@ -529,16 +548,16 @@ Message type: ``object_info_reply``::
     # objects, this field is empty.
     'argspec' : { # The names of all the arguments
                   args : list,
-		  # The name of the varargs (*args), if any
-                  varargs : str,
-		  # The name of the varkw (**kw), if any
-		  varkw : str,
-		  # The values (as strings) of all default arguments.  Note
-		  # that these must be matched *in reverse* with the 'args'
-		  # list above, since the first positional args have no default
-		  # value at all.
-		  defaults : list,
-		  },
+        # The name of the varargs (*args), if any
+                      varargs : str,
+        # The name of the varkw (**kw), if any
+        varkw : str,
+        # The values (as strings) of all default arguments.  Note
+        # that these must be matched *in reverse* with the 'args'
+        # list above, since the first positional args have no default
+        # value at all.
+        defaults : list,
+    },
 
     # For instances, provide the constructor signature (the definition of
     # the __init__ method):
@@ -573,30 +592,44 @@ Message type: ``complete_request``::
 
     content = {
         # The text to be completed, such as 'a.is'
-    'text' : str,
+        # this may be an empty string if the frontend does not do any lexing,
+        # in which case the kernel must figure out the completion
+        # based on 'line' and 'cursor_pos'.
+        'text' : str,
 
-    # The full line, such as 'print a.is'.  This allows completers to
-    # make decisions that may require information about more than just the
-    # current word.
-    'line' : str,
+        # The full line, such as 'print a.is'.  This allows completers to
+        # make decisions that may require information about more than just the
+        # current word.
+        'line' : str,
 
-    # The entire block of text where the line is.  This may be useful in the
-    # case of multiline completions where more context may be needed.  Note: if
-    # in practice this field proves unnecessary, remove it to lighten the
-    # messages.
+        # The entire block of text where the line is.  This may be useful in the
+        # case of multiline completions where more context may be needed.  Note: if
+        # in practice this field proves unnecessary, remove it to lighten the
+        # messages.
     
-    'block' : str,
+        'block' : str or null/None,
 
-    # The position of the cursor where the user hit 'TAB' on the line.
-    'cursor_pos' : int,
+        # The position of the cursor where the user hit 'TAB' on the line.
+        'cursor_pos' : int,
     }
 
 Message type: ``complete_reply``::
 
     content = {
-        # The list of all matches to the completion request, such as
+    # The list of all matches to the completion request, such as
     # ['a.isalnum', 'a.isalpha'] for the above example.
-    'matches' : list
+    'matches' : list,
+    
+    # the substring of the matched text
+    # this is typically the common prefix of the matches,
+    # and the text that is already in the block that would be replaced by the full completion.
+    # This would be 'a.is' in the above example.
+    'text' : str,
+    
+    # status should be 'ok' unless an exception was raised during the request,
+    # in which case it should be 'error', along with the usual error message content
+    # in other messages.
+    'status' : 'ok'
     }
 
     
@@ -671,21 +704,21 @@ Message type: ``connect_request``::
 Message type: ``connect_reply``::
 
     content = {
-        'shell_port' : int  # The port the shell ROUTER socket is listening on.
-        'iopub_port' : int   # The port the PUB socket is listening on.
-        'stdin_port' : int   # The port the stdin ROUTER socket is listening on.
-        'hb_port' : int    # The port the heartbeat socket is listening on.
+        'shell_port' : int,   # The port the shell ROUTER socket is listening on.
+        'iopub_port' : int,   # The port the PUB socket is listening on.
+        'stdin_port' : int,   # The port the stdin ROUTER socket is listening on.
+        'hb_port' : int,      # The port the heartbeat socket is listening on.
     }
 
 
 Kernel info
 -----------
 
-If a client needs to know what protocol the kernel supports, it can
-ask version number of the messaging protocol supported by the kernel.
-This message can be used to fetch other core information of the
+If a client needs to know information about the kernel, it can
+make a request of the kernel's information.
+This message can be used to fetch core information of the
 kernel, including language (e.g., Python), language version number and
-IPython version number.
+IPython version number, and the IPython message spec version number.
 
 Message type: ``kernel_info_request``::
 
@@ -741,9 +774,6 @@ Upon their own shutdown, client applications will typically execute a last
 minute sanity check and forcefully terminate any kernel that is still alive, to
 avoid leaving stray processes in the user's machine.
 
-For both shutdown request and reply, there is no actual content that needs to
-be sent, so the content dict is empty.
-
 Message type: ``shutdown_request``::
 
     content = {
@@ -772,17 +802,12 @@ Streams (stdout,  stderr, etc)
 Message type: ``stream``::
 
     content = {
-        # The name of the stream is one of 'stdin', 'stdout', 'stderr'
+        # The name of the stream is one of 'stdout', 'stderr'
         'name' : str,
     
         # The data is an arbitrary string to be written to that stream
         'data' : str,
     }
-
-When a kernel receives a raw_input call, it should also broadcast it on the pub
-socket with the names 'stdin' and 'stdin_reply'.  This will allow other clients
-to monitor/display kernel interactions and possibly replay them to their user
-or otherwise expose them.
 
 Display Data
 ------------
@@ -954,39 +979,6 @@ Message type: ``status``::
         # state and when it finishes, it will enter the 'idle' state.
         # The kernel will publish state 'starting' exactly once at process startup.
         execution_state : ('busy', 'idle', 'starting')
-    }
-
-Kernel crashes
---------------
-
-When the kernel has an unexpected exception, caught by the last-resort
-sys.excepthook, we should broadcast the crash handler's output before exiting.
-This will allow clients to notice that a kernel died, inform the user and
-propose further actions.
-
-Message type: ``crash``::
-
-    content = {
-       # Similarly to the 'error' case for execute_reply messages, this will
-       # contain ename, evalue and traceback fields.
-
-       # An additional field with supplementary information such as where to
-       # send the crash message
-       'info' : str,
-    }
-
-
-Future ideas
-------------
-    
-Other potential message types, currently unimplemented, listed below as ideas.
-    
-Message type: ``file``::
-
-    content = {
-    'path' : 'cool.jpg',
-    'mimetype' : str,
-    'data' : str,
     }
 
 

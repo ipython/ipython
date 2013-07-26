@@ -50,7 +50,9 @@ from IPython.utils.traitlets import (
 #-----------------------------------------------------------------------------
 
 def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, hb_port=0,
-                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp'):
+                         control_port=0, ip=LOCALHOST, key=b'', transport='tcp',
+                         signature_scheme='hmac-sha256',
+                         ):
     """Generates a JSON config file, including the selection of random ports.
     
     Parameters
@@ -78,7 +80,15 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
         The ip address the kernel will bind to.
 
     key : str, optional
-        The Session key used for HMAC authentication.
+        The Session key used for message authentication.
+    
+    signature_scheme : str, optional
+        The scheme used for message authentication.
+        This has the form 'digest-hash', where 'digest'
+        is the scheme used for digests, and 'hash' is the name of the hash function
+        used by the digest scheme.
+        Currently, 'hmac' is the only supported digest scheme,
+        and 'sha256' is the default hash function.
 
     """
     # default to temporary connector file
@@ -129,6 +139,7 @@ def write_connection_file(fname=None, shell_port=0, iopub_port=0, stdin_port=0, 
     cfg['ip'] = ip
     cfg['key'] = bytes_to_str(key)
     cfg['transport'] = transport
+    cfg['signature_scheme'] = signature_scheme
     
     with open(fname, 'w') as f:
         f.write(json.dumps(cfg, indent=2))
@@ -380,6 +391,7 @@ class ConnectionFileMixin(HasTraits):
     _connection_file_written = Bool(False)
 
     transport = CaselessStrEnum(['tcp', 'ipc'], default_value='tcp', config=True)
+    signature_scheme = Unicode('')
 
     ip = Unicode(LOCALHOST, config=True,
         help="""Set the kernel\'s IP address [default localhost].
@@ -427,6 +439,7 @@ class ConnectionFileMixin(HasTraits):
             stdin_port=self.stdin_port,
             hb_port=self.hb_port,
             control_port=self.control_port,
+            signature_scheme=self.signature_scheme,
         )
 
     def cleanup_connection_file(self):
@@ -463,6 +476,7 @@ class ConnectionFileMixin(HasTraits):
             stdin_port=self.stdin_port, iopub_port=self.iopub_port,
             shell_port=self.shell_port, hb_port=self.hb_port,
             control_port=self.control_port,
+            signature_scheme=self.signature_scheme,
         )
         # write_connection_file also sets default ports:
         for name in port_names:
@@ -479,7 +493,10 @@ class ConnectionFileMixin(HasTraits):
         self.ip = cfg['ip']
         for name in port_names:
             setattr(self, name, cfg[name])
-        self.session.key = str_to_bytes(cfg['key'])
+        if 'key' in cfg:
+            self.session.key = str_to_bytes(cfg['key'])
+        if cfg.get('signature_scheme'):
+            self.session.signature_scheme = cfg['signature_scheme']
 
     #--------------------------------------------------------------------------
     # Creating connected sockets
