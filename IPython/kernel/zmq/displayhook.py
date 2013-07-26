@@ -10,7 +10,7 @@ from session import extract_header, Session
 class ZMQDisplayHook(object):
     """A simple displayhook that publishes the object's repr over a ZeroMQ
     socket."""
-    topic=None
+    topic=b'pyout'
 
     def __init__(self, session, pub_socket):
         self.session = session

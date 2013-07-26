@@ -462,7 +462,8 @@ class Client(HasTraits):
         # configure and construct the session
         extra_args['packer'] = cfg['pack']
         extra_args['unpacker'] = cfg['unpack']
-        extra_args['key'] = cast_bytes(cfg['exec_key'])
+        extra_args['key'] = cast_bytes(cfg['key'])
+        extra_args['signature_scheme'] = cfg['signature_scheme']
         
         self.session = Session(**extra_args)
 

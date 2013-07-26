@@ -251,7 +251,7 @@ class IPControllerApp(BaseParallelApplication):
             ecfg = json.loads(f.read())
         
         # json gives unicode, Session.key wants bytes
-        c.Session.key = ecfg['exec_key'].encode('ascii')
+        c.Session.key = ecfg['key'].encode('ascii')
         
         xport,ip = ecfg['interface'].split('://')
         
@@ -269,7 +269,7 @@ class IPControllerApp(BaseParallelApplication):
         with open(fname) as f:
             ccfg = json.loads(f.read())
         
-        for key in ('exec_key', 'registration', 'pack', 'unpack'):
+        for key in ('key', 'registration', 'pack', 'unpack', 'signature_scheme'):
             assert ccfg[key] == ecfg[key], "mismatch between engine and client info: %r" % key
         
         xport,addr = ccfg['interface'].split('://')
@@ -338,10 +338,11 @@ class IPControllerApp(BaseParallelApplication):
             # save to new json config files
             f = self.factory
             base = {
-                'exec_key'  : f.session.key.decode('ascii'),
+                'key'  : f.session.key.decode('ascii'),
                 'location'  : self.location,
                 'pack'      : f.session.packer,
                 'unpack'    : f.session.unpacker,
+                'signature_scheme' : f.session.signature_scheme,
             }
             
             cdict = {'ssh' : self.ssh_server}
