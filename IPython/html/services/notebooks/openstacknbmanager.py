@@ -40,17 +40,24 @@ class OpenStackNotebookManager(NotebookManager):
 
     account_name = Unicode('', config=True, help='OpenStack account name.')
     account_key = Unicode('', config=True, help='OpenStack account key.')
-    identity_type = Unicode('', config=True, help='OpenStack Identity type (e.g. rackspace)')
+    identity_type = Unicode('', config=True, help='OpenStack Identity type (e.g. rackspace or openstack)')
     container_name = Unicode('', config=True, help='Container name for notebooks.')
 
     def __init__(self, **kwargs):
         super(OpenStackNotebookManager, self).__init__(**kwargs)
-        pyrax.set_setting("identity_type", identity_type)
-        pyrax.set_credentials(username=account_name, api_key=account_key)
+        pyrax.set_setting("identity_type", self.identity_type)
+        pyrax.set_credentials(username=self.account_name, api_key=self.account_key)
+
         # Set the region, optionally
         # pyrax.set_setting("region", region) # e.g. "LON"
 
         self.cf = pyrax.cloudfiles
+
+        try:
+            self.container = self.cf.get_container(self.container_name)
+        except NoSuchContainer:
+            self.container = self.cf.create_container(self.container_name)
+
 
     def load_notebook_names(self):
         """On startup load the notebook ids and names from OpenStack Swift.
@@ -61,11 +68,7 @@ class OpenStackNotebookManager(NotebookManager):
         # Cached version of the mapping of notebook IDs to notebook names
         self.mapping = {}
 
-        try:
-            container = self.cf.get_container(self.container_name)
-        except NoSuchContainer:
-            container = self.cf.create_container(self.container_name)
-        objects = container.get_objects()
+        objects = self.container.get_objects()
 
         for obj in objects:
             nb_id = obj.name
