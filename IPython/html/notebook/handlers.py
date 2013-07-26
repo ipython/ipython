@@ -81,19 +81,6 @@ class NamedNotebookHandler(IPythonHandler):
         self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
-class NotebookCopyHandler(IPythonHandler):
-
-    @web.authenticated
-    def get(self, notebook_path=None):
-        nbm = self.notebook_manager
-        name, path = nbm.named_notebook_path(notebook_path)
-        notebook_name = self.notebook_manager.copy_notebook(name, path)
-        if path==None:
-            self.redirect(url_path_join(self.base_project_url, "notebooks", notebook_name))
-        else:
-            self.redirect(url_path_join(self.base_project_url, "notebooks", path, notebook_name))
-
-
 #-----------------------------------------------------------------------------
 # URL to handler mappings
 #-----------------------------------------------------------------------------
@@ -102,7 +89,6 @@ class NotebookCopyHandler(IPythonHandler):
 _notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/notebooks/%s/copy" % _notebook_path_regex, NotebookCopyHandler),
     (r"/notebooks/%s" % _notebook_path_regex, NamedNotebookHandler),
     (r"/notebooks/", NotebookHandler)
 ]

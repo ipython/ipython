@@ -75,16 +75,6 @@ class ProjectRedirectHandler(IPythonHandler):
         url = self.base_project_url + 'tree'
         self.redirect(url)
 
-class NewFolderHandler(IPythonHandler):
-    
-    @web.authenticated
-    def get(self, notebook_path):
-        nbm = self.notebook_manager
-        name, path = nbm.named_notebook_path(notebook_path)
-        nbm.add_new_folder(path)
-        url = self.base_project_url + 'tree/' + notebook_path
-        self.redirect(url)
-
 
 #-----------------------------------------------------------------------------
 # URL to handler mappings
@@ -94,7 +84,6 @@ class NewFolderHandler(IPythonHandler):
 _notebook_path_regex = r"(?P<notebook_path>.+)"
 
 default_handlers = [
-    (r"/tree/%s/-new" %_notebook_path_regex, NewFolderHandler),
     (r"/tree/%s/" % _notebook_path_regex, TreePathRedirectHandler),
     (r"/tree/%s" % _notebook_path_regex, ProjectPathDashboardHandler),
     (r"/tree", ProjectDashboardHandler),
