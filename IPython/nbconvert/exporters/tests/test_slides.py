@@ -41,7 +41,7 @@ class TestSlidesExporter(ExportersTestsBase):
 
     def test_export_reveal(self):
         """
-        Can a SlidesExporter export using the 'reveal' flavor?
+        Can a SlidesExporter export using the 'reveal' template?
         """
-        (output, resources) = SlidesExporter(flavor='reveal').from_filename(self._get_notebook())
+        (output, resources) = SlidesExporter(template='reveal').from_filename(self._get_notebook())
         assert len(output) > 0

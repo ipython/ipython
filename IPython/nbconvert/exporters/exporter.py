@@ -92,12 +92,15 @@ class Exporter(Configurable):
     __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
 
-    flavor = Unicode(config=True, help="""Flavor of the data format to use.  
-        I.E. 'full' or 'basic'""")
-
-    template_file = Unicode(
+    template_file = Unicode(u'default',
             config=True,
             help="Name of the template file to use")
+    def _template_file_changed(self, name, old, new):
+        if new=='default':
+            self.template_file = self.default_template
+        else:
+            self.template_file = new
+    default_template = Unicode(u'')
 
     file_extension = Unicode(
         'txt', config=True, 
@@ -156,9 +159,8 @@ class Exporter(Configurable):
         extra_loaders : list[of Jinja Loaders]
             ordered list of Jinja loder to find templates. Will be tried in order
             before the default FileSysteme ones.
-        flavor : str
-            Flavor to use when exporting.  This determines what template to use
-            if one hasn't been specifically provided.
+        template : str (optional, kw arg)
+            Template to use when exporting.
         """
         
         #Call the base class constructor
@@ -194,12 +196,29 @@ class Exporter(Configurable):
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
 
-        #Preprocess
+        # Preprocess
         nb_copy, resources = self._transform(nb_copy, resources)
 
-        #Convert
-        self.template = self.environment.get_template(self.template_file + self.template_extension)
-        output = self.template.render(nb=nb_copy, resources=resources)
+        # Try different template names during conversion.  First try to load the
+        # template by name with extension added, then try loading the template
+        # as if the name is explicitly specified, then try the name as a 
+        # 'flavor', and lastly just try to load the template by module name.
+        module_name = self.__module__.split('.')[-1]
+        try_names = [self.template_file + self.template_extension,
+                     self.template_file,
+                     module_name + '_' + self.template_file + self.template_extension,
+                     module_name + self.template_extension]
+        for try_name in try_names:
+            try:
+                self.template = self.environment.get_template(try_name)
+                break
+            except:
+                pass
+
+        if hasattr(self, 'template'):
+            output = self.template.render(nb=nb_copy, resources=resources)
+        else:
+            raise IOError('template file "%s" could not be found' % self.template_file)
         return output, resources
 
 
@@ -339,19 +358,9 @@ class Exporter(Configurable):
         Make sure a template name is specified.  If one isn't specified, try to
         build one from the information we know.
         """
-
-        # Set the template_file if it has not been set explicitly.
-        if not self.template_file:
-
-            # Build the template file name from the name of the exporter and the
-            # flavor (if available).  The flavor can be set on the traitlet
-            # or passed in as a kw arg.  The flavor specified in kw overrides
-            # what is set in the flavor traitlet.
-            module_name = self.__module__.split('.')[-1]
-            if self.flavor or 'flavor' in kw:
-                self.template_file = module_name + '_' + kw.get('flavor', self.flavor)
-            else:
-                self.template_file = module_name
+        self._template_file_changed('template_file', self.template_file, self.template_file)
+        if 'template' in kw:
+            self.template_file = kw['template']
         
 
     def _init_environment(self, extra_loaders=None):

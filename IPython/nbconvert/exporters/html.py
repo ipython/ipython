@@ -38,18 +38,15 @@ class HTMLExporter(Exporter):
         help="Extension of the file that should be written to disk"
         )
 
-    flavor = Unicode('full', config=True, help="""Flavor of the data format to 
-        use.  I.E. 'full' or 'basic'""")
+    default_template = Unicode('full', config=True, help="""Flavor of the data 
+        format to use.  I.E. 'full' or 'basic'""")
 
     @property
     def default_config(self):
         c = Config({
             'CSSHTMLHeaderTransformer':{
                 'enabled':True
-                },
-            'RevealHelpTransformer':{
-                'enabled':True,
-                },                
+                }          
             })
         c.merge(super(HTMLExporter,self).default_config)
         return c

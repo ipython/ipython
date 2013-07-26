@@ -43,23 +43,23 @@ class TestLatexExporter(ExportersTestsBase):
 
     def test_export_book(self):
         """
-        Can a LatexExporter export using 'book' flavor?
+        Can a LatexExporter export using 'book' template?
         """
-        (output, resources) = LatexExporter(flavor='book').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(template='book').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_basic(self):
         """
-        Can a LatexExporter export using 'basic' flavor?
+        Can a LatexExporter export using 'basic' template?
         """
-        (output, resources) = LatexExporter(flavor='basic').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(template='basic').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_article(self):
         """
-        Can a LatexExporter export using 'article' flavor?
+        Can a LatexExporter export using 'article' template?
         """
-        (output, resources) = LatexExporter(flavor='article').from_filename(self._get_notebook())
+        (output, resources) = LatexExporter(template='article').from_filename(self._get_notebook())
         assert len(output) > 0

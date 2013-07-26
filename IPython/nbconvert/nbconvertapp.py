@@ -42,7 +42,6 @@ nbconvert_aliases = {}
 nbconvert_aliases.update(base_aliases)
 nbconvert_aliases.update({
     'to' : 'NbConvertApp.export_format',
-    'flavor' : 'Exporter.flavor',
     'template' : 'Exporter.template_file',
     'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
@@ -58,7 +57,7 @@ nbconvert_flags.update({
 
     'pdf' : (
         {'NbConvertApp' : {'writer_class' : "PDFWriter"}},
-        "Compile notebook output to a PDF."
+        "Compile notebook output to a PDF (requires `--to latex`)."
         )
 })
 
@@ -95,11 +94,11 @@ class NbConvertApp(BaseIPythonApplication):
         
         > ipython nbconvert --to latex mynotebook.ipnynb
 
-        Both HTML and LaTeX support multiple flavors of output. LaTeX includes
+        Both HTML and LaTeX support multiple output templates. LaTeX includes
         'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
         can specify the flavor of the format used.
 
-        > ipython nbconvert --to html --flavor reveal mynotebook.ipnynb
+        > ipython nbconvert --to html --template reveal mynotebook.ipnynb
         
         You can also pipe the output to stdout, rather than a file
         
@@ -107,7 +106,7 @@ class NbConvertApp(BaseIPythonApplication):
 
         or to a PDF
 
-        > ipython nbconvert mynotebook.ipynb --pdf
+        > ipython nbconvert mynotebook.ipynb --to latex --pdf
         
         Multiple notebooks can be given at the command line in a couple of 
         different ways:

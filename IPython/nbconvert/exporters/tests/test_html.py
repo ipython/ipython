@@ -42,15 +42,15 @@ class TestHTMLExporter(ExportersTestsBase):
 
     def test_export_basic(self):
         """
-        Can a HTMLExporter export using the 'basic' flavor?
+        Can a HTMLExporter export using the 'basic' template?
         """
-        (output, resources) = HTMLExporter(flavor='basic').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(template='basic').from_filename(self._get_notebook())
         assert len(output) > 0
 
 
     def test_export_full(self):
         """
-        Can a HTMLExporter export using the 'full' flavor?
+        Can a HTMLExporter export using the 'full' template?
         """
-        (output, resources) = HTMLExporter(flavor='full').from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter(template='full').from_filename(self._get_notebook())
         assert len(output) > 0

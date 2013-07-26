@@ -35,8 +35,8 @@ class SlidesExporter(Exporter):
         help="Extension of the file that should be written to disk"
         )
 
-    flavor = Unicode('reveal', config=True, help="""Flavor of the data format to 
-        use.  I.E. 'reveal'""")
+    default_template = Unicode('reveal', config=True, help="""Template of the 
+        data format to use.  I.E. 'reveal'""")
 
     @property
     def default_config(self):

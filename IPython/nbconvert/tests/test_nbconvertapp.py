@@ -80,13 +80,13 @@ class TestNbConvertApp(TestsBase):
             assert os.path.isfile('notebook2.py')
 
 
-    def test_flavor(self):
+    def test_template(self):
         """
-        Do export flavors work?
+        Do export templates work?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="slides"', 
-                '--notebooks=["notebook2.ipynb"]', '--flavor="reveal"']).lower()
+                '--notebooks=["notebook2.ipynb"]', '--template="reveal"']).lower()
             assert os.path.isfile('notebook2.html')
             with open('notebook2.html') as f:
                 assert '/reveal.css' in f.read()

@@ -17,7 +17,7 @@ Contains writer for writing nbconvert output to PDF.
 import subprocess
 import os
 
-from IPython.utils.traitlets import Integer
+from IPython.utils.traitlets import Integer, Unicode
 
 from .files import FilesWriter
 
@@ -31,12 +31,17 @@ class PDFWriter(FilesWriter):
         How many times pdflatex will be called.
         """)
 
+    compiler = Unicode(u'pdflatex {0}', config=True, help="""
+        Shell command used to compile PDF.""")
+
     def write(self, output, resources, notebook_name=None, **kw):
             """
             Consume and write Jinja output a PDF.  
             See files.py for more...
             """        
-            dest = super(PDFWriter, self).write(output, resources, notebook_name=notebook_name, **kw)
-            command = 'pdflatex ' + dest
+            dest = super(PDFWriter, self).write(output, resources, 
+                notebook_name=notebook_name, **kw)
+            command = self.compiler.format(dest)
+
             for index in range(self.iteration_count):
                 subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb'))

@@ -44,8 +44,8 @@ class LatexExporter(Exporter):
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
 
-    flavor = Unicode('article', config=True, help="""Flavor of the data format to 
-        use.  I.E. 'full' or 'basic'""")
+    default_template = Unicode('article', config=True, help="""Template of the 
+        data format to use.  I.E. 'full' or 'basic'""")
 
     #Latex constants
     default_template_path = Unicode(
