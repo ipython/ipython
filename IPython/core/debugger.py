@@ -263,7 +263,13 @@ class Pdb(OldPdb):
 
     def interaction(self, frame, traceback):
         self.shell.set_completer_frame(frame)
-        OldPdb.interaction(self, frame, traceback)
+        while True:
+            try:
+                OldPdb.interaction(self, frame, traceback)
+            except KeyboardInterrupt:
+                self.shell.write("\nKeyboardInterrupt\n")
+            else:
+                break
 
     def new_do_up(self, arg):
         OldPdb.do_up(self, arg)
