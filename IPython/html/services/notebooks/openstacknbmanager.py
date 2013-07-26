@@ -71,7 +71,6 @@ class OpenStackNotebookManager(NotebookManager):
             nb_id = obj.name
             metadata = obj.get_metadata()
 
-            # OpenStack Swift prepends "x-object-meta-" to the metadata name
             name = metadata['x-object-meta-nbname']
             self.mapping[id] = name
 
@@ -121,7 +120,7 @@ class OpenStackNotebookManager(NotebookManager):
         except Exception as e:
             raise web.HTTPError(400, u'Unexpected error while saving notebook: %s' % e)
 
-        metadata = {'nbname': new_name}
+        metadata = {'x-object-meta-nbname': new_name}
         try:
             obj = self.container.store_object(notebook_id, data)
             obj.set_metadata(metadata)
