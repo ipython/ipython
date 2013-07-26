@@ -1,6 +1,6 @@
-==================================
-Using IPython for interactive work
-==================================
+===========================
+Using IPython interactively
+===========================
 
 .. toctree::
    :maxdepth: 2
@@ -10,6 +10,9 @@ Using IPython for interactive work
    reference.txt
    shell.txt
    qtconsole.txt
-   htmlnotebook.txt
+
+   Notebook.txt
+   converting_notebooks.txt
+   working_remotely.txt
 
 
