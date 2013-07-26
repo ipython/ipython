@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Contains base test class for nbconvert
 """
