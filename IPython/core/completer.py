@@ -207,27 +207,21 @@ def penalize_magics_key(word):
     Since "matplotlib" < "matplotlib%" as strings, 
     "timeit" will appear before the magic "%timeit" in the ordering
 
-    However, since we only move one %, cell magics still take priority,
-    e.g.:
-
-    %%timeit -> %timeit%
-
-    and so appears first in the listing, since
-
-    "%timeit%" < "timeit%"
-
-    E.g. completing on 'tim' gives the ordering
-    ["%%time", "%%timeit", "%time", "%timeit"] in
-    the completion listing
+    For consistency, move "%%" to the end, so cell magics appear *after*
+    line magics with the same name.
 
     """
 
+    # Move all % to end of the *key* (don't change the actual text, of course)
 
+    pattern = re.compile("%+")  # find %
+    m = pattern.match(word) # at the start of the string
 
+    print m
 
-    if word[0] == "%":  # if it's a magic command     
-        return word[1:] + "%"   
-
+    if m != None:  # if there is a match
+        word = word[m.end():] + m.group()  # move all %'s to the end: 
+       
     return word
 
 

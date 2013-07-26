@@ -18,22 +18,22 @@ var IPython = (function (IPython) {
         this.pager_element = $(pager_selector);
         this.pager_button_area = $('#pager_button_area');
         var that = this;
-        this.percentage_height = 0.40;
+        this.percentage_width = 0.40;
         this.pager_splitter_element = $(pager_splitter_selector)
             .draggable({
                         containment: 'window',
-                        axis:'y',
+                        axis:'x',
                         helper: null ,
                         drag: function(event, ui) {
                             // recalculate the amount of space the pager should take
-                            var pheight = ($(document.body).height()-event.clientY-4);
-                            var downprct = pheight/IPython.layout_manager.app_height();
-                                downprct = Math.min(0.9, downprct);
-                            if (downprct < 0.1) {
-                                that.percentage_height = 0.1;
+                            var pwidth = ($(document.body).width()-event.clientX-4);
+                            var leftprct = pwidth/IPython.layout_manager.width();
+                                leftprct = Math.min(0.9, leftprct);
+                            if (leftprct < 0.1) {
+                                that.percentage_width = 0.1;
                                 that.collapse({'duration':0});
-                            } else if (downprct > 0.2) {
-                                that.percentage_height = downprct;
+                            } else if (leftprct > 0.2) {
+                                that.percentage_width = leftprct;
                                 that.expand({'duration':0});
                             }
                             IPython.layout_manager.do_resize();
