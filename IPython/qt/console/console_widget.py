@@ -2060,6 +2060,7 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
                 self._prompt = prompt
                 self._prompt_html = None
 
+        self._flush_pending_stream()
         self._prompt_pos = self._get_end_cursor().position()
         self._prompt_started()
 
