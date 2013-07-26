@@ -80,6 +80,7 @@ var IPython = (function (IPython) {
 
     Notebook.prototype.notebookName = function() {
         var name = $('body').data('notebookName');
+        name = decodeURIComponent(name);
         return name;  
     };
     
@@ -1759,6 +1760,23 @@ var IPython = (function (IPython) {
         $.ajax(url,settings);
     };
 
+    Notebook.prototype.copy_notebook = function(){
+        var path = this.notebookPath();
+        var name = {'name': this.notebook_name}
+        var settings = {
+            processData : false,
+            cache : false,
+            type : "POST",
+            data: JSON.stringify(name),
+            dataType : "json",
+            success:$.proxy(function (data, status, xhr){
+                notebook_name = data.name;
+                window.open(this._baseProjectUrl +'notebooks/' + this.notebookPath()+ notebook_name);
+            }, this)
+        };
+        var url = this._baseProjectUrl + 'notebooks/' + path;
+        $.ajax(url,settings);
+    };
 
     Notebook.prototype.notebook_rename = function (nbname) {
         var that = this;

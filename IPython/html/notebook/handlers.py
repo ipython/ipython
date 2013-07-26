@@ -35,7 +35,13 @@ class NotebookHandler(IPythonHandler):
 
     @web.authenticated
     def post(self):
-        notebook_name = self.notebook_manager.new_notebook()
+        nbm = self.notebook_manager
+        data=self.request.body
+        if data == "":
+            notebook_name = nbm.new_notebook()
+        else:
+            data = jsonapi.loads(data)
+            notebook_name = nbm.copy_notebook(data['name'])
         self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
@@ -65,7 +71,13 @@ class NamedNotebookHandler(IPythonHandler):
 
     @web.authenticated
     def post(self, notebook_path):
-        notebook_name = self.notebook_manager.new_notebook(notebook_path)
+        nbm = self.notebook_manager
+        data = self.request.body
+        if data == "":
+            notebook_name = nbm.new_notebook(notebook_path)
+        else:
+            data = jsonapi.loads(data)
+            notebook_name = nbm.copy_notebook(data['name'], notebook_path)
         self.finish(jsonapi.dumps({"name": notebook_name}))
 
 
