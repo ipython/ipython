@@ -51,7 +51,10 @@ def DocDecorator(f):
     exporter_instance : Exporter
         Instance of the Exporter class used to export the document.  Useful
         to caller because it provides a 'file_extension' property which
-        specifies what extension the output should be saved as."""
+        specifies what extension the output should be saved as.
+
+    WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT
+    """
             
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -196,7 +199,10 @@ def export_by_name(format_name, nb, **kw):
 
 
 def get_export_names():
-    "Return a list of the currently supported export targets"
+    """Return a list of the currently supported export targets
+
+    WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT"""
+    
     # grab everything after 'export_'
     l = [x[len('export_'):] for x in __all__ if x.startswith('export_')]
     

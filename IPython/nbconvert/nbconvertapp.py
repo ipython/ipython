@@ -89,7 +89,9 @@ class NbConvertApp(BaseIPythonApplication):
 
     description = Unicode(
         u"""This application is used to convert notebook files (*.ipynb)
-        to various other formats.""")
+        to various other formats.
+
+        WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.""")
 
     examples = Unicode(u"""
         The simplest way to use nbconvert is
