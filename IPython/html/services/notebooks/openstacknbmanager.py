@@ -23,7 +23,7 @@ Authors:
 import datetime
 
 import pyrax
-from pyrax import pyrax.exceptions.NoSuchContainer as NoSuchContainer
+from pyrax import exceptions.NoSuchContainer as NoSuchContainer
 
 from tornado import web
 
