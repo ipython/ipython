@@ -86,6 +86,8 @@ class Exporter(Configurable):
     transformers provided by default suffice, there is no need to inherit from
     this class.  Instead, override the template_file and file_extension
     traits via a config file.
+
+    {filters}
     """
     
     # finish the docstring
