@@ -75,14 +75,14 @@ class OpenStackNotebookManager(NotebookManager):
             metadata = obj.get_metadata()
 
             name = metadata['x-object-meta-nbname']
-            self.mapping[id] = name
+            self.mapping[nb_id] = name
 
     def list_notebooks(self):
         """List all notebooks in the container.
 
         This version uses `self.mapping` as the authoritative notebook list.
         """
-        data = [dict(notebook_id=id,name=name) for id, name in self.mapping.items()]
+        data = [dict(notebook_id=nb_id,name=name) for nb_id, name in self.mapping.items()]
         data = sorted(data, key=lambda item: item['name'])
         return data
 
