@@ -58,9 +58,9 @@ html: api
 	@echo
 	@echo "Build finished. The HTML pages are in build/html."
 
-api: source/api/generated/gen.txt
+api: source/api/generated/gen.rst
 
-source/api/generated/gen.txt:
+source/api/generated/gen.rst:
 	python autogen_api.py
 	@echo "Build API docs finished."
 
@@ -110,11 +110,10 @@ linkcheck:
 	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
 	@echo
 	@echo "Link check complete; look for any errors in the above output " \
-	      "or in build/linkcheck/output.txt."
+	      "or in build/linkcheck/output.rst."
 
 gitwash-update:
 	python ../tools/gitwash_dumper.py source/development ipython
-	cd source/development/gitwash && rename 's/.rst/.txt/' *.rst
 
 nightly: dist
 	rsync -avH --delete dist/ ipython:www/doc/nightly

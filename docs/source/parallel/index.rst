@@ -7,19 +7,19 @@ Using IPython for parallel computing
 .. toctree::
    :maxdepth: 2
 
-   parallel_intro.txt
-   parallel_process.txt
-   parallel_multiengine.txt
-   magics.txt
-   parallel_task.txt
-   asyncresult.txt
-   parallel_mpi.txt
-   parallel_db.txt
-   parallel_security.txt
-   parallel_winhpc.txt
-   parallel_demos.txt
-   dag_dependencies.txt
-   parallel_details.txt
-   parallel_transition.txt
+   parallel_intro
+   parallel_process
+   parallel_multiengine
+   magics
+   parallel_task
+   asyncresult
+   parallel_mpi
+   parallel_db
+   parallel_security
+   parallel_winhpc
+   parallel_demos
+   dag_dependencies
+   parallel_details
+   parallel_transition
 
 

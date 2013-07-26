@@ -14,7 +14,7 @@ if __name__ == '__main__':
     pjoin = os.path.join
     package = 'IPython'
     outdir = pjoin('source','api','generated')
-    docwriter = ApiDocWriter(package,rst_extension='.txt')
+    docwriter = ApiDocWriter(package,rst_extension='.rst')
     # You have to escape the . here because . is a special char for regexps.
     # You must do make clean if you change this!
     docwriter.package_skip_patterns += [r'\.fixes$',
