@@ -229,6 +229,7 @@ var IPython = (function (IPython) {
         {
             var content = {
                 oname : objname.toString(),
+                detail_level : 0,
             };
             var msg = this._get_msg("object_info_request", content);
             this.shell_channel.send(JSON.stringify(msg));
@@ -338,6 +339,7 @@ var IPython = (function (IPython) {
         var content = {
             text : '',
             line : line,
+            block : null,
             cursor_pos : cursor_pos
         };
         var msg = this._get_msg("complete_request", content);
