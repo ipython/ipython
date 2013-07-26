@@ -113,9 +113,9 @@ class NbConvertApp(BaseIPythonApplication):
         
         > ipython nbconvert mynotebook.ipynb --stdout
 
-        or to a PDF
+        A post-processor can be used to compile a PDF
 
-        > ipython nbconvert mynotebook.ipynb --to latex --pdf
+        > ipython nbconvert mynotebook.ipynb --to latex --post PDF
         
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
