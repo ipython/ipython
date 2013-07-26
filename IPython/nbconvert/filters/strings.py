@@ -19,6 +19,8 @@ templates.
 import re
 import textwrap
 from xml.etree import ElementTree
+
+from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils import py3compat
 
 #-----------------------------------------------------------------------------
@@ -32,7 +34,8 @@ __all__ = [
     'strip_dollars',
     'strip_files_prefix',
     'comment_lines',
-    'get_lines'
+    'get_lines',
+    'ipython2python',
 ]
 
 
@@ -150,3 +153,15 @@ def get_lines(text, start=None,end=None):
     
     # Return the right lines.
     return "\n".join(lines[start:end]) #re-join
+
+def ipython2python(code):
+    """Transform IPython syntax to pure Python syntax
+
+    Parameters
+    ----------
+
+    code : str
+        IPython code, to be transformed to pure Python
+    """
+    shell = InteractiveShell.instance()
+    return shell.input_transformer_manager.transform_cell(code)

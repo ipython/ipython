@@ -54,6 +54,7 @@ default_filters = {
         'get_lines': filters.get_lines,
         'highlight2html': filters.highlight2html,
         'highlight2latex': filters.highlight2latex,
+        'ipython2python': filters.ipython2python,
         'markdown2latex': filters.markdown2latex,
         'markdown2rst': filters.markdown2rst,
         'comment_lines': filters.comment_lines,
