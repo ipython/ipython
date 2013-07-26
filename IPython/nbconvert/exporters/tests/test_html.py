@@ -31,6 +31,7 @@ class TestHTMLExporter(ExportersTestsBase):
         """
         HTMLExporter()
 
+
     @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
@@ -40,6 +41,7 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export_basic(self):
         """
         Can a HTMLExporter export using the 'basic' template?
@@ -48,6 +50,7 @@ class TestHTMLExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export_full(self):
         """
         Can a HTMLExporter export using the 'full' template?

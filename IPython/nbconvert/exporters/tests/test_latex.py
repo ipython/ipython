@@ -41,6 +41,7 @@ class TestLatexExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export_book(self):
         """
         Can a LatexExporter export using 'book' template?
@@ -49,6 +50,7 @@ class TestLatexExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export_basic(self):
         """
         Can a LatexExporter export using 'basic' template?
@@ -57,6 +59,7 @@ class TestLatexExporter(ExportersTestsBase):
         assert len(output) > 0
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export_article(self):
         """
         Can a LatexExporter export using 'article' template?
