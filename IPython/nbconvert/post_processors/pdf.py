@@ -17,14 +17,14 @@ Contains writer for writing nbconvert output to PDF.
 import subprocess
 import os
 
-from IPython.utils.traitlets import Integer, Unicode
+from IPython.utils.traitlets import Integer, Unicode, Bool
 
-from .files import FilesWriter
+from .base import PostProcessorBase
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
-class PDFWriter(FilesWriter):
+class PDFPostProcessor(PostProcessorBase):
     """Writer designed to write to PDF files"""
 
     iteration_count = Integer(3, config=True, help="""
@@ -34,14 +34,19 @@ class PDFWriter(FilesWriter):
     compiler = Unicode(u'pdflatex {0}', config=True, help="""
         Shell command used to compile PDF.""")
 
-    def write(self, output, resources, notebook_name=None, **kw):
+    verbose = Bool(False, config=True, help="""
+        Whether or not to display the output of the compile call.
+        """)
+
+    def call(self, input):
             """
             Consume and write Jinja output a PDF.  
             See files.py for more...
             """        
-            dest = super(PDFWriter, self).write(output, resources, 
-                notebook_name=notebook_name, **kw)
-            command = self.compiler.format(dest)
-
+            command = self.compiler.format(input)
             for index in range(self.iteration_count):
-                subprocess.Popen(command, shell=True, stdout=open(os.devnull, 'wb'))
+                if self.verbose:
+                    subprocess.Popen(command, shell=True)
+                else:
+                    with open(os.devnull, 'wb') as null:
+                        subprocess.Popen(command, shell=True, stdout=null)

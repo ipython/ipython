@@ -17,6 +17,7 @@ import os
 from .base import TestsBase
 
 from IPython.utils import py3compat
+from IPython.testing import decorators as dec
 
     
 #-----------------------------------------------------------------------------
@@ -78,6 +79,19 @@ class TestNbConvertApp(TestsBase):
                 '--notebooks=["notebook2.ipynb"]']).lower()
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
+
+
+    #@dec.skip_known_failure
+    def test_post_processor(self):
+        """
+        Do post processors work?
+        """
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="latex"', 
+                'notebook1', '--post="PDF"', 'PDFPostProcessor.verbose=True']).lower()
+            assert os.path.isfile('notebook1.tex')
+            print("\n\n\t" + "\n\t".join([f for f in os.listdir('.') if os.path.isfile(f)]) + "\n\n")
+            assert os.path.isfile('notebook1.pdf')
 
 
     def test_template(self):
