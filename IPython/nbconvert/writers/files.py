@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Contains writer for writing nbconvert output to filesystem.
 """
