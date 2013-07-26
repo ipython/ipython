@@ -142,7 +142,7 @@ class FileNotebookManager(NotebookManager):
                 raise web.HTTPError(400, msg, reason=msg)
         return last_modified, nb
     
-    def read_notebook_object(self, notebook_name, notebook_path):
+    def read_notebook_object(self, notebook_name, notebook_path=None):
         """Get the Notebook representation of a notebook by notebook_name."""
         path = self.get_path(notebook_name, notebook_path)
         if not os.path.isfile(path):

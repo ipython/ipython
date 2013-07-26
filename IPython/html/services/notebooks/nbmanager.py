@@ -157,7 +157,7 @@ class NotebookManager(LoggingConfigurable):
         name = nb.metadata.get('name', 'notebook')
         return last_mod, representation, name
 
-    def read_notebook_object(self, notebook_name, notebook_path):
+    def read_notebook_object(self, notebook_name, notebook_path=None):
         """Get the object representation of a notebook by notebook_id."""
         raise NotImplementedError('must be implemented in a subclass')
 
@@ -229,7 +229,7 @@ class NotebookManager(LoggingConfigurable):
         notebook_name = self.write_notebook_object(nb, notebook_path=notebook_path)
         return notebook_name
 
-    def copy_notebook(self, name, path):
+    def copy_notebook(self, name, path=None):
         """Copy an existing notebook and return its notebook_id."""
         last_mod, nb = self.read_notebook_object(name, path)
         name = nb.metadata.name + '-Copy'
