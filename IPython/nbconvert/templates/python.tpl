@@ -7,7 +7,7 @@
 {% block output_prompt %}
 # Out[{{cell.prompt_number}}]:{% endblock output_prompt %}
 
-{% block input %}{{ cell.input }}
+{% block input %}{{ cell.input | ipython2python }}
 {% endblock input %}
 
 
