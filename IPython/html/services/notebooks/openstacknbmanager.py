@@ -67,14 +67,22 @@ class OpenStackNotebookManager(NotebookManager):
             container = self.cf.create_container(self.container_name)
         objects = container.get_objects()
 
-        pass
+        for obj in objects:
+            nb_id = obj.name
+            metadata = obj.get_metadata()
+
+            # OpenStack Swift prepends "x-object-meta-" to the metadata name
+            name = metadata['x-object-meta-nbname']
+            self.mapping[id] = name
 
     def list_notebooks(self):
         """List all notebooks in the container.
 
         This version uses `self.mapping` as the authoritative notebook list.
         """
-        pass
+        data = [dict(notebook_id=id,name=name) for id, name in self.mapping.items()]
+        data = sorted(data, key=lambda item: item['name'])
+        return data
 
     def read_notebook_object(self, notebook_id):
         """Get the object representation of a notebook by notebook_id."""
@@ -125,7 +133,15 @@ class OpenStackNotebookManager(NotebookManager):
 
     def delete_notebook(self, notebook_id):
         """Delete notebook by notebook_id."""
-        pass
+        if not self.notebook_exists(notebook_id):
+            raise web.HTTPError(404, u'Notebook does not exist: %s' % notebook_id)
+        try:
+            self.container.delete_object(notebook_id)
+        except Exception as e:
+            raise web.HTTPError(400, u'Unexpected error while deleting notebook: %s' % e)
+        else:
+            self.delete_notebook_id(notebook_id)
 
     def info_string(self):
-        pass
+        info = "Serving notebooks from OpenStack Swift storage: {},{}"
+        return info.format(self.account_name, self.container_name)
