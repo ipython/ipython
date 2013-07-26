@@ -31,7 +31,7 @@ class SlidesExporter(Exporter):
     """
     
     file_extension = Unicode(
-        'html', config=True, 
+        'slides.html', config=True, 
         help="Extension of the file that should be written to disk"
         )
 
