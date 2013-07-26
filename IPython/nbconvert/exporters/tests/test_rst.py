@@ -16,6 +16,7 @@ Module with tests for rst.py
 
 from .base import ExportersTestsBase
 from ..rst import RSTExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -31,6 +32,7 @@ class TestRSTExporter(ExportersTestsBase):
         RSTExporter()
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a RSTExporter export something?

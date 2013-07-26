@@ -16,6 +16,7 @@ Module with tests for basichtml.py
 
 from .base import ExportersTestsBase
 from ..basichtml import BasicHTMLExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -30,7 +31,7 @@ class TestBasicHTMLExporter(ExportersTestsBase):
         """
         BasicHTMLExporter()
 
-
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a BasicHTMLExporter export something?
