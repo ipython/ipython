@@ -1,5 +1,5 @@
 """
-Exporter that exports Basic HTML.
+Contains slide show exporter
 """
 
 #-----------------------------------------------------------------------------
