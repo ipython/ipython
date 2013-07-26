@@ -16,6 +16,7 @@ Module with tests for fullhtml.py
 
 from .base import ExportersTestsBase
 from ..fullhtml import FullHTMLExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -30,7 +31,7 @@ class TestFullHTMLExporter(ExportersTestsBase):
         """
         FullHTMLExporter()
 
-
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a FullHTMLExporter export something?

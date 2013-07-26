@@ -16,6 +16,7 @@ Module with tests for sphinx_howto.py
 
 from .base import ExportersTestsBase
 from ..sphinx_howto import SphinxHowtoExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -31,6 +32,7 @@ class TestSphinxHowtoExporter(ExportersTestsBase):
         SphinxHowtoExporter()
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a SphinxHowtoExporter export something?

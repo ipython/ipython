@@ -16,6 +16,7 @@ Module with tests for reveal.py
 
 from .base import ExportersTestsBase
 from ..reveal import RevealExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -31,6 +32,7 @@ class TestRevealExporter(ExportersTestsBase):
         RevealExporter()
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a RevealExporter export something?

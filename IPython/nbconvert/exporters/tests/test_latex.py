@@ -16,6 +16,7 @@ Module with tests for latex.py
 
 from .base import ExportersTestsBase
 from ..latex import LatexExporter
+from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
@@ -31,6 +32,7 @@ class TestLatexExporter(ExportersTestsBase):
         LatexExporter()
 
 
+    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
         Can a LatexExporter export something?
