@@ -16,6 +16,9 @@ Utilities for path handling.
 
 import os
 import sys
+import errno
+import shutil
+import random
 import tempfile
 import warnings
 from hashlib import md5
@@ -510,3 +513,52 @@ def get_security_file(filename, profile='default'):
         raise IOError("Profile %r not found")
     return filefind(filename, ['.', pd.security_dir])
 
+
+ENOLINK = 1998
+
+def link(src, dst):
+    """Hard links ``src`` to ``dst``, returning 0 or errno.
+
+    Note that the special errno ``ENOLINK`` will be returned if ``os.link`` isn't
+    supported by the operating system.
+    """
+
+    if not hasattr(os, "link"):
+        return ENOLINK
+    link_errno = 0
+    try:
+        os.link(src, dst)
+    except OSError as e:
+        link_errno = e.errno
+    return link_errno
+
+
+def link_or_copy(src, dst):
+    """Attempts to hardlink ``src`` to ``dst``, copying if the link fails.
+
+    Attempts to maintain the semantics of ``shutil.copy``.
+
+    Because ``os.link`` does not overwrite files, a unique temporary file
+    will be used if the target already exists, then that file will be moved
+    into place.
+    """
+
+    if os.path.isdir(dst):
+        dst = os.path.join(dst, os.path.basename(src))
+
+    link_errno = link(src, dst)
+    if link_errno == errno.EEXIST:
+        new_dst = dst + "-temp-%04X" %(random.randint(1, 16**4), )
+        try:
+            link_or_copy(src, new_dst)
+        except:
+            try:
+                os.remove(new_dst)
+            except OSError:
+                pass
+            raise
+        os.rename(new_dst, dst)
+    elif link_errno != 0:
+        # Either link isn't supported, or the filesystem doesn't support
+        # linking, or 'src' and 'dst' are on different filesystems.
+        shutil.copy(src, dst)
