@@ -25,7 +25,7 @@ import collections
 import datetime
 
 # other libs/dependencies
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -214,7 +214,7 @@ class Exporter(Configurable):
             try:
                 self.template = self.environment.get_template(try_name)
                 break
-            except:
+            except TemplateNotFound:
                 pass
 
         if hasattr(self, 'template'):
