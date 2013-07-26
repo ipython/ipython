@@ -215,9 +215,6 @@ class NbConvertApp(BaseIPythonApplication):
                 print("Error while converting '%s': %s" %(notebook_filename, e),
                       file=sys.stderr)
                 self.exit(1)
-            # except Exception as e:
-                # print("Error: could not export '%s'" % notebook_filename, file=sys.stderr)
-                # print(e, file=sys.stderr)
             else:
                 self.writer.write(output, resources, notebook_name=notebook_name)
                 conversion_success += 1
