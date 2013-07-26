@@ -13,18 +13,11 @@
 $(document).ready(function () {
 
     IPython.page = new IPython.Page();
-    
-    if ($('body').data('notebookPath') == "") {
-        $('#new_notebook').button().click(function (e) {
-                window.open($('body').data('baseProjectUrl')+'notebooks/'+'new');
-        });
-    }
-    else {
-        $('#new_notebook').button().click(function (e) {
-                window.open($('body').data('baseProjectUrl')+'notebooks/'+$('body').data('notebookPath') + '/new');
-        });
-    }
-    
+
+    $('#new_notebook').button().click(function (e) {
+        IPython.notebook_list.new_notebook($('body').data('baseProjectUrl'))
+    });
+
     IPython.notebook_list = new IPython.NotebookList('#notebook_list');
     IPython.cluster_list = new IPython.ClusterList('#cluster_list');
     IPython.login_widget = new IPython.LoginWidget('#login_widget');
