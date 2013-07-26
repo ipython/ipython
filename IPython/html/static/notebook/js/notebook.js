@@ -1789,7 +1789,8 @@ var IPython = (function (IPython) {
             data : JSON.stringify(name),
             dataType: "json",
             headers : {'Content-Type': 'application/json'},
-            success : $.proxy(that.rename_success, this)
+            success : $.proxy(that.rename_success, this),
+            error : $.proxy(that.rename_error, this)
         };
         $([IPython.events]).trigger('notebook_rename.Notebook');
         var url = this.baseProjectUrl() + 'api/notebooks/' + this.notebookPath()+ this.notebook_name;
@@ -1803,7 +1804,37 @@ var IPython = (function (IPython) {
         this.session.notebook_rename(notebook_path);
         $([IPython.events]).trigger('notebook_renamed.Notebook');
     }
-    
+
+    Notebook.prototype.rename_error = function (json, status, xhr) {
+        var that = this;
+        var dialog = $('<div/>').append(
+            $("<p/>").addClass("rename-message")
+            .html('This notebook name already exists.')
+        )
+        IPython.dialog.modal({
+            title: "Notebook Rename Error!",
+            body: dialog,
+            buttons : {
+                "Cancel": {},
+                "OK": {
+                    class: "btn-primary",
+                    click: function () {
+                        IPython.save_widget.rename_notebook();
+                }}
+                },
+            open : function (event, ui) {
+                var that = $(this);
+                // Upon ENTER, click the OK button.
+                that.find('input[type="text"]').keydown(function (event, ui) {
+                    if (event.which === utils.keycodes.ENTER) {
+                        that.find('.btn-primary').first().click();
+                    }
+                });
+                that.find('input[type="text"]').focus();
+            }
+        });
+    }
+
     /**
      * Request a notebook's data from the server.
      * 
