@@ -32,6 +32,7 @@ from IPython.utils.importstring import import_item
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
 from IPython.nbconvert import exporters, transformers, writers
 from .utils.base import NbConvertBase
+from .utils.exceptions import ConversionException
 
 #-----------------------------------------------------------------------------
 #Classes and functions
@@ -203,12 +204,17 @@ class NbConvertApp(BaseIPythonApplication):
                                               resources=resources,
                                               config=self.config)
             except ExporterNameError as e:
-                print("Error: '%s' exporter not found." % self.export_format,
+                print("Error while converting '%s': '%s' exporter not found."
+                      %(notebook_filename, self.export_format),
                       file=sys.stderr)
                 print("Known exporters are:",
                       "\n\t" + "\n\t".join(get_export_names()),
                       file=sys.stderr)
-                sys.exit(-1)
+                self.exit(1)
+            except ConversionException as e:
+                print("Error while converting '%s': %s" %(notebook_filename, e),
+                      file=sys.stderr)
+                self.exit(1)
             else:
                 self.writer.write(output, resources, notebook_name=notebook_name)
                 conversion_success += 1
