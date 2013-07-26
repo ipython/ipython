@@ -96,20 +96,25 @@ class FileNotebookManager(NotebookManager):
     def change_notebook(self, data, notebook_name, notebook_path=None):
         """Changes notebook"""
         changes = data.keys()
+        response = 200
         for change in changes:
             full_path = self.get_path(notebook_name, notebook_path)
-            if change == "notebook_name":
-                os.rename(full_path,
-                    self.get_path(data['notebook_name'], notebook_path))
-                notebook_name = data['notebook_name']
-            if change == "notebook_path":
-                new_path = self.get_path(data['notebook_name'], data['notebook_path'])
+            if change == "name":
+                new_path = self.get_path(data['name'], notebook_path)
+                if os.path.isfile(new_path) == False:
+                    os.rename(full_path,
+                        self.get_path(data['name'], notebook_path))
+                    notebook_name = data['name']
+                else:
+                    response = 409
+            if change == "path":
+                new_path = self.get_path(data['name'], data['path'])
                 stutil.move(full_path, new_path)
-                notebook_path = data['notebook_path']
+                notebook_path = data['path']
             if change == "content":
                 self.save_notebook(data, notebook_name, notebook_path)
         model = self.notebook_model(notebook_name, notebook_path)
-        return model
+        return model, response
 
     def notebook_exists(self, notebook_path):
         """Does a notebook exist?"""
