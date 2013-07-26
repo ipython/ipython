@@ -39,6 +39,9 @@ var IPython = (function (IPython) {
             // 'sticky ?'
             this._sticky = false;
 
+            // display tooltip if the docstring is empty?
+            this._hide_if_no_docstring = false;
+
             // contain the button in the upper right corner
             this.buttons = $('<div/>').addClass('tooltipbuttons');
 
@@ -178,10 +181,10 @@ var IPython = (function (IPython) {
     }
 
     // will trigger tooltip after timeout
-    Tooltip.prototype.pending = function (cell) {
+    Tooltip.prototype.pending = function (cell, hide_if_no_docstring) {
         var that = this;
         this._tooltip_timeout = setTimeout(function () {
-            that.request(cell)
+            that.request(cell, hide_if_no_docstring)
         }, that.time_before_tooltip);
     }
 
@@ -212,7 +215,7 @@ var IPython = (function (IPython) {
     }
 
     // make an imediate completion request
-    Tooltip.prototype.request = function (cell) {
+    Tooltip.prototype.request = function (cell, hide_if_no_docstring) {
         // request(codecell)
         // Deal with extracting the text from the cell and counting
         // call in a row
@@ -223,6 +226,8 @@ var IPython = (function (IPython) {
             line: cursor.line,
             ch: 0
         }, cursor).trim();
+
+        this._hide_if_no_docstring = hide_if_no_docstring;
 
         if(editor.somethingSelected()){
             text = editor.getSelection();
@@ -312,8 +317,6 @@ var IPython = (function (IPython) {
         this.arrow.animate({
             'left': posarrowleft + 'px'
         });
-        this.tooltip.fadeIn('fast');
-        this._hidden = false;
 
         // build docstring
         var defstring = reply.call_def;
@@ -331,10 +334,15 @@ var IPython = (function (IPython) {
         if (docstring == null) {
             docstring = reply.docstring;
         }
-        if (docstring == null) {
+
+        if (docstring == null && this._hide_if_no_docstring) {
+            return;
+        } else {
             docstring = "<empty docstring>";
         }
 
+        this.tooltip.fadeIn('fast');
+        this._hidden = false;
         this.text.children().remove();
 
         var pre = $('<pre/>').html(utils.fixConsole(docstring));

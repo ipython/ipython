@@ -167,7 +167,9 @@ var IPython = (function (IPython) {
             // triger on keypress (!) otherwise inconsistent event.which depending on plateform
             // browser and keyboard layout !
             // Pressing '(' , request tooltip, don't forget to reappend it
-            IPython.tooltip.pending(that);
+            // The second argument says to hide the tooltip if the docstring 
+            // is actually empty
+            IPython.tooltip.pending(that, true);
         } else if (event.which === key.UPARROW && event.type === 'keydown') {
             // If we are not at the top, let CM handle the up arrow and
             // prevent the global keydown handler from handling it.
