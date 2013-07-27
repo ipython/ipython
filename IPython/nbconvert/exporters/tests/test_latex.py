@@ -39,3 +39,30 @@ class TestLatexExporter(ExportersTestsBase):
         """
         (output, resources) = LatexExporter().from_filename(self._get_notebook())
         assert len(output) > 0
+
+
+    @onlyif_cmds_exist('pandoc')
+    def test_export_book(self):
+        """
+        Can a LatexExporter export using 'book' template?
+        """
+        (output, resources) = LatexExporter(template='book').from_filename(self._get_notebook())
+        assert len(output) > 0
+
+
+    @onlyif_cmds_exist('pandoc')
+    def test_export_basic(self):
+        """
+        Can a LatexExporter export using 'basic' template?
+        """
+        (output, resources) = LatexExporter(template='basic').from_filename(self._get_notebook())
+        assert len(output) > 0
+
+
+    @onlyif_cmds_exist('pandoc')
+    def test_export_article(self):
+        """
+        Can a LatexExporter export using 'article' template?
+        """
+        (output, resources) = LatexExporter(template='article').from_filename(self._get_notebook())
+        assert len(output) > 0

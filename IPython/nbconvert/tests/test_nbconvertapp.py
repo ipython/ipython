@@ -17,6 +17,7 @@ import os
 from .base import TestsBase
 
 from IPython.utils import py3compat
+from IPython.testing import decorators as dec
 
     
 #-----------------------------------------------------------------------------
@@ -52,7 +53,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
             assert not 'error' in self.call([IPYTHON, 'nbconvert', 
-                '--format="python"', '--notebooks=["*.ipynb"]']).lower()
+                '--to="python"', '--notebooks=["*.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
 
@@ -63,7 +64,7 @@ class TestNbConvertApp(TestsBase):
         """
         with self.create_temp_cwd() as cwd:
             self.copy_files_to(['notebook*.ipynb'], 'subdir/')
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["%s"]' % os.path.join('subdir', '*.ipynb')]).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
@@ -74,10 +75,35 @@ class TestNbConvertApp(TestsBase):
         Do explicit notebook names work?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["notebook2.ipynb"]']).lower()
             assert not os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
+
+
+    @dec.onlyif_cmds_exist('pdflatex')
+    def test_post_processor(self):
+        """
+        Do post processors work?
+        """
+        with self.create_temp_cwd(['notebook1.ipynb']):
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="latex"', 
+                'notebook1', '--post="PDF"', '--PDFPostProcessor.verbose=True']).lower()
+            assert os.path.isfile('notebook1.tex')
+            print("\n\n\t" + "\n\t".join([f for f in os.listdir('.') if os.path.isfile(f)]) + "\n\n")
+            assert os.path.isfile('notebook1.pdf')
+
+
+    def test_template(self):
+        """
+        Do export templates work?
+        """
+        with self.create_temp_cwd(['notebook2.ipynb']):
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to=slides', 
+                '--notebooks=["notebook2.ipynb"]', '--template=reveal']).lower()
+            assert os.path.isfile('notebook2.slides.html')
+            with open('notebook2.slides.html') as f:
+                assert '/reveal.css' in f.read()
 
 
     def test_glob_explicit(self):
@@ -85,7 +111,7 @@ class TestNbConvertApp(TestsBase):
         Can a search pattern be used along with matching explicit notebook names?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["*.ipynb", "notebook1.ipynb", "notebook2.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')
@@ -96,7 +122,7 @@ class TestNbConvertApp(TestsBase):
         Can explicit notebook names be used and then a matching search pattern?
         """
         with self.create_temp_cwd(['notebook*.ipynb']):
-            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--format="python"', 
+            assert not 'error' in self.call([IPYTHON, 'nbconvert', '--to="python"', 
                 '--notebooks=["notebook1.ipynb", "notebook2.ipynb", "*.ipynb"]']).lower()
             assert os.path.isfile('notebook1.py')
             assert os.path.isfile('notebook2.py')

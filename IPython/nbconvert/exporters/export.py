@@ -19,15 +19,12 @@ from IPython.nbformat.v3.nbbase import NotebookNode
 from IPython.config import Config
 
 from .exporter import Exporter
-from .basichtml import BasicHTMLExporter
-from .fullhtml import FullHTMLExporter
+from .html import HTMLExporter
+from .slides import SlidesExporter
 from .latex import LatexExporter
 from .markdown import MarkdownExporter
 from .python import PythonExporter
-from .reveal import RevealExporter
 from .rst import RSTExporter
-from .sphinx_howto import SphinxHowtoExporter
-from .sphinx_manual import SphinxManualExporter
 
 #-----------------------------------------------------------------------------
 # Classes
@@ -54,7 +51,10 @@ def DocDecorator(f):
     exporter_instance : Exporter
         Instance of the Exporter class used to export the document.  Useful
         to caller because it provides a 'file_extension' property which
-        specifies what extension the output should be saved as."""
+        specifies what extension the output should be saved as.
+
+    WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT
+    """
             
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -69,14 +69,12 @@ def DocDecorator(f):
 
 __all__ = [
     'export',
-    'export_sphinx_manual',
-    'export_sphinx_howto',
-    'export_basic_html',
-    'export_full_html',
+    'export_html',
+    'export_custom',
+    'export_slides',
     'export_latex',
     'export_markdown',
     'export_python',
-    'export_reveal',
     'export_rst',
     'export_by_name',
     'get_export_names',
@@ -126,35 +124,27 @@ def export(exporter, nb, **kw):
 
 
 @DocDecorator
-def export_sphinx_manual(nb, **kw):
+def export_custom(nb, **kw):
     """
-    Export a notebook object to Sphinx Manual LaTeX
+    Export a notebook object to a custom format
     """
-    return export(SphinxManualExporter, nb, **kw)
+    return export(Exporter, nb, **kw)
 
 
 @DocDecorator
-def export_sphinx_howto(nb, **kw):
+def export_html(nb, **kw):
     """
-    Export a notebook object to Sphinx HowTo LaTeX
+    Export a notebook object to HTML
     """
-    return export(SphinxHowtoExporter, nb, **kw)
+    return export(HTMLExporter, nb, **kw)
 
 
 @DocDecorator
-def export_basic_html(nb, **kw):
+def export_slides(nb, **kw):
     """
-    Export a notebook object to Basic HTML
+    Export a notebook object to Slides
     """
-    return export(BasicHTMLExporter, nb, **kw)
-
-
-@DocDecorator
-def export_full_html(nb, **kw):
-    """
-    Export a notebook object to Full HTML
-    """
-    return export(FullHTMLExporter, nb, **kw)
+    return export(SlidesExporter, nb, **kw)
 
 
 @DocDecorator
@@ -179,14 +169,6 @@ def export_python(nb, **kw):
     Export a notebook object to Python
     """
     return export(PythonExporter, nb, **kw)
-
-
-@DocDecorator
-def export_reveal(nb, **kw):
-    """
-    Export a notebook object to a Reveal.js presentation
-    """
-    return export(RevealExporter, nb, **kw)
 
 
 @DocDecorator
@@ -217,7 +199,10 @@ def export_by_name(format_name, nb, **kw):
 
 
 def get_export_names():
-    "Return a list of the currently supported export targets"
+    """Return a list of the currently supported export targets
+
+    WARNING: API WILL CHANGE IN FUTURE RELEASES OF NBCONVERT"""
+    
     # grab everything after 'export_'
     l = [x[len('export_'):] for x in __all__ if x.startswith('export_')]
     

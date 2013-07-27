@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Contains debug writer.
 """

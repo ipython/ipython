@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Contains writer for writing nbconvert output to filesystem.
 """
@@ -100,3 +99,4 @@ class FilesWriter(WriterBase):
             # Write conversion results.
             with io.open(dest, 'w') as f:
                 f.write(output)
+            return dest 

@@ -29,7 +29,3 @@ class MarkdownExporter(Exporter):
     file_extension = Unicode(
         'md', config=True, 
         help="Extension of the file that should be written to disk")
-
-    template_file = Unicode(
-            'markdown', config=True,
-            help="Name of the template file to use")

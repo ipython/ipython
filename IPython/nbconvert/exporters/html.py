@@ -17,6 +17,7 @@ Exporter that exports Basic HTML.
 from IPython.utils.traitlets import Unicode, List
 
 from IPython.nbconvert import transformers
+from IPython.config import Config
 
 from .exporter import Exporter
 
@@ -24,7 +25,7 @@ from .exporter import Exporter
 # Classes
 #-----------------------------------------------------------------------------
 
-class BasicHTMLExporter(Exporter):
+class HTMLExporter(Exporter):
     """
     Exports a basic HTML document.  This exporter assists with the export of
     HTML.  Inherit from it if you are writing your own HTML template and need
@@ -37,6 +38,15 @@ class BasicHTMLExporter(Exporter):
         help="Extension of the file that should be written to disk"
         )
 
-    template_file = Unicode(
-            'basichtml', config=True,
-            help="Name of the template file to use")
+    default_template = Unicode('full', config=True, help="""Flavor of the data 
+        format to use.  I.E. 'full' or 'basic'""")
+
+    @property
+    def default_config(self):
+        c = Config({
+            'CSSHTMLHeaderTransformer':{
+                'enabled':True
+                }          
+            })
+        c.merge(super(HTMLExporter,self).default_config)
+        return c

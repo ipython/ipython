@@ -4,11 +4,11 @@
   Purpose: Allow export of PDF friendly Latex inspired by Sphinx Manual 
            document style.  Most of the is derived directly from Sphinx source.
 
-  Inheritance: null>display_priority>latex_base->latex_sphinx_base 
+  Inheritance: null>display_priority>sphinx 
 
   ==========================================================================))
 
-((*- extends 'sphinx_base.tplx' -*))
+((*- extends 'sphinx.tplx' -*))
 
 ((* set parentdocumentclass = 'report' *))
 ((* set documentclass = 'manual' *))

@@ -9,6 +9,8 @@ Note: For best display, use latex syntax highlighting. =))
 
 ((*- extends 'display_priority.tplx' -*))
 
+\nonstopmode
+
 %==============================================================================
 % Declarations
 %==============================================================================
