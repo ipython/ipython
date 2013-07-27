@@ -100,3 +100,10 @@ class FilesWriter(WriterBase):
             with io.open(dest, 'w') as f:
                 f.write(output)
             return dest 
+            
+            
+    def serve(self, format):
+        """
+        Not implemented function to serve the build directory.
+        """
+        pass            

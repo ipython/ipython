@@ -67,6 +67,10 @@ nbconvert_flags.update({
     'stdout' : (
         {'NbConvertApp' : {'writer_class' : "StdoutWriter"}},
         "Write notebook output to stdout instead of files."
+        ),
+    'serve' : (
+        {'NbConvertApp' : {'writer_class' : "ServeWriter"}},
+        "Write notebook to a file and serve it."
         )
 })
 
@@ -141,7 +145,8 @@ class NbConvertApp(BaseIPythonApplication):
                                     results of the conversion""")
     writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
                       'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
-                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
+                      'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter',
+                      'ServeWriter': 'IPython.nbconvert.writers.serve.ServeWriter'}
     writer_factory = Type()
 
     def _writer_class_changed(self, name, old, new):
@@ -246,6 +251,7 @@ class NbConvertApp(BaseIPythonApplication):
         """
         super(NbConvertApp, self).start()
         self.convert_notebooks()
+        self.serve_files()
 
     def convert_notebooks(self):
         """
@@ -292,7 +298,12 @@ class NbConvertApp(BaseIPythonApplication):
         if conversion_success == 0:
             self.print_help()
             sys.exit(-1)
-
+            
+    def serve_files(self):
+        """
+        Serve the resulting files arter nbconversion.
+        """
+        self.writer.serve(self.export_format)
 
 #-----------------------------------------------------------------------------
 # Main entry point
