@@ -9,4 +9,4 @@
    :Release: |version|
    :Date: |today|
 
-.. include:: generated/gen.rst
+.. include:: generated/gen.txt

@@ -9,6 +9,6 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   parallel_winhpc.txt
-   parallel_demos.txt
+   parallel_winhpc
+   parallel_demos
 

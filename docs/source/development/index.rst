@@ -20,7 +20,7 @@ on the IPython GitHub wiki.
    :maxdepth: 1
 
  
-   gitwash/index.txt
-   messaging.txt
-   parallel_messages.txt
-   parallel_connections.txt
+   gitwash/index
+   messaging
+   parallel_messages
+   parallel_connections

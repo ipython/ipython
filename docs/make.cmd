@@ -36,7 +36,7 @@ FOR %%L IN (html pickle htmlhelp latex changes linkcheck) DO (
         )
         IF "%1" == "linkcheck" (
             ECHO Look for any errors in the above output
-            ECHO    or in build\linkcheck\output.txt.
+            ECHO    or in build\linkcheck\output.rst.
         )
         GOTO END
     )

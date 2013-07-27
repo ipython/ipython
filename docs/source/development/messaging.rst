@@ -1058,4 +1058,4 @@ Missing things include:
 * Signal handling: specify what kind of information kernel should broadcast (or
   not) when it receives signals.
 
-.. include:: ../links.rst
+.. include:: ../links.txt
