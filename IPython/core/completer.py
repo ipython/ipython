@@ -97,6 +97,10 @@ if sys.platform == 'win32':
 else:
     PROTECTABLES = ' ()[]{}?=\\|;:\'#*"^&'
 
+START_WITH_MAGIC_PATTERN = re.compile("%+")  # find %
+
+
+
 #-----------------------------------------------------------------------------
 # Main functions and classes
 #-----------------------------------------------------------------------------
@@ -214,13 +218,10 @@ def penalize_magics_key(word):
 
     # Move all % to end of the *key* (don't change the actual text, of course)
 
-    pattern = re.compile("%+")  # find %
-    m = pattern.match(word) # at the start of the string
-
-    print m
+    m = START_WITH_MAGIC_PATTERN.match(word) # at the start of the string
 
     if m != None:  # if there is a match
-        word = word[m.end():] + m.group()  # move all %'s to the end: 
+        word = word[m.end():] + m.group()  # move all %'s to the end
        
     return word
 
@@ -958,17 +959,17 @@ class IPCompleter(Completer):
                     self.matches = matcher(text)
                     if self.matches:
                         break
+
         # FIXME: we should extend our api to return a dict with completions for
         # different types of objects.  The rlcomplete() method could then
         # simply collapse the dict into a list for readline, but we'd have
         # richer completion semantics in other evironments.
 
-        self.matches = sorted(set(self.matches), key=penalize_magics_key)
 
-        # Alternative: don't sort, use uniquify instead, which removes duplicate preserving the initial order:
-        # self.matches = uniquify(self.matches)
-        
-        #io.rprint('COMP TEXT, MATCHES: %r, %r' % (text, self.matches)) # dbg
+        # Use the penalize_magics_keys to push magics to after variables
+        # with the same name:
+
+        self.matches = sorted(set(self.matches), key=penalize_magics_key)
         
         return text, self.matches
 

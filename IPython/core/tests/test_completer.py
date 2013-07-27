@@ -362,7 +362,7 @@ def test_line_cell_magics():
     nt.assert_not_in('%_bar_cellm', matches)
     nt.assert_in('%%_bar_cellm', matches)
 
-def test_complete():
+def test_magic_completion_order():
 
     ip = get_ipython()
     c = ip.Completer
