@@ -21,15 +21,15 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   overview.txt
-   whatsnew/index.txt
-   install/index.txt
-   interactive/index.txt
-   parallel/index.txt
-   config/index.txt
-   development/index.txt
-   api/index.txt
-   about/index.txt
+   overview
+   whatsnew/index
+   install/index
+   interactive/index
+   parallel/index
+   config/index
+   development/index
+   api/index
+   about/index
 
 .. htmlonly::
    * :ref:`genindex`
