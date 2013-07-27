@@ -195,6 +195,8 @@ Major changes to the IPython Notebook in 1.0:
   (all style, including bootstrap), and :file:`static/css/ipython.min.css`,
   which only has IPython's own CSS. The latter file should be useful for embedding
   IPython notebooks in other pages, blogs, etc.
+- The "Print View" has been removed, as the main notebook page is fully capable
+  of being printed using standard web browser print facilities.
 
 Javascript Components
 *********************
