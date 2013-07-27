@@ -11,9 +11,6 @@
 ((*- extends 'sphinx.tplx' -*))
 
 
-
-
-
 ((* set parentdocumentclass = 'report' *))
 ((* set documentclass = 'manual' *))
 

@@ -11,9 +11,6 @@
 ((*- extends 'sphinx.tplx' -*))
 
 
-
-
-
 ((* set parentdocumentclass = 'article' *))
 ((* set documentclass = 'howto' *))
 
