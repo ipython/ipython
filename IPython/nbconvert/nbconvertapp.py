@@ -162,7 +162,8 @@ class NbConvertApp(BaseIPythonApplication):
     post_processor_class = DottedOrNone(config=True, 
                                     help="""PostProcessor class used to write the 
                                     results of the conversion""")
-    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor'}
+    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor',
+                              'serve': 'IPython.nbconvert.post_processors.serve.ServePostProcessor'}
     post_processor_factory = Type()
 
     def _post_processor_class_changed(self, name, old, new):
