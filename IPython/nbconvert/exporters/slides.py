@@ -1,7 +1,7 @@
 """
-Exporter for exporting notebooks to Sphinx 'HowTo' style latex.  Latex 
-formatted for use with PDFLatex.
+Contains slide show exporter
 """
+
 #-----------------------------------------------------------------------------
 # Copyright (c) 2013, the IPython Development Team.
 #
@@ -14,31 +14,39 @@ formatted for use with PDFLatex.
 # Imports
 #-----------------------------------------------------------------------------
 
-from IPython.utils.traitlets import Unicode, List
-from IPython.config import Config
-
-# local import
-from .latex import LatexExporter
+from IPython.utils.traitlets import Unicode
 
 from IPython.nbconvert import transformers
+from IPython.config import Config
+
+from .exporter import Exporter
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
 
-class SphinxHowtoExporter(LatexExporter):
+class SlidesExporter(Exporter):
     """
-    Exports Sphinx "HowTo" LaTeX documents.  The Sphinx "HowTo" exporter 
-    produces short document format latex for use with PDFLatex.
+    Exports slides
     """
     
-    template_file = Unicode(
-            'sphinx_howto', config=True,
-            help="Name of the template file to use")
+    file_extension = Unicode(
+        'slides.html', config=True, 
+        help="Extension of the file that should be written to disk"
+        )
 
-    
+    default_template = Unicode('reveal', config=True, help="""Template of the 
+        data format to use.  I.E. 'reveal'""")
+
     @property
     def default_config(self):
-        c = Config({'SphinxTransformer': {'enabled':True}})
-        c.merge(super(SphinxHowtoExporter,self).default_config)
+        c = Config({
+            'CSSHTMLHeaderTransformer':{
+                'enabled':True
+                },
+            'RevealHelpTransformer':{
+                'enabled':True,
+                },                
+            })
+        c.merge(super(SlidesExporter,self).default_config)
         return c

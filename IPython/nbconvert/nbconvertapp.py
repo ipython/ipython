@@ -30,7 +30,7 @@ from IPython.utils.traitlets import (
 from IPython.utils.importstring import import_item
 
 from .exporters.export import export_by_name, get_export_names, ExporterNameError
-from IPython.nbconvert import exporters, transformers, writers
+from IPython.nbconvert import exporters, transformers, writers, post_processors
 from .utils.base import NbConvertBase
 from .utils.exceptions import ConversionException
 
@@ -38,12 +38,27 @@ from .utils.exceptions import ConversionException
 #Classes and functions
 #-----------------------------------------------------------------------------
 
+class DottedOrNone(DottedObjectName):
+    """
+    A string holding a valid dotted object name in Python, such as A.b3._c
+    Also allows for None type."""
+    
+    default_value = u''
+
+    def validate(self, obj, value):
+        if value is not None and len(value) > 0:
+            return super(DottedOrNone, self).validate(obj, value)
+        else:
+            return value
+            
 nbconvert_aliases = {}
 nbconvert_aliases.update(base_aliases)
 nbconvert_aliases.update({
-    'format' : 'NbConvertApp.export_format',
+    'to' : 'NbConvertApp.export_format',
+    'template' : 'Exporter.template_file',
     'notebooks' : 'NbConvertApp.notebooks',
     'writer' : 'NbConvertApp.writer_class',
+    'post': 'NbConvertApp.post_processor_class'
 })
 
 nbconvert_flags = {}
@@ -74,7 +89,9 @@ class NbConvertApp(BaseIPythonApplication):
 
     description = Unicode(
         u"""This application is used to convert notebook files (*.ipynb)
-        to various other formats.""")
+        to various other formats.
+
+        WARNING: THE COMMANDLINE INTERFACE MAY CHANGE IN FUTURE RELEASES.""")
 
     examples = Unicode(u"""
         The simplest way to use nbconvert is
@@ -83,14 +100,24 @@ class NbConvertApp(BaseIPythonApplication):
         
         which will convert mynotebook.ipynb to the default format (probably HTML).
         
-        You can specify the export format with `--format`.
+        You can specify the export format with `--to`.
         Options include {0}
         
-        > ipython nbconvert --format latex mynotebook.ipnynb
+        > ipython nbconvert --to latex mynotebook.ipnynb
+
+        Both HTML and LaTeX support multiple output templates. LaTeX includes
+        'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
+        can specify the flavor of the format used.
+
+        > ipython nbconvert --to html --template basic mynotebook.ipynb
         
         You can also pipe the output to stdout, rather than a file
         
         > ipython nbconvert mynotebook.ipynb --stdout
+
+        A post-processor can be used to compile a PDF
+
+        > ipython nbconvert mynotebook.ipynb --to latex --post PDF
         
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
@@ -104,6 +131,7 @@ class NbConvertApp(BaseIPythonApplication):
         
         > ipython nbconvert --config mycfg.py
         """.format(get_export_names()))
+
     # Writer specific variables
     writer = Instance('IPython.nbconvert.writers.base.WriterBase',  
                       help="""Instance of the writer class used to write the 
@@ -121,10 +149,27 @@ class NbConvertApp(BaseIPythonApplication):
             new = self.writer_aliases[new]
         self.writer_factory = import_item(new)
 
+    # Post-processor specific variables
+    post_processor = Instance('IPython.nbconvert.post_processors.base.PostProcessorBase',  
+                      help="""Instance of the PostProcessor class used to write the 
+                      results of the conversion.""")
+
+    post_processor_class = DottedOrNone(config=True, 
+                                    help="""PostProcessor class used to write the 
+                                    results of the conversion""")
+    post_processor_aliases = {'PDF': 'IPython.nbconvert.post_processors.pdf.PDFPostProcessor'}
+    post_processor_factory = Type()
+
+    def _post_processor_class_changed(self, name, old, new):
+        if new in self.post_processor_aliases:
+            new = self.post_processor_aliases[new]
+        if new:
+            self.post_processor_factory = import_item(new)
+
 
     # Other configurable variables
     export_format = CaselessStrEnum(get_export_names(),
-        default_value="full_html",
+        default_value="html",
         config=True,
         help="""The export format to be used."""
     )
@@ -140,6 +185,8 @@ class NbConvertApp(BaseIPythonApplication):
         self.init_syspath()
         self.init_notebooks()
         self.init_writer()
+        self.init_post_processor()
+
 
 
     def init_syspath(self):
@@ -184,6 +231,15 @@ class NbConvertApp(BaseIPythonApplication):
         self._writer_class_changed(None, self.writer_class, self.writer_class)
         self.writer = self.writer_factory(parent=self)
 
+    def init_post_processor(self):
+        """
+        Initialize the post_processor (which is stateless)
+        """
+        self._post_processor_class_changed(None, self.post_processor_class, 
+            self.post_processor_class)
+        if self.post_processor_factory:
+            self.post_processor = self.post_processor_factory(parent=self)
+
     def start(self):
         """
         Ran after initialization completed
@@ -225,7 +281,11 @@ class NbConvertApp(BaseIPythonApplication):
                       file=sys.stderr)
                 self.exit(1)
             else:
-                self.writer.write(output, resources, notebook_name=notebook_name)
+                write_resultes = self.writer.write(output, resources, notebook_name=notebook_name)
+
+                #Post-process if post processor has been defined.
+                if hasattr(self, 'post_processor') and self.post_processor:
+                    self.post_processor(write_resultes)
                 conversion_success += 1
 
         # If nothing was converted successfully, help the user.

@@ -1,5 +1,5 @@
 """
-Module with tests for sphinx_howto.py
+Module with tests for html.py
 """
 
 #-----------------------------------------------------------------------------
@@ -15,27 +15,45 @@ Module with tests for sphinx_howto.py
 #-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
-from ..sphinx_howto import SphinxHowtoExporter
+from ..html import HTMLExporter
 from IPython.testing.decorators import onlyif_cmds_exist
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestSphinxHowtoExporter(ExportersTestsBase):
-    """Contains test functions for sphinx_howto.py"""
+class TestHTMLExporter(ExportersTestsBase):
+    """Contains test functions for html.py"""
 
     def test_constructor(self):
         """
-        Can a SphinxHowtoExporter be constructed?
+        Can a HTMLExporter be constructed?
         """
-        SphinxHowtoExporter()
+        HTMLExporter()
 
 
     @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
-        Can a SphinxHowtoExporter export something?
+        Can a HTMLExporter export something?
         """
-        (output, resources) = SphinxHowtoExporter().from_filename(self._get_notebook())
+        (output, resources) = HTMLExporter().from_filename(self._get_notebook())
+        assert len(output) > 0
+
+
+    @onlyif_cmds_exist('pandoc')
+    def test_export_basic(self):
+        """
+        Can a HTMLExporter export using the 'basic' template?
+        """
+        (output, resources) = HTMLExporter(template='basic').from_filename(self._get_notebook())
+        assert len(output) > 0
+
+
+    @onlyif_cmds_exist('pandoc')
+    def test_export_full(self):
+        """
+        Can a HTMLExporter export using the 'full' template?
+        """
+        (output, resources) = HTMLExporter(template='full').from_filename(self._get_notebook())
         assert len(output) > 0

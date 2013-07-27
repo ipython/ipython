@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Contains writer base class.
 """

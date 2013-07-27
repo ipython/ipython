@@ -25,7 +25,7 @@ import collections
 import datetime
 
 # other libs/dependencies
-from jinja2 import Environment, FileSystemLoader, ChoiceLoader
+from jinja2 import Environment, FileSystemLoader, ChoiceLoader, TemplateNotFound
 
 # IPython imports
 from IPython.config.configurable import Configurable
@@ -86,7 +86,7 @@ class Exporter(Configurable):
     transformers provided by default suffice, there is no need to inherit from
     this class.  Instead, override the template_file and file_extension
     traits via a config file.
-    
+
     {filters}
     """
     
@@ -94,9 +94,15 @@ class Exporter(Configurable):
     __doc__ = __doc__.format(filters = '- '+'\n    - '.join(default_filters.keys()))
 
 
-    template_file = Unicode(
-            '', config=True,
+    template_file = Unicode(u'default',
+            config=True,
             help="Name of the template file to use")
+    def _template_file_changed(self, name, old, new):
+        if new=='default':
+            self.template_file = self.default_template
+        else:
+            self.template_file = new
+    default_template = Unicode(u'')
 
     file_extension = Unicode(
         'txt', config=True, 
@@ -155,6 +161,8 @@ class Exporter(Configurable):
         extra_loaders : list[of Jinja Loaders]
             ordered list of Jinja loder to find templates. Will be tried in order
             before the default FileSysteme ones.
+        template : str (optional, kw arg)
+            Template to use when exporting.
         """
         
         #Call the base class constructor
@@ -165,6 +173,7 @@ class Exporter(Configurable):
         super(Exporter, self).__init__(config=c, **kw)
 
         #Init
+        self._init_template(**kw)
         self._init_environment(extra_loaders=extra_loaders)
         self._init_transformers()
         self._init_filters()
@@ -189,12 +198,29 @@ class Exporter(Configurable):
         nb_copy = copy.deepcopy(nb)
         resources = self._init_resources(resources)
 
-        #Preprocess
+        # Preprocess
         nb_copy, resources = self._transform(nb_copy, resources)
 
-        #Convert
-        self.template = self.environment.get_template(self.template_file + self.template_extension)
-        output = self.template.render(nb=nb_copy, resources=resources)
+        # Try different template names during conversion.  First try to load the
+        # template by name with extension added, then try loading the template
+        # as if the name is explicitly specified, then try the name as a 
+        # 'flavor', and lastly just try to load the template by module name.
+        module_name = self.__module__.split('.')[-1]
+        try_names = [self.template_file + self.template_extension,
+                     self.template_file,
+                     module_name + '_' + self.template_file + self.template_extension,
+                     module_name + self.template_extension]
+        for try_name in try_names:
+            try:
+                self.template = self.environment.get_template(try_name)
+                break
+            except TemplateNotFound:
+                pass
+
+        if hasattr(self, 'template'):
+            output = self.template.render(nb=nb_copy, resources=resources)
+        else:
+            raise IOError('template file "%s" could not be found' % self.template_file)
         return output, resources
 
 
@@ -329,6 +355,16 @@ class Exporter(Configurable):
             raise TypeError('filter')
 
         
+    def _init_template(self, **kw):
+        """
+        Make sure a template name is specified.  If one isn't specified, try to
+        build one from the information we know.
+        """
+        self._template_file_changed('template_file', self.template_file, self.template_file)
+        if 'template' in kw:
+            self.template_file = kw['template']
+        
+
     def _init_environment(self, extra_loaders=None):
         """
         Create the Jinja templating environment.

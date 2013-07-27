@@ -1,5 +1,5 @@
 """
-Module with tests for sphinx_manual.py
+Module with tests for slides.py
 """
 
 #-----------------------------------------------------------------------------
@@ -15,27 +15,33 @@ Module with tests for sphinx_manual.py
 #-----------------------------------------------------------------------------
 
 from .base import ExportersTestsBase
-from ..sphinx_manual import SphinxManualExporter
-from IPython.testing.decorators import onlyif_cmds_exist
+from ..slides import SlidesExporter
 
 #-----------------------------------------------------------------------------
 # Class
 #-----------------------------------------------------------------------------
 
-class TestSphinxManualExporter(ExportersTestsBase):
-    """Contains test functions for sphinx_manual.py"""
+class TestSlidesExporter(ExportersTestsBase):
+    """Contains test functions for slides.py"""
 
     def test_constructor(self):
         """
-        Can a SphinxManualExporter be constructed?
+        Can a SlidesExporter be constructed?
         """
-        SphinxManualExporter()
+        SlidesExporter()
 
 
-    @onlyif_cmds_exist('pandoc')
     def test_export(self):
         """
-        Can a SphinxManualExporter export something?
+        Can a SlidesExporter export something?
         """
-        (output, resources) = SphinxManualExporter().from_filename(self._get_notebook())
+        (output, resources) = SlidesExporter().from_filename(self._get_notebook())
+        assert len(output) > 0
+
+
+    def test_export_reveal(self):
+        """
+        Can a SlidesExporter export using the 'reveal' template?
+        """
+        (output, resources) = SlidesExporter(template='reveal').from_filename(self._get_notebook())
         assert len(output) > 0

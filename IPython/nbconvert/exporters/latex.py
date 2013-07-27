@@ -44,9 +44,8 @@ class LatexExporter(Exporter):
         'tex', config=True, 
         help="Extension of the file that should be written to disk")
 
-    template_file = Unicode(
-        'base', config=True,
-        help="Name of the template file to use")
+    default_template = Unicode('article', config=True, help="""Template of the 
+        data format to use.  I.E. 'full' or 'basic'""")
 
     #Latex constants
     default_template_path = Unicode(
@@ -68,6 +67,7 @@ class LatexExporter(Exporter):
     #Extension that the template files use.    
     template_extension = Unicode(".tplx", config=True)
 
+
     @property
     def default_config(self):
         c = Config({
@@ -81,6 +81,9 @@ class LatexExporter(Exporter):
                     'enabled':True
                  },
              'LatexTransformer': {
+                    'enabled':True
+                 },
+             'SphinxTransformer': {
                     'enabled':True
                  }
          })

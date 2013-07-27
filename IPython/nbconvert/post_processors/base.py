@@ -1,5 +1,5 @@
 """
-Contains Stdout writer
+Basic post processor
 """
 #-----------------------------------------------------------------------------
 #Copyright (c) 2013, the IPython Development Team.
@@ -13,22 +13,23 @@ Contains Stdout writer
 # Imports
 #-----------------------------------------------------------------------------
 
-from .base import WriterBase
+from ..utils.base import NbConvertBase
+
 
 #-----------------------------------------------------------------------------
 # Classes
 #-----------------------------------------------------------------------------
+class PostProcessorBase(NbConvertBase):
 
-class StdoutWriter(WriterBase):
-    """Consumes output from nbconvert export...() methods and writes to the 
-    stdout stream."""
-
-
-    def write(self, output, resources, **kw):
+    def __call__(self, input):
         """
-        Consume and write Jinja output.
-
-        See base for more...
+        See def call() ...
         """
+        self.call(input)
 
-        print(output)
+
+    def call(self, input):
+        """
+        Post-process output from a writer.
+        """
+        raise NotImplementedError('call')
