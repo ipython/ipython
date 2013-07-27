@@ -144,6 +144,29 @@ class OpenStackNotebookManager(NotebookManager):
         else:
             self.delete_notebook_id(notebook_id)
 
+
+    # Checkpoint-related
+
+    def create_checkpoint(self, notebook_id):
+        """Create a checkpoint of the current state of a notebook
+
+        Returns a checkpoint_id for the new checkpoint.
+        """
+        raise web.HTTPError(405, "Checkpoints not implemented")
+
+    def list_checkpoints(self, notebook_id):
+        """Return a list of checkpoints for a given notebook"""
+        raise web.HTTPError(405, "Checkpoints not implemented")
+
+    def restore_checkpoint(self, notebook_id, checkpoint_id):
+        """Restore a notebook from one of its checkpoints"""
+        raise web.HTTPError(405, "Checkpoints not implemented")
+
+    def delete_checkpoint(self, notebook_id, checkpoint_id):
+        """delete a checkpoint for a notebook"""
+        raise web.HTTPError(405, "Checkpoints not implemented")
+
     def info_string(self):
         info = "Serving notebooks from OpenStack Swift storage: {},{}"
         return info.format(self.account_name, self.container_name)
+
