@@ -218,7 +218,7 @@ class Exporter(Configurable):
         resources['metadata']['name'] = notebook_name
 
         modified_date = datetime.datetime.fromtimestamp(os.path.getmtime(filename))
-        resources['metadata']['modified_date'] = modified_date.strftime("%B %-d, %Y")
+        resources['metadata']['modified_date'] = modified_date.strftime("%B %d, %Y")
         
         with io.open(filename) as f:
             return self.from_notebook_node(nbformat.read(f, 'json'), resources=resources,**kw)
