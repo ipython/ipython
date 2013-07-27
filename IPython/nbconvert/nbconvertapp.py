@@ -109,7 +109,7 @@ class NbConvertApp(BaseIPythonApplication):
         'basic', 'book', and 'article'.  HTML includes 'basic' and 'full'.  You 
         can specify the flavor of the format used.
 
-        > ipython nbconvert --to html --template reveal mynotebook.ipnynb
+        > ipython nbconvert --to html --template basic mynotebook.ipynb
         
         You can also pipe the output to stdout, rather than a file
         
