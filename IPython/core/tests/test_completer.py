@@ -18,6 +18,8 @@ from IPython.core import completer
 from IPython.external.decorators import knownfailureif
 from IPython.utils.tempdir import TemporaryDirectory
 from IPython.utils.generics import complete_object
+from IPython.testing.decorators import skipif_not_matplotlib
+
 
 #-----------------------------------------------------------------------------
 # Test functions
@@ -362,6 +364,7 @@ def test_line_cell_magics():
     nt.assert_not_in('%_bar_cellm', matches)
     nt.assert_in('%%_bar_cellm', matches)
 
+
 def test_magic_completion_order():
 
     ip = get_ipython()
@@ -376,7 +379,7 @@ def test_magic_completion_order():
     nt.assert_equal(matches, ["%matplotlib"])
 
 
-    ip.run_cell("import matplotlib")
+    ip.run_cell("maplotlib = 1")  # introduce name into namespace
 
     # After the import, there should be two options, ordered like this:
     text, matches = c.complete('mat')
