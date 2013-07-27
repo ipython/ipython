@@ -1,7 +1,5 @@
 {%- extends 'html_basic.tpl' -%}
 
-
-
 {%- block any_cell scoped -%}
 {%- if cell.metadata.slide_type in ['-', 'slide', 'subslide'] -%}  
     {{ super() }}

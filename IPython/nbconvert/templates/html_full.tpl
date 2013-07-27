@@ -1,14 +1,16 @@
 {%- extends 'html_basic.tpl' -%}
 
-{%- block header -%}<!DOCTYPE html>
+
+{%- block header -%}
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <title>[{{nb.metadata.name}}]</title>
 {% for css in resources.inlining.css -%}
-<style type="text/css">
-{{css}}
-</style>
+    <style type="text/css">
+    {{ css }}
+    </style>
 {% endfor %}
 
 <style type="text/css">
@@ -32,9 +34,7 @@ pre {
 <!-- Custom stylesheet, it must be in the same directory as the html file -->
 <link rel="stylesheet" href="custom.css">
 
-<script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript">
-
-</script>
+<script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
 <script type="text/javascript">
 init_mathjax = function() {
     if (window.MathJax) {
@@ -57,12 +57,12 @@ init_mathjax();
 </head>
 {%- endblock header -%}
 
-
 {% block body %}
-<body>{{ super() }}
+<body>
+{{ super() }}
 </body>
 {%- endblock body %}
 
-
 {% block footer %}
-</html>{% endblock footer %}
+</html>
+{% endblock footer %}

@@ -1,12 +1,17 @@
 ((*- extends 'display_priority.tplx' -*))
 
+
 \nonstopmode
 
-((* block in_prompt *))((* endblock in_prompt *))
+((* block in_prompt *))
+((* endblock in_prompt *))
 
-((* block output_prompt *))((* endblock output_prompt *))
+((* block output_prompt *))
+((* endblock output_prompt *))
 
-((* block codecell *))\begin{codecell}((( super() )))
+((* block codecell *))
+\begin{codecell}
+((( super() )))
 \end{codecell}
 ((* endblock *))
 
@@ -18,59 +23,62 @@
 \end{codeinput}
 ((* endblock input *))
 
-
 ((= Those Two are for error displaying
 even if the first one seem to do nothing, 
 it introduces a new line
-
 =))
+
 ((* block pyerr *))
 \begin{traceback}
-\begin{verbatim}((( super() )))
+\begin{verbatim}
+((( super() )))
 \end{verbatim}
 \end{traceback}
 ((* endblock pyerr *))
 
 ((* block traceback_line *))
-((( line |indent| strip_ansi )))((* endblock traceback_line *))
+((( line | indent | strip_ansi )))
+((* endblock traceback_line *))
 ((= .... =))
-
 
 ((*- block output_group -*))
 \begin{codeoutput}
 ((( super() )))
-\end{codeoutput}((* endblock *))
+\end{codeoutput}
+((* endblock *))
 
 ((*- block data_png -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.png_filename)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.png_filename )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_jpg -*))
 \begin{center}
-\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{(((output.jpeg_filename)))}
+\includegraphics[max size={0.7\textwidth}{0.9\textheight}]{((( output.jpeg_filename )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_svg -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.svg_filename)))}
+\includegraphics[width=0.7\textwidth]{((( output.svg_filename )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((*- block data_pdf -*))
 \begin{center}
-\includegraphics[width=0.7\textwidth]{(((output.pdf_filename)))}
+\includegraphics[width=0.7\textwidth]{((( output.pdf_filename )))}
 \par
 \end{center}
 ((*- endblock -*))
 
 ((* block pyout *))
-((* block data_priority scoped *))((( super() )))((* endblock *))
+((* block data_priority scoped *))
+((( super() )))
+((* endblock *))
 ((* endblock pyout *))
 
 ((* block data_text *))
@@ -81,22 +89,25 @@ it introduces a new line
 
 ((* block data_latex -*))
 ((*- if output.latex.startswith('$'): -*)) \begin{equation*}
-    ((( output.latex | strip_dollars)))
+    ((( output.latex | strip_dollars )))
     \end{equation*}
-((*- else -*)) ((( output.latex ))) ((*- endif *))
+((*- else -*))
+    ((( output.latex )))
+((*- endif *))
 ((* endblock *))
 
 ((* block stream *))
 \begin{Verbatim}[commandchars=\\\{\}]
-((( output.text | ansi2latex)))
+((( output.text | ansi2latex )))
 \end{Verbatim}
 ((* endblock stream *))
 
-((* block markdowncell scoped *))((( cell.source | markdown2latex )))
+((* block markdowncell scoped *))
+((( cell.source | markdown2latex )))
 ((* endblock markdowncell *))
 
 ((* block headingcell scoped -*))
-    ((( ('#' * cell.level + cell.source) | replace('\n', ' ') | markdown2latex )))
+((( ('#' * cell.level + cell.source) | replace('\n', ' ') | markdown2latex )))
 ((* endblock headingcell *))
 
 ((* block rawcell scoped *))
@@ -104,10 +115,8 @@ it introduces a new line
 ((* endblock rawcell *))
 
 ((* block unknowncell scoped *))
-unknown type  (((cell.type)))
+unknown type  ((( cell.type )))
 ((* endblock unknowncell *))
-
-
 
 ((* block body *))
 
