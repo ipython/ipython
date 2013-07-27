@@ -140,7 +140,6 @@ class NbConvertApp(BaseIPythonApplication):
                                     help="""Writer class used to write the 
                                     results of the conversion""")
     writer_aliases = {'FilesWriter': 'IPython.nbconvert.writers.files.FilesWriter',
-                      'PDFWriter': 'IPython.nbconvert.writers.pdf.PDFWriter',
                       'DebugWriter': 'IPython.nbconvert.writers.debug.DebugWriter',
                       'StdoutWriter': 'IPython.nbconvert.writers.stdout.StdoutWriter'}
     writer_factory = Type()
