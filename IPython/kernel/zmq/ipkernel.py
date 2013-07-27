@@ -766,6 +766,9 @@ class Kernel(Configurable):
                 ident, reply = self.session.recv(self.stdin_socket, 0)
             except Exception:
                 self.log.warn("Invalid Message:", exc_info=True)
+            except KeyboardInterrupt:
+                # re-raise KeyboardInterrupt, to truncate traceback
+                raise KeyboardInterrupt
             else:
                 break
         try:
