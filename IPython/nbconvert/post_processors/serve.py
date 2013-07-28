@@ -37,9 +37,12 @@ class ServePostProcessor(PostProcessorBase):
         Simple implementation to serve the build directory.
         """
         
-        os.chdir(self.build_directory)
-        httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
-        sa = httpd.socket.getsockname()
-        print("Serving '" + input + "' nbconverted from ipynb on http://" + sa[0] + ":" + str(sa[1]) + "/")
-        print("Use Control-C to stop this server.")
-        httpd.serve_forever()
+        try:
+            os.chdir(self.build_directory)
+            httpd = HTTPServer(('127.0.0.1', 8000), SimpleHTTPRequestHandler)
+            sa = httpd.socket.getsockname()
+            print("Serving " + input[2:] + " on http://" + sa[0] + ":" + str(sa[1]))
+            print("Use Control-C to stop this server.")
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("The server is shut down.")
