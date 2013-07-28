@@ -95,10 +95,10 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
         non-positive number disables text truncation (not recommended).
         """
     )
-    check_complete = Bool(True, config=True,
-        help="""Whether to check completion and attempt to automatically execute
-        on complete input.
-        If False, Shift-Enter is required to execute each input.
+    execute_on_complete_input = Bool(True, config=True,
+        help="""Whether to automatically execute on syntactically complete input.
+        
+        If False, Shift-Enter is required to submit each execution.
         Disabling this is mainly useful for non-Python kernels,
         where the completion check would be wrong.
         """
@@ -623,12 +623,12 @@ class ConsoleWidget(LoggingConfigurable, QtGui.QWidget):
             self.input_buffer = source
 
         # Execute the source or show a continuation prompt if it is incomplete.
-        if self.check_complete:
+        if self.execute_on_complete_input:
             complete = self._is_complete(source, interactive)
         else:
             complete = not interactive
         if hidden:
-            if complete or not self.check_complete:
+            if complete or not self.execute_on_complete_input:
                 self._execute(source, hidden)
             else:
                 error = 'Incomplete noninteractive input: "%s"'
