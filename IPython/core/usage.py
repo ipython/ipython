@@ -552,7 +552,7 @@ default_banner_parts = [
     'Type "copyright", "credits" or "license" for more information.\n\n',
     'IPython {version} ({name}) -- An enhanced Interactive Python.\n'.format(
         version=release.version,
-        name=release.unformal_name
+        name=release.codename
         ),
     quick_guide
 ]
