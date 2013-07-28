@@ -119,6 +119,10 @@ class NbConvertApp(BaseIPythonApplication):
 
         > ipython nbconvert mynotebook.ipynb --to latex --post PDF
         
+        You can get (and serve) a Reveal.js-powered slideshow
+        
+        > ipython nbconvert myslides.ipynb --to slides --post serve
+        
         Multiple notebooks can be given at the command line in a couple of 
         different ways:
   
