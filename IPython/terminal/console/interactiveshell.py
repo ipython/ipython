@@ -356,14 +356,21 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         tic = time.time()
         self.client.hb_channel.unpause()
         while True:
-            self.run_cell('1', False)
-            if self.client.hb_channel.is_beating():
-                # heart failure was not the reason this returned
-                break
-            else:
+            msg_id = self.client.kernel_info()
+            reply = None
+            while True:
+                try:
+                    reply = self.client.get_shell_msg(timeout=1)
+                except Empty:
+                    break
+                else:
+                    if reply['parent_header'].get('msg_id') == msg_id:
+                        return True
+            if timeout is not None \
+                and (time.time() - tic) > timeout \
+                and not self.client.hb_channel.is_beating():
                 # heart failed
-                if timeout is not None and (time.time() - tic) > timeout:
-                    return False
+                return False
         return True
     
     def interact(self, display_banner=None):
@@ -386,7 +393,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
         # run a non-empty no-op, so that we don't get a prompt until
         # we know the kernel is ready. This keeps the connection
         # message above the first prompt.
-        if not self.wait_for_kernel(10):
+        if not self.wait_for_kernel(60):
             error("Kernel did not respond\n")
             return
         
@@ -407,7 +414,7 @@ class ZMQTerminalInteractiveShell(TerminalInteractiveShell):
                 if ans:
                     if self.manager:
                         self.manager.restart_kernel(True)
-                    self.wait_for_kernel(10)
+                    self.wait_for_kernel(30)
                 else:
                     self.exit_now = True
                 continue
