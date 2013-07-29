@@ -63,6 +63,9 @@ there is an official public API for starting IPython:
 
 This is what packages should use that start their own IPython session,
 but don't actually want embedded IPython (most cases).
+:func:`IPython.embed()` is used for embedding IPython into the calling namespace,
+similar to calling :func:`Pdb.set_trace`, whereas :func:`start_ipython`
+will start a plain IPython session, loading config and startup files as normal.
 
 We also have added:
 
